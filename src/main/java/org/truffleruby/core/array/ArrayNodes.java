@@ -123,13 +123,21 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "a", type = RubyNode.class)
-    @NodeChild(value = "b", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "aNode", type = RubyNode.class)
+    @NodeChild(value = "bNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
-        @CreateCast("b")
+        public static AddNode create(RubyNode a, RubyBaseNodeWithExecute b) {
+            return ArrayNodesFactory.AddNodeFactory.create(a, b);
+        }
+
+        abstract RubyNode getANode();
+
+        abstract RubyBaseNodeWithExecute getBNode();
+
+        @CreateCast("bNode")
         protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
             return ToAryNodeGen.create(other);
         }
@@ -150,6 +158,19 @@ public abstract class ArrayNodes {
             as.copyContents(aStore, 0, newStore, 0, aSize);
             bs.copyContents(bStore, 0, newStore, aSize, bSize);
             return createArray(newStore, combinedSize);
+        }
+
+        private RubyBaseNodeWithExecute getBNodeBeforeCasting() {
+            return ((ToAryNode) getBNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getANode().cloneUninitialized(),
+                    getBNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -750,13 +771,21 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "arrayNode", type = RubyNode.class)
+    @NodeChild(value = "indexNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
-        @CreateCast("index")
+        public static DeleteAtNode create(RubyNode array, RubyBaseNodeWithExecute index) {
+            return ArrayNodesFactory.DeleteAtNodeFactory.create(array, index);
+        }
+
+        abstract RubyNode getArrayNode();
+
+        abstract RubyBaseNodeWithExecute getIndexNode();
+
+        @CreateCast("indexNode")
         protected ToIntNode coerceOtherToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
@@ -813,6 +842,20 @@ public abstract class ArrayNodes {
                 return value;
             }
         }
+
+        private RubyBaseNodeWithExecute getIndexNodeBeforeCasting() {
+            return ((ToIntNode) getIndexNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getArrayNode().cloneUninitialized(),
+                    getIndexNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
@@ -1300,12 +1343,20 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "from", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "selfNode", type = RubyNode.class)
+    @NodeChild(value = "fromNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
-        @CreateCast("from")
+        public static InitializeCopyNode create(RubyNode self, RubyBaseNodeWithExecute from) {
+            return ArrayNodesFactory.InitializeCopyNodeFactory.create(self, from);
+        }
+
+        abstract RubyNode getSelfNode();
+
+        abstract RubyBaseNodeWithExecute getFromNode();
+
+        @CreateCast("fromNode")
         protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
             return ToAryNodeGen.create(other);
         }
@@ -1318,6 +1369,19 @@ public abstract class ArrayNodes {
             }
             replaceNode.executeReplace(self, from);
             return self;
+        }
+
+        private RubyBaseNodeWithExecute getFromNodeBeforeCasting() {
+            return ((ToAryNode) getFromNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getSelfNode().cloneUninitialized(),
+                    getFromNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1519,9 +1583,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
+    @NodeChild(value = "arrayNode", type = RubyNode.class)
+    @NodeChild(value = "formatNode", type = RubyBaseNodeWithExecute.class)
     @ReportPolymorphism
     public abstract static class PackNode extends CoreMethodNode {
 
@@ -1531,7 +1595,15 @@ public abstract class ArrayNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
 
-        @CreateCast("format")
+        public static PackNode create(RubyNode array, RubyBaseNodeWithExecute format) {
+            return ArrayNodesFactory.PackNodeFactory.create(array, format);
+        }
+
+        abstract RubyNode getArrayNode();
+
+        abstract RubyBaseNodeWithExecute getFormatNode();
+
+        @CreateCast("formatNode")
         protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
         }
@@ -1614,6 +1686,19 @@ public abstract class ArrayNodes {
 
         protected int getCacheLimit() {
             return getLanguage().options.PACK_CACHE;
+        }
+
+        private RubyBaseNodeWithExecute getFormatNodeBeforeCasting() {
+            return ((ToStrNode) getFormatNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getArrayNode().cloneUninitialized(),
+                    getFormatNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1866,8 +1951,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "arrayNode", type = RubyNode.class)
+    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
@@ -1876,9 +1961,17 @@ public abstract class ArrayNodes {
             return ReplaceNodeFactory.create(null, null);
         }
 
+        public static ReplaceNode create(RubyNode array, RubyBaseNodeWithExecute other) {
+            return ReplaceNodeFactory.create(array, other);
+        }
+
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
-        @CreateCast("other")
+        abstract RubyNode getArrayNode();
+
+        abstract RubyBaseNodeWithExecute getOtherNode();
+
+        @CreateCast("otherNode")
         protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute index) {
             return ToAryNodeGen.create(index);
         }
@@ -1896,6 +1989,19 @@ public abstract class ArrayNodes {
             }
             setStoreAndSize(array, store, size);
             return array;
+        }
+
+        private RubyBaseNodeWithExecute getOtherNodeBeforeCasting() {
+            return ((ToAryNode) getOtherNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getArrayNode().cloneUninitialized(),
+                    getOtherNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }

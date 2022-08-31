@@ -31,7 +31,7 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute
         this.defaultValue = defaultValue;
     }
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected boolean doDefault(NotProvided value) {

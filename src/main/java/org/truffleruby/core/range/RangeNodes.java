@@ -375,15 +375,28 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "new", constructor = true, required = 2, optional = 1)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
-    @NodeChild(value = "begin", type = RubyNode.class)
-    @NodeChild(value = "end", type = RubyNode.class)
-    @NodeChild(value = "excludeEnd", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
+    @NodeChild(value = "beginNode", type = RubyNode.class)
+    @NodeChild(value = "endNode", type = RubyNode.class)
+    @NodeChild(value = "excludeEndNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        @CreateCast("excludeEnd")
+        @CreateCast("excludeEndNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute excludeEnd) {
             return BooleanCastWithDefaultNode.create(false, excludeEnd);
+        }
+
+        abstract RubyNode getRubyClassNode();
+
+        abstract RubyNode getBeginNode();
+
+        abstract RubyNode getEndNode();
+
+        abstract RubyBaseNodeWithExecute getExcludeEndNode();
+
+        public static NewNode create(RubyNode rubyClass, RubyNode begin, RubyNode end,
+                RubyBaseNodeWithExecute excludeEnd) {
+            return RangeNodesFactory.NewNodeFactory.create(rubyClass, begin, end, excludeEnd);
         }
 
         @Specialization(guards = "rubyClass == getRangeClass()")
@@ -420,6 +433,22 @@ public abstract class RangeNodes {
         protected RubyClass getRangeClass() {
             return coreLibrary().rangeClass;
         }
+
+        private RubyBaseNodeWithExecute getExcludeEndNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getExcludeEndNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getRubyClassNode().cloneUninitialized(),
+                    getBeginNode().cloneUninitialized(),
+                    getEndNode().cloneUninitialized(),
+                    getExcludeEndNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @GenerateUncached

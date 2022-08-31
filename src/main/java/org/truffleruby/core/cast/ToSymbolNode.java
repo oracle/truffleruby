@@ -43,7 +43,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
 
     public abstract RubySymbol execute(Object object);
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected RubySymbol symbol(RubySymbol symbol) {

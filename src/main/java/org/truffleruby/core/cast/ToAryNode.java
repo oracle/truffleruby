@@ -32,7 +32,7 @@ public abstract class ToAryNode extends RubyBaseNodeWithExecute {
 
     public abstract RubyArray executeToAry(Object object);
 
-    abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyArray coerceRubyArray(RubyArray array) {

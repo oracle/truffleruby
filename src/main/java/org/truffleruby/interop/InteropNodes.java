@@ -1568,13 +1568,21 @@ public abstract class InteropNodes {
 
     // region Import/Export
     @CoreMethod(names = "export", onSingleton = true, required = 2)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyNode.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
     public abstract static class ExportNode extends CoreMethodNode {
 
-        @CreateCast("name")
+        @CreateCast("nameNode")
         protected RubyNode coerceNameToString(RubyNode name) {
             return ToJavaStringNode.create(name);
+        }
+
+        abstract RubyNode getNameNode();
+
+        abstract RubyNode getObjectNode();
+
+        public static ExportNode create(RubyNode name, RubyNode object) {
+            return InteropNodesFactory.ExportNodeFactory.create(name, object);
         }
 
         @TruffleBoundary
@@ -1583,15 +1591,35 @@ public abstract class InteropNodes {
             getContext().getEnv().exportSymbol(name, object);
             return object;
         }
+
+        private RubyNode getNameNodeBeforeCasting() {
+            return ((ToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getNameNodeBeforeCasting().cloneUninitialized(),
+                    getObjectNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "import", onSingleton = true, required = 1)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyNode.class)
     public abstract static class ImportNode extends CoreMethodNode {
 
-        @CreateCast("name")
+        @CreateCast("nameNode")
         protected RubyNode coerceNameToString(RubyNode name) {
             return ToJavaStringNode.create(name);
+        }
+
+        abstract RubyNode getNameNode();
+
+        public static ImportNode create(RubyNode name) {
+            return InteropNodesFactory.ImportNodeFactory.create(name);
         }
 
         @Specialization
@@ -1610,6 +1638,17 @@ public abstract class InteropNodes {
         @TruffleBoundary
         private Object doImport(String name) {
             return getContext().getEnv().importSymbol(name);
+        }
+
+        private RubyNode getNameNodeBeforeCasting() {
+            return ((ToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(getNameNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -2350,14 +2389,24 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_short", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
     public abstract static class ReadBufferShortNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        public static ReadBufferShortNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset) {
+            return InteropNodesFactory.ReadBufferShortNodeFactory.create(receiver, byteOrder, byteOffset);
         }
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2371,18 +2420,45 @@ public abstract class InteropNodes {
             }
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "write_buffer_short", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class WriteBufferShortNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        abstract RubyNode getValueNode();
+
+        public static WriteBufferShortNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset,
+                RubyNode value) {
+            return InteropNodesFactory.WriteBufferShortNodeFactory.create(receiver, byteOrder, byteOffset, value);
         }
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInShort(value)")
@@ -2399,17 +2475,42 @@ public abstract class InteropNodes {
             return value;
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "read_buffer_int", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
     public abstract static class ReadBufferIntNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        public static ReadBufferIntNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset) {
+            return InteropNodesFactory.ReadBufferIntNodeFactory.create(receiver, byteOrder, byteOffset);
         }
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2423,18 +2524,45 @@ public abstract class InteropNodes {
             }
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "write_buffer_int", onSingleton = true, required = 4, lowerFixnum = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class WriteBufferIntNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        abstract RubyNode getValueNode();
+
+        public static WriteBufferIntNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset,
+                RubyNode value) {
+            return InteropNodesFactory.WriteBufferIntNodeFactory.create(receiver, byteOrder, byteOffset, value);
         }
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInInt(value)")
@@ -2451,17 +2579,42 @@ public abstract class InteropNodes {
             return value;
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "read_buffer_long", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
     public abstract static class ReadBufferLongNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        public static ReadBufferLongNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset) {
+            return InteropNodesFactory.ReadBufferLongNodeFactory.create(receiver, byteOrder, byteOffset);
         }
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2475,18 +2628,45 @@ public abstract class InteropNodes {
             }
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "write_buffer_long", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class WriteBufferLongNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        abstract RubyNode getValueNode();
+
+        public static WriteBufferLongNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset,
+                RubyNode value) {
+            return InteropNodesFactory.WriteBufferLongNodeFactory.create(receiver, byteOrder, byteOffset, value);
         }
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInLong(value)")
@@ -2503,17 +2683,42 @@ public abstract class InteropNodes {
             return value;
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "read_buffer_float", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
     public abstract static class ReadBufferFloatNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        public static ReadBufferFloatNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset) {
+            return InteropNodesFactory.ReadBufferFloatNodeFactory.create(receiver, byteOrder, byteOffset);
         }
 
         // must return double so Ruby nodes can deal with it
@@ -2528,18 +2733,45 @@ public abstract class InteropNodes {
             }
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "write_buffer_float", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class WriteBufferFloatNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        abstract RubyNode getValueNode();
+
+        public static WriteBufferFloatNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset,
+                RubyNode value) {
+            return InteropNodesFactory.WriteBufferFloatNodeFactory.create(receiver, byteOrder, byteOffset, value);
         }
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
@@ -2556,17 +2788,41 @@ public abstract class InteropNodes {
             return value;
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
     }
 
     @CoreMethod(names = "read_buffer_double", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
     public abstract static class ReadBufferDoubleNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        public static ReadBufferDoubleNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset) {
+            return InteropNodesFactory.ReadBufferDoubleNodeFactory.create(receiver, byteOrder, byteOffset);
         }
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2580,18 +2836,45 @@ public abstract class InteropNodes {
             }
         }
 
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "write_buffer_double", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "receiverNode", type = RubyNode.class)
+    @NodeChild(value = "byteOrderNode", type = RubyNode.class)
+    @NodeChild(value = "byteOffsetNode", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class WriteBufferDoubleNode extends CoreMethodNode {
 
-        @CreateCast("byteOrder")
+        @CreateCast("byteOrderNode")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        abstract RubyNode getReceiverNode();
+
+        abstract RubyNode getByteOrderNode();
+
+        abstract RubyNode getByteOffsetNode();
+
+        abstract RubyNode getValueNode();
+
+        public static WriteBufferDoubleNode create(RubyNode receiver, RubyNode byteOrder, RubyNode byteOffset,
+                RubyNode value) {
+            return InteropNodesFactory.WriteBufferDoubleNodeFactory.create(receiver, byteOrder, byteOffset, value);
         }
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
@@ -2606,6 +2889,21 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(e);
             }
             return value;
+        }
+
+        private RubyNode getByteOrderNodeBeforeCasting() {
+            return ((SymbolToByteOrderNode) getByteOrderNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getReceiverNode().cloneUninitialized(),
+                    getByteOrderNodeBeforeCasting().cloneUninitialized(),
+                    getByteOffsetNode().cloneUninitialized(),
+                    getValueNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }

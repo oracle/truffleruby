@@ -443,13 +443,23 @@ public abstract class EncodingConverterNodes {
     }
 
     @CoreMethod(names = "replacement=", required = 1)
-    @NodeChild(value = "encodingConverter", type = RubyNode.class)
-    @NodeChild(value = "replacement", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "encodingConverterNode", type = RubyNode.class)
+    @NodeChild(value = "replacementNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
-        @CreateCast("replacement")
+        @CreateCast("replacementNode")
         protected ToStrNode coerceReplacementToString(RubyBaseNodeWithExecute replacement) {
             return ToStrNodeGen.create(replacement);
+        }
+
+        abstract RubyNode getEncodingConverterNode();
+
+        abstract RubyBaseNodeWithExecute getReplacementNode();
+
+        public static EncodingConverterSetReplacementNode create(RubyNode encodingConverter,
+                RubyBaseNodeWithExecute replacement) {
+            return EncodingConverterNodesFactory.EncodingConverterSetReplacementNodeFactory.create(encodingConverter,
+                    replacement);
         }
 
         @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
@@ -477,6 +487,19 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         private int setReplacement(EConv ec, byte[] bytes, int offset, int len, byte[] encodingName) {
             return ec.setReplacement(bytes, offset, len, encodingName);
+        }
+
+        private RubyBaseNodeWithExecute getReplacementNodeBeforeCasting() {
+            return ((ToStrNode) getReplacementNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getEncodingConverterNode().cloneUninitialized(),
+                    getReplacementNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }

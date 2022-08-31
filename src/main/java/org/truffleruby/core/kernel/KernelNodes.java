@@ -1253,11 +1253,19 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "regularNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class MethodsNode extends CoreMethodNode {
 
-        @CreateCast("regular")
+        public static MethodsNode create(RubyNode object, RubyBaseNodeWithExecute regular) {
+            return KernelNodesFactory.MethodsNodeFactory.create(object, regular);
+        }
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getRegularNode();
+
+        @CreateCast("regularNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute regular) {
             return BooleanCastWithDefaultNode.create(true, regular);
         }
@@ -1278,6 +1286,19 @@ public abstract class KernelNodes {
         protected RubyArray methodsSingleton(VirtualFrame frame, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
+        }
+
+        private RubyBaseNodeWithExecute getRegularNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getRegularNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getRegularNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1312,13 +1333,21 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "private_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
-        @CreateCast("includeAncestors")
+        public static PrivateMethodsNode create(RubyNode object, RubyBaseNodeWithExecute includeAncestors) {
+            return KernelNodesFactory.PrivateMethodsNodeFactory.create(object, includeAncestors);
+        }
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
+
+        @CreateCast("includeAncestorsNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -1332,6 +1361,19 @@ public abstract class KernelNodes {
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PRIVATE)
                     .toArray();
             return createArray(objects);
+        }
+
+        private RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1348,13 +1390,21 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "protected_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
-        @CreateCast("includeAncestors")
+        public static ProtectedMethodsNode create(RubyNode object, RubyBaseNodeWithExecute includeAncestors) {
+            return KernelNodesFactory.ProtectedMethodsNodeFactory.create(object, includeAncestors);
+        }
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
+
+        @CreateCast("includeAncestorsNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -1368,6 +1418,19 @@ public abstract class KernelNodes {
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PROTECTED)
                     .toArray();
             return createArray(objects);
+        }
+
+        private RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1388,13 +1451,21 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "public_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
-        @CreateCast("includeAncestors")
+        public static PublicMethodsNode create(RubyNode object, RubyBaseNodeWithExecute includeAncestors) {
+            return KernelNodesFactory.PublicMethodsNodeFactory.create(object, includeAncestors);
+        }
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
+
+        @CreateCast("includeAncestorsNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -1408,6 +1479,19 @@ public abstract class KernelNodes {
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
                     .toArray();
             return createArray(objects);
+        }
+
+        private RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1525,13 +1609,21 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_method", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
-        @CreateCast("name")
+        public static SingletonMethodNode create(RubyNode object, RubyBaseNodeWithExecute name) {
+            return KernelNodesFactory.SingletonMethodNodeFactory.create(object, name);
+        }
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -1562,20 +1654,42 @@ public abstract class KernelNodes {
                     coreExceptions().nameErrorUndefinedSingletonMethod(name, self, this));
         }
 
+        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     @CoreMethod(names = "singleton_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "objectNode", type = RubyNode.class)
+    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
 
         public static SingletonMethodsNode create() {
             return SingletonMethodsNodeFactory.create(null, null);
         }
 
+        public static SingletonMethodsNode create(RubyNode object, RubyBaseNodeWithExecute includeAncestors) {
+            return SingletonMethodsNodeFactory.create(object, includeAncestors);
+        }
+
         public abstract RubyArray executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
 
-        @CreateCast("includeAncestors")
+
+        abstract RubyNode getObjectNode();
+
+        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
+
+        @CreateCast("includeAncestorsNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -1594,6 +1708,19 @@ public abstract class KernelNodes {
                     .filterSingletonMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
+        }
+
+        private RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getObjectNode().cloneUninitialized(),
+                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -1661,8 +1788,8 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
     @ReportPolymorphism
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "formatNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "argumentsNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class SprintfNode extends CoreMethodNode {
 
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
@@ -1672,7 +1799,15 @@ public abstract class KernelNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
 
-        @CreateCast("format")
+        public static SprintfNode create(RubyBaseNodeWithExecute format, RubyBaseNodeWithExecute arguments) {
+            return KernelNodesFactory.SprintfNodeFactory.create(format, arguments);
+        }
+
+        abstract RubyBaseNodeWithExecute getFormatNode();
+
+        abstract RubyBaseNodeWithExecute getArgumentsNode();
+
+        @CreateCast("formatNode")
         protected ToStrNode coerceFormatToString(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
         }
@@ -1753,6 +1888,19 @@ public abstract class KernelNodes {
 
         protected boolean isDebug(VirtualFrame frame) {
             return readDebugGlobalNode.execute(frame);
+        }
+
+        private RubyBaseNodeWithExecute getFormatNodeBeforeCasting() {
+            return ((ToStrNode) getFormatNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getFormatNodeBeforeCasting().cloneUninitialized(),
+                    getArgumentsNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }

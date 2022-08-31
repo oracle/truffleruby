@@ -44,7 +44,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public abstract String execute(Object name);
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization(guards = "strings.isRubyString(value)", limit = "1")
     protected String stringNameToJavaString(Object value,

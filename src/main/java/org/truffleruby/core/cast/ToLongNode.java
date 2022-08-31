@@ -37,7 +37,7 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
 
     public abstract long execute(Object object);
 
-    abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected long coerceInt(int value) {

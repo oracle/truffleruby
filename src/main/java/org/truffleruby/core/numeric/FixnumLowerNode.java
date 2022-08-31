@@ -36,7 +36,7 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
     public abstract Object executeLower(Object value);
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected int lower(int value) {

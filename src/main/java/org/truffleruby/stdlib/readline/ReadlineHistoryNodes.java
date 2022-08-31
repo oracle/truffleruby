@@ -215,18 +215,26 @@ public abstract class ReadlineHistoryNodes {
     }
 
     @CoreMethod(names = "[]=", needsSelf = false, lowerFixnum = 1, required = 2)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "line", type = RubyNode.class)
+    @NodeChild(value = "indexNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "lineNode", type = RubyNode.class)
     public abstract static class SetIndexNode extends CoreMethodNode {
 
-        @CreateCast("index")
+        @CreateCast("indexNode")
         protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
-        @CreateCast("line")
+        @CreateCast("lineNode")
         protected RubyNode coerceLineToJavaString(RubyNode line) {
             return ToJavaStringNode.create(line);
+        }
+
+        abstract RubyBaseNodeWithExecute getIndexNode();
+
+        abstract RubyNode getLineNode();
+
+        public static SetIndexNode create(RubyBaseNodeWithExecute index, RubyNode line) {
+            return ReadlineHistoryNodesFactory.SetIndexNodeFactory.create(index, line);
         }
 
         @TruffleBoundary
@@ -242,6 +250,23 @@ public abstract class ReadlineHistoryNodes {
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }
+        }
+
+        private RubyBaseNodeWithExecute getIndexNodeBeforeCasting() {
+            return ((ToIntNode) getIndexNode()).getChildNode();
+        }
+
+        private RubyNode getLineNodeBeforeCasting() {
+            return ((ToJavaStringNode) getLineNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getIndexNodeBeforeCasting().cloneUninitialized(),
+                    getLineNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
