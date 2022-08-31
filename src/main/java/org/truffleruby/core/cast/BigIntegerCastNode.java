@@ -21,12 +21,14 @@ import org.truffleruby.language.control.RaiseException;
 import java.math.BigInteger;
 
 /** Casts a value into a BigInteger. */
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
 
     public static BigIntegerCastNode create(RubyBaseNodeWithExecute value) {
         return BigIntegerCastNodeGen.create(value);
     }
+
+    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected BigInteger doInt(int value) {
@@ -56,4 +58,8 @@ public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
                 this);
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getValueNode().cloneUninitialized());
+    }
 }

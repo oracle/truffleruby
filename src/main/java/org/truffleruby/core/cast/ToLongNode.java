@@ -24,7 +24,7 @@ import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
-@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToLongNode extends RubyBaseNodeWithExecute {
 
     public static ToLongNode create() {
@@ -36,6 +36,8 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
     }
 
     public abstract long execute(Object object);
+
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected long coerceInt(int value) {
@@ -86,5 +88,10 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
         final Object coerced = toIntNode
                 .call(coreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
+    }
+
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getChildNode().cloneUninitialized());
     }
 }

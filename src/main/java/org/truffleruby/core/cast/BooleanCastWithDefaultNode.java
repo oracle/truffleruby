@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Casts a value into a boolean and defaults to the given value if not provided. */
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute {
 
     public static BooleanCastWithDefaultNode create(boolean defaultValue, RubyBaseNodeWithExecute node) {
@@ -31,6 +31,8 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute
         this.defaultValue = defaultValue;
     }
 
+    abstract RubyBaseNodeWithExecute getValueNode();
+
     @Specialization
     protected boolean doDefault(NotProvided value) {
         return defaultValue;
@@ -42,4 +44,8 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute
         return booleanCastNode.execute(value);
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(defaultValue, getValueNode().cloneUninitialized());
+    }
 }

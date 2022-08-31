@@ -24,14 +24,20 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
-@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToStrNode extends RubyBaseNodeWithExecute {
 
     public static ToStrNode create() {
         return ToStrNodeGen.create(null);
     }
 
+    public static ToStrNode create(RubyBaseNodeWithExecute child) {
+        return ToStrNodeGen.create(child);
+    }
+
     public abstract Object execute(Object object);
+
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyString coerceRubyString(RubyString string) {
@@ -72,4 +78,8 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
         }
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getChildNode().cloneUninitialized());
+    }
 }

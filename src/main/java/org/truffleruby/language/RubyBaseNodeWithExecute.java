@@ -23,4 +23,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class RubyBaseNodeWithExecute extends RubyBaseNode {
     // Fundamental execute methods
     public abstract Object execute(VirtualFrame frame);
+
+    public abstract RubyBaseNodeWithExecute cloneUninitialized();
 }

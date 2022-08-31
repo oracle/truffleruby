@@ -25,14 +25,20 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are. */
 @GenerateUncached
-@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
 
     public static ToStringOrSymbolNode create() {
         return ToStringOrSymbolNodeGen.create(null);
     }
 
+    public static ToStringOrSymbolNode create(RubyBaseNodeWithExecute child) {
+        return ToStringOrSymbolNodeGen.create(child);
+    }
+
     public abstract Object execute(Object value);
+
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubySymbol coerceRubySymbol(RubySymbol symbol) {
@@ -78,4 +84,8 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
         }
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getChildNode().cloneUninitialized());
+    }
 }

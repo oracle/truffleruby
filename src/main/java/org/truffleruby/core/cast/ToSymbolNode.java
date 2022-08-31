@@ -26,7 +26,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.utils.Utils;
 
 @GenerateUncached
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
 
     public static ToSymbolNode create() {
@@ -42,6 +42,8 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     }
 
     public abstract RubySymbol execute(Object object);
+
+    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected RubySymbol symbol(RubySymbol symbol) {
@@ -114,4 +116,10 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected int getCacheLimit() {
         return getLanguage().options.DISPATCH_CACHE;
     }
+
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getValueNode().cloneUninitialized());
+    }
+
 }

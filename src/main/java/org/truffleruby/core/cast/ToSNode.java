@@ -22,10 +22,16 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToSNode extends RubyBaseNodeWithExecute {
 
     @Child private KernelNodes.ToSNode kernelToSNode;
+
+    public static ToSNode create(RubyBaseNodeWithExecute value) {
+        return ToSNodeGen.create(value);
+    }
+
+    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected RubyString toS(RubyString string) {
@@ -58,4 +64,8 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
         return kernelToSNode.executeToS(object);
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getValueNode().cloneUninitialized());
+    }
 }
