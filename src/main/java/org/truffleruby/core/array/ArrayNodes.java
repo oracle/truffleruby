@@ -662,7 +662,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
@@ -1005,7 +1004,6 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
-    @ReportPolymorphism
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
         @Specialization(
@@ -1331,7 +1329,6 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_inject")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
@@ -1339,13 +1336,11 @@ public abstract class ArrayNodes {
         // Uses block
 
         @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
-        @ReportPolymorphism.Exclude
         protected Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
             return initialOrSymbol;
         }
 
         @Specialization(guards = { "isEmptyArray(array)" })
-        @ReportPolymorphism.Exclude
         protected Object injectEmptyArrayNoInitial(
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block) {
             return nil;
@@ -1484,7 +1479,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -1757,7 +1751,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class RejectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -1792,7 +1785,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject!", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
 
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
@@ -2048,7 +2040,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "select", "filter" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class SelectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -2159,11 +2150,9 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "sort", needsBlock = true)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "isEmptyArray(array)")
-        @ReportPolymorphism.Exclude
         protected RubyArray sortEmpty(RubyArray array, Object unusedBlock) {
             return createEmptyArray();
         }

@@ -288,6 +288,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                 coreMethod.required() + ", " +
                 coreMethod.optional() + ", " +
                 coreMethod.rest() + ", " +
+                coreMethod.needsBlock() + ", " +
                 names + ");");
 
         int numberOfArguments = getNumberOfArguments(coreMethod);

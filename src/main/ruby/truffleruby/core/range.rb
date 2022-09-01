@@ -537,6 +537,7 @@ class Range
       super(&block)
     end
   end
+  Truffle::Graal.always_split instance_method(:map)
   alias_method :collect, :map
 
   private def to_a_internal # MODIFIED called from java to_a

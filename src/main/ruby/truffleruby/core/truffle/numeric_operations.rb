@@ -71,6 +71,7 @@ module Truffle
         end
       end
     end
+    Truffle::Graal.always_split method(:step_non_float)
 
     def self.step_float(value, limit, step, desc)
       n = float_step_size(value, limit, step, false)
@@ -102,6 +103,7 @@ module Truffle
         end
       end
     end
+    Truffle::Graal.always_split method(:step_float)
 
     def self.float_step_size(value, limit, step, exclude_end)
       if step.infinite?

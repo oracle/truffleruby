@@ -1441,7 +1441,7 @@ public abstract class ModuleNodes {
     }
 
 
-    @CoreMethod(names = "initialize", needsBlock = true)
+    @CoreMethod(names = "initialize", needsBlock = true) // Ideally should not split if no block given
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ClassExecNode classExecNode;
@@ -2249,10 +2249,8 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "refine", needsBlock = true, required = 1, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "refine", needsBlock = true, required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
     public abstract static class RefineNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
         protected RubyModule refine(RubyModule self, Object moduleToRefine, Nil block) {
@@ -2297,7 +2295,7 @@ public abstract class ModuleNodes {
                 }
             }
 
-            callBlockNode.executeCallBlock(
+            CallBlockNode.getUncached().executeCallBlock(
                     declarationContext,
                     block,
                     refinement,

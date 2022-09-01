@@ -10,6 +10,8 @@
 package org.truffleruby.language.methods;
 
 public enum Split {
+    /** Special value for the CoreMethod annotation, resolved to either HEURISTIC or ALWAYS, based on needsBlock */
+    DEFAULT,
     ALWAYS,
     HEURISTIC,
     /** Disallow splitting for this CallTarget, which avoids making a eager uninitialized copy of the AST. Useful

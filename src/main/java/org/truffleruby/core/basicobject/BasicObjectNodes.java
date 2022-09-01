@@ -56,6 +56,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -465,7 +466,8 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = "method_missing", needsBlock = true, rest = true, optional = 1, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "method_missing", needsBlock = true, rest = true, optional = 1, visibility = Visibility.PRIVATE,
+            split = Split.NEVER)
     public abstract static class MethodMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

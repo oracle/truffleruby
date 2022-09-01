@@ -217,6 +217,7 @@ module MonitorMixin
   def mon_synchronize(&block)
     Primitive.monitor_synchronize(@mon_mutex, block)
   end
+  Truffle::Graal.always_split instance_method(:mon_synchronize)
   alias synchronize mon_synchronize
 
   #

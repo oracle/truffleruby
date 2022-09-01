@@ -51,6 +51,13 @@ public @interface CoreMethod {
      * RubyHash, and the arguments descriptor will tell if it was kwargs or positional, as always. */
     boolean rest() default false;
 
+    /** Passes the optional block as an argument to the node. Also causes {@link Split#DEFAULT} to be resolved to
+     * {@link Split#ALWAYS}, unless {@link #split()} is set to a non-default value, since if a block is passed and the
+     * block is called it is necessary to split for the best performance. Splitting eagerly instead of lazily via the
+     * heuristic avoids an extra copy and works better with {@code RubyRootNode#getParentFrameDescriptor()} when the
+     * possible loop in this core method does many iterations on the first method call as it then preserves the
+     * single-caller chain from the beginning, instead of breaking it until split and executed again for the first and
+     * second call sites. {@link Split#NEVER} should be used if this method never calls the block but just stores it. */
     boolean needsBlock() default false;
 
     /** Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long. The 0 is reserved for
@@ -73,6 +80,6 @@ public @interface CoreMethod {
     /** Use these names in Ruby core methods stubs, ignore argument names in Java specializations. */
     String[] argumentNames() default {};
 
-    Split split() default Split.HEURISTIC;
+    Split split() default Split.DEFAULT;
 
 }

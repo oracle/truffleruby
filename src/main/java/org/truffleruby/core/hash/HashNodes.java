@@ -39,6 +39,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -362,7 +363,8 @@ public abstract class HashNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", needsBlock = true, optional = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "initialize", needsBlock = true, optional = 1, raiseIfFrozenSelf = true,
+            split = Split.HEURISTIC)
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 

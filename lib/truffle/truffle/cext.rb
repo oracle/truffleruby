@@ -12,6 +12,8 @@ require_relative 'cext_ruby'
 require_relative 'cext_constants'
 require_relative 'cext_structs'
 
+# TODO (eregon, 1 Sep 2022): should we always_split or use separate CallTargets for usages of Primitive.call_with* in this file?
+
 module Truffle::CExt
   DATA_TYPE = Primitive.object_hidden_var_create :data_type
   DATA_HOLDER = Primitive.object_hidden_var_create :data_holder
@@ -978,6 +980,7 @@ module Truffle::CExt
       end
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_hash_foreach)
 
   def rb_path_to_class(path)
     begin
@@ -1046,6 +1049,7 @@ module Truffle::CExt
     Truffle::Interop.execute_without_conversion(write_status, status, pos)
     res
   end
+  Truffle::Graal.always_split instance_method(:rb_protect)
 
   def rb_jump_tag(pos)
     if pos > 0
@@ -1064,10 +1068,12 @@ module Truffle::CExt
   def rb_yield(value)
     Primitive.interop_execute(rb_block_proc, [value])
   end
+  Truffle::Graal.always_split instance_method(:rb_yield)
 
   def rb_yield_splat(values)
     Primitive.interop_execute(rb_block_proc, values)
   end
+  Truffle::Graal.always_split instance_method(:rb_yield_splat)
 
   def rb_ivar_lookup(object, name, default_value)
     # TODO CS 24-Jul-16 races - needs a new primitive or be defined in Java?
@@ -1396,6 +1402,7 @@ module Truffle::CExt
       Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(arg)]))
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
 
   def rb_gc_enable
     GC.enable
@@ -1547,6 +1554,7 @@ module Truffle::CExt
       Primitive.interop_execute(e_proc, [data2])
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_ensure)
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
@@ -1559,6 +1567,7 @@ module Truffle::CExt
       end
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_rescue)
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
@@ -1567,6 +1576,7 @@ module Truffle::CExt
       Primitive.interop_execute(r_proc, [data2, Primitive.cext_wrap(e)])
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_rescue2)
 
   def rb_exec_recursive(func, obj, arg)
     result = nil
@@ -1581,6 +1591,7 @@ module Truffle::CExt
       result
     end
   end
+  Truffle::Graal.always_split instance_method(:rb_exec_recursive)
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|

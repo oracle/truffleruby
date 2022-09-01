@@ -121,6 +121,16 @@ public class CoreMethodNodeManager {
         return SingletonClassNode.getUncached().executeSingletonClass(object);
     }
 
+    private Split effectiveSplit(Split split, boolean needsBlock) {
+        if (context.getOptions().CORE_ALWAYS_CLONE) {
+            return Split.ALWAYS;
+        } else if (split == Split.DEFAULT) {
+            return needsBlock ? Split.ALWAYS : Split.HEURISTIC;
+        } else {
+            return split;
+        }
+    }
+
     private void addCoreMethod(RubyModule module, MethodDetails methodDetails) {
         final CoreMethod annotation = methodDetails.getMethodAnnotation();
 
@@ -134,7 +144,7 @@ public class CoreMethodNodeManager {
         final NodeFactory<? extends RubyBaseNode> nodeFactory = methodDetails.getNodeFactory();
         final boolean onSingleton = annotation.onSingleton() || annotation.constructor();
         final boolean isModuleFunc = annotation.isModuleFunction();
-        final Split split = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : annotation.split();
+        final Split split = effectiveSplit(annotation.split(), annotation.needsBlock());
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
             return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, split, annotation);
@@ -164,6 +174,7 @@ public class CoreMethodNodeManager {
             int required,
             int optional,
             boolean rest,
+            boolean needsBlock,
             String... names) {
 
         final RubyModule module = getModule(moduleName, isClass);
@@ -172,7 +183,7 @@ public class CoreMethodNodeManager {
         if (alwaysInlined) {
             finalSplit = Split.NEVER;
         } else {
-            finalSplit = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : split;
+            finalSplit = effectiveSplit(split, needsBlock);
         }
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
@@ -329,7 +340,7 @@ public class CoreMethodNodeManager {
 
             if (method.lowerFixnum().length > 0 || method.raiseIfFrozenSelf() || method.raiseIfNotMutableSelf() ||
                     method.returnsEnumeratorIfNoBlock() || !method.enumeratorSize().isEmpty() ||
-                    method.split() != Split.HEURISTIC) {
+                    method.split() != Split.DEFAULT) {
                 throw new Error("Always-inlined methods do not support all @CoreMethod attributes for " + nodeClass);
             }
 

@@ -121,6 +121,7 @@ import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
@@ -1153,7 +1154,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true)
+    @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true, split = Split.HEURISTIC)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1322,7 +1323,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "proc", isModuleFunction = true, needsBlock = true)
+    @CoreMethod(names = "proc", isModuleFunction = true, needsBlock = true, split = Split.HEURISTIC)
     public abstract static class ProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
