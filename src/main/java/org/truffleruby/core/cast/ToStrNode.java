@@ -37,7 +37,7 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
 
     public abstract Object execute(Object object);
 
-    abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyString coerceRubyString(RubyString string) {

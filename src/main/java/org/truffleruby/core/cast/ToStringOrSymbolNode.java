@@ -38,7 +38,7 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
 
     public abstract Object execute(Object value);
 
-    abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubySymbol coerceRubySymbol(RubySymbol symbol) {

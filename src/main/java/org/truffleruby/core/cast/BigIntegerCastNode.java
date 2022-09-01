@@ -28,7 +28,7 @@ public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
         return BigIntegerCastNodeGen.create(value);
     }
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected BigInteger doInt(int value) {

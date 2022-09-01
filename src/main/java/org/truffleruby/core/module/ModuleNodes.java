@@ -50,6 +50,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
@@ -1181,11 +1182,11 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_const_get")
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
-    @NodeChild(value = "look_in_object", type = RubyNode.class)
-    @NodeChild(value = "check_name", type = RubyNode.class)
+    @NodeChild(value = "moduleNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inheritNode", type = RubyNode.class)
+    @NodeChild(value = "lookInObjectNode", type = RubyNode.class)
+    @NodeChild(value = "checkNameNode", type = RubyNode.class)
     public abstract static class ConstGetNode extends PrimitiveNode {
 
         @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);
@@ -1193,7 +1194,22 @@ public abstract class ModuleNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
         @Child private ByteIndexOfStringNode byteIndexOfStringNode;
 
-        @CreateCast("name")
+        public static ConstGetNode create(RubyNode module, RubyBaseNodeWithExecute name, RubyNode inherit,
+                RubyNode lookInObject, RubyNode checkName) {
+            return ModuleNodesFactory.ConstGetNodeFactory.create(module, name, inherit, lookInObject, checkName);
+        }
+
+        abstract RubyNode getModuleNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        abstract RubyNode getInheritNode();
+
+        abstract RubyNode getLookInObjectNode();
+
+        abstract RubyNode getCheckNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToSymbolOrString(RubyBaseNodeWithExecute name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return ToStringOrSymbolNodeGen.create(name);
@@ -1307,6 +1323,22 @@ public abstract class ModuleNodes {
 
         protected int getLimit() {
             return getLanguage().options.CONSTANT_CACHE;
+        }
+
+        RubyBaseNodeWithExecute getNameBeforeCasting() {
+            return ((ToStringOrSymbolNode) getNameNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getModuleNode().cloneUninitialized(),
+                    getNameBeforeCasting().cloneUninitialized(),
+                    getInheritNode().cloneUninitialized(),
+                    getLookInObjectNode().cloneUninitialized(),
+                    getCheckNameNode().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
@@ -2570,11 +2602,19 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_remove_const")
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "moduleNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveConstNode extends PrimitiveNode {
 
-        @CreateCast("name")
+        public static RemoveConstNode create(RubyNode module, RubyBaseNodeWithExecute name) {
+            return ModuleNodesFactory.RemoveConstNodeFactory.create(module, name);
+        }
+
+        abstract RubyNode getModuleNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -2595,6 +2635,18 @@ public abstract class ModuleNodes {
             }
         }
 
+        RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getModuleNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
     }
 
     @CoreMethod(names = "remove_method", rest = true)

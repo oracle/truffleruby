@@ -850,8 +850,8 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_casecmp")
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "stringNode", type = RubyNode.class)
+    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class CaseCmpNode extends PrimitiveNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
@@ -860,7 +860,15 @@ public abstract class StringNodes {
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
         private final ConditionProfile sameProfile = ConditionProfile.create();
 
-        @CreateCast("other")
+        public static CaseCmpNode create(RubyNode string, RubyBaseNodeWithExecute other) {
+            return StringNodesFactory.CaseCmpNodeFactory.create(string, other);
+        }
+
+        abstract RubyNode getStringNode();
+
+        abstract RubyBaseNodeWithExecute getOtherNode();
+
+        @CreateCast("otherNode")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
@@ -942,6 +950,21 @@ public abstract class StringNodes {
 
             return size == other.getLength() ? 0 : size == len ? -1 : 1;
         }
+
+
+        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
+            return ((ToStrNode) getOtherNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getStringNode().cloneUninitialized(),
+                    getOtherNodeBeforeCast().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
+        }
+
     }
 
     /** Returns true if the first bytes in string are equal to the bytes in prefix. */
@@ -1775,11 +1798,19 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_replace", raiseIfNotMutable = 0)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "stringNode", type = RubyNode.class)
+    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReplaceNode extends PrimitiveNode {
 
-        @CreateCast("other")
+        public static ReplaceNode create(RubyNode string, RubyBaseNodeWithExecute other) {
+            return StringNodesFactory.ReplaceNodeFactory.create(string, other);
+        }
+
+        abstract RubyNode getStringNode();
+
+        abstract RubyBaseNodeWithExecute getOtherNode();
+
+        @CreateCast("otherNode")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
@@ -1804,6 +1835,19 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString) {
             string.setTString(other.tstring, libString.getEncoding(other));
             return string;
+        }
+
+        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
+            return ((ToStrNode) getOtherNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getStringNode().cloneUninitialized(),
+                    getOtherNodeBeforeCast().cloneUninitialized());
+            copy.copyFlags(this);
+            return copy;
         }
 
     }
