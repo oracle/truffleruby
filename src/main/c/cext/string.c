@@ -175,7 +175,7 @@ void rb_str_set_len(VALUE string, long length) {
   if (length > capacity || length < 0) {
     rb_raise(rb_eRuntimeError, "probable buffer overflow: %ld for %ld", length, capacity);
   }
-  rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_set_len", rb_tr_unwrap(string), length));
+  polyglot_invoke(RUBY_CEXT, "rb_str_set_len", rb_tr_unwrap(string), length);
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
