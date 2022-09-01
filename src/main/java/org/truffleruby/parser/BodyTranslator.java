@@ -9,7 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 

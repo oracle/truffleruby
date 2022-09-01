@@ -23,6 +23,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
+import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
@@ -104,6 +105,11 @@ public class PatternMatchingTranslator extends BaseTranslator {
         deconstructed = language.coreMethodAssumptions
                 .createCallNode(deconstructCallParameters, environment);
 
+        final int deconSlot = environment.declareLocalTemp("p_decon_array");
+        final ReadLocalNode readTemp = environment.readNode(deconSlot, sourceSection);
+        final RubyNode assignTemp = readTemp.makeWriteNode(deconstructed);
+        currentValueToMatch = assignTemp;
+
         RubyNode condition = null;
         for (int i = 0; i < preNodes.size(); i++) {
             ParseNode loopPreNode = preNodes.get(i);
@@ -138,7 +144,13 @@ public class PatternMatchingTranslator extends BaseTranslator {
             if (!(restNode instanceof StarParseNode)) {
                 RubyNode prev = currentValueToMatch;
                 RubyNode restAccept;
-                var exprSlice = ArraySliceNodeGen.create(preNodes.size(), -postNodes.size(), currentValueToMatch);
+                int postSize;
+                if (postNodes == null) { // null does not have length, so assign 0 manually.
+                    postSize = 0;
+                } else {
+                    postSize = postNodes.size();
+                }
+                var exprSlice = ArraySliceNodeGen.create(preNodes.size(), -postSize, currentValueToMatch);
                 currentValueToMatch = exprSlice;
                 try {
                     restAccept = restNode.accept(this);

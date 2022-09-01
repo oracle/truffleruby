@@ -35,8 +35,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
-
-
 import static org.truffleruby.core.string.TStringConstants.FALSE;
 import static org.truffleruby.core.string.TStringConstants.NIL;
 import static org.truffleruby.core.string.TStringConstants.SELF;
@@ -53,7 +51,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
@@ -69,7 +66,6 @@ import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -1029,7 +1025,7 @@ public class ParserSupport {
     }
 
     public boolean is_private_local_id(TruffleString name) {
-        if (name.byteLength(lexer.tencoding) == 1 && (char)name.readByteUncached(0, lexer.tencoding) == '_') {
+        if (name.byteLength(lexer.tencoding) == 1 && (char) name.readByteUncached(0, lexer.tencoding) == '_') {
             return true;
         }
         if (!is_local_id(name)) {
@@ -2075,7 +2071,9 @@ public class ParserSupport {
             return new FalseParseNode(loc);
         }
         if (id.equals(__FILE__)) {
-            return new FileParseNode(loc, TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+            return new FileParseNode(loc,
+                    TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding, true),
+                    lexer.encoding);
         }
         if (id.equals(__LINE__)) {
             return new FixnumParseNode(loc, lexer.getRubySourceLine());
@@ -2100,7 +2098,8 @@ public class ParserSupport {
                         warn(lexer.getPosition(), "circular argument reference - " + name);
                     }
 
-                    ParseNode newNode = new DVarParseNode(loc, slot, TruffleString.ToJavaStringNode.create().execute(name));
+                    ParseNode newNode = new DVarParseNode(loc, slot,
+                            TruffleString.ToJavaStringNode.create().execute(name));
 
                     //                    if (warnOnUnusedVariables && newNode instanceof IScopedNode) {
                     //                        scopedParserState.markUsedVariable(name, ((IScopedNode) newNode).getDepth());
@@ -2128,7 +2127,8 @@ public class ParserSupport {
                         return null;
                     }
 
-                    ParseNode newNode = new DVarParseNode(loc, slot, TruffleString.ToJavaStringNode.create().execute(name));
+                    ParseNode newNode = new DVarParseNode(loc, slot,
+                            TruffleString.ToJavaStringNode.create().execute(name));
                     if (numParamCurrent == null) {
                         numParamCurrent = newNode;
                     }
@@ -2172,7 +2172,7 @@ public class ParserSupport {
 
         switch (first) {
             case '@':
-                return (char)identifier.readByteUncached(1, lexer.tencoding) == '@' ? IDType.Class : IDType.Instance;
+                return (char) identifier.readByteUncached(1, lexer.tencoding) == '@' ? IDType.Class : IDType.Instance;
             case '$':
                 return IDType.Global;
         }
