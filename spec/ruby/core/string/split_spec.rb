@@ -34,6 +34,29 @@ describe "String#split with String" do
     ",".split(",", 0).should == []
   end
 
+  it "does not suppress trailing empty fields when a positive limit is given" do
+    " 1 2 ".split(" ", 2).should == ["1", "2 "]
+    " 1 2 ".split(" ", 3).should == ["1", "2", ""]
+    " 1 2 ".split(" ", 4).should == ["1", "2", ""]
+    " 1 あ ".split(" ", 2).should == ["1", "あ "]
+    " 1 あ ".split(" ", 3).should == ["1", "あ", ""]
+    " 1 あ ".split(" ", 4).should == ["1", "あ", ""]
+
+    "1,2,".split(',', 2).should == ["1", "2,"]
+    "1,2,".split(',', 3).should == ["1", "2", ""]
+    "1,2,".split(',', 4).should == ["1", "2", ""]
+    "1,あ,".split(',', 2).should == ["1", "あ,"]
+    "1,あ,".split(',', 3).should == ["1", "あ", ""]
+    "1,あ,".split(',', 4).should == ["1", "あ", ""]
+
+    "1 2 ".split(/ /, 2).should == ["1", "2 "]
+    "1 2 ".split(/ /, 3).should == ["1", "2", ""]
+    "1 2 ".split(/ /, 4).should == ["1", "2", ""]
+    "1 あ ".split(/ /, 2).should == ["1", "あ "]
+    "1 あ ".split(/ /, 3).should == ["1", "あ", ""]
+    "1 あ ".split(/ /, 4).should == ["1", "あ", ""]
+  end
+
   it "returns an array with one entry if limit is 1: the original string" do
     "hai".split("hai", 1).should == ["hai"]
     "x.y.z".split(".", 1).should == ["x.y.z"]
