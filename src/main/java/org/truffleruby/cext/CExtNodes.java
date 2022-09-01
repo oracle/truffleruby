@@ -1530,6 +1530,17 @@ public class CExtNodes {
         }
     }
 
+    @Primitive(name = "cext_sym2id")
+    public abstract static class Sym2IDNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object sym2id(RubySymbol symbol,
+                @Cached SymbolToIDNode symbolToIDNode) {
+            return symbolToIDNode.execute(symbol);
+        }
+
+    }
+
     @Primitive(name = "cext_wrap")
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 

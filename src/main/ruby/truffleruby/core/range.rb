@@ -43,7 +43,7 @@ class Range
       end
     end
 
-    Primitive.range_initialize self, first, last, exclude_end
+    Primitive.range_initialize self, first, last, Primitive.as_boolean(exclude_end)
   end
   private :initialize
 

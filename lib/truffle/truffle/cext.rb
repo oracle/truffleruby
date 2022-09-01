@@ -484,6 +484,34 @@ module Truffle::CExt
     Kernel.global_variables
   end
 
+  def rb_ivar_foreach(object, func, arg)
+    keys_and_vals = []
+    if Module === object
+      keys_and_vals << :__classpath__
+      keys_and_vals << object.name
+
+      object.class_variables.each do |key|
+        keys_and_vals << key
+        keys_and_vals << object.class_variable_get(key)
+      end
+    end
+    object.instance_variables.each do |key|
+      keys_and_vals << key
+      keys_and_vals << object.instance_variable_get(key)
+    end
+
+    keys_and_vals.each_slice(2) do |key, val|
+      st_result = Truffle::Interop.execute_without_conversion(
+        func, Primitive.cext_sym2id(key), Primitive.cext_wrap(val), arg)
+
+      case st_result
+      when ST_CONTINUE
+      when ST_STOP then break
+      else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
+      end
+    end
+  end
+
   def rb_obj_instance_variables(object)
     object.instance_variables
   end
@@ -1610,14 +1638,17 @@ module Truffle::CExt
   end
 
   def rb_time_nano_new(sec, nsec)
-    Time.at sec, Rational(nsec, 1000)
+    Time.at sec, nsec, :nanosecond
   end
 
   def rb_time_timespec_new(sec, nsec, offset, is_utc, is_local)
-    time = rb_time_nano_new(sec, nsec)
-    return time if is_local
-    return time.getgm if is_utc
-    time.getlocal(offset)
+    if is_local
+      Time.at(sec, nsec, :nanosecond)
+    elsif is_utc
+      Time.at(sec, nsec, :nanosecond, in: 0).getgm
+    else
+      Time.at(sec, nsec, :nanosecond, in: offset)
+    end
   end
 
   def rb_time_num_new(timev, off)
@@ -1727,7 +1758,7 @@ module Truffle::CExt
   def rb_get_special_vars
     vars = Primitive.cext_special_variables_from_stack
     unless vars
-      vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class])
+      vars = Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::CExt.singleton_class, Truffle::Interop.singleton_class])
     end
     vars
   end
@@ -1916,5 +1947,16 @@ module Truffle::CExt
 
   def rb_global_variable(obj)
     GLOBALLY_PRESERVED_VALUES << obj
+  end
+
+  GC_REGISTERED_ADDRESSES = {}
+  def rb_gc_register_address(address, obj)
+    Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
+    GC_REGISTERED_ADDRESSES[address] = obj
+  end
+
+  def rb_gc_unregister_address(address)
+    Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
+    GC_REGISTERED_ADDRESSES.delete(address)
   end
 end
