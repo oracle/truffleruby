@@ -3140,6 +3140,7 @@ public abstract class StringNodes {
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
 
         private static final int SUBSTRING_CREATED = -1;
+        private static final int DEFAULT_SPLIT_VALUES_SIZE = 10;
 
         @Specialization(guards = "is7Bit(tstring, encoding, codeRangeNode)")
         protected Object stringAwkSplitAsciiOnly(Object string, int limit, Object block,
@@ -3154,7 +3155,8 @@ public abstract class StringNodes {
                 @Cached LoopConditionProfile loopProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            Object[] ret = new Object[10];
+            int retSize = limit > 0 && limit < DEFAULT_SPLIT_VALUES_SIZE ? limit : DEFAULT_SPLIT_VALUES_SIZE;
+            Object[] ret = new Object[retSize];
             int storeIndex = 0;
 
             int byteLength = tstring.byteLength(encoding.tencoding);
@@ -3230,7 +3232,8 @@ public abstract class StringNodes {
                 @Cached LoopConditionProfile loopProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            Object[] ret = new Object[10];
+            int retSize = limit > 0 && limit < DEFAULT_SPLIT_VALUES_SIZE ? limit : DEFAULT_SPLIT_VALUES_SIZE;
+            Object[] ret = new Object[retSize];
             int storeIndex = 0;
 
             final boolean limitPositive = limit > 0;
