@@ -71,10 +71,12 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.MutableTruffleString;
@@ -3149,6 +3151,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached LoopConditionProfile loopProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             Object[] ret = new Object[10];
@@ -3160,32 +3163,40 @@ public abstract class StringNodes {
             int substringStart = 0;
             boolean findingSubstringEnd = false;
 
-            for (int i = 0; i < byteLength; i++) {
-                if (StringSupport.isAsciiSpace(readByteNode.execute(tstring, i, encoding.tencoding))) {
-                    if (findingSubstringEnd) {
-                        findingSubstringEnd = false;
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < byteLength); i++) {
+                    if (StringSupport.isAsciiSpace(readByteNode.execute(tstring, i, encoding.tencoding))) {
+                        if (findingSubstringEnd) {
+                            findingSubstringEnd = false;
 
-                        final RubyString substring = createSubString(substringNode, tstring, encoding, substringStart,
-                                i - substringStart);
-                        ret = addSubstring(
-                                ret,
-                                storeIndex++,
-                                substring,
-                                block,
-                                executeBlockProfile,
-                                growArrayProfile);
-                        substringStart = SUBSTRING_CREATED;
-                    }
-                } else {
-                    if (!findingSubstringEnd) {
-                        substringStart = i;
-                        findingSubstringEnd = true;
+                            final RubyString substring = createSubString(substringNode, tstring, encoding,
+                                    substringStart,
+                                    i - substringStart);
+                            ret = addSubstring(
+                                    ret,
+                                    storeIndex++,
+                                    substring,
+                                    block,
+                                    executeBlockProfile,
+                                    growArrayProfile);
+                            substringStart = SUBSTRING_CREATED;
+                        }
+                    } else {
+                        if (!findingSubstringEnd) {
+                            substringStart = i;
+                            findingSubstringEnd = true;
 
-                        if (storeIndex == limit - 1) {
-                            break;
+                            if (storeIndex == limit - 1) {
+                                break;
+                            }
                         }
                     }
+
+                    TruffleSafepoint.poll(this);
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
 
             if (trailingSubstringProfile.profile(findingSubstringEnd)) {
@@ -3216,6 +3227,7 @@ public abstract class StringNodes {
                 @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
+                @Cached LoopConditionProfile loopProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
             Object[] ret = new Object[10];
@@ -3230,40 +3242,45 @@ public abstract class StringNodes {
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             boolean skip = true;
-            int e = 0, b = 0;
-            while (iterator.hasNext()) {
-                int c = nextNode.execute(iterator);
-                int p = iterator.getByteIndex();
+            int e = 0, b = 0, n = 0;
+            try {
+                while (loopProfile.inject(iterator.hasNext())) {
+                    int c = nextNode.execute(iterator);
+                    int p = iterator.getByteIndex();
+                    n++;
 
-                if (skip) {
-                    if (StringSupport.isAsciiSpace(c)) {
-                        b = p;
-                    } else {
-                        e = p;
-                        skip = false;
-                        if (limitPositive && limit <= i) {
-                            break;
-                        }
-                    }
-                } else {
-                    if (StringSupport.isAsciiSpace(c)) {
-                        var substring = createSubString(substringNode, tstring, encoding, b, e - b);
-                        ret = addSubstring(
-                                ret,
-                                storeIndex++,
-                                substring,
-                                block,
-                                executeBlockProfile,
-                                growArrayProfile);
-                        skip = true;
-                        b = p;
-                        if (limitPositive) {
-                            i++;
+                    if (skip) {
+                        if (StringSupport.isAsciiSpace(c)) {
+                            b = p;
+                        } else {
+                            e = p;
+                            skip = false;
+                            if (limitPositive && limit <= i) {
+                                break;
+                            }
                         }
                     } else {
-                        e = p;
+                        if (StringSupport.isAsciiSpace(c)) {
+                            var substring = createSubString(substringNode, tstring, encoding, b, e - b);
+                            ret = addSubstring(
+                                    ret,
+                                    storeIndex++,
+                                    substring,
+                                    block,
+                                    executeBlockProfile,
+                                    growArrayProfile);
+                            skip = true;
+                            b = p;
+                            if (limitPositive) {
+                                i++;
+                            }
+                        } else {
+                            e = p;
+                        }
                     }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, n);
             }
 
             if (trailingSubstringProfile.profile(len > 0 && (limitPositive || len > b || limit < 0))) {
