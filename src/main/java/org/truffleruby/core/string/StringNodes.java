@@ -3140,7 +3140,7 @@ public abstract class StringNodes {
         private static final int SUBSTRING_CREATED = -1;
 
         @Specialization(guards = "is7Bit(tstring, encoding, codeRangeNode)")
-        protected Object stringAwkSplitSingleByte(Object string, int limit, Object block,
+        protected Object stringAwkSplitAsciiOnly(Object string, int limit, Object block,
                 @Cached RubyStringLibrary strings,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
@@ -3159,6 +3159,7 @@ public abstract class StringNodes {
 
             int substringStart = 0;
             boolean findingSubstringEnd = false;
+
             for (int i = 0; i < byteLength; i++) {
                 if (StringSupport.isAsciiSpace(readByteNode.execute(tstring, i, encoding.tencoding))) {
                     if (findingSubstringEnd) {
@@ -3193,7 +3194,7 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (trailingEmptyStringProfile.profile(limit < 0 &&
+            if (trailingEmptyStringProfile.profile((limit < 0 || storeIndex < limit) &&
                     StringSupport.isAsciiSpace(readByteNode.execute(tstring, byteLength - 1, encoding.tencoding)))) {
                 final RubyString substring = createSubString(substringNode, tstring, encoding, byteLength - 1, 0);
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
