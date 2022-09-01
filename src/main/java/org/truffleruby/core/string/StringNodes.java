@@ -4266,11 +4266,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
-    @NodeChild(value = "string", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "fixBase", type = RubyNode.class)
-    @NodeChild(value = "strict", type = RubyNode.class)
-    @NodeChild(value = "raiseOnError", type = RubyNode.class)
-    public abstract static class StringToInumPrimitiveNode extends PrimitiveNode {
+    public abstract static class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "base == 10")
         protected Object base10(Object string, int base, boolean strict, boolean raiseOnError,

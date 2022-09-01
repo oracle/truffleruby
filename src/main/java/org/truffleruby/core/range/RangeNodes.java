@@ -19,7 +19,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -521,9 +520,7 @@ public abstract class RangeNodes {
      * <p>
      * {@code size} is assumed to be normalized: fitting in an int, and positive. */
     @Primitive(name = "range_normalized_start_length", lowerFixnum = 1)
-    @NodeChild(value = "range", type = RubyNode.class)
-    @NodeChild(value = "size", type = RubyNode.class)
-    public abstract static class NormalizedStartLengthPrimitiveNode extends PrimitiveNode {
+    public abstract static class NormalizedStartLengthPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 

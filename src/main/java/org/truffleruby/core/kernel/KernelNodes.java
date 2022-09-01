@@ -34,7 +34,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -543,9 +542,7 @@ public abstract class KernelNodes {
     }
 
     @Primitive(name = "object_clone") // "clone"
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "freeze", type = RubyBaseNodeWithExecute.class)
-    public abstract static class CloneNode extends PrimitiveNode {
+    public abstract static class CloneNode extends PrimitiveArrayArgumentsNode {
 
         @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
         @Child SingletonClassNode singletonClassNode;
