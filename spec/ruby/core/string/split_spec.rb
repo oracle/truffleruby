@@ -29,9 +29,12 @@ describe "String#split with String" do
     "1,2,,3,4,,".split(',').should == ["1", "2", "", "3", "4"]
     "1,2,,3,4,,".split(',', 0).should == ["1", "2", "", "3", "4"]
     "  a  b  c\nd  ".split("  ").should == ["", "a", "b", "c\nd"]
+    "  a  あ  c\nd  ".split("  ").should == ["", "a", "あ", "c\nd"]
     "hai".split("hai").should == []
     ",".split(",").should == []
     ",".split(",", 0).should == []
+    "あ".split("あ").should == []
+    "あ".split("あ", 0).should == []
   end
 
   it "does not suppress trailing empty fields when a positive limit is given" do
