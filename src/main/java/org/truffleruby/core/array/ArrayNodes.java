@@ -823,7 +823,6 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class EachNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
         @Specialization
@@ -841,7 +840,6 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_each_with_index")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode
             implements ArrayElementConsumerNode {
 
