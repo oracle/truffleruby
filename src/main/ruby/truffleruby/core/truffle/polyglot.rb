@@ -14,11 +14,18 @@ module Polyglot
   end
 
   class InnerContext
+    DEFAULT_ON_CANCELLED = -> { raise RuntimeError, 'Polyglot::InnerContext was terminated forcefully' }
+    private_constant :DEFAULT_ON_CANCELLED
+
     # Create a new isolated inner context to eval code in any available public language
     # (those languages can be listed with +Polyglot.languages+).
     # Automatically closes the context when given a block.
-    def self.new(on_cancelled: -> { raise RuntimeError, 'Polyglot::InnerContext was terminated forcefully' })
-      inner_context = Primitive.inner_context_new(self, on_cancelled)
+    def self.new(languages: [], language_options: {}, inherit_all_access: true, code_sharing: true, on_cancelled: DEFAULT_ON_CANCELLED)
+      languages = languages.map { |language| StringValue(language) }
+      language_options = language_options.flat_map { |k, v| [StringValue(k), StringValue(v)] }
+      code_sharing = code_sharing == :inherit ? nil : Primitive.as_boolean(code_sharing)
+
+      inner_context = Primitive.inner_context_new(self, languages, language_options, inherit_all_access, code_sharing, on_cancelled)
       if block_given?
         begin
           yield inner_context

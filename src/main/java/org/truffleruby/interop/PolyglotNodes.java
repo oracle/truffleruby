@@ -19,6 +19,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -170,14 +172,35 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyInnerContext newInnerContext(RubyClass rubyClass, RubyProc onCancelledCallback) {
-            final TruffleContext innerContext = getContext()
-                    .getEnv()
-                    .newContextBuilder()
-                    .onCancelled(() -> {
-                        CallBlockNode.getUncached().yield(onCancelledCallback);
-                    })
+        protected RubyInnerContext newInnerContext(
+                RubyClass rubyClass,
+                RubyArray languages,
+                RubyArray languageOptions,
+                boolean inheritAllAccess,
+                Object codeSharing,
+                RubyProc onCancelledCallback) {
+            String[] permittedLanguages = new String[languages.size];
+            int i = 0;
+            for (Object language : ArrayOperations.toIterable(languages)) {
+                permittedLanguages[i++] = RubyGuards.getJavaString(language);
+            }
+
+            var builder = getContext().getEnv().newInnerContextBuilder(permittedLanguages);
+
+            var iterator = ArrayOperations.toIterable(languageOptions).iterator();
+            while (iterator.hasNext()) {
+                Object key = iterator.next();
+                Object value = iterator.next();
+                builder.option(RubyGuards.getJavaString(key), RubyGuards.getJavaString(value));
+            }
+
+            Boolean codeSharingBoolean = codeSharing == nil ? null : (boolean) codeSharing;
+
+            final TruffleContext innerContext = builder
                     .initializeCreatorContext(false)
+                    .inheritAllAccess(inheritAllAccess)
+                    .forceSharing(codeSharingBoolean)
+                    .onCancelled(() -> CallBlockNode.getUncached().yield(onCancelledCallback))
                     .build();
 
             return new RubyInnerContext(
