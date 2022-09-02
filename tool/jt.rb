@@ -781,7 +781,7 @@ module Commands
           --reveal        enable assertions
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
-          --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2)
+          --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2,TruffleHostInlining:0)
           --igv-network   dump to IGV directly through the network (-Dgraal.PrintGraph=Network)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
@@ -1018,7 +1018,11 @@ module Commands
         vm_args << '--engine.TraceCompilation'
       when '--igv', '--igv-full'
         truffleruby_compiler!
-        vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=Truffle:2' : '--vm.Dgraal.Dump=Truffle:1')
+        if arg == '--igv-full'
+          vm_args << '--vm.Dgraal.Dump=Truffle:2,TruffleHostInlining:0'
+        else
+          vm_args << '--vm.Dgraal.Dump=Truffle:1'
+        end
         vm_args << '--vm.Dgraal.PrintBackendCFG=false'
       when '--igv-network'
         truffleruby_compiler!
