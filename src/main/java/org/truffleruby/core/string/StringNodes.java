@@ -3173,8 +3173,7 @@ public abstract class StringNodes {
                             findingSubstringEnd = false;
 
                             final RubyString substring = createSubString(substringNode, tstring, encoding,
-                                    substringStart,
-                                    i - substringStart);
+                                    substringStart, i - substringStart);
                             ret = addSubstring(
                                     ret,
                                     storeIndex++,
@@ -3245,12 +3244,12 @@ public abstract class StringNodes {
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             boolean skip = true;
-            int e = 0, b = 0, n = 0;
+            int e = 0, b = 0, iterations = 0;
             try {
                 while (loopProfile.inject(iterator.hasNext())) {
                     int c = nextNode.execute(iterator);
                     int p = iterator.getByteIndex();
-                    n++;
+                    iterations++;
 
                     if (skip) {
                         if (StringSupport.isAsciiSpace(c)) {
@@ -3283,7 +3282,7 @@ public abstract class StringNodes {
                     }
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(loopProfile, iterations);
             }
 
             if (trailingSubstringProfile.profile(len > 0 && (limitPositive || len > b || limit < 0))) {
