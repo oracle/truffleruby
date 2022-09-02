@@ -33,6 +33,7 @@ Compatibility:
 * Implement `rb_eval_cmd_kw` to support the `tk` gem (#2556, @aardvark179).
 * Fix `rb_class2name` to call `inspect` on anonymous classes like in CRuby (#2701, @aardvark179).
 * Implement `rb_ivar_foreach` to iterate over instance and class variables like in CRuby (#2701, @aardvark179).
+* Fix exception for `Fiddle::Handle.new` with a missing library (#2714, @eregon).
 
 Performance:
 

@@ -253,15 +253,16 @@ module Fiddle
     RTLD_GLOBAL  = Truffle::Config['platform.dlopen.RTLD_GLOBAL']
 
     def initialize(library = nil, flags = RTLD_LAZY | RTLD_GLOBAL)
-      raise DLError, 'unsupported dlopen flags' if flags != RTLD_LAZY | RTLD_GLOBAL
+      raise DLError, 'unsupported dlopen flags' if flags != (RTLD_LAZY | RTLD_GLOBAL)
+
       if library == Truffle::FiddleBackend::RTLD_NEXT
         @handle = :rtld_next
       else
         library = nil if library == Truffle::FiddleBackend::RTLD_DEFAULT
         begin
           @handle = Primitive.interop_eval_nfi(library ? "load '#{library}'" : 'default')
-        rescue RuntimeError
-          raise DLError, "#{library}: cannot open shared object file: No such file or directory"
+        rescue Polyglot::ForeignException => e
+          raise DLError, "#{e.message}"
         end
       end
     end
