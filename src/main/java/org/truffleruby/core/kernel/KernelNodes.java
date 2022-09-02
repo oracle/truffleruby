@@ -1614,12 +1614,7 @@ public abstract class KernelNodes {
         @Specialization
         protected long sleep(long durationInNanos,
                 @Cached BranchProfile errorProfile) {
-            if (durationInNanos < 0) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError("time interval must be positive", this));
-            }
+            assert durationInNanos >= 0;
 
             final RubyThread thread = getLanguage().getCurrentThread();
 
