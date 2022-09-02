@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.AssumedValue;
@@ -300,9 +301,9 @@ public abstract class KernelNodes {
                             coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
-                String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
-
-                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
+                Source source = sourceSection.getSource();
+                String sourcePath = getLanguage().getSourcePath(source);
+                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath, source);
 
                 featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
             }
@@ -394,7 +395,7 @@ public abstract class KernelNodes {
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
-                    .canonicalize(RubyGuards.getJavaString(string));
+                    .canonicalize(RubyGuards.getJavaString(string), null);
             return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 

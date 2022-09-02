@@ -66,7 +66,7 @@ public class ThreadBacktraceLocationNodes {
                     return nil;
                 } else if (source.getPath() != null) { // A normal file
                     final String path = language.getSourcePath(source);
-                    final String canonicalPath = context.getFeatureLoader().canonicalize(path);
+                    final String canonicalPath = context.getFeatureLoader().canonicalize(path, source);
                     var cachedRope = language.tstringCache.getTString(TStringUtils.utf8TString(canonicalPath),
                             Encodings.UTF_8);
                     return node.createString(cachedRope, Encodings.UTF_8);
