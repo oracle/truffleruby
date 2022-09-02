@@ -21,13 +21,15 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import java.util.concurrent.TimeUnit;
+
 @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
-public abstract class DurationToMillisecondsNode extends RubyBaseNodeWithExecute {
+public abstract class DurationToNanoSecondsNode extends RubyBaseNodeWithExecute {
 
     private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.create();
     private final boolean acceptsNil;
 
-    public DurationToMillisecondsNode(boolean acceptsNil) {
+    public DurationToNanoSecondsNode(boolean acceptsNil) {
         this.acceptsNil = acceptsNil;
     }
 
@@ -37,18 +39,13 @@ public abstract class DurationToMillisecondsNode extends RubyBaseNodeWithExecute
     }
 
     @Specialization
-    protected long duration(int duration) {
-        return validate(duration * 1000L);
-    }
-
-    @Specialization
     protected long duration(long duration) {
-        return validate(duration * 1000);
+        return validate(TimeUnit.SECONDS.toNanos(duration));
     }
 
     @Specialization
     protected long duration(double duration) {
-        return validate((long) (duration * 1000));
+        return validate((long) (duration * 1e9));
     }
 
     @Specialization
@@ -64,20 +61,20 @@ public abstract class DurationToMillisecondsNode extends RubyBaseNodeWithExecute
 
     @Specialization
     protected Object duration(RubyDynamicObject duration,
-            @Cached DispatchNode durationToMilliseconds,
+            @Cached DispatchNode durationToNanoSeconds,
             @Cached ToLongNode toLongNode) {
-        final Object milliseconds = durationToMilliseconds.call(
+        final Object nanoseconds = durationToNanoSeconds.call(
                 coreLibrary().truffleKernelOperationsModule,
-                "convert_duration_to_milliseconds",
+                "convert_duration_to_nanoseconds",
                 duration);
-        return validate(toLongNode.execute(milliseconds));
+        return validate(toLongNode.execute(nanoseconds));
     }
 
-    private long validate(long durationInMillis) {
-        if (durationLessThanZeroProfile.profile(durationInMillis < 0)) {
+    private long validate(long durationInNanos) {
+        if (durationLessThanZeroProfile.profile(durationInNanos < 0)) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorTimeIntervalPositive(this));
         }
-        return durationInMillis;
+        return durationInNanos;
     }
 
 }

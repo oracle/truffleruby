@@ -21,7 +21,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
+import org.truffleruby.core.cast.DurationToNanoSecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -155,11 +155,11 @@ public abstract class MutexNodes {
 
         @CreateCast("duration")
         protected RubyBaseNodeWithExecute coerceDuration(RubyBaseNodeWithExecute duration) {
-            return DurationToMillisecondsNodeGen.create(true, duration);
+            return DurationToNanoSecondsNodeGen.create(true, duration);
         }
 
         @Specialization
-        protected long sleep(RubyMutex mutex, long durationInMillis,
+        protected long sleep(RubyMutex mutex, long durationInNanos,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
@@ -175,7 +175,7 @@ public abstract class MutexNodes {
 
             MutexOperations.unlock(lock, thread);
             try {
-                return KernelNodes.SleepNode.sleepFor(getContext(), thread, durationInMillis, this);
+                return KernelNodes.SleepNode.sleepFor(getContext(), thread, durationInNanos, this);
             } finally {
                 MutexOperations.lockEvenWithExceptions(getContext(), lock, thread, this);
             }
