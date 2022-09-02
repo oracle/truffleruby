@@ -1576,8 +1576,8 @@ primary         : literal
                     $$ = $<BlockAcceptingParseNode>1.setIterNode($2);
                     $<ParseNode>$.extendPosition($1);
                 }
-                | tLAMBDA lambda {
-                    $$ = $2;
+                | lambda {
+                    $$ = $1;
                 }
                 | keyword_if expr_value then compstmt if_tail keyword_end {
                     $$ = new IfParseNode($1, support.getConditionNode($2), $4, $5);
@@ -1909,7 +1909,7 @@ bvar            : tIDENTIFIER {
                     $$ = null;
                 }
 
-lambda          : /* none */  {
+lambda          : tLAMBDA {
                     support.pushBlockScope();
                     $$ = lexer.getLeftParenBegin();
                     lexer.setLeftParenBegin(lexer.incrementParenNest());
@@ -1917,10 +1917,10 @@ lambda          : /* none */  {
                     $$ = Long.valueOf(lexer.getCmdArgumentState().getStack());
                     lexer.getCmdArgumentState().reset();
                 } lambda_body {
-                    lexer.getCmdArgumentState().reset($<Long>3.longValue());
+                    lexer.getCmdArgumentState().reset($<Long>4.longValue());
                     lexer.getCmdArgumentState().restart();
-                    $$ = new LambdaParseNode($2.getPosition(), $2, $4, support.getCurrentScope());
-                    lexer.setLeftParenBegin($<Integer>1);
+                    $$ = new LambdaParseNode($3.getPosition(), $3, $5, support.getCurrentScope());
+                    lexer.setLeftParenBegin($<Integer>2);
                     support.popCurrentScope();
                 }
 
