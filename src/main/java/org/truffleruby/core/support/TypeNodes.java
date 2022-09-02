@@ -229,6 +229,11 @@ public abstract class TypeNodes {
             return objectLibrary.containsKey(object, name.getString());
         }
 
+        @Fallback
+        protected boolean ivarIsDefinedNonDynamic(Object object, Object name) {
+            return false;
+        }
+
     }
 
     @Primitive(name = "object_ivar_get")

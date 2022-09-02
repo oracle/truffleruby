@@ -92,7 +92,13 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.DynamicReturnException;
+import org.truffleruby.language.control.LocalReturnException;
+import org.truffleruby.language.control.NextException;
+import org.truffleruby.language.control.RedoException;
+import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -111,6 +117,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -129,6 +136,18 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
+
+    /* These tag values are derived from MRI source and from the Tk gem and are used to represent different control flow
+     * states under which code may exit an `rb_protect` block. The fatal tag is defined but I could not find a point
+     * where it is assigned, and am not sure it maps to anything we would use in TruffleRuby. */
+    public static final int RUBY_TAG_RETURN = 0x1;
+    public static final int RUBY_TAG_BREAK = 0x2;
+    public static final int RUBY_TAG_NEXT = 0x3;
+    public static final int RUBY_TAG_RETRY = 0x4;
+    public static final int RUBY_TAG_REDO = 0x5;
+    public static final int RUBY_TAG_RAISE = 0x6;
+    public static final int RUBY_TAG_THROW = 0x7;
+    public static final int RUBY_TAG_FATAL = 0x8;
 
     public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
         // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
@@ -1355,6 +1374,31 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "store_exception", onSingleton = true, required = 1)
+    public abstract static class StoreException extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object storeException(CapturedException captured) {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
+            extensionStack.setException(captured);
+            return nil;
+        }
+    }
+
+    @CoreMethod(names = "retrieve_exception", onSingleton = true)
+    public abstract static class RetrieveException extends YieldingCoreMethodNode {
+
+        @Specialization
+        protected Object retrieveException() {
+            final ExtensionCallStack extensionStack = getLanguage()
+                    .getCurrentThread()
+                    .getCurrentFiber().extensionCallStack;
+            return extensionStack.getException();
+        }
+    }
+
     @CoreMethod(names = "extract_ruby_exception", onSingleton = true, required = 1)
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
@@ -1367,6 +1411,66 @@ public class CExtNodes {
             } else {
                 return nil;
             }
+        }
+    }
+
+    @CoreMethod(names = "extract_tag", onSingleton = true, required = 1)
+    public abstract static class ExtractRubyTag extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int executeThrow(CapturedException captured,
+                @Cached ExtractRubyTagHelperNode helperNode) {
+            return helperNode.execute(captured.getException());
+        }
+    }
+
+    public abstract static class ExtractRubyTagHelperNode extends RubyBaseNode {
+
+        public abstract int execute(Throwable e);
+
+        @Specialization
+        protected int dynamicReturnTag(DynamicReturnException e) {
+            return RUBY_TAG_RETURN;
+        }
+
+        @Specialization
+        protected int localReturnTag(LocalReturnException e) {
+            return RUBY_TAG_RETURN;
+        }
+
+        @Specialization
+        protected int breakTag(BreakException e) {
+            return RUBY_TAG_BREAK;
+        }
+
+        @Specialization
+        protected int nextTag(NextException e) {
+            return RUBY_TAG_NEXT;
+        }
+
+        @Specialization
+        protected int retryTag(RetryException e) {
+            return RUBY_TAG_RETRY;
+        }
+
+        @Specialization
+        protected int redoTag(RedoException e) {
+            return RUBY_TAG_REDO;
+        }
+
+        @Specialization
+        protected int raiseTag(RaiseException e) {
+            return RUBY_TAG_RAISE;
+        }
+
+        @Specialization
+        protected int throwTag(ThrowException e) {
+            return RUBY_TAG_THROW;
+        }
+
+        @Fallback
+        protected int noTag(Throwable e) {
+            return 0;
         }
     }
 

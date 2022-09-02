@@ -965,6 +965,8 @@ module Truffle::CExt
   ST_CONTINUE = 0
   ST_STOP = 1
   ST_DELETE = 2
+  ST_CHECK = 3
+  ST_REPLACE = 4
 
   def rb_hash_foreach(hash, func, farg)
     hash.each do |key, value|
@@ -972,6 +974,7 @@ module Truffle::CExt
 
       case st_result
       when ST_CONTINUE
+      when ST_CHECK
       when ST_STOP then break
       when ST_DELETE then hash.delete(key)
       else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
@@ -1038,8 +1041,8 @@ module Truffle::CExt
     end
 
     unless Primitive.object_equal(nil, e)
-      store = (Thread.current[:__stored_exceptions__] ||= [])
-      pos = store.push(e).size
+      store_exception(e)
+      pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
     end
 
@@ -1049,14 +1052,9 @@ module Truffle::CExt
 
   def rb_jump_tag(pos)
     if pos > 0
-      store = Thread.current[:__stored_exceptions__]
-      if pos == store.size
-        e = store.pop
-      else
-        # Can't disturb other positions or other rb_jump_tag calls might fail.
-        e = store[pos - 1]
-        store[pos - 1] = nil
-      end
+      e = retrieve_exception
+      tag = extract_tag(e)
+      raise RuntimeError, 'mismatch between jump tag and captured exception' unless pos == tag
       raise_exception(e)
     end
   end
@@ -1950,6 +1948,7 @@ module Truffle::CExt
   end
 
   GC_REGISTERED_ADDRESSES = {}
+
   def rb_gc_register_address(address, obj)
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
     GC_REGISTERED_ADDRESSES[address] = obj
@@ -1958,5 +1957,14 @@ module Truffle::CExt
   def rb_gc_unregister_address(address)
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
     GC_REGISTERED_ADDRESSES.delete(address)
+  end
+
+  def rb_eval_cmd_kw(cmd, args, kw_splat)
+    if (args.size > 0 && kw_splat != 0)
+      kwargs = args.pop
+      cmd.call(*args, **kwargs)
+    else
+      cmd.call(*args)
+    end
   end
 end

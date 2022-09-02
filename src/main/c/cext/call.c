@@ -228,3 +228,11 @@ int rb_method_boundp(VALUE klass, ID id, int ex) {
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_exec_recursive", func, rb_tr_unwrap(obj), rb_tr_unwrap(arg)));
 }
+
+VALUE rb_eval_cmd_kw(VALUE cmd, VALUE args, int kw_splat) {
+  if (!RB_TYPE_P(cmd, T_STRING)) {
+    return RUBY_CEXT_INVOKE("rb_eval_cmd_kw", cmd, args, INT2NUM(kw_splat));
+  } else {
+    return RUBY_CEXT_INVOKE("rb_eval_string", cmd);
+  }
+}

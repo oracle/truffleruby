@@ -14,6 +14,7 @@ import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.CapturedException;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.queue.UnsizedQueue;
@@ -118,6 +119,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         protected final boolean keywordsGiven;
         protected Object specialVariables;
         protected final Object block;
+        protected CapturedException capturedException;
 
         protected ExtensionCallStackEntry(
                 ExtensionCallStackEntry previous,
@@ -128,6 +130,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             this.keywordsGiven = keywordsGiven;
             this.specialVariables = specialVariables;
             this.block = block;
+            this.capturedException = null;
         }
     }
 
@@ -163,6 +166,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
         public void setSpecialVariables(Object specialVariables) {
             current.specialVariables = specialVariables;
+        }
+
+        public CapturedException getException() {
+            return current.capturedException;
+        }
+
+        public void setException(CapturedException capturedException) {
+            current.capturedException = capturedException;
         }
 
         public Object getBlock() {
