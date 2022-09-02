@@ -34,6 +34,7 @@ Compatibility:
 * Fix `rb_class2name` to call `inspect` on anonymous classes like in CRuby (#2701, @aardvark179).
 * Implement `rb_ivar_foreach` to iterate over instance and class variables like in CRuby (#2701, @aardvark179).
 * Fix the absolute path of the main script after chdir (#2709, @eregon).
+* Fix exception for `Fiddle::Handle.new` with a missing library (#2714, @eregon).
 
 Performance:
 
