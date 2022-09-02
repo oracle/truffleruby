@@ -33,7 +33,7 @@ public abstract class ProcOperations {
         return RubyArguments.pack(
                 proc.declarationFrame,
                 null,
-                proc.method,
+                proc.declaringMethod,
                 proc.frameOnStackMarker,
                 getSelf(proc),
                 nil,
@@ -106,7 +106,7 @@ public abstract class ProcOperations {
                         block.callTargets,
                         block.declarationFrame,
                         block.declarationVariables,
-                        block.method,
+                        block.declaringMethod,
                         type == ProcType.PROC ? block.frameOnStackMarker : null,
                         block.declarationContext);
     }

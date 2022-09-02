@@ -319,7 +319,7 @@ public class RubyContext {
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
         for (Object proc : ArrayOperations.toIterable((RubyArray) toRunAtInit)) {
-            final Source source = ((RubyProc) proc).method
+            final Source source = ((RubyProc) proc).declaringMethod
                     .getSharedMethodInfo()
                     .getSourceSection()
                     .getSource();
