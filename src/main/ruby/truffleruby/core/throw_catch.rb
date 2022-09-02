@@ -38,6 +38,7 @@ module Kernel
       tags.pop
     end
   end
+  Truffle::Graal.always_split instance_method(:catch)
   module_function :catch
 
   def throw(tag, value=nil)

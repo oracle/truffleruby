@@ -76,6 +76,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -159,7 +160,8 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
+    @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, split = Split.NEVER,
+            lowerFixnum = 2)
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

@@ -31,6 +31,8 @@
 # any other methods than #each. If needed, class-specific versions of any of
 # these methods can be written *in those classes* to override these.
 
+# TODO (eregon, 1 Sep 2022): should we always_split all methods calling a block also in Array/Hash? Maybe by detecting yield/block.call in the parser?
+
 module Enumerable
   def chunk(&original_block)
     return to_enum(:chunk) { enumerator_size } unless block_given?
@@ -109,6 +111,7 @@ module Enumerable
       to_enum(:collect) { enumerator_size }
     end
   end
+  Truffle::Graal.always_split instance_method(:map)
   alias_method :collect, :map
 
   def count(item = undefined)
@@ -364,6 +367,7 @@ module Enumerable
       self
     end
   end
+  Truffle::Graal.always_split instance_method(:each_with_index)
 
   def grep(pattern, &block)
     ary = []
@@ -524,6 +528,7 @@ module Enumerable
 
     Primitive.undefined?(initial) ? nil : initial
   end
+  Truffle::Graal.always_split instance_method(:inject)
   alias_method :reduce, :inject
 
   def all?(pattern = undefined)

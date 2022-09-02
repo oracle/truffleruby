@@ -21,6 +21,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.Split;
+import org.truffleruby.parser.ParentFrameDescriptor;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
@@ -63,6 +64,16 @@ public class RubyRootNode extends RubyBaseRootNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return body.execute(frame);
+    }
+
+    @Override
+    public FrameDescriptor getParentFrameDescriptor() {
+        var info = getFrameDescriptor().getInfo();
+        if (info instanceof ParentFrameDescriptor) {
+            return ((ParentFrameDescriptor) info).getDescriptor();
+        } else {
+            return null;
+        }
     }
 
     @Override

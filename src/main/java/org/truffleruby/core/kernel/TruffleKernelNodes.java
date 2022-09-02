@@ -52,6 +52,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -72,7 +73,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
 
-    @CoreMethod(names = "at_exit", onSingleton = true, needsBlock = true, required = 1)
+    @CoreMethod(names = "at_exit", onSingleton = true, needsBlock = true, required = 1, split = Split.NEVER)
     public abstract static class AtExitSystemNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

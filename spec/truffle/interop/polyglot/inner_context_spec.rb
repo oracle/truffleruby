@@ -23,6 +23,24 @@ describe "Polyglot::InnerContext" do
     end
   end
 
+  it "can specify languages explicitly" do
+    Polyglot::InnerContext.new(languages: ['ruby']) do |context|
+      context.eval('ruby', '6 * 7').should == 42
+    end
+  end
+
+  it "can specify language options" do
+    Polyglot::InnerContext.new(language_options: { 'ruby.debug' => 'true' }) do |context|
+      context.eval('ruby', '$DEBUG').should == true
+    end
+  end
+
+  it "can specify whether to inherit access" do
+    Polyglot::InnerContext.new(inherit_all_access: false, language_options: { 'ruby.core-load-path' => 'resource:/truffleruby' }) do |context|
+      context.eval('ruby', 'Truffle::POSIX::NATIVE').should == false
+    end
+  end
+
   it "treats Ruby objects from the inner context as foreign" do
     Polyglot::InnerContext.new do |context|
       obj = context.eval('ruby', "Object.new")

@@ -921,6 +921,7 @@ class String
 
     Primitive.string_scrub(self, replace_block)
   end
+  Truffle::Graal.always_split instance_method(:scrub)
 
   def scrub!(replace = nil, &block)
     return self if valid_encoding?
