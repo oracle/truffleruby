@@ -10,24 +10,20 @@
 package org.truffleruby.core.mutex;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.cast.DurationToNanoSecondsNodeGen;
+import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -148,19 +144,20 @@ public abstract class MutexNodes {
 
     }
 
-    @NodeChild(value = "mutex", type = RubyNode.class)
-    @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "sleep", optional = 1)
-    public abstract static class SleepNode extends CoreMethodNode {
-
-        @CreateCast("duration")
-        protected RubyBaseNodeWithExecute coerceDuration(RubyBaseNodeWithExecute duration) {
-            return DurationToNanoSecondsNodeGen.create(true, duration);
-        }
+    public abstract static class SleepNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long sleep(RubyMutex mutex, long durationInNanos,
+        protected long sleep(RubyMutex mutex, Object maybeDuration,
+                @Cached DurationToNanoSecondsNode durationToNanoSecondsNode,
+                @Cached ConditionProfile nilProfile,
                 @Cached BranchProfile errorProfile) {
+            if (nilProfile.profile(maybeDuration == nil)) {
+                maybeDuration = NotProvided.INSTANCE;
+            }
+
+            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
 

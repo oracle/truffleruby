@@ -10,28 +10,22 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import com.oracle.truffle.api.dsl.Fallback;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.concurrent.TimeUnit;
 
-@NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
-public abstract class DurationToNanoSecondsNode extends RubyBaseNodeWithExecute {
+public abstract class DurationToNanoSecondsNode extends RubyBaseNode {
 
     private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.create();
-    private final boolean acceptsNil;
 
-    public DurationToNanoSecondsNode(boolean acceptsNil) {
-        this.acceptsNil = acceptsNil;
-    }
+    public abstract long execute(Object duration);
 
     @Specialization
     protected long noDuration(NotProvided duration) {
@@ -48,19 +42,8 @@ public abstract class DurationToNanoSecondsNode extends RubyBaseNodeWithExecute 
         return validate((long) (duration * 1e9));
     }
 
-    @Specialization
-    protected long durationNil(Nil duration) {
-        if (acceptsNil) {
-            return noDuration(NotProvided.INSTANCE);
-        } else {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError("TypeError: can't convert NilClass into time interval", this));
-        }
-    }
-
-    @Specialization
-    protected Object duration(RubyDynamicObject duration,
+    @Fallback
+    protected long duration(Object duration,
             @Cached DispatchNode durationToNanoSeconds,
             @Cached ToLongNode toLongNode) {
         final Object nanoseconds = durationToNanoSeconds.call(
@@ -76,5 +59,4 @@ public abstract class DurationToNanoSecondsNode extends RubyBaseNodeWithExecute 
         }
         return durationInNanos;
     }
-
 }
