@@ -251,7 +251,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
-        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, required, argsNode.getArity());
+        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, argsNode.getArity());
         final int slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);

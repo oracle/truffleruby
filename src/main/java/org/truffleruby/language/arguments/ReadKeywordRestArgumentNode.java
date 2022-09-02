@@ -33,7 +33,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
     private final ConditionProfile noHash = ConditionProfile.create();
 
-    public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
+    public ReadKeywordRestArgumentNode(RubyLanguage language, Arity arity) {
         this(CheckKeywordArityNode.keywordsAsSymbols(language, arity));
     }
 
