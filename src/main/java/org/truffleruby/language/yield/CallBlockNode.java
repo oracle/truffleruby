@@ -99,7 +99,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return RubyArguments.pack(
                 block.declarationFrame,
                 null,
-                block.method,
+                block.declaringMethod,
                 declarationContext,
                 block.frameOnStackMarker,
                 self,

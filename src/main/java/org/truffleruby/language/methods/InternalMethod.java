@@ -67,7 +67,7 @@ public final class InternalMethod implements ObjectGraphNode {
         return new InternalMethod(
                 context,
                 sharedMethodInfo,
-                proc.method.getLexicalScope(),
+                proc.declaringMethod.getLexicalScope(),
                 declarationContext,
                 name,
                 declaringModule,

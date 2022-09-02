@@ -41,7 +41,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     // Accessed for calling a RubyProc
     public final RootCallTarget callTarget;
     public final MaterializedFrame declarationFrame;
-    public final InternalMethod method;
+    public final InternalMethod declaringMethod;
     public final FrameOnStackMarker frameOnStackMarker;
     public final DeclarationContext declarationContext;
     // Not accessed for calling a RubyProc
@@ -63,7 +63,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             RootCallTarget callTarget,
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
-            InternalMethod method,
+            InternalMethod declaringMethod,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
@@ -74,7 +74,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         this.callTarget = callTarget;
         this.declarationFrame = declarationFrame;
         this.declarationVariables = declarationVariables;
-        this.method = method;
+        this.declaringMethod = declaringMethod;
         this.frameOnStackMarker = frameOnStackMarker;
         this.declarationContext = declarationContext;
     }
@@ -91,7 +91,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
                 callTarget,
                 declarationFrame,
                 declarationVariables,
-                method,
+                declaringMethod,
                 frameOnStackMarker,
                 declarationContext);
     }
@@ -99,7 +99,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
-        ObjectGraph.addProperty(reachable, method);
+        ObjectGraph.addProperty(reachable, declaringMethod);
     }
 
     public boolean isLambda() {
