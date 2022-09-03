@@ -44,7 +44,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
-import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
+import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToStrNode;
@@ -1604,24 +1604,14 @@ public abstract class KernelNodes {
 
     }
 
-    @NodeChild(value = "duration", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "sleep", isModuleFunction = true, optional = 1)
-    public abstract static class SleepNode extends CoreMethodNode {
-
-        @CreateCast("duration")
-        protected RubyBaseNodeWithExecute coerceDuration(RubyBaseNodeWithExecute duration) {
-            return DurationToMillisecondsNodeGen.create(false, duration);
-        }
+    public abstract static class SleepNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long sleep(long durationInMillis,
-                @Cached BranchProfile errorProfile) {
-            if (durationInMillis < 0) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError("time interval must be positive", this));
-            }
+        protected long sleep(Object maybeDuration,
+                @Cached DurationToNanoSecondsNode durationToNanoSecondsNode) {
+            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+            assert durationInNanos >= 0;
 
             final RubyThread thread = getLanguage().getCurrentThread();
 
@@ -1629,13 +1619,13 @@ public abstract class KernelNodes {
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.
             thread.wakeUp.set(false);
 
-            return sleepFor(getContext(), thread, durationInMillis, this);
+            return sleepFor(getContext(), thread, durationInNanos, this);
         }
 
         @TruffleBoundary
-        public static long sleepFor(RubyContext context, RubyThread thread, long durationInMillis,
+        public static long sleepFor(RubyContext context, RubyThread thread, long durationInNanos,
                 Node currentNode) {
-            assert durationInMillis >= 0;
+            assert durationInNanos >= 0;
 
             // We want a monotonic clock to measure sleep duration
             final long startInNanos = System.nanoTime();
@@ -1643,13 +1633,12 @@ public abstract class KernelNodes {
             context.getThreadManager().runUntilResult(currentNode, () -> {
                 final long nowInNanos = System.nanoTime();
                 final long sleptInNanos = nowInNanos - startInNanos;
-                final long sleptInMillis = TimeUnit.NANOSECONDS.toMillis(sleptInNanos);
 
-                if (sleptInMillis >= durationInMillis || thread.wakeUp.getAndSet(false)) {
+                if (sleptInNanos >= durationInNanos || thread.wakeUp.getAndSet(false)) {
                     return BlockingAction.SUCCESS;
                 }
 
-                Thread.sleep(durationInMillis - sleptInMillis);
+                TimeUnit.NANOSECONDS.sleep(durationInNanos - sleptInNanos);
                 return BlockingAction.SUCCESS;
             });
 
