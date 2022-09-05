@@ -19,6 +19,10 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
   return RUBY_CEXT_INVOKE("rb_struct_aset", s, idx, val);
 }
 
+VALUE rb_struct_getmember(VALUE s, ID member) {
+  return RUBY_CEXT_INVOKE("rb_struct_getmember", s, ID2SYM(member));
+}
+
 VALUE rb_struct_define(const char *name, ...) {
   VALUE rb_name = name == NULL ? Qnil : rb_str_new_cstr(name);
   VALUE ary = rb_ary_new();
@@ -65,11 +69,11 @@ VALUE rb_struct_new(VALUE klass, ...) {
 }
 
 VALUE rb_struct_s_members(VALUE klass) {
-  return RUBY_INVOKE(klass, "rb_struct_s_members");
+  return RUBY_INVOKE(klass, "members");
 }
 
 VALUE rb_struct_members(VALUE s) {
-  return RUBY_INVOKE(s, "rb_struct_members");
+  return RUBY_INVOKE(s, "members");
 }
 
 VALUE rb_struct_size(VALUE s) {
