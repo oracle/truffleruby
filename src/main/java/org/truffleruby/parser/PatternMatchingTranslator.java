@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -18,7 +19,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.ExecuteAndReturnTrueNode;
 import org.truffleruby.language.control.OrNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -72,7 +76,14 @@ public class PatternMatchingTranslator extends BaseTranslator {
 
     @Override
     protected RubyNode defaultVisit(ParseNode node) {
-        throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
+        final RubyContext context = RubyLanguage.getCurrentContext();
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().syntaxError(
+                        "not yet handled in pattern matching: " + node.toString() + " " + node.getPosition(),
+        currentNode,
+                node.getPosition().toSourceSection(source)));
+//        throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
     }
 
     @Override
@@ -108,10 +119,11 @@ public class PatternMatchingTranslator extends BaseTranslator {
         final int deconSlot = environment.declareLocalTemp("p_decon_array");
         final ReadLocalNode readTemp = environment.readNode(deconSlot, sourceSection);
         final RubyNode assignTemp = readTemp.makeWriteNode(deconstructed);
-        currentValueToMatch = assignTemp;
+        currentValueToMatch = readTemp;
 
         RubyNode condition = null;
-        for (int i = 0; i < preNodes.size(); i++) {
+        int preSize = arrayPatternParseNode.preArgsNum();
+        for (int i = 0; i < preSize; i++) {
             ParseNode loopPreNode = preNodes.get(i);
             RubyNode translatedPatternElement;
             RubyNode prev = currentValueToMatch;
@@ -157,7 +169,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 } finally {
                     currentValueToMatch = prev;
                 }
-                var seq = sequence(sourceSection, Arrays.asList(restAccept, new BooleanLiteralNode(true)));
+                var seq = new ExecuteAndReturnTrueNode(restAccept);
                 if (condition == null) {
                     condition = seq;
                 } else {
@@ -198,8 +210,8 @@ public class PatternMatchingTranslator extends BaseTranslator {
             }
         }
 
-
-        return condition;
+        condition = condition == null ? new BooleanLiteralNode(true) : condition ;
+        return sequence(sourceSection, Arrays.asList(assignTemp, condition));
     }
 
     public RubyNode translatePatternNode(ParseNode patternNode,
@@ -253,7 +265,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         ((LocalVarParseNode) patternNode).getName(),
                         ((LocalVarParseNode) patternNode).getDepth(),
                         expressionNode).accept(this);
-                return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
+                return new ExecuteAndReturnTrueNode(assignmentNode); // TODO refactor to remove "|| true"
             default:
                 matcherCallParameters = new RubyCallNodeParameters(
                         patternNode.accept(this),
