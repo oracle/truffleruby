@@ -32,6 +32,8 @@ def test(program, shape_expected)
       # false means the feature is not present, which is expected.
       # integer values are ignored unless set in the shape_expected.
       nil
+    elsif actual_key == :node_counts
+      nil
     else
       # The actual shape has features that the test did not expect.
       actual_key
