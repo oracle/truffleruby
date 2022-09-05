@@ -65,11 +65,11 @@ VALUE rb_struct_new(VALUE klass, ...) {
 }
 
 VALUE rb_struct_s_members(VALUE klass) {
-  return RUBY_INVOKE(klass, "rb_struct_s_members");
+  return RUBY_INVOKE(klass, "members");
 }
 
 VALUE rb_struct_members(VALUE s) {
-  return RUBY_INVOKE(s, "rb_struct_members");
+  return RUBY_INVOKE(s, "members");
 }
 
 VALUE rb_struct_size(VALUE s) {
