@@ -1,2 +1,0 @@
-fails:C-API Struct function rb_struct_getmember returns the value of a struct member
-fails:C-API Struct function rb_struct_getmember raises a NameError if the struct member does not exist

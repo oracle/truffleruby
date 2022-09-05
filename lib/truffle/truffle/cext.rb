@@ -1625,6 +1625,10 @@ module Truffle::CExt
     struct[index] = value
   end
 
+  def rb_struct_getmember(struct, member)
+    struct[member]
+  end
+
   def rb_struct_size(klass)
     klass.members.size
   end
