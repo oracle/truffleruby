@@ -41,8 +41,8 @@ handles.
 
 We implement an `ExtensionCallStack` object to keep track of various
 bits of useful information during a call to a C extension. Each stack
-entry contains a `preservedOject`, and an additional potential
-`preservedObject` list which together will contain all the
+entry contains a `preservedObject`, and an additional potential
+`preservedObjects` list which together will contain all the
 `ValueWrapper`s converted to native handles during the process of a
 call. When a new call is made a new `ExtensionCallStackEntry` is added
 to the stack, and when the call exits that entry is popped off again.
@@ -83,14 +83,14 @@ When converted to native, the `ValueWrapper` takes the following long values.
 The built in objects, `true`, `false`, `nil`, and `undefined` are
 handled specially, and integers are relatively easy because there is a
 well defined mapping from the native representation to the integer and
-vice varsa, but to manage objects we need to do a little more work.
+vice versa, but to manage objects we need to do a little more work.
 
 When we convert an object `VALUE` to its native representation we need
 to keep the corresponding `ValueWrapper` object alive, and we need to
 record that mapping from handle to `ValueWrapper` somewhere. The
 mapping from `ValueWrapper` to handle must also be stable, so a symbol
 or other immutable object that can outlive a context will need to
-store that mapping somewhere on the `RubyLangage` object.
+store that mapping somewhere on the `RubyLanguage` object.
 
 We achieve all this through a combination of handle block maps and
 allocators. We deal with handles in blocks of 4096, and the current
@@ -98,7 +98,7 @@ allocators. We deal with handles in blocks of 4096, and the current
 current block for mutable objects (which cannot outlive the
 `RubyContext`) and immutable objects (which can outlive the
 context). Each fiber will take values from those blocks until they
-becomes exhausted. When that block is exhausted then `RubyLanauge`
+becomes exhausted. When that block is exhausted then `RubyLanguage`
 holds a `HandleBlockAllocator` which is responsible for allocating new
 blocks and recycling old ones. These blocks of handles however only
 hold weak references, because we don't want a conversion to native to
