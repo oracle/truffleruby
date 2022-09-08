@@ -220,7 +220,9 @@ public class TStringConstants {
     }
 
     public static TruffleString lookupUSASCIITString(String string) {
-        if (string.length() == 1) {
+        if (string.isEmpty()) {
+            return EMPTY_US_ASCII;
+        } else if (string.length() == 1) {
             return US_ASCII_SINGLE_BYTE[string.charAt(0)];
         } else {
             return TSTRING_CONSTANTS.get(string);
