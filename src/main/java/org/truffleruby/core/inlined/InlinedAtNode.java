@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
@@ -45,6 +46,17 @@ public abstract class InlinedAtNode extends BinaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedAtNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

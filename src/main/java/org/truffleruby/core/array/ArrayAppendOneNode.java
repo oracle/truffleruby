@@ -24,7 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild(value = "array", type = RubyNode.class)
+@NodeChild(value = "arrayNode", type = RubyNode.class)
 @NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
@@ -34,6 +34,8 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     }
 
     public abstract RubyArray executeAppendOne(RubyArray array, Object value);
+
+    public abstract RubyNode getArrayNode();
 
     public abstract RubyNode getValueNode();
 
@@ -83,4 +85,14 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         setStoreAndSize(array, newStore, newSize);
         return array;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ArrayAppendOneNodeGen.create(
+                getArrayNode().cloneUninitialized(),
+                getValueNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

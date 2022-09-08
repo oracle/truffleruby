@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.RightShiftNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -50,6 +51,17 @@ public abstract class InlinedRightShiftNode extends BinaryInlinedOperationNode {
             fixnumRightShift = insert(RightShiftNodeFactory.create(null));
         }
         return fixnumRightShift;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedRightShiftNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

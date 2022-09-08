@@ -10,6 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,6 +54,17 @@ public abstract class InlinedGreaterThanNode extends BinaryInlinedOperationNode 
     @Specialization
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedGreaterThanNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

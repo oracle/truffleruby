@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild(value = "array", type = RubyNode.class)
+@NodeChild(value = "arrayNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDropTailNode extends RubyContextSourceNode {
 
@@ -27,6 +27,8 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
     public ArrayDropTailNode(int index) {
         this.index = index;
     }
+
+    public abstract RubyNode getArrayNode();
 
     @Specialization
     protected RubyArray dropTail(RubyArray array,
@@ -40,6 +42,15 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
             final Object withoutTail = cowNode.execute(array, 0, newSize);
             return createArray(withoutTail, newSize);
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ArrayDropTailNodeGen.create(
+                index,
+                getArrayNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

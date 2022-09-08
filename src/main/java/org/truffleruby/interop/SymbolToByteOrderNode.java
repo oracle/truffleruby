@@ -19,12 +19,14 @@ import org.truffleruby.language.control.RaiseException;
 
 import java.nio.ByteOrder;
 
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class SymbolToByteOrderNode extends RubyContextSourceNode {
 
     public static SymbolToByteOrderNode create(RubyNode value) {
         return SymbolToByteOrderNodeGen.create(value);
     }
+
+    abstract RubyNode getValueNode();
 
     @Specialization(guards = "symbol == coreSymbols().BIG")
     protected ByteOrder symbolToByteOrderBig(RubySymbol symbol) {
@@ -46,6 +48,13 @@ public abstract class SymbolToByteOrderNode extends RubyContextSourceNode {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().argumentError("byte order must be :big, :little, or :native symbol", this));
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = SymbolToByteOrderNodeGen.create(getValueNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

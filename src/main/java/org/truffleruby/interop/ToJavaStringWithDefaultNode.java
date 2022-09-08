@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided. */
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode {
 
     private final String defaultValue;
@@ -26,6 +26,8 @@ public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode 
     public ToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;
     }
+
+    abstract RubyNode getValueNode();
 
     @Specialization
     protected String doDefault(NotProvided value) {
@@ -36,6 +38,15 @@ public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode 
     protected String doProvided(Object value,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ToJavaStringWithDefaultNodeGen.create(
+                defaultValue,
+                getValueNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

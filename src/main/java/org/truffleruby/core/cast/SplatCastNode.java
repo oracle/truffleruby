@@ -29,7 +29,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RE
 
 /** Splat as used to cast a value to an array if it isn't already, as in {@code *value}. Must be a RubyNode because it's
  * used in the translator. */
-@NodeChild(value = "child", type = RubyNode.class)
+@NodeChild(value = "childNode", type = RubyNode.class)
 public abstract class SplatCastNode extends RubyContextSourceNode {
 
     public enum NilBehavior {
@@ -52,13 +52,18 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         conversionMethod = useToAry ? language.coreSymbols.TO_ARY : language.coreSymbols.TO_A;
     }
 
+    public SplatCastNode(NilBehavior nilBehavior, RubySymbol conversionMethod) {
+        this.nilBehavior = nilBehavior;
+        this.conversionMethod = conversionMethod;
+    }
+
+    public abstract Object execute(Object value);
+
+    public abstract RubyNode getChildNode();
+
     public void doNotCopy() {
         copy = false;
     }
-
-    public abstract RubyNode getChild();
-
-    public abstract Object execute(Object value);
 
     @Specialization
     protected Object splatNil(Nil nil) {
@@ -125,6 +130,17 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
             dup = insert(ArrayDupNodeGen.create());
         }
         return dup.executeDup(array);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var childCopy = (getChildNode() == null) ? null : getChildNode().cloneUninitialized();
+        var copy = SplatCastNodeGen.create(
+                nilBehavior,
+                conversionMethod,
+                childCopy);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

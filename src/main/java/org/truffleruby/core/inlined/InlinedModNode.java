@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.FloatNodes;
 import org.truffleruby.core.numeric.IntegerNodes.ModNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.ModNodeFactory;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -63,6 +64,17 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
             fixnumMod = insert(ModNodeFactory.create(null));
         }
         return fixnumMod;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedModNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

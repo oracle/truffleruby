@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -73,6 +74,13 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
         }
 
         return definedNode.executeIsDefined(frame);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ReadGlobalVariableNodeGen.create(name);
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

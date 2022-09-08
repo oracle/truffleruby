@@ -31,6 +31,8 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
         super(language, callNodeParameters);
     }
 
+    protected abstract RubyNode getBlock();
+
     @Specialization(
             guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().LAMBDA", },
             assumptions = "assumptions",
@@ -53,10 +55,20 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
         return rewriteAndCallWithBlock(frame, self, block);
     }
 
-    protected abstract RubyNode getBlock();
-
     @Override
     protected RubyNode getBlockNode() {
         return getBlock();
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedLambdaNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getSelfNode().cloneUninitialized(),
+                getBlock().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
+
 }

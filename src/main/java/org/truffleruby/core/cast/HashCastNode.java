@@ -22,16 +22,20 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Must be a RubyNode because it's used for ** in the translator. */
-@NodeChild(value = "child", type = RubyNode.class)
+@NodeChild(value = "childNode", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 
     public static HashCastNode create() {
         return HashCastNodeGen.create(null);
     }
 
-    protected abstract RubyNode getChild();
+    public static HashCastNode create(RubyNode child) {
+        return HashCastNodeGen.create(child);
+    }
 
     public abstract RubyHash execute(Object value);
+
+    protected abstract RubyNode getChildNode();
 
     @Specialization
     protected RubyHash castHash(RubyHash hash) {
@@ -63,7 +67,14 @@ public abstract class HashCastNode extends RubyContextSourceNode {
 
     @Override
     public void doExecuteVoid(VirtualFrame frame) {
-        getChild().doExecuteVoid(frame);
+        getChildNode().doExecuteVoid(frame);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = create(getChildNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

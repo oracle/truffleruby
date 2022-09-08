@@ -11,6 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -39,6 +40,16 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedNotNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getSelfNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -46,6 +47,16 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedIsNilNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getSelfNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

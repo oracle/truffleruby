@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.BitOrNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.BitOrNodeFactory;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -50,6 +51,17 @@ public abstract class InlinedBitOrNode extends BinaryInlinedOperationNode {
             fixnumBitOr = insert(BitOrNodeFactory.create(null));
         }
         return fixnumBitOr;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedBitOrNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

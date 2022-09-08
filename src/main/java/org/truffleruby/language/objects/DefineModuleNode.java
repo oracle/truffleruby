@@ -23,7 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild(value = "lexicalParentModule", type = RubyNode.class)
+@NodeChild(value = "lexicalParentModuleNode", type = RubyNode.class)
 public abstract class DefineModuleNode extends RubyContextSourceNode {
 
     private final String name;
@@ -76,4 +76,14 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
         return lookupForExistingModuleNode.lookupForExistingModule(frame, name, lexicalParent);
     }
 
+    abstract RubyNode getLexicalParentModuleNode();
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = DefineModuleNodeGen.create(
+                name,
+                getLexicalParentModuleNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
+    }
 }

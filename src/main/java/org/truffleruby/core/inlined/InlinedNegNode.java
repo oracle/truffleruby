@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.NegNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.NegNodeFactory;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -56,6 +57,16 @@ public abstract class InlinedNegNode extends UnaryInlinedOperationNode {
             fixnumNeg = insert(NegNodeFactory.create(null));
         }
         return fixnumNeg;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedNegNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getSelfNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

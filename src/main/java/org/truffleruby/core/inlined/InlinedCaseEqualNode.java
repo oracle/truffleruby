@@ -13,6 +13,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -56,6 +57,17 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self, Object b) {
         return rewriteAndCall(frame, self, b);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedCaseEqualNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }

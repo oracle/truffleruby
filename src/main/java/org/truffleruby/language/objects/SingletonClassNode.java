@@ -28,7 +28,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class SingletonClassNode extends RubySourceNode {
 
     public static SingletonClassNode getUncached() {
@@ -149,4 +149,10 @@ public abstract class SingletonClassNode extends RubySourceNode {
         return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 
+    abstract RubyNode getValueNode();
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        return SingletonClassNodeGen.create(getValueNode().cloneUninitialized());
+    }
 }

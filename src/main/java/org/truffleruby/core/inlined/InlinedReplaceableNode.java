@@ -25,7 +25,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
 
-    private final RubyCallNodeParameters parameters;
+    protected final RubyCallNodeParameters parameters;
 
     @CompilationFinal(dimensions = 1) protected final Assumption[] assumptions;
 

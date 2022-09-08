@@ -28,10 +28,10 @@ import java.util.Objects;
 @TypeSystemReference(NoImplicitCastsToLong.class)
 @ImportStatic(CompilerDirectives.class)
 @NodeInfo(cost = NodeCost.NONE)
-@NodeChild(value = "child", type = RubyNode.class)
+@NodeChild(value = "childNode", type = RubyNode.class)
 public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
-    protected abstract RubyNode getChild();
+    protected abstract RubyNode getChildNode();
 
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected boolean cacheBoolean(boolean value,
@@ -87,7 +87,14 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     @Override
     public String toString() {
-        return "Profiled(" + getChild() + ")";
+        return "Profiled(" + getChildNode() + ")";
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ProfileArgumentNodeGen.create(getChildNode().cloneUninitialized());
+        copy.copyFlags(this);
+        return copy;
     }
 
 }
