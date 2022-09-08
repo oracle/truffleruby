@@ -273,8 +273,7 @@ public abstract class TruffleDebugNodes {
         protected Object ast(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
-            ast(callTarget.getRootNode());
-            return nil;
+            return ast(callTarget.getRootNode());
         }
 
         private Object ast(Node node) {
