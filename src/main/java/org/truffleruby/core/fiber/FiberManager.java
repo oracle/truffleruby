@@ -64,16 +64,12 @@ public class FiberManager {
 
         final TruffleContext truffleContext = context.getEnv().getContext();
 
-        ThreadManager.FIBER_BEING_SPAWNED.set(fiber);
-        try {
-            context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
-                context.getThreadManager().spawnFiber(fiber, () -> fiberMain(context, fiber, block, currentNode));
-                waitForInitialization(context, fiber, currentNode);
-                return BlockingAction.SUCCESS;
-            });
-        } finally {
-            ThreadManager.FIBER_BEING_SPAWNED.remove();
-        }
+        context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
+            context.getThreadManager().spawnFiber(fiber, sourceSection,
+                    () -> fiberMain(context, fiber, block, currentNode));
+            waitForInitialization(context, fiber, currentNode);
+            return BlockingAction.SUCCESS;
+        });
     }
 
     /** Wait for full initialization of the new fiber */
@@ -99,10 +95,7 @@ public class FiberManager {
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
         final Thread thread = Thread.currentThread();
-        var threadLocalState = context.getThreadManager().threadLocalStates.get(thread);
-        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-        final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.fileLine(sourceSection));
+        final TruffleContext truffleContext = context.getEnv().getContext();
 
         start(fiber, thread);
 
@@ -110,15 +103,9 @@ public class FiberManager {
         fiber.initializedLatch.countDown();
 
         final FiberMessage message = waitMessage(fiber, currentNode);
-        final TruffleContext truffleContext = context.getEnv().getContext();
-
-        /* We need to setup the ThreadLocalState before enter(), as that polls and the current thread is needed for
-         * guest safepoints. It can't just be set in RubyLanguage#initializeThread() as this java.lang.Thread is reused
-         * for multiple Fibers and multiple Ruby Threads due to the Fiber pool, but initializeThread() is only called
-         * once per thread. */
         fiber.rubyThread.setCurrentFiber(fiber);
-        threadLocalState.rubyThread = fiber.rubyThread;
 
+        // enter() polls so we need the current Fiber to be set before enter()
         final Object prev = truffleContext.enter(currentNode);
 
         FiberMessage lastMessage = null;
@@ -154,9 +141,7 @@ public class FiberManager {
             fiber.status = FiberStatus.TERMINATED;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             truffleContext.leave(currentNode, prev);
-            threadLocalState.rubyThread = null;
             cleanup(fiber, thread);
-            thread.setName(oldName);
 
             if (lastMessage != null) {
                 addToMessageQueue(returnFiber, lastMessage);

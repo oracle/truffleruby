@@ -1280,7 +1280,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    /** Creates a Truffle thread that is no {@link ThreadManager#isRubyManagedThread(java.lang.Thread)}}. */
+    /** Creates a Truffle thread which is not {@link ThreadManager#isRubyManagedThread(java.lang.Thread)}}. */
     @CoreMethod(names = "create_polyglot_thread", onSingleton = true, required = 1)
     public abstract static class CreatePolyglotThread extends CoreMethodArrayArgumentsNode {
         @Specialization

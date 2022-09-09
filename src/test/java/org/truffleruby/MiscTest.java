@@ -132,6 +132,7 @@ public class MiscTest {
             Runnable polyglotThreadBody = () -> {
                 context.eval("ruby", "$queue.pop");
                 assertTrue(context.eval("ruby", "Thread.current").toString().contains("<foreign thread>"));
+                assertTrue(context.eval("ruby", "Thread.current.equal?(Thread.current)").asBoolean());
             };
             Thread polyglotThread = context
                     .eval("ruby", "Truffle::Debug")
