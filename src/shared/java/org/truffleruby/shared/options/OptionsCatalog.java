@@ -53,6 +53,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> VIRTUAL_THREAD_FIBERS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_SUBPROCESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_LOCALE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
@@ -422,6 +423,14 @@ public class OptionsCatalog {
     public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
             .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
             .help("Produce deterministic hash values")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor VIRTUAL_THREAD_FIBERS = OptionDescriptor
+            .newBuilder(VIRTUAL_THREAD_FIBERS_KEY, "ruby.virtual-thread-fibers")
+            .help("Use JDK 19+ VirtualThread for Fibers, also requires --vm.-enable-preview")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1367,6 +1376,8 @@ public class OptionsCatalog {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
+            case "ruby.virtual-thread-fibers":
+                return VIRTUAL_THREAD_FIBERS;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
             case "ruby.warn-locale":
@@ -1625,6 +1636,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_USER,
             PATCHING,
             HASHING_DETERMINISTIC,
+            VIRTUAL_THREAD_FIBERS,
             LOG_SUBPROCESS,
             WARN_LOCALE,
             EXCEPTIONS_STORE_JAVA,
