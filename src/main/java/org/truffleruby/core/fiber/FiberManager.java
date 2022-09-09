@@ -98,7 +98,8 @@ public class FiberManager {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
-        final FiberPoolThread thread = (FiberPoolThread) Thread.currentThread();
+        final Thread thread = Thread.currentThread();
+        var threadLocalState = context.getThreadManager().threadLocalStates.get(thread);
         final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.fileLine(sourceSection));
@@ -116,7 +117,7 @@ public class FiberManager {
          * for multiple Fibers and multiple Ruby Threads due to the Fiber pool, but initializeThread() is only called
          * once per thread. */
         fiber.rubyThread.setCurrentFiber(fiber);
-        thread.threadLocalState.rubyThread = fiber.rubyThread;
+        threadLocalState.rubyThread = fiber.rubyThread;
 
         final Object prev = truffleContext.enter(currentNode);
 
@@ -153,7 +154,7 @@ public class FiberManager {
             fiber.status = FiberStatus.TERMINATED;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             truffleContext.leave(currentNode, prev);
-            thread.threadLocalState.rubyThread = null;
+            threadLocalState.rubyThread = null;
             cleanup(fiber, thread);
             thread.setName(oldName);
 

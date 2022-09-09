@@ -33,6 +33,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyLanguage.ThreadLocalState;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.DummyNode;
@@ -41,7 +42,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.fiber.FiberPoolThread;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
@@ -151,6 +151,8 @@ public class ThreadManager {
     // spawning Thread => Fiber object
     public static final ThreadLocal<RubyFiber> FIBER_BEING_SPAWNED = new ThreadLocal<>();
 
+    public final Map<Thread, ThreadLocalState> threadLocalStates = new ConcurrentHashMap<>();
+
     private Thread createFiberJavaThread(Runnable runnable) {
         final RubyFiber fiber = FIBER_BEING_SPAWNED.get();
         assert fiber != null;
@@ -159,7 +161,9 @@ public class ThreadManager {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread = new FiberPoolThread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+
+        threadLocalStates.put(thread, new ThreadLocalState());
         thread.setName("Ruby-FiberPool-" + thread.getName());
         thread.setDaemon(true); // GR-33255
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
