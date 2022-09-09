@@ -85,10 +85,6 @@ public class ThreadManager {
     private final Set<Thread> rubyManagedThreads = Collections
             .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
 
-    public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
-    public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
-            .withInitial(() -> javaThreadToRubyFiber.get(Thread.currentThread()));
-
     private boolean nativeInterrupt;
     private Timer nativeInterruptTimer;
     private ThreadLocal<Interrupter> nativeCallInterrupter;
@@ -618,11 +614,6 @@ public class ThreadManager {
         return javaThreadToRubyThread.get(Thread.currentThread());
     }
 
-    @TruffleBoundary
-    public RubyFiber getRubyFiberFromCurrentJavaThread() {
-        return rubyFiber.get();
-    }
-
     public void registerThread(RubyThread thread) {
         if (!runningRubyThreads.add(thread)) {
             throw new UnsupportedOperationException(thread + " was already registered");
@@ -687,7 +678,7 @@ public class ThreadManager {
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();
         SafepointPredicate predicate = (context, thread, action) -> Thread.currentThread() != initiatingJavaThread &&
-                getRubyFiberFromCurrentJavaThread() == thread.getCurrentFiber();
+                language.getCurrentFiber() == thread.getCurrentFiber();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(
                 DummyNode.INSTANCE,

@@ -462,7 +462,7 @@ public class FeatureLoader {
                 final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
                 final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
-                language.getCurrentThread().getCurrentFiber().extensionCallStack.push(false, nil, nil);
+                language.getCurrentFiber().extensionCallStack.push(false, nil, nil);
                 try {
                     // rb_tr_init(Truffle::CExt)
                     interop.execute(initFunction, truffleCExt);
@@ -471,7 +471,7 @@ public class FeatureLoader {
                 } catch (InteropException e) {
                     throw TranslateInteropExceptionNode.getUncached().execute(e);
                 } finally {
-                    language.getCurrentThread().getCurrentFiber().extensionCallStack.pop();
+                    language.getCurrentFiber().extensionCallStack.pop();
                 }
             } finally {
                 Metrics.printTime("after-load-cext-support");

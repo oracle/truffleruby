@@ -87,7 +87,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
         @TruffleBoundary
         public void runAllMarkers(RubyContext context, RubyLanguage language) {
-            final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
+            final ExtensionCallStack stack = language.getCurrentFiber().extensionCallStack;
             stack.push(stack.areKeywordsGiven(), stack.getSpecialVariables(), stack.getBlock());
             try {
                 // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of

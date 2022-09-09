@@ -150,7 +150,7 @@ public class FiberManager {
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, BranchProfile errorProfile) {
-        assert currentFiber == currentFiber.rubyThread.getCurrentFiber();
+        assert currentFiber.isActive();
 
         final RubyFiber rootFiber = currentFiber.rubyThread.getRootFiber();
 
@@ -317,11 +317,6 @@ public class FiberManager {
     public void start(RubyFiber fiber, Thread javaThread) {
         final ThreadManager threadManager = context.getThreadManager();
 
-        if (Thread.currentThread() == javaThread) {
-            context.getThreadManager().rubyFiber.set(fiber);
-        }
-        context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
-
         fiber.thread = javaThread;
 
         final RubyThread rubyThread = fiber.rubyThread;
@@ -344,11 +339,6 @@ public class FiberManager {
         fiber.rubyThread.runningFibers.remove(fiber);
 
         fiber.thread = null;
-
-        if (Thread.currentThread() == javaThread) {
-            threadManager.rubyFiber.remove();
-        }
-        threadManager.javaThreadToRubyFiber.remove(javaThread);
 
         fiber.finishedLatch.countDown();
     }
@@ -418,7 +408,7 @@ public class FiberManager {
                 builder.append(" (root)");
             }
 
-            if (fiber == fiber.rubyThread.getCurrentFiber()) {
+            if (fiber.isActive()) {
                 builder.append(" (current)");
             }
 

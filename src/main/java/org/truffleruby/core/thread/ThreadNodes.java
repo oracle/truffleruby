@@ -198,7 +198,7 @@ public abstract class ThreadNodes {
                             final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, 0);
                             backtrace.getStackTrace(); // must be done on the thread
 
-                            final RubyFiber fiber = getContext().getThreadManager().getRubyFiberFromCurrentJavaThread();
+                            final RubyFiber fiber = getLanguage().getCurrentFiber();
 
                             synchronized (backtraces) {
                                 backtraces.add(Pair.create(fiber, backtrace));

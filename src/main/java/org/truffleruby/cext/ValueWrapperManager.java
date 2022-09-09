@@ -64,7 +64,7 @@ public class ValueWrapperManager {
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
     public static HandleBlockHolder getBlockHolder(RubyContext context, RubyLanguage language) {
-        return language.getCurrentThread().getCurrentFiber().handleData;
+        return language.getCurrentFiber().handleData;
     }
 
     /* We keep a map of long wrappers that have been generated because various C extensions assume that any given fixnum
