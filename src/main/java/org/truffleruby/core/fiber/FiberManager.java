@@ -315,12 +315,9 @@ public class FiberManager {
     }
 
     public void start(RubyFiber fiber, Thread javaThread) {
-        final ThreadManager threadManager = context.getThreadManager();
-
         fiber.thread = javaThread;
 
         final RubyThread rubyThread = fiber.rubyThread;
-        threadManager.initializeValuesForJavaThread(rubyThread, javaThread);
 
         // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
         SharedObjects.propagate(language, rubyThread, fiber);
@@ -328,13 +325,9 @@ public class FiberManager {
     }
 
     public void cleanup(RubyFiber fiber, Thread javaThread) {
-        final ThreadManager threadManager = context.getThreadManager();
-
         context.getValueWrapperManager().cleanup(context, fiber.handleData);
 
         fiber.status = FiberStatus.TERMINATED;
-
-        threadManager.cleanupValuesForJavaThread(javaThread);
 
         fiber.rubyThread.runningFibers.remove(fiber);
 

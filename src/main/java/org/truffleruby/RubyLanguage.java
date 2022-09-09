@@ -583,8 +583,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
-            if (rubyThread != null && rubyThread.thread == thread) { // new Ruby Thread
+            final RubyThread rubyThread = getCurrentThread();
+            if (rubyThread.thread == thread) { // new Ruby Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
@@ -602,9 +602,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(
-                () -> "disposeThread(#" + thread.getId() + " " + thread + " on " +
-                        context.getThreadManager().getCurrentThreadOrNull() + ")");
+        LOGGER.fine(() -> "disposeThread(#" + thread.getId() + " " + thread + " on " + getCurrentThread() + ")");
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
@@ -623,8 +621,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
-            if (rubyThread != null && rubyThread.thread == thread) { // Thread
+            final RubyThread rubyThread = getCurrentThread();
+            if (rubyThread.thread == thread) { // Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
                 }
@@ -636,7 +634,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
-        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(thread);
+        final RubyThread rubyThread = this.rubyThread.get(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 

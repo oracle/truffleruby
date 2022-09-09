@@ -10,7 +10,6 @@
 package org.truffleruby.core.thread;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.WeakHashMap;
@@ -21,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -72,8 +70,6 @@ public class ThreadManager {
 
     private final RubyThread rootThread;
     @CompilationFinal private Thread rootJavaThread;
-
-    private final Map<Thread, RubyThread> javaThreadToRubyThread = new ConcurrentHashMap<>();
 
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
@@ -170,7 +166,6 @@ public class ThreadManager {
         language.rubyFiberInitMap.put(thread, rubyThread.getRootFiber());
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
-        javaThreadToRubyThread.put(thread, rubyThread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(rubyThread.getRootFiber()));
         return thread;
     }
@@ -591,29 +586,6 @@ public class ThreadManager {
         }
     }
 
-    public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
-        javaThreadToRubyThread.put(thread, rubyThread);
-    }
-
-    public void cleanupValuesForJavaThread(Thread thread) {
-        javaThreadToRubyThread.remove(thread);
-    }
-
-    @TruffleBoundary
-    public RubyThread getRubyThreadForJavaThread(Thread thread) {
-        final RubyThread rubyThread = javaThreadToRubyThread.get(thread);
-        if (rubyThread == null) {
-            throw CompilerDirectives.shouldNotReachHere(
-                    "No Ruby Thread is associated with Java Thread: " + thread);
-        }
-        return rubyThread;
-    }
-
-    @TruffleBoundary
-    public RubyThread getCurrentThreadOrNull() {
-        return javaThreadToRubyThread.get(Thread.currentThread());
-    }
-
     public void registerThread(RubyThread thread) {
         if (!runningRubyThreads.add(thread)) {
             throw new UnsupportedOperationException(thread + " was already registered");
@@ -714,7 +686,7 @@ public class ThreadManager {
             }
 
             // cannot use getCurrentThread() as it might have been cleared
-            if (thread == getCurrentThreadOrNull()) {
+            if (thread == language.getCurrentThread()) {
                 builder.append(" (current)");
             }
 
