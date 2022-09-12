@@ -1235,9 +1235,7 @@ public abstract class ModuleNodes {
     @ImportStatic(RubyArguments.class)
     public abstract static class DefineMethodNode extends AlwaysInlinedMethodNode {
 
-        //Checkstyle: stop
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyMethod(getArgument(rubyArgs, 1))" })
-        //Checkstyle: resume
         protected RubySymbol defineMethodWithMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
@@ -1247,9 +1245,7 @@ public abstract class ModuleNodes {
             return addMethod(module, name, (RubyMethod) method);
         }
 
-        //Checkstyle: stop
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
-        //Checkstyle: resume
         protected RubySymbol defineMethodWithProc(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
@@ -1260,10 +1256,8 @@ public abstract class ModuleNodes {
             return addProc(module, name, (RubyProc) method, callerFrame.materialize());
         }
 
-        //Checkstyle: stop
         @Specialization(
                 guards = { "isMethodParameterProvided(rubyArgs)", "isRubyUnboundMethod(getArgument(rubyArgs, 1))" })
-        //Checkstyle: resume
         protected RubySymbol defineMethodWithUnboundMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
