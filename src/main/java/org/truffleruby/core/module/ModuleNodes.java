@@ -46,6 +46,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
@@ -58,7 +59,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
-import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
@@ -75,7 +75,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
@@ -89,7 +88,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.ConstantEntry;
@@ -104,7 +102,6 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.Arity;
-import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
@@ -662,89 +659,78 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
-    public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, needsBlock = true, alwaysInlined = true)
+    public abstract static class ClassEvalNode extends AlwaysInlinedMethodNode {
 
-        @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
+        @Specialization(guards = "isBlockProvided(rubyArgs)")
+        protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
+                @Cached ClassExecBlockNode classExecNode) {
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
-        @Specialization(guards = "libCode.isRubyString(code)", limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode) {
-            return classEvalSource(frame, module, code, "(eval)", callNode);
+            if (count > 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
+            }
+
+            final Object block = RubyArguments.getBlock(rubyArgs);
+            return classExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+                    (RubyProc) block);
         }
 
-        @Specialization(guards = { "libCode.isRubyString(code)", "libFile.isRubyString(file)" }, limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached RubyStringLibrary libFile,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            return classEvalSource(frame, module, code, toJavaStringNode.executeToJavaString(file), callNode);
-        }
-
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" }, limit = "1")
-        protected Object classEval(VirtualFrame frame, RubyModule module, Object code, Object file, int line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached RubyStringLibrary libFile,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            final CodeLoader.DeferredCall deferredCall = classEvalSource(
-                    frame,
-                    module,
-                    code,
-                    toJavaStringNode.executeToJavaString(file),
-                    line);
-            return deferredCall.call(callNode);
-        }
-
-        @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
-                @Cached IndirectCallNode callNode,
-                @Cached ToStrNode toStrNode) {
-            return classEvalSource(frame, module, toStrNode.execute(code), "(eval)", callNode);
-        }
-
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" }, limit = "1")
-        protected Object classEval(
-                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
-                @Cached RubyStringLibrary stringLibrary,
+        @Specialization(guards = "!isBlockProvided(rubyArgs)")
+        protected Object evalWithString(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libCode,
-                @Cached ToStrNode toStrNode) {
-            final String javaString = toJavaStringNode.executeToJavaString(toStrNode.execute(file));
-            return classEvalSource(frame, module, code, javaString, callNode);
-        }
-
-        private Object classEvalSource(VirtualFrame frame, RubyModule module, Object code, String file,
+                @Cached ToStrNode toStrNode,
+                @Cached ToIntNode toIntNode,
                 @Cached IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = classEvalSource(frame, module, code, file, 1);
-            return deferredCall.call(callNode);
-        }
+            final Object sourceCode;
+            String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
+            int line = 1;
 
-        private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, RubyModule module,
-                Object rubySource, String file, int line) {
+            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
-            final MaterializedFrame callerFrame = readCallerFrameNode.execute(frame);
+            if (count == 0) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+            }
 
-            return classEvalSourceInternal(module, rubySource, file, line, callerFrame);
+            sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+
+            if (count >= 2) {
+                fileName = toJavaStringNode
+                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+            }
+
+            if (count >= 3) {
+                line = toIntNode.execute(RubyArguments.getArgument(rubyArgs, 2));
+            }
+
+            needCallerFrame(callerFrame, target);
+            return classEvalSource(
+                    callerFrame.materialize(),
+                    self,
+                    sourceCode,
+                    fileName,
+                    line,
+                    callNode);
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall classEvalSourceInternal(RubyModule module, Object rubySource,
-                String file, int line, MaterializedFrame callerFrame) {
+        private Object classEvalSource(MaterializedFrame callerFrame, RubyModule module, Object sourceCode, String file,
+                int line,
+                IndirectCallNode callNode) {
             final RubySource source = EvalLoader.createEvalSource(
                     getContext(),
-                    RubyStringLibrary.getUncached().getTString(rubySource),
-                    RubyStringLibrary.getUncached().getEncoding(rubySource),
+                    RubyStringLibrary.getUncached().getTString(sourceCode),
+                    RubyStringLibrary.getUncached().getEncoding(sourceCode),
                     "class/module_eval",
                     file,
                     line,
                     this);
+
             final LexicalScope lexicalScope = new LexicalScope(
                     RubyArguments.getMethod(callerFrame).getLexicalScope(),
                     module);
@@ -756,7 +742,7 @@ public abstract class ModuleNodes {
                     lexicalScope,
                     this);
 
-            return getContext().getCodeLoader().prepareExecute(
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.MODULE,
                     new DeclarationContext(
@@ -766,23 +752,8 @@ public abstract class ModuleNodes {
                     callerFrame,
                     module,
                     lexicalScope);
-        }
 
-        @Specialization
-        protected Object classEval(
-                RubyModule self, NotProvided code, NotProvided file, NotProvided line, RubyProc block,
-                @Cached ClassExecNode classExecNode) {
-            return classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self }, block);
-        }
-
-        @Specialization
-        protected Object classEval(RubyModule self, NotProvided code, NotProvided file, NotProvided line, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
-        }
-
-        @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(RubyModule self, Object code, NotProvided file, NotProvided line, RubyProc block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
+            return deferredCall.call(callNode);
         }
 
     }
@@ -790,23 +761,26 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_exec", "module_exec" }, rest = true, needsBlock = true)
     public abstract static class ClassExecNode extends CoreMethodArrayArgumentsNode {
 
-        public static ClassExecNode create() {
-            return ClassExecNodeFactory.create(null);
-        }
-
-        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
-
         @Specialization
-        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block) {
-            return classExec(RubyArguments.getDescriptor(frame), self, args, block);
+        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block,
+                @Cached ClassExecBlockNode classExecBlockNode) {
+            return classExecBlockNode.execute(RubyArguments.getDescriptor(frame), self, args, block);
         }
 
         @Specialization
         protected Object noBlock(RubyModule self, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
+    }
 
-        public Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block) {
+    @GenerateUncached
+    public abstract static class ClassExecBlockNode extends RubyBaseNode {
+
+        public abstract Object execute(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block);
+
+        @Specialization
+        protected Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
+                @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(self),
@@ -1250,52 +1224,83 @@ public abstract class ModuleNodes {
 
     }
 
+    @GenerateUncached
     @CoreMethod(
             names = "define_method",
             needsBlock = true,
             required = 1,
             optional = 1,
-            split = Split.NEVER,
-            argumentNames = { "name", "proc_or_method", "block" })
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "proc", type = RubyNode.class)
-    @NodeChild(value = "block", type = RubyNode.class)
-    public abstract static class DefineMethodNode extends CoreMethodNode {
+            argumentNames = { "name", "proc_or_method", "block" },
+            alwaysInlined = true)
+    @ImportStatic(RubyArguments.class)
+    public abstract static class DefineMethodNode extends AlwaysInlinedMethodNode {
 
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyMethod(getArgument(rubyArgs, 1))" })
+        protected RubySymbol defineMethodWithMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
+            return addMethod(module, name, (RubyMethod) method);
+        }
+
+        @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
+        protected RubySymbol defineMethodWithProc(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+
+            needCallerFrame(callerFrame, target);
+            return addProc(module, name, (RubyProc) method, callerFrame.materialize());
+        }
+
+        @Specialization(
+                guards = { "isMethodParameterProvided(rubyArgs)", "isRubyUnboundMethod(getArgument(rubyArgs, 1))" })
+        protected RubySymbol defineMethodWithUnboundMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+
+            needCallerFrame(callerFrame, target);
+            return addUnboundMethod(module, name, (RubyUnboundMethod) method, callerFrame.materialize());
+        }
+
+        @Specialization(guards = {
+                "isMethodParameterProvided(rubyArgs)",
+                "!isExpectedMethodParameterType(getArgument(rubyArgs, 1))" })
+        protected RubySymbol defineMethodWithUnexpectedMethodParameterType(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+            final Object method = RubyArguments.getArgument(rubyArgs, 1);
+            throw new RaiseException(getContext(),
+                    coreExceptions().typeErrorExpectedProcOrMethodOrUnboundMethod(method, this));
+        }
+
+        @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "isBlockProvided(rubyArgs)" })
+        protected RubySymbol defineMethodWithBlock(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final Object block = RubyArguments.getBlock(rubyArgs);
+
+            needCallerFrame(callerFrame, target);
+            return addProc(module, name, (RubyProc) block, callerFrame.materialize());
+        }
+
+        @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "!isBlockProvided(rubyArgs)" })
+        protected RubySymbol defineMethodWithoutMethodAndBlock(
+                Frame callerFrame, RubyModule nodule, Object[] rubyArgs, RootCallTarget target) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @TruffleBoundary
-        @Specialization
-        protected RubySymbol defineMethod(RubyModule module, String name, NotProvided proc, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("needs either proc or block", this));
-        }
+        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method) {
+            final InternalMethod internalMethod = method.method;
 
-        @Specialization
-        protected RubySymbol defineMethodBlock(
-                VirtualFrame frame, RubyModule module, String name, NotProvided proc, RubyProc block) {
-            return defineMethodProc(frame, module, name, block, nil);
-        }
-
-        @Specialization
-        protected RubySymbol defineMethodProc(
-                VirtualFrame frame, RubyModule module, String name, RubyProc proc, Nil block) {
-            return defineMethod(module, name, proc, readCallerFrame.execute(frame));
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubySymbol defineMethodMethod(RubyModule module, String name, RubyMethod methodObject, Nil block,
-                @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
-            final InternalMethod method = methodObject.method;
-
-            if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
-                final RubyModule declaringModule = method.getDeclaringModule();
+            if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
+                final RubyModule declaringModule = internalMethod.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
                             "can't bind singleton method to a different class",
@@ -1307,20 +1312,13 @@ public abstract class ModuleNodes {
                 }
             }
 
-            module.fields.addMethod(getContext(), this, method.withName(name));
+            module.fields.addMethod(getContext(), this, internalMethod.withName(name));
             return getSymbol(name);
         }
 
-        @Specialization
-        protected RubySymbol defineMethod(
-                VirtualFrame frame, RubyModule module, String name, RubyUnboundMethod method, Nil block) {
-            final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
-            return defineMethodInternal(module, name, method, callerFrame);
-        }
-
         @TruffleBoundary
-        private RubySymbol defineMethodInternal(RubyModule module, String name, RubyUnboundMethod method,
-                final MaterializedFrame callerFrame) {
+        private RubySymbol addUnboundMethod(RubyModule module, String name, RubyUnboundMethod method,
+                MaterializedFrame callerFrame) {
             final InternalMethod internalMethod = method.method;
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final RubyModule declaringModule = internalMethod.getDeclaringModule();
@@ -1338,12 +1336,11 @@ public abstract class ModuleNodes {
                 }
             }
 
-            return addMethod(module, name, internalMethod, callerFrame);
+            return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
         @TruffleBoundary
-        private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
-                MaterializedFrame callerFrame) {
+        private RubySymbol addProc(RubyModule module, String name, RubyProc proc, MaterializedFrame callerFrame) {
             final RootCallTarget callTargetForLambda = proc.callTargets.getCallTargetForLambda();
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(callTargetForLambda);
             final SharedMethodInfo info = proc.getSharedMethodInfo().forDefineMethod(module, name, proc);
@@ -1354,7 +1351,7 @@ public abstract class ModuleNodes {
             final RubyLambdaRootNode newRootNode = rootNode.copyRootNode(info, newBody);
             final RootCallTarget newCallTarget = newRootNode.getCallTarget();
 
-            final InternalMethod method = InternalMethod.fromProc(
+            final InternalMethod internalMethod = InternalMethod.fromProc(
                     getContext(),
                     info,
                     proc.declarationContext,
@@ -1363,7 +1360,7 @@ public abstract class ModuleNodes {
                     Visibility.PUBLIC,
                     proc,
                     newCallTarget);
-            return addMethod(module, name, method, callerFrame);
+            return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
         private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
@@ -1396,7 +1393,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol addMethod(RubyModule module, String name, InternalMethod method,
+        private RubySymbol addInternalMethod(RubyModule module, String name, InternalMethod method,
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
@@ -1404,6 +1401,16 @@ public abstract class ModuleNodes {
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
+        }
+
+        protected boolean isMethodParameterProvided(Object[] rubyArgs) {
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            return count >= 2;
+        }
+
+        protected boolean isExpectedMethodParameterType(Object method) {
+            return RubyGuards.isRubyMethod(method) || RubyGuards.isRubyUnboundMethod(method) ||
+                    RubyGuards.isRubyProc(method);
         }
 
     }
@@ -1444,17 +1451,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "initialize", needsBlock = true) // Ideally should not split if no block given
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ClassExecNode classExecNode;
-
         public abstract RubyModule executeInitialize(RubyModule module, Object block);
-
-        void classEval(RubyModule module, RubyProc block) {
-            if (classExecNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                classExecNode = insert(ClassExecNode.create());
-            }
-            classExecNode.classExec(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
-        }
 
         @Specialization
         protected RubyModule initialize(RubyModule module, Nil block) {
@@ -1462,8 +1459,9 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubyModule initialize(RubyModule module, RubyProc block) {
-            classEval(module, block);
+        protected RubyModule initialize(RubyModule module, RubyProc block,
+                @Cached ClassExecBlockNode classExecBlockNode) {
+            classExecBlockNode.execute(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
             return module;
         }
 
@@ -1934,22 +1932,18 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "instance_method", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class InstanceMethodNode extends CoreMethodNode {
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
+    @GenerateUncached
+    @CoreMethod(names = "instance_method", required = 1, alwaysInlined = true)
+    public abstract static class InstanceMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyUnboundMethod instanceMethod(VirtualFrame frame, RubyModule module, String name,
+        protected RubyUnboundMethod instanceMethod(
+                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached BranchProfile errorProfile) {
-            final Frame callerFrame = readCallerFrame.execute(frame);
+            needCallerFrame(callerFrame, target);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
+            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
 
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, declarationContext);

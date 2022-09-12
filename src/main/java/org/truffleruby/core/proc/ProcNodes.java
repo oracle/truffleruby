@@ -31,26 +31,21 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
-import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -75,32 +70,8 @@ public abstract class ProcNodes {
         public abstract RubyProc executeProcNew(VirtualFrame frame, RubyClass procClass, Object[] args, Object block);
 
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block,
-                @Cached FindAndReadDeclarationVariableNode readNode,
-                @Cached ReadCallerFrameNode readCaller,
-                @Cached ProcNewNode recurseNode,
-                @Cached("new()") WarnNode warnNode) {
-            final MaterializedFrame parentFrame = readCaller.execute(frame);
-
-            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil);
-
-            if (parentBlock == nil) {
-                throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
-            } else {
-                if (warnNode.shouldWarnForDeprecation()) {
-                    warnNode.warningMessage(
-                            getContext().getCallStack().getTopMostUserSourceSection(),
-                            "Capturing the given block using Kernel#proc is deprecated; use `&block` instead");
-                }
-
-                final RubyProc proc = (RubyProc) parentBlock;
-                return recurseNode.executeProcNew(frame, procClass, args, proc);
-            }
-        }
-
-        @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
-        protected RubyProc procNormalOptimized(RubyClass procClass, Object[] args, RubyProc block) {
-            return block;
+        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
@@ -130,14 +101,6 @@ public abstract class ProcNodes {
             AllocationTracing.trace(proc, this);
             initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
-        }
-
-        protected RubyClass getProcClass() {
-            return coreLibrary().procClass;
-        }
-
-        protected Shape getProcShape() {
-            return getLanguage().procShape;
         }
 
         protected RubyClass metaClass(RubyProc object) {
