@@ -87,6 +87,42 @@ describe "Always-inlined core methods" do
       }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'initialize_copy' }
     end
 
+    it "for Symbol#to_proc" do
+      -> {
+        :a.to_proc(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'to_proc' }
+    end
+
+    it "for BasicObject#instance_eval" do
+      -> {
+        BasicObject.new.instance_eval
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'instance_eval' }
+    end
+
+    it "for Module#class_eval" do
+      -> {
+        Module.new.class_eval
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'class_eval' }
+    end
+
+    it "for Module#module_eval" do
+      -> {
+        Module.new.module_eval
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'module_eval' }
+    end
+
+    it "for Module#define_method" do
+      -> {
+        Module.new.define_method(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'define_method' }
+    end
+
+    it "for Module#instance_method" do
+      -> {
+        Module.new.instance_method([])
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'instance_method' }
+    end
+
     guard -> { RUBY_ENGINE != "ruby" } do
       it "for #send" do
         -> {
