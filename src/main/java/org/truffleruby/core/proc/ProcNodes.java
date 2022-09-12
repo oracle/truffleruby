@@ -46,7 +46,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -73,11 +72,6 @@ public abstract class ProcNodes {
         @Specialization
         protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
-        }
-
-        @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
-        protected RubyProc procNormalOptimized(RubyClass procClass, Object[] args, RubyProc block) {
-            return block;
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
@@ -107,14 +101,6 @@ public abstract class ProcNodes {
             AllocationTracing.trace(proc, this);
             initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
-        }
-
-        protected RubyClass getProcClass() {
-            return coreLibrary().procClass;
-        }
-
-        protected Shape getProcShape() {
-            return getLanguage().procShape;
         }
 
         protected RubyClass metaClass(RubyProc object) {
