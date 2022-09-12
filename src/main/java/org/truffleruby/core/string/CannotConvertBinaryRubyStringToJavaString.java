@@ -9,9 +9,8 @@
  */
 package org.truffleruby.core.string;
 
+@SuppressWarnings("serial")
 public class CannotConvertBinaryRubyStringToJavaString extends RuntimeException {
-
-    private static final long serialVersionUID = 3484665101786967474L;
 
     private final int nonAsciiCharacter;
 

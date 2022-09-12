@@ -10,20 +10,16 @@
 package org.truffleruby.core.thread;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -31,9 +27,9 @@ import com.oracle.truffle.api.TruffleSafepoint.CompiledInterruptible;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.InterruptMode;
@@ -41,7 +37,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.fiber.FiberPoolThread;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
@@ -76,34 +71,24 @@ public class ThreadManager {
     private final RubyThread rootThread;
     @CompilationFinal private Thread rootJavaThread;
 
-    private final Map<Thread, RubyThread> javaThreadToRubyThread = new ConcurrentHashMap<>();
-
     private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
     /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()}.
      * Needs to be weak because {@link RubyLanguage#disposeThread} is called late as Fibers use a "host thread"
-     * (disposeThread is only called on Context#close for those), and there might be multiple Fibers per such thread
-     * with the pool. If a Thread is unreachable we do not need to wait for it in {@link #killAndWaitOtherThreads()},
-     * but otherwise we need to and we can never remove from this Set as otherwise we cannot guarantee we wait until the
-     * Thread truly finishes execution. */
+     * (disposeThread is only called on Context#close for those). If a Thread is unreachable we do not need to wait for
+     * it in {@link #killAndWaitOtherThreads()}, but otherwise we need to and we can never remove from this Set as
+     * otherwise we cannot guarantee we wait until the Thread truly finishes execution. */
     private final Set<Thread> rubyManagedThreads = Collections
             .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
-
-    public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
-    public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
-            .withInitial(() -> javaThreadToRubyFiber.get(Thread.currentThread()));
 
     private boolean nativeInterrupt;
     private Timer nativeInterruptTimer;
     private ThreadLocal<Interrupter> nativeCallInterrupter;
 
-    private final ExecutorService fiberPool;
-
     public ThreadManager(RubyContext context, RubyLanguage language) {
         this.context = context;
         this.language = language;
         this.rootThread = createBootThread("main");
-        this.fiberPool = Executors.newCachedThreadPool(this::createFiberJavaThread);
     }
 
     public void initialize() {
@@ -148,29 +133,24 @@ public class ThreadManager {
         PRNGRandomizerNodes.resetSeed(context, rootThread.randomizer);
     }
 
-    // spawning Thread => Fiber object
-    public static final ThreadLocal<RubyFiber> FIBER_BEING_SPAWNED = new ThreadLocal<>();
-
-    private Thread createFiberJavaThread(Runnable runnable) {
-        final RubyFiber fiber = FIBER_BEING_SPAWNED.get();
-        assert fiber != null;
-
+    private Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable runnable) {
         if (context.isPreInitializing()) {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread = new FiberPoolThread(runnable); // context.getEnv().createUnenteredThread(runnable);
-        thread.setName("Ruby-FiberPool-" + thread.getName());
+        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+
+        language.rubyThreadInitMap.put(thread, fiber.rubyThread);
+        language.rubyFiberInitMap.put(thread, fiber);
+        thread.setName(FiberManager.NAME_PREFIX + " id=" + RubyLanguage.getThreadId(thread) + " from " +
+                context.fileLine(sourceSection));
         thread.setDaemon(true); // GR-33255
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
-        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
-            System.err.println("Throwable escaped Fiber pool thread:");
-            throwable.printStackTrace();
-        });
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
         return thread;
     }
 
-    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread) {
+    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread, String info) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
@@ -182,8 +162,11 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
+
+        language.rubyThreadInitMap.put(thread, rubyThread);
+        language.rubyFiberInitMap.put(thread, rubyThread.getRootFiber());
+        thread.setName(NAME_PREFIX + " id=" + RubyLanguage.getThreadId(thread) + " from " + info);
         rubyManagedThreads.add(thread); // need to be set before initializeThread()
-        javaThreadToRubyThread.put(thread, rubyThread); // need to be set before initializeThread()
         thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(rubyThread.getRootFiber()));
         return thread;
     }
@@ -208,23 +191,8 @@ public class ThreadManager {
         };
     }
 
-    @SuppressFBWarnings("RV")
-    public void spawnFiber(RubyFiber fiber, Runnable task) {
-        final Runnable body = () -> {
-            try {
-                task.run();
-            } catch (Throwable t) {
-                // Fibers are run on a thread-pool, so make sure any exception escaping
-                // is handled here as the thread pool ignores exceptions.
-                uncaughtExceptionHandler(fiber).uncaughtException(Thread.currentThread(), t);
-            }
-        };
-
-        if (context.getOptions().FIBER_POOL) {
-            fiberPool.submit(body);
-        } else {
-            createFiberJavaThread(body).start();
-        }
+    public void spawnFiber(RubyFiber fiber, SourceSection sourceSection, Runnable task) {
+        createFiberJavaThread(fiber, sourceSection, task).start();
     }
 
     /** Whether the thread was created by TruffleRuby. */
@@ -291,10 +259,8 @@ public class ThreadManager {
         rubyThread.sourceLocation = info;
         final RubyFiber rootFiber = rubyThread.getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread);
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread, info);
         rubyThread.thread = thread;
-        javaThreadToRubyThread.put(thread, rubyThread);
 
         thread.start();
 
@@ -621,34 +587,6 @@ public class ThreadManager {
         }
     }
 
-    public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
-        javaThreadToRubyThread.put(thread, rubyThread);
-    }
-
-    public void cleanupValuesForJavaThread(Thread thread) {
-        javaThreadToRubyThread.remove(thread);
-    }
-
-    @TruffleBoundary
-    public RubyThread getRubyThreadForJavaThread(Thread thread) {
-        final RubyThread rubyThread = javaThreadToRubyThread.get(thread);
-        if (rubyThread == null) {
-            throw CompilerDirectives.shouldNotReachHere(
-                    "No Ruby Thread is associated with Java Thread: " + thread);
-        }
-        return rubyThread;
-    }
-
-    @TruffleBoundary
-    public RubyThread getCurrentThreadOrNull() {
-        return javaThreadToRubyThread.get(Thread.currentThread());
-    }
-
-    @TruffleBoundary
-    public RubyFiber getRubyFiberFromCurrentJavaThread() {
-        return rubyFiber.get();
-    }
-
     public void registerThread(RubyThread thread) {
         if (!runningRubyThreads.add(thread)) {
             throw new UnsupportedOperationException(thread + " was already registered");
@@ -671,9 +609,6 @@ public class ThreadManager {
 
     @TruffleBoundary
     public void killAndWaitOtherThreads() {
-        // Disallow new Fibers to be created
-        fiberPool.shutdown();
-
         // Kill all Ruby Threads and Fibers
 
         // The logic below avoids using the SafepointManager if there is
@@ -716,7 +651,7 @@ public class ThreadManager {
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();
         SafepointPredicate predicate = (context, thread, action) -> Thread.currentThread() != initiatingJavaThread &&
-                getRubyFiberFromCurrentJavaThread() == thread.getCurrentFiber();
+                language.getCurrentFiber() == thread.getCurrentFiber();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(
                 DummyNode.INSTANCE,
@@ -752,7 +687,7 @@ public class ThreadManager {
             }
 
             // cannot use getCurrentThread() as it might have been cleared
-            if (thread == getCurrentThreadOrNull()) {
+            if (thread == language.getCurrentThread()) {
                 builder.append(" (current)");
             }
 

@@ -69,9 +69,8 @@ public class LeakTest extends AbstractLanguageLauncher {
     private String code;
     private List<String> forbiddenClasses = new ArrayList<>();
 
+    @SuppressWarnings("serial")
     private final class SystemExit extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-
         public SystemExit() {
             super(null, null);
         }

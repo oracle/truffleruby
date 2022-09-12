@@ -63,6 +63,8 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
+JDK_VERSIONS =  [11, 17, 19]
+
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
 MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"
@@ -748,7 +750,7 @@ module Commands
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent|-q               Does not print the command and which Ruby is used
           --verbose|-v              Print more details and commands
-          --jdk                     Specifies which version of the JDK should be used: 11 (default) or 17
+          --jdk                     Specifies which version of the JDK should be used: #{JDK_VERSIONS.join(' or ')}
 
       jt build [graalvm|parser|options|core-symbols] ...   by default it builds graalvm
         jt build parser|options|core-symbols
@@ -860,7 +862,7 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The default JDK version to use: 11 (default) or 17
+        JT_JDK                                       The default JDK version to use: #{JDK_VERSIONS.join(' or ')}
         JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
         JT_SPECS_COMPILATION                         Controls whether Graal will be used when running specs (default: 'true'). Only affects JVM with Graal. Set to 'false' to disable for running specs faster when developing with jvm-ce.
@@ -2231,13 +2233,8 @@ module Commands
   end
 
   private def install_jvmci(download_message, ee, jdk_version: @jdk_version)
-    if jdk_version == 11
-      jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
-    elsif jdk_version == 17
-      jdk_name = ee ? 'labsjdk-ee-17' : 'labsjdk-ce-17'
-    else
-      raise "Unknown JDK version: #{jdk_version}"
-    end
+    raise "Unknown JDK version: #{jdk_version}" unless JDK_VERSIONS.include?(jdk_version)
+    jdk_name = ee ? "labsjdk-ee-#{jdk_version}" : "labsjdk-ce-#{jdk_version}"
 
     java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
@@ -3097,7 +3094,7 @@ class JT
       end
     end
 
-    raise "Invalid JDK version: #{@jdk_version}" unless [11, 17].include?(@jdk_version)
+    raise "Invalid JDK version: #{@jdk_version}" unless JDK_VERSIONS.include?(@jdk_version)
 
     if needs_rebuild
       rebuild

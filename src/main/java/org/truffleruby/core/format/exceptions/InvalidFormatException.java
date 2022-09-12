@@ -9,9 +9,8 @@
  */
 package org.truffleruby.core.format.exceptions;
 
+@SuppressWarnings("serial")
 public class InvalidFormatException extends FormatException {
-
-    private static final long serialVersionUID = -6689191131430505495L;
 
     public InvalidFormatException(String message) {
         super(message);

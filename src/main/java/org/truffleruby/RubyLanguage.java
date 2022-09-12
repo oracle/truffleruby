@@ -13,8 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -50,7 +52,6 @@ import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySyntaxError;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.exception.RubySystemExit;
-import org.truffleruby.core.fiber.FiberPoolThread;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
 import org.graalvm.options.OptionValues;
@@ -185,16 +186,44 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
      * {@link TranslatorEnvironment#newFrameDescriptorBuilder(org.truffleruby.parser.ParentFrameDescriptor, boolean)}. */
     public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.INSTANCE);
 
-    /** We need an extra indirection added to ContextThreadLocal due to multiple Fibers of different Ruby Threads
-     * sharing the same Java Thread when using the fiber pool. */
-    public static final class ThreadLocalState {
-        public RubyThread rubyThread;
+    private RubyThread getOrCreateForeignThread(RubyContext context, Thread thread) {
+        RubyThread foreignThread = rubyThreadInitMap.remove(thread);
+        if (foreignThread == null) {
+            foreignThread = context.getThreadManager().createForeignThread();
+            rubyThreadInitMap.put(thread, foreignThread);
+        }
+        return foreignThread;
     }
 
-    private final ContextThreadLocal<ThreadLocalState> threadLocalState = createContextThreadLocal(
-            (context, thread) -> thread instanceof FiberPoolThread
-                    ? ((FiberPoolThread) thread).threadLocalState
-                    : new ThreadLocalState());
+    public final Map<Thread, RubyThread> rubyThreadInitMap = new ConcurrentHashMap<>();
+    private final ContextThreadLocal<RubyThread> rubyThread = createContextThreadLocal(
+            (context, thread) -> {
+                if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
+                    // Already initialized when creating the context
+                    return context.getThreadManager().getRootThread();
+                }
+
+                if (context.getThreadManager().isRubyManagedThread(thread)) {
+                    return Objects.requireNonNull(rubyThreadInitMap.remove(thread));
+                }
+
+                return getOrCreateForeignThread(context, thread);
+            });
+
+    public final Map<Thread, RubyFiber> rubyFiberInitMap = new ConcurrentHashMap<>();
+    private final ContextThreadLocal<RubyFiber> rubyFiber = createContextThreadLocal(
+            (context, thread) -> {
+                if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
+                    // Already initialized when creating the context
+                    return context.getThreadManager().getRootThread().getRootFiber();
+                }
+
+                if (context.getThreadManager().isRubyManagedThread(thread)) {
+                    return Objects.requireNonNull(rubyFiberInitMap.remove(thread));
+                }
+
+                return getOrCreateForeignThread(context, thread).getRootFiber();
+            });
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
@@ -330,18 +359,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public RubyThread getCurrentThread() {
-        final RubyThread rubyThread = threadLocalState.get().rubyThread;
-        if (rubyThread == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw CompilerDirectives.shouldNotReachHere(
-                    "No Ruby Thread is associated with current Java Thread: " + Thread.currentThread());
-        }
-        return rubyThread;
+        return rubyThread.get();
     }
 
-    public void setupCurrentThread(Thread javaThread, RubyThread rubyThread) {
-        final ThreadLocalState threadLocalState = this.threadLocalState.get(javaThread);
-        threadLocalState.rubyThread = rubyThread;
+    public RubyFiber getCurrentFiber() {
+        return rubyFiber.get();
     }
 
     @TruffleBoundary
@@ -553,39 +575,34 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void initializeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(() -> "initializeThread(#" + thread.getId() + " " + thread + ")");
+        LOGGER.fine(() -> "initializeThread(#" + getThreadId(thread) + " " + thread + ")");
 
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
-            setupCurrentThread(thread, context.getThreadManager().getRootThread());
             return;
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
-            if (rubyThread != null && rubyThread.thread == thread) { // new Ruby Thread
+            final RubyThread rubyThread = getCurrentThread();
+            if (rubyThread.thread == thread) { // new Ruby Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
                 }
                 context.getThreadManager().start(rubyThread, thread);
-                setupCurrentThread(thread, rubyThread);
             } else {
                 // Fiber
             }
             return;
         }
 
-        final RubyThread foreignThread = context.getThreadManager().createForeignThread();
+        final RubyThread foreignThread = getCurrentThread();
         context.getThreadManager().startForeignThread(foreignThread, thread);
-        setupCurrentThread(thread, foreignThread);
     }
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(
-                () -> "disposeThread(#" + thread.getId() + " " + thread + " on " +
-                        context.getThreadManager().getCurrentThreadOrNull() + ")");
+        LOGGER.fine(() -> "disposeThread(#" + getThreadId(thread) + " " + thread + " on " + getCurrentThread() + ")");
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
@@ -604,8 +621,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
-            if (rubyThread != null && rubyThread.thread == thread) { // Thread
+            final RubyThread rubyThread = getCurrentThread();
+            if (rubyThread.thread == thread) { // Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
                 }
@@ -617,7 +634,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
-        final RubyThread rubyThread = context.getThreadManager().getRubyThreadForJavaThread(thread);
+        final RubyThread rubyThread = this.rubyThread.get(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 
@@ -847,5 +864,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
+    }
+
+    @SuppressWarnings("deprecation") // deprecated on JDK19 by Thread#threadId, but that's added in JDK19
+    public static long getThreadId(Thread thread) {
+        return thread.getId();
     }
 }

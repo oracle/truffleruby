@@ -153,9 +153,8 @@ public class DoubleConverter {
         return SafeDoubleParser.parseDouble(new String(chars, 0, charsIndex));
     }
 
+    @SuppressWarnings("serial")
     static class LightweightNumberFormatException extends NumberFormatException {
-        private static final long serialVersionUID = 8405843059834590L;
-
         public LightweightNumberFormatException(String message) {
             super(message);
         }

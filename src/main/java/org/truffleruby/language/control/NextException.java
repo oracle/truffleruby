@@ -11,9 +11,8 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
 
+@SuppressWarnings("serial")
 public final class NextException extends ControlFlowException {
-
-    private static final long serialVersionUID = 1354120079185876952L;
 
     private final Object result;
 

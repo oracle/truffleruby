@@ -12,9 +12,8 @@ package org.truffleruby.core.exception;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
 
+@SuppressWarnings("serial")
 public class GetBacktraceException extends AbstractTruffleException {
-
-    private static final long serialVersionUID = 2633487517169337464L;
 
     public static final int UNLIMITED = AbstractTruffleException.UNLIMITED_STACK_TRACE;
 
