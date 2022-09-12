@@ -171,9 +171,7 @@ public class CExtNodes {
         @Specialization
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block) {
-            final ExtensionCallStack extensionStack = getLanguage()
-                    .getCurrentThread()
-                    .getCurrentFiber().extensionCallStack;
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
@@ -195,9 +193,7 @@ public class CExtNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile,
                 @Cached UnwrapNode unwrapNode) {
-            final ExtensionCallStack extensionStack = getLanguage()
-                    .getCurrentThread()
-                    .getCurrentFiber().extensionCallStack;
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
@@ -845,7 +841,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean keywordGiven() {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.areKeywordsGiven();
+            return getLanguage().getCurrentFiber().extensionCallStack.areKeywordsGiven();
         }
     }
 
@@ -854,7 +850,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object block() {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getBlock();
+            return getLanguage().getCurrentFiber().extensionCallStack.getBlock();
         }
     }
 
@@ -863,7 +859,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object variables() {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.getSpecialVariables();
+            return getLanguage().getCurrentFiber().extensionCallStack.getSpecialVariables();
         }
     }
 
@@ -1379,9 +1375,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object storeException(CapturedException captured) {
-            final ExtensionCallStack extensionStack = getLanguage()
-                    .getCurrentThread()
-                    .getCurrentFiber().extensionCallStack;
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             extensionStack.setException(captured);
             return nil;
         }
@@ -1392,9 +1386,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object retrieveException() {
-            final ExtensionCallStack extensionStack = getLanguage()
-                    .getCurrentThread()
-                    .getCurrentFiber().extensionCallStack;
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             return extensionStack.getException();
         }
     }

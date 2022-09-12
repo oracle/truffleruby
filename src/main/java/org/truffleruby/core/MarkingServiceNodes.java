@@ -27,7 +27,7 @@ public class MarkingServiceNodes {
 
         @Specialization
         protected void keepObjectAlive(Object object) {
-            ExtensionCallStack stack = getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack;
+            ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
             addToList(stack.getKeptObjects(), object);
         }
 

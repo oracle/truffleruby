@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.format.exceptions;
 
+@SuppressWarnings("serial")
 public class TooFewArgumentsException extends FormatException {
-
-    private static final long serialVersionUID = 425804306436596616L;
-
 }

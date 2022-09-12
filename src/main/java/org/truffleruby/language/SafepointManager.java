@@ -35,8 +35,8 @@ public final class SafepointManager {
         final ThreadManager threadManager = context.getThreadManager();
         final RubyThread rubyThread = action.getTargetThread();
 
-        if (threadManager.getCurrentThreadOrNull() == rubyThread) {
-            if (threadManager.getRubyFiberFromCurrentJavaThread() != rubyThread.getCurrentFiber()) {
+        if (context.getEnv().getContext().isEntered() && context.getLanguageSlow().getCurrentThread() == rubyThread) {
+            if (context.getLanguageSlow().getCurrentFiber() != rubyThread.getCurrentFiber()) {
                 throw CompilerDirectives.shouldNotReachHere(
                         "The currently executing Java thread does not correspond to the currently active fiber for the current Ruby thread");
             }

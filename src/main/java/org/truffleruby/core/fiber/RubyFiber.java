@@ -115,6 +115,10 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         return rubyThread.getRootFiber() == this;
     }
 
+    public boolean isActive() {
+        return this == rubyThread.getCurrentFiber();
+    }
+
     public boolean isTerminated() {
         return status == FiberStatus.TERMINATED;
     }

@@ -81,8 +81,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
                 if (!getContext().isFinalizing()) {
                     Object data = ref.dataHolder.getPointer();
                     if (!nullNode.isNull(data)) {
-                        final ExtensionCallStack stack = getLanguage().getCurrentThread()
-                                .getCurrentFiber().extensionCallStack;
+                        final ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
                         stack.push(false, stack.getSpecialVariables(), stack.getBlock());
                         try {
                             callNode.execute(ref.callable, data);

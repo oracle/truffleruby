@@ -28,6 +28,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
+@SuppressWarnings("serial")
 public class SyntaxException extends RuntimeException {
     public enum PID {
         BAD_HEX_NUMBER("BAD_HEX_NUMBER"),
@@ -69,8 +70,6 @@ public class SyntaxException extends RuntimeException {
             return id;
         }
     }
-
-    private static final long serialVersionUID = -2130930815167932274L;
 
     private String file;
     private int line;

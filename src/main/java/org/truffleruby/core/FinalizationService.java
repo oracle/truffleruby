@@ -95,7 +95,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
 
     protected void processReferenceInternal(RubyContext context, RubyLanguage language,
             FinalizerReference finalizerReference) {
-        final ExtensionCallStack stack = language.getCurrentThread().getCurrentFiber().extensionCallStack;
+        final ExtensionCallStack stack = language.getCurrentFiber().extensionCallStack;
         stack.push(stack.areKeywordsGiven(), stack.getSpecialVariables(), stack.getBlock());
         try {
             while (!context.isFinalizing()) {

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.format.exceptions;
 
+@SuppressWarnings("serial")
 public class OutsideOfStringException extends FormatException {
-
-    private static final long serialVersionUID = -4122128522293680018L;
-
 }

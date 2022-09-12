@@ -102,7 +102,6 @@ EXPERT:
     LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, LAZY_CALLTARGETS, 'Lazily translation of stdlib, gem and user source files']
     PATCHING: [patching, boolean, true, Use patching]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
-    FIBER_POOL: [fiber-pool, boolean, false, 'Use a thread pool to speed up creating Fibers']
     LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created'] # Also see --log-process-args
     WARN_LOCALE: [warn-locale, boolean, true, 'Warn when the system locale is not set properly']
 

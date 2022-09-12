@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.format.exceptions;
 
+@SuppressWarnings("serial")
 public class CantCompressNegativeException extends FormatException {
-
-    private static final long serialVersionUID = 3584862629702748827L;
-
 }

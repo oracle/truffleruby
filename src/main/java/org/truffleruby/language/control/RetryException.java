@@ -11,8 +11,6 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
 
+@SuppressWarnings("serial")
 public final class RetryException extends ControlFlowException {
-
-    private static final long serialVersionUID = -6020762812635743383L;
-
 }
