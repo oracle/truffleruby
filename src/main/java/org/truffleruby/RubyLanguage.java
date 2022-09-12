@@ -575,7 +575,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void initializeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(() -> "initializeThread(#" + thread.getId() + " " + thread + ")");
+        LOGGER.fine(() -> "initializeThread(#" + getThreadId(thread) + " " + thread + ")");
 
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
@@ -602,7 +602,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(() -> "disposeThread(#" + thread.getId() + " " + thread + " on " + getCurrentThread() + ")");
+        LOGGER.fine(() -> "disposeThread(#" + getThreadId(thread) + " " + thread + " on " + getCurrentThread() + ")");
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
@@ -864,5 +864,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
+    }
+
+    @SuppressWarnings("deprecation") // deprecated on JDK19 by Thread#threadId, but that's added in JDK19
+    public static long getThreadId(Thread thread) {
+        return thread.getId();
     }
 }

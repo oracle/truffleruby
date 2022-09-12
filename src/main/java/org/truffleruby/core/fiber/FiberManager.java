@@ -394,7 +394,7 @@ public class FiberManager {
             if (thread == null) {
                 builder.append(" (no Java thread)");
             } else {
-                builder.append(" #").append(thread.getId()).append(' ').append(thread);
+                builder.append(" #").append(RubyLanguage.getThreadId(thread)).append(' ').append(thread);
             }
 
             if (fiber.isRootFiber()) {
