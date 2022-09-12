@@ -38,6 +38,9 @@ Compatibility:
 * Implement `rb_ivar_foreach` to iterate over instance and class variables like in CRuby (#2701, @aardvark179).
 * Fix the absolute path of the main script after chdir (#2709, @eregon).
 * Fix exception for `Fiddle::Handle.new` with a missing library (#2714, @eregon).
+* Fix arguments implicit type conversion for `BasicObject#instance_eval`, `Module#class_eval`, `Module#module_eval`, `Module#define_method` (@andrykonchin).
+* Raise `ArgumentError` unconditionally when `Proc.new` is called without a block argument (@andrykonchin).
+
 
 Performance:
 
