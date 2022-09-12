@@ -21,10 +21,9 @@ import org.truffleruby.language.backtrace.Backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** A ControlFlowException holding a Ruby exception. */
+@SuppressWarnings("serial")
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "exception")
 public final class RaiseException extends AbstractTruffleException {
-
-    private static final long serialVersionUID = -4128190563044417424L;
 
     protected final RubyException exception;
 

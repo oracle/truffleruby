@@ -17,10 +17,9 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 
+@SuppressWarnings("serial")
 @ExportLibrary(InteropLibrary.class)
 public abstract class TerminationException extends AbstractTruffleException {
-
-    private static final long serialVersionUID = 2170201891607264355L;
 
     @TruffleBoundary
     private static RuntimeException javaStacktrace() {

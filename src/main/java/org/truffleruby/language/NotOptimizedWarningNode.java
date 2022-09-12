@@ -35,8 +35,8 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
         return NotOptimizedWarningNodeGen.create();
     }
 
+    @SuppressWarnings("serial")
     protected static class Warned extends ControlFlowException {
-        private static final long serialVersionUID = 6760505091509903491L;
     }
 
     public final void warn(String message) {

@@ -251,6 +251,10 @@
       <property name="format" value='@Cached.+AbstractTruffleString'/>
       <property name="message" value='Do not cache on AbstractTruffleString (which can be mutable), cache on TruffleString and use RubyStringLibrary#asTruffleStringUncached()'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='serialVersionUID'/>
+      <property name="message" value='Use @SuppressWarnings("serial") instead.'/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="TruffleObject,DynamicObject,PrintWriter"/>
