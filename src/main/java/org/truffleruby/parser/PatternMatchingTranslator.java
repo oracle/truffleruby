@@ -122,8 +122,12 @@ public class PatternMatchingTranslator extends BaseTranslator {
 
 
         int preSize = arrayPatternParseNode.preArgsNum();
-        RubyNode condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
-                currentValueToMatch);
+
+        RubyNode condition = null;
+        if (postNodes == null) {
+            condition = new ArrayPatternLengthCheckNode(preSize,
+                    currentValueToMatch);
+        }
         for (int i = 0; i < preSize; i++) {
             ParseNode loopPreNode = preNodes.get(i);
             RubyNode translatedPatternElement;
@@ -163,7 +167,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 } else {
                     postSize = postNodes.size();
                 }
-                var exprSlice = ArraySliceNodeGen.create(preNodes.size(), -postSize, currentValueToMatch);
+                var exprSlice = ArraySliceNodeGen.create(preSize, -postSize, currentValueToMatch);
                 currentValueToMatch = exprSlice;
                 try {
                     restAccept = restNode.accept(this);

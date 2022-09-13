@@ -27,7 +27,7 @@ public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         RubyArray matchArray = (RubyArray) currentValueToMatch.execute(frame);
         long aSize = matchArray.getArraySize();
-        return aSize == patternLength;
+        return patternLength == aSize;
     }
 
 }

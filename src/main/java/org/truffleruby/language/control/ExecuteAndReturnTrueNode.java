@@ -13,12 +13,10 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
 public final class ExecuteAndReturnTrueNode extends RubyContextSourceNode {
     @Child RubyNode child;
+
     public ExecuteAndReturnTrueNode(RubyNode child) {
         this.child = child;
     }
