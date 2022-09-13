@@ -386,10 +386,9 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @Override
         public RubyNode cloneUninitialized() {
-            var valuesCopy = (values == null) ? null : cloneUninitialized(values);
             var copy = new UninitialisedArrayLiteralNode(
                     language,
-                    valuesCopy);
+                    cloneUninitialized(values));
             copy.copyFlags(this);
             return copy;
         }

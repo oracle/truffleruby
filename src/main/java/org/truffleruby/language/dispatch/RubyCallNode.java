@@ -268,14 +268,13 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var blockCopy = (block == null) ? null : block.cloneUninitialized();
         var copy = new RubyCallNode(
                 isSplatted,
                 descriptor,
                 methodName,
                 receiver.cloneUninitialized(),
                 cloneUninitialized(arguments),
-                blockCopy,
+                cloneUninitialized(block),
                 dispatchConfig,
                 isVCall,
                 isSafeNavigation,

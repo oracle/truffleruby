@@ -147,11 +147,10 @@ public class TryNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var rescuePartsCopy = cloneUninitialized(rescueParts);
-        var elsePartCopy = (elsePart == null) ? null : elsePart.cloneUninitialized();
         var copy = new TryNode(
                 tryPart.cloneUninitialized(),
                 Arrays.copyOf(rescuePartsCopy, rescuePartsCopy.length, RescueNode[].class),
-                elsePartCopy,
+                cloneUninitialized(elsePart),
                 canOmitBacktrace);
         copy.copyFlags(this);
         return copy;

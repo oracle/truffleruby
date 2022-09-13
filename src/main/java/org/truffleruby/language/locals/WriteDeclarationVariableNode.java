@@ -68,11 +68,10 @@ public class WriteDeclarationVariableNode extends WriteLocalNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var valueNodeCopy = (valueNode == null) ? null : valueNode.cloneUninitialized();
         var copy = new WriteDeclarationVariableNode(
                 frameSlot,
                 frameDepth,
-                valueNodeCopy);
+                cloneUninitialized(valueNode));
         copy.copyFlags(this);
         return copy;
     }
