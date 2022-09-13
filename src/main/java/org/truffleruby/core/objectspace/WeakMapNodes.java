@@ -14,7 +14,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.array.RubyArray;
@@ -37,7 +36,7 @@ import java.util.Collection;
 public abstract class WeakMapNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyWeakMap allocate(RubyClass rubyClass) {
@@ -48,7 +47,7 @@ public abstract class WeakMapNodes {
     }
 
     @CoreMethod(names = { "size", "length" })
-    public abstract static class SizeNode extends UnaryCoreMethodNode {
+    public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected int size(RubyWeakMap map) {
@@ -86,7 +85,7 @@ public abstract class WeakMapNodes {
     }
 
     @CoreMethod(names = { "keys" })
-    public abstract static class KeysNode extends UnaryCoreMethodNode {
+    public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray getKeys(RubyWeakMap map) {
@@ -95,7 +94,7 @@ public abstract class WeakMapNodes {
     }
 
     @CoreMethod(names = { "values" })
-    public abstract static class ValuesNode extends UnaryCoreMethodNode {
+    public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray getValues(RubyWeakMap map) {

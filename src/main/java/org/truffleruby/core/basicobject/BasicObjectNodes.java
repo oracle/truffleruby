@@ -19,7 +19,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -92,7 +91,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class BasicObjectNodes {
 
     @CoreMethod(names = "!")
-    public abstract static class NotNode extends UnaryCoreMethodNode {
+    public abstract static class NotNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean not(Object value,

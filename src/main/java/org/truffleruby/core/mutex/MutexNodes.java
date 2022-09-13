@@ -16,7 +16,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -46,7 +45,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "lock")
-    public abstract static class LockNode extends UnaryCoreMethodNode {
+    public abstract static class LockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMutex lock(RubyMutex mutex,
@@ -66,7 +65,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "locked?")
-    public abstract static class IsLockedNode extends UnaryCoreMethodNode {
+    public abstract static class IsLockedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean isLocked(RubyMutex mutex) {
@@ -76,7 +75,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "owned?")
-    public abstract static class IsOwnedNode extends UnaryCoreMethodNode {
+    public abstract static class IsOwnedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isOwned(RubyMutex mutex) {
             return mutex.lock.isHeldByCurrentThread();
@@ -84,7 +83,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "try_lock")
-    public abstract static class TryLockNode extends UnaryCoreMethodNode {
+    public abstract static class TryLockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean tryLock(RubyMutex mutex,
@@ -101,7 +100,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "unlock")
-    public abstract static class UnlockNode extends UnaryCoreMethodNode {
+    public abstract static class UnlockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMutex unlock(RubyMutex mutex,

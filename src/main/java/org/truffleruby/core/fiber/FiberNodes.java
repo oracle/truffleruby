@@ -17,7 +17,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
@@ -313,7 +312,7 @@ public abstract class FiberNodes {
     }
 
     @CoreMethod(names = "alive?")
-    public abstract static class AliveNode extends UnaryCoreMethodNode {
+    public abstract static class AliveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean alive(RubyFiber fiber) {

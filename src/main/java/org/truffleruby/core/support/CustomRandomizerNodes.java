@@ -10,8 +10,8 @@
 package org.truffleruby.core.support;
 
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Visibility;
 
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class CustomRandomizerNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyCustomRandomizer randomizerAllocate(RubyClass customRandomizerClass) {

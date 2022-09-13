@@ -23,10 +23,10 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -162,7 +162,7 @@ public abstract class BindingNodes {
     }
 
     @CoreMethod(names = { "dup", "clone" })
-    public abstract static class DupNode extends UnaryCoreMethodNode {
+    public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyBinding dup(RubyBinding binding) {
             return new RubyBinding(
@@ -519,7 +519,7 @@ public abstract class BindingNodes {
     }
 
     @CoreMethod(names = "receiver")
-    public abstract static class ReceiverNode extends UnaryCoreMethodNode {
+    public abstract static class ReceiverNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object receiver(RubyBinding binding) {
@@ -529,7 +529,7 @@ public abstract class BindingNodes {
 
     // NOTE: Introduced in Ruby 2.6, but already useful for Binding#eval
     @CoreMethod(names = "source_location")
-    public abstract static class SourceLocationNode extends UnaryCoreMethodNode {
+    public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -549,7 +549,7 @@ public abstract class BindingNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object allocate(RubyClass rubyClass) {

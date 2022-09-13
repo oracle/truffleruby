@@ -18,7 +18,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
@@ -275,7 +274,7 @@ public abstract class SymbolNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));

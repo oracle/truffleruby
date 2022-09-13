@@ -27,7 +27,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
@@ -707,7 +706,7 @@ public abstract class MatchDataNodes {
     // Defined only so that #initialize_copy works for #dup and #clone.
     // MatchData.allocate is undefined, see regexp.rb.
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
+    public abstract static class InternalAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMatchData allocate(RubyClass rubyClass) {

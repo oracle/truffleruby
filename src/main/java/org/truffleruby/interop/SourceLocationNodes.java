@@ -14,8 +14,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
 
@@ -26,7 +26,7 @@ import org.truffleruby.core.thread.ThreadBacktraceLocationNodes;
 public class SourceLocationNodes {
 
     @CoreMethod(names = "absolute_path")
-    public abstract static class AbsolutePathNode extends UnaryCoreMethodNode {
+    public abstract static class AbsolutePathNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected Object absolutePath(RubySourceLocation location) {
@@ -40,7 +40,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "path")
-    public abstract static class PathNode extends UnaryCoreMethodNode {
+    public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected RubyString path(RubySourceLocation location) {
@@ -56,7 +56,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = { "first_lineno", "lineno" })
-    public abstract static class LinenoNode extends UnaryCoreMethodNode {
+    public abstract static class LinenoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected int lineno(RubySourceLocation location) {
@@ -65,7 +65,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "last_lineno")
-    public abstract static class LastLinenoNode extends UnaryCoreMethodNode {
+    public abstract static class LastLinenoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected int lastLine(RubySourceLocation location) {
@@ -74,7 +74,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "first_column")
-    public abstract static class FirstColumnNode extends UnaryCoreMethodNode {
+    public abstract static class FirstColumnNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected int firstCol(RubySourceLocation location) {
@@ -83,7 +83,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "last_column")
-    public abstract static class LastColumnNode extends UnaryCoreMethodNode {
+    public abstract static class LastColumnNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected int lastCol(RubySourceLocation location) {
@@ -92,7 +92,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "available?")
-    public abstract static class IsAvailableNode extends UnaryCoreMethodNode {
+    public abstract static class IsAvailableNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected boolean isAvailable(RubySourceLocation location) {
@@ -101,7 +101,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "internal?")
-    public abstract static class IsInternalNode extends UnaryCoreMethodNode {
+    public abstract static class IsInternalNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected boolean isInternal(RubySourceLocation location) {
@@ -110,7 +110,7 @@ public class SourceLocationNodes {
     }
 
     @CoreMethod(names = "language")
-    public abstract static class LanguageNode extends UnaryCoreMethodNode {
+    public abstract static class LanguageNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
         protected RubyString language(RubySourceLocation location,
