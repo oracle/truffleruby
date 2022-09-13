@@ -1,4 +1,3 @@
-fails:Pattern matching binds variables
 fails:Pattern matching cannot mix in and when operators
 fails:Pattern matching raises NoMatchingPatternError if no pattern matches and no else clause
 fails:Pattern matching guards supports if guard
@@ -51,12 +50,10 @@ fails:Pattern matching Hash pattern supports double splat operator **rest
 fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
 fails:Pattern matching Hash pattern matches anything with **
 fails:Pattern matching refinements are used for #deconstruct_keys
-fails:Pattern matching does not allow calculation or method calls in a pattern
 fails:Pattern matching Hash pattern does not support non-symbol keys
 fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct
 fails:Pattern matching can be standalone assoc operator that deconstructs value
 fails:Pattern matching Array pattern calls #deconstruct once for multiple patterns, caching the result
-fails:Pattern matching find pattern captures preceding elements to the pattern
 fails:Pattern matching find pattern captures following elements to the pattern
 fails:Pattern matching find pattern captures both preceding and following elements to the pattern
 fails:Pattern matching find pattern can capture the entirety of the pattern
