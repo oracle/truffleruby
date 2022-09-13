@@ -54,6 +54,11 @@ public class WriteDeclarationVariableNode extends WriteLocalNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     protected String getVariableName() {
         var descriptor = ParentFrameDescriptor.getDeclarationFrameDescriptor(
                 getRootNode().getFrameDescriptor(), frameDepth);

@@ -48,6 +48,11 @@ public class WriteLocalVariableNode extends WriteLocalNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     protected String getVariableName() {
         return getRootNode().getFrameDescriptor().getSlotName(frameSlot).toString();
     }

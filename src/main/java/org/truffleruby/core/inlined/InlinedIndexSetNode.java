@@ -75,6 +75,11 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = InlinedIndexSetNodeGen.create(
                 getLanguage(),
@@ -85,4 +90,5 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
         copy.copyFlags(this);
         return copy;
     }
+
 }

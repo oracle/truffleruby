@@ -255,6 +255,11 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     public Map<String, Object> getDebugProperties() {
         final Map<String, Object> map = super.getDebugProperties();
         map.put("methodName", methodName);

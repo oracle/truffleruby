@@ -70,6 +70,11 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = new WriteClassVariableNode(
                 lexicalScopeNode.cloneUninitialized(),

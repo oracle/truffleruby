@@ -23,4 +23,10 @@ public class NoopAssignableNode extends RubyBaseNode implements AssignableNode {
     public AssignableNode toAssignableNode() {
         return this;
     }
+
+    @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return new NoopAssignableNode();
+    }
+
 }

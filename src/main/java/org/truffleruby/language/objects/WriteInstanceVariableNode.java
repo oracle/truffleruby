@@ -91,6 +91,11 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     public RubyNode cloneUninitialized() {
         var rhsCopy = (rhs == null) ? null : rhs.cloneUninitialized();
         var copy = new WriteInstanceVariableNode(
