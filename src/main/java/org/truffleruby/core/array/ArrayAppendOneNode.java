@@ -91,8 +91,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         var copy = ArrayAppendOneNodeGen.create(
                 getArrayNode().cloneUninitialized(),
                 getValueNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

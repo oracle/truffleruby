@@ -632,8 +632,7 @@ public class BucketsHashStore {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = new GenericHashLiteralNode(cloneUninitialized(keyValues));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

@@ -63,8 +63,7 @@ public abstract class ArrayIndexNodes {
             var copy = ReadConstantIndexNode.create(
                     getArrayNode().cloneUninitialized(),
                     index);
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

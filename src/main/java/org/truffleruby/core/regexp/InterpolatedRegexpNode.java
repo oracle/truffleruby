@@ -65,8 +65,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         var copy = new InterpolatedRegexpNode(
                 cloneUninitialized(children),
                 builderNode);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
     protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {

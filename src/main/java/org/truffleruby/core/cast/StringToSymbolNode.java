@@ -33,8 +33,7 @@ public abstract class StringToSymbolNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = StringToSymbolNodeGen.create(getStringNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

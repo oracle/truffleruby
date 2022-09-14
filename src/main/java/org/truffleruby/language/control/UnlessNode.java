@@ -66,8 +66,7 @@ public class UnlessNode extends RubyContextSourceNode {
         var copy = new UnlessNode(
                 getConditionBeforeCasting().cloneUninitialized(),
                 thenBody.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -22,8 +22,7 @@ public abstract class CoreMethodNode extends RubyContextSourceNode {
     public RubyNode cloneUninitialized() {
         NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
         var copy = (CoreMethodNode) CoreMethodNodeManager.createNodeFromFactory(factory, RubyNode.EMPTY_ARRAY);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

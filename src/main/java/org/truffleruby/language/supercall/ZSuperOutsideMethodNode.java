@@ -58,8 +58,7 @@ public class ZSuperOutsideMethodNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ZSuperOutsideMethodNode(insideDefineMethod);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

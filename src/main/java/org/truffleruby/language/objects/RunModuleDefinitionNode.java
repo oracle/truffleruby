@@ -53,8 +53,7 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
         var copy = new RunModuleDefinitionNode(
                 definitionMethod,
                 definingModule.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

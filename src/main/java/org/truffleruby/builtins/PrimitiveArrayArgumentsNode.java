@@ -24,8 +24,7 @@ public abstract class PrimitiveArrayArgumentsNode extends PrimitiveNode {
         NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
         RubyNode[] copiedArguments = cloneUninitialized(getArgumentNodes());
         var copy = (PrimitiveArrayArgumentsNode) CoreMethodNodeManager.createNodeFromFactory(factory, copiedArguments);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

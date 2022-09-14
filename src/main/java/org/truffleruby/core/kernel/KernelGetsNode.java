@@ -32,8 +32,7 @@ public class KernelGetsNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new KernelGetsNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

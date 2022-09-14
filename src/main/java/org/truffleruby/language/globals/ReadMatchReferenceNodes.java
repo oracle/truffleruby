@@ -68,8 +68,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
             var copy = new ReadNthMatchNode(
                     readMatchNode.cloneUninitialized(),
                     index);
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -127,8 +126,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
                     readMatchNode.cloneUninitialized(),
                     cloneUninitialized(setters),
                     cloneUninitialized(nilSetters));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

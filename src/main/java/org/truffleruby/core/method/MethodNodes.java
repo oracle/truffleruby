@@ -365,8 +365,7 @@ public abstract class MethodNodes {
             @Override
             public RubyNode cloneUninitialized() {
                 var copy = new CallWithRubyMethodReceiverNode();
-                copy.copyFlags(this);
-                return copy;
+                return copy.copyFlags(this);
             }
 
         }

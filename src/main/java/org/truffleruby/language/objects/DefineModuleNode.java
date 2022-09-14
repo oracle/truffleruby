@@ -83,7 +83,6 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
         var copy = DefineModuleNodeGen.create(
                 name,
                 getLexicalParentModuleNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 }

@@ -73,8 +73,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = create(getChildNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

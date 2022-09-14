@@ -25,8 +25,7 @@ public class DynamicLexicalScopeNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new DynamicLexicalScopeNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

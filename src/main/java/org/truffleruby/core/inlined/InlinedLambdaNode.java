@@ -67,8 +67,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
                 this.parameters,
                 getSelfNode().cloneUninitialized(),
                 getBlock().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

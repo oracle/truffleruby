@@ -444,8 +444,7 @@ public abstract class RangeNodes {
                     getBeginNode().cloneUninitialized(),
                     getEndNode().cloneUninitialized(),
                     getExcludeEndNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

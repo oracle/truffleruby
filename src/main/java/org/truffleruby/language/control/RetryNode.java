@@ -24,8 +24,7 @@ public class RetryNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new RetryNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

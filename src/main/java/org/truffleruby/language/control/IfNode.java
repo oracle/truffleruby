@@ -66,8 +66,7 @@ public class IfNode extends RubyContextSourceNode {
         var copy = new IfNode(
                 getConditionBeforeCasting().cloneUninitialized(),
                 thenBody.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

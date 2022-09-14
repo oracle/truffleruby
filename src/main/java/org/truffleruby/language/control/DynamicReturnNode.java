@@ -40,8 +40,7 @@ public class DynamicReturnNode extends RubyContextSourceNode {
         var copy = new DynamicReturnNode(
                 returnID,
                 value.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

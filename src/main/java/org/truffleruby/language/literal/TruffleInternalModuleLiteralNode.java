@@ -23,8 +23,7 @@ public class TruffleInternalModuleLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new TruffleInternalModuleLiteralNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

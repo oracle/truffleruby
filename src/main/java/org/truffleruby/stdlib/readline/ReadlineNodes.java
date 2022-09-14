@@ -105,8 +105,7 @@ public abstract class ReadlineNodes {
         public RubyNode cloneUninitialized() {
             var copy = create(
                     getCharactersNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -215,8 +214,7 @@ public abstract class ReadlineNodes {
             var copy = create(
                     getPromptNodeBeforeCasting().cloneUninitialized(),
                     getAddToHistoryNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -266,8 +264,7 @@ public abstract class ReadlineNodes {
             var copy = create(
                     getSelfNode().cloneUninitialized(),
                     getTextNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

@@ -49,8 +49,7 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
         var copy = ArrayDropTailNodeGen.create(
                 index,
                 getArrayNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

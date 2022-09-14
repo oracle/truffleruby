@@ -67,8 +67,7 @@ public class WriteLocalVariableNode extends WriteLocalNode {
         var copy = new WriteLocalVariableNode(
                 frameSlot,
                 valueNode.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

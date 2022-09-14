@@ -48,8 +48,7 @@ public class ReadLocalVariableNode extends ReadLocalNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadLocalVariableNode(type, frameSlot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

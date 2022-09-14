@@ -24,8 +24,7 @@ public abstract class CoreMethodArrayArgumentsNode extends CoreMethodNode {
         NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
         RubyNode[] copiedArguments = cloneUninitialized(getArgumentNodes());
         var copy = (CoreMethodArrayArgumentsNode) CoreMethodNodeManager.createNodeFromFactory(factory, copiedArguments);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

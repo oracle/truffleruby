@@ -76,8 +76,7 @@ public abstract class InlinedMulNode extends BinaryInlinedOperationNode {
                 this.parameters,
                 getLeftNode().cloneUninitialized(),
                 getRightNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

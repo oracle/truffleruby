@@ -62,8 +62,7 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
         var copy = new OrLazyValueDefinedNode(
                 left.cloneUninitialized(),
                 right.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

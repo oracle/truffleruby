@@ -23,8 +23,7 @@ public class ObjectClassLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ObjectClassLiteralNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

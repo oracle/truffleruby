@@ -35,8 +35,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new StringLiteralNode(tstring, encoding);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

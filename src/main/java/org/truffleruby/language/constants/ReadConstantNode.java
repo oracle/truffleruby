@@ -133,8 +133,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         var copy = new ReadConstantNode(
                 moduleNode.cloneUninitialized(),
                 name);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

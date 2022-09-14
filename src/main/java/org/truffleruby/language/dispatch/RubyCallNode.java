@@ -279,8 +279,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 isVCall,
                 isSafeNavigation,
                 isAttrAssign);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
     private class DefinedNode extends RubyBaseNode {

@@ -113,8 +113,7 @@ public class YieldExpressionNode extends LiteralCallNode {
                 descriptor,
                 cloneUninitialized(arguments),
                 readBlockNode.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

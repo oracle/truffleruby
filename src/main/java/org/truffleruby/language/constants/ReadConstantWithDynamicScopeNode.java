@@ -68,8 +68,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadConstantWithDynamicScopeNode(name);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

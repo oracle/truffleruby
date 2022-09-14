@@ -122,8 +122,7 @@ public class EmptyHashStore {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = new EmptyHashLiteralNode();
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

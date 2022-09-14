@@ -92,8 +92,7 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadRestArgumentNode(startIndex, postArgumentsCount, keywordArguments, markKeywordHashWithFlag);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

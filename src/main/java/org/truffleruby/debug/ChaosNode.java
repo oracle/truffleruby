@@ -68,8 +68,7 @@ public abstract class ChaosNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = ChaosNodeGen.create(getValueNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

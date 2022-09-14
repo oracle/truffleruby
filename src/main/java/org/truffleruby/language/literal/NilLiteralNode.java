@@ -45,8 +45,7 @@ public class NilLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new NilLiteralNode(isImplicit);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

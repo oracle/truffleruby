@@ -80,8 +80,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
                 lexicalScopeNode.cloneUninitialized(),
                 name,
                 rhs.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

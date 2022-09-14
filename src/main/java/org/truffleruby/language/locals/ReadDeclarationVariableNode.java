@@ -65,8 +65,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadDeclarationVariableNode(type, frameDepth, frameSlot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

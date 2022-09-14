@@ -76,8 +76,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         var copy = new ReadClassVariableNode(
                 lexicalScopeNode.cloneUninitialized(),
                 name);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

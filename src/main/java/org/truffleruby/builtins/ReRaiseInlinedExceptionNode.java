@@ -52,8 +52,7 @@ public class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReRaiseInlinedExceptionNode(nodeFactory);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

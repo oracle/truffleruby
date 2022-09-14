@@ -34,8 +34,7 @@ public class RescueStandardErrorNode extends RescueNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new RescueStandardErrorNode(getRescueBody().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -102,8 +102,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new EmptyArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -148,8 +147,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new FloatArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -194,8 +192,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new IntegerArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -240,8 +237,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new LongArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -269,8 +265,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new ObjectArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -389,8 +384,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             var copy = new UninitialisedArrayLiteralNode(
                     language,
                     cloneUninitialized(values));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

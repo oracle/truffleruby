@@ -39,8 +39,7 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadRemainingArgumentsNode(start);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

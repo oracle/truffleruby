@@ -265,8 +265,7 @@ public abstract class ReadlineHistoryNodes {
             var copy = create(
                     getIndexNodeBeforeCasting().cloneUninitialized(),
                     getLineNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

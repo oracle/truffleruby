@@ -140,8 +140,7 @@ public class DefineClassNode extends RubyContextSourceNode {
                 name,
                 lexicalParentModule.cloneUninitialized(),
                 superClassNode.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

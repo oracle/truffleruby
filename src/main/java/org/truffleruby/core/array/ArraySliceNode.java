@@ -56,8 +56,7 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
                 from,
                 to,
                 getArrayNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

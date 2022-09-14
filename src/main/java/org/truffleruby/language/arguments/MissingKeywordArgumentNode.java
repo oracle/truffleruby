@@ -91,8 +91,7 @@ public class MissingKeywordArgumentNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new MissingKeywordArgumentNode(requiredKeywords);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

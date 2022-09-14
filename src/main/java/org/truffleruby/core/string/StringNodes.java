@@ -253,8 +253,7 @@ public abstract class StringNodes {
             var copy = create(
                     getStringNode().cloneUninitialized(),
                     getOtherNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -339,8 +338,7 @@ public abstract class StringNodes {
             var copy = create(
                     getStringNode().cloneUninitialized(),
                     getTimesNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 
@@ -961,8 +959,7 @@ public abstract class StringNodes {
             var copy = create(
                     getStringNode().cloneUninitialized(),
                     getOtherNodeBeforeCast().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1846,8 +1843,7 @@ public abstract class StringNodes {
             var copy = create(
                     getStringNode().cloneUninitialized(),
                     getOtherNodeBeforeCast().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2426,8 +2422,7 @@ public abstract class StringNodes {
                     getStringNode().cloneUninitialized(),
                     getIndexNodeBeforeCasting().cloneUninitialized(),
                     getValueNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2898,8 +2893,7 @@ public abstract class StringNodes {
                     getSelfNode().cloneUninitialized(),
                     getFromStrNodeBeforeCasting().cloneUninitialized(),
                     getToStrNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2982,8 +2976,7 @@ public abstract class StringNodes {
                     getSelfNode().cloneUninitialized(),
                     getFromStrNodeBeforeCasting().cloneUninitialized(),
                     getToStrNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -3094,8 +3087,7 @@ public abstract class StringNodes {
             var copy = create(
                     getStringNode().cloneUninitialized(),
                     getFormatNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 

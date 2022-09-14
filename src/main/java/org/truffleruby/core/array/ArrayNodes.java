@@ -169,8 +169,7 @@ public abstract class ArrayNodes {
             var copy = create(
                     getANode().cloneUninitialized(),
                     getBNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -852,8 +851,7 @@ public abstract class ArrayNodes {
             var copy = create(
                     getArrayNode().cloneUninitialized(),
                     getIndexNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1380,8 +1378,7 @@ public abstract class ArrayNodes {
             var copy = create(
                     getSelfNode().cloneUninitialized(),
                     getFromNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1697,8 +1694,7 @@ public abstract class ArrayNodes {
             var copy = create(
                     getArrayNode().cloneUninitialized(),
                     getFormatNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2000,8 +1996,7 @@ public abstract class ArrayNodes {
             var copy = create(
                     getArrayNode().cloneUninitialized(),
                     getOtherNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

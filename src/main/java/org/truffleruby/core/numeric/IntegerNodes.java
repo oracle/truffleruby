@@ -1936,8 +1936,7 @@ public abstract class IntegerNodes {
                     getBaseNodeBeforeCasting().cloneUninitialized(),
                     getExponentNodeBeforeCasting().cloneUninitialized(),
                     getModuloNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 

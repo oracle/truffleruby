@@ -42,8 +42,7 @@ public class FrameOnStackNode extends RubyContextSourceNode {
         var copy = new FrameOnStackNode(
                 child.cloneUninitialized(),
                 frameOnStackMarkerSlot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

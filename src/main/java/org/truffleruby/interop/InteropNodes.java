@@ -1601,8 +1601,7 @@ public abstract class InteropNodes {
             var copy = create(
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getObjectNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1647,8 +1646,7 @@ public abstract class InteropNodes {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = create(getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2430,8 +2428,7 @@ public abstract class InteropNodes {
                     getReceiverNode().cloneUninitialized(),
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2486,8 +2483,7 @@ public abstract class InteropNodes {
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2534,8 +2530,7 @@ public abstract class InteropNodes {
                     getReceiverNode().cloneUninitialized(),
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2590,8 +2585,7 @@ public abstract class InteropNodes {
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2638,8 +2632,7 @@ public abstract class InteropNodes {
                     getReceiverNode().cloneUninitialized(),
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2694,8 +2687,7 @@ public abstract class InteropNodes {
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2743,8 +2735,7 @@ public abstract class InteropNodes {
                     getReceiverNode().cloneUninitialized(),
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2799,8 +2790,7 @@ public abstract class InteropNodes {
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 
@@ -2846,8 +2836,7 @@ public abstract class InteropNodes {
                     getReceiverNode().cloneUninitialized(),
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2902,8 +2891,7 @@ public abstract class InteropNodes {
                     getByteOrderNodeBeforeCasting().cloneUninitialized(),
                     getByteOffsetNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

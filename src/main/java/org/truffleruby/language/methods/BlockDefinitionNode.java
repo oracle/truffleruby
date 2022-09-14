@@ -91,8 +91,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new BlockDefinitionNode(type, sharedMethodInfo, callTargets, breakID, frameOnStackMarkerSlot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

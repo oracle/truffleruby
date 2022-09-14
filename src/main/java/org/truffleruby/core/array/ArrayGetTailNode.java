@@ -48,8 +48,7 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
         var copy = ArrayGetTailNodeGen.create(
                 index,
                 getArrayNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

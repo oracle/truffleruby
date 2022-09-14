@@ -553,8 +553,7 @@ public class PackedHashStoreLibrary {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = new SmallHashLiteralNode(cloneUninitialized(keyValues));
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

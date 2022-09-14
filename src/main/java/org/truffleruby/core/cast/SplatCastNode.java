@@ -139,8 +139,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 nilBehavior,
                 conversionMethod,
                 childCopy);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

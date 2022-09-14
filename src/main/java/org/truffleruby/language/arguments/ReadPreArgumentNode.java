@@ -67,8 +67,7 @@ public class ReadPreArgumentNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadPreArgumentNode(index, keywordArguments, missingArgumentBehavior);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

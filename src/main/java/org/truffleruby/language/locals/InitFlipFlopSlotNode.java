@@ -36,8 +36,7 @@ public class InitFlipFlopSlotNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new InitFlipFlopSlotNode(frameSlot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

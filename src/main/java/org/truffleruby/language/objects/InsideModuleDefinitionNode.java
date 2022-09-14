@@ -40,8 +40,7 @@ public class InsideModuleDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new InsideModuleDefinitionNode(body.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

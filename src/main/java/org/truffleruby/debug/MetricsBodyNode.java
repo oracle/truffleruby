@@ -32,8 +32,7 @@ class MetricsBodyNode<T> extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new MetricsBodyNode<T>();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

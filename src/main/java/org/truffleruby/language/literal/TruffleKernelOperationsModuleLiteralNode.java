@@ -23,8 +23,7 @@ public class TruffleKernelOperationsModuleLiteralNode extends RubyContextSourceN
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new TruffleKernelOperationsModuleLiteralNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

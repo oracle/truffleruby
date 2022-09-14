@@ -498,8 +498,7 @@ public abstract class EncodingConverterNodes {
             var copy = create(
                     getEncodingConverterNode().cloneUninitialized(),
                     getReplacementNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

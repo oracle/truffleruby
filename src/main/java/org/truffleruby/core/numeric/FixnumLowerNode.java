@@ -60,8 +60,7 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
     public RubyNode cloneUninitialized() {
         var copy = create(getValueNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

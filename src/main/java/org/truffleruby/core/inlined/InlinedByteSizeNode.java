@@ -60,8 +60,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
                 getLanguage(),
                 this.parameters,
                 getSelfNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

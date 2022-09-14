@@ -41,8 +41,7 @@ public class CheckNoKeywordArgumentsNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new CheckNoKeywordArgumentsNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -24,8 +24,7 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadBlockFromCurrentFrameArgumentsNode();
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

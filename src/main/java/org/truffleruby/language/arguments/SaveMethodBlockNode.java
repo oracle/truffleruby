@@ -31,8 +31,7 @@ public class SaveMethodBlockNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new SaveMethodBlockNode(slot);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

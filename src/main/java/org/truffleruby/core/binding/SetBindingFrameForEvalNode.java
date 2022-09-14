@@ -46,8 +46,7 @@ public class SetBindingFrameForEvalNode extends RubyContextSourceNode {
         var copy = new SetBindingFrameForEvalNode(
                 descriptor,
                 body.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -27,8 +27,7 @@ public abstract class PrimitiveNode extends RubyContextSourceNode {
     public RubyNode cloneUninitialized() {
         NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
         var copy = (PrimitiveNode) CoreMethodNodeManager.createNodeFromFactory(factory, RubyNode.EMPTY_ARRAY);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

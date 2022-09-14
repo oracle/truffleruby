@@ -386,8 +386,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNewNameNodeBeforeCasting().cloneUninitialized(),
                     getOldNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -678,8 +677,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getFilenameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -744,8 +742,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -916,8 +913,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -966,8 +962,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1012,8 +1007,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1061,8 +1055,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1116,8 +1109,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1175,8 +1167,7 @@ public abstract class ModuleNodes {
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized(),
                     getCheckNameNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1337,8 +1328,7 @@ public abstract class ModuleNodes {
                     getInheritNode().cloneUninitialized(),
                     getLookInObjectNode().cloneUninitialized(),
                     getCheckNameNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1375,8 +1365,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1460,8 +1449,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1516,8 +1504,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1733,8 +1720,7 @@ public abstract class ModuleNodes {
                         proc,
                         lambdaCallTarget,
                         lambdaBody.cloneUninitialized());
-                copy.copyFlags(this);
-                return copy;
+                return copy.copyFlags(this);
             }
 
         }
@@ -1947,8 +1933,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2189,8 +2174,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2245,8 +2229,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2267,8 +2250,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2289,8 +2271,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2367,8 +2348,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2391,8 +2371,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2414,8 +2393,7 @@ public abstract class ModuleNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 
@@ -2455,8 +2433,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2595,8 +2572,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -2644,8 +2620,7 @@ public abstract class ModuleNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 

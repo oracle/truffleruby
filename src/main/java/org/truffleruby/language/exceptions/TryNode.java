@@ -149,8 +149,7 @@ public class TryNode extends RubyContextSourceNode {
                 cloneUninitialized(rescueParts),
                 cloneUninitialized(elsePart),
                 canOmitBacktrace);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
     protected static RescueNode[] cloneUninitialized(RescueNode[] nodes) {

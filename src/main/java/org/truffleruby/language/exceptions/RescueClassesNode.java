@@ -48,8 +48,7 @@ public class RescueClassesNode extends RescueNode {
         var copy = new RescueClassesNode(
                 cloneUninitialized(handlingClassNodes),
                 getRescueBody().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

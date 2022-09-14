@@ -120,8 +120,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = ToProcNodeGen.create(getChildNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

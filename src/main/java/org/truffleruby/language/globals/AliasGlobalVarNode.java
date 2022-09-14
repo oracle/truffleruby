@@ -33,8 +33,7 @@ public class AliasGlobalVarNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new AliasGlobalVarNode(oldName, newName);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

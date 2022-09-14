@@ -79,8 +79,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = ReadGlobalVariableNodeGen.create(name);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

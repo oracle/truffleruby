@@ -58,8 +58,7 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
                 minimum,
                 keywordArguments,
                 defaultValue.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

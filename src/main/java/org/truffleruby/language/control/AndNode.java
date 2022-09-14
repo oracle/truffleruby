@@ -56,8 +56,7 @@ public class AndNode extends RubyContextSourceNode {
         var copy = new AndNode(
                 left.cloneUninitialized(),
                 right.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

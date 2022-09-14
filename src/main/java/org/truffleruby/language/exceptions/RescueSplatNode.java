@@ -69,8 +69,7 @@ public class RescueSplatNode extends RescueNode {
                 getLanguage(),
                 splatCastNode.getChildNode().cloneUninitialized(),
                 getRescueBody().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

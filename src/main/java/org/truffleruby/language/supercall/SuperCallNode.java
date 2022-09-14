@@ -101,8 +101,7 @@ public class SuperCallNode extends LiteralCallNode {
                 arguments.cloneUninitialized(),
                 block.cloneUninitialized(),
                 descriptor);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

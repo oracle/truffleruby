@@ -172,8 +172,7 @@ public abstract class SizedQueueNodes {
                     getQueueNode().cloneUninitialized(),
                     getValueNode().cloneUninitialized(),
                     getNonBlockingNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -238,8 +237,7 @@ public abstract class SizedQueueNodes {
             var copy = create(
                     getQueueNode().cloneUninitialized(),
                     getNonBlockingNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

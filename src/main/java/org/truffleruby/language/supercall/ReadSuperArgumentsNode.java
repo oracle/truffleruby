@@ -64,8 +64,7 @@ public class ReadSuperArgumentsNode extends RubyContextSourceNode {
         var copy = new ReadSuperArgumentsNode(
                 cloneUninitialized(arguments),
                 isSplatted);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

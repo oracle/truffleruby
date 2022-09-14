@@ -671,8 +671,7 @@ public abstract class KernelNodes {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = create(getSelfNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 
@@ -1294,8 +1293,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getRegularNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1369,8 +1367,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1426,8 +1423,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1487,8 +1483,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1660,8 +1655,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1716,8 +1710,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getObjectNode().cloneUninitialized(),
                     getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1896,8 +1889,7 @@ public abstract class KernelNodes {
             var copy = create(
                     getFormatNodeBeforeCasting().cloneUninitialized(),
                     getArgumentsNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

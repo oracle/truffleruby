@@ -43,8 +43,7 @@ public class DefinedWrapperNode extends RubyContextSourceNode {
         var copy = new DefinedWrapperNode(
                 definition,
                 child.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

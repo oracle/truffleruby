@@ -144,8 +144,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         @Override
         public RubyNode cloneUninitialized() {
             var copy = new CallMethodMissingWithStaticName(methodName);
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

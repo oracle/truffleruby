@@ -56,8 +56,7 @@ public class CatchBreakNode extends RubyContextSourceNode {
                 breakID,
                 body.cloneUninitialized(),
                 isWhile);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

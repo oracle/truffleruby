@@ -43,8 +43,7 @@ public class LambdaToProcNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new LambdaToProcNode((BlockDefinitionNode) blockNode.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -53,8 +53,7 @@ public abstract class SymbolToByteOrderNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = SymbolToByteOrderNodeGen.create(getValueNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

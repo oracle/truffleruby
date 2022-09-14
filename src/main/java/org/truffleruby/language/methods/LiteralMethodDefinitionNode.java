@@ -108,8 +108,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
                 sharedMethodInfo,
                 isDefSingleton,
                 callTargetSupplier);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

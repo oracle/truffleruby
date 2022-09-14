@@ -44,8 +44,7 @@ public final class WhileNode extends RubyContextSourceNode {
     public RubyNode cloneUninitialized() {
         var repeatingNode = (WhileRepeatingBaseNode) loopNode.getRepeatingNode();
         var copy = new WhileNode(repeatingNode.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
     private abstract static class WhileRepeatingBaseNode extends RubyBaseNode implements RepeatingNode {

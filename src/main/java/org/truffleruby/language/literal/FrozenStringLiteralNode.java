@@ -40,8 +40,7 @@ public class FrozenStringLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new FrozenStringLiteralNode(frozenString, definition);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -167,8 +167,7 @@ public abstract class TruffleKernelNodes {
             var copy = create(
                     getFileNode().cloneUninitialized(),
                     getWrapNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }

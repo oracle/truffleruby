@@ -87,8 +87,7 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
                 getReceiver().cloneUninitialized(),
                 getOperand1Node().cloneUninitialized(),
                 getOperand2Node().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

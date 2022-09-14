@@ -52,8 +52,7 @@ public class ElidableResultNode extends RubyContextSourceNode {
         var copy = new ElidableResultNode(
                 required.cloneUninitialized(),
                 elidableResult.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

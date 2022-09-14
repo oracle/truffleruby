@@ -80,8 +80,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ReadKeywordRestArgumentNode(excludedKeywords);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

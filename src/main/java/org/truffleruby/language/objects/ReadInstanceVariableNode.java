@@ -81,8 +81,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         var copy = new ReadInstanceVariableNode(
                 name,
                 receiver.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

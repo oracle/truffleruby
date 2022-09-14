@@ -101,8 +101,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
                 name,
                 receiver.cloneUninitialized(),
                 cloneUninitialized(rhs));
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

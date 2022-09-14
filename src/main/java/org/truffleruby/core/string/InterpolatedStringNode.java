@@ -72,8 +72,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         var copy = new InterpolatedStringNode(
                 cloneUninitialized(children),
                 encoding);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
     protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {

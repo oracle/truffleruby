@@ -63,8 +63,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
                 sizeMethodName,
                 methodName,
                 method.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

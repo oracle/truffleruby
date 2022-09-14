@@ -82,8 +82,7 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
         var copy = new ReadZSuperArgumentsNode(
                 restArgIndex,
                 cloneUninitialized(reloadNodes));
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

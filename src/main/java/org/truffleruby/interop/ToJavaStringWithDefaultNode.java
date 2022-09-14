@@ -45,8 +45,7 @@ public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode 
         var copy = ToJavaStringWithDefaultNodeGen.create(
                 defaultValue,
                 getValueNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

@@ -51,8 +51,7 @@ public class BreakNode extends RubyContextSourceNode {
                 breakID,
                 ignoreMarker,
                 child.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

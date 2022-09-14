@@ -60,8 +60,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new ShouldDestructureNode(keywordArguments);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

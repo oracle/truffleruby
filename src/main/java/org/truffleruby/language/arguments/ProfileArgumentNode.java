@@ -93,8 +93,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = ProfileArgumentNodeGen.create(getChildNode().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

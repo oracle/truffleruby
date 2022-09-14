@@ -1010,8 +1010,7 @@ public class CExtNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1052,8 +1051,7 @@ public class CExtNodes {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
 
     }
@@ -1095,8 +1093,7 @@ public class CExtNodes {
                     getModuleNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getValueNode().cloneUninitialized());
-            copy.copyFlags(this);
-            return copy;
+            return copy.copyFlags(this);
         }
     }
 

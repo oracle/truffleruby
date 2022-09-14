@@ -72,8 +72,7 @@ public class WriteDeclarationVariableNode extends WriteLocalNode {
                 frameSlot,
                 frameDepth,
                 cloneUninitialized(valueNode));
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

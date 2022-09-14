@@ -35,8 +35,7 @@ public class NotNode extends RubyContextSourceNode {
 
     public RubyNode cloneUninitialized() {
         var copy = new NotNode(getChildBeforeCasting().cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

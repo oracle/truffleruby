@@ -33,8 +33,7 @@ public class IntegerFixnumLiteralNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new IntegerFixnumLiteralNode(value);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

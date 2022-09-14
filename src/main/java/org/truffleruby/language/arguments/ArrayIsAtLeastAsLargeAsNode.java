@@ -37,8 +37,7 @@ public class ArrayIsAtLeastAsLargeAsNode extends RubyContextSourceNode {
         var copy = new ArrayIsAtLeastAsLargeAsNode(
                 requiredSize,
                 child.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

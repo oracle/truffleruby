@@ -89,8 +89,7 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
         var copy = new OrAssignConstantNode(
                 (ReadConstantNode) readConstant.cloneUninitialized(),
                 (WriteConstantNode) writeConstant.cloneUninitialized());
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }

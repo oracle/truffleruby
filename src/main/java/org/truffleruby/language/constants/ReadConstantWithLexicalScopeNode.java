@@ -65,8 +65,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
 
     public RubyNode cloneUninitialized() {
         var copy = new ReadConstantWithLexicalScopeNode(lexicalScope, name);
-        copy.copyFlags(this);
-        return copy;
+        return copy.copyFlags(this);
     }
 
 }
