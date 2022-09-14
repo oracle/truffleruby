@@ -80,6 +80,11 @@ EOF
           predicate: -> { using_system_libraries? }
         },
         {
+          match: 'VALUE retVal = Qnil;',
+          replacement: "VALUE retVal = Qnil;\nVALUE errors = rb_ary_new();",
+          predicate: -> { using_system_libraries? }
+        },
+        {
           match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
           replacement: 'xmlSetStructuredErrorFunc(errors, Nokogiri_error_array_pusher);',
           predicate: -> { using_system_libraries? }
