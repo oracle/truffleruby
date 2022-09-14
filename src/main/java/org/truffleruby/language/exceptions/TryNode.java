@@ -30,8 +30,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import java.util.Arrays;
-
 public class TryNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
@@ -146,14 +144,21 @@ public class TryNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var rescuePartsCopy = cloneUninitialized(rescueParts);
         var copy = new TryNode(
                 tryPart.cloneUninitialized(),
-                Arrays.copyOf(rescuePartsCopy, rescuePartsCopy.length, RescueNode[].class),
+                cloneUninitialized(rescueParts),
                 cloneUninitialized(elsePart),
                 canOmitBacktrace);
         copy.copyFlags(this);
         return copy;
+    }
+
+    protected static RescueNode[] cloneUninitialized(RescueNode[] nodes) {
+        RescueNode[] copies = new RescueNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (RescueNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
     }
 
 }

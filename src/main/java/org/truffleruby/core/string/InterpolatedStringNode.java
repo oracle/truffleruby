@@ -21,8 +21,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.RubyNode;
 
-import java.util.Arrays;
-
 /** A list of expressions to build up into a string. */
 public final class InterpolatedStringNode extends RubyContextSourceNode {
 
@@ -71,12 +69,19 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var childrenCopy = cloneUninitialized(children);
         var copy = new InterpolatedStringNode(
-                Arrays.copyOf(childrenCopy, childrenCopy.length, ToSNode[].class),
+                cloneUninitialized(children),
                 encoding);
         copy.copyFlags(this);
         return copy;
+    }
+
+    protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {
+        ToSNode[] copies = new ToSNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (ToSNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
     }
 
 }

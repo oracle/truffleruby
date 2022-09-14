@@ -27,8 +27,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-import java.util.Arrays;
-
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
@@ -64,12 +62,19 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var childrenCopy = cloneUninitialized(children);
         var copy = new InterpolatedRegexpNode(
-                Arrays.copyOf(childrenCopy, childrenCopy.length, ToSNode[].class),
+                cloneUninitialized(children),
                 builderNode);
         copy.copyFlags(this);
         return copy;
+    }
+
+    protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {
+        ToSNode[] copies = new ToSNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (ToSNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
     }
 
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
