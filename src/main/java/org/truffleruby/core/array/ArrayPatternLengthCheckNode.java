@@ -17,17 +17,23 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
     @Child RubyNode currentValueToMatch;
     int patternLength;
+    boolean hasRest;
 
-    public ArrayPatternLengthCheckNode(int patternLength, RubyNode currentValueToMatch) {
+    public ArrayPatternLengthCheckNode(int patternLength, RubyNode currentValueToMatch, boolean hasRest) {
         this.currentValueToMatch = currentValueToMatch;
         this.patternLength = patternLength;
+        this.hasRest = hasRest;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         RubyArray matchArray = (RubyArray) currentValueToMatch.execute(frame);
         long aSize = matchArray.getArraySize();
-        return patternLength == aSize;
+        if (hasRest) {
+            return patternLength <= aSize;
+        } else {
+            return patternLength == aSize;
+        }
     }
 
 }

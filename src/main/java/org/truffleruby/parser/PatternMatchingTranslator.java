@@ -124,10 +124,9 @@ public class PatternMatchingTranslator extends BaseTranslator {
         int preSize = arrayPatternParseNode.preArgsNum();
 
         RubyNode condition = null;
-        if (postNodes == null) {
-            condition = new ArrayPatternLengthCheckNode(preSize,
-                    currentValueToMatch);
-        }
+        condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
+                currentValueToMatch, arrayPatternParseNode.hasRestArg());
+
         for (int i = 0; i < preSize; i++) {
             ParseNode loopPreNode = preNodes.get(i);
             RubyNode translatedPatternElement;
