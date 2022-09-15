@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
-public class FinalizationService extends ReferenceProcessingService<FinalizerReference> {
+public class FinalizationService extends ReferenceProcessingService<FinalizerReference, Object> {
 
     static class Finalizer {
 
@@ -87,7 +87,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
 
     @Override
     protected void processReference(RubyContext context, RubyLanguage language,
-            ProcessingReference<?> finalizerReference) {
+            PhantomProcessingReference<?, ?> finalizerReference) {
         super.processReference(context, language, finalizerReference);
 
         runCatchingErrors(context, language, this::processReferenceInternal, (FinalizerReference) finalizerReference);

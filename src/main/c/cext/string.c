@@ -116,7 +116,7 @@ VALUE rb_str_inspect(VALUE string) {
 }
 
 ID rb_intern_str(VALUE string) {
-  return SYM2ID(RUBY_INVOKE(string, "intern"));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", string));
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {

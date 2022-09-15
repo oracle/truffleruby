@@ -56,6 +56,7 @@ Changes:
 * Removed `Truffle::Interop.members_without_conversion` (use `Truffle::Interop.members` instead).
 * Refactored internals of `rb_sprintf` to simplify handling of `VALUE`s in common cases (@aardvark179).
 * Refactored sharing of array objects between threads using new `SharedArrayStorage` (@aardvark179).
+* Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
 
 # 22.2.0
 

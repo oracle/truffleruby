@@ -24,9 +24,11 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 public final class DataHolder implements TruffleObject {
 
     private Object pointer;
+    private Object marker;
 
-    public DataHolder(Object address) {
+    public DataHolder(Object address, Object marker) {
         this.pointer = address;
+        this.marker = marker;
     }
 
     public Object getPointer() {
@@ -35,6 +37,14 @@ public final class DataHolder implements TruffleObject {
 
     public void setPointer(Object address) {
         this.pointer = address;
+    }
+
+    public Object getMarker() {
+        return marker;
+    }
+
+    public void setMarker(Object marker) {
+        this.marker = marker;
     }
 
     @ExportMessage

@@ -383,7 +383,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @TruffleBoundary
     public RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
-        return symbolTable.getSymbol(name, encoding);
+        return symbolTable.getSymbol(name, encoding, false);
+    }
+
+    @TruffleBoundary
+    public RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding, boolean preserveSymbol) {
+        return symbolTable.getSymbol(name, encoding, preserveSymbol);
     }
 
     public Assumption getTracingAssumption() {

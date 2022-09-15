@@ -154,7 +154,6 @@ public class ValueWrapperManager {
     }
 
     public void cleanup(RubyContext context, HandleBlockHolder holder) {
-        context.getMarkingService().queueForMarking(holder.handleBlock);
         holder.handleBlock = null;
     }
 
@@ -214,7 +213,7 @@ public class ValueWrapperManager {
         private static final Set<HandleBlock> keepAlive = ConcurrentHashMap.newKeySet();
 
         private final long base;
-        @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
+        private final ValueWrapperWeakReference[] wrappers;
         private int count;
 
         @SuppressWarnings("unused") private Cleanable cleanable;
@@ -228,11 +227,8 @@ public class ValueWrapperManager {
         public HandleBlock(RubyContext context, RubyLanguage language, ValueWrapperManager manager) {
             HandleBlockAllocator allocator = language.handleBlockAllocator;
             long base = allocator.getFreeBlock();
-            if (context != null && context.getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
-                keepAlive(this);
-            }
             this.base = base;
-            this.wrappers = new ValueWrapper[BLOCK_SIZE];
+            this.wrappers = new ValueWrapperWeakReference[BLOCK_SIZE];
             this.count = 0;
             this.cleanable = language.cleaner.register(this, HandleBlock.makeCleaner(manager, base, allocator));
         }
@@ -242,11 +238,6 @@ public class ValueWrapperManager {
                 manager.blockMap[(int) ((base - ALLOCATION_BASE) >> BLOCK_BITS)] = null;
                 allocator.addFreeBlock(base);
             };
-        }
-
-        @TruffleBoundary
-        private static void keepAlive(HandleBlock block) {
-            keepAlive.add(block);
         }
 
         public long getBase() {
@@ -259,7 +250,7 @@ public class ValueWrapperManager {
 
         public ValueWrapper getWrapper(long handle) {
             int offset = (int) (handle & OFFSET_MASK) >> TAG_BITS;
-            return wrappers[offset];
+            return wrappers[offset].get();
         }
 
         public boolean isFull() {
@@ -269,7 +260,7 @@ public class ValueWrapperManager {
         public long setHandleOnWrapper(ValueWrapper wrapper) {
             long handle = getBase() + count * Pointer.SIZE;
             wrapper.setHandle(handle, this);
-            wrappers[count] = wrapper;
+            wrappers[count] = new ValueWrapperWeakReference(wrapper);
             count++;
             return handle;
         }
@@ -285,6 +276,12 @@ public class ValueWrapperManager {
         }
     }
 
+    public static final class ValueWrapperWeakReference extends WeakReference<ValueWrapper> {
+        ValueWrapperWeakReference(ValueWrapper referent) {
+            super(referent);
+        }
+    }
+
     public static class HandleBlockHolder {
         protected HandleBlock handleBlock = null;
         protected HandleBlock sharedHandleBlock = null;
@@ -293,10 +290,15 @@ public class ValueWrapperManager {
     @GenerateUncached
     public abstract static class AllocateHandleNode extends RubyBaseNode {
 
+        private static final Set<ValueWrapper> keepAlive = ConcurrentHashMap.newKeySet();
+
         public abstract long execute(ValueWrapper wrapper);
 
         @Specialization(guards = "!isSharedObject(wrapper)")
         protected long allocateHandleOnKnownThread(ValueWrapper wrapper) {
+            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+                keepAlive(wrapper);
+            }
             return allocateHandle(
                     wrapper,
                     getContext(),
@@ -307,12 +309,20 @@ public class ValueWrapperManager {
 
         @Specialization(guards = "isSharedObject(wrapper)")
         protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
+            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+                keepAlive(wrapper);
+            }
             return allocateHandle(
                     wrapper,
                     getContext(),
                     getLanguage(),
                     getBlockHolder(getContext(), getLanguage()),
                     true);
+        }
+
+        @TruffleBoundary
+        protected static void keepAlive(ValueWrapper wrapper) {
+            keepAlive.add(wrapper);
         }
 
         protected long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
@@ -333,9 +343,6 @@ public class ValueWrapperManager {
             }
 
             if (block == null || block.isFull()) {
-                if (block != null) {
-                    context.getMarkingService().queueForMarking(block);
-                }
                 if (shared) {
                     block = context.getValueWrapperManager().addToSharedBlockMap(context, language);
                     holder.sharedHandleBlock = block;
@@ -361,9 +368,6 @@ public class ValueWrapperManager {
         HandleBlockHolder holder = getBlockHolder(context, language);
         HandleBlock block = holder.handleBlock;
 
-        if (block != null) {
-            context.getMarkingService().queueForMarking(block);
-        }
         block = context.getValueWrapperManager().addToBlockMap(context, language);
 
         holder.handleBlock = block;

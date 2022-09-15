@@ -10,6 +10,7 @@
 package org.truffleruby.core.symbol;
 
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -34,6 +35,10 @@ public class SymbolTable {
     // Weak map of TStringWithEncoding to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<TStringWithEncoding, RubySymbol> symbolMap = new WeakValueCache<>();
+
+    // A map of symbols that should be preserved and never collected,
+    // like those created by `rb_intern` and similar functions.
+    private final ConcurrentHashMap<TStringWithEncoding, RubySymbol> preservedSymbolMap = new ConcurrentHashMap<>();
 
     public SymbolTable(TStringCache tstringCache, CoreSymbols coreSymbols) {
         this.tstringCache = tstringCache;
@@ -75,7 +80,7 @@ public class SymbolTable {
             str = TStringUtils.utf8TString(string);
             encoding = Encodings.UTF_8;
         }
-        symbol = getSymbol(str, encoding);
+        symbol = getSymbol(str, encoding, false);
 
         // Add it to the direct java.lang.String to Symbol cache
         stringToSymbolCache.addInCacheIfAbsent(string, symbol);
@@ -84,19 +89,32 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public RubySymbol getSymbol(AbstractTruffleString tstring, RubyEncoding originalEncoding) {
+    public RubySymbol getSymbol(AbstractTruffleString tstring, RubyEncoding originalEncoding, boolean preserveSymbol) {
         var key = normalizeForLookup(tstring, originalEncoding);
-        final RubySymbol symbol = symbolMap.get(key);
+        RubySymbol symbol = preservedSymbolMap.get(key);
         if (symbol != null) {
             return symbol;
         }
+        symbol = symbolMap.get(key);
+        if (symbol != null) {
+            if (preserveSymbol) {
+                preservedSymbolMap.put(key, symbol);
+            }
+            return symbol;
+        }
+
 
         final RubyEncoding symbolEncoding = key.encoding;
         var cachedTString = tstringCache.getTString(key.tstring, symbolEncoding);
         final RubySymbol newSymbol = createSymbol(cachedTString, symbolEncoding);
         // Use a TStringWithEncoding with the cached TString in symbolMap, since the Symbol refers to it and so we
         // do not keep the other TString alive unnecessarily.
-        return symbolMap.addInCacheIfAbsent(new TStringWithEncoding(cachedTString, symbolEncoding), newSymbol);
+        var savedSymbol = symbolMap.addInCacheIfAbsent(new TStringWithEncoding(cachedTString, symbolEncoding),
+                newSymbol);
+        if (preserveSymbol) {
+            preservedSymbolMap.put(key, savedSymbol);
+        }
+        return savedSymbol;
     }
 
     @TruffleBoundary

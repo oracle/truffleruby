@@ -42,7 +42,6 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected Object vmGCStart() {
-            getContext().getMarkingService().queueMarking();
             System.gc();
             return nil;
         }
@@ -64,8 +63,6 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected Object force() {
-            getContext().getMarkingService().queueMarking();
-
             // NOTE(norswap, 16 Apr 20): We could have used a WeakReference here, but the hope is that the extra
             // indirection will prevent the compiler to optimize this method away (assuming JIT compilation, and
             // the fact that such an optimizaton is permitted and possible, both of which are unlikely).

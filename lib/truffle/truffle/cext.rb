@@ -722,6 +722,10 @@ module Truffle::CExt
     Thread.list.count == 1 ? 1 : 0
   end
 
+  def rb_intern(str)
+    Primitive.string_to_symbol(str, true)
+  end
+
   def rb_int_positive_pow(a, b)
     a ** b
   end
@@ -1456,6 +1460,12 @@ module Truffle::CExt
     at_exit { Primitive.call_with_c_mutex_and_frame(func, [data], Primitive.caller_special_variables_if_available, nil) }
   end
 
+  def define_marker(object, marker)
+    data_holder = Primitive.object_hidden_var_get object, DATA_HOLDER
+    Primitive.data_holder_set_marker(data_holder, marker)
+    Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(marker)
+  end
+
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
@@ -1464,7 +1474,7 @@ module Truffle::CExt
 
     Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
+    define_marker object, mark
 
     object
   end
@@ -1479,19 +1489,22 @@ module Truffle::CExt
 
     Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
 
-    define_marker object, data_marker(mark, data_holder) unless Truffle::Interop.null?(mark)
+    define_marker object, mark
+
     object
   end
 
-  def data_marker(mark, data_holder)
-    raise unless mark.respond_to?(:call)
-    proc { |obj|
+  def run_marker(obj)
+    Primitive.array_mark_store(obj) if Primitive.array_store_native?(obj)
+
+    data_holder = Primitive.object_hidden_var_get obj, DATA_HOLDER
+    mark = Primitive.data_holder_get_marker(data_holder)
+    unless Truffle::Interop.null?(mark)
       create_mark_list(obj)
       data = Primitive.data_holder_get_data(data_holder)
-      # This call is done without pushing a new frame as the marking service manages frames itself.
-      Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
+      mark.call(data) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
-    }
+    end
   end
 
   def data_sizer(sizer, data_holder)

@@ -15,6 +15,7 @@ import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.cext.UnwrapNode;
@@ -296,6 +297,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         }
     }
 
+    @TruffleBoundary
     public void preserveMembers() {
         for (int i = 0; i < length; i++) {
             final Object value = UnwrapNativeNodeGen.getUncached().execute(readElement(i));

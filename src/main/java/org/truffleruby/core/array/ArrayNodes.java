@@ -2328,14 +2328,6 @@ public abstract class ArrayNodes {
             Pointer pointer = Pointer.mallocAutoRelease(size * Pointer.SIZE, getLanguage());
             Object newStore = new NativeArrayStorage(pointer, size);
             stores.copyContents(store, 0, newStore, 0, size);
-            getContext().getMarkingService().addMarker(
-                    newStore,
-                    (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
-            /* The array elements here are already shared, because they came from an existing `SharedArrayStorage`
-             * object, so we only need to wrap the native storage in a new `SharedArrayStorage` object. */
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
-                newStore = new SharedArrayStorage(newStore);
-            }
             array.setStore(newStore);
             return array;
         }
@@ -2378,6 +2370,25 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.isNative(store);
+        }
+
+        @Specialization(guards = "!isRubyArray(array)")
+        protected boolean isStoreNativeNonArray(Object array) {
+            return false;
+        }
+    }
+
+    @Primitive(name = "array_mark_store")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class MarkNativeStoreNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object markNativeStore(RubyArray array) {
+            Object store = array.getStore();
+            if (store instanceof NativeArrayStorage) {
+                ((NativeArrayStorage) store).preserveMembers();
+            }
+            return nil;
         }
     }
 

@@ -33,7 +33,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** C-ext data finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby
  * thread. */
-public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference> {
+public class DataObjectFinalizationService extends ReferenceProcessingService<DataObjectFinalizerReference, Object> {
 
     // We need a base node here, it should extend ruby base root node and implement internal root node.
     public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
@@ -127,7 +127,7 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
 
     @Override
     protected void processReference(RubyContext context, RubyLanguage language,
-            ProcessingReference<?> finalizerReference) {
+            PhantomProcessingReference<?, ?> finalizerReference) {
         super.processReference(context, language, finalizerReference);
 
         runCatchingErrors(context, language, this::processReferenceInternal,
