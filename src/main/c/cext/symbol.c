@@ -24,11 +24,11 @@ ID rb_intern(const char *string) {
 }
 
 ID rb_intern2(const char *string, long length) {
-  return SYM2ID(RUBY_INVOKE(rb_tr_temporary_native_string(string, length, rb_ascii8bit_encoding()), "intern"));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_tr_temporary_native_string(string, length, rb_ascii8bit_encoding())));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
-  return SYM2ID(RUBY_INVOKE(rb_tr_temporary_native_string(name, len, enc), "intern"));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_tr_temporary_native_string(name, len, enc)));
 }
 
 VALUE rb_sym2str(VALUE string) {
