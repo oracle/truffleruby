@@ -76,6 +76,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -2054,6 +2055,11 @@ public class CExtNodes {
         @Specialization
         protected Object getMarker(DataHolder data) {
             return data.getMarker();
+        }
+
+        @Specialization
+        protected Object getMarker(Nil data) {
+            return data;
         }
     }
 
