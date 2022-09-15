@@ -382,11 +382,17 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return implementationName;
     }
 
-    // To update this, use:
-    // ruby --help | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
-    // replace ruby by truffleruby for the first line, and remove unsupported flags.
-    // Also add an extra out.println(); before out.println("Features:"); and out.println("Warning categories:");
-    // Remove the "Dump List:" section and jit-related lines.
+    /*-
+     * To update this:
+     *   - run `ruby --help | ruby -e 'puts STDIN.readlines.map { |line| "out.println(#{line.chomp.inspect});" }'`;
+     *   - replace "ruby" by "truffleruby" in the first line;
+     *   - remove unsupported flags;
+     *   - add an extra `out.println();` before:
+     *     - `out.println("Features:");` and
+     *     - `out.println("Warning categories:");`;
+     *   - remove the "Dump List:" section;
+     *   - remove JIT-related lines.
+     */
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\\0, if no argument)");

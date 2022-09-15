@@ -42,12 +42,19 @@ ruby-install --no-install-deps -r ~/tmp ruby $VERSION
 (required as `RUBY_BUILD_DIR` for `tool/import-mri-files.sh`),
 so one needs the extra `ruby-install` command when using `ruby-build`.
 
+See https://github.com/oracle/truffleruby/blob/master/doc/user/ruby-managers.md#ruby-install-and-chruby for details
+about `ruby-install`.
+
 ## Create reference branches
 
 For both the current version of Ruby you're using, and the new version, create
 reference branches that include unmodified MRI sources.
 
-Check out the version of Ruby you want to create the branch for in `../ruby`.
+Check out the version of Ruby you want to create the branch for in `../ruby`, e.g.:
+
+```
+git clone --branch v3_1_2  git@github.com:ruby/ruby.git ../ruby
+```
 
 Then create the reference branch in the TruffleRuby repository
 
@@ -141,9 +148,9 @@ In a separate commit, update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
-* Update `versions.json` (from `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
+* Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
 * Update `TargetRubyVersion` in `.rubocop.yml`
-* Copy and paste `-h` and `--help` output to `RubyLauncher`
+* Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
@@ -151,10 +158,10 @@ In a separate commit, update all of these:
 * Run `jt test gems default-bundled-gems`
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
-* If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
+* If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
 
 For a new major version:
-* Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
+* Make empty the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
 * Update the docs for next version specs in [workflow.md](workflow.md).
 * Update the versions in the `ruby/spec on CRuby` job of `.github/workflows/ci.yml`.
 
