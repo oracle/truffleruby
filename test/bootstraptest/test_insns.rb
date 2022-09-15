@@ -120,6 +120,7 @@ tests = [
   [ 'dup',     %q{ x = y = true; x }, ],
   [ 'dupn',    %q{ Object::X ||= true }, ],
   [ 'reverse', %q{ q, (w, e), r = 1, [2, 3], 4; e == 3 }, ],
+  [ 'swap',    %q{ !!defined?([[]]) }, ],
   [ 'swap',    <<-'},', ],      # {
     x = [[false, true]]
     for i, j in x               # here
@@ -276,7 +277,7 @@ tests = [
     x = once(128); x = once(7); x = once(16);
     x =~ "true" && $~
   },
-  [ 'once', <<-'},', {tagged: true}],         # {
+  [ 'once', <<-'},', ],         # {
     # inter-thread lockup situation
     def once n
       return Thread.start n do |m|
@@ -384,7 +385,7 @@ tests = [
   [ 'opt_empty_p', %q{ ''.empty? }, ],
   [ 'opt_empty_p', %q{ [].empty? }, ],
   [ 'opt_empty_p', %q{ {}.empty? }, ],
-  [ 'opt_empty_p', %q{ Queue.new.empty? }, ],
+  [ 'opt_empty_p', %q{ Thread::Queue.new.empty? }, ],
 
   [ 'opt_succ',  %q{ 1.succ == 2 }, ],
   if defined? $FIXNUM_MAX then

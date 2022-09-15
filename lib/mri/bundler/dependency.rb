@@ -7,7 +7,7 @@ require_relative "rubygems_ext"
 module Bundler
   class Dependency < Gem::Dependency
     attr_reader :autorequire
-    attr_reader :groups, :platforms, :gemfile, :git, :branch
+    attr_reader :groups, :platforms, :gemfile, :git, :github, :branch, :ref
 
     PLATFORM_MAP = {
       :ruby     => Gem::Platform::RUBY,
@@ -82,7 +82,9 @@ module Bundler
       @groups         = Array(options["group"] || :default).map(&:to_sym)
       @source         = options["source"]
       @git            = options["git"]
+      @github         = options["github"]
       @branch         = options["branch"]
+      @ref            = options["ref"]
       @platforms      = Array(options["platforms"])
       @env            = options["env"]
       @should_include = options.fetch("should_include", true)
@@ -96,15 +98,11 @@ module Bundler
     def gem_platforms(valid_platforms)
       return valid_platforms if @platforms.empty?
 
-      valid_generic_platforms = valid_platforms.map {|p| [p, GemHelpers.generic(p)] }.to_h
-      @gem_platforms ||= expanded_platforms.compact.uniq
-
-      filtered_generic_platforms = valid_generic_platforms.values & @gem_platforms
-      valid_generic_platforms.select {|_, v| filtered_generic_platforms.include?(v) }.keys
+      valid_platforms.select {|p| expanded_platforms.include?(GemHelpers.generic(p)) }
     end
 
     def expanded_platforms
-      @platforms.map {|pl| PLATFORM_MAP[pl] }
+      @expanded_platforms ||= @platforms.map {|pl| PLATFORM_MAP[pl] }.compact.uniq
     end
 
     def should_include?

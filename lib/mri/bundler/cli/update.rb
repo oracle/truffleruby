@@ -11,12 +11,16 @@ module Bundler
     def run
       Bundler.ui.level = "warn" if options[:quiet]
 
+      update_bundler = options[:bundler]
+
+      Bundler.self_manager.update_bundler_and_restart_with_it_if_needed(update_bundler) if update_bundler
+
       Plugin.gemfile_install(Bundler.default_gemfile) if Bundler.feature_flag.plugins?
 
       sources = Array(options[:source])
       groups  = Array(options[:group]).map(&:to_sym)
 
-      full_update = gems.empty? && sources.empty? && groups.empty? && !options[:ruby] && !options[:bundler]
+      full_update = gems.empty? && sources.empty? && groups.empty? && !options[:ruby] && !update_bundler
 
       if full_update && !options[:all]
         if Bundler.feature_flag.update_requires_all_flag?
@@ -49,7 +53,7 @@ module Bundler
 
         Bundler.definition(:gems => gems, :sources => sources, :ruby => options[:ruby],
                            :conservative => conservative,
-                           :bundler => options[:bundler])
+                           :bundler => update_bundler)
       end
 
       Bundler::CLI::Common.configure_gem_version_promoter(Bundler.definition, options)
@@ -66,7 +70,7 @@ module Bundler
 
       if locked_gems = Bundler.definition.locked_gems
         previous_locked_info = locked_gems.specs.reduce({}) do |h, s|
-          h[s.name] = { :spec => s, :version => s.version, :source => s.source.to_s }
+          h[s.name] = { :spec => s, :version => s.version, :source => s.source.identifier }
           h
         end
       end
@@ -95,7 +99,7 @@ module Bundler
           end
 
           locked_source = locked_info[:source]
-          new_source = new_spec.source.to_s
+          new_source = new_spec.source.identifier
           next if locked_source != new_source
 
           new_version = new_spec.version

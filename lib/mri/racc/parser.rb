@@ -189,7 +189,6 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
 
     begin
-      raise LoadError if defined?(::TruffleRuby) # avoid force loading RubyGems
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'jruby'
         require 'racc/cparse-jruby.jar'
@@ -547,7 +546,7 @@ module Racc
     end
 
     # Exit parser.
-    # Return value is Symbol_Value_Stack[0].
+    # Return value is +Symbol_Value_Stack[0]+.
     def yyaccept
       throw :racc_jump, 2
     end

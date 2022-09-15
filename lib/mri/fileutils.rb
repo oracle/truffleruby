@@ -102,7 +102,7 @@ end
 # <tt>:verbose</tt> flags to methods in FileUtils.
 #
 module FileUtils
-  VERSION = "1.5.0"
+  VERSION = "1.6.0"
 
   def self.private_module_function(name)   #:nodoc:
     module_function name
@@ -211,21 +211,11 @@ module FileUtils
     list.each do |item|
       path = remove_trailing_slash(item)
 
-      # optimize for the most common case
-      begin
-        fu_mkdir path, mode
-        next
-      rescue SystemCallError
-        next if File.directory?(path)
-      end
-
       stack = []
-      until path == stack.last   # dirname("/")=="/", dirname("C:/")=="C:/"
+      until File.directory?(path)
         stack.push path
         path = File.dirname(path)
-        break if File.directory?(path)
       end
-      stack.pop if path == stack.last   # root directory should exist
       stack.reverse_each do |dir|
         begin
           fu_mkdir dir, mode
@@ -837,13 +827,8 @@ module FileUtils
   def compare_stream(a, b)
     bsize = fu_stream_blksize(a, b)
 
-    if RUBY_VERSION > "2.4"
-      sa = String.new(capacity: bsize)
-      sb = String.new(capacity: bsize)
-    else
-      sa = String.new
-      sb = String.new
-    end
+    sa = String.new(capacity: bsize)
+    sb = String.new(capacity: bsize)
 
     begin
       a.read(bsize, sa)
@@ -1292,12 +1277,7 @@ module FileUtils
       opts = {}
       opts[:encoding] = fu_windows? ? ::Encoding::UTF_8 : path.encoding
 
-      files = if Dir.respond_to?(:children)
-        Dir.children(path, **opts)
-      else
-        Dir.entries(path(), **opts)
-           .reject {|n| n == '.' or n == '..' }
-      end
+      files = Dir.children(path, **opts)
 
       untaint = RUBY_VERSION < '2.7'
       files.map {|n| Entry_.new(prefix(), join(rel(), untaint ? n.untaint : n)) }

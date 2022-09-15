@@ -172,10 +172,10 @@ class Gem::RemoteFetcher
     when nil then # TODO test for local overriding cache
       source_path = if Gem.win_platform? && source_uri.scheme &&
                        !source_uri.path.include?(':')
-                      "#{source_uri.scheme}:#{source_uri.path}"
-                    else
-                      source_uri.path
-                    end
+        "#{source_uri.scheme}:#{source_uri.path}"
+      else
+        source_uri.path
+      end
 
       source_path = Gem::UriFormatter.new(source_path).unescape
 
@@ -284,7 +284,7 @@ class Gem::RemoteFetcher
 
     data = fetch_path(uri, mtime)
 
-    if data == nil # indicates the server returned 304 Not Modified
+    if data.nil? # indicates the server returned 304 Not Modified
       return Gem.read_binary(path)
     end
 

@@ -29,13 +29,9 @@ fi
 # lib/
 rm -r lib/mri
 cp -R ../ruby/lib lib/mri
-# Documentation, not code
-rm lib/mri/racc/rdoc/grammar.en.rdoc
 # We have our own version under lib/truffle
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-# Uses RubyVM
-rm lib/mri/debug.rb
 # Files not actually installed in MRI
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
@@ -65,6 +61,7 @@ cp -R ../ruby/ext/syslog/lib/syslog lib/mri
 rm -r src/main/c/{bigdecimal,date,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
 mkdir src/main/c/{bigdecimal,date,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
 cp ../ruby/ext/bigdecimal/*.{c,gemspec,h,rb} src/main/c/bigdecimal
+cp -R ../ruby/ext/bigdecimal/missing src/main/c/bigdecimal
 cp ../ruby/ext/date/*.{c,gemspec,h,rb} src/main/c/date
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/io/console/*.{c,rb} src/main/c/io-console
@@ -106,6 +103,8 @@ rm -rf test/basictest
 cp -R ../ruby/basictest test/basictest
 rm -rf test/bootstraptest
 cp -R ../ruby/bootstraptest test/bootstraptest
+# Do not import huge yjit_30k test files
+rm -f test/bootstraptest/test_yjit*
 
 # Licences
 cp ../ruby/BSDL doc/legal/ruby-bsdl.txt

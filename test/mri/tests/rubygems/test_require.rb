@@ -24,16 +24,6 @@ class TestGemRequire < Gem::TestCase
     end
   end
 
-  def setup
-    super
-
-    @old_loaded_features = $LOADED_FEATURES.dup
-    assert_raise LoadError do
-      require 'test_gem_require_a'
-    end
-    $LOADED_FEATURES.replace @old_loaded_features
-  end
-
   def assert_require(path)
     assert require(path), "'#{path}' was already required"
   end
@@ -88,8 +78,6 @@ class TestGemRequire < Gem::TestCase
     FileUtils.mkdir_p File.dirname c_rb
     File.open(c_rb, 'w') {|f| f.write "class Object; HELLO = 'world' end" }
 
-    lp = $LOAD_PATH.dup
-
     # Pretend to provide a commandline argument that overrides a file in gem b
     $LOAD_PATH.unshift dash_i_arg
 
@@ -98,7 +86,6 @@ class TestGemRequire < Gem::TestCase
     assert_equal "world", ::Object::HELLO
     assert_equal %w[a-1 b-1], loaded_spec_names
   ensure
-    $LOAD_PATH.replace lp
     Object.send :remove_const, :HELLO if Object.const_defined? :HELLO
   end
 
@@ -132,8 +119,6 @@ class TestGemRequire < Gem::TestCase
 
     assert_require 'test_gem_require_a'
 
-    lp = $LOAD_PATH.dup
-
     # Pretend to provide a commandline argument that overrides a file in gem b
     $LOAD_PATH.unshift dash_i_arg
 
@@ -142,7 +127,6 @@ class TestGemRequire < Gem::TestCase
     assert_equal "world", ::Object::HELLO
     assert_equal %w[a-1 b-1], loaded_spec_names
   ensure
-    $LOAD_PATH.replace lp
     Object.send :remove_const, :HELLO if Object.const_defined? :HELLO
   end
 
@@ -153,16 +137,10 @@ class TestGemRequire < Gem::TestCase
     dash_i_ext_arg = util_install_extension_file('a')
     dash_i_lib_arg = util_install_ruby_file('a')
 
-    lp = $LOAD_PATH.dup
-
-    begin
-      $LOAD_PATH.unshift dash_i_lib_arg
-      $LOAD_PATH.unshift dash_i_ext_arg
-      assert_require 'a'
-      assert_match(/a\.rb$/, $LOADED_FEATURES.last)
-    ensure
-      $LOAD_PATH.replace lp
-    end
+    $LOAD_PATH.unshift dash_i_lib_arg
+    $LOAD_PATH.unshift dash_i_ext_arg
+    assert_require 'a'
+    assert_match(/a\.rb$/, $LOADED_FEATURES.last)
   end
 
   def test_concurrent_require
@@ -618,31 +596,6 @@ class TestGemRequire < Gem::TestCase
     assert_empty unresolved_names
   end
 
-  def test_require_bundler_missing_bundler_version
-    Gem::BundlerVersionFinder.stub(:bundler_version_with_reason, ["55", "reason"]) do
-      b1 = util_spec('bundler', '1.999999999', nil, "lib/bundler/setup.rb")
-      b2a = util_spec('bundler', '2.a', nil, "lib/bundler/setup.rb")
-      install_specs b1, b2a
-
-      e = assert_raise Gem::MissingSpecVersionError do
-        gem('bundler')
-      end
-      assert_match "Could not find 'bundler' (55) required by reason.", e.message
-    end
-  end
-
-  def test_require_bundler_with_bundler_version
-    Gem::BundlerVersionFinder.stub(:bundler_version_with_reason, ["1", "reason"]) do
-      b1 = util_spec('bundler', '1.999999999', nil, "lib/bundler/setup.rb")
-      b2 = util_spec('bundler', '2', nil, "lib/bundler/setup.rb")
-      install_specs b1, b2
-
-      $:.clear
-      assert_require 'bundler/setup'
-      assert_equal %w[bundler-1.999999999], loaded_spec_names
-    end
-  end
-
   # uplevel is 2.5+ only
   if RUBY_VERSION >= "2.5"
     ["", "Kernel."].each do |prefix|
@@ -720,13 +673,6 @@ class TestGemRequire < Gem::TestCase
 
   def testing_ruby_repo?
     !ENV["GEM_COMMAND"].nil?
-  end
-
-  def silence_warnings
-    old_verbose, $VERBOSE = $VERBOSE, false
-    yield
-  ensure
-    $VERBOSE = old_verbose
   end
 
   def util_install_extension_file(name)

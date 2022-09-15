@@ -11,7 +11,7 @@
 #   $Id$
 
 require 'digest'
-require 'digest/sha2.so' unless defined?(::TruffleRuby)
+require 'digest/sha2/loader'
 
 module Digest
   #

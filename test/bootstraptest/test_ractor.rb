@@ -190,7 +190,7 @@ assert_equal '[:ok, :ok, :ok]', %q{
 # Ractor.make_shareable issue for locals in proc [Bug #18023]
 assert_equal '[:a, :b, :c, :d, :e]', %q{
   v1, v2, v3, v4, v5 = :a, :b, :c, :d, :e
-  closure = Proc.new { [v1, v2, v3, v4, v5] }
+  closure = Ractor.current.instance_eval{ Proc.new { [v1, v2, v3, v4, v5] } }
 
   Ractor.make_shareable(closure).call
 }
@@ -198,15 +198,28 @@ assert_equal '[:a, :b, :c, :d, :e]', %q{
 # Ractor.make_shareable issue for locals in proc [Bug #18023]
 assert_equal '[:a, :b, :c, :d, :e, :f, :g]', %q{
   a = :a
-  closure = -> {
-    b, c, d = :b, :c, :d
+  closure = Ractor.current.instance_eval do
     -> {
-      e, f, g = :e, :f, :g
-      -> { [a, b, c, d, e, f, g] }
+      b, c, d = :b, :c, :d
+      -> {
+        e, f, g = :e, :f, :g
+        -> { [a, b, c, d, e, f, g] }
+      }.call
     }.call
-  }.call
+  end
 
   Ractor.make_shareable(closure).call
+}
+
+# Now autoload in non-main Ractor is not supported
+assert_equal 'ok', %q{
+  autoload :Foo, 'foo.rb'
+  r = Ractor.new do
+    p Foo
+  rescue Ractor::UnsafeError
+    :ok
+  end
+  r.take
 }
 
 ###
@@ -270,7 +283,8 @@ assert_equal 30.times.map { 'ok' }.to_s, %q{
   30.times.map{|i|
     test i
   }
-} unless ENV['RUN_OPTS'] =~ /--jit-min-calls=5/ # This always fails with --jit-wait --jit-min-calls=5
+} unless ENV['RUN_OPTS'] =~ /--jit-min-calls=5/ || # This always fails with --jit-wait --jit-min-calls=5
+  (ENV.key?('TRAVIS') && ENV['TRAVIS_CPU_ARCH'] == 'arm64') # https://bugs.ruby-lang.org/issues/17878
 
 # Exception for empty select
 assert_match /specify at least one ractor/, %q{
@@ -554,7 +568,7 @@ assert_equal '[RuntimeError, "ok", true]', %q{
 # threads in a ractor will killed
 assert_equal '{:ok=>3}', %q{
   Ractor.new Ractor.current do |main|
-    q = Queue.new
+    q = Thread::Queue.new
     Thread.new do
       q << true
       loop{}
@@ -760,6 +774,31 @@ assert_equal 'hello', %q{
   end
 }
 
+# yield/move should not make moved object when the yield is not succeeded
+assert_equal '"str"', %q{
+  R = Ractor.new{}
+  M = Ractor.current
+  r = Ractor.new do
+    s = 'str'
+    selected_r, v = Ractor.select R, yield_value: s, move: true
+    raise if selected_r != R # taken from R
+    M.send s.inspect # s should not be a moved object
+  end
+
+  Ractor.receive
+}
+
+# yield/move can fail
+assert_equal "allocator undefined for Thread", %q{
+  r = Ractor.new do
+    obj = Thread.new{}
+    Ractor.yield obj
+  rescue => e
+    e.message
+  end
+  r.take
+}
+
 # Access to global-variables are prohibited
 assert_equal 'can not access global variables $gv from non-main Ractors', %q{
   $gv = 1
@@ -902,7 +941,7 @@ assert_equal 'ArgumentError', %q{
 }
 
 # ivar in shareable-objects are not allowed to access from non-main Ractor
-assert_equal 'can not access instance variables of classes/modules from non-main Ractors', %q{
+assert_equal "can not get unshareable values from instance variables of classes/modules from non-main Ractors", %q{
   class C
     @iv = 'str'
   end
@@ -996,6 +1035,53 @@ assert_equal '11', %q{
   }.join
 }
 
+# and instance variables of classes/modules are accessible if they refer shareable objects
+assert_equal '333', %q{
+  class C
+    @int = 1
+    @str = '-1000'.dup
+    @fstr = '100'.freeze
+
+    def self.int = @int
+    def self.str = @str
+    def self.fstr = @fstr
+  end
+
+  module M
+    @int = 2
+    @str = '-2000'.dup
+    @fstr = '200'.freeze
+
+    def self.int = @int
+    def self.str = @str
+    def self.fstr = @fstr
+  end
+
+  a = Ractor.new{ C.int }.take
+  b = Ractor.new do
+    C.str.to_i
+  rescue Ractor::IsolationError
+    10
+  end.take
+  c = Ractor.new do
+    C.fstr.to_i
+  end.take
+
+  d = Ractor.new{ M.int }.take
+  e = Ractor.new do
+    M.str.to_i
+  rescue Ractor::IsolationError
+    20
+  end.take
+  f = Ractor.new do
+    M.fstr.to_i
+  end.take
+
+
+  # 1 + 10 + 100 + 2 + 20 + 200
+  a + b + c + d + e + f
+}
+
 # cvar in shareable-objects are not allowed to access from non-main Ractor
 assert_equal 'can not access class variables from non-main Ractors', %q{
   class C
@@ -1006,6 +1092,28 @@ assert_equal 'can not access class variables from non-main Ractors', %q{
     class C
       p @@cv
     end
+  end
+
+  begin
+    r.take
+  rescue Ractor::RemoteError => e
+    e.cause.message
+  end
+}
+
+# also cached cvar in shareable-objects are not allowed to access from non-main Ractor
+assert_equal 'can not access class variables from non-main Ractors', %q{
+  class C
+    @@cv = 'str'
+    def self.cv
+      @@cv
+    end
+  end
+
+  C.cv # cache
+
+  r = Ractor.new do
+    C.cv
   end
 
   begin
@@ -1057,7 +1165,7 @@ assert_equal 'can not set constants with non-shareable objects by non-main Racto
 }
 
 # define_method is not allowed
-assert_equal "defined in a different Ractor", %q{
+assert_equal "defined with an un-shareable Proc in a different Ractor", %q{
   str = "foo"
   define_method(:buggy){|i| str << "#{i}"}
   begin
@@ -1203,9 +1311,13 @@ assert_equal 'true', %q{
 # Ractor.make_shareable(a_proc) makes a proc shareable.
 assert_equal 'true', %q{
   a = [1, [2, 3], {a: "4"}]
-  pr = Proc.new do
-    a
+
+  pr = Ractor.current.instance_eval do
+    Proc.new do
+      a
+    end
   end
+
   Ractor.make_shareable(a) # referred value should be shareable
   Ractor.make_shareable(pr)
   Ractor.shareable?(pr)
@@ -1253,10 +1365,12 @@ assert_equal '1', %q{
 # Ractor.make_shareable(a_proc) makes a proc shareable.
 assert_equal 'can not make a Proc shareable because it accesses outer variables (a).', %q{
   a = b = nil
-  pr = Proc.new do
-    c = b # assign to a is okay because c is block local variable
-          # reading b is okay
-    a = b # assign to a is not allowed #=> Ractor::Error
+  pr = Ractor.current.instance_eval do
+    Proc.new do
+      c = b # assign to a is okay because c is block local variable
+      # reading b is okay
+      a = b # assign to a is not allowed #=> Ractor::Error
+    end
   end
 
   begin
@@ -1401,6 +1515,19 @@ assert_equal "ok", %q{
   end
 }
 
+assert_equal "ok", %q{
+  GC.disable
+  Ractor.new {}
+  raise "not ok" unless GC.disable
+
+  foo = []
+  10.times { foo << 1 }
+
+  GC.start
+
+  'ok'
+}
+
 # Can yield back values while GC is sweeping [Bug #18117]
 assert_equal "ok", %q{
   workers = (0...8).map do
@@ -1414,6 +1541,42 @@ assert_equal "ok", %q{
 
   1_000.times { idle_worker, tmp_reporter = Ractor.select(*workers) }
   "ok"
+}
+
+assert_equal "ok", %q{
+  def foo(*); ->{ super }; end
+  begin
+    Ractor.make_shareable(foo)
+  rescue Ractor::IsolationError
+    "ok"
+  end
+}
+
+assert_equal "ok", %q{
+  def foo(**); ->{ super }; end
+  begin
+    Ractor.make_shareable(foo)
+  rescue Ractor::IsolationError
+    "ok"
+  end
+}
+
+assert_equal "ok", %q{
+  def foo(...); ->{ super }; end
+  begin
+    Ractor.make_shareable(foo)
+  rescue Ractor::IsolationError
+    "ok"
+  end
+}
+
+assert_equal "ok", %q{
+  def foo((x), (y)); ->{ super }; end
+  begin
+    Ractor.make_shareable(foo([], []))
+  rescue Ractor::IsolationError
+    "ok"
+  end
 }
 
 end # if !ENV['GITHUB_WORKFLOW']

@@ -341,20 +341,9 @@ class TestSprintf < Test::Unit::TestCase
   end
 
   def test_float_prec
-    # These four tests are intended to test the round half even
-    # behaviour. We have commented out two of these tests because the
-    # numbers used cannot be precisely represented in double precision
-    # floating point, and so the behaviour depends heavily on how you
-    # treat these cases. We format 5.015 to 5.01 because it is
-    # fractionally below 5.015, and we format 5.025 as 5.03 because it
-    # is fractionally above 5.025.
-
-    # MRI treats these cases differently, but it is unclear if this is
-    # by accident or design as they also format anything between
-    # 5.014999999999997 and 5.014999999999999 inclusive as 5.02,
     assert_equal("5.00", sprintf("%.2f",5.005))
-#    assert_equal("5.02", sprintf("%.2f",5.015))
-#    assert_equal("5.02", sprintf("%.2f",5.025))
+    assert_equal("5.02", sprintf("%.2f",5.015))
+    assert_equal("5.02", sprintf("%.2f",5.025))
     assert_equal("5.04", sprintf("%.2f",5.035))
     bug12889 = '[ruby-core:77864] [Bug #12889]'
     assert_equal("1234567892", sprintf("%.0f", 1234567891.99999))
@@ -538,20 +527,5 @@ class TestSprintf < Test::Unit::TestCase
     assert_raise_with_message(ArgumentError, /too big/) do
       sprintf("%*s", RbConfig::LIMITS["INT_MIN"], "")
     end
-  end
-
-  def test_no_hidden_garbage
-    skip unless Thread.list.size == 1
-
-    fmt = [4, 2, 2].map { |x| "%0#{x}d" }.join('-') # defeats optimization
-    ObjectSpace.count_objects(res = {}) # creates strings on first call
-    GC.disable
-    before = ObjectSpace.count_objects(res)[:T_STRING]
-    val = sprintf(fmt, 1970, 1, 1)
-    after = ObjectSpace.count_objects(res)[:T_STRING]
-    assert_equal before + 1, after, 'only new string is the created one'
-    assert_equal '1970-01-01', val
-  ensure
-    GC.enable
   end
 end

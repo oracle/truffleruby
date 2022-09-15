@@ -1,7 +1,6 @@
 #!ruby -s
 # frozen_string_literal: true
 
-
 require 'mkmf'
 require 'rbconfig'
 
@@ -13,10 +12,9 @@ def main
       raise 'missing bison; abort'
     end
   end
-  # TruffleRuby compile additional objects required for ripper.
-  $objs = %w(ripper.o parse.o node.o)
-  #$objs = %w(ripper.o)
-  $cleanfiles.concat %w(ripper.y ripper.c ripper.E ripper.output y.output eventids1.c eventids2table.c .eventids2-check)
+  $objs = %w(ripper.o)
+  $distcleanfiles.concat %w(ripper.y ripper.c eventids1.c eventids2table.c)
+  $cleanfiles.concat %w(ripper.E ripper.output y.output .eventids2-check)
   $defs << '-DRIPPER'
   $defs << '-DRIPPER_DEBUG' if $debug
   $VPATH << '$(topdir)' << '$(top_srcdir)'

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# -*- coding: utf-8 -*-
+#
 #--
 # Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
 # All rights reserved.
@@ -9,7 +9,8 @@
 require_relative 'deprecate'
 require_relative 'basic_specification'
 require_relative 'stub_specification'
-require_relative 'specification_policy'
+require_relative 'platform'
+require_relative 'requirement'
 require_relative 'util/list'
 
 ##
@@ -161,15 +162,15 @@ class Gem::Specification < Gem::BasicSpecification
 
   @@default_value.each do |k,v|
     INITIALIZE_CODE_FOR_DEFAULTS[k] = case v
-                                      when [], {}, true, false, nil, Numeric, Symbol
-                                        v.inspect
-                                      when String
-                                        v.dump
-                                      when Numeric
-                                        "default_value(:#{k})"
-                                      else
-                                        "default_value(:#{k}).dup"
-                                      end
+    when [], {}, true, false, nil, Numeric, Symbol
+      v.inspect
+    when String
+      v.dump
+    when Numeric
+      "default_value(:#{k})"
+    else
+      "default_value(:#{k}).dup"
+    end
   end
 
   @@attributes = @@default_value.keys.sort_by {|s| s.to_s }
@@ -179,17 +180,13 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   def self.clear_specs # :nodoc:
-    @@all_specs_mutex.synchronize do
-      @@all = nil
-      @@stubs = nil
-      @@stubs_by_name = {}
-      @@spec_with_requirable_file = {}
-      @@active_stub_with_requirable_file = {}
-    end
+    @@all = nil
+    @@stubs = nil
+    @@stubs_by_name = {}
+    @@spec_with_requirable_file = {}
+    @@active_stub_with_requirable_file = {}
   end
   private_class_method :clear_specs
-
-  @@all_specs_mutex = Thread::Mutex.new
 
   clear_specs
 
@@ -228,7 +225,7 @@ class Gem::Specification < Gem::BasicSpecification
   attr_reader :version
 
   ##
-  # A short summary of this gem's description.  Displayed in `gem list -d`.
+  # A short summary of this gem's description.  Displayed in <tt>gem list -d</tt>.
   #
   # The #description should be more detailed than the summary.
   #
@@ -274,7 +271,7 @@ class Gem::Specification < Gem::BasicSpecification
   # A list of authors for this gem.
   #
   # Alternatively, a single author can be specified by assigning a string to
-  # `spec.author`
+  # +spec.author+
   #
   # Usage:
   #
@@ -286,6 +283,15 @@ class Gem::Specification < Gem::BasicSpecification
 
   ######################################################################
   # :section: Recommended gemspec attributes
+
+  ##
+  # The version of Ruby required by this gem
+  #
+  # Usage:
+  #
+  #   spec.required_ruby_version = '>= 2.7.0'
+
+  attr_reader :required_ruby_version
 
   ##
   # A long description of this gem
@@ -523,11 +529,6 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   ##
-  # The version of Ruby required by this gem
-
-  attr_reader :required_ruby_version
-
-  ##
   # The RubyGems version required by this gem
 
   attr_reader :required_rubygems_version
@@ -754,7 +755,7 @@ class Gem::Specification < Gem::BasicSpecification
   attr_accessor :specification_version
 
   def self._all # :nodoc:
-    @@all_specs_mutex.synchronize { @@all ||= Gem.loaded_specs.values | stubs.map(&:to_spec) }
+    @@all ||= Gem.loaded_specs.values | stubs.map(&:to_spec)
   end
 
   def self.clear_load_cache # :nodoc:
@@ -857,7 +858,7 @@ class Gem::Specification < Gem::BasicSpecification
       next names if names.nonzero?
       versions = b.version <=> a.version
       next versions if versions.nonzero?
-      b.platform == Gem::Platform::RUBY ? -1 : 1
+      Gem::Platform.sort_priority(b.platform)
     end
   end
 
@@ -993,7 +994,6 @@ class Gem::Specification < Gem::BasicSpecification
   def self.find_by_path(path)
     path = path.dup.freeze
     spec = @@spec_with_requirable_file[path] ||= (stubs.find do |s|
-      next unless Gem::BundlerVersionFinder.compatible?(s)
       s.contains_requirable_file? path
     end || NOT_FOUND)
     spec.to_spec
@@ -1006,7 +1006,6 @@ class Gem::Specification < Gem::BasicSpecification
   def self.find_inactive_by_path(path)
     stub = stubs.find do |s|
       next if s.activated?
-      next unless Gem::BundlerVersionFinder.compatible?(s)
       s.contains_requirable_file? path
     end
     stub && stub.to_spec
@@ -1082,7 +1081,7 @@ class Gem::Specification < Gem::BasicSpecification
   # +prerelease+ is true.
 
   def self.latest_specs(prerelease = false)
-    _latest_specs Gem::Specification._all, prerelease
+    _latest_specs Gem::Specification.stubs, prerelease
   end
 
   ##
@@ -1116,7 +1115,7 @@ class Gem::Specification < Gem::BasicSpecification
     file = file.dup.tap(&Gem::UNTAINT)
     return unless File.file?(file)
 
-    code = File.read file, :mode => 'r:UTF-8:-'
+    code = Gem.open_file(file, 'r:UTF-8:-', &:read)
 
     code.tap(&Gem::UNTAINT)
 
@@ -1269,21 +1268,21 @@ class Gem::Specification < Gem::BasicSpecification
     current_version = CURRENT_SPECIFICATION_VERSION
 
     field_count = if spec.specification_version > current_version
-                    spec.instance_variable_set :@specification_version,
-                                               current_version
-                    MARSHAL_FIELDS[current_version]
-                  else
-                    MARSHAL_FIELDS[spec.specification_version]
-                  end
+      spec.instance_variable_set :@specification_version,
+                                 current_version
+      MARSHAL_FIELDS[current_version]
+    else
+      MARSHAL_FIELDS[spec.specification_version]
+    end
 
     if array.size < field_count
       raise TypeError, "invalid Gem::Specification format #{array.inspect}"
     end
 
-    # Cleanup any YAML::PrivateType. They only show up for an old bug
+    # Cleanup any Psych::PrivateType. They only show up for an old bug
     # where nil => null, so just convert them to nil based on the type.
 
-    array.map! {|e| e.kind_of?(YAML::PrivateType) ? nil : e }
+    array.map! {|e| e.kind_of?(Psych::PrivateType) ? nil : e }
 
     spec.instance_variable_set :@rubygems_version,          array[0]
     # spec version
@@ -1474,10 +1473,10 @@ class Gem::Specification < Gem::BasicSpecification
 
   def add_dependency_with_type(dependency, type, requirements)
     requirements = if requirements.empty?
-                     Gem::Requirement.default
-                   else
-                     requirements.flatten
-                   end
+      Gem::Requirement.default
+    else
+      requirements.flatten
+    end
 
     unless dependency.respond_to?(:name) &&
            dependency.respond_to?(:requirement)
@@ -1685,18 +1684,18 @@ class Gem::Specification < Gem::BasicSpecification
     # This is the cleanest, most-readable, faster-than-using-Date
     # way to do it.
     @date = case date
-            when String then
-              if DateTimeFormat =~ date
-                Time.utc($1.to_i, $2.to_i, $3.to_i)
-              else
-                raise(Gem::InvalidSpecificationException,
-                      "invalid date format in specification: #{date.inspect}")
-              end
-            when Time, DateLike then
-              Time.utc(date.year, date.month, date.day)
-            else
-              TODAY
-            end
+    when String then
+      if DateTimeFormat =~ date
+        Time.utc($1.to_i, $2.to_i, $3.to_i)
+      else
+        raise(Gem::InvalidSpecificationException,
+              "invalid date format in specification: #{date.inspect}")
+      end
+    when Time, DateLike then
+      Time.utc(date.year, date.month, date.day)
+    else
+      TODAY
+    end
   end
 
   ##
@@ -1802,13 +1801,13 @@ class Gem::Specification < Gem::BasicSpecification
     coder.add 'name', @name
     coder.add 'version', @version
     platform = case @original_platform
-               when nil, '' then
-                 'ruby'
-               when String then
-                 @original_platform
-               else
-                 @original_platform.to_s
-               end
+    when nil, '' then
+      'ruby'
+    when String then
+      @original_platform
+    else
+      @original_platform.to_s
+    end
     coder.add 'platform', platform
 
     attributes = @@attributes.map(&:to_s) - %w[name version platform]
@@ -2025,10 +2024,10 @@ class Gem::Specification < Gem::BasicSpecification
   def base_dir
     return Gem.dir unless loaded_from
     @base_dir ||= if default_gem?
-                    File.dirname File.dirname File.dirname loaded_from
-                  else
-                    File.dirname File.dirname loaded_from
-                  end
+      File.dirname File.dirname File.dirname loaded_from
+    else
+      File.dirname File.dirname loaded_from
+    end
   end
 
   ##
@@ -2331,7 +2330,7 @@ class Gem::Specification < Gem::BasicSpecification
   # Returns an object you can use to sort specifications in #sort_by.
 
   def sort_obj
-    [@name, @version, @new_platform == Gem::Platform::RUBY ? -1 : 1]
+    [@name, @version, Gem::Platform.sort_priority(@new_platform)]
   end
 
   ##
@@ -2655,9 +2654,9 @@ class Gem::Specification < Gem::BasicSpecification
       default = self.default_value attribute
 
       value = case default
-              when Time, Numeric, Symbol, true, false, nil then default
-              else default.dup
-              end
+      when Time, Numeric, Symbol, true, false, nil then default
+      else default.dup
+      end
 
       instance_variable_set "@#{attribute}", value
     end

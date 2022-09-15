@@ -218,9 +218,6 @@ module Bundler
         return jobs
       end
 
-      # Parallelization has some issues on Windows, so it's not yet the default
-      return 1 if Gem.win_platform?
-
       Bundler.settings.processor_count
     end
 
@@ -242,7 +239,7 @@ module Bundler
 
     def ensure_specs_are_compatible!
       system_ruby = Bundler::RubyVersion.system
-      rubygems_version = Gem::Version.create(Gem::VERSION)
+      rubygems_version = Bundler.rubygems.version
       @definition.specs.each do |spec|
         if required_ruby_version = spec.required_ruby_version
           unless required_ruby_version.satisfied_by?(system_ruby.gem_version)

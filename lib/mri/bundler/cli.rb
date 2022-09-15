@@ -61,6 +61,8 @@ module Bundler
         Bundler.reset_settings_and_root!
       end
 
+      Bundler.self_manager.restart_with_locked_bundler_if_needed
+
       Bundler.settings.set_command_option_if_given :retry, options[:retry]
 
       current_cmd = args.last[:current_command].name
@@ -331,6 +333,7 @@ module Bundler
 
     desc "info GEM [OPTIONS]", "Show information for the given gem"
     method_option "path", :type => :boolean, :banner => "Print full path to gem"
+    method_option "version", :type => :boolean, :banner => "Print gem version"
     def info(gem_name)
       require_relative "cli/info"
       Info.new(options, gem_name).run
@@ -366,8 +369,11 @@ module Bundler
     method_option "version", :aliases => "-v", :type => :string
     method_option "group", :aliases => "-g", :type => :string
     method_option "source", :aliases => "-s", :type => :string
+    method_option "require", :aliases => "-r", :type => :string, :banner => "Adds require path to gem. Provide false, or a path as a string."
     method_option "git", :type => :string
+    method_option "github", :type => :string
     method_option "branch", :type => :string
+    method_option "ref", :type => :string
     method_option "skip-install", :type => :boolean, :banner =>
       "Adds gem to the Gemfile but does not install it"
     method_option "optimistic", :type => :boolean, :banner => "Adds optimistic declaration of version to gem"
@@ -803,17 +809,10 @@ module Bundler
 
       current = Gem::Version.new(VERSION)
       return if current >= latest
-      latest_installed = Bundler.rubygems.find_name("bundler").map(&:version).max
 
-      installation = "To install the latest version, run `gem install bundler#{" --pre" if latest.prerelease?}`"
-      if latest_installed && latest_installed > current
-        suggestion = "To update to the most recent installed version (#{latest_installed}), run `bundle update --bundler`"
-        suggestion = "#{installation}\n#{suggestion}" if latest_installed < latest
-      else
-        suggestion = installation
-      end
-
-      Bundler.ui.warn "The latest bundler is #{latest}, but you are currently running #{current}.\n#{suggestion}"
+      Bundler.ui.warn \
+        "The latest bundler is #{latest}, but you are currently running #{current}.\n" \
+        "To update to the most recent version, run `bundle update --bundler`"
     rescue RuntimeError
       nil
     end

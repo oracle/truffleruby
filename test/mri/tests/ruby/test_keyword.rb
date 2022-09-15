@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
-# require '-test-/rb_call_super_kw'
-# require '-test-/iter'
+require '-test-/rb_call_super_kw'
+require '-test-/iter'
 
 class TestKeywordArguments < Test::Unit::TestCase
   def f1(str: "foo", num: 424242)
@@ -384,10 +384,10 @@ class TestKeywordArguments < Test::Unit::TestCase
 
     singleton_class.send(:attr_writer, :y)
     m = method(:y=)
-    # assert_equal_not_same(h, send(:y=, **h))
-    # assert_equal_not_same(h, public_send(:y=, **h))
-    # assert_equal_not_same(h, m.(**h))
-    # assert_equal_not_same(h, m.send(:call, **h))
+    assert_equal_not_same(h, send(:y=, **h))
+    assert_equal_not_same(h, public_send(:y=, **h))
+    assert_equal_not_same(h, m.(**h))
+    assert_equal_not_same(h, m.send(:call, **h))
 
     singleton_class.send(:remove_method, :y)
     def self.method_missing(_, **kw) kw end
@@ -2330,12 +2330,12 @@ class TestKeywordArguments < Test::Unit::TestCase
       yield(*args)
     end
     foo = o.method(:foo).to_proc
-    assert_warn(/Skipping set of ruby2_keywords flag for proc/) do
+    assert_warn(/Skipping set of ruby2_keywords flag for proc \(proc created from method\)/) do
       foo.ruby2_keywords
     end
 
     foo = :foo.to_proc
-    assert_warn(/Skipping set of ruby2_keywords flag for proc/) do
+    assert_warn(/Skipping set of ruby2_keywords flag for proc \(proc not defined in Ruby\)/) do
       foo.ruby2_keywords
     end
 
@@ -2411,12 +2411,29 @@ class TestKeywordArguments < Test::Unit::TestCase
         args
       end
 
+      def empty_method
+      end
+
+      def opt(arg = :opt)
+        arg
+      end
+
       ruby2_keywords def foo_dbar(*args)
         dbar(*args)
       end
 
       ruby2_keywords def foo_dbaz(*args)
         dbaz(*args)
+      end
+
+      ruby2_keywords def clear_last_empty_method(*args)
+        args.last.clear
+        empty_method(*args)
+      end
+
+      ruby2_keywords def clear_last_opt(*args)
+        args.last.clear
+        opt(*args)
       end
 
       define_method(:dbar) do |*args, **kw|
@@ -2650,9 +2667,11 @@ class TestKeywordArguments < Test::Unit::TestCase
     assert_equal([1, h1], o.baz(1, h1))
     assert_equal([h1], o.baz(h1, **{}))
 
-    # TruffleRuby: CRuby copies for #send but not for Proc#call, seems inconsistent
-    # assert_equal([[1, h1], {}], o.foo(:pass_bar, 1, :a=>1))
-    # assert_equal([[1, h1], {}], o.foo(:pass_cfunc, 1, :a=>1))
+    assert_equal([[1, h1], {}], o.foo(:pass_bar, 1, :a=>1))
+    assert_equal([[1, h1], {}], o.foo(:pass_cfunc, 1, :a=>1))
+
+    assert_equal(:opt, o.clear_last_opt(a: 1))
+    assert_nothing_raised(ArgumentError) { o.clear_last_empty_method(a: 1) }
 
     assert_warn(/Skipping set of ruby2_keywords flag for bar \(method accepts keywords or method does not accept argument splat\)/) do
       assert_nil(c.send(:ruby2_keywords, :bar))
@@ -2660,19 +2679,19 @@ class TestKeywordArguments < Test::Unit::TestCase
 
     o = Object.new
     class << o
-      alias bar object_id
+      alias bar p
     end
-    assert_warn(/Skipping set of ruby2_keywords flag for bar/) do
+    assert_warn(/Skipping set of ruby2_keywords flag for bar \(method not defined in Ruby\)/) do
       assert_nil(o.singleton_class.send(:ruby2_keywords, :bar))
     end
     sc = Class.new(c)
     assert_warn(/Skipping set of ruby2_keywords flag for bar \(can only set in method defining module\)/) do
       sc.send(:ruby2_keywords, :bar)
     end
-    # m = Module.new
-    # assert_warn(/Skipping set of ruby2_keywords flag for system \(can only set in method defining module\)/) do
-    #   m.send(:ruby2_keywords, :system)
-    # end
+    m = Module.new
+    assert_warn(/Skipping set of ruby2_keywords flag for system \(can only set in method defining module\)/) do
+      m.send(:ruby2_keywords, :system)
+    end
 
     assert_raise(NameError) { c.send(:ruby2_keywords, "a5e36ccec4f5080a1d5e63f8") }
     assert_raise(NameError) { c.send(:ruby2_keywords, :quux) }
@@ -3691,6 +3710,25 @@ class TestKeywordArguments < Test::Unit::TestCase
     assert_equal([42, {:bar=>"x"}], b.new.foo(42), bug8236)
   end
 
+  def test_super_with_keyword_kwrest
+    base = Class.new do
+      def foo(**h)
+        h
+      end
+    end
+    a = Class.new(base) do
+      attr_reader :h
+      def foo(a:, b:, **h)
+        @h = h
+        super
+      end
+    end
+
+    o = a.new
+    assert_equal({a: 1, b: 2, c: 3}, o.foo(a: 1, b: 2, c: 3))
+    assert_equal({c: 3}, o.h)
+  end
+
   def test_zsuper_only_named_kwrest
     bug8416 = '[ruby-core:55033] [Bug #8416]'
     base = Class.new do
@@ -3699,11 +3737,15 @@ class TestKeywordArguments < Test::Unit::TestCase
       end
     end
     a = Class.new(base) do
+      attr_reader :h
       def foo(**h)
+        @h = h
         super
       end
     end
-    assert_equal({:bar=>"x"}, a.new.foo(bar: "x"), bug8416)
+    o = a.new
+    assert_equal({:bar=>"x"}, o.foo(bar: "x"), bug8416)
+    assert_equal({:bar=>"x"}, o.h)
   end
 
   def test_zsuper_only_anonymous_kwrest
@@ -4308,5 +4350,22 @@ class TestKeywordArgumentsSymProcRefinements < Test::Unit::TestCase
     bug16603 = '[ruby-core:97047] [Bug #16603]'
     assert_raise(TypeError, bug16603) { p(**42) }
     assert_raise(TypeError, bug16603) { p(k:1, **42) }
+  end
+
+  def test_value_omission
+    f = ->(**kwargs) { kwargs }
+    x = 1
+    y = 2
+    assert_equal({x: 1, y: 2}, f.call(x:, y:))
+    assert_equal({x: 1, y: 2, z: 3}, f.call(x:, y:, z: 3))
+    assert_equal({one: 1, two: 2}, f.call(one:, two:))
+  end
+
+  private def one
+    1
+  end
+
+  private def two
+    2
   end
 end

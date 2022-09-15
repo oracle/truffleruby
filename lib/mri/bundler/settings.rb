@@ -219,6 +219,7 @@ module Bundler
     def path
       configs.each do |_level, settings|
         path = value_for("path", settings)
+        path = "vendor/bundle" if value_for("deployment", settings) && path.nil?
         path_system = value_for("path.system", settings)
         disabled_shared_gems = value_for("disable_shared_gems", settings)
         next if path.nil? && path_system.nil? && disabled_shared_gems.nil?
@@ -366,7 +367,7 @@ module Bundler
 
     def to_array(value)
       return [] unless value
-      value.split(":").map(&:to_sym)
+      value.tr(" ", ":").split(":").map(&:to_sym)
     end
 
     def array_to_s(array)

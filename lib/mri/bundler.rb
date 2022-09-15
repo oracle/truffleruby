@@ -66,6 +66,7 @@ module Bundler
   autoload :RubyDsl,                File.expand_path("bundler/ruby_dsl", __dir__)
   autoload :RubyVersion,            File.expand_path("bundler/ruby_version", __dir__)
   autoload :Runtime,                File.expand_path("bundler/runtime", __dir__)
+  autoload :SelfManager,            File.expand_path("bundler/self_manager", __dir__)
   autoload :Settings,               File.expand_path("bundler/settings", __dir__)
   autoload :SharedHelpers,          File.expand_path("bundler/shared_helpers", __dir__)
   autoload :Source,                 File.expand_path("bundler/source", __dir__)
@@ -643,15 +644,20 @@ EOF
       Bundler.rubygems.clear_paths
     end
 
+    def self_manager
+      @self_manager ||= begin
+                          require_relative "bundler/self_manager"
+                          Bundler::SelfManager.new
+                        end
+    end
+
     private
 
     def eval_yaml_gemspec(path, contents)
-      require_relative "bundler/psyched_yaml"
+      Kernel.require "psych"
 
-      # If the YAML is invalid, Syck raises an ArgumentError, and Psych
-      # raises a Psych::SyntaxError. See psyched_yaml.rb for more info.
       Gem::Specification.from_yaml(contents)
-    rescue YamlLibrarySyntaxError, ArgumentError, Gem::EndOfYAMLException, Gem::Exception
+    rescue ::Psych::SyntaxError, ArgumentError, Gem::EndOfYAMLException, Gem::Exception
       eval_gemspec(path, contents)
     end
 

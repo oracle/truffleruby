@@ -18,85 +18,88 @@ Init_sizeof(void)
 #define DEFINE(type, size) rb_hash_aset(s, rb_str_new_cstr(#type), INT2FIX(SIZEOF_##size))
 #define DEFINE_SIZE(type) rb_hash_aset(s, rb_str_new_cstr(#type), INT2FIX(sizeof(type)))
 
-#if SIZEOF_INT != 0
+#if defined(SIZEOF_INT) && SIZEOF_INT != 0
     DEFINE(int, INT);
 #endif
-#if SIZEOF_SHORT != 0
+#if defined(SIZEOF_SHORT) && SIZEOF_SHORT != 0
     DEFINE(short, SHORT);
 #endif
-#if SIZEOF_LONG != 0
+#if defined(SIZEOF_LONG) && SIZEOF_LONG != 0
     DEFINE(long, LONG);
 #endif
-#if SIZEOF_LONG_LONG != 0 && defined(HAVE_TRUE_LONG_LONG)
+#if defined(SIZEOF_LONG_LONG) && SIZEOF_LONG_LONG != 0 && defined(HAVE_TRUE_LONG_LONG)
     DEFINE(long long, LONG_LONG);
 #endif
-#if SIZEOF___INT64 != 0
+#if defined(SIZEOF___INT64) && SIZEOF___INT64 != 0
     DEFINE(__int64, __INT64);
 #endif
 #ifdef HAVE_TYPE___INT128
     DEFINE_SIZE(__int128);
 #endif
-#if SIZEOF_OFF_T != 0
+#if defined(SIZEOF_OFF_T) && SIZEOF_OFF_T != 0
     DEFINE(off_t, OFF_T);
 #endif
-#if SIZEOF_VOIDP != 0
+#if defined(SIZEOF_VOIDP) && SIZEOF_VOIDP != 0
     DEFINE(void*, VOIDP);
 #endif
-#if SIZEOF_FLOAT != 0
+#if defined(SIZEOF_FLOAT) && SIZEOF_FLOAT != 0
     DEFINE(float, FLOAT);
 #endif
-#if SIZEOF_DOUBLE != 0
+#if defined(SIZEOF_DOUBLE) && SIZEOF_DOUBLE != 0
     DEFINE(double, DOUBLE);
 #endif
-#if SIZEOF_TIME_T != 0
+#if defined(SIZEOF_TIME_T) && SIZEOF_TIME_T != 0
     DEFINE(time_t, TIME_T);
 #endif
-#if SIZEOF_CLOCK_T != 0
+#if defined(SIZEOF_CLOCK_T) && SIZEOF_CLOCK_T != 0
     DEFINE(clock_t, CLOCK_T);
 #endif
-#if SIZEOF_SIZE_T != 0
+#if defined(SIZEOF_SIZE_T) && SIZEOF_SIZE_T != 0
     DEFINE(size_t, SIZE_T);
 #endif
-#if SIZEOF_PTRDIFF_T != 0
+#if defined(SIZEOF_PTRDIFF_T) && SIZEOF_PTRDIFF_T != 0
     DEFINE(ptrdiff_t, PTRDIFF_T);
 #endif
-#if SIZEOF_INT8_T != 0
+#if defined(SIZEOF_DEV_T) && SIZEOF_DEV_T != 0
+    DEFINE(dev_t, DEV_T);
+#endif
+#if defined(SIZEOF_INT8_T) && SIZEOF_INT8_T != 0
     DEFINE(int8_t, INT8_T);
 #endif
-#if SIZEOF_UINT8_T != 0
+#if defined(SIZEOF_UINT8_T) && SIZEOF_UINT8_T != 0
     DEFINE(uint8_t, UINT8_T);
 #endif
-#if SIZEOF_INT16_T != 0
+#if defined(SIZEOF_INT16_T) && SIZEOF_INT16_T != 0
     DEFINE(int16_t, INT16_T);
 #endif
-#if SIZEOF_UINT16_T != 0
+#if defined(SIZEOF_UINT16_T) && SIZEOF_UINT16_T != 0
     DEFINE(uint16_t, UINT16_T);
 #endif
-#if SIZEOF_INT32_T != 0
+#if defined(SIZEOF_INT32_T) && SIZEOF_INT32_T != 0
     DEFINE(int32_t, INT32_T);
 #endif
-#if SIZEOF_UINT32_T != 0
+#if defined(SIZEOF_UINT32_T) && SIZEOF_UINT32_T != 0
     DEFINE(uint32_t, UINT32_T);
 #endif
-#if SIZEOF_INT64_T != 0
+#if defined(SIZEOF_INT64_T) && SIZEOF_INT64_T != 0
     DEFINE(int64_t, INT64_T);
 #endif
-#if SIZEOF_UINT64_T != 0
+#if defined(SIZEOF_UINT64_T) && SIZEOF_UINT64_T != 0
     DEFINE(uint64_t, UINT64_T);
 #endif
-#if SIZEOF_INT128_T != 0
+#if defined(SIZEOF_INT128_T) && SIZEOF_INT128_T != 0
     DEFINE(int128_t, INT128_T);
 #endif
-#if SIZEOF_UINT128_T != 0
+#if defined(SIZEOF_UINT128_T) && SIZEOF_UINT128_T != 0
     DEFINE(uint128_t, UINT128_T);
 #endif
-#if SIZEOF_INTPTR_T != 0
+#if defined(SIZEOF_INTPTR_T) && SIZEOF_INTPTR_T != 0
     DEFINE(intptr_t, INTPTR_T);
 #endif
-#if SIZEOF_UINTPTR_T != 0
+#if defined(SIZEOF_UINTPTR_T) && SIZEOF_UINTPTR_T != 0
     DEFINE(uintptr_t, UINTPTR_T);
 #endif
-#if SIZEOF_SSIZE_T != 0
+#if defined(SIZEOF_SSIZE_T) && SIZEOF_SSIZE_T != 0
     DEFINE(ssize_t, SSIZE_T);
 #endif
 #ifdef HAVE_TYPE_INT_LEAST8_T

@@ -4,12 +4,13 @@ module DidYouMean
   module TestHelper
     class << self
       attr_reader :root
+
+      def ractor_compatible?
+        defined?(Ractor) && RUBY_VERSION >= "3.1.0"
+      end
     end
 
-    if defined?(::TruffleRuby)
-      @root = File.expand_path('../../../../lib/mri/did_you_mean.rb', __dir__)
-      require 'did_you_mean'
-    elsif File.file?(File.expand_path('../lib/did_you_mean.rb', __dir__))
+    if File.file?(File.expand_path('../lib/did_you_mean.rb', __dir__))
       # In this case we're being run from inside the gem, so we just want to
       # require the root of the library
 

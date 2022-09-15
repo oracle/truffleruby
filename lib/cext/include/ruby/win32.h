@@ -304,7 +304,8 @@ extern int rb_w32_usymlink(const char *src, const char *link);
 extern int gettimeofday(struct timeval *, struct timezone *);
 extern int clock_gettime(clockid_t, struct timespec *);
 extern int clock_getres(clockid_t, struct timespec *);
-extern rb_pid_t waitpid (rb_pid_t, int *, int);
+extern rb_pid_t waitpid(rb_pid_t, int *, int);
+extern rb_pid_t wait(int *);
 extern rb_pid_t rb_w32_uspawn(int, const char *, const char*);
 extern rb_pid_t rb_w32_uaspawn(int, const char *, char *const *);
 extern rb_pid_t rb_w32_uaspawn_flags(int, const char *, char *const *, DWORD);
@@ -342,14 +343,6 @@ rb_infinity_float(void)
 #endif
 
 #if !defined __MINGW32__ || defined __NO_ISOCEXT
-#ifndef isnan
-#define isnan(x) _isnan(x)
-#endif
-static inline int
-finite(double x)
-{
-    return _finite(x);
-}
 #ifndef copysign
 #define copysign(a, b) _copysign(a, b)
 #endif
@@ -358,8 +351,6 @@ scalb(double a, long b)
 {
     return _scalb(a, b);
 }
-#else
-__declspec(dllimport) extern int finite(double);
 #endif
 
 #if !defined S_IFIFO && defined _S_IFIFO

@@ -299,6 +299,9 @@ class TestM17N < Test::Unit::TestCase
     orig_v, $VERBOSE = $VERBOSE, false
     orig_int, Encoding.default_internal = Encoding.default_internal, nil
     orig_ext = Encoding.default_external
+
+    skip "https://bugs.ruby-lang.org/issues/18338"
+
     o = Object.new
 
     Encoding.default_external = Encoding::UTF_16BE
@@ -1331,8 +1334,8 @@ class TestM17N < Test::Unit::TestCase
       env_encoding = Encoding.find("locale")
     end
     ENV.each {|k, v|
-      assert_equal(env_encoding, k.encoding, k)
-      assert_equal(env_encoding, v.encoding, v)
+      assert_equal(env_encoding, k.encoding, proc {"key(#{k.encoding})=#{k.dump}"})
+      assert_equal(env_encoding, v.encoding, proc {"key(#{k.encoding})=#{k.dump}\n" "value(#{v.encoding})=#{v.dump}"})
     }
   end
 
@@ -1458,10 +1461,9 @@ class TestM17N < Test::Unit::TestCase
     assert_equal("", "\x81\x40".force_encoding("GBK").chop)
   end
 
-  # GR-39354
-  # def test_euc_tw
-  #   assert_equal("a", "a\x8e\xa2\xa1\xa1".force_encoding("euc-tw").chop)
-  # end
+  def test_euc_tw
+    assert_equal("a", "a\x8e\xa2\xa1\xa1".force_encoding("euc-tw").chop)
+  end
 
   def test_valid_encoding
     s = "\xa1".force_encoding("euc-jp")

@@ -6,6 +6,11 @@ module Bundler
   class Definition
     include GemHelpers
 
+    class << self
+      # Do not create or modify a lockfile (Makes #lock a noop)
+      attr_accessor :no_lock
+    end
+
     attr_reader(
       :dependencies,
       :locked_deps,
@@ -158,10 +163,6 @@ module Bundler
       end
     end
 
-    def multisource_allowed?
-      @multisource_allowed
-    end
-
     def resolve_only_locally!
       @remote = false
       sources.local_only!
@@ -264,7 +265,7 @@ module Bundler
         else
           # Run a resolve against the locally available gems
           Bundler.ui.debug("Found changes from the lockfile, re-resolving dependencies because #{change_reason}")
-          expanded_dependencies = expand_dependencies(dependencies + metadata_dependencies, @remote)
+          expanded_dependencies = expand_dependencies(dependencies + metadata_dependencies, true)
           Resolver.resolve(expanded_dependencies, source_requirements, last_resolve, gem_version_promoter, additional_base_requirements_for_resolve, platforms)
         end
       end
@@ -279,6 +280,8 @@ module Bundler
     end
 
     def lock(file, preserve_unknown_sections = false)
+      return if Definition.no_lock
+
       contents = to_lock
 
       # Convert to \r\n if the existing lock has them
@@ -289,10 +292,7 @@ module Bundler
         locked_major = @locked_bundler_version.segments.first
         current_major = Gem::Version.create(Bundler::VERSION).segments.first
 
-        if updating_major = locked_major < current_major
-          Bundler.ui.warn "Warning: the lockfile is being updated to Bundler #{current_major}, " \
-                          "after which you will be unable to return to Bundler #{@locked_bundler_version.segments.first}."
-        end
+        updating_major = locked_major < current_major
       end
 
       preserve_unknown_sections ||= !updating_major && (Bundler.frozen_bundle? || !(unlocking? || @unlocking_bundler))
@@ -307,14 +307,6 @@ module Bundler
       SharedHelpers.filesystem_access(file) do |p|
         File.open(p, "wb") {|f| f.puts(contents) }
       end
-    end
-
-    def locked_bundler_version
-      if @locked_bundler_version && @locked_bundler_version < Gem::Version.new(Bundler::VERSION)
-        new_version = Bundler::VERSION
-      end
-
-      new_version || @locked_bundler_version || Bundler::VERSION
     end
 
     def locked_ruby_version
@@ -368,44 +360,31 @@ module Bundler
       added.concat new_platforms.map {|p| "* platform: #{p}" }
       deleted.concat deleted_platforms.map {|p| "* platform: #{p}" }
 
-      gemfile_sources = sources.lock_sources
-
-      new_sources = gemfile_sources - @locked_sources
-      deleted_sources = @locked_sources - gemfile_sources
-
       new_deps = @dependencies - locked_dependencies
       deleted_deps = locked_dependencies - @dependencies
 
-      # Check if it is possible that the source is only changed thing
-      if (new_deps.empty? && deleted_deps.empty?) && (!new_sources.empty? && !deleted_sources.empty?)
-        new_sources.reject! {|source| (source.path? && source.path.exist?) || equivalent_rubygems_remotes?(source) }
-        deleted_sources.reject! {|source| (source.path? && source.path.exist?) || equivalent_rubygems_remotes?(source) }
-      end
-
-      if @locked_sources != gemfile_sources
-        if new_sources.any?
-          added.concat new_sources.map {|source| "* source: #{source}" }
-        end
-
-        if deleted_sources.any?
-          deleted.concat deleted_sources.map {|source| "* source: #{source}" }
-        end
-      end
-
       added.concat new_deps.map {|d| "* #{pretty_dep(d)}" } if new_deps.any?
-      if deleted_deps.any?
-        deleted.concat deleted_deps.map {|d| "* #{pretty_dep(d)}" }
-      end
+      deleted.concat deleted_deps.map {|d| "* #{pretty_dep(d)}" } if deleted_deps.any?
 
       both_sources = Hash.new {|h, k| h[k] = [] }
       @dependencies.each {|d| both_sources[d.name][0] = d }
-      @locked_deps.each  {|name, d| both_sources[name][1] = d.source }
 
-      both_sources.each do |name, (dep, lock_source)|
-        next if lock_source.nil? || (dep && lock_source.can_lock?(dep))
-        gemfile_source_name = (dep && dep.source) || "no specified source"
-        lockfile_source_name = lock_source
-        changed << "* #{name} from `#{gemfile_source_name}` to `#{lockfile_source_name}`"
+      locked_dependencies.each do |d|
+        next if !Bundler.feature_flag.bundler_3_mode? && @locked_specs[d.name].empty?
+
+        both_sources[d.name][1] = d
+      end
+
+      both_sources.each do |name, (dep, lock_dep)|
+        next if dep.nil? || lock_dep.nil?
+
+        gemfile_source = dep.source || sources.default_source
+        lock_source = lock_dep.source || sources.default_source
+        next if lock_source.include?(gemfile_source)
+
+        gemfile_source_name = dep.source ? gemfile_source.identifier : "no specified source"
+        lockfile_source_name = lock_dep.source ? lock_source.identifier : "no specified source"
+        changed << "* #{name} from `#{lockfile_source_name}` to `#{gemfile_source_name}`"
       end
 
       reason = change_reason
@@ -516,6 +495,7 @@ module Bundler
 
     def current_ruby_platform_locked?
       return false unless generic_local_platform == Gem::Platform::RUBY
+      return false if Bundler.settings[:force_ruby_platform] && !@platforms.include?(Gem::Platform::RUBY)
 
       current_platform_locked?
     end
@@ -649,15 +629,13 @@ module Bundler
     end
 
     def converge_dependencies
-      (@dependencies + locked_dependencies).each do |dep|
-        if dep.source
-          dep.source = sources.get(dep.source)
-        end
-      end
-
       changes = false
 
       @dependencies.each do |dep|
+        if dep.source
+          dep.source = sources.get(dep.source)
+        end
+
         unless locked_dep = @locked_deps[dep.name]
           changes = true
           next
@@ -711,11 +689,8 @@ module Bundler
           deps << dep
         end
 
-        s.source = (dep && dep.source) || sources.get(s.source) unless multisource_allowed?
+        s.source = (dep && dep.source) || sources.get(s.source) || sources.default_source unless Bundler.frozen_bundle?
 
-        # Don't add a spec to the list if its source is expired. For example,
-        # if you change a Git gem to RubyGems.
-        next if s.source.nil?
         next if @unlock[:sources].include?(s.source.name)
 
         # If the spec is from a path source and it doesn't exist anymore
@@ -744,7 +719,7 @@ module Bundler
           s.dependencies.replace(new_spec.dependencies)
         end
 
-        if dep.nil? && @dependencies.find {|d| s.name == d.name }
+        if dep.nil? && requested_dependencies.find {|d| s.name == d.name }
           @unlock[:gems] << s.name
         else
           converged << s
@@ -850,12 +825,6 @@ module Bundler
         dep = Gem::Dependency.new(name, ">= #{locked_spec.version}")
         DepProxy.get_proxy(dep, locked_spec.platform)
       end
-    end
-
-    def equivalent_rubygems_remotes?(source)
-      return false unless source.is_a?(Source::Rubygems)
-
-      Bundler.settings[:allow_deployment_source_credential_changes] && source.equivalent_remotes?(sources.rubygems_remotes)
     end
 
     def source_map

@@ -494,6 +494,40 @@ class TestRegexp < Test::Unit::TestCase
     assert_equal("foobarbaz", m.string)
   end
 
+  def test_match_matchsubstring
+    m = /(.)(.)(\d+)(\d)(\w)?/.match("THX1138.")
+    assert_equal("HX1138", m.match(0))
+    assert_equal("8", m.match(4))
+    assert_nil(m.match(5))
+
+    m = /\A\u3042(.)(.)?(.)\z/.match("\u3042\u3043\u3044")
+    assert_equal("\u3043", m.match(1))
+    assert_nil(m.match(2))
+    assert_equal("\u3044", m.match(3))
+
+    m = /(?<foo>.)(?<n>[^aeiou])?(?<bar>.+)/.match("hoge\u3042")
+    assert_equal("h", m.match(:foo))
+    assert_nil(m.match(:n))
+    assert_equal("oge\u3042", m.match(:bar))
+  end
+
+  def test_match_match_length
+    m = /(.)(.)(\d+)(\d)(\w)?/.match("THX1138.")
+    assert_equal(6, m.match_length(0))
+    assert_equal(1, m.match_length(4))
+    assert_nil(m.match_length(5))
+
+    m = /\A\u3042(.)(.)?(.)\z/.match("\u3042\u3043\u3044")
+    assert_equal(1, m.match_length(1))
+    assert_nil(m.match_length(2))
+    assert_equal(1, m.match_length(3))
+
+    m = /(?<foo>.)(?<n>[^aeiou])?(?<bar>.+)/.match("hoge\u3042")
+    assert_equal(1, m.match_length(:foo))
+    assert_nil(m.match_length(:n))
+    assert_equal(4, m.match_length(:bar))
+  end
+
   def test_match_inspect
     m = /(...)(...)(...)(...)?/.match("foobarbaz")
     assert_equal('#<MatchData "foobarbaz" 1:"foo" 2:"bar" 3:"baz" 4:nil>', m.inspect)
@@ -515,6 +549,24 @@ class TestRegexp < Test::Unit::TestCase
     assert_raise(RegexpError) { Regexp.new('[\\40000000000') }
     assert_raise(RegexpError) { Regexp.new('[\\600000000000.') }
     assert_raise(RegexpError) { Regexp.new("((?<v>))\\g<0>") }
+  end
+
+  def test_match_control_meta_escape
+    assert_equal(0, /\c\xFF/ =~ "\c\xFF")
+    assert_equal(0, /\c\M-\xFF/ =~ "\c\M-\xFF")
+    assert_equal(0, /\C-\xFF/ =~ "\C-\xFF")
+    assert_equal(0, /\C-\M-\xFF/ =~ "\C-\M-\xFF")
+    assert_equal(0, /\M-\xFF/ =~ "\M-\xFF")
+    assert_equal(0, /\M-\C-\xFF/ =~ "\M-\C-\xFF")
+    assert_equal(0, /\M-\c\xFF/ =~ "\M-\c\xFF")
+
+    assert_nil(/\c\xFE/ =~ "\c\xFF")
+    assert_nil(/\c\M-\xFE/ =~ "\c\M-\xFF")
+    assert_nil(/\C-\xFE/ =~ "\C-\xFF")
+    assert_nil(/\C-\M-\xFE/ =~ "\C-\M-\xFF")
+    assert_nil(/\M-\xFE/ =~ "\M-\xFF")
+    assert_nil(/\M-\C-\xFE/ =~ "\M-\C-\xFF")
+    assert_nil(/\M-\c\xFE/ =~ "\M-\c\xFF")
   end
 
   def test_unescape
@@ -1131,7 +1183,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_no_match(/^\p{age=1.1}$/u, "\u2754")
 
     assert_no_match(/^\p{age=12.0}$/u, "\u32FF")
-    # assert_match(/^\p{age=12.1}$/u, "\u32FF") # TruffleRuby: invalid character property name <age=12.1> (RegexpError)
+    assert_match(/^\p{age=12.1}$/u, "\u32FF")
   end
 
   MatchData_A = eval("class MatchData_\u{3042} < MatchData; self; end")
@@ -1312,7 +1364,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        # require '-test-/regexp'
+        require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'

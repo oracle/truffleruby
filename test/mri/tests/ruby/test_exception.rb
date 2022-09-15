@@ -78,6 +78,77 @@ class TestException < Test::Unit::TestCase
     assert(!bad)
   end
 
+  def test_exception_in_ensure_with_next
+    string = "[ruby-core:82936] [Bug #13930]"
+    assert_raise_with_message(RuntimeError, string) do
+      lambda do
+        next
+      rescue
+        assert(false)
+      ensure
+        raise string
+      end.call
+      assert(false)
+    end
+
+    assert_raise_with_message(RuntimeError, string) do
+      flag = true
+      while flag
+        flag = false
+        begin
+          next
+        rescue
+          assert(false)
+        ensure
+          raise string
+        end
+      end
+    end
+
+    iseq = RubyVM::InstructionSequence.compile(<<-RUBY)
+    begin
+      while true
+        break
+      end
+    rescue
+    end
+    RUBY
+
+    assert_equal false, iseq.to_a[13].any?{|(e,_)| e == :throw}
+  end
+
+  def test_exception_in_ensure_with_redo
+    string = "[ruby-core:82936] [Bug #13930]"
+
+    assert_raise_with_message(RuntimeError, string) do
+      i = 0
+      lambda do
+        i += 1
+        redo if i < 2
+      rescue
+        assert(false)
+      ensure
+        raise string
+      end.call
+      assert(false)
+    end
+  end
+
+  def test_exception_in_ensure_with_return
+    @string = "[ruby-core:97104] [Bug #16618]"
+    def self.meow
+      return if true # This if modifier suppresses "warning: statement not reached"
+      assert(false)
+    rescue
+      assert(false)
+    ensure
+      raise @string
+    end
+    assert_raise_with_message(RuntimeError, @string) do
+      meow
+    end
+  end
+
   def test_errinfo_in_debug
     bug9568 = EnvUtil.labeled_class("[ruby-core:61091] [Bug #9568]", RuntimeError) do
       def to_s
@@ -178,6 +249,27 @@ class TestException < Test::Unit::TestCase
       t.puts("throw :extdep, 42")
       t.close
       assert_equal(42, assert_throw(:extdep, bug7185) {require t.path}, bug7185)
+    }
+  end
+
+  def test_catch_throw_in_require_cant_be_rescued
+    bug18562 = '[ruby-core:107403]'
+    Tempfile.create(["dep", ".rb"]) {|t|
+      t.puts("throw :extdep, 42")
+      t.close
+
+      rescue_all = Class.new(Exception)
+      def rescue_all.===(_)
+        raise "should not reach here"
+      end
+
+      v = assert_throw(:extdep, bug18562) do
+        require t.path
+      rescue rescue_all => e
+        assert(false, "should not reach here")
+      end
+
+      assert_equal(42, v, bug18562)
     }
   end
 
@@ -489,6 +581,35 @@ end.join
     end;
   end
 
+  def test_ensure_after_nomemoryerror
+    skip "Forcing NoMemoryError causes problems in some environments"
+    assert_separately([], "$_ = 'a' * 1_000_000_000_000_000_000")
+  rescue NoMemoryError
+    assert_raise(NoMemoryError) do
+      assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+      bug15779 = bug15779 = '[ruby-core:92342]'
+      begin;
+        require 'open-uri'
+
+        begin
+          'a' * 1_000_000_000_000_000_000
+        ensure
+          URI.open('http://www.ruby-lang.org/')
+        end
+      end;
+    end
+  rescue Test::Unit::AssertionFailedError
+    # Possibly compiled with -DRUBY_DEBUG, in which
+    # case rb_bug is used instead of NoMemoryError,
+    # and we cannot test ensure after NoMemoryError.
+  rescue RangeError
+    # MingW can raise RangeError instead of NoMemoryError,
+    # so we cannot test this case.
+  rescue Timeout::Error
+    # Solaris 11 CI times out instead of raising NoMemoryError,
+    # so we cannot test this case.
+  end
+
   def test_equal
     bug5865 = '[ruby-core:41979]'
     assert_equal(RuntimeError.new("a"), RuntimeError.new("a"), bug5865)
@@ -743,7 +864,7 @@ end.join
     bug12741 = '[ruby-core:77222] [Bug #12741]'
 
     x = Thread.current
-    q = Queue.new
+    q = Thread::Queue.new
     y = Thread.start do
       q.pop
       begin
@@ -1100,6 +1221,14 @@ $stderr = $stdout; raise "\x82\xa0"') do |outs, errs, status|
     assert_empty warning
   end
 
+  def test_undef_Warning_warn
+    assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
+    begin;
+      Warning.undef_method(:warn)
+      assert_raise(NoMethodError) { warn "" }
+    end;
+  end
+
   def test_undefined_backtrace
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
@@ -1208,9 +1337,9 @@ $stderr = $stdout; raise "\x82\xa0"') do |outs, errs, status|
     message = assert_nothing_raised(ArgumentError, proc {e.pretty_inspect}) do
       e.full_message
     end
-    #assert_all?(message.lines) do |m|
-    #  /\e\[\d[;\d]*m[^\e]*\n/ !~ m
-    #end
+    assert_all?(message.lines) do |m|
+      /\e\[\d[;\d]*m[^\e]*\n/ !~ m
+    end
 
     e = RuntimeError.new("testerror")
     message = e.full_message(highlight: false)

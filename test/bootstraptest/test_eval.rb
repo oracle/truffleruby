@@ -115,7 +115,34 @@ assert_equal %q{1}, %q{
   1.instance_eval %{
     Const
   }
-}, tagged: true
+}
+assert_equal %q{1}, %q{
+  class TrueClass
+    Const = 1
+  end
+  true.instance_eval %{
+    Const
+  }
+}
+assert_equal %q{[:Const]}, %q{
+  mod = Module.new
+  mod.instance_eval %{
+    Const = 1
+  }
+  raise if defined?(Module::Const)
+  mod.singleton_class.constants
+}
+assert_equal %q{can't define singleton}, %q{
+  begin
+    123.instance_eval %{
+      Const = 1
+    }
+    "bad"
+  rescue TypeError => e
+    raise "bad" if defined?(Integer::Const)
+    e.message
+  end
+}
 assert_equal %q{top}, %q{
   Const = :top
   class C
@@ -191,17 +218,17 @@ assert_equal %q{[10, main]}, %q{
 
 %w[break next redo].each do |keyword|
   assert_match %r"Can't escape from eval with #{keyword}\b", %{
-    STDERR.reopen(STDOUT)
+    $stderr = STDOUT
     begin
       eval "0 rescue #{keyword}"
     rescue SyntaxError => e
       e.message
     end
-  }, '[ruby-dev:31372]', tagged: true
+  }, '[ruby-dev:31372]'
 end
 
 assert_normal_exit %q{
-  STDERR.reopen(STDOUT)
+  $stderr = STDOUT
   class Foo
      def self.add_method
        class_eval("def some-bad-name; puts 'hello' unless @some_variable.some_function(''); end")
@@ -280,7 +307,7 @@ assert_equal 'ok', %q{
     def defd_using_instance_exec() :ok end
   }
   nil.defd_using_instance_exec
-}, '[ruby-core:28324]', tagged: true
+}, '[ruby-core:28324]'
 
 assert_normal_exit %q{
   eval("", method(:proc).call {}.binding)
@@ -316,7 +343,7 @@ assert_normal_exit %q{
   begin
     eval "class C; @@h = #{hash.inspect}; end"
   end
-}, '[ruby-core:25714]', tagged: true
+}, '[ruby-core:25714]'
 
 assert_normal_exit %q{
   begin
@@ -325,4 +352,5 @@ assert_normal_exit %q{
     p e
     RubyVM::InstructionSequence.compile("p:hello")
   end
-}, 'check escaping the internal value th->base_block', tagged: true
+}, 'check escaping the internal value th->base_block'
+

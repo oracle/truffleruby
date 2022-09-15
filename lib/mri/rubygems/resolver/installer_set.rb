@@ -71,10 +71,17 @@ class Gem::Resolver::InstallerSet < Gem::Resolver::Set
     end
 
     found = found.sort_by do |s|
-      [s.version, s.platform == Gem::Platform::RUBY ? -1 : 1]
+      [s.version, Gem::Platform.sort_priority(s.platform)]
     end
 
     newest = found.last
+
+    unless newest
+      exc = Gem::UnsatisfiableDependencyError.new request
+      exc.errors = errors
+
+      raise exc
+    end
 
     unless @force
       found_matching_metadata = found.reverse.find do |spec|
@@ -82,15 +89,8 @@ class Gem::Resolver::InstallerSet < Gem::Resolver::Set
       end
 
       if found_matching_metadata.nil?
-        if newest
-          ensure_required_ruby_version_met(newest.spec)
-          ensure_required_rubygems_version_met(newest.spec)
-        else
-          exc = Gem::UnsatisfiableDependencyError.new request
-          exc.errors = errors
-
-          raise exc
-        end
+        ensure_required_ruby_version_met(newest.spec)
+        ensure_required_rubygems_version_met(newest.spec)
       else
         newest = found_matching_metadata
       end

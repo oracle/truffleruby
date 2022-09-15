@@ -14,10 +14,6 @@ end
 
 module EnvUtil
   def rubybin
-    if defined?(::TruffleRuby) # always be correct and do not search some random files on disk
-      return RbConfig.ruby
-    end
-
     if ruby = ENV["RUBY"]
       return ruby
     end
@@ -60,9 +56,6 @@ module EnvUtil
       @original_warning = defined?(Warning.[]) ? %i[deprecated experimental].to_h {|i| [i, Warning[i]]} : nil
     end
   end
-
-  # TruffleRuby: startup can take longer, especially on highly loaded CI machines
-  self.timeout_scale = 3 if defined?(::TruffleRuby)
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.timeout_scale
@@ -132,7 +125,7 @@ module EnvUtil
 
   def invoke_ruby(args, stdin_data = "", capture_stdout = false, capture_stderr = false,
                   encoding: nil, timeout: 10, reprieve: 1, timeout_error: Timeout::Error,
-                  stdout_filter: nil, stderr_filter: nil,
+                  stdout_filter: nil, stderr_filter: nil, ios: nil,
                   signal: :TERM,
                   rubybin: EnvUtil.rubybin, precommand: nil,
                   **opt)
@@ -148,6 +141,8 @@ module EnvUtil
       out_p.set_encoding(encoding) if out_p
       err_p.set_encoding(encoding) if err_p
     end
+    ios.each {|i, o = i|opt[i] = o} if ios
+
     c = "C"
     child_env = {}
     LANG_ENVS.each {|lc| child_env[lc] = c}
@@ -159,7 +154,7 @@ module EnvUtil
     end
     child_env['ASAN_OPTIONS'] = ENV['ASAN_OPTIONS'] if ENV['ASAN_OPTIONS']
     args = [args] if args.kind_of?(String)
-    pid = spawn(child_env, *precommand, rubybin, *args, **opt)
+    pid = spawn(child_env, *precommand, rubybin, *args, opt)
     in_c.close
     out_c&.close
     out_c = nil
@@ -187,7 +182,7 @@ module EnvUtil
       stderr = stderr_filter.call(stderr) if stderr_filter
       if timeout_error
         bt = caller_locations
-        msg = "execution of #{bt.shift.label} expired (took longer than #{timeout} seconds)"
+        msg = "execution of #{bt.shift.label} expired timeout (#{timeout} sec)"
         msg = failure_description(status, terminated, msg, [stdout, stderr].join("\n"))
         raise timeout_error, msg, bt.map(&:to_s)
       end

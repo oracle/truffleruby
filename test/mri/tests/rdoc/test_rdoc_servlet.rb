@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 require_relative 'helper'
-
-# Load those eagerly, otherwise require 'json' inside fails due to `Gem::Specification.all = [@spec]`, also on CRuby
-_load_eagerly = [
-  RDoc::Servlet,
-  RDoc::Generator::JsonIndex
-]
+begin
+  require 'webrick'
+rescue LoadError
+end
 
 class TestRDocServlet < RDoc::TestCase
 
