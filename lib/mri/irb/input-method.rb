@@ -39,7 +39,7 @@ module IRB
     public :gets
 
     def winsize
-      if instance_variable_defined?(:@stdout)
+      if instance_variable_defined?(:@stdout) && (defined?(::TruffleRuby) ? @stdout.tty? : true)
         @stdout.winsize
       else
         [24, 80]

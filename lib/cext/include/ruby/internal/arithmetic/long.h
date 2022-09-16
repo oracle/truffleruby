@@ -50,16 +50,33 @@
 #define LONG2NUM     RB_LONG2NUM          /**< @old{RB_LONG2NUM} */
 #define NUM2LONG     RB_NUM2LONG          /**< @old{RB_NUM2LONG} */
 #define NUM2ULONG    RB_NUM2ULONG         /**< @old{RB_NUM2ULONG} */
+
+#ifdef TRUFFLERUBY
+#define RB_FIX2LONG(x) ((long)polyglot_as_i64(rb_tr_unwrap(x)))
+#else
 #define RB_FIX2LONG  rb_fix2long          /**< @alias{rb_fix2long} */
+#endif
+
 #define RB_FIX2ULONG rb_fix2ulong         /**< @alias{rb_fix2ulong} */
+
+#ifdef TRUFFLERUBY
+#define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
+#else
 #define RB_LONG2FIX  RB_INT2FIX           /**< @alias{RB_INT2FIX} */
+#endif
+
 #define RB_LONG2NUM  rb_long2num_inline   /**< @alias{rb_long2num_inline} */
 #define RB_NUM2LONG  rb_num2long_inline   /**< @alias{rb_num2long_inline} */
 #define RB_NUM2ULONG rb_num2ulong_inline  /**< @alias{rb_num2ulong_inline} */
 #define RB_ULONG2NUM rb_ulong2num_inline  /**< @alias{rb_ulong2num_inline} */
 #define ULONG2NUM    RB_ULONG2NUM         /**< @old{RB_ULONG2NUM} */
 #define rb_fix_new   RB_INT2FIX           /**< @alias{RB_INT2FIX} */
+
+#ifdef TRUFFLERUBY
+#define rb_long2int  rb_long2int
+#else
 #define rb_long2int  rb_long2int_inline   /**< @alias{rb_long2int_inline} */
+#endif
 
 /** @cond INTERNAL_MACRO */
 #define RB_INT2FIX RB_INT2FIX
@@ -96,6 +113,9 @@ long rb_num2long(VALUE num);
  * @return     The passed value converted into C's `unsigned long`.
  */
 unsigned long rb_num2ulong(VALUE num);
+#ifdef TRUFFLERUBY
+int rb_long2int(long value);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
@@ -131,6 +151,7 @@ RB_INT2FIX(long i)
  * @exception  rb_eRangeError  `n` is out of range of `int`.
  * @return     Identical value of type `int`
  */
+#ifndef TRUFFLERUBY
 static inline int
 rb_long2int_inline(long n)
 {
@@ -145,6 +166,7 @@ rb_long2int_inline(long n)
 
     return i;
 }
+#endif
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
@@ -219,7 +241,10 @@ rbimpl_right_shift_is_arithmetic_p(void)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
+#endif
+
 /**
  * Converts a Fixnum into C's `long`.
  *
@@ -230,12 +255,16 @@ RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 static inline long
 rb_fix2long(VALUE x)
 {
+#ifdef TRUFFLERUBY
+    return ((long)polyglot_as_i64(rb_tr_unwrap(x)));
+#else
     if /* constexpr */ (rbimpl_right_shift_is_arithmetic_p()) {
         return rbimpl_fix2long_by_shift(x);
     }
     else {
         return rbimpl_fix2long_by_idiv(x);
     }
+#endif
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
@@ -325,7 +354,11 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
         return RB_LONG2FIX(v);
     else
+#ifdef TRUFFLERUBY
+        return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
+#else
         return rb_uint2big(v);
+#endif
 }
 
 /**

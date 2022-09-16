@@ -3,7 +3,8 @@ require 'test/unit'
 
 module TestRipper; end
 class TestRipper::Generic < Test::Unit::TestCase
-  SRCDIR = File.expand_path("../../..", __FILE__)
+  # Changed from MRI to reflect the different relative path of the test suite.
+  SRCDIR = File.expand_path("../../../../..", __FILE__)
 
   def assert_parse_files(dir, pattern = "**/*.rb")
     assert_separately(%W[--disable-gem -rripper - #{SRCDIR}/#{dir} #{pattern}],

@@ -1,4 +1,4 @@
-require "-test-/memory_view"
+require "c/memory_view"
 require "rbconfig/sizeof"
 
 class TestMemoryView < Test::Unit::TestCase

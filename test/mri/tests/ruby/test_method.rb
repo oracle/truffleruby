@@ -1057,8 +1057,8 @@ class TestMethod < Test::Unit::TestCase
 
   def test_prepended_public_zsuper
     mod = EnvUtil.labeled_module("Mod") {private def foo; :ok end}
-    mods = [mod]
     obj = Object.new.extend(mod)
+    mods = [obj.singleton_class]
     class << obj
       public :foo
     end
@@ -1318,7 +1318,7 @@ class TestMethod < Test::Unit::TestCase
       ::Object.prepend(M2)
 
       m = Object.instance_method(:x)
-      assert_equal M, m.owner
+      assert_equal M2, m.owner
     end;
   end
 

@@ -100,8 +100,10 @@ typedef uintptr_t ID;
 # define RBIMPL_VALUE_FULL UINTPTR_MAX
 
 #elif SIZEOF_LONG == SIZEOF_VOIDP
+#ifndef TRUFFLERUBY
 typedef unsigned long VALUE;
 typedef unsigned long ID;
+#endif
 # define SIGNED_VALUE long
 # define SIZEOF_VALUE SIZEOF_LONG
 # define PRI_VALUE_PREFIX "l"

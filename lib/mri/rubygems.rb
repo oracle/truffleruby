@@ -1315,7 +1315,8 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
 end
 
 require_relative 'rubygems/exceptions'
-require_relative 'rubygems/specification'
+# the autoload + patch seems problematic for require 'rubygems/specification' in user code before require 'rubygems'
+require_relative 'rubygems/specification' if defined?(::TruffleRuby)
 
 # REFACTOR: This should be pulled out into some kind of hacks file.
 begin

@@ -110,7 +110,11 @@ struct lex_context;
 #include "ruby/st.h"
 #include "ruby/util.h"
 #include "ruby/ractor.h"
+#ifdef TRUFFLERUBY
+#include <truffleruby/internal/symbol.h>
+#else
 #include "symbol.h"
+#endif
 
 enum shareability {
     shareable_none,
@@ -133,6 +137,9 @@ struct lex_context {
 #define NO_LEX_CTXT (struct lex_context){0}
 
 #define AREF(ary, i) RARRAY_AREF(ary, i)
+
+/* TruffleRuby Parse is compiled as part of ripper so we undefine RIPPER.  */
+#undef RIPPER
 
 #ifndef WARN_PAST_SCOPE
 # define WARN_PAST_SCOPE 0

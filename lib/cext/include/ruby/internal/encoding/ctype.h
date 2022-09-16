@@ -148,11 +148,15 @@ rb_enc_ispunct(OnigCodePoint c, rb_encoding *enc)
  * @retval     1    `enc` classifies `c` as "ANUM".
  * @retval     0    Otherwise.
  */
+#ifdef TRUFFLERUBY
+int rb_enc_isalnum(unsigned char c, rb_encoding *enc);
+#else
 static inline bool
 rb_enc_isalnum(OnigCodePoint c, rb_encoding *enc)
 {
     return ONIGENC_IS_CODE_ALNUM(enc, c);
 }
+#endif
 
 /**
  * Identical to rb_isprint(), except it additionally takes an encoding.
@@ -176,11 +180,15 @@ rb_enc_isprint(OnigCodePoint c, rb_encoding *enc)
  * @retval     1    `enc` classifies `c` as "PRINT".
  * @retval     0    Otherwise.
  */
+#ifdef TRUFFLERUBY
+int rb_enc_isspace(unsigned char c, rb_encoding *enc);
+#else
 static inline bool
 rb_enc_isspace(OnigCodePoint c, rb_encoding *enc)
 {
     return ONIGENC_IS_CODE_SPACE(enc, c);
 }
+#endif
 
 /**
  * Identical to rb_isdigit(), except it additionally takes an encoding.

@@ -289,9 +289,15 @@ RBIMPL_ATTR_NONNULL(())
 static inline ID
 rbimpl_intern_const(ID *ptr, const char *str)
 {
+#ifdef TRUFFLERUBY
+    if (!polyglot_is_value((void*) *ptr)) {
+        *ptr = rb_intern_const(str);
+    }
+#else
     while (! *ptr) {
         *ptr = rb_intern_const(str);
     }
+#endif
 
     return *ptr;
 }

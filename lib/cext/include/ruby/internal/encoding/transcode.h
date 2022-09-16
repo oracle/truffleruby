@@ -26,6 +26,10 @@
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
+#ifdef TRUFFLERUBY
+struct rb_econv_t {};
+#endif
+
 /** return value of rb_econv_convert() */
 typedef enum {
 

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
-require 'fiddle.so'
+if defined?(::TruffleRuby)
+  require 'truffle/fiddle_backend'
+else
+  require 'fiddle.so'
+end
 require 'fiddle/closure'
 require 'fiddle/function'
 require 'fiddle/version'
