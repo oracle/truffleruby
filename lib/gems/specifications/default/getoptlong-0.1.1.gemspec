@@ -9,13 +9,12 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/getoptlong", "source_code_uri" => "https://github.com/ruby/getoptlong" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
-  s.bindir = "exe".freeze
-  s.date = "2022-03-17"
+  s.date = "2022-10-19"
   s.description = "GetoptLong for Ruby".freeze
   s.email = ["matz@ruby-lang.org".freeze]
-  s.files = ["getoptlong.rb".freeze]
+  s.files = ["lib/getoptlong.rb".freeze]
   s.homepage = "https://github.com/ruby/getoptlong".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
-  s.rubygems_version = "3.2.32".freeze
+  s.rubygems_version = "3.3.7".freeze
   s.summary = "GetoptLong for Ruby".freeze
 end

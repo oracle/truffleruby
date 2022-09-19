@@ -1,4 +1,0 @@
-class C
-  def foo: -> { aaa: Integer, bbb: String }
-  def bar: ({ a: Integer }) -> Integer
-end

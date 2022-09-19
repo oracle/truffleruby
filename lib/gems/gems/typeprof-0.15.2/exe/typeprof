@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require_relative "../lib/typeprof"
-
-config = TypeProf::CLI.parse(ARGV)
-TypeProf.analyze(config)

@@ -1,7 +1,0 @@
-class Object
-  def foo: (?Integer) -> void
-  def bar: (?Integer) -> void
-  def baz: (?Integer) -> void
-  def qux: (Integer) -> void
-         | (Integer, Integer) -> void
-end

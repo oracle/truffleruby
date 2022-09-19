@@ -37,6 +37,9 @@ bench/chunky_png/oily_png/ext/oily_png/Makefile
 
 bench/psd.rb/psd_native/ext/psd_native/Makefile
 
+lib/gems/gems/*/ext/*/Makefile
+lib/gems/gems/*/ext/*/.*.time
+
 src/main/c/*/Makefile
 !src/main/c/spawn-helper/Makefile
 !src/main/c/truffleposix/Makefile

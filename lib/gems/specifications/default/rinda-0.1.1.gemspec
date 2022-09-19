@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Masatoshi SEKI".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-03-17"
+  s.date = "2022-10-19"
   s.description = "The Linda distributed computing paradigm in Ruby.".freeze
   s.email = ["seki@ruby-lang.org".freeze]
-  s.files = ["rinda/rinda.rb".freeze, "rinda/ring.rb".freeze, "rinda/tuplespace.rb".freeze]
+  s.files = ["lib/rinda/rinda.rb".freeze, "lib/rinda/ring.rb".freeze, "lib/rinda/tuplespace.rb".freeze]
   s.homepage = "https://github.com/ruby/rinda".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.2.32".freeze
+  s.rubygems_version = "3.3.7".freeze
   s.summary = "The Linda distributed computing paradigm in Ruby.".freeze
 
   if s.respond_to? :specification_version then

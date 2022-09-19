@@ -1,0 +1,71 @@
+{
+    "name": "ruby-typeprof",
+    "displayName": "Ruby TypeProf",
+    "version": "0.20.1",
+    "publisher": "mame",
+    "author": {
+        "name": "Yusuke Endoh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ruby/typeprof/tree/master/vscode"
+    },
+    "license": "MIT",
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "Ruby",
+        "language server"
+    ],
+    "engines": {
+        "vscode": "^1.54.0"
+    },
+    "extensionKind": [
+        "workspace"
+    ],
+    "activationEvents": [
+        "onLanguage:ruby"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "typeprof.restart",
+                "title": "Restart",
+                "category": "TypeProf"
+            }
+        ],
+        "configuration": [
+            {
+                "title": "Ruby TypeProf",
+                "properties": {
+                    "typeprof.server.path": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "default": null,
+                        "description": "Path to typeprof executable. (e.g. /usr/local/bin/bundle)"
+                    }
+                }
+            }
+        ]
+    },
+    "main": "./out/src/extension",
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/node": "^14.14.37",
+        "typescript": "^4.2.3",
+        "vsce": "^1.103.1",
+        "vscode": "^1.1.37"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^7.0.0"
+    }
+}

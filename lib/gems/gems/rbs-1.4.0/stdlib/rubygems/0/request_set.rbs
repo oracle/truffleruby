@@ -1,7 +1,0 @@
-class Gem::RequestSet
-  # TODO: Add sinatures...
-end
-
-class Gem::RequestSet::GemDependencyAPI
-  # TODO: Add sinatures...
-end

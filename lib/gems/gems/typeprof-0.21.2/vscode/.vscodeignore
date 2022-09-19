@@ -1,0 +1,7 @@
+/sandbox
+.vscode/**
+/src
+**/*.ts
+**/*.js.map
+**/tsconfig.json
+development.md
