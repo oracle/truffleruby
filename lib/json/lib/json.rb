@@ -493,7 +493,7 @@ require 'json/common'
 #   json = JSON.generate(ruby0) # {"json_class":"Customer","v":["Dave","123 Main"]}
 #   ruby1 = JSON.parse(json, create_additions: true) # #<struct Customer name="Dave", address="123 Main">
 #   ruby1.class # Customer
-  #
+#
 # \Symbol:
 #   require 'json/add/symbol'
 #   ruby0 = :foo # foo
@@ -576,11 +576,7 @@ module JSON
   require 'json/version'
 
   begin
-    if defined?(::TruffleRuby)
-      require 'json/pure' # avoid the LoadError which would force loading RubyGems
-    else
-      require 'json/ext'
-    end
+    require 'json/ext'
   rescue LoadError
     require 'json/pure'
   end
