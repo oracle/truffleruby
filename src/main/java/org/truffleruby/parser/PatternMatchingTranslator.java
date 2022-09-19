@@ -32,6 +32,7 @@ import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.ConstParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.DotParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
@@ -44,6 +45,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.parser.ast.StarParseNode;
+import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.TrueParseNode;
 
 import java.util.Arrays;
@@ -333,6 +335,16 @@ public class PatternMatchingTranslator extends BaseTranslator {
     @Override
     public RubyNode visitFalseNode(FalseParseNode node) {
         return bodyTranslator.visitFalseNode(node);
+    }
+
+    @Override
+    public RubyNode visitStrNode(StrParseNode node) {
+        return bodyTranslator.visitStrNode(node);
+    }
+
+    @Override
+    public RubyNode visitDotNode(DotParseNode node) {
+        return bodyTranslator.visitDotNode(node);
     }
 
     @Override
