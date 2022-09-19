@@ -378,6 +378,16 @@ public class CoreExceptions {
                 javaThrowable);
     }
 
+    // NoMatchingPatternError
+
+    @TruffleBoundary
+    public RubyException noMatchingPatternError(String message, Node currentNode) {
+        RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
+        RubyString errorMessage = StringOperations
+                .createUTF8String(context, language, message);
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
     // Errno
 
     @TruffleBoundary
