@@ -103,11 +103,7 @@ class MSpecScript
 
   # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty
   set :next, %w[
-    spec/ruby/language/block_spec.rb
-    spec/ruby/language/hash_spec.rb
     spec/ruby/core/nil/nil_spec.rb
-    spec/ruby/core/gc/measure_total_time_spec.rb
-    spec/ruby/core/gc/total_time_spec.rb
   ]
 
   set :tags_patterns, [
@@ -158,7 +154,7 @@ if MSpecScript.child_process?
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
   elsif ARGV.include? ":next"
     ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.1.0")
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.2.0")
   end
 end
 

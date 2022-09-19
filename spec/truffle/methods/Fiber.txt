@@ -1,3 +1,4 @@
+alive?
 backtrace
 backtrace_locations
 blocking?
@@ -5,3 +6,4 @@ inspect
 raise
 resume
 to_s
+transfer

@@ -5,6 +5,7 @@ chunk
 chunk_while
 collect
 collect_concat
+compact
 count
 cycle
 detect

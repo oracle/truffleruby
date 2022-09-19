@@ -7,6 +7,8 @@ eql?
 hash
 inspect
 length
+match
+match_length
 named_captures
 names
 offset

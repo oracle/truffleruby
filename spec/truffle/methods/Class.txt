@@ -1,3 +1,4 @@
 allocate
 new
+subclasses
 superclass

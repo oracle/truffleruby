@@ -48,6 +48,7 @@ include?
 index
 insert
 inspect
+intersect?
 intersection
 join
 keep_if

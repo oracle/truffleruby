@@ -16,6 +16,7 @@ keys
 kill
 name
 name=
+native_thread_id
 pending_interrupt?
 priority
 priority=

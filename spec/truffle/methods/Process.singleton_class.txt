@@ -1,3 +1,4 @@
+_fork
 abort
 argv0
 clock_getres
