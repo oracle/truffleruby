@@ -77,6 +77,7 @@ enum ruby_encoding_consts {
  * @post        `obj`'s encoding is `encindex`.
  */
 #ifdef TRUFFLERUBY
+static inline void RB_ENCODING_SET(VALUE obj, int encindex);
 static inline void
 RB_ENCODING_SET_INLINED(VALUE obj, int encindex)
 {
@@ -103,6 +104,7 @@ RB_ENCODING_SET_INLINED(VALUE obj, int encindex)
  * @return     `obj`'s encoding index.
  */
 #ifdef TRUFFLERUBY
+static inline int RB_ENCODING_GET(VALUE obj);
 static inline int
 RB_ENCODING_GET_INLINED(VALUE obj)
 {

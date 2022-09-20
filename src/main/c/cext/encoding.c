@@ -82,7 +82,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
   return (unsigned int) polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 1));
 }
 
-int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
+int rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc) {
   int length = e - p;
   if (length <= 0) {
     return 0;
@@ -122,7 +122,7 @@ rb_encoding* rb_usascii_encoding(void) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("usascii_encoding"));
 }
 
-int rb_enc_asciicompat(rb_encoding *enc) {
+bool rb_enc_asciicompat(rb_encoding *enc) {
   return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(rb_enc_from_encoding(enc), "ascii_compatible?"));
 }
 
@@ -224,7 +224,7 @@ int rb_enc_get_index(VALUE obj) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_get_index", obj));
 }
 
-char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc) {
+char* rb_enc_left_char_head(const char *start, const char *p, const char *end, rb_encoding *enc) {
   int length = start - end;
   int position = polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_left_char_head",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),

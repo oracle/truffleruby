@@ -46,9 +46,6 @@ int rb_tr_flags(VALUE value) {
 }
 
 void rb_tr_add_flags(VALUE value, int flags) {
-  if (flags & RUBY_FL_TAINT) {
-    rb_obj_taint(value);
-  }
   if (flags & RUBY_FL_FREEZE) {
     rb_obj_freeze(value);
   }
