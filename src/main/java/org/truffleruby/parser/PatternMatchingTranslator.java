@@ -32,9 +32,11 @@ import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.ConstParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.DStrParseNode;
 import org.truffleruby.parser.ast.DotParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
+import org.truffleruby.parser.ast.LambdaParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.LocalVarParseNode;
@@ -44,6 +46,7 @@ import org.truffleruby.parser.ast.ParseNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.TrueParseNode;
@@ -326,7 +329,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
         return bodyTranslator.visitFixnumNode(node);
     }
 
-    // Delegated to BodyTranslator explicitly to prevent errors.
+    // Possible value patterns delegated to BodyTranslator explicitly to prevent errors.
     @Override
     public RubyNode visitTrueNode(TrueParseNode node) {
         return bodyTranslator.visitTrueNode(node);
@@ -355,6 +358,21 @@ public class PatternMatchingTranslator extends BaseTranslator {
     @Override
     public RubyNode visitConstNode(ConstParseNode node) {
         return bodyTranslator.visitConstNode(node);
+    }
+
+    @Override
+    public RubyNode visitRegexpNode(RegexpParseNode node) {
+        return bodyTranslator.visitRegexpNode(node);
+    }
+
+    @Override
+    public RubyNode visitLambdaNode(LambdaParseNode node) {
+        return bodyTranslator.visitLambdaNode(node);
+    }
+
+    @Override
+    public RubyNode visitDStrNode(DStrParseNode node) {
+        return bodyTranslator.visitDStrNode(node);
     }
 
     //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
