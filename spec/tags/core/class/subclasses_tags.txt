@@ -1,4 +1,0 @@
-fails:Class#subclasses returns a list of classes directly inheriting from self
-fails:Class#subclasses does not return included modules
-fails:Class#subclasses does not return singleton classes
-fails:Class#subclasses has 1 entry per module or class
