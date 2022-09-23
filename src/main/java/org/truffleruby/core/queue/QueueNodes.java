@@ -14,12 +14,16 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -187,6 +191,54 @@ public abstract class QueueNodes {
             return self;
         }
 
+    }
+
+    @CoreMethod(names = "initialize", visibility = Visibility.PRIVATE, optional = 1)
+    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyQueue initialize(RubyQueue self, NotProvided enumerable) {
+            return self;
+        }
+
+        @Specialization(guards = "wasProvided(enumerable)")
+        protected RubyQueue initialize(RubyQueue self, Object enumerable,
+                @Cached BranchProfile errorProfile,
+                @Cached DispatchNode toANode) {
+            final Object coerced;
+
+            try {
+                coerced = toANode.call(enumerable, "to_a");
+            } catch (RaiseException e) {
+                errorProfile.enter();
+                if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().typeErrorCantConvertInto(enumerable, "Array", this));
+                } else {
+                    throw e;
+                }
+            }
+
+            if (!(coerced instanceof RubyArray)) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeErrorCantConvertTo(enumerable, "Array", "to_a", coerced, this));
+            }
+
+            RubyArray array = (RubyArray) coerced;
+            final int size = array.size;
+            final Object store = array.getStore();
+            final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+
+            for (int i = 0; i < size; i++) {
+                Object v = stores.read(store, i);
+                self.queue.add(v);
+            }
+
+            return self;
+        }
     }
 
     @CoreMethod(names = "marshal_dump")

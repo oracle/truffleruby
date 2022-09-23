@@ -7,6 +7,10 @@ describe "Queue#initialize" do
     q.should.empty?
   end
 
+  it "is a private method" do
+    Queue.private_instance_methods.include?(:initialize).should == true
+  end
+
   ruby_version_is '3.1' do
     it "adds all elements of the passed Enumerable to self" do
       q = Queue.new([1, 2, 3])
