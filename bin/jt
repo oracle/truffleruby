@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
