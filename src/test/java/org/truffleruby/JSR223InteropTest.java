@@ -69,7 +69,7 @@ public class JSR223InteropTest {
             scriptEngine.eval("Process.pid");
             fail("should have thrown");
         } catch (ScriptException scriptException) {
-            assertEquals("org.graalvm.polyglot.PolyglotException: native access is not allowed (SecurityError)",
+            assertEquals("org.graalvm.polyglot.PolyglotException: native access is not allowed",
                     scriptException.getMessage());
         }
     }
