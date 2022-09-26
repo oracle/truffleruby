@@ -53,7 +53,7 @@ public final class RaiseException extends AbstractTruffleException {
 
     @Override
     public String getMessage() {
-        return ExceptionOperations.messageToString(exception);
+        return ExceptionOperations.messageFieldToString(exception);
     }
 
 }
