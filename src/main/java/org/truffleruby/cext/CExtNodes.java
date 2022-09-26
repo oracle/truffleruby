@@ -2028,7 +2028,7 @@ public class CExtNodes {
 
         @Specialization
         protected DataHolder create(Object address) {
-            return new DataHolder(address, Pointer.NULL);
+            return new DataHolder(address, Pointer.getNullPointer(getContext()));
         }
     }
 
