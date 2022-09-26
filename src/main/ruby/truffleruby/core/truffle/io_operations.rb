@@ -212,9 +212,16 @@ module Truffle
         raise ArgumentError, 'timeout must be positive' if timeout < 0
 
         # Milliseconds, rounded down
-        timeout = remaining_timeout = (timeout * 1_000).to_i
+        timeout_ms = Primitive.rb_to_int((timeout * 1_000).to_i)
+        while timeout_ms > 2147483647 # INT_MAX
+          timeout_ms -= 2147483000
+          ret = poll(io, event_mask, 2147483)
+          return ret unless ret == false
+        end
+
+        remaining_timeout = timeout_ms
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
-        deadline = start + timeout
+        deadline = start + timeout_ms
       else
         remaining_timeout = -1
       end
@@ -225,7 +232,7 @@ module Truffle
           if primitive_result < 0
             errno = Errno.errno
             if errno == Errno::EINTR::Errno
-              if timeout
+              if timeout_ms
                 # Update timeout
                 now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
                 if now >= deadline
