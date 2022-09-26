@@ -94,8 +94,14 @@ module Truffle
     def self.message_and_class(exception, highlight)
       message = StringValue exception.message.to_s
 
+      klass = exception.class.to_s
+      if Primitive.object_kind_of?(exception, Polyglot::ForeignException) and
+          Truffle::Interop.has_meta_object?(exception)
+        klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
+      end
+
       if highlight
-        highlighted_class = " (\e[1;4m#{exception.class}\e[m\e[1m)"
+        highlighted_class = " (\e[1;4m#{klass}\e[m\e[1m)"
         if message.include?("\n")
           first = true
           result = +''
@@ -113,9 +119,9 @@ module Truffle
         end
       else
         if i = message.index("\n")
-          "#{message[0...i]} (#{exception.class})#{message[i..-1]}"
+          "#{message[0...i]} (#{klass})#{message[i..-1]}"
         else
-          "#{message} (#{exception.class})"
+          "#{message} (#{klass})"
         end
       end
     end
