@@ -523,8 +523,7 @@ public abstract class IONodes {
 
         public static Pointer getBuffer(RubyContext context, RubyThread rubyThread, long size,
                 ConditionProfile sizeProfile) {
-            Pointer.checkNativeAccess(context);
-            return rubyThread.ioBuffer.allocate(context, rubyThread, size, sizeProfile);
+            return rubyThread.getIoBuffer(context).allocate(context, rubyThread, size, sizeProfile);
         }
     }
 
@@ -535,8 +534,7 @@ public abstract class IONodes {
         protected Object getThreadBuffer(RubyPointer pointer,
                 @Cached ConditionProfile freeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
-            Pointer.checkNativeAccess(getContext());
-            thread.ioBuffer.free(thread, pointer.pointer, freeProfile);
+            thread.getIoBuffer(getContext()).free(thread, pointer.pointer, freeProfile);
             return nil;
         }
     }

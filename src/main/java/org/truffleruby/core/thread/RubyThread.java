@@ -31,6 +31,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.support.PRNGRandomizerNodes;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -62,7 +63,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     volatile Object value = null;
     public final AtomicBoolean wakeUp = new AtomicBoolean(false);
     volatile int priority = Thread.NORM_PRIORITY;
-    public ThreadLocalBuffer ioBuffer;
+    ThreadLocalBuffer ioBuffer;
     Object threadGroup;
     public String sourceLocation;
     Object name = Nil.INSTANCE;
@@ -130,6 +131,11 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
 
     public void setCurrentFiber(RubyFiber fiber) {
         currentFiber = fiber;
+    }
+
+    public ThreadLocalBuffer getIoBuffer(RubyContext context) {
+        Pointer.checkNativeAccess(context);
+        return ioBuffer;
     }
 
     @Override

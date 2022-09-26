@@ -225,7 +225,7 @@ public class FeatureLoader {
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {
-            rubyThread.ioBuffer.free(rubyThread, buffer, ConditionProfile.getUncached());
+            rubyThread.getIoBuffer(context).free(rubyThread, buffer, ConditionProfile.getUncached());
         }
     }
 
