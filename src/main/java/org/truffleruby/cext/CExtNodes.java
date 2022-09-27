@@ -22,6 +22,7 @@ import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -149,9 +150,9 @@ public class CExtNodes {
     public static final int RUBY_TAG_THROW = 0x7;
     public static final int RUBY_TAG_FATAL = 0x8;
 
-    public static Pointer newNativeStringPointer(int capacity, RubyLanguage language) {
+    public static Pointer newNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
         // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
-        Pointer pointer = Pointer.mallocAutoRelease(capacity + 4, language);
+        Pointer pointer = Pointer.mallocAutoRelease(language, context, capacity + 4);
         pointer.writeInt(capacity, 0);
         return pointer;
     }
@@ -714,7 +715,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString rbStrNewNul(int byteLength,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            final Pointer pointer = Pointer.callocAutoRelease(byteLength + 1, getLanguage());
+            final Pointer pointer = Pointer.callocAutoRelease(getLanguage(), getContext(), byteLength + 1);
             var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, Encodings.BINARY.tencoding,
                     false);
             return createMutableString(nativeTString, Encodings.BINARY);
@@ -791,8 +792,8 @@ public class CExtNodes {
                 string.clearCodeRange();
                 return string;
             } else {
-                var newNativeTString = TrStrCapaResizeNode.resize(pointer, newByteLength, newByteLength, tencoding,
-                        fromNativePointerNode, getLanguage());
+                var newNativeTString = TrStrCapaResizeNode.resize(getLanguage(), getContext(), pointer, newByteLength,
+                        newByteLength, tencoding, fromNativePointerNode);
                 string.setTString(newNativeTString);
 
                 // Like MRI's rb_str_resize()
@@ -818,18 +819,18 @@ public class CExtNodes {
                 return string;
             } else {
                 int byteLength = string.tstring.byteLength(tencoding);
-                var newNativeTString = resize(pointer, newCapacity, byteLength, tencoding, fromNativePointerNode,
-                        getLanguage());
+                var newNativeTString = resize(getLanguage(), getContext(), pointer, newCapacity, byteLength, tencoding,
+                        fromNativePointerNode);
                 string.setTString(newNativeTString);
 
                 return string;
             }
         }
 
-        static MutableTruffleString resize(Pointer pointer, int newCapacity, int newByteLength,
-                TruffleString.Encoding tencoding, MutableTruffleString.FromNativePointerNode fromNativePointerNode,
-                RubyLanguage language) {
-            final Pointer newPointer = newNativeStringPointer(newCapacity, language);
+        static MutableTruffleString resize(RubyLanguage language, RubyContext context, Pointer pointer, int newCapacity,
+                int newByteLength, TruffleString.Encoding tencoding,
+                MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
+            final Pointer newPointer = newNativeStringPointer(language, context, newCapacity);
             newPointer.writeBytes(0, pointer, 0, Math.min(pointer.getSize(), newCapacity));
 
             return fromNativePointerNode.execute(newPointer, 0, newByteLength, tencoding, false);
@@ -1234,8 +1235,8 @@ public class CExtNodes {
                 pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
             } else {
                 int byteLength = tstring.byteLength(tencoding);
-                pointer = allocateAndCopyToNative(tstring, tencoding, byteLength, copyToNativeMemoryNode,
-                        getLanguage());
+                pointer = allocateAndCopyToNative(getLanguage(), getContext(), tstring, tencoding, byteLength,
+                        copyToNativeMemoryNode);
 
                 var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
                 string.setTString(nativeTString);
@@ -1249,9 +1250,10 @@ public class CExtNodes {
             return string.getNativeString(getLanguage());
         }
 
-        public static Pointer allocateAndCopyToNative(AbstractTruffleString tstring, TruffleString.Encoding tencoding,
-                int capacity, TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode, RubyLanguage language) {
-            final Pointer pointer = newNativeStringPointer(capacity, language);
+        public static Pointer allocateAndCopyToNative(RubyLanguage language, RubyContext context,
+                AbstractTruffleString tstring, TruffleString.Encoding tencoding, int capacity,
+                TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode) {
+            final Pointer pointer = newNativeStringPointer(language, context, capacity);
             copyToNativeMemoryNode.execute(tstring, 0, pointer, 0, capacity, tencoding);
             return pointer;
         }

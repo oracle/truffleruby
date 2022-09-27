@@ -32,6 +32,24 @@ public class ContextPermissionsTest {
     }
 
     @Test
+    public void testPointerNoNative() throws Throwable {
+        try (Context context = Context.newBuilder("ruby").build()) {
+            Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
+
+            Assert.assertTrue(context.eval("ruby", "defined?(Truffle::FFI::Pointer::NULL).nil?").asBoolean());
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Truffle::FFI::Pointer.allocate"),
+                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Truffle::FFI::Pointer.new(4)"),
+                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Truffle::FFI::MemoryPointer.new(4)"),
+                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+        }
+    }
+
+    @Test
     public void testNativeNoThreads() throws Throwable {
         try (Context context = Context.newBuilder("ruby").allowNativeAccess(true).build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
@@ -61,8 +79,9 @@ public class ContextPermissionsTest {
 
             Assert.assertEquals(7, context.eval("ruby", "Thread.new { 3 + 4 }.value").asInt());
 
-            String code = "begin; File.stat('.'); rescue SecurityError => e; e.message; end";
-            Assert.assertEquals("native access is not allowed", context.eval("ruby", code).asString());
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "File.stat('.')"),
+                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
         }
     }
 
@@ -76,8 +95,9 @@ public class ContextPermissionsTest {
             String option = "Truffle::Boot.get_option('single-threaded')";
             Assert.assertEquals(true, context.eval("ruby", option).asBoolean());
 
-            String code = "begin; Thread.new {}.join; rescue SecurityError => e; e.message; end";
-            Assert.assertEquals("threads not allowed in single-threaded mode", context.eval("ruby", code).asString());
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Thread.new {}.join"),
+                    e -> assertEquals("threads not allowed in single-threaded mode (SecurityError)", e.getMessage()));
         }
     }
 

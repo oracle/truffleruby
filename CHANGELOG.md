@@ -58,6 +58,10 @@ Changes:
 * Refactored internals of `rb_sprintf` to simplify handling of `VALUE`s in common cases (@aardvark179).
 * Refactored sharing of array objects between threads using new `SharedArrayStorage` (@aardvark179).
 
+Security:
+
+* The native access permission is now properly checked before any native pointer (e.g. `Truffle::FFI::Pointer`) is created (@eregon).
+
 # 22.2.0
 
 New features:

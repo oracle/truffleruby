@@ -1589,7 +1589,7 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
             final Pointer fromPointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
 
-            final Pointer newPointer = Pointer.mallocAutoRelease(fromPointer.getSize(), getLanguage());
+            final Pointer newPointer = Pointer.mallocAutoRelease(getLanguage(), getContext(), fromPointer.getSize());
             newPointer.writeBytes(0, fromPointer, 0, fromPointer.getSize());
 
             // TODO (eregon, 2022): should we have the copy be native too, or rather take the opportunity of having to copy to be managed?

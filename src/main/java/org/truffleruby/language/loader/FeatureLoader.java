@@ -203,10 +203,11 @@ public class FeatureLoader {
             // The current working cannot change if there are no native calls
             return context.getEnv().getCurrentWorkingDirectory().getPath();
         }
+
         final int bufferSize = PATH_MAX;
         final RubyThread rubyThread = language.getCurrentThread();
         final Pointer buffer = IOThreadBufferAllocateNode
-                .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
+                .getBuffer(context, rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
             final long address;
             try {
@@ -224,7 +225,7 @@ public class FeatureLoader {
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {
-            rubyThread.ioBuffer.free(rubyThread, buffer, ConditionProfile.getUncached());
+            rubyThread.getIoBuffer(context).free(rubyThread, buffer, ConditionProfile.getUncached());
         }
     }
 
