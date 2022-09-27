@@ -24,7 +24,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
@@ -37,7 +36,6 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
@@ -60,7 +58,6 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -84,19 +81,14 @@ public abstract class TruffleKernelNodes {
         }
     }
 
+    @CoreMethod(names = "load", onSingleton = true, required = 2)
     @NodeChild(value = "file", type = RubyNode.class)
-    @NodeChild(value = "wrap", type = RubyBaseNodeWithExecute.class)
-    @CoreMethod(names = "load", onSingleton = true, required = 1, optional = 1)
+    @NodeChild(value = "wrap", type = RubyNode.class)
     public abstract static class LoadNode extends CoreMethodNode {
-
-        @CreateCast("wrap")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
-            return BooleanCastWithDefaultNode.create(false, inherit);
-        }
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)", limit = "1")
-        protected boolean load(Object file, boolean wrap,
+        protected boolean load(Object file, Object wrap,
                 @Cached RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
@@ -114,15 +106,21 @@ public abstract class TruffleKernelNodes {
             final DeclarationContext declarationContext;
             final Object self;
             final LexicalScope lexicalScope;
-            if (!wrap) {
+            if (isFalse(wrap)) {
                 lexicalScope = getContext().getRootLexicalScope();
                 callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
                 declarationContext = DeclarationContext.topLevel(getContext());
                 self = mainObject;
             } else {
-                final RubyModule wrapModule = ModuleNodes
-                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
+                final RubyModule wrapModule;
+
+                if (wrap instanceof RubyModule) {
+                    wrapModule = (RubyModule) wrap;
+                } else {
+                    wrapModule = ModuleNodes
+                            .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
+                }
                 lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), wrapModule);
                 final RubySource rubySource = new RubySource(
                         sourceRopePair.getLeft(),
@@ -148,6 +146,10 @@ public abstract class TruffleKernelNodes {
             deferredCall.call(callNode);
 
             return true;
+        }
+
+        private boolean isFalse(Object value) {
+            return (value instanceof Nil) || ((value instanceof Boolean) && !((boolean) value));
         }
 
     }
