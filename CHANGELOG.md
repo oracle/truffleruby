@@ -1,8 +1,26 @@
+# 23.0.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+* Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
+
+Changes:
+
+
 # 22.3.0
 
 New features:
 
-* Foreign strings now have all methods of Ruby `String`. They are treated as `#frozen?` UTF-8 Ruby Strings.
+* Foreign strings now have all methods of Ruby `String`. They are treated as `#frozen?` UTF-8 Ruby Strings (@eregon).
 * Add `Java.add_to_classpath` method to add jar paths at runtime (#2693, @bjfish).
 * Add support for Ruby 3.1's Hash shorthand/punning syntax (@nirvdrum).
 * Add support for Ruby 3.1's anonymous block forwarding syntax (@nirvdrum).
@@ -42,7 +60,6 @@ Compatibility:
 * Fix arguments implicit type conversion for `BasicObject#instance_eval`, `Module#class_eval`, `Module#module_eval`, `Module#define_method` (@andrykonchin).
 * Raise `ArgumentError` unconditionally when `Proc.new` is called without a block argument (@andrykonchin).
 
-
 Performance:
 
 * Replace a call of `-"string"` with frozen string literal at parse time (@andrykonchin).
@@ -52,12 +69,11 @@ Performance:
 
 Changes:
 
-* No more conversion between Java Strings and Ruby Strings at the interop boundary.
+* No more conversion between Java Strings and Ruby Strings at the interop boundary (@eregon).
 * Removed `Truffle::Interop.{import_without_conversion,export_without_conversion}` (use `Polyglot.{import,export}` instead).
 * Removed `Truffle::Interop.members_without_conversion` (use `Truffle::Interop.members` instead).
 * Refactored internals of `rb_sprintf` to simplify handling of `VALUE`s in common cases (@aardvark179).
 * Refactored sharing of array objects between threads using new `SharedArrayStorage` (@aardvark179).
-* Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
 
 Security:
 
