@@ -18,6 +18,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.truffleruby.RubyContext;
 import org.truffleruby.cext.UnwrapNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.cext.ValueWrapper;
@@ -122,9 +123,10 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected NativeArrayStorage expand(int newCapacity) {
+    protected NativeArrayStorage expand(int newCapacity,
+            @CachedLibrary("this") ArrayStoreLibrary node) {
         final int capacity = this.length;
-        Pointer newPointer = Pointer.malloc(capacity);
+        Pointer newPointer = Pointer.malloc(RubyContext.get(node), capacity);
         newPointer.writeBytes(0, pointer, 0, capacity);
         newPointer.writeBytes(capacity, newCapacity - capacity, (byte) 0);
         /* We copy the contents of the marked objects to ensure the references will be kept alive even if the old store

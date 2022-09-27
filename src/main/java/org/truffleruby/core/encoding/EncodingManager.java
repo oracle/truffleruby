@@ -153,7 +153,7 @@ public class EncodingManager {
             } catch (InteropException e) {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
-            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(
+            final byte[] bytes = new Pointer(context, address).readZeroTerminatedByteArray(
                     context,
                     InteropLibrary.getUncached(),
                     0);

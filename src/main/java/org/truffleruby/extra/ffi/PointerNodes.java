@@ -79,7 +79,7 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyPointer allocate(RubyClass pointerClass) {
             final Shape shape = getLanguage().truffleFFIPointerShape;
-            final RubyPointer instance = new RubyPointer(pointerClass, shape, Pointer.NULL);
+            final RubyPointer instance = new RubyPointer(pointerClass, shape, Pointer.getNullPointer(getContext()));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -141,7 +141,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected long setAddress(RubyPointer pointer, long address) {
-            pointer.pointer = new Pointer(address);
+            pointer.pointer = new Pointer(getContext(), address);
             return address;
         }
 
@@ -173,7 +173,7 @@ public abstract class PointerNodes {
         @Specialization
         protected long setSize(RubyPointer pointer, long size) {
             final Pointer old = pointer.pointer;
-            pointer.pointer = new Pointer(old.getAddress(), size);
+            pointer.pointer = new Pointer(getContext(), old.getAddress(), size);
             return size;
         }
 
@@ -211,7 +211,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyPointer malloc(RubyPointer pointer, long size) {
-            pointer.pointer = Pointer.malloc(size);
+            pointer.pointer = Pointer.malloc(getContext(), size);
             return pointer;
         }
 
@@ -244,9 +244,9 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object copyMemory(long to, long from, long size) {
-            final Pointer ptr = new Pointer(to);
+            final Pointer ptr = new Pointer(getContext(), to);
             checkNull(ptr);
-            ptr.writeBytes(0, new Pointer(from), 0, size);
+            ptr.writeBytes(0, new Pointer(getContext(), from), 0, size);
             return nil;
         }
 
@@ -266,7 +266,7 @@ public abstract class PointerNodes {
         protected RubyString readStringToNull(long address, long limit,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary interop) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0, limit);
             return createString(fromByteArrayNode, bytes, Encodings.BINARY);
@@ -276,7 +276,7 @@ public abstract class PointerNodes {
         protected RubyString readStringToNull(long address, Nil limit,
                 @CachedLibrary(limit = "1") InteropLibrary interop,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0);
             return createString(fromByteArrayNode, bytes, Encodings.BINARY);
@@ -290,7 +290,7 @@ public abstract class PointerNodes {
         @Specialization
         protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
                 @Cached ConditionProfile zeroProfile) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return nil;
@@ -311,7 +311,7 @@ public abstract class PointerNodes {
         protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
@@ -333,7 +333,7 @@ public abstract class PointerNodes {
                 @Cached ConditionProfile nonZeroProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached RubyStringLibrary libString) {
-            Pointer ptr = new Pointer(address);
+            Pointer ptr = new Pointer(getContext(), address);
             var tstring = libString.getTString(string);
             var encoding = libString.getTEncoding(string);
 
@@ -358,7 +358,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected int readCharSigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readByte(0);
         }
@@ -370,7 +370,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected int readCharUnsigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return Byte.toUnsignedInt(ptr.readByte(0));
         }
@@ -382,7 +382,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected int readShortSigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readShort(0);
         }
@@ -393,7 +393,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected int readShortUnsigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return Short.toUnsignedInt(ptr.readShort(0));
         }
@@ -405,7 +405,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected int readIntSigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readInt(0);
         }
@@ -417,7 +417,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected long readIntUnsigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return Integer.toUnsignedLong(ptr.readInt(0));
         }
@@ -429,7 +429,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected long readLongSigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readLong(0);
         }
@@ -441,7 +441,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object readLongUnsigned(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return readUnsignedLong(ptr, 0);
         }
@@ -459,7 +459,7 @@ public abstract class PointerNodes {
         // must return double so Ruby nodes can deal with it
         @Specialization
         protected double readFloat(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readFloat(0);
         }
@@ -471,7 +471,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected double readDouble(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             return ptr.readDouble(0);
         }
@@ -483,9 +483,9 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyPointer readPointer(long address) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
-            final Pointer readPointer = ptr.readPointer(0);
+            final Pointer readPointer = ptr.readPointer(getContext(), 0);
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     getLanguage().truffleFFIPointerShape,
@@ -502,7 +502,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
         protected Object writeChar(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
@@ -517,7 +517,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
         protected Object writeChar(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
@@ -526,7 +526,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 256" })
         protected Object writeUnsignedChar(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             byte signed = (byte) value; // Same as value - 2^8
             ptr.writeByte(0, signed);
@@ -541,7 +541,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
         protected Object writeShort(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
@@ -556,7 +556,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
         protected Object writeShort(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
@@ -565,7 +565,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 65536" })
         protected Object writeUnsignedSort(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             short signed = (short) value; // Same as value - 2^16
             ptr.writeShort(0, signed);
@@ -579,7 +579,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writeInt(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeInt(0, value);
             return nil;
@@ -595,7 +595,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "value >= 0")
         protected Object writeInt(long address, int value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeInt(0, value);
             return nil;
@@ -603,7 +603,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "value > MAX_VALUE", "value < MAX_UNSIGNED_INT_PLUS_ONE" })
         protected Object writeUnsignedInt(long address, long value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             int signed = (int) value; // Same as value - 2^32
             ptr.writeInt(0, signed);
@@ -617,7 +617,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writeLong(long address, long value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeLong(0, value);
             return nil;
@@ -630,7 +630,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "value >= 0")
         protected Object writeLong(long address, long value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeLong(0, value);
             return nil;
@@ -638,7 +638,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writeUnsignedLong(long address, RubyBignum value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             writeUnsignedLong(ptr, 0, value);
             return nil;
@@ -660,7 +660,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writeFloat(long address, double value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeFloat(0, (float) value);
             return nil;
@@ -673,7 +673,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writeDouble(long address, double value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writeDouble(0, value);
             return nil;
@@ -686,7 +686,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object writePointer(long address, long value) {
-            final Pointer ptr = new Pointer(address);
+            final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             ptr.writePointer(0, value);
             return nil;

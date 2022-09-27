@@ -643,9 +643,9 @@ public abstract class VMPrimitiveNodes {
             }
 
             int argc = getContext().nativeArgc;
-            Pointer argv = new Pointer(getContext().nativeArgv, argc * Pointer.SIZE);
-            Pointer first = argv.readPointer(0);
-            Pointer last = argv.readPointer((argc - 1) * Pointer.SIZE);
+            Pointer argv = new Pointer(getContext(), getContext().nativeArgv, argc * Pointer.SIZE);
+            Pointer first = argv.readPointer(getContext(), 0);
+            Pointer last = argv.readPointer(getContext(), (argc - 1) * Pointer.SIZE);
             long lastByte = last.getAddress() + last.findNullByte(getContext(), InteropLibrary.getUncached(), 0);
             nativeArgvLength = lastByte - first.getAddress();
 

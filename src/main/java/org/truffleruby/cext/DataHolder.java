@@ -26,8 +26,8 @@ public final class DataHolder implements TruffleObject {
     private Object pointer;
     private Object marker;
 
-    public DataHolder(Object address, Object marker) {
-        this.pointer = address;
+    public DataHolder(Object pointer, Object marker) {
+        this.pointer = pointer;
         this.marker = marker;
     }
 
@@ -35,8 +35,8 @@ public final class DataHolder implements TruffleObject {
         return pointer;
     }
 
-    public void setPointer(Object address) {
-        this.pointer = address;
+    public void setPointer(Object pointer) {
+        this.pointer = pointer;
     }
 
     public Object getMarker() {

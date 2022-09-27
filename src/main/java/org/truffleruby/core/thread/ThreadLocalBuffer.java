@@ -12,11 +12,11 @@ package org.truffleruby.core.thread;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.extra.ffi.Pointer;
 
 public final class ThreadLocalBuffer {
 
-    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), null);
     private static final long ALIGNMENT = 8L;
     private static final long ALIGNMENT_MASK = ALIGNMENT - 1;
 
@@ -24,7 +24,7 @@ public final class ThreadLocalBuffer {
     long remaining;
     private final ThreadLocalBuffer parent;
 
-    private ThreadLocalBuffer(Pointer start, ThreadLocalBuffer parent) {
+    public ThreadLocalBuffer(Pointer start, ThreadLocalBuffer parent) {
         this.start = start;
         this.remaining = start.getSize();
         this.parent = parent;
@@ -61,14 +61,14 @@ public final class ThreadLocalBuffer {
 
     public void freeAll(RubyThread thread) {
         ThreadLocalBuffer current = this;
-        thread.ioBuffer = NULL_BUFFER;
+        thread.ioBuffer = null;
         while (current != null) {
             current.freeMemory();
             current = current.parent;
         }
     }
 
-    public Pointer allocate(RubyThread thread, long size, ConditionProfile allocationProfile) {
+    public Pointer allocate(RubyContext context, RubyThread thread, long size, ConditionProfile allocationProfile) {
         /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
@@ -77,13 +77,13 @@ public final class ThreadLocalBuffer {
          * or reallocating a buffer that we technically have a pointer to. */
         final long allocationSize = alignUp(size);
         if (allocationProfile.profile(remaining >= allocationSize)) {
-            final Pointer pointer = new Pointer(cursor(), allocationSize);
+            final Pointer pointer = new Pointer(context, cursor(), allocationSize);
             remaining -= allocationSize;
             assert invariants();
             return pointer;
         } else {
-            final ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
-            final Pointer pointer = new Pointer(newBuffer.start.getAddress(), allocationSize);
+            final ThreadLocalBuffer newBuffer = allocateNewBlock(context, thread, allocationSize);
+            final Pointer pointer = new Pointer(context, newBuffer.start.getAddress(), allocationSize);
             newBuffer.remaining -= allocationSize;
             assert newBuffer.invariants();
             return pointer;
@@ -95,7 +95,7 @@ public final class ThreadLocalBuffer {
     }
 
     @TruffleBoundary
-    private ThreadLocalBuffer allocateNewBlock(RubyThread thread, long size) {
+    private ThreadLocalBuffer allocateNewBlock(RubyContext context, RubyThread thread, long size) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
         final ThreadLocalBuffer newBuffer;
@@ -103,9 +103,9 @@ public final class ThreadLocalBuffer {
             // Free the old block
             freeMemory();
             // Create new bigger block
-            newBuffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), null);
+            newBuffer = new ThreadLocalBuffer(Pointer.malloc(context, blockSize), null);
         } else {
-            newBuffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), this);
+            newBuffer = new ThreadLocalBuffer(Pointer.malloc(context, blockSize), this);
         }
         thread.ioBuffer = newBuffer;
         return newBuffer;
