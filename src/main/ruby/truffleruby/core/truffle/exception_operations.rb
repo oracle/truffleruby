@@ -193,24 +193,25 @@ module Truffle
     end
 
     def self.append_causes(str, err, causes, reverse, highlight)
-      if !Primitive.nil?(err.cause) && Exception === err.cause && !causes.has_key?(err.cause)
-        causes[err.cause] = true
+      cause = err.cause
+      if !Primitive.nil?(cause) && Exception === cause && !causes.has_key?(cause)
+        causes[cause] = true
         if reverse
-          append_causes(str, err.cause, causes, reverse, highlight)
-          backtrace_message = backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          append_causes(str, cause, causes, reverse, highlight)
+          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause)
           if backtrace_message.empty?
             str << message_and_class(err, highlight)
           else
             str << backtrace_message
           end
         else
-          backtrace_message = backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause)
           if backtrace_message.empty?
             str << message_and_class(err, highlight)
           else
             str << backtrace_message
           end
-          append_causes(str, err.cause, causes, reverse, highlight)
+          append_causes(str, cause, causes, reverse, highlight)
         end
       end
     end
