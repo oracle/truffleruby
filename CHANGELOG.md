@@ -59,6 +59,7 @@ Compatibility:
 * Fix exception for `Fiddle::Handle.new` with a missing library (#2714, @eregon).
 * Fix arguments implicit type conversion for `BasicObject#instance_eval`, `Module#class_eval`, `Module#module_eval`, `Module#define_method` (@andrykonchin).
 * Raise `ArgumentError` unconditionally when `Proc.new` is called without a block argument (@andrykonchin).
+* Fix `UnboundMethod#hash` to not depend on a module it was retrieved from (#2728, @andrykonchin).
 
 Performance:
 

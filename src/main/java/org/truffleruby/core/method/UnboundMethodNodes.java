@@ -121,7 +121,6 @@ public abstract class UnboundMethodNodes {
         protected long hash(RubyUnboundMethod rubyMethod) {
             final InternalMethod method = rubyMethod.method;
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
-            h = Hashing.update(h, rubyMethod.origin.hashCode());
             h = Hashing.update(h, MethodNodes.hashInternalMethod(method));
             return Hashing.end(h);
         }
