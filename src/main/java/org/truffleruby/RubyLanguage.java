@@ -588,7 +588,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = getCurrentThread();
+            final RubyThread rubyThread = this.rubyThread.get(thread);
             if (rubyThread.thread == thread) { // new Ruby Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives
@@ -626,7 +626,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = getCurrentThread();
+            final RubyThread rubyThread = this.rubyThread.get(thread);
             if (rubyThread.thread == thread) { // Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
@@ -639,8 +639,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
-        final RubyThread rubyThread = this.rubyThread.get(thread);
-        context.getThreadManager().cleanup(rubyThread, thread);
+        final RubyThread foreignThread = this.rubyThread.get(thread);
+        context.getThreadManager().cleanup(foreignThread, thread);
     }
 
     @Override
