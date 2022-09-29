@@ -1,0 +1,5 @@
+fails:IO#set_encoding_by_bom returns nil if not readable
+fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_16LE sequence
+fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_32LE sequence
+fails:IO#set_encoding_by_bom returns nil if UTF-8 BOM sequence is incomplete
+fails:IO#set_encoding_by_bom returns UTF-16LE if UTF-32LE BOM sequence is incomplete
