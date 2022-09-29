@@ -441,7 +441,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
         setRubyHomeTruffleFile(env, newHome);
 
-        LOGGER.fine("createContext()");
+        LOGGER.fine("createContext() on " + Thread.currentThread());
         Metrics.printTime("before-create-context");
         final RubyContext context = new RubyContext(this, env);
         Metrics.printTime("after-create-context");
@@ -455,7 +455,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeContext(RubyContext context) {
-        LOGGER.fine("initializeContext()");
+        LOGGER.fine("initializeContext() on " + Thread.currentThread());
 
         try {
             Metrics.printTime("before-initialize-context");
@@ -484,7 +484,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         // We need to initialize the Metrics class of the language classloader
         Metrics.initializeOption();
 
-        LOGGER.fine("patchContext()");
+        LOGGER.fine("patchContext() on " + Thread.currentThread() + ")");
         Metrics.printTime("before-patch-context");
         final LanguageOptions oldOptions = Objects.requireNonNull(this.options);
         final LanguageOptions newOptions = new LanguageOptions(newEnv, newEnv.getOptions(), singleContext);
@@ -501,13 +501,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void finalizeContext(RubyContext context) {
-        LOGGER.fine("finalizeContext()");
+        LOGGER.fine("finalizeContext() on " + Thread.currentThread());
         context.finalizeContext();
     }
 
     @Override
     protected void disposeContext(RubyContext context) {
-        LOGGER.fine("disposeContext()");
+        LOGGER.fine("disposeContext() on " + Thread.currentThread());
         context.disposeContext();
 
         if (options.COVERAGE_GLOBAL) {
@@ -580,7 +580,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void initializeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(() -> "initializeThread(#" + getThreadId(thread) + " " + thread + ")");
+        LOGGER.fine(() -> "initializeThread(" + showThread(thread) + ") on " + Thread.currentThread());
 
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
@@ -607,7 +607,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
-        LOGGER.fine(() -> "disposeThread(#" + getThreadId(thread) + " " + thread + " on " + getCurrentThread() + ")");
+        LOGGER.fine(() -> "disposeThread(" + showThread(thread) + ") on " + Thread.currentThread());
 
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
@@ -641,6 +641,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         // A foreign Thread, its Fibers are considered isRubyManagedThread()
         final RubyThread foreignThread = this.rubyThread.get(thread);
         context.getThreadManager().cleanup(foreignThread, thread);
+    }
+
+    private String showThread(Thread thread) {
+        return "#" + getThreadId(thread) + " " + thread + " = " + this.rubyThread.get(thread);
     }
 
     @Override
