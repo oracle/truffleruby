@@ -510,11 +510,11 @@ describe "C-API Kernel function" do
     end
 
     it "calls a proc with the supplied arguments" do
-      @s.rb_eval_cmd_kw(-> (*x) { x.map { |i| i + 1 } }, [1, 3, 7], 0).should == [2, 4, 8]
+      @s.rb_eval_cmd_kw(-> *x { x.map { |i| i + 1 } }, [1, 3, 7], 0).should == [2, 4, 8]
     end
 
     it "calls a proc with keyword arguments if kw_splat is non zero" do
-      a_proc = -> (*x, **y) {
+      a_proc = -> *x, **y {
         res = x.map { |i| i + 1 }
         y.each { |k, v| res << k; res << v }
         res
