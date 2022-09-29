@@ -601,7 +601,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return;
         }
 
-        final RubyThread foreignThread = getCurrentThread();
+        final RubyThread foreignThread = this.rubyThread.get(thread);
         context.getThreadManager().startForeignThread(foreignThread, thread);
     }
 
