@@ -16,6 +16,8 @@
 - **a `Class`**
 - **a `Hash`**
 - **an `Array`**
+- **an `Exception`**
+- **an `Exception` with a cause**
 - **`proc {...}`**
 - **`lambda {...}`**
 - **a `Method`**
@@ -307,11 +309,11 @@ When interop message `getHashValuesIterator` is sent
 ## Members related messages (incomplete)
 
 When interop message `readMember` is sent
-- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
+- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **an `Exception`**, **an `Exception` with a cause**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it returns a method with the given name when the method is defined.
-- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
+- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **an `Exception`**, **an `Exception` with a cause**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it fails with `UnknownIdentifierException` when the method is not defined.
-- to any non-immediate `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
+- to any non-immediate `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **an `Exception`**, **an `Exception` with a cause**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it reads the given instance variable.
 - to **polyglot members**
   it reads the value stored with the given name.
@@ -321,7 +323,7 @@ When interop message `readMember` is sent
   it fails with `UnsupportedMessageError`.
 
 When interop message `writeMember` is sent
-- to any non-immediate non-frozen `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
+- to any non-immediate non-frozen `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **an `Exception`**, **an `Exception` with a cause**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it writes the given instance variable.
 - to **polyglot members**
   it writes the given value under the given name.
@@ -332,10 +334,64 @@ When interop message `writeMember` is sent
 - otherwise
   it fails with `UnsupportedMessageError`.
 
+## Exception related messages
+
+When interop message `isException` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `throwException` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it throws the exception.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `getExceptionType` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns the exception type.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `hasExceptionMessage` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `getExceptionMessage` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns the message of the exception.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `hasExceptionStackTrace` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `getExceptionStackTrace` is sent
+- to **an `Exception`** or **an `Exception` with a cause**
+  it returns the stacktrace of the exception.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `hasExceptionCause` is sent
+- to **an `Exception` with a cause**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `getExceptionCause` is sent
+- to **an `Exception` with a cause**
+  it returns the cause of the exception.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
 ## Number related messages (missing)
 
 ## Instantiation related messages (missing)
-
-## Exception related messages (missing)
 
 ## Time related messages (unimplemented)

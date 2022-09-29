@@ -39,13 +39,22 @@ public class ContextPermissionsTest {
             Assert.assertTrue(context.eval("ruby", "defined?(Truffle::FFI::Pointer::NULL).nil?").asBoolean());
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "Truffle::FFI::Pointer.allocate"),
-                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+                    e -> {
+                        assertEquals("native access is not allowed", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "Truffle::FFI::Pointer.new(4)"),
-                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+                    e -> {
+                        assertEquals("native access is not allowed", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "Truffle::FFI::MemoryPointer.new(4)"),
-                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+                    e -> {
+                        assertEquals("native access is not allowed", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
         }
     }
 
@@ -81,7 +90,10 @@ public class ContextPermissionsTest {
 
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "File.stat('.')"),
-                    e -> assertEquals("native access is not allowed (SecurityError)", e.getMessage()));
+                    e -> {
+                        assertEquals("native access is not allowed", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
         }
     }
 
@@ -97,7 +109,10 @@ public class ContextPermissionsTest {
 
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "Thread.new {}.join"),
-                    e -> assertEquals("threads not allowed in single-threaded mode (SecurityError)", e.getMessage()));
+                    e -> {
+                        assertEquals("threads not allowed in single-threaded mode", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
         }
     }
 

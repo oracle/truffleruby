@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2018, 2021 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -243,6 +245,33 @@ describe 'Interop:' do
       module:        Subject.(name: AN_INSTANCE) { Module.new },
       hash:          Subject.(name: AN_INSTANCE, doc: true) { {} },
       array:         Subject.(name: AN_INSTANCE, doc: true) { [] },
+      # raise & rescue to give it a backtrace
+      exception: Subject.(name: "an `Exception`", doc: true) do
+        begin
+          raise "the exception message"
+        rescue => e
+          e
+        end
+      end,
+      exception_with_cause: Subject.(name: "an `Exception` with a cause", doc: true) do
+        begin
+          raise "the cause"
+        rescue
+          begin
+            raise "the exception message"
+          rescue => e
+            e
+          end
+        end
+      end,
+      # also test RaiseException since it is what other languages see when they catch an exception from Ruby
+      raise_exception: Subject.(name: AN_INSTANCE) do
+        begin
+          raise "the exception message"
+        rescue => e
+          Primitive.exception_get_raise_exception(e)
+        end
+      end,
 
       proc:          Subject.(proc { |v| v }, name: code("proc {...}"), doc: true),
       lambda:        Subject.(-> v { v }, name: code("lambda {...}"), doc: true),
@@ -286,6 +315,7 @@ describe 'Interop:' do
   immediate_subjects     = [:false, :true, :zero, :small_integer, :zero_float, :small_float]
   non_immediate_subjects = SUBJECTS.keys - immediate_subjects
   frozen_subjects        = [:big_decimal, :nil, :symbol, :strange_symbol, :frozen_object]
+  exception_subjects     = [:exception, :exception_with_cause, :raise_exception]
 
   # not part of the standard matrix, not considered in last rest case
   EXTRA_SUBJECTS = {
@@ -298,7 +328,7 @@ describe 'Interop:' do
   def predicate(name, is, *message_args, &setup)
     -> subject do
       setup.call subject if setup
-      Truffle::Interop.send(name, subject, *message_args).send(is ? :should : :should_not, be_true)
+      Truffle::Interop.send(name, subject, *message_args).should == is
     end
   end
 
@@ -580,7 +610,7 @@ describe 'Interop:' do
       Delimiter["Members related messages (incomplete)"],
       Message[:readMember,
               Test.new("returns a method with the given name when the method is defined", "any non-immediate `Object`",
-                       *non_immediate_subjects - [:polyglot_object]) do |subject|
+                       *non_immediate_subjects - [:polyglot_object, :raise_exception]) do |subject|
                 Truffle::Interop.read_member(subject, 'to_s').should == subject.method(:to_s)
               end,
               Test.new("fails with `UnknownIdentifierException` when the method is not defined", "any non-immediate `Object`",
@@ -626,9 +656,48 @@ describe 'Interop:' do
               end,
               unsupported_test { |subject| Truffle::Interop.write_member(subject, :something, 'val') }],
 
+      Delimiter["Exception related messages"],
+      Message[:isException,
+              Test.new("returns true", *exception_subjects, &predicate(:exception?, true)),
+              Test.new("returns false", &predicate(:exception?, false))],
+      Message[:throwException,
+              Test.new("throws the exception", *exception_subjects) do |subject|
+                -> { Truffle::Interop.throw_exception(subject) }.should raise_error { |e| e.should.equal?(subject) }
+              end,
+              unsupported_test { |subject| Truffle::Interop.throw_exception(subject) }],
+      Message[:getExceptionType,
+              Test.new("returns the exception type", *exception_subjects) do |subject|
+                Truffle::Interop.exception_type(subject).should == :RUNTIME_ERROR
+              end,
+              unsupported_test { |subject| Truffle::Interop.exception_type(subject) }],
+      Message[:hasExceptionMessage,
+              Test.new("returns true", *exception_subjects,  &predicate(:has_exception_message?, true)),
+              Test.new("returns false", &predicate(:has_exception_message?, false))],
+      Message[:getExceptionMessage,
+              Test.new("returns the message of the exception", *exception_subjects) do |subject|
+                Truffle::Interop.exception_message(subject).should == "the exception message"
+              end,
+              unsupported_test { |subject| Truffle::Interop.exception_message(subject) }],
+      Message[:hasExceptionStackTrace,
+              Test.new("returns true", *exception_subjects,  &predicate(:has_exception_stack_trace?, true)),
+              Test.new("returns false", &predicate(:has_exception_stack_trace?, false))],
+      Message[:getExceptionStackTrace,
+              Test.new("returns the stacktrace of the exception", *exception_subjects) do |subject|
+                stacktrace = Truffle::Interop.exception_stack_trace(subject)
+                Truffle::Interop.should.has_array_elements?(stacktrace)
+              end,
+              unsupported_test { |subject| Truffle::Interop.exception_stack_trace(subject) }],
+      Message[:hasExceptionCause,
+              Test.new("returns true", :exception_with_cause, &predicate(:has_exception_cause?, true)),
+              Test.new("returns false", &predicate(:has_exception_cause?, false))],
+      Message[:getExceptionCause,
+              Test.new("returns the cause of the exception", :exception_with_cause) do |subject|
+                Truffle::Interop.exception_cause(subject).should == subject.cause
+              end,
+              unsupported_test { |subject| Truffle::Interop.exception_cause(subject) }],
+
       Delimiter["Number related messages (missing)"],
       Delimiter["Instantiation related messages (missing)"],
-      Delimiter["Exception related messages (missing)"],
       Delimiter["Time related messages (unimplemented)"],
   ]
 
