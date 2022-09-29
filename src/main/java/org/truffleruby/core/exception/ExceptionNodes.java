@@ -353,4 +353,19 @@ public abstract class ExceptionNodes {
 
     }
 
+    @Primitive(name = "exception_get_raise_exception")
+    public abstract static class GetRaiseExceptionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object getRaiseException(RubyException exception) {
+            RaiseException raiseException = exception.backtrace.getRaiseException();
+            if (raiseException != null) {
+                return raiseException;
+            } else {
+                return nil;
+            }
+        }
+
+    }
+
 }
