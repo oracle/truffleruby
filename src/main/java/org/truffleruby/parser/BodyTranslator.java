@@ -611,7 +611,7 @@ public class BodyTranslator extends Translator {
                 isAttrAssign);
         RubyNode translated = Translator.withSourceSection(
                 enclosingSourceSection,
-                language.coreMethodAssumptions.createCallNode(callParameters, environment));
+                language.coreMethodAssumptions.createCallNode(callParameters));
 
         translated = wrapCallWithLiteralBlock(argumentsAndBlock, translated);
 
@@ -806,7 +806,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 final RubyNode conditionNode = language.coreMethodAssumptions
-                        .createCallNode(callParameters, environment);
+                        .createCallNode(callParameters);
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
@@ -947,7 +947,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
-                        .createCallNode(deconstructCallParameters, environment);
+                        .createCallNode(deconstructCallParameters);
 
                 receiver = new TruffleInternalModuleLiteralNode();
                 receiver.unsafeSetSourceSection(sourceSection);
@@ -961,7 +961,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters, environment);
+                        .createCallNode(matcherCallParameters);
             case HASHNODE:
                 deconstructCallParameters = new RubyCallNodeParameters(
                         expressionValue,
@@ -972,7 +972,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
-                        .createCallNode(deconstructCallParameters, environment);
+                        .createCallNode(deconstructCallParameters);
 
                 receiver = new TruffleInternalModuleLiteralNode();
                 receiver.unsafeSetSourceSection(sourceSection);
@@ -986,7 +986,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters, environment);
+                        .createCallNode(matcherCallParameters);
             case LOCALVARNODE:
                 // Assigns the value of an existing variable pattern as the value of the expression.
                 // May need to add a case with same/similar logic for new variables.
@@ -1006,7 +1006,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters, environment);
+                        .createCallNode(matcherCallParameters);
         }
     }
 
@@ -2366,7 +2366,7 @@ public class BodyTranslator extends Translator {
                         new RubyNode[]{ rhs },
                         false,
                         true);
-                final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters, environment);
+                final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters);
                 final RubyNode ret = lhs.makeWriteNode(opNode);
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);
