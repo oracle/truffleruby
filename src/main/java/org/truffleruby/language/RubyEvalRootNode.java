@@ -27,6 +27,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.options.Options;
 
 /** A RootNode for an eval. Similar to a block (and not a method) once parsed since it can access the surrounding
  * variables and it is as well in another CallTarget. */
@@ -85,7 +86,7 @@ public class RubyEvalRootNode extends RubyRootNode {
 
     @Override
     protected RootNode cloneUninitialized() {
-        return new RubyEvalRootNode(
+        var clone = new RubyEvalRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -93,5 +94,12 @@ public class RubyEvalRootNode extends RubyRootNode {
                 body.cloneUninitialized(),
                 getSplit(),
                 returnID);
+
+        Options options = getContext().getOptions();
+        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            ensureCloneUninitializedCorrectness(clone);
+        }
+
+        return clone;
     }
 }

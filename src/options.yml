@@ -233,6 +233,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     YIELD_ALWAYS_INLINE: [yield-always-inline, boolean, INLINE_DEFAULT, Always inline yields]
     METHODMISSING_ALWAYS_CLONE: [method-missing-always-clone, boolean, CLONE_DEFAULT, 'Always clone #method_missing']
     METHODMISSING_ALWAYS_INLINE: [method-missing-always-inline, boolean, INLINE_DEFAULT, 'Always inline #method_missing']
+    CHECK_CLONE_UNINITIALIZED_CORRECTNESS: [check-clone-uninitialized-correctness, boolean, false, 'Check whether #cloneUninitialized correctly clones a root node AST']
 
     # Instrumentation to debug performance
     REGEXP_INSTRUMENT_CREATION: [regexp-instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]

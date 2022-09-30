@@ -32,6 +32,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.options.Options;
 
 public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
@@ -153,7 +154,7 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     @Override
     protected RootNode cloneUninitialized() {
-        return new RubyLambdaRootNode(
+        var clone = new RubyLambdaRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -163,6 +164,13 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
                 returnID,
                 breakID,
                 arityForCheck);
+
+        Options options = getContext().getOptions();
+        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            ensureCloneUninitializedCorrectness(clone);
+        }
+
+        return clone;
     }
 
 }

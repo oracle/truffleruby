@@ -150,6 +150,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> YIELD_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_DETAILED_KEY = new OptionKey<>(false);
@@ -1204,6 +1205,14 @@ public class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor CHECK_CLONE_UNINITIALIZED_CORRECTNESS = OptionDescriptor
+            .newBuilder(CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY, "ruby.check-clone-uninitialized-correctness")
+            .help("Check whether #cloneUninitialized correctly clones a root node AST")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static final OptionDescriptor REGEXP_INSTRUMENT_CREATION = OptionDescriptor
             .newBuilder(REGEXP_INSTRUMENT_CREATION_KEY, "ruby.regexp-instrument-creation")
             .help("Enable instrumentation to gather stats on regexp creation")
@@ -1570,6 +1579,8 @@ public class OptionsCatalog {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
+            case "ruby.check-clone-uninitialized-correctness":
+                return CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
@@ -1733,6 +1744,7 @@ public class OptionsCatalog {
             YIELD_ALWAYS_INLINE,
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,
+            CHECK_CLONE_UNINITIALIZED_CORRECTNESS,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
             REGEXP_INSTRUMENT_MATCH_DETAILED,

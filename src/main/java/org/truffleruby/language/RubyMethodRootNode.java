@@ -29,6 +29,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
+import org.truffleruby.options.Options;
 
 public class RubyMethodRootNode extends RubyCheckArityRootNode {
 
@@ -103,7 +104,7 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
 
     @Override
     protected RootNode cloneUninitialized() {
-        return new RubyMethodRootNode(
+        var clone = new RubyMethodRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -112,6 +113,13 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
                 getSplit(),
                 returnID,
                 arityForCheck);
+
+        Options options = getContext().getOptions();
+        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            ensureCloneUninitializedCorrectness(clone);
+        }
+
+        return clone;
     }
 
 }

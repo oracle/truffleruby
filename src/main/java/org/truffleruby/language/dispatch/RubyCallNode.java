@@ -20,6 +20,7 @@ import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -268,17 +269,18 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new RubyCallNode(
-                isSplatted,
-                descriptor,
-                methodName,
+        RubyCallNodeParameters parameters = new RubyCallNodeParameters(
                 receiver.cloneUninitialized(),
-                cloneUninitialized(arguments),
+                methodName,
                 cloneUninitialized(block),
-                dispatchConfig,
+                descriptor,
+                cloneUninitialized(arguments),
+                isSplatted,
+                dispatchConfig == PRIVATE,
                 isVCall,
                 isSafeNavigation,
                 isAttrAssign);
+        var copy = (RubyContextSourceNode) getLanguage().coreMethodAssumptions.createCallNode(parameters);
         return copy.copyFlags(this);
     }
 

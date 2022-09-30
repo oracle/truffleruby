@@ -28,6 +28,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.options.Options;
 
 public class RubyProcRootNode extends RubyRootNode {
 
@@ -111,11 +112,11 @@ public class RubyProcRootNode extends RubyRootNode {
 
     @Override
     protected RootNode cloneUninitialized() {
-        // CheckKeywordArityNode uses branch profiling, so it should be copied without gathered data
+        // CheckKeywordArityNode uses branch profiling, so it should be copied without profiling data
         var checkKeywordArityNodeCopy = (checkKeywordArityNode == null)
                 ? null
                 : checkKeywordArityNode.cloneUninitialized();
-        return new RubyProcRootNode(
+        var clone = new RubyProcRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -124,5 +125,12 @@ public class RubyProcRootNode extends RubyRootNode {
                 getSplit(),
                 returnID,
                 checkKeywordArityNodeCopy);
+
+        Options options = getContext().getOptions();
+        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            ensureCloneUninitializedCorrectness(clone);
+        }
+
+        return clone;
     }
 }

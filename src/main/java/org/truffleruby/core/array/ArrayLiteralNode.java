@@ -59,6 +59,16 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         return array;
     }
 
+    // Do not override #cloneUninitialized() in subclasses.
+    // In runtime any literal array node may be replaced with UninitializedArrayLiteralNode.
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new UninitialisedArrayLiteralNode(
+                language,
+                cloneUninitialized(values));
+        return copy.copyFlags(this);
+    }
+
     @Override
     public abstract RubyArray execute(VirtualFrame frame);
 
@@ -95,14 +105,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         @Override
         public RubyArray execute(VirtualFrame frame) {
             return cachedCreateArray(ArrayStoreLibrary.initialStorage(false), 0);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new EmptyArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
         }
 
     }
@@ -142,14 +144,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             return makeGeneric(frame, executedObjects);
         }
 
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new FloatArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
-        }
-
     }
 
     private static class IntegerArrayLiteralNode extends ArrayLiteralNode {
@@ -185,14 +179,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             executedObjects[n] = value;
 
             return makeGeneric(frame, executedObjects);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new IntegerArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
         }
 
     }
@@ -232,14 +218,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             return makeGeneric(frame, executedObjects);
         }
 
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new LongArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
-        }
-
     }
 
     private static class ObjectArrayLiteralNode extends ArrayLiteralNode {
@@ -258,14 +236,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             }
 
             return cachedCreateArray(executedValues, values.length);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new ObjectArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
         }
 
     }
@@ -379,13 +349,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             }
         }
 
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = new UninitialisedArrayLiteralNode(
-                    language,
-                    cloneUninitialized(values));
-            return copy.copyFlags(this);
-        }
-
     }
+
 }
