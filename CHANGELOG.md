@@ -12,6 +12,7 @@ Compatibility:
 
 * Fix `MatchData#[]` when passed unbounded Range (#2755, @andrykonchin).
 * Updated `rb_define_class`, `rb_define_class_under`, and `rb_define_class_id_under` to allow class names that aren't valid in Ruby (#2739, @nirvdrum).
+* Fixed `rb_gv_get` so that it no longer implicitly creates global variables (#2748, @nirvdrum).
 
 Performance:
 

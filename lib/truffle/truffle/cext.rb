@@ -1806,7 +1806,7 @@ module Truffle::CExt
     if name == '$~'
       rb_backref_get
     else
-      eval("#{name}")
+      Primitive.rb_gv_get(Primitive.to_java_string(name))
     end
   end
 

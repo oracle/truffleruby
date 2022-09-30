@@ -9,7 +9,7 @@ describe "CApiGlobalSpecs" do
   end
 
   it "correctly gets global values" do
-    @f.sb_gv_get("$BLAH").should == nil
+    suppress_warning { @f.sb_gv_get("$BLAH") }.should == nil
     @f.sb_gv_get("$\\").should == nil
     @f.sb_gv_get("\\").should == nil # rb_gv_get should change \ to $\
   end
@@ -21,7 +21,7 @@ describe "CApiGlobalSpecs" do
   end
 
   it "correctly sets global values" do
-    @f.sb_gv_get("$BLAH").should == nil
+    suppress_warning { @f.sb_gv_get("$BLAH") }.should == nil
     @f.sb_gv_set("$BLAH", 10)
     begin
       @f.sb_gv_get("$BLAH").should == 10
@@ -42,6 +42,10 @@ describe "CApiGlobalSpecs" do
   end
 
   it "rb_define_readonly_variable should define a new readonly global variable" do
+    # Check the gvar doesn't exist and ensure rb_gv_get doesn't implicitly declare the gvar,
+    # otherwise the rb_define_readonly_variable call will conflict.
+    suppress_warning { @f.sb_gv_get("ro_gvar") } .should == nil
+
     @f.rb_define_readonly_variable("ro_gvar", 15)
     $ro_gvar.should == 15
     -> { $ro_gvar = 10 }.should raise_error(NameError)
