@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class SafepointAction extends ThreadLocalAction {
 
     private static final SafepointPredicate CURRENT_FIBER_OF_THREAD = //
-            (context, thread, action) -> thread == action.getTargetThread() && context.getThreadManager()
-                    .getRubyFiberFromCurrentJavaThread() == action.getTargetThread().getCurrentFiber();
+            (context, thread, action) -> thread == action.getTargetThread() &&
+                    context.getLanguageSlow().getCurrentFiber() == action.getTargetThread().getCurrentFiber();
 
     private final boolean publicSynchronous;
     private final String reason;

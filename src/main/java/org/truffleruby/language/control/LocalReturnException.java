@@ -11,9 +11,8 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
 
+@SuppressWarnings("serial")
 public final class LocalReturnException extends ControlFlowException {
-
-    private static final long serialVersionUID = -98757896543565476L;
 
     private final Object value;
 

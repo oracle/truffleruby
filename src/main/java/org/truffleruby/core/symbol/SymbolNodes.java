@@ -11,6 +11,7 @@ package org.truffleruby.core.symbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.frame.Frame;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -21,6 +22,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcCallTargets;
@@ -35,7 +37,6 @@ import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
@@ -55,7 +56,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
 import java.util.Map;
@@ -126,29 +126,26 @@ public abstract class SymbolNodes {
         }
     }
 
-    @CoreMethod(names = "to_proc")
+    @GenerateUncached
+    @CoreMethod(names = "to_proc", alwaysInlined = true)
     @ImportStatic(DeclarationContext.class)
-    public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToProcNode extends AlwaysInlinedMethodNode {
 
         public static final Arity ARITY = new Arity(1, 0, true);
 
         public static ToProcNode create() {
-            return SymbolNodesFactory.ToProcNodeFactory.create(null);
+            return SymbolNodesFactory.ToProcNodeFactory.create();
         }
-
-        public abstract RubyProc execute(VirtualFrame frame, RubySymbol symbol);
-
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(
                 guards = {
                         "isSingleContext()",
                         "symbol == cachedSymbol",
-                        "getRefinements(frame) == cachedRefinements" },
+                        "getRefinements(callerFrame) == cachedRefinements" },
                 limit = "getIdentityCacheLimit()")
-        protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
+        protected RubyProc toProcCached(Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,
-                @Cached("getRefinements(frame)") Map<RubyModule, RubyModule[]> cachedRefinements,
+                @Cached("getRefinements(callerFrame)") Map<RubyModule, RubyModule[]> cachedRefinements,
                 @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, cachedRefinements)") RootCallTarget callTarget,
                 @Cached("createProc(getContext(), getLanguage(), cachedRefinements, callTarget)") RubyProc cachedProc) {
             return cachedProc;
@@ -157,17 +154,19 @@ public abstract class SymbolNodes {
         @Specialization(
                 guards = {
                         "symbol == cachedSymbol",
-                        "getRefinements(frame) == NO_REFINEMENTS" },
+                        "getRefinements(callerFrame) == NO_REFINEMENTS" },
                 limit = "getIdentityCacheLimit()")
-        protected RubyProc toProcCachedNoRefinements(VirtualFrame frame, RubySymbol symbol,
+        protected RubyProc toProcCachedNoRefinements(
+                Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, NO_REFINEMENTS)") RootCallTarget callTarget) {
             return createProc(getContext(), getLanguage(), DeclarationContext.NO_REFINEMENTS, callTarget);
         }
 
         @Specialization(replaces = { "toProcCached", "toProcCachedNoRefinements" })
-        protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
-            final Map<RubyModule, RubyModule[]> refinements = getRefinements(frame);
+        protected RubyProc toProcUncached(
+                Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target) {
+            final Map<RubyModule, RubyModule[]> refinements = getRefinements(callerFrame);
             final RootCallTarget callTarget = getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
             return createProc(getContext(), getLanguage(), refinements, callTarget);
         }
@@ -246,12 +245,7 @@ public abstract class SymbolNodes {
             return rootNode.getCallTarget();
         }
 
-        protected InternalMethod getMethod(VirtualFrame frame) {
-            return RubyArguments.getMethod(frame);
-        }
-
-        protected Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
+        protected Map<RubyModule, RubyModule[]> getRefinements(Frame callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame);
             return declarationContext != null
                     ? declarationContext.getRefinements()

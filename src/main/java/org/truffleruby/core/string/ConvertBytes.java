@@ -511,9 +511,8 @@ public class ConvertBytes {
         return digits[0];
     }
 
+    @SuppressWarnings("serial")
     public static class ERange extends RuntimeException {
-        private static final long serialVersionUID = 3393153027217708024L;
-
         public enum Kind {
             Overflow,
             Underflow

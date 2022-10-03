@@ -25,16 +25,16 @@ public final class DataHolder implements TruffleObject {
 
     private Object pointer;
 
-    public DataHolder(Object address) {
-        this.pointer = address;
+    public DataHolder(Object pointer) {
+        this.pointer = pointer;
     }
 
     public Object getPointer() {
         return pointer;
     }
 
-    public void setPointer(Object address) {
-        this.pointer = address;
+    public void setPointer(Object pointer) {
+        this.pointer = pointer;
     }
 
     @ExportMessage

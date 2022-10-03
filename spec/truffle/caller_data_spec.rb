@@ -20,13 +20,6 @@ module TruffleCallerSpecFixtures
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
     match
   end
-
-  def self.caller_binding_and_variables(last_line, last_match)
-    b = Primitive.caller_binding
-    Primitive.io_last_line_set(Primitive.caller_special_variables, last_line)
-    Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
-    b
-  end
 end
 
 describe "A caller" do
@@ -48,23 +41,4 @@ describe "A caller" do
     $_.should == last_line
     $~.should == md
   end
-
-  it "can have its special variables and frame read by the same method" do
-    last_line = "Hello!"
-    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
-    b = TruffleCallerSpecFixtures.caller_binding_and_variables(last_line, md)
-    $_.should == last_line
-    $~.should == md
-    b.local_variable_get(:md).should == md
-  end
-
-  it "can have its special variables and frame read by the same method through an intermediate #send" do
-    last_line = "Hello!"
-    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
-    b = TruffleCallerSpecFixtures.send(:caller_binding_and_variables, last_line, md)
-    $_.should == last_line
-    $~.should == md
-    b.local_variable_get(:md).should == md
-  end
-
 end

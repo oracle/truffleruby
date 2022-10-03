@@ -230,7 +230,12 @@ module Truffle::FFI
     end
 
     SIZE = 8
-    NULL = Pointer.new(0x0)
+
+    Truffle::Boot.delay do
+      if Truffle::Boot.get_option 'platform-native'
+        NULL = Pointer.new(0x0)
+      end
+    end
   end
 
   class MemoryPointer < Pointer

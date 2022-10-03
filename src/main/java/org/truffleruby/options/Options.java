@@ -72,8 +72,6 @@ public class Options {
     public final boolean PATCHING;
     /** --hashing-deterministic=false */
     public final boolean HASHING_DETERMINISTIC;
-    /** --fiber-pool=false */
-    public final boolean FIBER_POOL;
     /** --log-subprocess=false */
     public final boolean LOG_SUBPROCESS;
     /** --warn-locale=true */
@@ -234,7 +232,6 @@ public class Options {
         PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
-        FIBER_POOL = options.get(OptionsCatalog.FIBER_POOL_KEY);
         LOG_SUBPROCESS = options.get(OptionsCatalog.LOG_SUBPROCESS_KEY);
         WARN_LOCALE = options.get(OptionsCatalog.WARN_LOCALE_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
@@ -354,8 +351,6 @@ public class Options {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
-            case "ruby.fiber-pool":
-                return FIBER_POOL;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
             case "ruby.warn-locale":

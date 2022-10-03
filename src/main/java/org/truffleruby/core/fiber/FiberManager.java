@@ -64,16 +64,12 @@ public class FiberManager {
 
         final TruffleContext truffleContext = context.getEnv().getContext();
 
-        ThreadManager.FIBER_BEING_SPAWNED.set(fiber);
-        try {
-            context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
-                context.getThreadManager().spawnFiber(fiber, () -> fiberMain(context, fiber, block, currentNode));
-                waitForInitialization(context, fiber, currentNode);
-                return BlockingAction.SUCCESS;
-            });
-        } finally {
-            ThreadManager.FIBER_BEING_SPAWNED.remove();
-        }
+        context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
+            context.getThreadManager().spawnFiber(fiber, sourceSection,
+                    () -> fiberMain(context, fiber, block, currentNode));
+            waitForInitialization(context, fiber, currentNode);
+            return BlockingAction.SUCCESS;
+        });
     }
 
     /** Wait for full initialization of the new fiber */
@@ -98,10 +94,8 @@ public class FiberManager {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
-        final FiberPoolThread thread = (FiberPoolThread) Thread.currentThread();
-        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-        final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.fileLine(sourceSection));
+        final Thread thread = Thread.currentThread();
+        final TruffleContext truffleContext = context.getEnv().getContext();
 
         start(fiber, thread);
 
@@ -109,15 +103,9 @@ public class FiberManager {
         fiber.initializedLatch.countDown();
 
         final FiberMessage message = waitMessage(fiber, currentNode);
-        final TruffleContext truffleContext = context.getEnv().getContext();
-
-        /* We need to setup the ThreadLocalState before enter(), as that polls and the current thread is needed for
-         * guest safepoints. It can't just be set in RubyLanguage#initializeThread() as this java.lang.Thread is reused
-         * for multiple Fibers and multiple Ruby Threads due to the Fiber pool, but initializeThread() is only called
-         * once per thread. */
         fiber.rubyThread.setCurrentFiber(fiber);
-        thread.threadLocalState.rubyThread = fiber.rubyThread;
 
+        // enter() polls so we need the current Fiber to be set before enter()
         final Object prev = truffleContext.enter(currentNode);
 
         FiberMessage lastMessage = null;
@@ -153,9 +141,7 @@ public class FiberManager {
             fiber.status = FiberStatus.TERMINATED;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             truffleContext.leave(currentNode, prev);
-            thread.threadLocalState.rubyThread = null;
             cleanup(fiber, thread);
-            thread.setName(oldName);
 
             if (lastMessage != null) {
                 addToMessageQueue(returnFiber, lastMessage);
@@ -164,7 +150,7 @@ public class FiberManager {
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, BranchProfile errorProfile) {
-        assert currentFiber == currentFiber.rubyThread.getCurrentFiber();
+        assert currentFiber.isActive();
 
         final RubyFiber rootFiber = currentFiber.rubyThread.getRootFiber();
 
@@ -329,17 +315,9 @@ public class FiberManager {
     }
 
     public void start(RubyFiber fiber, Thread javaThread) {
-        final ThreadManager threadManager = context.getThreadManager();
-
-        if (Thread.currentThread() == javaThread) {
-            context.getThreadManager().rubyFiber.set(fiber);
-        }
-        context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
-
         fiber.thread = javaThread;
 
         final RubyThread rubyThread = fiber.rubyThread;
-        threadManager.initializeValuesForJavaThread(rubyThread, javaThread);
 
         // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
         SharedObjects.propagate(language, rubyThread, fiber);
@@ -347,22 +325,13 @@ public class FiberManager {
     }
 
     public void cleanup(RubyFiber fiber, Thread javaThread) {
-        final ThreadManager threadManager = context.getThreadManager();
-
         context.getValueWrapperManager().cleanup(context, fiber.handleData);
 
         fiber.status = FiberStatus.TERMINATED;
 
-        threadManager.cleanupValuesForJavaThread(javaThread);
-
         fiber.rubyThread.runningFibers.remove(fiber);
 
         fiber.thread = null;
-
-        if (Thread.currentThread() == javaThread) {
-            threadManager.rubyFiber.remove();
-        }
-        threadManager.javaThreadToRubyFiber.remove(javaThread);
 
         fiber.finishedLatch.countDown();
     }
@@ -425,14 +394,14 @@ public class FiberManager {
             if (thread == null) {
                 builder.append(" (no Java thread)");
             } else {
-                builder.append(" #").append(thread.getId()).append(' ').append(thread);
+                builder.append(" #").append(RubyLanguage.getThreadId(thread)).append(' ').append(thread);
             }
 
             if (fiber.isRootFiber()) {
                 builder.append(" (root)");
             }
 
-            if (fiber == fiber.rubyThread.getCurrentFiber()) {
+            if (fiber.isActive()) {
                 builder.append(" (current)");
             }
 
@@ -510,9 +479,8 @@ public class FiberManager {
 
     /** Used to cleanup and terminate Fibers when the parent Thread dies. */
     // TODO: should not be an AbstractTruffleException and not run ensure, like in CRuby
+    @SuppressWarnings("serial")
     private static final class FiberShutdownException extends TerminationException {
-        private static final long serialVersionUID = 1522270454305076317L;
-
         public FiberShutdownException(Node location) {
             super("terminate Fiber", location);
         }

@@ -200,7 +200,7 @@ public class PolyglotInteropTest {
             // create a method to test search order
             context.eval("ruby", "def forty_two; :method; end");
             assertEquals("method", context.eval(interactiveSource("forty_two")).asString());
-            assertEquals("Method", bindings.getMember("forty_two").getMetaObject().getMetaSimpleName());
+            assertEquals("Method", bindings.getMember("forty_two").getMetaObject().getMetaQualifiedName());
 
             bindings.putMember("forty_two", 42);
             assertEquals(42, bindings.getMember("forty_two").asInt());
@@ -211,7 +211,7 @@ public class PolyglotInteropTest {
             bindings.putMember("local_var", 42);
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "local_var"), // non-interactive source
-                    e -> assertEquals("NameError", e.getGuestObject().getMetaObject().getMetaSimpleName()));
+                    e -> assertEquals("NameError", e.getGuestObject().getMetaObject().getMetaQualifiedName()));
 
             context.eval(interactiveSource("new_eval_local_var = 88"));
             assertEquals(88, context.eval(interactiveSource("new_eval_local_var")).asInt());

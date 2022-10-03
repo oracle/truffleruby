@@ -17,12 +17,11 @@ class IO
     Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0)
   end
 
-  def wait(timeout = nil)
+  def wait_readable(timeout = nil)
     ensure_open_and_readable
     Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) ? self : nil
   end
-
-  alias_method :wait_readable, :wait
+  alias_method :wait, :wait_readable
 
   def wait_writable(timeout = nil)
     ensure_open_and_writable

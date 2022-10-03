@@ -10,6 +10,7 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubySyntaxError extends RubyException {
@@ -44,9 +46,16 @@ public class RubySyntaxError extends RubyException {
         return ExceptionType.PARSE_ERROR;
     }
 
+    @TruffleBoundary
     @ExportMessage
     public boolean isExceptionIncompleteSource() {
-        return false; // Unknown
+        if (RubyStringLibrary.getUncached().isRubyString(message)) {
+            String messageString = RubyGuards.getJavaString(message);
+            return messageString.endsWith(" unexpected end-of-file") ||
+                    messageString.endsWith(" meets end of file");
+        } else {
+            return false;
+        }
     }
 
     @ExportMessage

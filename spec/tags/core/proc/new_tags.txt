@@ -1,5 +1,1 @@
 fails:Proc.new with an associated block raises a LocalJumpError when context of the block no longer exists
-fails:Proc.new without a block can be created if invoked from within a method with a block
-fails:Proc.new without a block can be created if invoked on a subclass from within a method with a block
-fails:Proc.new without a block can be create when called with no block
-fails:Proc.new without a block raises an ArgumentError when passed no block

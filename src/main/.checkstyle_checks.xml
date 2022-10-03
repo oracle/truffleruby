@@ -208,7 +208,7 @@
       <property name="message" value="Don't use transferToInterpreterOnException"/>
     </module>
     <module name="RegexpSinglelineJava">
-      <property name="format" value='"isRuby(?!Value|DynamicObject|SymbolOrString|Rational|Range|[^"]+\|\|)'/> <!-- Rational is not a builtin type -->
+      <property name="format" value='"isRuby(?!Value|DynamicObject|SymbolOrString|Rational|Range|[^"]+\|\|)\w+\(\w+\)'/> <!-- Rational is not a builtin type -->
       <property name="message" value="Type the argument instead of using a positive isRuby* guard."/>
     </module>
     <module name="RegexpSinglelineJava">
@@ -250,6 +250,10 @@
     <module name="RegexpSinglelineJava">
       <property name="format" value='@Cached.+AbstractTruffleString'/>
       <property name="message" value='Do not cache on AbstractTruffleString (which can be mutable), cache on TruffleString and use RubyStringLibrary#asTruffleStringUncached()'/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='serialVersionUID'/>
+      <property name="message" value='Use @SuppressWarnings("serial") instead.'/>
     </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->

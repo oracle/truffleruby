@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 /** A core method that should always be executed inline, without going through a CallTarget. That enables accessing the
@@ -64,6 +65,10 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
         return new RaiseException(getContext(), coreExceptions().runtimeError(
                 method + " needs the caller frame but it was not passed (cannot be called directly from a foreign language)",
                 getNode()));
+    }
+
+    public static boolean isBlockProvided(Object[] rubyArgs) {
+        return RubyArguments.getBlock(rubyArgs) != nil;
     }
 
 }

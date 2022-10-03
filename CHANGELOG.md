@@ -2,7 +2,7 @@
 
 New features:
 
-* Foreign strings now have all methods of Ruby `String`. They are treated as `#frozen?` UTF-8 Ruby Strings.
+* Foreign strings now have all methods of Ruby `String`. They are treated as `#frozen?` UTF-8 Ruby Strings (@eregon).
 * Add `Java.add_to_classpath` method to add jar paths at runtime (#2693, @bjfish).
 * Add support for Ruby 3.1's Hash shorthand/punning syntax (@nirvdrum).
 * Add support for Ruby 3.1's anonymous block forwarding syntax (@nirvdrum).
@@ -17,6 +17,7 @@ Bug fixes:
 * Disallow the marshaling of polyglot exceptions since we can't properly reconstruct them (@nirvdrum).
 * Fix `String#split` missing a value in its return array when called with a pattern of `" "` and a _limit_ value > 0 on a string with trailing whitespace where the limit hasn't been met (@nirvdrum).
 * Fix `Kernel#sleep` and `Mutex#sleep` for durations smaller than 1 millisecond (#2716, @eregon).
+* Fix `IO#{wait,wait_readable,wait_writable}` with a timeout > INT_MAX seconds (@eregon).
 
 Compatibility:
 
@@ -38,6 +39,9 @@ Compatibility:
 * Implement `rb_ivar_foreach` to iterate over instance and class variables like in CRuby (#2701, @aardvark179).
 * Fix the absolute path of the main script after chdir (#2709, @eregon).
 * Fix exception for `Fiddle::Handle.new` with a missing library (#2714, @eregon).
+* Fix arguments implicit type conversion for `BasicObject#instance_eval`, `Module#class_eval`, `Module#module_eval`, `Module#define_method` (@andrykonchin).
+* Raise `ArgumentError` unconditionally when `Proc.new` is called without a block argument (@andrykonchin).
+* Fix `UnboundMethod#hash` to not depend on a module it was retrieved from (#2728, @andrykonchin).
 
 Performance:
 
@@ -48,11 +52,15 @@ Performance:
 
 Changes:
 
-* No more conversion between Java Strings and Ruby Strings at the interop boundary.
+* No more conversion between Java Strings and Ruby Strings at the interop boundary (@eregon).
 * Removed `Truffle::Interop.{import_without_conversion,export_without_conversion}` (use `Polyglot.{import,export}` instead).
 * Removed `Truffle::Interop.members_without_conversion` (use `Truffle::Interop.members` instead).
 * Refactored internals of `rb_sprintf` to simplify handling of `VALUE`s in common cases (@aardvark179).
 * Refactored sharing of array objects between threads using new `SharedArrayStorage` (@aardvark179).
+
+Security:
+
+* The native access permission is now properly checked before any native pointer (e.g. `Truffle::FFI::Pointer`) is created (@eregon).
 
 # 22.2.0
 

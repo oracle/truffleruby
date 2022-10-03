@@ -9,9 +9,8 @@
  */
 package org.truffleruby.core.format.exceptions;
 
+@SuppressWarnings("serial")
 public class RangeException extends FormatException {
-
-    private static final long serialVersionUID = -6312025908880011931L;
 
     public RangeException(String message) {
         super(message);

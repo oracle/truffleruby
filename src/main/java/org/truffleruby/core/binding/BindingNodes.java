@@ -17,9 +17,7 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -35,13 +33,11 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
@@ -498,28 +494,6 @@ public abstract class BindingNodes {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
-    }
-
-    @Primitive(name = "caller_binding")
-    public abstract static class CallerBindingNode extends PrimitiveArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
-
-        @Specialization
-        protected RubyBinding binding(VirtualFrame frame,
-                @Cached ConditionProfile javaCoreMethodProfile) {
-            MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-
-            if (javaCoreMethodProfile.profile(CallStackManager.isJavaCore(RubyArguments.tryGetMethod(callerFrame)))) {
-                // we are called from a Java core method, e.g., Method#call, we need to find the actual caller
-                callerFrame = getContext()
-                        .getCallStack()
-                        .getNonJavaCoreCallerFrame(FrameAccess.MATERIALIZE)
-                        .materialize();
-            }
-
-            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame);
-        }
     }
 
     @Primitive(name = "create_empty_binding")

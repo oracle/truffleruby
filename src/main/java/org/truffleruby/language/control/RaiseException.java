@@ -15,16 +15,12 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.backtrace.Backtrace;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 /** A ControlFlowException holding a Ruby exception. */
+@SuppressWarnings("serial")
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "exception")
 public final class RaiseException extends AbstractTruffleException {
-
-    private static final long serialVersionUID = -4128190563044417424L;
 
     protected final RubyException exception;
 
@@ -56,11 +52,8 @@ public final class RaiseException extends AbstractTruffleException {
     }
 
     @Override
-    @TruffleBoundary
     public String getMessage() {
-        final ModuleFields exceptionClass = exception.getLogicalClass().fields;
-        final String message = ExceptionOperations.messageToString(exception);
-        return String.format("%s (%s)", message, exceptionClass.getName());
+        return ExceptionOperations.messageFieldToString(exception);
     }
 
 }
