@@ -2,7 +2,7 @@
 
 source test/truffle/common.sh.inc
 
-code="abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?; puts 'hello'"
+code="puts 'hello'"
 
 # Test both without and with BackgroundCompilation, it catches different issues
 
