@@ -37,7 +37,7 @@ module Truffle
 
       pos = pos < 0 ? pos + str.size : pos
       return nil if pos < 0 or pos > str.size
-      pos = Primitive.string_byte_index_from_char_index(str, pos)
+      pos = Primitive.character_index_to_byte_index(str, pos)
 
       search_region(re, str, pos, str.bytesize, true, true)
     end
@@ -50,7 +50,7 @@ module Truffle
 
       pos = pos < 0 ? pos + str.size : pos
       return false if pos < 0 or pos > str.size
-      pos = Primitive.string_byte_index_from_char_index(str, pos)
+      pos = Primitive.character_index_to_byte_index(str, pos)
 
       search_region(re, str, pos, str.bytesize, true, false)
     end

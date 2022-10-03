@@ -3776,7 +3776,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_byte_character_index", lowerFixnum = 1)
+    @Primitive(name = "byte_index_to_character_index", lowerFixnum = 1)
     public abstract static class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected int byteIndexToCodePointIndex(Object string, int byteIndex,
@@ -3785,6 +3785,18 @@ public abstract class StringNodes {
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding) {
             return byteIndexToCodePointIndexNode.execute(tstring, 0, byteIndex, encoding.tencoding);
+        }
+    }
+
+    // Named 'string_byte_index' in Rubinius.
+    @Primitive(name = "character_index_to_byte_index", lowerFixnum = 1)
+    public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object byteIndexFromCharIndex(Object string, int characterIndex,
+                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
+                @Cached RubyStringLibrary libString) {
+            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
+                    libString.getTEncoding(string));
         }
     }
 
@@ -3882,18 +3894,6 @@ public abstract class StringNodes {
             }
 
             return nil;
-        }
-    }
-
-    // Named 'string_byte_index' in Rubinius.
-    @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
-    public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        protected Object byteIndexFromCharIndex(Object string, int characterIndex,
-                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
-                @Cached RubyStringLibrary libString) {
-            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
-                    libString.getTEncoding(string));
         }
     }
 
