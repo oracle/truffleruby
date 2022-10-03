@@ -12,6 +12,10 @@
 
 // Global variables, rb_gvar_*, rb_gv_*
 
+VALUE rb_gvar_val_getter(ID id, VALUE *data) {
+  return (VALUE) data;
+}
+
 VALUE rb_gvar_var_getter(ID id, VALUE *var) {
   if (!var) {
     return Qnil;
@@ -46,6 +50,18 @@ void rb_define_readonly_variable(const char *name, const VALUE *var) {
 
 void rb_define_variable(const char *name, VALUE *var) {
   rb_define_hooked_variable(name, var, 0, 0);
+}
+
+void rb_define_virtual_variable(const char *name, rb_gvar_getter_t *getter, rb_gvar_setter_t *setter) {
+    if (!getter) {
+      getter = rb_gvar_val_getter;
+    }
+
+    if (!setter) {
+      setter = rb_gvar_readonly_setter;
+    }
+
+    rb_define_hooked_variable(name, 0, getter, setter);
 }
 
 VALUE rb_f_global_variables(void) {

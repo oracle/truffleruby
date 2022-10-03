@@ -50,6 +50,26 @@ static VALUE sb_define_variable(VALUE self, VALUE var_name, VALUE val) {
   return Qnil;
 }
 
+long virtual_var_storage;
+
+VALUE incrementing_getter(ID id, VALUE *data) {
+  return LONG2FIX(virtual_var_storage++);
+}
+
+void incrementing_setter(VALUE val, ID id, VALUE *data) {
+  virtual_var_storage = FIX2LONG(val);
+}
+
+static VALUE sb_define_virtual_variable_default_accessors(VALUE self, VALUE name) {
+  rb_define_virtual_variable(StringValuePtr(name), 0, 0);
+  return Qnil;
+}
+
+static VALUE sb_define_virtual_variable_incrementing_accessors(VALUE self, VALUE name) {
+  rb_define_virtual_variable(StringValuePtr(name), incrementing_getter, incrementing_setter);
+  return Qnil;
+}
+
 static VALUE sb_f_global_variables(VALUE self) {
   return rb_f_global_variables();
 }
@@ -117,6 +137,8 @@ void Init_globals_spec(void) {
   rb_define_method(cls, "rb_define_readonly_variable", sb_define_readonly_variable, 2);
   g_var = Qnil;
   rb_define_method(cls, "rb_define_variable", sb_define_variable, 2);
+  rb_define_method(cls, "rb_define_virtual_variable_default_accessors", sb_define_virtual_variable_default_accessors, 1);
+  rb_define_method(cls, "rb_define_virtual_variable_incrementing_accessors", sb_define_virtual_variable_incrementing_accessors, 1);
   rb_define_method(cls, "sb_get_global_value", sb_get_global_value, 0);
   rb_define_method(cls, "rb_f_global_variables", sb_f_global_variables, 0);
   rb_define_method(cls, "sb_gv_get", sb_gv_get, 1);

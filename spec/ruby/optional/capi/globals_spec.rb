@@ -68,6 +68,41 @@ describe "CApiGlobalSpecs" do
     $hooked_gvar_null_value.should == nil
   end
 
+  describe "rb_define_virtual_variable" do
+    describe "with default accessors" do
+      before :all do
+        @f.rb_define_virtual_variable_default_accessors("$virtual_variable_default_accessors")
+      end
+
+      it "is read-only" do
+        -> { $virtual_variable_default_accessors = 10 }.should raise_error(NameError, /read-only/)
+      end
+
+      it "returns false with the default getter" do
+        $virtual_variable_default_accessors.should == false
+        $virtual_variable_default_accessors.should == false
+      end
+    end
+
+    describe "with supplied accessors" do
+      before :all do
+        @f.rb_define_virtual_variable_incrementing_accessors("$virtual_variable_incrementing_accessors")
+      end
+
+      it "returns a dynamically changing value" do
+        $virtual_variable_incrementing_accessors = 20
+        $virtual_variable_incrementing_accessors.should == 20
+        $virtual_variable_incrementing_accessors.should == 21
+        $virtual_variable_incrementing_accessors.should == 22
+
+        $virtual_variable_incrementing_accessors = 100
+        $virtual_variable_incrementing_accessors.should == 100
+        $virtual_variable_incrementing_accessors.should == 101
+        $virtual_variable_incrementing_accessors.should == 102
+      end
+    end
+  end
+
   describe "rb_fs" do
     before :each do
       @field_separator = $;
