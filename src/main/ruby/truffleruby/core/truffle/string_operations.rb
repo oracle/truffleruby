@@ -105,7 +105,9 @@ module Truffle
     def self.gsub_string_matches(global, orig, pattern)
       res = []
       offset = 0
-      while index = byte_index(orig, pattern, offset)
+      enc = Primitive.encoding_ensure_compatible_str orig, pattern
+
+      while index = byte_index(orig, pattern, enc, offset)
         match = Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize)
         res << match
         break unless global
@@ -285,7 +287,7 @@ module Truffle
     end
 
     # MRI: rb_str_byteindex_m
-    def self.byte_index(src, str, start=0)
+    def self.byte_index(src, str, enc, start = 0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
@@ -294,9 +296,7 @@ module Truffle
 
       return start if str == ''
 
-      Primitive.encoding_ensure_compatible_str src, str
-
-      Primitive.string_byte_index(src, str, start)
+      Primitive.string_byte_index(src, str, enc, start)
     end
 
     def self.subpattern(string, pattern, capture)

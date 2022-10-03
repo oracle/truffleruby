@@ -1043,11 +1043,11 @@ class String
     str = StringValue(str)
     return start if str == ''
 
-    Primitive.encoding_ensure_compatible_str self, str
+    enc = Primitive.encoding_ensure_compatible_str self, str
 
     return if start + str.size > size
 
-    Primitive.string_character_index(self, str, start)
+    Primitive.string_character_index(self, str, enc, start)
   end
 
   def initialize(other = undefined, capacity: nil, encoding: nil)
