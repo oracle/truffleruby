@@ -25,11 +25,9 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.options.Options;
 import org.truffleruby.parser.ParentFrameDescriptor;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
@@ -42,7 +40,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     public final ReturnID returnID;
 
     @Child protected RubyNode body;
-    @Child protected RubyNode bodyCopy;
+    protected final RubyNode bodyCopy;
 
     public RubyRootNode(
             RubyLanguage language,
@@ -69,9 +67,10 @@ public class RubyRootNode extends RubyBaseRootNode {
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
 
-        Options options = getContext().getOptions();
-        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+        if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
             this.bodyCopy = copyBody();
+        } else {
+            this.bodyCopy = null;
         }
     }
 
@@ -134,19 +133,32 @@ public class RubyRootNode extends RubyBaseRootNode {
         return true;
     }
 
-    @Override
-    protected RootNode cloneUninitialized() {
-        if (getClass() != RubyRootNode.class) {
-            throw CompilerDirectives.shouldNotReachHere(
-                    "TODO need to implement cloneUninitialized() on a subclass of RubyRootNode " + getClass());
-        }
-
+    protected RubyRootNode cloneUninitializedRootNode() {
         return new RubyRootNode(getLanguage(), getSourceSection(), getFrameDescriptor(), sharedMethodInfo,
                 body.cloneUninitialized(), split, returnID);
     }
 
-    protected void ensureCloneUninitializedCorrectness(RubyRootNode clone) {
-        if (!isClonedCorrectly(bodyCopy, clone.bodyCopy)) {
+    @Override
+    protected final RootNode cloneUninitialized() {
+        RubyRootNode clone = cloneUninitializedRootNode();
+
+        if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            ensureCloneUninitializedCorrectness(clone);
+        }
+
+        return clone;
+    }
+
+    private void ensureCloneUninitializedCorrectness(RubyRootNode clone) {
+        if (this == clone) {
+            throw CompilerDirectives.shouldNotReachHere("clone same as this");
+        }
+        if (this.getClass() != clone.getClass()) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("different clone class: " + this.getClass() + " vs " + clone.getClass());
+        }
+
+        if (!isClonedCorrectly(bodyCopy, clone.body)) {
             System.err.println();
             System.err.println("Original copy of body (bodyCopy) AST:");
             NodeUtil.printCompactTree(System.err, bodyCopy);
@@ -165,7 +177,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         }
 
         // Ignore instrumental wrappers (e.g. RubyNodeWrapper)
-        if (WrapperNode.class.isInstance(original)) {
+        if (original instanceof WrapperNode) {
             return isClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone);
         }
 
@@ -192,19 +204,14 @@ public class RubyRootNode extends RubyBaseRootNode {
         return true;
     }
 
+    private static final Node[] EMPTY_NODE_ARRAY = new Node[0];
+
     private Node[] childrenToArray(Node node) {
-        final List<Node> childrenList = new ArrayList<>();
+        var childrenList = new ArrayList<Node>();
         for (Node child : node.getChildren()) {
             childrenList.add(child);
         }
 
-        final Object[] arrayOfObjects = childrenList.toArray();
-        final Node[] array = new Node[arrayOfObjects.length];
-
-        for (int i = 0; i < array.length; i++) {
-            array[i] = (Node) arrayOfObjects[i];
-        }
-
-        return array;
+        return childrenList.toArray(EMPTY_NODE_ARRAY);
     }
 }

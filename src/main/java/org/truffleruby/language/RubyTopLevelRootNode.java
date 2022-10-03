@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.ReturnID;
@@ -22,7 +21,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.options.Options;
 
 public class RubyTopLevelRootNode extends RubyMethodRootNode {
 
@@ -55,8 +53,8 @@ public class RubyTopLevelRootNode extends RubyMethodRootNode {
     }
 
     @Override
-    protected RootNode cloneUninitialized() {
-        var clone = new RubyTopLevelRootNode(
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyTopLevelRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -65,13 +63,6 @@ public class RubyTopLevelRootNode extends RubyMethodRootNode {
                 getSplit(),
                 returnID,
                 arityForCheck);
-
-        Options options = getContext().getOptions();
-        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
-            ensureCloneUninitializedCorrectness(clone);
-        }
-
-        return clone;
     }
 
 }

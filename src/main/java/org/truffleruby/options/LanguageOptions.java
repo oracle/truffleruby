@@ -112,6 +112,8 @@ public class LanguageOptions {
     public final int PACK_UNROLL_LIMIT;
     /** --pack-recover=32 */
     public final int PACK_RECOVER_LOOP_MIN;
+    /** --check-clone-uninitialized-correctness=false */
+    public final boolean CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
     /** --regexp-instrument-creation=false */
     public final boolean REGEXP_INSTRUMENT_CREATION;
     /** --shared-objects=true */
@@ -171,6 +173,7 @@ public class LanguageOptions {
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
         PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
+        CHECK_CLONE_UNINITIALIZED_CORRECTNESS = options.get(OptionsCatalog.CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY);
         REGEXP_INSTRUMENT_CREATION = options.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY);
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
@@ -271,6 +274,8 @@ public class LanguageOptions {
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack-recover":
                 return PACK_RECOVER_LOOP_MIN;
+            case "ruby.check-clone-uninitialized-correctness":
+                return CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.shared-objects":
@@ -334,6 +339,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY).equals(two.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY)) &&
                one.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY).equals(two.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY)) &&
                one.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY).equals(two.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY)) &&
+               one.get(OptionsCatalog.CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY).equals(two.get(OptionsCatalog.CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY)) &&
                one.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY).equals(two.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
@@ -658,6 +664,13 @@ public class LanguageOptions {
         newValue = newOptions.PACK_RECOVER_LOOP_MIN;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --pack-recover differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
+        newValue = newOptions.CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --check-clone-uninitialized-correctness differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

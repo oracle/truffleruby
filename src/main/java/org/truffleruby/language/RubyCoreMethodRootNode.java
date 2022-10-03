@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.TruffleSafepoint;
-import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
@@ -22,7 +21,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.options.Options;
 
 public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
 
@@ -58,8 +56,8 @@ public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
     }
 
     @Override
-    protected RootNode cloneUninitialized() {
-        var clone = new RubyCoreMethodRootNode(
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyCoreMethodRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -68,13 +66,6 @@ public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
                 getSplit(),
                 returnID,
                 arityForCheck);
-
-        Options options = getContext().getOptions();
-        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
-            ensureCloneUninitializedCorrectness(clone);
-        }
-
-        return clone;
     }
 
 }

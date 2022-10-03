@@ -194,8 +194,6 @@ public class Options {
     public final boolean METHODMISSING_ALWAYS_CLONE;
     /** --method-missing-always-inline=INLINE_DEFAULT */
     public final boolean METHODMISSING_ALWAYS_INLINE;
-    /** --check-clone-uninitialized-correctness=false */
-    public final boolean CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
     /** --regexp-instrument-match=false */
     public final boolean REGEXP_INSTRUMENT_MATCH;
     /** --regexp-instrument-match-detailed=false */
@@ -297,7 +295,6 @@ public class Options {
         YIELD_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
         METHODMISSING_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         METHODMISSING_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
-        CHECK_CLONE_UNINITIALIZED_CORRECTNESS = options.get(OptionsCatalog.CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY);
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
         REGEXP_INSTRUMENT_MATCH_DETAILED = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_DETAILED_KEY);
         REGEXP_INSTRUMENT_OUTPUT_FORMAT = options.get(OptionsCatalog.REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY);
@@ -479,8 +476,6 @@ public class Options {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
-            case "ruby.check-clone-uninitialized-correctness":
-                return CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
             case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
             case "ruby.regexp-instrument-match-detailed":

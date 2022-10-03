@@ -11,7 +11,6 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleSafepoint;
-import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.CheckKeywordArityNode;
 import org.truffleruby.language.control.NextException;
@@ -28,7 +27,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.options.Options;
 
 public class RubyProcRootNode extends RubyRootNode {
 
@@ -111,12 +109,12 @@ public class RubyProcRootNode extends RubyRootNode {
     }
 
     @Override
-    protected RootNode cloneUninitialized() {
+    protected RubyRootNode cloneUninitializedRootNode() {
         // CheckKeywordArityNode uses branch profiling, so it should be copied without profiling data
         var checkKeywordArityNodeCopy = (checkKeywordArityNode == null)
                 ? null
                 : checkKeywordArityNode.cloneUninitialized();
-        var clone = new RubyProcRootNode(
+        return new RubyProcRootNode(
                 getLanguage(),
                 getSourceSection(),
                 getFrameDescriptor(),
@@ -125,12 +123,5 @@ public class RubyProcRootNode extends RubyRootNode {
                 getSplit(),
                 returnID,
                 checkKeywordArityNodeCopy);
-
-        Options options = getContext().getOptions();
-        if (options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
-            ensureCloneUninitializedCorrectness(clone);
-        }
-
-        return clone;
     }
 }
