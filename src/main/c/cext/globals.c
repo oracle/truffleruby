@@ -12,8 +12,12 @@
 
 // Global variables, rb_gvar_*, rb_gv_*
 
-VALUE rb_gvar_var_getter(ID id, VALUE *data) {
-  return *data;
+VALUE rb_gvar_var_getter(ID id, VALUE *var) {
+  if (!var) {
+    return Qnil;
+  }
+
+  return *var;
 }
 
 void rb_gvar_var_setter(VALUE val, ID id, VALUE *data) {

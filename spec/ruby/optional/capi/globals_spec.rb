@@ -57,6 +57,17 @@ describe "CApiGlobalSpecs" do
     $hooked_gvar.should == 4
   end
 
+  it "rb_define_hooked_variable should use default accessors if NULL ones are supplied" do
+    @f.rb_define_hooked_variable_default_accessors("$hooked_gvar_default_accessors")
+    $hooked_gvar_default_accessors = 10
+    $hooked_gvar_default_accessors.should == 10
+  end
+
+  it "rb_define_hooked_variable with default accessors should return nil for NULL variables" do
+    @f.rb_define_hooked_variable_null_var("$hooked_gvar_null_value")
+    $hooked_gvar_null_value.should == nil
+  end
+
   describe "rb_fs" do
     before :each do
       @field_separator = $;

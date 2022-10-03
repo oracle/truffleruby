@@ -20,6 +20,16 @@ static VALUE sb_define_hooked_variable(VALUE self, VALUE var_name) {
   return Qnil;
 }
 
+static VALUE sb_define_hooked_variable_default_accessors(VALUE self, VALUE var_name) {
+  rb_define_hooked_variable(StringValuePtr(var_name), &g_hooked_var, 0, 0);
+  return Qnil;
+}
+
+static VALUE sb_define_hooked_variable_null_var(VALUE self, VALUE var_name) {
+    rb_define_hooked_variable(StringValuePtr(var_name), 0, 0, 0);
+    return Qnil;
+}
+
 VALUE g_ro_var;
 
 static VALUE sb_define_readonly_variable(VALUE self, VALUE var_name, VALUE val) {
@@ -101,6 +111,8 @@ void Init_globals_spec(void) {
   VALUE cls = rb_define_class("CApiGlobalSpecs", rb_cObject);
   g_hooked_var = Qnil;
   rb_define_method(cls, "rb_define_hooked_variable_2x", sb_define_hooked_variable, 1);
+  rb_define_method(cls, "rb_define_hooked_variable_default_accessors", sb_define_hooked_variable_default_accessors, 1);
+  rb_define_method(cls, "rb_define_hooked_variable_null_var", sb_define_hooked_variable_null_var, 1);
   g_ro_var = Qnil;
   rb_define_method(cls, "rb_define_readonly_variable", sb_define_readonly_variable, 2);
   g_var = Qnil;
