@@ -2,5 +2,4 @@
 
 source test/truffle/common.sh.inc
 
-export JT_SPECS_COMPILATION=false
-jt test fast -- --check-clone-uninitialized-correctness
+jt test fast -- --vm.XX:-UseJVMCICompiler --engine.Compilation=false --core-always-clone --check-clone-uninitialized-correctness
