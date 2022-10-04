@@ -20,7 +20,6 @@ import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -280,7 +279,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
                 isVCall,
                 isSafeNavigation,
                 isAttrAssign);
-        var copy = (RubyContextSourceNode) getLanguage().coreMethodAssumptions.createCallNode(parameters);
+        var copy = getLanguage().coreMethodAssumptions.createCallNode(parameters);
         return copy.copyFlags(this);
     }
 

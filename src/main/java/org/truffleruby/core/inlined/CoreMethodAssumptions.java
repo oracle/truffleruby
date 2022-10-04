@@ -19,6 +19,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -148,7 +149,7 @@ public class CoreMethodAssumptions {
         }
     }
 
-    public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
+    public RubyContextSourceNode createCallNode(RubyCallNodeParameters callParameters) {
         if (!language.options.BASICOPS_INLINE || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
         }
