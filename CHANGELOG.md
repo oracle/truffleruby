@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `rb_gc_register_address()`/`rb_global_variable()` to read the latest value (#2721, #2734, #2720, @eregon).
 
 Compatibility:
 

@@ -90,6 +90,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
     boolean blocking = true;
+    public RubyArray cGlobalVariablesDuringInitFunction;
 
     public RubyFiber(
             RubyClass rubyClass,

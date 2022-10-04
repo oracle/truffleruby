@@ -393,4 +393,18 @@ public abstract class FiberNodes {
 
     }
 
+    @Primitive(name = "fiber_c_global_variables")
+    public abstract static class FiberCGlobalVariablesNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object cGlobalVariables() {
+            RubyFiber currentFiber = getLanguage().getCurrentFiber();
+            var cGlobalVariablesDuringInitFunction = currentFiber.cGlobalVariablesDuringInitFunction;
+            if (cGlobalVariablesDuringInitFunction == null) {
+                return nil;
+            } else {
+                return cGlobalVariablesDuringInitFunction;
+            }
+        }
+    }
+
 }
