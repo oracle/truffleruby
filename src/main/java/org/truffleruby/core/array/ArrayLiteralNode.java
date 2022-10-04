@@ -62,7 +62,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     // Do not override #cloneUninitialized() in subclasses.
     // In runtime any literal array node may be replaced with UninitializedArrayLiteralNode.
     @Override
-    public RubyNode cloneUninitialized() {
+    public final RubyNode cloneUninitialized() {
         var copy = new UninitialisedArrayLiteralNode(
                 language,
                 cloneUninitialized(values));
