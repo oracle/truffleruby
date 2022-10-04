@@ -72,6 +72,7 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.CheckIfPatternsMatchedNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
@@ -841,7 +842,12 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitCaseInNode(CaseInParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+        RubyNode elseNode;
+        if (node.getElseNode() == null) {
+            elseNode = new CheckIfPatternsMatchedNode();
+        } else {
+            elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+        }
 
         PatternMatchingTranslator tr = new PatternMatchingTranslator(language, source, parserContext,
                 currentNode, node.getCaseNode(), node.getCases(), environment, this);

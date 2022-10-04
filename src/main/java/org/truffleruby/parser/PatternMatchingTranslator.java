@@ -9,7 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -21,6 +20,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.ExecuteAndReturnTrueNode;
+import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.BooleanLiteralNode;
@@ -30,12 +30,15 @@ import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.ArrayPatternParseNode;
+import org.truffleruby.parser.ast.CallParseNode;
 import org.truffleruby.parser.ast.ConstParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.DStrParseNode;
 import org.truffleruby.parser.ast.DotParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
+import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.LambdaParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
@@ -98,11 +101,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
         final RubyNode receiver;
         final RubyNode deconstructed;
         final SourceIndexLength sourceSection = arrayPatternParseNode.getPosition();
-
-        // handle only preArgs and postArgs for now
-        //        if (arrayPatternParseNode.hasRestArg()) {
-        //            throw CompilerDirectives.shouldNotReachHere();
-        //        }
 
         ListParseNode preNodes = arrayPatternParseNode.getPreArgs();
         ListParseNode postNodes = arrayPatternParseNode.getPostArgs();
@@ -223,6 +221,10 @@ public class PatternMatchingTranslator extends BaseTranslator {
         return sequence(sourceSection, Arrays.asList(assignTemp, condition));
     }
 
+    public RubyNode visitFindPatternNode(FindPatternParseNode findPatternParseNode) {
+        return findPatternParseNode.accept(this);
+    }
+
     public RubyNode translatePatternNode(ParseNode patternNode,
             ParseNode expressionNode /* TODO should not be passed */, RubyNode expressionValue,
             SourceIndexLength sourceSection) {
@@ -265,7 +267,15 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 return language.coreMethodAssumptions
                         .createCallNode(matcherCallParameters, environment);
             case FINDPATTERNNODE:
-                throw CompilerDirectives.shouldNotReachHere();
+                //                throw CompilerDirectives.shouldNotReachHere();
+                final RubyContext context = RubyLanguage.getCurrentContext();
+                var node = patternNode;
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().syntaxError(
+                                "not yet handled in pattern matching: " + node.toString() + " " + node.getPosition(),
+                                currentNode,
+                                node.getPosition().toSourceSection(source)));
             case LOCALVARNODE:
                 // Assigns the value of an existing variable pattern as the value of the expression.
                 // May need to add a case with same/similar logic for new variables.
@@ -275,6 +285,20 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         ((LocalVarParseNode) patternNode).getDepth(),
                         expressionNode).accept(this);
                 return new ExecuteAndReturnTrueNode(assignmentNode); // TODO refactor to remove "|| true"
+            case IFNODE: // handles both if and unless
+                var ifNode = (IfParseNode) patternNode;
+                RubyNode pattern;
+                RubyNode condition = ifNode.getCondition().accept(this);
+                if (ifNode.getThenBody() != null) {
+                    pattern = ifNode.getThenBody().accept(this);
+                } else {
+                    pattern = ifNode.getElseBody().accept(this);
+                    condition = new NotNode(condition);
+                }
+
+                return new AndNode(pattern, condition);
+
+
             default:
                 matcherCallParameters = new RubyCallNodeParameters(
                         patternNode.accept(this),
@@ -374,6 +398,12 @@ public class PatternMatchingTranslator extends BaseTranslator {
     public RubyNode visitDStrNode(DStrParseNode node) {
         return bodyTranslator.visitDStrNode(node);
     }
+
+    @Override
+    public RubyNode visitCallNode(CallParseNode node) {
+        return bodyTranslator.visitCallNode(node);
+    }
+
 
     //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
     //        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
