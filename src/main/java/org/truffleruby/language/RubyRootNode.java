@@ -149,6 +149,20 @@ public class RubyRootNode extends RubyBaseRootNode {
         return clone;
     }
 
+    private class CloningError extends Error {
+
+        public final Node original;
+        public final Node clone;
+
+        CloningError(String message, Node original, Node clone) {
+            super(message);
+
+            this.original = original;
+            this.clone = clone;
+        }
+
+    }
+
     private void ensureCloneUninitializedCorrectness(RubyRootNode clone) {
         if (this == clone) {
             throw CompilerDirectives.shouldNotReachHere("clone same as this");
@@ -158,32 +172,49 @@ public class RubyRootNode extends RubyBaseRootNode {
                     .shouldNotReachHere("different clone class: " + this.getClass() + " vs " + clone.getClass());
         }
 
-        if (!isClonedCorrectly(bodyCopy, clone.body)) {
+        try {
+            ensureClonedCorrectly(bodyCopy, clone.body);
+        } catch (CloningError e) {
             System.err.println();
-            System.err.println("Original copy of body (bodyCopy) AST:");
+
+            System.err.println("#cloneUninitialized for RubyRootNode " + getName() + " created not identical AST");
+            System.err.println(e.getMessage());
+
+            System.err.println();
+
+            System.err.println("Original node:");
+            NodeUtil.printCompactTree(System.err, e.original);
+
+            System.err.println("Cloned node:");
+            NodeUtil.printCompactTree(System.err, e.clone);
+
+            System.err.println();
+
+            System.err.println("Original root node body:");
             NodeUtil.printCompactTree(System.err, bodyCopy);
 
-            System.err.println("Cloned body (clone.bodyCopy) AST:");
-            NodeUtil.printCompactTree(System.err, clone.bodyCopy);
+            System.err.println("Cloned root node body:");
+            NodeUtil.printCompactTree(System.err, clone.body);
 
             throw new Error("#cloneUninitialized for RubyRootNode " + getName() + " created not identical AST");
         }
     }
 
-    private boolean isClonedCorrectly(Node original, Node clone) {
+    private void ensureClonedCorrectly(Node original, Node clone) {
         // A clone should be a new instance
         if (original == clone) {
-            return false;
+            throw new CloningError("Original node equals a clone", original, clone);
         }
 
         // Ignore instrumental wrappers (e.g. RubyNodeWrapper)
         if (original instanceof WrapperNode) {
-            return isClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone);
+            ensureClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone);
+            return;
         }
 
         // Should be instances of the same class
         if (original.getClass() != clone.getClass()) {
-            return false;
+            throw new CloningError("Nodes are instances of different classes", original, clone);
         }
 
         Node[] originalChildren = childrenToArray(original);
@@ -191,17 +222,13 @@ public class RubyRootNode extends RubyBaseRootNode {
 
         // Should have the same number of children
         if (cloneChildren.length != originalChildren.length) {
-            return false;
+            throw new CloningError("Nodes have different number of children", original, clone);
         }
 
         // Should have the same children
         for (int i = 0; i < cloneChildren.length; i++) {
-            if (!isClonedCorrectly(originalChildren[i], cloneChildren[i])) {
-                return false;
-            }
+            ensureClonedCorrectly(originalChildren[i], cloneChildren[i]);
         }
-
-        return true;
     }
 
     private static final Node[] EMPTY_NODE_ARRAY = new Node[0];
