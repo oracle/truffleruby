@@ -416,7 +416,7 @@ public class CExtNodes {
     @CoreMethod(names = "cext_start_new_handle_block", onSingleton = true)
     public abstract static class StartNewHandleBlockNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isCExtLockOwned() {
+        protected boolean startNewHandleBlock() {
             ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             return true;
         }

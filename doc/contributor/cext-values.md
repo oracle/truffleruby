@@ -50,7 +50,7 @@ to the stack, and when the call exits that entry is popped off again.
 ### Keeping objects alive in structures
 
 We don't have a way to run markers when doing garbage collection, but
-we know we're keeping objects alive during the lifetime or a C call,
+we know we're keeping objects alive during the lifetime of a C call,
 and we can record when the structure is accessed via DATA_PTR (which
 should be required for the internal state of that structure to be
 mutated). To do this we keep a list of objects to be marked in a
