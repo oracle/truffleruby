@@ -84,6 +84,23 @@ public class GlobalVariablesObject implements TruffleObject {
         }
     }
 
+    @ExportMessage(name = "hasMemberReadSideEffects")
+    @ExportMessage(name = "hasMemberWriteSideEffects")
+    @TruffleBoundary
+    protected boolean hasMemberSideEffects(String member,
+            @CachedLibrary("this") InteropLibrary node) {
+        if (isMemberReadable(member)) {
+            final RubyLanguage language = RubyLanguage.get(node);
+            final RubyContext context = RubyContext.get(node);
+
+            int index = language.getGlobalVariableIndex(member);
+            var storage = context.getGlobalVariableStorage(index);
+            return storage.hasHooks();
+        } else {
+            return false;
+        }
+    }
+
     @ExportMessage
     @TruffleBoundary
     protected boolean isMemberReadable(String member) {
