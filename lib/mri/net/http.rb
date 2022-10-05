@@ -846,38 +846,38 @@ module Net   #:nodoc:
     end
 
     SSL_IVNAMES = [
-      :@ca_file,
-      :@ca_path,
-      :@cert,
-      :@cert_store,
-      :@ciphers,
-      :@extra_chain_cert,
-      :@key,
-      :@ssl_timeout,
-      :@ssl_version,
-      :@min_version,
-      :@max_version,
-      :@verify_callback,
-      :@verify_depth,
-      :@verify_mode,
-      :@verify_hostname,
+        :@ca_file,
+        :@ca_path,
+        :@cert,
+        :@cert_store,
+        :@ciphers,
+        :@extra_chain_cert,
+        :@key,
+        :@ssl_timeout,
+        :@ssl_version,
+        :@min_version,
+        :@max_version,
+        :@verify_callback,
+        :@verify_depth,
+        :@verify_mode,
+        :@verify_hostname,
     ]
     SSL_ATTRIBUTES = [
-      :ca_file,
-      :ca_path,
-      :cert,
-      :cert_store,
-      :ciphers,
-      :extra_chain_cert,
-      :key,
-      :ssl_timeout,
-      :ssl_version,
-      :min_version,
-      :max_version,
-      :verify_callback,
-      :verify_depth,
-      :verify_mode,
-      :verify_hostname,
+        :ca_file,
+        :ca_path,
+        :cert,
+        :cert_store,
+        :ciphers,
+        :extra_chain_cert,
+        :key,
+        :ssl_timeout,
+        :ssl_version,
+        :min_version,
+        :max_version,
+        :verify_callback,
+        :verify_depth,
+        :verify_mode,
+        :verify_hostname,
     ]
 
     # Sets path of a CA certification file in PEM format.
@@ -987,7 +987,7 @@ module Net   #:nodoc:
           TCPSocket.open(conn_addr, conn_port, @local_host, @local_port)
         rescue => e
           raise e, "Failed to open TCP connection to " +
-            "#{conn_addr}:#{conn_port} (#{e.message})"
+              "#{conn_addr}:#{conn_port} (#{e.message})"
         end
       }
       s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
@@ -1023,8 +1023,8 @@ module Net   #:nodoc:
         @ssl_context = OpenSSL::SSL::SSLContext.new
         @ssl_context.set_params(ssl_parameters)
         @ssl_context.session_cache_mode =
-          OpenSSL::SSL::SSLContext::SESSION_CACHE_CLIENT |
-          OpenSSL::SSL::SSLContext::SESSION_CACHE_NO_INTERNAL_STORE
+            OpenSSL::SSL::SSLContext::SESSION_CACHE_CLIENT |
+                OpenSSL::SSL::SSLContext::SESSION_CACHE_NO_INTERNAL_STORE
         @ssl_context.session_new_cb = proc {|sock, sess| @ssl_session = sess }
         D "starting SSL for #{conn_addr}:#{conn_port}..."
         s = OpenSSL::SSL::SSLSocket.new(s, @ssl_context)
@@ -1032,7 +1032,7 @@ module Net   #:nodoc:
         # Server Name Indication (SNI) RFC 3546
         s.hostname = @address if s.respond_to? :hostname=
         if @ssl_session and
-           Process.clock_gettime(Process::CLOCK_REALTIME) < @ssl_session.time.to_f + @ssl_session.timeout
+            Process.clock_gettime(Process::CLOCK_REALTIME) < @ssl_session.time.to_f + @ssl_session.timeout
           s.session = @ssl_session
         end
         ssl_socket_connect(s, @open_timeout)
@@ -1147,7 +1147,7 @@ module Net   #:nodoc:
     def proxy_uri # :nodoc:
       return if @proxy_uri == false
       @proxy_uri ||= URI::HTTP.new(
-        "http".freeze, nil, address, port, nil, nil, nil, nil, nil
+          "http".freeze, nil, address, port, nil, nil, nil, nil, nil
       ).find_proxy || false
       @proxy_uri || nil
     end
@@ -1568,10 +1568,10 @@ module Net   #:nodoc:
       rescue Net::OpenTimeout
         raise
       rescue Net::ReadTimeout, IOError, EOFError,
-             Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPIPE, Errno::ETIMEDOUT,
-             # avoid a dependency on OpenSSL
-             defined?(OpenSSL::SSL) ? OpenSSL::SSL::SSLError : IOError,
-             Timeout::Error => exception
+          Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPIPE, Errno::ETIMEDOUT,
+          # avoid a dependency on OpenSSL
+          defined?(OpenSSL::SSL) ? OpenSSL::SSL::SSLError : IOError,
+          Timeout::Error => exception
         if count < max_retries && IDEMPOTENT_METHODS_.include?(req.method)
           count += 1
           @socket.close if @socket
