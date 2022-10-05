@@ -210,8 +210,6 @@ describe "String#gsub with pattern and replacement" do
     end
   end
 
-  # Note: $~ cannot be tested because mspec messes with it
-
   it "sets $~ to MatchData of last match and nil when there's none" do
     'hello.'.gsub('hello', 'x')
     $~[0].should == 'hello'
@@ -224,6 +222,18 @@ describe "String#gsub with pattern and replacement" do
 
     'hello.'.gsub(/not/, 'x')
     $~.should == nil
+  end
+
+  it "handles a pattern in a superset encoding" do
+    result = 'abc'.force_encoding(Encoding::US_ASCII).gsub('é', 'è')
+    result.should == 'abc'
+    result.encoding.should == Encoding::US_ASCII
+  end
+
+  it "handles a pattern in a subset encoding" do
+    result = 'été'.gsub('t'.force_encoding(Encoding::US_ASCII), 'u')
+    result.should == 'éué'
+    result.encoding.should == Encoding::UTF_8
   end
 end
 
