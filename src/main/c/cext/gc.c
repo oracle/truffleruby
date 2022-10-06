@@ -13,8 +13,7 @@
 // GC, rb_gc_*
 
 void rb_global_variable(VALUE *address) {
-  /* NOTE: this captures the value after the Init_ function returns and assumes the value does not change after that. */
-  polyglot_invoke(RUBY_CEXT, "rb_global_variable", address);
+  rb_gc_register_address(address);
 }
 
 void rb_gc_register_address(VALUE *address) {

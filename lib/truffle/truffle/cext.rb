@@ -1974,19 +1974,18 @@ module Truffle::CExt
   # and would be slower for rb_gc_unregister_address().
   GC_REGISTERED_ADDRESSES = {}
 
-  def rb_global_variable(address)
-    rb_gc_register_address(address, 'rb_global_variable')
-  end
-
-  def rb_gc_register_address(address, function = 'rb_gc_register_address')
+  def rb_gc_register_address(address)
     # Make it a native pointer so its identity hash is stable
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
 
     c_global_variables = Primitive.fiber_c_global_variables
-    unless c_global_variables
-      raise "#{function}() called outside of Init_ function, this is not supported yet on TruffleRuby"
+    if c_global_variables # called during Init_ function
+      c_global_variables << address
+    else
+      # Read it immediately if outside Init_ function.
+      # This assumes the value is already set when this is called and does not change after that.
+      GC_REGISTERED_ADDRESSES[address] = LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
     end
-    c_global_variables << address
   end
 
   def resolve_registered_addresses
