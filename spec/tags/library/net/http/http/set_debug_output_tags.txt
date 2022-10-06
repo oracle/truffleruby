@@ -1,1 +1,2 @@
 slow:Net::HTTP#set_debug_output when passed io sets the passed io as output stream for debugging
+slow:Net::HTTP#set_debug_output when passed io outputs a warning when the connection has already been started

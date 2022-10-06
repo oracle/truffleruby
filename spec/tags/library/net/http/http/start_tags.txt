@@ -1,0 +1,13 @@
+slow:Net::HTTP.start when not passed a block returns a new Net::HTTP object for the passed address and port
+slow:Net::HTTP.start when not passed a block opens the tcp connection
+slow:Net::HTTP.start when passed a block returns the blocks return value
+slow:Net::HTTP.start when passed a block yields the new Net::HTTP object to the block
+slow:Net::HTTP.start when passed a block opens the tcp connection before yielding
+slow:Net::HTTP.start when passed a block closes the tcp connection after yielding
+slow:Net::HTTP#start returns self
+slow:Net::HTTP#start opens the tcp connection
+slow:Net::HTTP#start when self has already been started raises an IOError
+slow:Net::HTTP#start when passed a block returns the blocks return value
+slow:Net::HTTP#start when passed a block yields the new Net::HTTP object to the block
+slow:Net::HTTP#start when passed a block opens the tcp connection before yielding
+slow:Net::HTTP#start when passed a block closes the tcp connection after yielding
