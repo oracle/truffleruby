@@ -41,7 +41,6 @@ local part_definitions = {
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
         MX_PYTHON: "python3.8",
-        TRUFFLE_STRICT_OPTION_DEPRECATION: "true",
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
