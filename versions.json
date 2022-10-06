@@ -3,7 +3,7 @@
     "default": {
       "bundler": "2.3.7",
       "erb": "2.2.3",
-      "gem": "3.2.32",
+      "gem": "3.3.7",
       "irb": "1.4.1",
       "racc": "1.6.0",
       "rdoc": "6.4.0",
@@ -11,14 +11,15 @@
     },
 
     "bundled": {
-      "minitest": "5.16.3",
+      "debug": "1.4.0",
+      "minitest": "5.15.0",
       "power_assert": "2.0.1",
       "rake": "13.0.6",
       "test-unit": "3.5.3",
+      "rbs": "2.1.0",
       "rexml": "3.2.5",
       "rss": "0.2.9",
-      "typeprof": "0.21.3",
-      "rbs": "2.6.0"
+      "typeprof": "0.21.2"
     }
   }
 }
