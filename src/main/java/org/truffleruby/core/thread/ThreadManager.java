@@ -9,12 +9,15 @@
  */
 package org.truffleruby.core.thread;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,6 +25,7 @@ import java.util.function.Supplier;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.CompiledInterruptible;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
@@ -134,12 +138,42 @@ public class ThreadManager {
         PRNGRandomizerNodes.resetSeed(context, rootThread.randomizer);
     }
 
+    private static ThreadFactory getVirtualThreadFactory() {
+        if (TruffleOptions.AOT) {
+            return null; // GR-40931 native image does not support deoptimization + VirtualThread currently.
+        }
+
+        final Method ofVirtual, unstarted;
+        try {
+            ofVirtual = Thread.class.getMethod("ofVirtual");
+            unstarted = Class.forName("java.lang.Thread$Builder").getMethod("unstarted", Runnable.class);
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+
+        return (runnable) -> {
+            try {
+                Object builder = ofVirtual.invoke(null);
+                return (Thread) unstarted.invoke(builder, runnable);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new Error(e);
+            }
+        };
+    }
+
+    @CompilationFinal static ThreadFactory VIRTUAL_THREAD_FACTORY = getVirtualThreadFactory();
+
     private Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable runnable) {
         if (context.isPreInitializing()) {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        final Thread thread;
+        if (context.getOptions().VIRTUAL_THREAD_FIBERS) {
+            thread = VIRTUAL_THREAD_FACTORY.newThread(runnable);
+        } else {
+            thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        }
 
         language.rubyThreadInitMap.put(thread, fiber.rubyThread);
         language.rubyFiberInitMap.put(thread, fiber);
