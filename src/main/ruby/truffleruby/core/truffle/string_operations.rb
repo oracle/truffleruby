@@ -105,7 +105,9 @@ module Truffle
     def self.gsub_string_matches(global, orig, pattern)
       res = []
       offset = 0
-      while index = byte_index(orig, pattern, offset)
+      enc = Primitive.encoding_ensure_compatible_str orig, pattern
+
+      while index = byte_index(orig, pattern, enc, offset)
         match = Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize)
         res << match
         break unless global
@@ -285,7 +287,7 @@ module Truffle
     end
 
     # MRI: rb_str_byteindex_m
-    def self.byte_index(src, str, start=0)
+    def self.byte_index(src, str, enc, start = 0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
@@ -294,9 +296,7 @@ module Truffle
 
       return start if str == ''
 
-      Primitive.encoding_ensure_compatible_str src, str
-
-      Primitive.string_byte_index(src, str, start)
+      Primitive.string_byte_index(src, str, enc, start)
     end
 
     def self.subpattern(string, pattern, capture)
@@ -320,7 +320,7 @@ module Truffle
         raise IndexError, "index #{index} out of string"
       end
 
-      unless bi = Primitive.string_byte_index_from_char_index(string, index)
+      unless bi = Primitive.character_index_to_byte_index(string, index)
         raise IndexError, "unable to find character at: #{index}"
       end
 
@@ -335,10 +335,10 @@ module Truffle
         if total >= string.size
           bs = string.bytesize - bi
         else
-          bs = Primitive.string_byte_index_from_char_index(string, total) - bi
+          bs = Primitive.character_index_to_byte_index(string, total) - bi
         end
       else
-        bs = index == string.size ? 0 : Primitive.string_byte_index_from_char_index(string, index + 1) - bi
+        bs = index == string.size ? 0 : Primitive.character_index_to_byte_index(string, index + 1) - bi
       end
 
       replacement = StringValue replacement
@@ -364,7 +364,7 @@ module Truffle
 
       raise RangeError, "#{index.first} is out of range" if start < 0 or start > string.size
 
-      bi = Primitive.string_byte_index_from_char_index(string, start)
+      bi = Primitive.character_index_to_byte_index(string, start)
       raise IndexError, "unable to find character at: #{start}" unless bi
 
       if stop < start
@@ -372,7 +372,7 @@ module Truffle
       elsif stop >= string.size
         bs = string.bytesize - bi
       else
-        bs = Primitive.string_byte_index_from_char_index(string, stop + 1) - bi
+        bs = Primitive.character_index_to_byte_index(string, stop + 1) - bi
       end
 
       replacement = StringValue replacement
@@ -406,8 +406,8 @@ module Truffle
       replacement = StringValue replacement
       enc = Primitive.encoding_ensure_compatible_str string, replacement
 
-      bi = Primitive.string_byte_index_from_char_index(string, match.begin(count))
-      bs = Primitive.string_byte_index_from_char_index(string, match.end(count)) - bi
+      bi = Primitive.character_index_to_byte_index(string, match.begin(count))
+      bs = Primitive.character_index_to_byte_index(string, match.end(count)) - bi
 
       Primitive.string_splice(string, replacement, bi, bs, enc)
     end

@@ -214,6 +214,17 @@ describe "String#sub with pattern, replacement" do
     "ababa".sub(/(b)/, '\\\\\1').should == "a\\baba"
   end
 
+  it "handles a pattern in a superset encoding" do
+    result = 'abc'.force_encoding(Encoding::US_ASCII).sub('é', 'è')
+    result.should == 'abc'
+    result.encoding.should == Encoding::US_ASCII
+  end
+
+  it "handles a pattern in a subset encoding" do
+    result = 'été'.sub('t'.force_encoding(Encoding::US_ASCII), 'u')
+    result.should == 'éué'
+    result.encoding.should == Encoding::UTF_8
+  end
 end
 
 describe "String#sub with pattern and block" do

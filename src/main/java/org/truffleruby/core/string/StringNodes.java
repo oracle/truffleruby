@@ -3774,7 +3774,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_byte_character_index", lowerFixnum = 1)
+    @Primitive(name = "byte_index_to_character_index", lowerFixnum = 1)
     public abstract static class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected int byteIndexToCodePointIndex(Object string, int byteIndex,
@@ -3786,8 +3786,20 @@ public abstract class StringNodes {
         }
     }
 
+    // Named 'string_byte_index' in Rubinius.
+    @Primitive(name = "character_index_to_byte_index", lowerFixnum = 1)
+    public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object byteIndexFromCharIndex(Object string, int characterIndex,
+                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
+                @Cached RubyStringLibrary libString) {
+            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
+                    libString.getTEncoding(string));
+        }
+    }
+
     /** Search pattern in string starting after offset characters, and return a character index or nil */
-    @Primitive(name = "string_character_index", lowerFixnum = 2)
+    @Primitive(name = "string_character_index", lowerFixnum = 3)
     public abstract static class StringCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
         protected final RubyStringLibrary libString = RubyStringLibrary.create();
@@ -3795,7 +3807,8 @@ public abstract class StringNodes {
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
         @Specialization(guards = "singleByteOptimizableNode.execute(string, stringEncoding)")
-        protected Object singleByteOptimizable(Object rubyString, Object rubyPattern, int codePointOffset,
+        protected Object singleByteOptimizable(
+                Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int codePointOffset,
                 @Bind("libString.getTString(rubyString)") AbstractTruffleString string,
                 @Bind("libString.getEncoding(rubyString)") RubyEncoding stringEncoding,
                 @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString pattern,
@@ -3808,12 +3821,11 @@ public abstract class StringNodes {
             // When single-byte optimizable, the byte length and the codepoint length are the same.
             int stringByteLength = string.byteLength(stringEncoding.tencoding);
 
-            assert codePointOffset + pattern.byteLength(
-                    patternEncoding.tencoding) <= stringByteLength : "already checked in the caller, String#index";
+            assert codePointOffset + pattern.byteLength(patternEncoding.tencoding) <= stringByteLength
+                    : "already checked in the caller, String#index";
 
-            int found = byteIndexOfStringNode.execute(string, pattern, codePointOffset,
-                    stringByteLength,
-                    stringEncoding.tencoding);
+            int found = byteIndexOfStringNode.execute(string, pattern, codePointOffset, stringByteLength,
+                    compatibleEncoding.tencoding);
 
             if (foundProfile.profile(found >= 0)) {
                 return found;
@@ -3823,7 +3835,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!singleByteOptimizableNode.execute(string, stringEncoding)")
-        protected Object multiByte(Object rubyString, Object rubyPattern, int codePointOffset,
+        protected Object multiByte(
+                Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int codePointOffset,
                 @Bind("libString.getTString(rubyString)") AbstractTruffleString string,
                 @Bind("libString.getEncoding(rubyString)") RubyEncoding stringEncoding,
                 @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString pattern,
@@ -3838,7 +3851,7 @@ public abstract class StringNodes {
 
             int stringCodePointLength = codePointLengthNode.execute(string, stringEncoding.tencoding);
             int found = indexOfStringNode.execute(string, pattern, codePointOffset, stringCodePointLength,
-                    stringEncoding.tencoding);
+                    compatibleEncoding.tencoding);
 
             if (foundProfile.profile(found >= 0)) {
                 return found;
@@ -3849,11 +3862,12 @@ public abstract class StringNodes {
     }
 
     /** Search pattern in string starting after offset bytes, and return a byte index or nil */
-    @Primitive(name = "string_byte_index", lowerFixnum = 2)
+    @Primitive(name = "string_byte_index", lowerFixnum = 3)
     public abstract static class StringByteIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object stringByteIndex(Object rubyString, Object rubyPattern, int byteOffset,
+        protected Object stringByteIndex(
+                Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int byteOffset,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libPattern,
                 @Cached TruffleString.ByteIndexOfStringNode byteIndexOfStringNode,
@@ -3862,35 +3876,22 @@ public abstract class StringNodes {
             assert byteOffset >= 0;
 
             var string = libString.getTString(rubyString);
-            var stringEncoding = libString.getEncoding(rubyString).tencoding;
-            int stringByteLength = string.byteLength(stringEncoding);
+            int stringByteLength = libString.byteLength(rubyString);
 
             var pattern = libPattern.getTString(rubyPattern);
-            var patternEncoding = libPattern.getEncoding(rubyPattern).tencoding;
-            int patternByteLength = pattern.byteLength(patternEncoding);
+            int patternByteLength = libPattern.byteLength(rubyPattern);
 
             if (indexOutOfBoundsProfile.profile(byteOffset + patternByteLength > stringByteLength)) {
                 return nil;
             }
 
-            int found = byteIndexOfStringNode.execute(string, pattern, byteOffset, stringByteLength, stringEncoding);
+            int found = byteIndexOfStringNode.execute(string, pattern, byteOffset, stringByteLength,
+                    compatibleEncoding.tencoding);
             if (foundProfile.profile(found >= 0)) {
                 return found;
             }
 
             return nil;
-        }
-    }
-
-    // Named 'string_byte_index' in Rubinius.
-    @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
-    public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        protected Object byteIndexFromCharIndex(Object string, int characterIndex,
-                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
-                @Cached RubyStringLibrary libString) {
-            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
-                    libString.getTEncoding(string));
         }
     }
 
@@ -3984,7 +3985,7 @@ public abstract class StringNodes {
             assert byteOffset >= 0;
 
             // Throw an exception if the encodings are not compatible.
-            checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
+            var compatibleEncoding = checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
 
             var string = libString.getTString(rubyString);
             var stringEncoding = libString.getEncoding(rubyString).tencoding;
@@ -4007,7 +4008,7 @@ public abstract class StringNodes {
             }
 
             int result = lastByteIndexOfStringNode.execute(string, pattern, normalizedStart + patternByteLength, 0,
-                    stringEncoding);
+                    compatibleEncoding.tencoding);
 
             if (result < 0) {
                 noMatchProfile.enter();

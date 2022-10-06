@@ -18,6 +18,7 @@ Bug fixes:
 * Fix `String#split` missing a value in its return array when called with a pattern of `" "` and a _limit_ value > 0 on a string with trailing whitespace where the limit hasn't been met (@nirvdrum).
 * Fix `Kernel#sleep` and `Mutex#sleep` for durations smaller than 1 millisecond (#2716, @eregon).
 * Fix `IO#{wait,wait_readable,wait_writable}` with a timeout > INT_MAX seconds (@eregon).
+* Use the compatible encoding for `String#{sub,gsub,index,rindex}` (#2749, @eregon).
 
 Compatibility:
 
