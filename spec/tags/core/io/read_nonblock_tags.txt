@@ -1,0 +1,4 @@
+fails:IO#read_nonblock reads after ungetc with data in the buffer
+fails:IO#read_nonblock raises an exception after ungetc with data in the buffer and character conversion enabled
+fails:IO#read_nonblock discards the existing buffer content upon error
+fails:IO#read_nonblock preserves the encoding of the given buffer

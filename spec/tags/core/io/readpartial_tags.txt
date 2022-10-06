@@ -3,3 +3,4 @@ fails:IO#readpartial discards the existing buffer content upon successful read
 fails:IO#readpartial raises EOFError on EOF
 fails:IO#readpartial discards the existing buffer content upon error
 fails:IO#readpartial raises IOError if the stream is closed
+fails:IO#readpartial preserves the encoding of the given buffer
