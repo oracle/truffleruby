@@ -19,6 +19,11 @@ describe "CApiGCSpecs" do
       GC.start
       @f.registered_before_rb_gc_register_address.should == "registered before rb_gc_register_address()"
     end
+
+    it "can be called outside Init_" do
+      @f.rb_gc_register_address.should == "rb_gc_register_address() outside Init_"
+      @f.rb_gc_unregister_address
+    end
   end
 
   describe "rb_global_variable" do
