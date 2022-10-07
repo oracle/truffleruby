@@ -349,7 +349,7 @@ public class CoreMethodNodeManager {
                     null,
                     sharedMethodInfo,
                     new ReRaiseInlinedExceptionNode(nodeFactory),
-                    split,
+                    Split.NEVER,
                     ReturnID.INVALID);
             return reRaiseRootNode.getCallTarget();
         }
