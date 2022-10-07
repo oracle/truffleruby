@@ -28,18 +28,18 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -345,29 +345,28 @@ public abstract class MatchDataNodes {
                         "!isInteger(index)",
                         "!isRubySymbol(index)",
                         "isNotRubyString(index)",
-                        "!isIntRange(index)" })
+                        "!isRubyRange(index)" })
         protected Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
 
-        @TruffleBoundary
-        @Specialization
-        protected RubyArray getIndex(RubyMatchData matchData, RubyIntRange range, NotProvided len) {
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object getIndexRange(RubyMatchData matchData, Object range, NotProvided other,
+                @Cached RangeNodes.NormalizedStartLengthNode startLengthNode,
+                @Cached ConditionProfile negativeStart) {
             final Object[] values = getValuesNode.execute(matchData);
-            int index = range.begin;
-            if (range.begin < 0) {
-                index += values.length;
-            }
-            int end = range.end;
-            if (end < 0) {
-                end += values.length;
-            }
-            final int exclusiveEnd = ArrayOperations
-                    .clampExclusiveIndex(values.length, range.excludedEnd ? end : end + 1);
-            final int length = exclusiveEnd - index;
+            final int[] startLength = startLengthNode.execute(range, values.length);
 
-            return createArray(Arrays.copyOfRange(values, index, index + length));
+            int start = startLength[0];
+            int length = Math.max(startLength[1], 0); // negative length leads to returning an empty array
+
+            if (negativeStart.profile(start < 0)) {
+                return Nil.INSTANCE;
+            }
+
+            int end = Math.min(start + length, values.length);
+            return createArray(Arrays.copyOfRange(values, start, end));
         }
 
         @TruffleBoundary

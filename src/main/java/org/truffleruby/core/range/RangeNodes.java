@@ -584,8 +584,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "range.isBoundless()")
-        protected int[] normalizeNilNilRange(RubyObjectRange range, int size,
-                @Cached ToIntNode toInt) {
+        protected int[] normalizeNilNilRange(RubyObjectRange range, int size) {
             return new int[]{ 0, size };
         }
 

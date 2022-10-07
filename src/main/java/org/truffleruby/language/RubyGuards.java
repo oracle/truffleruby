@@ -103,10 +103,6 @@ public abstract class RubyGuards {
         return value instanceof RubyBignum;
     }
 
-    public static boolean isIntRange(Object value) {
-        return value instanceof RubyIntRange;
-    }
-
     public static boolean isRubyRange(Object value) {
         return value instanceof RubyObjectRange || value instanceof RubyIntRange ||
                 value instanceof RubyLongRange;
