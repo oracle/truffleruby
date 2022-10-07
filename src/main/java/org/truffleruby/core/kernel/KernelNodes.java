@@ -1873,7 +1873,7 @@ public abstract class KernelNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized());
+            return create(getValueNode().cloneUninitialized()).copyFlags(this);
         }
 
     }
@@ -1934,7 +1934,7 @@ public abstract class KernelNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getSelfNode().cloneUninitialized());
+            return create(getSelfNode().cloneUninitialized()).copyFlags(this);
         }
 
     }

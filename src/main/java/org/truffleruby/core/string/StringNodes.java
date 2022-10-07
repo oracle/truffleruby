@@ -214,7 +214,7 @@ public abstract class StringNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getRubyClassNode().cloneUninitialized());
+            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
         }
 
     }

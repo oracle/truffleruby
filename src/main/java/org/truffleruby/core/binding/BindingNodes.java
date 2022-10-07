@@ -271,7 +271,7 @@ public abstract class BindingNodes {
         public RubyNode cloneUninitialized() {
             return create(
                     getBindingNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
+                    getNameNodeBeforeCasting().cloneUninitialized()).copyFlags(this);
         }
 
     }
@@ -336,7 +336,7 @@ public abstract class BindingNodes {
         public RubyNode cloneUninitialized() {
             return create(
                     getBindingNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
+                    getNameNodeBeforeCasting().cloneUninitialized()).copyFlags(this);
         }
 
     }
@@ -455,7 +455,7 @@ public abstract class BindingNodes {
             return create(
                     getBindingNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
-                    getValueNode().cloneUninitialized());
+                    getValueNode().cloneUninitialized()).copyFlags(this);
         }
 
     }

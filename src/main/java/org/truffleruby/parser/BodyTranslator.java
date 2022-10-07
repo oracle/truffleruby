@@ -48,14 +48,14 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
-import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
+import org.truffleruby.core.regexp.MatchDataNodes.GetFixedNameMatchNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -64,8 +64,8 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -125,17 +125,14 @@ import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.language.literal.StringLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.literal.TruffleKernelOperationsModuleLiteralNode;
-import org.truffleruby.language.locals.DeclarationFlipFlopStateNode;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.locals.FlipFlopNode;
-import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
-import org.truffleruby.language.locals.LocalFlipFlopStateNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
-import org.truffleruby.language.methods.GetDefaultDefineeNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -308,11 +305,12 @@ public class BodyTranslator extends Translator {
         return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
     }
 
-    private RubyNode translateNameNodeToSymbol(ParseNode node) {
+    private RubySymbol translateNameNodeToSymbol(ParseNode node) {
         if (node instanceof LiteralParseNode) {
-            return new ObjectLiteralNode(language.getSymbol(((LiteralParseNode) node).getName()));
+            return language.getSymbol(((LiteralParseNode) node).getName());
         } else if (node instanceof SymbolParseNode) {
-            return node.accept(this);
+            var encoding = Encodings.getBuiltInEncoding(((SymbolParseNode) node).getEncoding());
+            return language.getSymbol(((SymbolParseNode) node).getTString(), encoding);
         } else {
             throw new UnsupportedOperationException(node.getClass().getName());
         }
@@ -322,16 +320,11 @@ public class BodyTranslator extends Translator {
     public RubyNode visitAliasNode(AliasParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode oldNameNode = translateNameNodeToSymbol(node.getOldName());
-        final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
-
-        final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
-                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
-                newNameNode,
-                oldNameNode);
+        final RubySymbol newName = translateNameNodeToSymbol(node.getNewName());
+        final RubySymbol oldName = translateNameNodeToSymbol(node.getOldName());
+        final RubyNode ret = new ModuleNodes.AliasKeywordNode(newName, oldName);
 
         ret.unsafeSetSourceSection(sourceSection);
-
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1397,10 +1390,9 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode moduleNode = TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode());
         final RubyNode ret = translateMethodDefinition(
                 sourceSection,
-                moduleNode,
+                null,
                 node.getName(),
                 node.getArgsNode(),
                 node,
@@ -1615,21 +1607,21 @@ public class BodyTranslator extends Translator {
         final RubyNode begin = node.getBeginNode().accept(this);
         final RubyNode end = node.getEndNode().accept(this);
 
-        final FlipFlopStateNode stateNode = createFlipFlopState(sourceSection, 0);
+        final FrameSlotAndDepth slotAndDepth = createFlipFlopState(sourceSection, 0);
 
-        final RubyNode ret = new FlipFlopNode(begin, end, stateNode, node.isExclusive());
+        final RubyNode ret = new FlipFlopNode(begin, end, node.isExclusive(), slotAndDepth.depth, slotAndDepth.slot);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
 
-    protected FlipFlopStateNode createFlipFlopState(SourceIndexLength sourceSection, int depth) {
+    protected FrameSlotAndDepth createFlipFlopState(SourceIndexLength sourceSection, int depth) {
         final int frameSlot = environment.declareLocalTemp("flipflop");
         environment.getFlipFlopStates().add(frameSlot);
 
         if (depth == 0) {
-            return new LocalFlipFlopStateNode(frameSlot);
+            return new FrameSlotAndDepth(frameSlot, 0);
         } else {
-            return new DeclarationFlipFlopStateNode(depth, frameSlot);
+            return new FrameSlotAndDepth(frameSlot, depth);
         }
     }
 
@@ -2190,9 +2182,7 @@ public class BodyTranslator extends Translator {
     private RubyNode match2NonNilSetter(ParseNode node, String name, int tempSlot) {
         ReadLocalNode varNode = environment.findLocalVarNode(name, node.getPosition());
         ReadLocalNode tempVarNode = environment.readNode(tempSlot, node.getPosition());
-        ObjectLiteralNode symbolNode = new ObjectLiteralNode(language.getSymbol(name));
-        GetIndexNode getIndexNode = GetIndexNode
-                .create(tempVarNode, symbolNode, new ObjectLiteralNode(NotProvided.INSTANCE));
+        GetFixedNameMatchNode getIndexNode = new GetFixedNameMatchNode(tempVarNode, language.getSymbol(name));
         return varNode.makeWriteNode(getIndexNode);
     }
 
@@ -2978,13 +2968,9 @@ public class BodyTranslator extends Translator {
     public RubyNode visitUndefNode(UndefParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
-                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
-                translateNameNodeToSymbol(node.getName())
-        });
+        final RubyNode ret = new ModuleNodes.UndefKeywordNode(translateNameNodeToSymbol(node.getName()));
 
         ret.unsafeSetSourceSection(sourceSection);
-
         return addNewlineIfNeeded(node, ret);
     }
 

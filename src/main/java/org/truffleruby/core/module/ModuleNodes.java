@@ -342,24 +342,52 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName,
-                @Cached BranchProfile errorProfile) {
+        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
+            return aliasMethod(module, newName, oldName, this);
+        }
+
+        @TruffleBoundary
+        static RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName, RubyNode node) {
+            RubyContext context = node.getContext();
+            module.fields.checkFrozen(context, node);
+
             final InternalMethod method = module.fields
-                    .deepMethodSearch(getContext(), oldName.getString());
+                    .deepMethodSearch(context, oldName.getString());
 
             if (method == null) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorUndefinedMethod(
+                throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
                         oldName.getString(),
                         module,
-                        this));
+                        node));
             }
 
             final InternalMethod aliasMethod = method.withName(newName.getString());
-            module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
+            module.addMethodConsiderNameVisibility(context, aliasMethod, aliasMethod.getVisibility(), node);
             return newName;
         }
 
+    }
+
+    public static class AliasKeywordNode extends RubyContextSourceNode {
+
+        private final RubySymbol newName;
+        private final RubySymbol oldName;
+
+        public AliasKeywordNode(RubySymbol newName, RubySymbol oldName) {
+            this.newName = newName;
+            this.oldName = oldName;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
+            return AliasMethodNode.aliasMethod(module, newName, oldName, this);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new AliasKeywordNode(newName, oldName).copyFlags(this);
+        }
     }
 
     @CoreMethod(names = "ancestors")
@@ -2232,15 +2260,27 @@ public abstract class ModuleNodes {
             }
             return module;
         }
+    }
 
-        /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
-        @TruffleBoundary
-        @Specialization
-        protected RubyModule undefKeyword(RubyModule module, RubySymbol name) {
+    public static class UndefKeywordNode extends RubyContextSourceNode {
+
+        private final RubySymbol name;
+
+        public UndefKeywordNode(RubySymbol name) {
+            this.name = name;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
             module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
             return module;
         }
 
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new UndefKeywordNode(name).copyFlags(this);
+        }
     }
 
     @CoreMethod(names = "used_modules", onSingleton = true)

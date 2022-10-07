@@ -56,15 +56,15 @@ public abstract class RubyContextSourceNode extends RubyNode {
         this.sourceLength = sourceLength;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
-    }
-
     public RubyContextSourceNode copyFlags(RubyContextSourceNode original) {
         this.sourceCharIndex = original.sourceCharIndex;
         this.sourceLength = original.sourceLength;
         this.flags = original.flags;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
     }
 }

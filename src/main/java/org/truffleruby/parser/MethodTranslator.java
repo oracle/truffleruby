@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -37,7 +38,6 @@ import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
@@ -519,7 +519,7 @@ public class MethodTranslator extends BodyTranslator {
     }
 
     @Override
-    protected FlipFlopStateNode createFlipFlopState(SourceIndexLength sourceSection, int depth) {
+    protected FrameSlotAndDepth createFlipFlopState(SourceIndexLength sourceSection, int depth) {
         if (isBlock) {
             return parent.createFlipFlopState(sourceSection, depth + 1);
         } else {

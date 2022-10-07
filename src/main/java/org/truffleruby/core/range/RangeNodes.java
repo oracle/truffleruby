@@ -415,7 +415,8 @@ public abstract class RangeNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd);
+            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd)
+                    .copyFlags(this);
         }
     }
 
@@ -486,7 +487,7 @@ public abstract class RangeNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getRubyClassNode().cloneUninitialized());
+            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
         }
 
     }

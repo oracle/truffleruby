@@ -57,7 +57,7 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
                         getReceiverNode(),
                         getArgumentNodes(),
                         getBlockNode()));
-                callNode.unsafeSetSourceSection(getSourceIndexLength());
+                callNode.copyFlags(this);
                 replacedBy = callNode;
                 return replace(callNode, this + " could not be executed inline");
             } else {

@@ -37,7 +37,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(language, values);
-        newNode.unsafeSetSourceSection(getSourceIndexLength());
+        newNode.copyFlags(this);
         replace(newNode);
 
         final Object[] executedValues = new Object[values.length];
@@ -261,7 +261,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                     executedValues.length);
             final Object store = array.getStore();
 
-            final RubyNode newNode;
+            final ArrayLiteralNode newNode;
 
             if (store == ArrayStoreLibrary.initialStorage(false)) {
                 newNode = new EmptyArrayLiteralNode(language, values);
@@ -275,7 +275,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                 newNode = new ObjectArrayLiteralNode(language, values);
             }
 
-            newNode.unsafeSetSourceSection(getSourceIndexLength());
+            newNode.copyFlags(this);
             replace(newNode);
 
             return array;

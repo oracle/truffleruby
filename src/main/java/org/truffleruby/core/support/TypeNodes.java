@@ -414,7 +414,7 @@ public abstract class TypeNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized());
+            return create(getValueNode().cloneUninitialized()).copyFlags(this);
         }
 
     }

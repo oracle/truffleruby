@@ -49,7 +49,9 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyModule module = (RubyModule) moduleNode.execute(frame);
+        final RubyModule module = moduleNode == null
+                ? RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods()
+                : (RubyModule) moduleNode.execute(frame);
 
         final Visibility visibility;
         if (isDefSingleton) {
@@ -103,7 +105,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new LiteralMethodDefinitionNode(
-                moduleNode.cloneUninitialized(),
+                cloneUninitialized(moduleNode),
                 name,
                 sharedMethodInfo,
                 isDefSingleton,

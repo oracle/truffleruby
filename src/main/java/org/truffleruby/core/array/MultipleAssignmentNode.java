@@ -126,7 +126,7 @@ public class MultipleAssignmentNode extends RubyContextSourceNode implements Ass
                 cloneUninitializedAssignable(restNode),
                 cloneUninitializedAssignable(postNodes),
                 (SplatCastNode) splatCastNode.cloneUninitialized(),
-                rhsNode.cloneUninitialized());
+                RubyNode.cloneUninitialized(rhsNode));
         return copy.copyFlags(this);
     }
 

@@ -319,7 +319,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public abstract RubyNode cloneUninitialized();
 
-    protected static RubyNode cloneUninitialized(RubyNode node) {
+    public static RubyNode cloneUninitialized(RubyNode node) {
         return (node == null) ? null : node.cloneUninitialized();
     }
 

@@ -633,7 +633,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -671,7 +671,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1158,14 +1158,14 @@ public abstract class InteropNodes {
     @GenerateNodeFactory
     @CoreMethod(names = "null?", onSingleton = true, required = 1)
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class NullNode extends RubySourceNode {
+    public abstract static class IsNullNode extends RubySourceNode {
 
-        public static NullNode create() {
-            return InteropNodesFactory.NullNodeFactory.create(null);
+        public static IsNullNode create() {
+            return InteropNodesFactory.IsNullNodeFactory.create(null);
         }
 
-        public static NullNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.NullNodeFactory.create(argumentNodes);
+        public static IsNullNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.IsNullNodeFactory.create(argumentNodes);
         }
 
         abstract Object execute(Object receiver);
@@ -1180,7 +1180,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1291,7 +1291,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1325,7 +1325,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1365,7 +1365,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1405,7 +1405,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }
@@ -1460,7 +1460,7 @@ public abstract class InteropNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
 
     }

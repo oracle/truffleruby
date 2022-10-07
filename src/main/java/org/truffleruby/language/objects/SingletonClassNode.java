@@ -153,6 +153,6 @@ public abstract class SingletonClassNode extends RubySourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        return SingletonClassNodeGen.create(getValueNode().cloneUninitialized());
+        return SingletonClassNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
     }
 }

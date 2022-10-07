@@ -175,10 +175,11 @@ public class RubyRootNode extends RubyBaseRootNode {
         if (this == clone) {
             throw CompilerDirectives.shouldNotReachHere("clone same as this");
         }
-        if (this.getClass() != clone.getClass()) {
-            throw CompilerDirectives
-                    .shouldNotReachHere("different clone class: " + this.getClass() + " vs " + clone.getClass());
-        }
+        assertSame(this.getClass(), clone.getClass());
+        assertSame(getSourceSection(), clone.getSourceSection());
+        assertSame(sharedMethodInfo, clone.sharedMethodInfo);
+        assertSame(getSplit(), clone.getSplit());
+        assertSame(returnID, clone.returnID);
 
         IdentityHashMap<Node, Boolean> specializedNodes = new IdentityHashMap<>();
         this.body.accept((node) -> {
@@ -214,6 +215,12 @@ public class RubyRootNode extends RubyBaseRootNode {
         }
     }
 
+    private void assertSame(Object a, Object b) {
+        if (a != b) {
+            throw CompilerDirectives.shouldNotReachHere("different " + a + " vs " + b + " for: " + this);
+        }
+    }
+
     private void ensureClonedCorrectly(Node original, Node clone, IdentityHashMap<Node, Boolean> specializedNodes) {
         // A clone should be a new instance
         // Actually this should never happen since the bodyCopy is separate from the initialized AST
@@ -235,6 +242,18 @@ public class RubyRootNode extends RubyBaseRootNode {
         // Should be instances of the same class
         if (original.getClass() != clone.getClass()) {
             throw new CloningError("Nodes are instances of different classes", original, clone);
+        }
+
+        if (original instanceof RubyNode) {
+            var a = (RubyNode) original;
+            var b = (RubyNode) clone;
+            if (a.getFlags() != b.getFlags()) {
+                throw new CloningError("flags not copied", original, clone);
+            } else if (a.getSourceCharIndex() != b.getSourceCharIndex()) {
+                throw new CloningError("sourceCharIndex not copied", original, clone);
+            } else if (a.getSourceLength() != b.getSourceLength()) {
+                throw new CloningError("sourceLength not copied", original, clone);
+            }
         }
 
         Node[] originalChildren = childrenToArray(original);

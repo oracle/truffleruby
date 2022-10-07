@@ -63,7 +63,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        return ToJavaStringNodeGen.create(getValueNode().cloneUninitialized());
+        return ToJavaStringNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
     }
 
 }

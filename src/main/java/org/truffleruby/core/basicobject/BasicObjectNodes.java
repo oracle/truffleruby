@@ -202,7 +202,7 @@ public abstract class BasicObjectNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes()));
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
         }
     }
 
@@ -329,7 +329,7 @@ public abstract class BasicObjectNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized());
+            return create(getValueNode().cloneUninitialized()).copyFlags(this);
         }
     }
 
