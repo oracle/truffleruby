@@ -1332,11 +1332,9 @@ module Commands
 
   private def test_compiler(*args)
     truffleruby_compiler!
-    env = {}
-    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
 
     run_tests('test/truffle/compiler', args) do |test_script|
-      sh env, test_script
+      sh test_script
     end
   end
 
