@@ -98,7 +98,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     public boolean shouldAlwaysClone() {
         assert isCloningAllowed();
 
-        if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+        if (getLanguage().options.ALWAYS_CLONE_ALL) {
             return split != Split.NEVER;
         }
 

@@ -52,6 +52,7 @@ LANGUAGE_OPTIONS:
 - EXPERIMENTAL_ENGINE_CACHING
 - RUN_TWICE
 - CHECK_CLONE_UNINITIALIZED_CORRECTNESS
+- ALWAYS_CLONE_ALL
 
 USER:
   STABLE:
@@ -228,6 +229,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     CLONE_DEFAULT: [clone-default, boolean, true, Default option for cloning]
     INLINE_DEFAULT: [inline-default, boolean, true, Default option for inlining]
     CORE_ALWAYS_CLONE: [core-always-clone, boolean, false, Always clone built-in core methods]
+    ALWAYS_CLONE_ALL: [always-clone-all, boolean, false, 'Always clone all call targets (very slow, only for debugging)']
     ALWAYS_SPLIT_HONOR: [always-split-honor, boolean, CLONE_DEFAULT, 'Honor Truffle::Graal.always_split annotations']
     NEVER_SPLIT_HONOR: [never-split-honor, boolean, true, 'Honor Truffle::Graal.never_split annotations']
     INLINE_NEEDS_CALLER_FRAME: [inline-needs-caller-frame, boolean, INLINE_DEFAULT, Inline methods that need their caller frame]
