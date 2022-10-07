@@ -19,7 +19,7 @@ import org.truffleruby.language.RubyNode;
 public abstract class CoreMethodNode extends RubyContextSourceNode {
 
     @Override
-    public RubyNode cloneUninitialized() {
+    public final RubyNode cloneUninitialized() {
         throw CompilerDirectives.shouldNotReachHere(
                 getClass() + " should be handled by RubyCoreMethodRootNode#cloneUninitializedRootNode()");
     }

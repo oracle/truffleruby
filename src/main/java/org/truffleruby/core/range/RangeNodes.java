@@ -29,6 +29,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
@@ -38,7 +39,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
-import org.truffleruby.parser.BodyTranslator;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -386,18 +386,42 @@ public abstract class RangeNodes {
             return BooleanCastWithDefaultNode.create(false, excludeEnd);
         }
 
-        abstract RubyNode getRubyClassNode();
-
-        abstract RubyNode getBeginNode();
-
-        abstract RubyNode getEndNode();
-
-        abstract RubyBaseNodeWithExecute getExcludeEndNode();
-
-        public static NewNode create(RubyNode rubyClass, RubyNode begin, RubyNode end,
-                RubyBaseNodeWithExecute excludeEnd) {
-            return RangeNodesFactory.NewNodeFactory.create(rubyClass, begin, end, excludeEnd);
+        @Specialization
+        protected Object newRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+                @Cached NewRangeNode newRangeNode) {
+            return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
         }
+    }
+
+    public static class RangeLiteralNode extends RubyContextSourceNode {
+
+        @Child RubyNode beginNode;
+        @Child RubyNode endNode;
+        @Child NewRangeNode newRangeNode = RangeNodesFactory.NewRangeNodeGen.create();
+        private final boolean excludeEnd;
+
+        public RangeLiteralNode(RubyNode beginNode, RubyNode endNode, boolean excludeEnd) {
+            this.beginNode = beginNode;
+            this.endNode = endNode;
+            this.excludeEnd = excludeEnd;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            Object begin = beginNode.execute(frame);
+            Object end = endNode.execute(frame);
+            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, excludeEnd);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd);
+        }
+    }
+
+    public abstract static class NewRangeNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
 
         @Specialization(guards = "rubyClass == getRangeClass()")
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
@@ -424,8 +448,7 @@ public abstract class RangeNodes {
             }
 
             final Shape shape = getLanguage().objectRangeShape;
-            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end,
-                    standardClass);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end, standardClass);
             AllocationTracing.trace(range, this);
             return range;
         }
@@ -433,22 +456,6 @@ public abstract class RangeNodes {
         protected RubyClass getRangeClass() {
             return coreLibrary().rangeClass;
         }
-
-        private RubyBaseNodeWithExecute getExcludeEndNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getExcludeEndNode()).getValueNode();
-        }
-
-        /** Needed because it is used by {@link BodyTranslator#visitDotNode} */
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getRubyClassNode().cloneUninitialized(),
-                    getBeginNode().cloneUninitialized(),
-                    getEndNode().cloneUninitialized(),
-                    getExcludeEndNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @GenerateUncached

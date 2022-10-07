@@ -122,7 +122,6 @@ import org.truffleruby.language.literal.LongFixnumLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectClassLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
-import org.truffleruby.language.literal.RangeClassLiteralNode;
 import org.truffleruby.language.literal.StringLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.literal.TruffleKernelOperationsModuleLiteralNode;
@@ -1532,10 +1531,7 @@ public class BodyTranslator extends Translator {
         } else {
             final RubyNode begin = node.getBeginNode().accept(this);
             final RubyNode end = node.getEndNode().accept(this);
-            final RubyNode rangeClass = new RangeClassLiteralNode();
-            final RubyNode isExclusive = new ObjectLiteralNode(node.isExclusive());
-
-            ret = RangeNodes.NewNode.create(rangeClass, begin, end, isExclusive);
+            ret = new RangeNodes.RangeLiteralNode(begin, end, node.isExclusive());
         }
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
