@@ -28,6 +28,7 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.parser.ParentFrameDescriptor;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
@@ -173,8 +174,14 @@ public class RubyRootNode extends RubyBaseRootNode {
                     .shouldNotReachHere("different clone class: " + this.getClass() + " vs " + clone.getClass());
         }
 
+        IdentityHashMap<Node, Boolean> specializedNodes = new IdentityHashMap<>();
+        this.body.accept((node) -> {
+            specializedNodes.put(node, true);
+            return true;
+        });
+
         try {
-            ensureClonedCorrectly(bodyCopy, clone.body);
+            ensureClonedCorrectly(bodyCopy, clone.body, specializedNodes);
         } catch (CloningError e) {
             System.err.println();
 
@@ -201,15 +208,21 @@ public class RubyRootNode extends RubyBaseRootNode {
         }
     }
 
-    private void ensureClonedCorrectly(Node original, Node clone) {
+    private void ensureClonedCorrectly(Node original, Node clone, IdentityHashMap<Node, Boolean> specializedNodes) {
         // A clone should be a new instance
+        // Actually this should never happen since the bodyCopy is separate from the initialized AST
         if (original == clone) {
-            throw new CloningError("Original node equals a clone", original, clone);
+            throw new CloningError("Clone is the same instance as the original node", original, clone);
+        }
+
+        // A clone should never be a node from the initialized/specialized AST
+        if (specializedNodes.containsKey(clone)) {
+            throw new CloningError("Clone is a node from the initialized AST", clone, clone);
         }
 
         // Ignore instrumental wrappers (e.g. RubyNodeWrapper)
         if (original instanceof WrapperNode) {
-            ensureClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone);
+            ensureClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone, specializedNodes);
             return;
         }
 
@@ -228,7 +241,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
         // Should have the same children
         for (int i = 0; i < cloneChildren.length; i++) {
-            ensureClonedCorrectly(originalChildren[i], cloneChildren[i]);
+            ensureClonedCorrectly(originalChildren[i], cloneChildren[i], specializedNodes);
         }
     }
 

@@ -35,12 +35,8 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
-        this(children, RegexpBuilderNode.create(options));
-    }
-
-    public InterpolatedRegexpNode(ToSNode[] children, RegexpBuilderNode builderNode) {
         this.children = children;
-        this.builderNode = builderNode;
+        this.builderNode = RegexpBuilderNode.create(options);
     }
 
     @Override
@@ -64,7 +60,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     public RubyNode cloneUninitialized() {
         var copy = new InterpolatedRegexpNode(
                 cloneUninitialized(children),
-                builderNode);
+                builderNode.options);
         return copy.copyFlags(this);
     }
 
