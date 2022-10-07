@@ -179,7 +179,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                 .createNodeFromFactory(method.alwaysInlinedNodeFactory, RubyNode.EMPTY_ARRAY);
     }
 
-    /** Asserted in {@link CoreMethodNodeManager#createCoreMethodRootNode} */
+    /** Asserted in {@link CoreMethodNodeManager#createCoreMethodCallTarget} */
     protected AlwaysInlinedMethodNode getUncachedAlwaysInlinedMethodNode(InternalMethod method) {
         return (AlwaysInlinedMethodNode) method.alwaysInlinedNodeFactory.getUncachedInstance();
     }

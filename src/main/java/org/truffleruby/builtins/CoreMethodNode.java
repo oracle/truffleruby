@@ -9,7 +9,7 @@
  */
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -20,9 +20,8 @@ public abstract class CoreMethodNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
-        var copy = (CoreMethodNode) CoreMethodNodeManager.createNodeFromFactory(factory, RubyNode.EMPTY_ARRAY);
-        return copy.copyFlags(this);
+        throw CompilerDirectives.shouldNotReachHere(
+                getClass() + " should be handled by RubyCoreMethodRootNode#cloneUninitializedRootNode()");
     }
 
 }
