@@ -319,6 +319,10 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public abstract RubyNode cloneUninitialized();
 
+    protected static RubyNode cloneUninitialized(RubyNode node) {
+        return (node == null) ? null : node.cloneUninitialized();
+    }
+
     protected static RubyNode[] cloneUninitialized(RubyNode[] nodes) {
         if (nodes == null) {
             return null;
@@ -329,10 +333,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
             copies[i] = nodes[i].cloneUninitialized();
         }
         return copies;
-    }
-
-    protected static RubyNode cloneUninitialized(RubyNode node) {
-        return (node == null) ? null : node.cloneUninitialized();
     }
 
 }

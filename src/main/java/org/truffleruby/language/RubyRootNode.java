@@ -96,6 +96,12 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     public boolean shouldAlwaysClone() {
+        assert isCloningAllowed();
+
+        if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+            return split != Split.NEVER;
+        }
+
         return split == Split.ALWAYS;
     }
 

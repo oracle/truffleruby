@@ -36,7 +36,7 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
             RubyCallNodeParameters callNodeParameters,
             Assumption... assumptions) {
         // nullify receiver, arguments and block for clarity
-        // because they should be overriden in subclasses.
+        // because they should be overridden in subclasses.
         this.parameters = callNodeParameters.withoutNodes();
 
         this.assumptions = new Assumption[1 + assumptions.length];
