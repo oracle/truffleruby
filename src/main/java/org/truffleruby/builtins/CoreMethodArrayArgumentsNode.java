@@ -16,6 +16,4 @@ import com.oracle.truffle.api.dsl.NodeChild;
 @NodeChild(value = "argumentNodes", type = RubyNode[].class)
 public abstract class CoreMethodArrayArgumentsNode extends CoreMethodNode {
 
-    public abstract RubyNode[] getArgumentNodes();
-
 }

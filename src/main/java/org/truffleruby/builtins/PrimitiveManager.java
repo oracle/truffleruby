@@ -20,7 +20,6 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.options.LanguageOptions;
 
 /** Manages the available primitive calls. */
@@ -58,18 +57,10 @@ public class PrimitiveManager {
 
     public PrimitiveNodeConstructor addPrimitive(NodeFactory<? extends RubyBaseNode> nodeFactory,
             Primitive annotation) {
-        assert assertNodeClass(nodeFactory.getNodeClass());
         return ConcurrentOperations.getOrCompute(
                 primitives,
                 annotation.name(),
                 k -> new PrimitiveNodeConstructor(annotation, nodeFactory));
-    }
-
-    private boolean assertNodeClass(Class<? extends RubyBaseNode> nodeClass) {
-        // Note already checked in CoreModuleProcessor
-        assert PrimitiveNode.class.isAssignableFrom(nodeClass) || RubySourceNode.class.isAssignableFrom(nodeClass)
-                : nodeClass + " should inherit from PrimitiveArrayArgumentsNode, PrimitiveNode or RubySourceNode";
-        return true;
     }
 
     public void loadCoreMethodNodes(LanguageOptions languageOptions) {
