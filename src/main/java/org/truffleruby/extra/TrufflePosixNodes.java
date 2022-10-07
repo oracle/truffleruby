@@ -10,9 +10,9 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.time.GetTimeZoneNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -31,7 +31,7 @@ public abstract class TrufflePosixNodes {
     }
 
     @Primitive(name = "posix_invalidate_env")
-    public abstract static class InvalidateEnvNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InvalidateEnvNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "libEnvVar.isRubyString(envVar)", limit = "1")

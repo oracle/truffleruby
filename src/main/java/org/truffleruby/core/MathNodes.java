@@ -387,9 +387,9 @@ public abstract class MathNodes {
     }
 
     @Primitive(name = "math_hypot")
-    public abstract static class HypotNode extends SimpleDyadicMathNode {
+    public abstract static class HypotNode extends PrimitiveArrayArgumentsNode {
 
-        @Override
+        @Specialization
         protected double doFunction(double a, double b) {
             return Math.hypot(a, b);
         }

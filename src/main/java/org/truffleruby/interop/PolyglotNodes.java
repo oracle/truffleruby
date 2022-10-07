@@ -212,7 +212,7 @@ public abstract class PolyglotNodes {
     }
 
     @Primitive(name = "inner_context_eval")
-    public abstract static class InnerContextEvalNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InnerContextEvalNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = {
                 "idLib.isRubyString(langId)",
                 "codeLib.isRubyString(code)",

@@ -155,7 +155,7 @@ public abstract class TruffleKernelNodes {
     // Only used internally with a constant literal name, does not trigger hooks
     @Primitive(name = "global_variable_set")
     @ImportStatic(Layouts.class)
-    public abstract static class WriteGlobalVariableNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class WriteGlobalVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "name == cachedName", limit = "1")
         protected Object write(RubySymbol name, Object value,
@@ -168,7 +168,7 @@ public abstract class TruffleKernelNodes {
     // Only used internally with a constant literal name, does not trigger hooks
     @Primitive(name = "global_variable_get")
     @ImportStatic(Layouts.class)
-    public abstract static class ReadGlobalVariableNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ReadGlobalVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "name == cachedName", limit = "1")
         protected Object read(RubySymbol name,
@@ -321,7 +321,7 @@ public abstract class TruffleKernelNodes {
 
     @Primitive(name = "get_original_require")
     @ImportStatic(Layouts.class)
-    public abstract static class GetOriginalRequireNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class GetOriginalRequireNode extends PrimitiveArrayArgumentsNode {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 

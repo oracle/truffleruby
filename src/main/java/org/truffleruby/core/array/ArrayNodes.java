@@ -1324,9 +1324,10 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_inject")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class InjectNode extends YieldingCoreMethodNode {
+    public abstract static class InjectNode extends PrimitiveArrayArgumentsNode {
 
         @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         // Uses block
 
@@ -1374,7 +1375,7 @@ public abstract class ArrayNodes {
             int n = start;
             try {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    accumulator = callBlock(block, accumulator, stores.read(store, n));
+                    accumulator = yieldNode.yield(block, accumulator, stores.read(store, n));
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n - start);

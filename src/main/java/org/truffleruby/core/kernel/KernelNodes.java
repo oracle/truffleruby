@@ -402,7 +402,7 @@ public abstract class KernelNodes {
     }
 
     @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })
-    public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CallerLocationsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object callerLocations(int omit, NotProvided length) {

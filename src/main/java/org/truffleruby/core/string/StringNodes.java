@@ -349,7 +349,7 @@ public abstract class StringNodes {
 
     // compatibleEncoding is RubyEncoding or Nil in this node
     @Primitive(name = "string_cmp")
-    public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CompareNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "first.isEmpty() || second.isEmpty()")
         protected int empty(Object a, Object b, RubyEncoding compatibleEncoding,
@@ -1506,7 +1506,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_initialize")
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding,
@@ -3167,7 +3167,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_append")
-    public abstract static class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringHelperNodes.StringAppendNode stringAppendNode = StringHelperNodes.StringAppendNode
                 .create();
@@ -3438,7 +3438,7 @@ public abstract class StringNodes {
     /** Like {@code string.byteslice(byteIndex)} but returns nil if the character is broken. */
     @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringChrAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
                 guards = { "indexOutOfBounds(strings.byteLength(string), byteIndex)" })
@@ -3620,7 +3620,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_find_character", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringFindCharacterNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "offset < 0")
         protected Object stringFindCharacterNegativeOffset(Object string, int offset) {
@@ -4026,7 +4026,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string_reverse", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringRindexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object stringRindex(Object rubyString, Object rubyPattern, int byteOffset,
@@ -4242,7 +4242,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_append")
-    public abstract static class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
         protected RubyString stringByteAppend(RubyString string, Object other,
                 @Cached RubyStringLibrary libString,
@@ -4262,7 +4262,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
     @ImportStatic(StringGuards.class)
-    public abstract static class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object execute(Object string, int codePointOffset, int codePointLength);
 

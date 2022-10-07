@@ -139,7 +139,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_backtrace", lowerFixnum = { 1, 2 })
-    public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BacktraceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object backtrace(RubyThread rubyThread, int omit, NotProvided length) {
@@ -182,7 +182,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "all_fibers_backtraces")
-    public abstract static class AllFibersBacktracesNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AllFibersBacktracesNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

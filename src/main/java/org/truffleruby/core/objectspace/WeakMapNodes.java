@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.array.RubyArray;
@@ -75,7 +76,7 @@ public abstract class WeakMapNodes {
     }
 
     @Primitive(name = "weakmap_aset")
-    public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class SetIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object set(RubyWeakMap map, Object key, Object value) {

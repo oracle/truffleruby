@@ -394,7 +394,7 @@ public abstract class EncodingNodes {
 
     // MRI: rb_enc_compatible
     @Primitive(name = "encoding_compatible?")
-    public abstract static class CompatibleQueryNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CompatibleQueryNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
                 .create();
@@ -418,7 +418,7 @@ public abstract class EncodingNodes {
 
     // encoding_compatible? but only accepting Strings for better footprint
     @Primitive(name = "strings_compatible?")
-    public abstract static class AreStringsCompatibleNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AreStringsCompatibleNode extends PrimitiveArrayArgumentsNode {
         public static AreStringsCompatibleNode create() {
             return EncodingNodesFactory.AreStringsCompatibleNodeFactory.create(null);
         }
