@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '89bb8e13309d3d61d86be3d31861b751c62c3b77'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'b380512e79fbdc6235e27d347d75b22d21486497'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -1349,7 +1349,7 @@ module Commands
     tools postinstallhook
     minimum method module globals backtraces xopenssl werror stripped
     oily_png psd_native
-    puma sqlite3 unf_ext json RubyInline msgpack
+    puma sqlite3 unf_ext json grpc RubyInline msgpack
   ]
 
   private def test_cexts(*args)
@@ -1437,6 +1437,8 @@ module Commands
         sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
       when 'json'
         sh 'test/truffle/cexts/json/json.sh'
+      when 'grpc'
+        sh 'test/truffle/cexts/grpc/grpc.sh'
 
       when 'RubyInline'
         # Test a gem dynamically compiling a C extension

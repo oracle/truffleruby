@@ -17,7 +17,7 @@ original_path = ENV['PATH'].delete_prefix("#{RbConfig::CONFIG['toolchain_path']}
 system_cc = find_executable('cc', original_path)
 
 cflags = %w[-Wall -Werror -fPIC -std=c99]
-ldflags = %w[-m64]
+ldflags = %w[]
 
 command system_cc, '-o', "#{name}.o", '-c', *cflags, *ldflags, "#{name}.c"
 command system_cc, '-shared', *ldflags, '-o', "#{name}.#{so}", "#{name}.o"

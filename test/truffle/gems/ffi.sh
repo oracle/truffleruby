@@ -9,9 +9,8 @@ export PATH="$ruby_home/bin:$PATH"
 
 cd spec/ffi || exit 1
 
-# Use ruby -S to avoid the nested shebang problem on macOS when using GraalVM Bash launchers
 # Same gems as msgpack
-ruby -S bundle config --local cache_path "$gem_test_pack/gem-testing/msgpack-ruby/gem-cache"
-ruby -S bundle install --local --no-cache
+bundle config --local cache_path "$gem_test_pack/gem-testing/msgpack-ruby/gem-cache"
+bundle install --local --no-cache
 
-ruby -S bundle exec rspec --format doc .
+bundle exec rspec --format doc .
