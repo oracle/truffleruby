@@ -2618,7 +2618,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_to_symbol")
     @ImportStatic(StringGuards.class)
-    public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToSymNode extends PrimitiveArrayArgumentsNode {
 
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
 

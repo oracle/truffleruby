@@ -354,7 +354,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_get_raise_exception")
-    public abstract static class GetRaiseExceptionNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class GetRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getRaiseException(RubyException exception) {
