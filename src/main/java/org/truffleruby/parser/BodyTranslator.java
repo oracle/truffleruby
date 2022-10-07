@@ -137,7 +137,7 @@ import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.GetDefaultDefineeNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
-import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
+import org.truffleruby.language.methods.ModuleBodyDefinition;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.DefineClassNode;
@@ -1056,7 +1056,7 @@ public class BodyTranslator extends Translator {
                 currentNode,
                 rubyWarnings);
 
-        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode);
+        final ModuleBodyDefinition definition = moduleTranslator.compileClassNode(sourceSection, bodyNode);
 
         return Translator.withSourceSection(sourceSection, new RunModuleDefinitionNode(definition, defineOrGetNode));
     }
@@ -1068,7 +1068,7 @@ public class BodyTranslator extends Translator {
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
      */
-    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode) {
+    private ModuleBodyDefinition compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
         body = new InsideModuleDefinitionNode(body);
@@ -1092,7 +1092,7 @@ public class BodyTranslator extends Translator {
                 Split.NEVER,
                 environment.getReturnID());
 
-        return new ModuleBodyDefinitionNode(
+        return new ModuleBodyDefinition(
                 environment.getSharedMethodInfo().getBacktraceName(),
                 environment.getSharedMethodInfo(),
                 rootNode.getCallTarget(),
