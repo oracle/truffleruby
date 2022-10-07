@@ -975,24 +975,16 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyNode.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNode.create(name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyNode getNameNode();
-
-        public static RbConstGetNode create(RubyNode module, RubyNode name) {
-            return CExtNodesFactory.RbConstGetNodeFactory.create(module, name);
         }
 
         @Specialization
@@ -1001,40 +993,20 @@ public class CExtNodes {
                     .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
         }
 
-        private RubyNode getNameNodeBeforeCasting() {
-            return ((ToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyNode.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNode.create(name);
         }
-
-        public static RbConstGetFromNode create(RubyNode moduleNode, RubyNode nameNode) {
-            return CExtNodesFactory.RbConstGetFromNodeFactory.create(moduleNode, nameNode);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyNode getNameNode();
 
         @Specialization
         protected Object rbConstGetFrom(RubyModule module, String name) {
@@ -1042,40 +1014,18 @@ public class CExtNodes {
                     .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
         }
 
-        private RubyNode getNameNodeBeforeCasting() {
-            return ((ToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "rb_const_set", onSingleton = true, required = 3)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyNode.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class RbConstSetNode extends CoreMethodNode {
 
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNode.create(name);
         }
-
-        public static RbConstSetNode create(RubyNode moduleNode, RubyNode nameNode, RubyNode valueNode) {
-            return CExtNodesFactory.RbConstSetNodeFactory.create(moduleNode, nameNode, valueNode);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyNode getNameNode();
-
-        abstract RubyNode getValueNode();
 
         @Specialization
         protected Object rbConstSet(RubyModule module, String name, Object value,
@@ -1083,18 +1033,6 @@ public class CExtNodes {
             return constSetUncheckedNode.execute(module, name, value);
         }
 
-        private RubyNode getNameNodeBeforeCasting() {
-            return ((ToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getValueNode().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
     }
 
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)

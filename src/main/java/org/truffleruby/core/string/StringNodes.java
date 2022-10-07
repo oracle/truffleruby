@@ -220,22 +220,14 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class AddNode extends CoreMethodNode {
 
-        @CreateCast("otherNode")
+        @CreateCast("other")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
-        }
-
-        abstract RubyNode getStringNode();
-
-        abstract RubyBaseNodeWithExecute getOtherNode();
-
-        public static AddNode create(RubyNode string, RubyBaseNodeWithExecute other) {
-            return StringNodesFactory.AddNodeFactory.create(string, other);
         }
 
         @Specialization
@@ -243,40 +235,19 @@ public abstract class StringNodes {
                 @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
             return stringAppendNode.executeStringAppend(string, other);
         }
-
-        private RubyBaseNodeWithExecute getOtherNodeBeforeCasting() {
-            return ((ToStrNode) getOtherNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getOtherNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "*", required = 1)
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "timesNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "times", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class MulNode extends CoreMethodNode {
 
-        @CreateCast("timesNode")
+        @CreateCast("times")
         protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
             // Not ToIntNode, because this works with empty strings, and must throw a different error
             // for long values that don't fit in an int.
             return FixnumLowerNode.create(ToLongNode.create(times));
-        }
-
-        abstract RubyNode getStringNode();
-
-        abstract RubyBaseNodeWithExecute getTimesNode();
-
-        public static MulNode create(RubyNode string, RubyBaseNodeWithExecute times) {
-            return StringNodesFactory.MulNodeFactory.create(string, times);
         }
 
         @Specialization(guards = "times == 0")
@@ -326,19 +297,6 @@ public abstract class StringNodes {
             // MRI throws this error whenever the total size of the resulting string would exceed LONG_MAX.
             // In TruffleRuby, strings have max length Integer.MAX_VALUE.
             return new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
-        }
-
-        private RubyBaseNodeWithExecute getTimesNodeBeforeCasting() {
-            var toLongNode = ((FixnumLowerNode) getTimesNode()).getValueNode();
-            return ((ToLongNode) toLongNode).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getTimesNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
     }
 
@@ -2352,33 +2310,23 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfNotMutableSelf = true, lowerFixnum = { 1, 2 })
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "indexNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+    @ImportStatic(StringGuards.class)
     public abstract static class SetByteNode extends CoreMethodNode {
 
         @Child private StringHelperNodes.CheckIndexNode checkIndexNode = StringHelperNodesFactory.CheckIndexNodeGen
                 .create();
 
-        @CreateCast("indexNode")
+        @CreateCast("index")
         protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
-        @CreateCast("valueNode")
+        @CreateCast("value")
         protected ToIntNode coerceValueToInt(RubyBaseNodeWithExecute value) {
             return ToIntNode.create(value);
-        }
-
-        abstract RubyNode getStringNode();
-
-        abstract RubyBaseNodeWithExecute getIndexNode();
-
-        abstract RubyBaseNodeWithExecute getValueNode();
-
-        public static SetByteNode create(RubyNode string, RubyBaseNodeWithExecute index,
-                RubyBaseNodeWithExecute value) {
-            return StringNodesFactory.SetByteNodeFactory.create(string, index, value);
         }
 
         @Specialization(guards = "tstring.isMutable()")
@@ -2407,24 +2355,6 @@ public abstract class StringNodes {
             string.setTString(mutableTString);
             return value;
         }
-
-        private RubyBaseNodeWithExecute getIndexNodeBeforeCasting() {
-            return ((ToIntNode) getIndexNode()).getChildNode();
-        }
-
-        private RubyBaseNodeWithExecute getValueNodeBeforeCasting() {
-            return ((ToIntNode) getValueNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getIndexNodeBeforeCasting().cloneUninitialized(),
-                    getValueNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = { "size", "length" })
@@ -2813,33 +2743,23 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "selfNode", type = RubyNode.class)
-    @NodeChild(value = "fromStrNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
-        @CreateCast("fromStrNode")
+        @CreateCast("fromStr")
         protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
 
-        @CreateCast("toStrNode")
+        @CreateCast("toStr")
         protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
             return ToStrNodeGen.create(toStr);
-        }
-
-        abstract RubyNode getSelfNode();
-
-        abstract RubyBaseNodeWithExecute getFromStrNode();
-
-        abstract RubyBaseNodeWithExecute getToStrNode();
-
-        public static TrBangNode create(RubyNode self, RubyBaseNodeWithExecute fromStr, RubyBaseNodeWithExecute toStr) {
-            return StringNodesFactory.TrBangNodeFactory.create(self, fromStr, toStr);
         }
 
         @Specialization(guards = "isEmpty(self.tstring)")
@@ -2878,29 +2798,11 @@ public abstract class StringNodes {
             return StringHelperNodes.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, false,
                     this);
         }
-
-        private RubyBaseNodeWithExecute getFromStrNodeBeforeCasting() {
-            return ((ToStrNode) getFromStrNode()).getChildNode();
-        }
-
-        private RubyBaseNodeWithExecute getToStrNodeBeforeCasting() {
-            return ((ToStrNode) getToStrNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getSelfNode().cloneUninitialized(),
-                    getFromStrNodeBeforeCasting().cloneUninitialized(),
-                    getToStrNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "tr_s!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "selfNode", type = RubyNode.class)
-    @NodeChild(value = "fromStrNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
@@ -2908,7 +2810,7 @@ public abstract class StringNodes {
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
-        @CreateCast("fromStrNode")
+        @CreateCast("fromStr")
         protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
@@ -2916,17 +2818,6 @@ public abstract class StringNodes {
         @CreateCast("toStrNode")
         protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
             return ToStrNodeGen.create(toStr);
-        }
-
-        abstract RubyNode getSelfNode();
-
-        abstract RubyBaseNodeWithExecute getFromStrNode();
-
-        abstract RubyBaseNodeWithExecute getToStrNode();
-
-        public static TrSBangNode create(RubyNode self, RubyBaseNodeWithExecute fromStr,
-                RubyBaseNodeWithExecute toStr) {
-            return StringNodesFactory.TrSBangNodeFactory.create(self, fromStr, toStr);
         }
 
         @Specialization(
@@ -2961,45 +2852,19 @@ public abstract class StringNodes {
             return StringHelperNodes.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, true,
                     this);
         }
-
-        private RubyBaseNodeWithExecute getFromStrNodeBeforeCasting() {
-            return ((ToStrNode) getFromStrNode()).getChildNode();
-        }
-
-        private RubyBaseNodeWithExecute getToStrNodeBeforeCasting() {
-            return ((ToStrNode) getToStrNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getSelfNode().cloneUninitialized(),
-                    getFromStrNodeBeforeCasting().cloneUninitialized(),
-                    getToStrNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "unpack", required = 1)
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "formatNode", type = RubyBaseNodeWithExecute.class)
     @ReportPolymorphism
     public abstract static class UnpackNode extends CoreMethodNode {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
-        @CreateCast("formatNode")
+        @CreateCast("format")
         protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
-        }
-
-        abstract RubyNode getStringNode();
-
-        abstract RubyBaseNodeWithExecute getFormatNode();
-
-        public static UnpackNode create(RubyNode string, RubyBaseNodeWithExecute format) {
-            return StringNodesFactory.UnpackNodeFactory.create(string, format);
         }
 
         @Specialization(guards = { "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" })
@@ -3078,17 +2943,6 @@ public abstract class StringNodes {
             return getLanguage().options.UNPACK_CACHE;
         }
 
-        private RubyBaseNodeWithExecute getFormatNodeBeforeCasting() {
-            return ((ToStrNode) getFormatNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getFormatNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
     }
 
     @Primitive(name = "string_upcase!", raiseIfNotMutable = 0, lowerFixnum = 1)

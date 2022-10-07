@@ -38,6 +38,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
+import org.truffleruby.parser.BodyTranslator;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -437,6 +438,7 @@ public abstract class RangeNodes {
             return ((BooleanCastWithDefaultNode) getExcludeEndNode()).getValueNode();
         }
 
+        /** Needed because it is used by {@link BodyTranslator#visitDotNode} */
         @Override
         public RubyNode cloneUninitialized() {
             var copy = create(

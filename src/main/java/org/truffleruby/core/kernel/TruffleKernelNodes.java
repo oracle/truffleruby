@@ -84,22 +84,14 @@ public abstract class TruffleKernelNodes {
         }
     }
 
+    @NodeChild(value = "file", type = RubyNode.class)
+    @NodeChild(value = "wrap", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "load", onSingleton = true, required = 1, optional = 1)
-    @NodeChild(value = "fileNode", type = RubyNode.class)
-    @NodeChild(value = "wrapNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class LoadNode extends CoreMethodNode {
 
-        @CreateCast("wrapNode")
+        @CreateCast("wrap")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(false, inherit);
-        }
-
-        abstract RubyNode getFileNode();
-
-        abstract RubyBaseNodeWithExecute getWrapNode();
-
-        public static LoadNode create(RubyNode file, RubyBaseNodeWithExecute wrap) {
-            return TruffleKernelNodesFactory.LoadNodeFactory.create(file, wrap);
         }
 
         @TruffleBoundary
@@ -156,18 +148,6 @@ public abstract class TruffleKernelNodes {
             deferredCall.call(callNode);
 
             return true;
-        }
-
-        private RubyBaseNodeWithExecute getWrapNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getWrapNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getFileNode().cloneUninitialized(),
-                    getWrapNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }

@@ -60,7 +60,7 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
 
     public abstract int execute(Object object);
 
-    public abstract RubyBaseNodeWithExecute getChildNode();
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected int coerceInt(int value) {

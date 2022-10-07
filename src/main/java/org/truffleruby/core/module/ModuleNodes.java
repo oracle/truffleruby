@@ -47,7 +47,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToPathNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
@@ -327,28 +326,17 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, split = Split.NEVER)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "newNameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "oldNameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "newName", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
-        public static AliasMethodNode create(RubyNode module, RubyBaseNodeWithExecute newName,
-                RubyBaseNodeWithExecute oldName) {
-            return ModuleNodesFactory.AliasMethodNodeFactory.create(module, newName, oldName);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNewNameNode();
-
-        abstract RubyBaseNodeWithExecute getOldNameNode();
-
-        @CreateCast("newNameNode")
+        @CreateCast("newName")
         protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
             return ToSymbolNode.create(newName);
         }
 
-        @CreateCast("oldNameNode")
+        @CreateCast("oldName")
         protected RubyBaseNodeWithExecute coerceOldNameToSymbol(RubyBaseNodeWithExecute oldName) {
             return ToSymbolNode.create(oldName);
         }
@@ -370,23 +358,6 @@ public abstract class ModuleNodes {
             final InternalMethod aliasMethod = method.withName(newName.getString());
             module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
             return newName;
-        }
-
-        private RubyBaseNodeWithExecute getNewNameNodeBeforeCasting() {
-            return ((ToSymbolNode) getNewNameNode()).getValueNode();
-        }
-
-        private RubyBaseNodeWithExecute getOldNameNodeBeforeCasting() {
-            return ((ToSymbolNode) getOldNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNewNameNodeBeforeCasting().cloneUninitialized(),
-                    getOldNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -614,28 +585,17 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload", required = 2)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "filenameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "filename", type = RubyBaseNodeWithExecute.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
-        public static AutoloadNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute filename) {
-            return ModuleNodesFactory.AutoloadNodeFactory.create(module, name, filename);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyBaseNodeWithExecute getFilenameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceNameToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("filenameNode")
+        @CreateCast("filename")
         protected RubyBaseNodeWithExecute coerceFilenameToPath(RubyBaseNodeWithExecute filename) {
             return ToPathNodeGen.create(filename);
         }
@@ -662,49 +622,20 @@ public abstract class ModuleNodes {
             module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
             return nil;
         }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        private RubyBaseNodeWithExecute getFilenameNodeBeforeCasting() {
-            return ((ToPathNode) getFilenameNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getFilenameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "autoload?", required = 1, optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class IsAutoloadNode extends CoreMethodNode {
 
-        public static IsAutoloadNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.IsAutoloadNodeFactory.create(module, name, inherit);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -727,24 +658,6 @@ public abstract class ModuleNodes {
                 return nil;
             }
         }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
@@ -879,19 +792,11 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_defined?", required = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
 
-        public static ClassVariableDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.ClassVariableDefinedNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -904,34 +809,14 @@ public abstract class ModuleNodes {
             return lookupClassVariableNode.execute(module, name) != null;
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "class_variable_get", required = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableGetNode extends CoreMethodNode {
 
-        public static ClassVariableGetNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.ClassVariableGetNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -953,37 +838,15 @@ public abstract class ModuleNodes {
             }
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ClassVariableSetNode extends CoreMethodNode {
 
-        public static ClassVariableSetNode create(RubyNode module, RubyBaseNodeWithExecute name, RubyNode value) {
-            return ModuleNodesFactory.ClassVariableSetNodeFactory.create(module, name, value);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyNode getValueNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -997,35 +860,14 @@ public abstract class ModuleNodes {
             return value;
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getValueNode().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "class_variables", optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariablesNode extends CoreMethodNode {
 
-        public static ClassVariablesNode create(RubyNode module, RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.ClassVariablesNodeFactory.create(module, inherit);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -1045,35 +887,14 @@ public abstract class ModuleNodes {
 
             return createArray(variables.toArray());
         }
-
-        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "constants", optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstantsNode extends CoreMethodNode {
 
-        public static ConstantsNode create(RubyNode module, RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.ConstantsNodeFactory.create(module, inherit);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -1098,18 +919,6 @@ public abstract class ModuleNodes {
             }
 
             return createArray(constantsArray.toArray());
-        }
-
-        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -1334,19 +1143,11 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_missing", required = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstMissingNode extends CoreMethodNode {
 
-        public static ConstMissingNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.ConstMissingNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -1356,45 +1157,22 @@ public abstract class ModuleNodes {
             throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, name, this));
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "const_source_location", required = 1, optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstSourceLocationNode extends CoreMethodNode {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
-        public static ConstSourceLocationNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.ConstSourceLocationNodeFactory.create(module, name, inherit);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToStringOrSymbol(RubyBaseNodeWithExecute name) {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -1435,48 +1213,21 @@ public abstract class ModuleNodes {
             }
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((ToStringOrSymbolNode) getNameNode()).getChildNode();
-        }
-
-        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "const_set", required = 2)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ConstSetNode extends CoreMethodNode {
-
-        @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
 
         public static ConstSetNode create() {
             return ConstSetNodeFactory.create(null, null, null);
         }
 
-        public static ConstSetNode create(RubyNode module, RubyBaseNodeWithExecute name, RubyNode value) {
-            return ModuleNodesFactory.ConstSetNodeFactory.create(module, name, value);
-        }
+        @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
 
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyNode getValueNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -1493,20 +1244,6 @@ public abstract class ModuleNodes {
 
             return uncheckedSetNode.execute(module, name, value);
         }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getValueNode().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @NodeChild(value = "module", type = RubyNode.class)
@@ -1880,28 +1617,17 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "method_defined?", required = 1, optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
-        public static MethodDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.MethodDefinedNodeFactory.create(module, name, inherit);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -1917,23 +1643,6 @@ public abstract class ModuleNodes {
             }
 
             return method != null && !method.isUndefined() && !(method.getVisibility() == Visibility.PRIVATE);
-        }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -2125,19 +1834,11 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "public_instance_method", required = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
 
-        public static PublicInstanceMethodNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.PublicInstanceMethodNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -2165,22 +1866,10 @@ public abstract class ModuleNodes {
             return instance;
         }
 
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     protected abstract static class AbstractInstanceMethodsNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -2189,11 +1878,7 @@ public abstract class ModuleNodes {
             this.visibility = visibility;
         }
 
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
-
-        @CreateCast("includeAncestorsNode")
+        @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -2207,29 +1892,13 @@ public abstract class ModuleNodes {
             return createArray(objects);
         }
 
-        protected RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
-        }
-
     }
 
     @CoreMethod(names = "public_instance_methods", optional = 1)
     public abstract static class PublicInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
-        public static PublicInstanceMethodsNode create(RubyNode module, RubyBaseNodeWithExecute includeAncestors) {
-            return ModuleNodesFactory.PublicInstanceMethodsNodeFactory.create(module, includeAncestors);
-        }
-
         public PublicInstanceMethodsNode() {
             super(Visibility.PUBLIC);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -2237,20 +1906,8 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected_instance_methods", optional = 1)
     public abstract static class ProtectedInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
-        public static ProtectedInstanceMethodsNode create(RubyNode module, RubyBaseNodeWithExecute includeAncestors) {
-            return ModuleNodesFactory.ProtectedInstanceMethodsNodeFactory.create(module, includeAncestors);
-        }
-
         public ProtectedInstanceMethodsNode() {
             super(Visibility.PROTECTED);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -2258,27 +1915,16 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_instance_methods", optional = 1)
     public abstract static class PrivateInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
-        public static PrivateInstanceMethodsNode create(RubyNode module, RubyBaseNodeWithExecute includeAncestors) {
-            return ModuleNodesFactory.PrivateInstanceMethodsNodeFactory.create(module, includeAncestors);
-        }
-
         public PrivateInstanceMethodsNode() {
             super(Visibility.PRIVATE);
         }
 
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -2287,18 +1933,12 @@ public abstract class ModuleNodes {
             this.visibility = visibility;
         }
 
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyBaseNodeWithExecute getInheritNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("inheritNode")
+        @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -2319,98 +1959,35 @@ public abstract class ModuleNodes {
             return method != null && !method.isUndefined() && !method.isUnimplemented() &&
                     method.getVisibility() == visibility;
         }
-
-        protected RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        protected RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
-        }
-
     }
 
     @CoreMethod(names = "public_method_defined?", required = 1, optional = 1)
     public abstract static class PublicMethodDefinedNode extends AbstractMethodDefinedNode {
-
-        public static PublicMethodDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.PublicMethodDefinedNodeFactory.create(module, name, inherit);
-        }
-
         public PublicMethodDefinedNode() {
             super(Visibility.PUBLIC);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "protected_method_defined?", required = 1, optional = 1)
     public abstract static class ProtectedMethodDefinedNode extends AbstractMethodDefinedNode {
-
-        public static ProtectedMethodDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.ProtectedMethodDefinedNodeFactory.create(module, name, inherit);
-        }
-
         public ProtectedMethodDefinedNode() {
             super(Visibility.PROTECTED);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "private_method_defined?", required = 1, optional = 1)
     public abstract static class PrivateMethodDefinedNode extends AbstractMethodDefinedNode {
-        public static PrivateMethodDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name,
-                RubyBaseNodeWithExecute inherit) {
-            return ModuleNodesFactory.PrivateMethodDefinedNodeFactory.create(module, name, inherit);
-        }
-
         public PrivateMethodDefinedNode() {
             super(Visibility.PRIVATE);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getInheritNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
     }
 
     @CoreMethod(names = "instance_methods", optional = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "includeAncestorsNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class InstanceMethodsNode extends CoreMethodNode {
 
-        public static InstanceMethodsNode create(RubyNode module, RubyBaseNodeWithExecute includeAncestors) {
-            return ModuleNodesFactory.InstanceMethodsNodeFactory.create(module, includeAncestors);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getIncludeAncestorsNode();
-
-        @CreateCast("includeAncestorsNode")
+        @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
@@ -2423,19 +2000,6 @@ public abstract class ModuleNodes {
                     .toArray();
             return createArray(objects);
         }
-
-        protected RubyBaseNodeWithExecute getIncludeAncestorsNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getIncludeAncestorsNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getIncludeAncestorsNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
@@ -2539,19 +2103,11 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "remove_class_variable", required = 1)
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveClassVariableNode extends CoreMethodNode {
 
-        public static RemoveClassVariableNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.RemoveClassVariableNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
+        @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -2561,18 +2117,6 @@ public abstract class ModuleNodes {
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
             checkClassVariableNameNode.execute(module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
-        }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }

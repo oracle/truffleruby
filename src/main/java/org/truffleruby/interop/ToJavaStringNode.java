@@ -35,7 +35,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
 
     public abstract String executeToJavaString(Object name);
 
-    public abstract RubyNode getValueNode();
+    abstract RubyNode getValueNode();
 
     @Specialization(guards = "interopLibrary.isString(value)", limit = "getLimit()")
     protected String interopString(Object value,

@@ -50,7 +50,7 @@ import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.range.RangeNodesFactory;
+import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.ClassicRegexp;
@@ -1535,7 +1535,7 @@ public class BodyTranslator extends Translator {
             final RubyNode rangeClass = new RangeClassLiteralNode();
             final RubyNode isExclusive = new ObjectLiteralNode(node.isExclusive());
 
-            ret = RangeNodesFactory.NewNodeFactory.create(rangeClass, begin, end, isExclusive);
+            ret = RangeNodes.NewNode.create(rangeClass, begin, end, isExclusive);
         }
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

@@ -27,7 +27,7 @@ public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode 
         this.defaultValue = defaultValue;
     }
 
-    public abstract RubyNode getValueNode();
+    abstract RubyNode getValueNode();
 
     @Specialization
     protected String doDefault(NotProvided value) {

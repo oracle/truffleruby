@@ -98,26 +98,16 @@ public abstract class SizedQueueNodes {
     }
 
     @CoreMethod(names = { "push", "<<", "enq" }, required = 1, optional = 1)
-    @NodeChild(value = "queueNode", type = RubyNode.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
-    @NodeChild(value = "nonBlockingNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "queue", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
     public abstract static class PushNode extends CoreMethodNode {
 
         @Child PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
-        @CreateCast("nonBlockingNode")
+        @CreateCast("nonBlocking")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
             return BooleanCastWithDefaultNode.create(false, nonBlocking);
-        }
-
-        abstract RubyNode getQueueNode();
-
-        abstract RubyNode getValueNode();
-
-        abstract RubyBaseNodeWithExecute getNonBlockingNode();
-
-        public static PushNode create(RubyNode queue, RubyNode value, RubyBaseNodeWithExecute nonBlocking) {
-            return SizedQueueNodesFactory.PushNodeFactory.create(queue, value, nonBlocking);
         }
 
         @Specialization(guards = "!nonBlocking")
@@ -162,37 +152,16 @@ public abstract class SizedQueueNodes {
             return self;
         }
 
-        private RubyBaseNodeWithExecute getNonBlockingNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getNonBlockingNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getQueueNode().cloneUninitialized(),
-                    getValueNode().cloneUninitialized(),
-                    getNonBlockingNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = { "pop", "shift", "deq" }, optional = 1)
-    @NodeChild(value = "queueNode", type = RubyNode.class)
-    @NodeChild(value = "nonBlockingNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "queue", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
     public abstract static class PopNode extends CoreMethodNode {
 
-        @CreateCast("nonBlockingNode")
+        @CreateCast("nonBlocking")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
             return BooleanCastWithDefaultNode.create(false, nonBlocking);
-        }
-
-        abstract RubyNode getQueueNode();
-
-        abstract RubyBaseNodeWithExecute getNonBlockingNode();
-
-        public static PopNode create(RubyNode queue, RubyBaseNodeWithExecute nonBlocking) {
-            return SizedQueueNodesFactory.PopNodeFactory.create(queue, nonBlocking);
         }
 
         @Specialization(guards = "!nonBlocking")
@@ -226,18 +195,6 @@ public abstract class SizedQueueNodes {
             }
 
             return value;
-        }
-
-        private RubyBaseNodeWithExecute getNonBlockingNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getNonBlockingNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getQueueNode().cloneUninitialized(),
-                    getNonBlockingNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }

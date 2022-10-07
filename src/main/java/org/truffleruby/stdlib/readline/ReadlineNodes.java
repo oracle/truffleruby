@@ -43,7 +43,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.interop.ToJavaStringWithDefaultNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
@@ -74,18 +73,12 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "basic_word_break_characters=", onSingleton = true, required = 1)
-    @NodeChild(value = "charactersNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "characters", type = RubyBaseNodeWithExecute.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
-        @CreateCast("charactersNode")
+        @CreateCast("characters")
         protected ToStrNode coerceCharactersToString(RubyBaseNodeWithExecute characters) {
             return ToStrNodeGen.create(characters);
-        }
-
-        abstract RubyBaseNodeWithExecute getCharactersNode();
-
-        public SetBasicWordBreakCharactersNode create(RubyBaseNodeWithExecute characters) {
-            return ReadlineNodesFactory.SetBasicWordBreakCharactersNodeFactory.create(characters);
         }
 
         @TruffleBoundary
@@ -95,17 +88,6 @@ public abstract class ReadlineNodes {
             final String delimiters = RubyGuards.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
-        }
-
-        private RubyBaseNodeWithExecute getCharactersNodeBeforeCasting() {
-            return ((ToStrNode) getCharactersNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getCharactersNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }
@@ -141,28 +123,20 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "readline", isModuleFunction = true, optional = 2)
-    @NodeChild(value = "promptNode", type = RubyNode.class)
-    @NodeChild(value = "addToHistoryNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "prompt", type = RubyNode.class)
+    @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
-        @CreateCast("promptNode")
+        @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
             return ToJavaStringWithDefaultNodeGen.create("", prompt);
         }
 
-        @CreateCast("addToHistoryNode")
+        @CreateCast("addToHistory")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute addToHistory) {
             return BooleanCastWithDefaultNode.create(false, addToHistory);
-        }
-
-        abstract RubyNode getPromptNode();
-
-        abstract RubyBaseNodeWithExecute getAddToHistoryNode();
-
-        public static ReadlineNode create(RubyNode prompt, RubyBaseNodeWithExecute addToHistory) {
-            return ReadlineNodesFactory.ReadlineNodeFactory.create(prompt, addToHistory);
         }
 
         @TruffleBoundary
@@ -201,22 +175,6 @@ public abstract class ReadlineNodes {
             }
         }
 
-        private RubyNode getPromptNodeBeforeCasting() {
-            return ((ToJavaStringWithDefaultNode) getPromptNode()).getValueNode();
-        }
-
-        private RubyBaseNodeWithExecute getAddToHistoryNodeBeforeCasting() {
-            return ((BooleanCastWithDefaultNode) getAddToHistoryNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getPromptNodeBeforeCasting().cloneUninitialized(),
-                    getAddToHistoryNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "point", onSingleton = true)
@@ -231,21 +189,13 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "insert_text", constructor = true, required = 1)
-    @NodeChild(value = "selfNode", type = RubyNode.class)
-    @NodeChild(value = "textNode", type = RubyNode.class)
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "text", type = RubyNode.class)
     public abstract static class InsertTextNode extends CoreMethodNode {
 
-        @CreateCast("textNode")
+        @CreateCast("text")
         protected RubyNode coerceTextToString(RubyNode text) {
             return ToJavaStringNode.create(text);
-        }
-
-        abstract RubyNode getSelfNode();
-
-        abstract RubyNode getTextNode();
-
-        public static InsertTextNode create(RubyNode self, RubyNode text) {
-            return ReadlineNodesFactory.InsertTextNodeFactory.create(self, text);
         }
 
         @TruffleBoundary
@@ -253,18 +203,6 @@ public abstract class ReadlineNodes {
         protected RubyBasicObject insertText(RubyBasicObject readline, String text) {
             getContext().getConsoleHolder().getReadline().getBuffer().write(text);
             return readline;
-        }
-
-        private RubyNode getTextNodeBeforeCasting() {
-            return ((ToJavaStringWithDefaultNode) getTextNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getSelfNode().cloneUninitialized(),
-                    getTextNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
         }
 
     }

@@ -26,7 +26,7 @@ public abstract class SymbolToByteOrderNode extends RubyContextSourceNode {
         return SymbolToByteOrderNodeGen.create(value);
     }
 
-    public abstract RubyNode getValueNode();
+    abstract RubyNode getValueNode();
 
     @Specialization(guards = "symbol == coreSymbols().BIG")
     protected ByteOrder symbolToByteOrderBig(RubySymbol symbol) {

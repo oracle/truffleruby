@@ -25,7 +25,7 @@ public abstract class ToPathNode extends RubyBaseNodeWithExecute {
         return ToPathNodeGen.create(child);
     }
 
-    public abstract RubyBaseNodeWithExecute getChildNode();
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyString coerceRubyString(RubyString path) {
