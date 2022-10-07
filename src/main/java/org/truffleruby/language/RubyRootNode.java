@@ -149,7 +149,8 @@ public class RubyRootNode extends RubyBaseRootNode {
         return clone;
     }
 
-    private class CloningError extends Error {
+    @SuppressWarnings("serial")
+    private static class CloningError extends Error {
 
         public final Node original;
         public final Node clone;
