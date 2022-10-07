@@ -1238,7 +1238,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1)
-    public abstract static class GetMembersNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GetMembersNode extends CoreMethodArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);
 
