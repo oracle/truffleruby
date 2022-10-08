@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    google-protobuf (3.21.5)
+    google-protobuf (3.21.7)
     googleapis-common-protos-types (1.4.0)
       google-protobuf (~> 3.14)
     grpc (1.48.0)
