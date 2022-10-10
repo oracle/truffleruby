@@ -97,4 +97,10 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
     public AssignableNode toAssignableNode() {
         return this;
     }
+
+    @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return WriteFrameSlotNodeGen.create(frameSlot);
+    }
+
 }

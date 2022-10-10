@@ -78,4 +78,11 @@ public class EmitWarningsNode extends RubyContextSourceNode {
             }
         }
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new EmitWarningsNode(warnings);
+        return copy.copyFlags(this);
+    }
+
 }

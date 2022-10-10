@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -46,6 +47,11 @@ public class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
         rubyException.backtrace = getContext().getCallStack().getBacktrace(this);
         // We need a new RaiseException for the new Backtrace, so RaiseException#getLocation() is correct
         throw new RaiseException(getContext(), rubyException);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        throw CompilerDirectives.shouldNotReachHere(getClass() + " should never be split");
     }
 
 }

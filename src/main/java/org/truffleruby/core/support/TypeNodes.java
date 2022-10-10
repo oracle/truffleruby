@@ -19,7 +19,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -385,7 +384,7 @@ public abstract class TypeNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @Primitive(name = "check_frozen")
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class CheckFrozenNode extends RubySourceNode {
 
         public static CheckFrozenNode create() {
@@ -397,6 +396,8 @@ public abstract class TypeNodes {
         }
 
         public abstract void execute(Object object);
+
+        abstract RubyNode getValueNode();
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object check(Object value,
@@ -410,18 +411,23 @@ public abstract class TypeNodes {
 
             return value;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getValueNode().cloneUninitialized()).copyFlags(this);
+        }
+
     }
 
     @Primitive(name = "check_mutable_string")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class CheckMutableStringNode extends PrimitiveNode {
+    public abstract static class CheckMutableStringNode extends PrimitiveArrayArgumentsNode {
 
         public static CheckMutableStringNode create() {
             return create(null);
         }
 
         public static CheckMutableStringNode create(RubyNode node) {
-            return TypeNodesFactory.CheckMutableStringNodeFactory.create(node);
+            return TypeNodesFactory.CheckMutableStringNodeFactory.create(new RubyNode[]{ node });
         }
 
         public abstract void execute(Object object);
@@ -449,8 +455,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "check_real?")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class CheckRealNode extends PrimitiveNode {
+    public abstract static class CheckRealNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected boolean check(int value) {
             return true;
@@ -478,8 +483,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "undefined?")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class IsUndefinedNode extends PrimitiveNode {
+    public abstract static class IsUndefinedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean isUndefined(Object value) {
@@ -488,8 +492,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "as_boolean")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class AsBooleanNode extends PrimitiveNode {
+    public abstract static class AsBooleanNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean asBoolean(Object value,

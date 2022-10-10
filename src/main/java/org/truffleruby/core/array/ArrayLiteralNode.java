@@ -37,7 +37,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(language, values);
-        newNode.unsafeSetSourceSection(getSourceIndexLength());
+        newNode.copyFlags(this);
         replace(newNode);
 
         final Object[] executedValues = new Object[values.length];
@@ -57,6 +57,16 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         final RubyArray array = createArray(store, size);
         AllocationTracing.trace(array, this);
         return array;
+    }
+
+    // Do not override #cloneUninitialized() in subclasses.
+    // In runtime any literal array node may be replaced with UninitializedArrayLiteralNode.
+    @Override
+    public final RubyNode cloneUninitialized() {
+        var copy = new UninitialisedArrayLiteralNode(
+                language,
+                cloneUninitialized(values));
+        return copy.copyFlags(this);
     }
 
     @Override
@@ -84,13 +94,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     public int getSize() {
         return values.length;
-    }
-
-    public RubyNode stealNode(int index) {
-        final RubyNode node = values[index];
-        // Nullify it here so we make sure it's only referenced by the caller.
-        values[index] = null;
-        return node;
     }
 
     private static class EmptyArrayLiteralNode extends ArrayLiteralNode {
@@ -258,7 +261,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                     executedValues.length);
             final Object store = array.getStore();
 
-            final RubyNode newNode;
+            final ArrayLiteralNode newNode;
 
             if (store == ArrayStoreLibrary.initialStorage(false)) {
                 newNode = new EmptyArrayLiteralNode(language, values);
@@ -272,7 +275,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                 newNode = new ObjectArrayLiteralNode(language, values);
             }
 
-            newNode.unsafeSetSourceSection(getSourceIndexLength());
+            newNode.copyFlags(this);
             replace(newNode);
 
             return array;
@@ -347,4 +350,5 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         }
 
     }
+
 }

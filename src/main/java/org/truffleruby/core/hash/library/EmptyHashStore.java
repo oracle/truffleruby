@@ -118,5 +118,12 @@ public class EmptyHashStore {
         public Object execute(VirtualFrame frame) {
             return HashOperations.newEmptyHash(getContext(), getLanguage());
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new EmptyHashLiteralNode();
+            return copy.copyFlags(this);
+        }
+
     }
 }

@@ -221,7 +221,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_capture_backtrace", lowerFixnum = 1)
-    public abstract static class CaptureBacktraceNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CaptureBacktraceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object captureBacktrace(RubyException exception, int offset) {
@@ -354,7 +354,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_get_raise_exception")
-    public abstract static class GetRaiseExceptionNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class GetRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getRaiseException(RubyException exception) {

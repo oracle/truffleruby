@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class SaveMethodBlockNode extends RubyContextSourceNode {
 
@@ -25,6 +26,12 @@ public class SaveMethodBlockNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         frame.setObject(slot, RubyArguments.getBlock(frame));
         return nil;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SaveMethodBlockNode(slot);
+        return copy.copyFlags(this);
     }
 
 }

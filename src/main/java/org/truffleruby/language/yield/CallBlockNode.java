@@ -111,7 +111,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     protected DirectCallNode createBlockCallNode(RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        if (RubyRootNode.of(callTarget).shouldAlwaysClone() && callNode.isCallTargetCloningAllowed()) {
+        if (callNode.isCallTargetCloningAllowed() && RubyRootNode.of(callTarget).shouldAlwaysClone()) {
             callNode.cloneCallTarget();
         }
 

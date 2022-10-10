@@ -31,6 +31,10 @@ public abstract class TruffleRubyProcessor extends AbstractProcessor {
         return processingEnv.getTypeUtils().isSameType(type1, type2);
     }
 
+    boolean inherits(TypeMirror type, TypeMirror base) {
+        return processingEnv.getTypeUtils().isSubtype(type, base);
+    }
+
     void error(String message, Element element) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message, element);
     }

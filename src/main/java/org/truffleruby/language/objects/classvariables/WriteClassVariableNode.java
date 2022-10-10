@@ -46,7 +46,6 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
         return value;
     }
 
-
     @Override
     public void assign(VirtualFrame frame, Object value) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
@@ -69,4 +68,19 @@ public class WriteClassVariableNode extends RubyContextSourceNode implements Ass
         this.rhs = null;
         return this;
     }
+
+    @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new WriteClassVariableNode(
+                lexicalScopeNode.cloneUninitialized(),
+                name,
+                rhs.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

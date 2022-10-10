@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -70,4 +71,15 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedAddNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

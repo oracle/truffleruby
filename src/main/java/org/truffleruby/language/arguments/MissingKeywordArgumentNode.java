@@ -15,6 +15,7 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -33,7 +34,11 @@ public class MissingKeywordArgumentNode extends RubyContextSourceNode {
     @Child private HashStoreLibrary hashes;
 
     public MissingKeywordArgumentNode(RubyLanguage language, Arity arity) {
-        requiredKeywords = requiredKeywordsAsSymbols(language, arity);
+        this(requiredKeywordsAsSymbols(language, arity));
+    }
+
+    private MissingKeywordArgumentNode(RubySymbol[] requiredKeywords) {
+        this.requiredKeywords = requiredKeywords;
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
         hashes = insert(HashStoreLibrary.createDispatched());
     }
@@ -44,7 +49,7 @@ public class MissingKeywordArgumentNode extends RubyContextSourceNode {
         throw new RaiseException(getContext(), missingKeywordsError(actualKeywords));
     }
 
-    private RubySymbol[] requiredKeywordsAsSymbols(RubyLanguage language, Arity arity) {
+    private static RubySymbol[] requiredKeywordsAsSymbols(RubyLanguage language, Arity arity) {
         final String[] requiredKeywords = arity.getRequiredKeywordArguments();
         final RubySymbol[] symbols = new RubySymbol[requiredKeywords.length];
 
@@ -82,4 +87,11 @@ public class MissingKeywordArgumentNode extends RubyContextSourceNode {
 
         return missingKeywords.toArray();
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new MissingKeywordArgumentNode(requiredKeywords);
+        return copy.copyFlags(this);
+    }
+
 }

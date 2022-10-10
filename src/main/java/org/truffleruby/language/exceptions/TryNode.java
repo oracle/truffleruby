@@ -142,4 +142,22 @@ public class TryNode extends RubyContextSourceNode {
         getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new TryNode(
+                tryPart.cloneUninitialized(),
+                cloneUninitialized(rescueParts),
+                cloneUninitialized(elsePart),
+                canOmitBacktrace);
+        return copy.copyFlags(this);
+    }
+
+    protected static RescueNode[] cloneUninitialized(RescueNode[] nodes) {
+        RescueNode[] copies = new RescueNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (RescueNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
+    }
+
 }

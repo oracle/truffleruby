@@ -134,4 +134,13 @@ public class DefineClassNode extends RubyContextSourceNode {
         return lookupForExistingModuleNode.lookupForExistingModule(frame, name, lexicalParent);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DefineClassNode(
+                name,
+                lexicalParentModule.cloneUninitialized(),
+                cloneUninitialized(superClassNode));
+        return copy.copyFlags(this);
+    }
+
 }

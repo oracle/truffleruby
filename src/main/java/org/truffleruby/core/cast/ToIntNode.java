@@ -47,7 +47,7 @@ import org.truffleruby.utils.Utils;
  * </ul>
  */
 @GenerateUncached
-@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToIntNode extends RubyBaseNodeWithExecute {
 
     public static ToIntNode create() {
@@ -59,6 +59,8 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
     }
 
     public abstract int execute(Object object);
+
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected int coerceInt(int value) {
@@ -116,4 +118,10 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
                 .call(coreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
+
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getChildNode().cloneUninitialized());
+    }
+
 }

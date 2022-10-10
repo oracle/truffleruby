@@ -185,14 +185,20 @@ public abstract class StringNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
         public static AllocateNode create() {
             return StringNodesFactory.AllocateNodeFactory.create(null);
         }
 
+        public static AllocateNode create(RubyNode rubyClassNode) {
+            return StringNodesFactory.AllocateNodeFactory.create(rubyClassNode);
+        }
+
         public abstract RubyString execute(RubyClass rubyClass);
+
+        abstract RubyNode getRubyClassNode();
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass) {
@@ -204,6 +210,11 @@ public abstract class StringNodes {
                     Encodings.BINARY);
             AllocationTracing.trace(string, this);
             return string;
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
         }
 
     }
@@ -338,7 +349,7 @@ public abstract class StringNodes {
 
     // compatibleEncoding is RubyEncoding or Nil in this node
     @Primitive(name = "string_cmp")
-    public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CompareNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "first.isEmpty() || second.isEmpty()")
         protected int empty(Object a, Object b, RubyEncoding compatibleEncoding,
@@ -795,8 +806,8 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_casecmp")
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "stringNode", type = RubyNode.class)
+    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class CaseCmpNode extends PrimitiveNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
@@ -805,7 +816,15 @@ public abstract class StringNodes {
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
         private final ConditionProfile sameProfile = ConditionProfile.create();
 
-        @CreateCast("other")
+        public static CaseCmpNode create(RubyNode string, RubyBaseNodeWithExecute other) {
+            return StringNodesFactory.CaseCmpNodeFactory.create(string, other);
+        }
+
+        abstract RubyNode getStringNode();
+
+        abstract RubyBaseNodeWithExecute getOtherNode();
+
+        @CreateCast("otherNode")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
@@ -887,6 +906,20 @@ public abstract class StringNodes {
 
             return size == other.getLength() ? 0 : size == len ? -1 : 1;
         }
+
+
+        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
+            return ((ToStrNode) getOtherNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getStringNode().cloneUninitialized(),
+                    getOtherNodeBeforeCast().cloneUninitialized());
+            return copy.copyFlags(this);
+        }
+
     }
 
     /** Returns true if the first bytes in string are equal to the bytes in prefix. */
@@ -1473,7 +1506,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_initialize")
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding,
@@ -1720,11 +1753,19 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_replace", raiseIfNotMutable = 0)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "stringNode", type = RubyNode.class)
+    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReplaceNode extends PrimitiveNode {
 
-        @CreateCast("other")
+        public static ReplaceNode create(RubyNode string, RubyBaseNodeWithExecute other) {
+            return StringNodesFactory.ReplaceNodeFactory.create(string, other);
+        }
+
+        abstract RubyNode getStringNode();
+
+        abstract RubyBaseNodeWithExecute getOtherNode();
+
+        @CreateCast("otherNode")
         protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
@@ -1749,6 +1790,18 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString) {
             string.setTString(other.tstring, libString.getEncoding(other));
             return string;
+        }
+
+        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
+            return ((ToStrNode) getOtherNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getStringNode().cloneUninitialized(),
+                    getOtherNodeBeforeCast().cloneUninitialized());
+            return copy.copyFlags(this);
         }
 
     }
@@ -2565,7 +2618,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_to_symbol")
     @ImportStatic(StringGuards.class)
-    public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToSymNode extends PrimitiveArrayArgumentsNode {
 
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
 
@@ -3114,7 +3167,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_append")
-    public abstract static class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringHelperNodes.StringAppendNode stringAppendNode = StringHelperNodes.StringAppendNode
                 .create();
@@ -3385,7 +3438,7 @@ public abstract class StringNodes {
     /** Like {@code string.byteslice(byteIndex)} but returns nil if the character is broken. */
     @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringChrAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
                 guards = { "indexOutOfBounds(strings.byteLength(string), byteIndex)" })
@@ -3567,7 +3620,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_find_character", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringFindCharacterNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "offset < 0")
         protected Object stringFindCharacterNegativeOffset(Object string, int offset) {
@@ -3973,7 +4026,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string_reverse", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringRindexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object stringRindex(Object rubyString, Object rubyPattern, int byteOffset,
@@ -4103,11 +4156,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
-    @NodeChild(value = "string", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "fixBase", type = RubyNode.class)
-    @NodeChild(value = "strict", type = RubyNode.class)
-    @NodeChild(value = "raiseOnError", type = RubyNode.class)
-    public abstract static class StringToInumPrimitiveNode extends PrimitiveNode {
+    public abstract static class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "base == 10")
         protected Object base10(Object string, int base, boolean strict, boolean raiseOnError,
@@ -4193,7 +4242,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_append")
-    public abstract static class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
         protected RubyString stringByteAppend(RubyString string, Object other,
                 @Cached RubyStringLibrary libString,
@@ -4213,7 +4262,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
     @ImportStatic(StringGuards.class)
-    public abstract static class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object execute(Object string, int codePointOffset, int codePointLength);
 

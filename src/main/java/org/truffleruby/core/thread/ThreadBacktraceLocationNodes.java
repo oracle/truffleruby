@@ -12,8 +12,8 @@ package org.truffleruby.core.thread;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
@@ -43,7 +43,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "absolute_path")
-    public abstract static class AbsolutePathNode extends UnaryCoreMethodNode {
+    public abstract static class AbsolutePathNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -80,7 +80,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "path")
-    public abstract static class PathNode extends UnaryCoreMethodNode {
+    public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -98,7 +98,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "label")
-    public abstract static class LabelNode extends UnaryCoreMethodNode {
+    public abstract static class LabelNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
@@ -113,7 +113,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "base_label")
-    public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
+    public abstract static class BaseLabelNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
@@ -127,7 +127,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "lineno")
-    public abstract static class LinenoNode extends UnaryCoreMethodNode {
+    public abstract static class LinenoNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -140,7 +140,7 @@ public class ThreadBacktraceLocationNodes {
     }
 
     @CoreMethod(names = "to_s")
-    public abstract static class ToSNode extends UnaryCoreMethodNode {
+    public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 

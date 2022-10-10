@@ -94,4 +94,12 @@ public class EnsureNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new EnsureNode(
+                tryPart.cloneUninitialized(),
+                ensurePart.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

@@ -19,7 +19,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -30,6 +29,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
@@ -375,16 +375,54 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "new", constructor = true, required = 2, optional = 1)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
-    @NodeChild(value = "begin", type = RubyNode.class)
-    @NodeChild(value = "end", type = RubyNode.class)
-    @NodeChild(value = "excludeEnd", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
+    @NodeChild(value = "beginNode", type = RubyNode.class)
+    @NodeChild(value = "endNode", type = RubyNode.class)
+    @NodeChild(value = "excludeEndNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        @CreateCast("excludeEnd")
+        @CreateCast("excludeEndNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute excludeEnd) {
             return BooleanCastWithDefaultNode.create(false, excludeEnd);
         }
+
+        @Specialization
+        protected Object newRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+                @Cached NewRangeNode newRangeNode) {
+            return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
+        }
+    }
+
+    public static class RangeLiteralNode extends RubyContextSourceNode {
+
+        @Child RubyNode beginNode;
+        @Child RubyNode endNode;
+        @Child NewRangeNode newRangeNode = RangeNodesFactory.NewRangeNodeGen.create();
+        private final boolean excludeEnd;
+
+        public RangeLiteralNode(RubyNode beginNode, RubyNode endNode, boolean excludeEnd) {
+            this.beginNode = beginNode;
+            this.endNode = endNode;
+            this.excludeEnd = excludeEnd;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            Object begin = beginNode.execute(frame);
+            Object end = endNode.execute(frame);
+            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, excludeEnd);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd)
+                    .copyFlags(this);
+        }
+    }
+
+    public abstract static class NewRangeNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
 
         @Specialization(guards = "rubyClass == getRangeClass()")
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
@@ -411,8 +449,7 @@ public abstract class RangeNodes {
             }
 
             final Shape shape = getLanguage().objectRangeShape;
-            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end,
-                    standardClass);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end, standardClass);
             AllocationTracing.trace(range, this);
             return range;
         }
@@ -425,12 +462,18 @@ public abstract class RangeNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
         public static AllocateNode create() {
             return RangeNodesFactory.AllocateNodeFactory.create(null);
         }
+
+        public static AllocateNode create(RubyNode rubyClassNode) {
+            return RangeNodesFactory.AllocateNodeFactory.create(rubyClassNode);
+        }
+
+        abstract RubyNode getRubyClassNode();
 
         public abstract RubyObjectRange execute(RubyClass rubyClass);
 
@@ -441,6 +484,12 @@ public abstract class RangeNodes {
             AllocationTracing.trace(range, this);
             return range;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
+        }
+
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
@@ -480,9 +529,7 @@ public abstract class RangeNodes {
      * <p>
      * {@code size} is assumed to be normalized: fitting in an int, and positive. */
     @Primitive(name = "range_normalized_start_length", lowerFixnum = 1)
-    @NodeChild(value = "range", type = RubyNode.class)
-    @NodeChild(value = "size", type = RubyNode.class)
-    public abstract static class NormalizedStartLengthPrimitiveNode extends PrimitiveNode {
+    public abstract static class NormalizedStartLengthPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 

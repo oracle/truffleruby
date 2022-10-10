@@ -17,6 +17,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.RubyNode;
 
 public class ReadRestArgumentNode extends RubyContextSourceNode {
 
@@ -37,6 +38,17 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
         this.startIndex = startIndex;
         this.postArgumentsCount = postArgumentsCount;
         this.keywordArguments = keywordArguments;
+    }
+
+    private ReadRestArgumentNode(
+            int startIndex,
+            int postArgumentsCount,
+            boolean keywordArguments,
+            boolean markKeywordHashWithFlag) {
+        this.startIndex = startIndex;
+        this.postArgumentsCount = postArgumentsCount;
+        this.keywordArguments = keywordArguments;
+        this.markKeywordHashWithFlag = markKeywordHashWithFlag;
     }
 
     public void markKeywordHashWithFlag() {
@@ -76,4 +88,11 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
             }
         }
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadRestArgumentNode(startIndex, postArgumentsCount, keywordArguments, markKeywordHashWithFlag);
+        return copy.copyFlags(this);
+    }
+
 }

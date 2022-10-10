@@ -16,8 +16,8 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.NodeChild;
 
-@NodeChild(value = "left", type = RubyNode.class)
-@NodeChild(value = "right", type = RubyNode.class)
+@NodeChild(value = "leftNode", type = RubyNode.class)
+@NodeChild(value = "rightNode", type = RubyNode.class)
 public abstract class BinaryInlinedOperationNode extends InlinedOperationNode {
 
     public BinaryInlinedOperationNode(
@@ -27,18 +27,18 @@ public abstract class BinaryInlinedOperationNode extends InlinedOperationNode {
         super(language, callNodeParameters, assumptions);
     }
 
-    protected abstract RubyNode getLeft();
+    protected abstract RubyNode getLeftNode();
 
-    protected abstract RubyNode getRight();
+    protected abstract RubyNode getRightNode();
 
     @Override
     protected RubyNode getReceiverNode() {
-        return getLeft();
+        return getLeftNode();
     }
 
     @Override
     protected RubyNode[] getArgumentNodes() {
-        return new RubyNode[]{ getRight() };
+        return new RubyNode[]{ getRightNode() };
     }
 
 }

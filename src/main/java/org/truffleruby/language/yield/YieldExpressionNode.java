@@ -105,4 +105,15 @@ public class YieldExpressionNode extends LiteralCallNode {
 
         return yieldNode;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new YieldExpressionNode(
+                isSplatted,
+                descriptor,
+                cloneUninitialized(arguments),
+                readBlockNode.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

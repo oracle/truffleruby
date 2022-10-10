@@ -43,4 +43,12 @@ public class RescueClassesNode extends RescueNode {
         return RubyNode.defaultIsDefined(this);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RescueClassesNode(
+                cloneUninitialized(handlingClassNodes),
+                getRescueBody().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

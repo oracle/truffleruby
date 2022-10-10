@@ -45,4 +45,13 @@ public class BreakNode extends RubyContextSourceNode {
         throw new BreakException(breakID, child.execute(frame));
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new BreakNode(
+                breakID,
+                ignoreMarker,
+                child.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

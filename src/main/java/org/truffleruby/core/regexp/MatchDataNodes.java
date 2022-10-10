@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -27,7 +28,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
@@ -35,13 +35,14 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -230,20 +231,12 @@ public abstract class MatchDataNodes {
 
     }
 
-    @CoreMethod(
-            names = "[]",
-            required = 1,
-            optional = 1,
-            lowerFixnum = { 1, 2 },
-            argumentNames = { "index_start_range_or_name", "length" })
-    public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class GetIndexNode extends RubyBaseNode {
 
         @Child private RegexpNode regexpNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
 
-        public static GetIndexNode create(RubyNode... nodes) {
-            return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
-        }
+        protected abstract Object execute(RubyMatchData matchData, Object index, Object length);
 
         protected abstract Object executeGetIndex(Object matchData, int index, NotProvided length);
 
@@ -324,7 +317,7 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization
+        @Specialization(replaces = "getIndexSymbolKnownRegexp")
         protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
                 @Cached ConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
@@ -445,6 +438,42 @@ public abstract class MatchDataNodes {
         }
     }
 
+    @CoreMethod(names = "[]", required = 1, optional = 1, lowerFixnum = { 1, 2 })
+    public abstract static class GetIndexCoreMethodNode extends CoreMethodArrayArgumentsNode {
+        public static GetIndexCoreMethodNode create(RubyNode... nodes) {
+            return MatchDataNodesFactory.GetIndexCoreMethodNodeFactory.create(nodes);
+        }
+
+        @Specialization
+        protected Object getIndex(RubyMatchData matchData, Object index, Object maybeLength,
+                @Cached GetIndexNode getIndexNode) {
+            return getIndexNode.execute(matchData, index, maybeLength);
+        }
+    }
+
+    public static class GetFixedNameMatchNode extends RubyContextSourceNode {
+
+        @Child RubyNode readMatchNode;
+        private final RubySymbol symbol;
+        @Child GetIndexNode getIndexNode = MatchDataNodesFactory.GetIndexNodeGen.create();
+
+        public GetFixedNameMatchNode(RubyNode readMatchNode, RubySymbol symbol) {
+            this.readMatchNode = readMatchNode;
+            this.symbol = symbol;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            RubyMatchData matchData = (RubyMatchData) readMatchNode.execute(frame);
+            return getIndexNode.execute(matchData, symbol, NotProvided.INSTANCE);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new GetFixedNameMatchNode(readMatchNode.cloneUninitialized(), symbol);
+        }
+    }
+
     @Primitive(name = "match_data_begin", lowerFixnum = 1)
     public abstract static class BeginNode extends PrimitiveArrayArgumentsNode {
 
@@ -487,10 +516,10 @@ public abstract class MatchDataNodes {
     }
 
 
-    public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ValuesNode extends RubyBaseNode {
 
         public static ValuesNode create() {
-            return ValuesNodeFactory.create(null);
+            return MatchDataNodesFactory.ValuesNodeGen.create();
         }
 
         public abstract Object[] execute(RubyMatchData matchData);
@@ -707,7 +736,7 @@ public abstract class MatchDataNodes {
     // Defined only so that #initialize_copy works for #dup and #clone.
     // MatchData.allocate is undefined, see regexp.rb.
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
+    public abstract static class InternalAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMatchData allocate(RubyClass rubyClass) {

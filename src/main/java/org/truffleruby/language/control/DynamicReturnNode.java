@@ -34,4 +34,13 @@ public class DynamicReturnNode extends RubyContextSourceNode {
     public boolean isContinuable() {
         return false;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DynamicReturnNode(
+                returnID,
+                value.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

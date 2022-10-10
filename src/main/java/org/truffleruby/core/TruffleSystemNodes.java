@@ -98,7 +98,7 @@ public abstract class TruffleSystemNodes {
     }
 
     @Primitive(name = "java_get_env")
-    public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
+    public abstract static class JavaGetEnv extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(name)", limit = "1")
         protected Object javaGetEnv(Object name,

@@ -14,6 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayWriteNormalizedNode;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
@@ -62,13 +63,31 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
     @Override
     public void assign(VirtualFrame frame, Object value) {
         final Object receiver = getReceiver().execute(frame);
-        final Object index = getOperand1().execute(frame);
+        final Object index = getOperand1Node().execute(frame);
         execute(frame, receiver, index, value);
     }
 
     @Override
     public AssignableNode toAssignableNode() {
-        assert getOperand2() instanceof NilLiteralNode && ((NilLiteralNode) getOperand2()).isImplicit() : getOperand2();
+        assert getOperand2Node() instanceof NilLiteralNode && ((NilLiteralNode) getOperand2Node()).isImplicit()
+                : getOperand2Node();
         return this;
     }
+
+    @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedIndexSetNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getReceiver().cloneUninitialized(),
+                getOperand1Node().cloneUninitialized(),
+                getOperand2Node().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

@@ -12,6 +12,7 @@ package org.truffleruby.builtins;
 import java.util.Arrays;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.cext.CExtNodesBuiltins;
 import org.truffleruby.cext.CExtNodesFactory;
 import org.truffleruby.core.GCNodesBuiltins;
@@ -155,6 +156,7 @@ import org.truffleruby.interop.PolyglotNodesFactory;
 import org.truffleruby.interop.SourceLocationNodesBuiltins;
 import org.truffleruby.interop.SourceLocationNodesFactory;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.TruffleBootNodesBuiltins;
 import org.truffleruby.language.TruffleBootNodesFactory;
 import org.truffleruby.stdlib.CoverageNodesBuiltins;
@@ -417,5 +419,22 @@ public abstract class BuiltinsClasses {
                 WeakMapNodesFactory.getFactories(),
                 WeakRefNodesFactory.getFactories());
     }
+
+    // TODO: maybe we can make this more efficient or prepopulate it (but that might eager-load node classes on JVM, not so good)
+    public static final ClassValue<NodeFactory<RubyNode>> FACTORIES = new ClassValue<>() {
+        @SuppressWarnings("unchecked")
+        @Override
+        protected NodeFactory<RubyNode> computeValue(Class<?> type) {
+            for (var factories : getCoreNodeFactories()) {
+                for (var factory : factories) {
+                    if (factory.getNodeClass() == type) {
+                        return (NodeFactory<RubyNode>) factory;
+                    }
+                }
+            }
+
+            throw CompilerDirectives.shouldNotReachHere("Could not find NodeFactory for " + type);
+        }
+    };
 
 }

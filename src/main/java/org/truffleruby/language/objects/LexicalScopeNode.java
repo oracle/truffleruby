@@ -13,6 +13,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class LexicalScopeNode extends RubyContextSourceNode {
 
@@ -25,6 +26,12 @@ public class LexicalScopeNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return lexicalScope.getLiveModule();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new LexicalScopeNode(lexicalScope);
+        return copy.copyFlags(this);
     }
 
 }

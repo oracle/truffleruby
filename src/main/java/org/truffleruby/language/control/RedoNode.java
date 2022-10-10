@@ -12,12 +12,19 @@ package org.truffleruby.language.control;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class RedoNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
         throw new RedoException();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RedoNode();
+        return copy.copyFlags(this);
     }
 
 }

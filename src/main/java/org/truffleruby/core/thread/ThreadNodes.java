@@ -59,7 +59,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
@@ -119,7 +118,7 @@ import static org.truffleruby.language.SafepointPredicate.ALL_THREADS_AND_FIBERS
 public abstract class ThreadNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object allocate(RubyClass rubyClass) {
@@ -140,7 +139,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_backtrace", lowerFixnum = { 1, 2 })
-    public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BacktraceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object backtrace(RubyThread rubyThread, int omit, NotProvided length) {
@@ -183,7 +182,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "all_fibers_backtraces")
-    public abstract static class AllFibersBacktracesNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AllFibersBacktracesNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

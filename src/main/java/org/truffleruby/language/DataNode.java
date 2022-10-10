@@ -57,4 +57,10 @@ public class DataNode extends RubyContextSourceNode {
         return getLanguage().getSourcePath(getEncapsulatingSourceSection().getSource());
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DataNode(endPosition);
+        return copy.copyFlags(this);
+    }
+
 }

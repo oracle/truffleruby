@@ -147,7 +147,7 @@ public class CoreMethodNodeManager {
         final Split split = effectiveSplit(annotation.split(), annotation.needsBlock());
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
-            return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, split, annotation);
+            return createCoreMethodCallTarget(nodeFactory, language, sharedMethodInfo, split, annotation);
         };
 
         addMethods(
@@ -189,7 +189,7 @@ public class CoreMethodNodeManager {
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
             final NodeFactory<? extends RubyBaseNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod annotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
-            return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, finalSplit, annotation);
+            return createCoreMethodCallTarget(nodeFactory, language, sharedMethodInfo, finalSplit, annotation);
         };
 
         addMethods(
@@ -319,9 +319,8 @@ public class CoreMethodNodeManager {
                 null);
     }
 
-    public RootCallTarget createCoreMethodRootNode(NodeFactory<? extends RubyBaseNode> nodeFactory,
+    public static RootCallTarget createCoreMethodCallTarget(NodeFactory<? extends RubyBaseNode> nodeFactory,
             RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
-
         // It's fine to load the node class here, this is only called when resolving the lazy CallTarget
         var nodeClass = nodeFactory.getNodeClass();
 
@@ -350,10 +349,17 @@ public class CoreMethodNodeManager {
                     null,
                     sharedMethodInfo,
                     new ReRaiseInlinedExceptionNode(nodeFactory),
-                    split,
+                    Split.NEVER,
                     ReturnID.INVALID);
             return reRaiseRootNode.getCallTarget();
         }
+
+        return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, split, method).getCallTarget();
+    }
+
+    public static RubyCoreMethodRootNode createCoreMethodRootNode(NodeFactory<? extends RubyBaseNode> nodeFactory,
+            RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
+        assert !method.alwaysInlined();
 
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
         int i = 0;
@@ -384,9 +390,9 @@ public class CoreMethodNodeManager {
         }
 
         RubyNode node = (RubyNode) createNodeFromFactory(nodeFactory, argumentsNodes);
-        RubyNode methodNode = transformResult(method, node);
+        RubyNode methodNode = transformResult(language, method, node);
 
-        final RubyCoreMethodRootNode rootNode = new RubyCoreMethodRootNode(
+        return new RubyCoreMethodRootNode(
                 language,
                 sharedMethodInfo.getSourceSection(),
                 null,
@@ -394,8 +400,9 @@ public class CoreMethodNodeManager {
                 methodNode,
                 split,
                 ReturnID.INVALID,
-                sharedMethodInfo.getArity());
-        return rootNode.getCallTarget();
+                sharedMethodInfo.getArity(),
+                nodeFactory,
+                method);
     }
 
     public static RubyBaseNode createNodeFromFactory(NodeFactory<? extends RubyBaseNode> nodeFactory,
@@ -438,7 +445,7 @@ public class CoreMethodNodeManager {
         return argument;
     }
 
-    private RubyNode transformResult(CoreMethod method, RubyNode node) {
+    private static RubyNode transformResult(RubyLanguage language, CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
             assert !method.returnsEnumeratorIfNoBlock()
                     : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";

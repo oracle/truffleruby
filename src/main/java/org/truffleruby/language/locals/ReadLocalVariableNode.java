@@ -45,4 +45,10 @@ public class ReadLocalVariableNode extends ReadLocalNode {
         return getRootNode().getFrameDescriptor().getSlotName(frameSlot).toString();
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadLocalVariableNode(type, frameSlot);
+        return copy.copyFlags(this);
+    }
+
 }

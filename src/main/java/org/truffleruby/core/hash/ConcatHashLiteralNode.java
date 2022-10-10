@@ -41,4 +41,10 @@ public class ConcatHashLiteralNode extends RubyContextSourceNode {
         return hash;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ConcatHashLiteralNode(cloneUninitialized(children));
+        return copy.copyFlags(this);
+    }
+
 }

@@ -549,6 +549,13 @@ public class PackedHashStoreLibrary {
 
             return booleanCastNode.execute(equalNode.call(receiver, "eql?", key));
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new SmallHashLiteralNode(cloneUninitialized(keyValues));
+            return copy.copyFlags(this);
+        }
+
     }
 
     // endregion

@@ -20,7 +20,7 @@ module Math
       # Much faster (~10x) than calling the Math.hypot() / hypot(3)
       Math.sqrt(a*a + b*b)
     else
-      Primitive.math_hypot a, b
+      Primitive.math_hypot Truffle::Type.rb_num2dbl(a), Truffle::Type.rb_num2dbl(b)
     end
   end
 

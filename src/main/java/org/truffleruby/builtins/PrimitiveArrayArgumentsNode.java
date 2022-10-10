@@ -9,11 +9,22 @@
  */
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 
-@NodeChild(value = "arguments", type = RubyNode[].class)
+@NodeChild(value = "argumentNodes", type = RubyNode[].class)
 public abstract class PrimitiveArrayArgumentsNode extends PrimitiveNode {
+
+    public abstract RubyNode[] getArgumentNodes();
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
+        RubyNode[] copiedArguments = cloneUninitialized(getArgumentNodes());
+        var copy = (PrimitiveArrayArgumentsNode) CoreMethodNodeManager.createNodeFromFactory(factory, copiedArguments);
+        return copy.copyFlags(this);
+    }
 
 }

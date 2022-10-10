@@ -140,5 +140,12 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                     RubyArguments.getDescriptor(frame),
                     newUserArguments);
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new CallMethodMissingWithStaticName(methodName);
+            return copy.copyFlags(this);
+        }
+
     }
 }

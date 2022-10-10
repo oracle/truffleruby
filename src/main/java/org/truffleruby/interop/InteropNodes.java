@@ -602,15 +602,21 @@ public abstract class InteropNodes {
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class WriteArrayElementNode extends RubySourceNode {
 
         public static WriteArrayElementNode create() {
             return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
         }
 
+        public static WriteArrayElementNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.WriteArrayElementNodeFactory.create(argumentNodes);
+        }
+
         abstract Object execute(Object receiver, Object identifier, Object value);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, long identifier, Object value,
@@ -624,19 +630,31 @@ public abstract class InteropNodes {
 
             return value;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class RemoveArrayElementNode extends RubySourceNode {
 
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        public static RemoveArrayElementNode create() {
+            return InteropNodesFactory.RemoveArrayElementNodeFactory.create(null);
+        }
+
+        public static RemoveArrayElementNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.RemoveArrayElementNodeFactory.create(argumentNodes);
         }
 
         abstract Nil execute(Object receiver, Object identifier);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Nil readArrayElement(Object receiver, long identifier,
@@ -650,6 +668,12 @@ public abstract class InteropNodes {
 
             return Nil.INSTANCE;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
@@ -1132,21 +1156,33 @@ public abstract class InteropNodes {
     // region Null
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "null?", onSingleton = true, required = 1)
-    public abstract static class NullNode extends RubySourceNode {
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
+    public abstract static class IsNullNode extends RubySourceNode {
 
-        public static NullNode create() {
-            return InteropNodesFactory.NullNodeFactory.create(null);
+        public static IsNullNode create() {
+            return InteropNodesFactory.IsNullNodeFactory.create(null);
+        }
+
+        public static IsNullNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.IsNullNodeFactory.create(argumentNodes);
         }
 
         abstract Object execute(Object receiver);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isNull(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
     // endregion
 
@@ -1202,7 +1238,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1)
-    public abstract static class GetMembersNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GetMembersNode extends CoreMethodArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);
 
@@ -1226,15 +1262,21 @@ public abstract class InteropNodes {
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "read_member", onSingleton = true, required = 2)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReadMemberNode extends RubySourceNode {
 
         public static ReadMemberNode create() {
             return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }
 
+        public static ReadMemberNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.ReadMemberNodeFactory.create(argumentNodes);
+        }
+
         public abstract Object execute(Object receiver, Object identifier);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
@@ -1246,19 +1288,31 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "read_member_without_conversion", onSingleton = true, required = 2)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReadMemberWithoutConversionNode extends RubySourceNode {
 
-        public static ReadMemberNode create() {
-            return InteropNodesFactory.ReadMemberNodeFactory.create(null);
+        public static ReadMemberWithoutConversionNode create() {
+            return InteropNodesFactory.ReadMemberWithoutConversionNodeFactory.create(null);
+        }
+
+        public static ReadMemberWithoutConversionNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.ReadMemberWithoutConversionNodeFactory.create(argumentNodes);
         }
 
         abstract Object execute(Object receiver, Object identifier);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
@@ -1268,19 +1322,31 @@ public abstract class InteropNodes {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "write_member", onSingleton = true, required = 3)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class WriteMemberNode extends RubySourceNode {
 
         public static WriteMemberNode create() {
             return InteropNodesFactory.WriteMemberNodeFactory.create(null);
         }
 
+        public static WriteMemberNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.WriteMemberNodeFactory.create(argumentNodes);
+        }
+
         public abstract Object execute(Object receiver, Object identifier, Object value);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
@@ -1296,19 +1362,31 @@ public abstract class InteropNodes {
 
             return value;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class WriteMemberWithoutConversionNode extends RubySourceNode {
 
         public static WriteMemberWithoutConversionNode create() {
             return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(null);
         }
 
+        public static WriteMemberWithoutConversionNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(argumentNodes);
+        }
+
         public abstract Object execute(Object receiver, Object identifier, Object value);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
@@ -1324,6 +1402,12 @@ public abstract class InteropNodes {
 
             return value;
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
@@ -1347,15 +1431,21 @@ public abstract class InteropNodes {
 
     @GenerateUncached
     @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
     @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
+    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class InvokeMemberNode extends RubySourceNode {
 
         public static InvokeMemberNode create() {
             return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }
 
+        public static InvokeMemberNode create(RubyNode[] argumentNodes) {
+            return InteropNodesFactory.InvokeMemberNodeFactory.create(argumentNodes);
+        }
+
         public abstract Object execute(Object receiver, Object identifier, Object[] args);
+
+        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
@@ -1367,6 +1457,12 @@ public abstract class InteropNodes {
             final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        }
+
     }
 
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)

@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyGuards;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 
 public class ShouldDestructureNode extends RubyContextSourceNode {
@@ -54,6 +55,12 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
         // TODO(cseaton): check this is actually a static "find if there is such method" and not a
         // dynamic call to respond_to?
         return respondToToAry.execute(frame, firstArgument, "to_ary");
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ShouldDestructureNode(keywordArguments);
+        return copy.copyFlags(this);
     }
 
 }

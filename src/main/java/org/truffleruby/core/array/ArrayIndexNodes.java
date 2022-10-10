@@ -27,7 +27,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
 
-    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "arrayNode", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReadConstantIndexNode extends RubyContextSourceNode {
@@ -42,6 +42,8 @@ public abstract class ArrayIndexNodes {
             this.index = index;
         }
 
+        public abstract RubyNode getArrayNode();
+
         @Specialization(limit = "storageStrategyLimit()")
         protected Object readInBounds(RubyArray array,
                 @Bind("array.getStore()") Object store,
@@ -55,6 +57,15 @@ public abstract class ArrayIndexNodes {
                 return nil;
             }
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = ReadConstantIndexNode.create(
+                    getArrayNode().cloneUninitialized(),
+                    index);
+            return copy.copyFlags(this);
+        }
+
     }
 
     @ImportStatic(ArrayGuards.class)

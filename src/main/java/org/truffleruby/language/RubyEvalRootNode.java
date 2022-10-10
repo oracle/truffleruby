@@ -82,4 +82,15 @@ public class RubyEvalRootNode extends RubyRootNode {
         }
     }
 
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyEvalRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID);
+    }
 }

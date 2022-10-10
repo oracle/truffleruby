@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.BitAndNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.BitAndNodeFactory;
 import org.truffleruby.language.NoImplicitCastsToLong;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -65,4 +66,13 @@ public abstract class InlinedBitAndNode extends BinaryInlinedOperationNode {
         return fixnumBitAnd;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedBitAndNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
 }

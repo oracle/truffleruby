@@ -20,7 +20,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToRubyEncodingNode;
@@ -395,7 +394,7 @@ public abstract class EncodingNodes {
 
     // MRI: rb_enc_compatible
     @Primitive(name = "encoding_compatible?")
-    public abstract static class CompatibleQueryNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class CompatibleQueryNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
                 .create();
@@ -419,7 +418,7 @@ public abstract class EncodingNodes {
 
     // encoding_compatible? but only accepting Strings for better footprint
     @Primitive(name = "strings_compatible?")
-    public abstract static class AreStringsCompatibleNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AreStringsCompatibleNode extends PrimitiveArrayArgumentsNode {
         public static AreStringsCompatibleNode create() {
             return EncodingNodesFactory.AreStringsCompatibleNodeFactory.create(null);
         }
@@ -479,7 +478,7 @@ public abstract class EncodingNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));

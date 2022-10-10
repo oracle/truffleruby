@@ -183,7 +183,7 @@ public abstract class HashNodes {
     }
 
     @Primitive(name = "hash_copy_and_mark_as_ruby2_keywords")
-    public abstract static class HashCopyAndMarkAsRuby2KeywordsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class HashCopyAndMarkAsRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyHash copyAndMarkAsRuby2Keywords(RubyHash hash,
                 @Cached CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode) {

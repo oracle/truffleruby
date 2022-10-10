@@ -49,6 +49,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
@@ -341,24 +342,52 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName,
-                @Cached BranchProfile errorProfile) {
+        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
+            return aliasMethod(module, newName, oldName, this);
+        }
+
+        @TruffleBoundary
+        static RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName, RubyNode node) {
+            RubyContext context = node.getContext();
+            module.fields.checkFrozen(context, node);
+
             final InternalMethod method = module.fields
-                    .deepMethodSearch(getContext(), oldName.getString());
+                    .deepMethodSearch(context, oldName.getString());
 
             if (method == null) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorUndefinedMethod(
+                throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
                         oldName.getString(),
                         module,
-                        this));
+                        node));
             }
 
             final InternalMethod aliasMethod = method.withName(newName.getString());
-            module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
+            module.addMethodConsiderNameVisibility(context, aliasMethod, aliasMethod.getVisibility(), node);
             return newName;
         }
 
+    }
+
+    public static class AliasKeywordNode extends RubyContextSourceNode {
+
+        private final RubySymbol newName;
+        private final RubySymbol oldName;
+
+        public AliasKeywordNode(RubySymbol newName, RubySymbol oldName) {
+            this.newName = newName;
+            this.oldName = oldName;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
+            return AliasMethodNode.aliasMethod(module, newName, oldName, this);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new AliasKeywordNode(newName, oldName).copyFlags(this);
+        }
     }
 
     @CoreMethod(names = "ancestors")
@@ -923,18 +952,31 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_const_defined?")
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "check_name", type = RubyNode.class)
+    @NodeChild(value = "moduleNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inheritNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "checkNameNode", type = RubyNode.class)
     public abstract static class ConstDefinedNode extends PrimitiveNode {
 
-        @CreateCast("name")
+        public static ConstDefinedNode create(RubyNode module, RubyBaseNodeWithExecute name,
+                RubyBaseNodeWithExecute inherit, RubyNode checkName) {
+            return ModuleNodesFactory.ConstDefinedNodeFactory.create(module, name, inherit, checkName);
+        }
+
+        abstract RubyNode getModuleNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        abstract RubyBaseNodeWithExecute getInheritNode();
+
+        abstract RubyNode getCheckNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("inherit")
+        @CreateCast("inheritNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
         }
@@ -947,14 +989,32 @@ public abstract class ModuleNodes {
             return constant.isFound();
         }
 
+        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
+            return ((BooleanCastWithDefaultNode) getInheritNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getModuleNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized(),
+                    getInheritNodeBeforeCasting().cloneUninitialized(),
+                    getCheckNameNode().cloneUninitialized());
+            return copy.copyFlags(this);
+        }
+
     }
 
     @Primitive(name = "module_const_get")
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyNode.class)
-    @NodeChild(value = "look_in_object", type = RubyNode.class)
-    @NodeChild(value = "check_name", type = RubyNode.class)
+    @NodeChild(value = "moduleNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "inheritNode", type = RubyNode.class)
+    @NodeChild(value = "lookInObjectNode", type = RubyNode.class)
+    @NodeChild(value = "checkNameNode", type = RubyNode.class)
     public abstract static class ConstGetNode extends PrimitiveNode {
 
         @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);
@@ -962,7 +1022,22 @@ public abstract class ModuleNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
         @Child private ByteIndexOfStringNode byteIndexOfStringNode;
 
-        @CreateCast("name")
+        public static ConstGetNode create(RubyNode module, RubyBaseNodeWithExecute name, RubyNode inherit,
+                RubyNode lookInObject, RubyNode checkName) {
+            return ModuleNodesFactory.ConstGetNodeFactory.create(module, name, inherit, lookInObject, checkName);
+        }
+
+        abstract RubyNode getModuleNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        abstract RubyNode getInheritNode();
+
+        abstract RubyNode getLookInObjectNode();
+
+        abstract RubyNode getCheckNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToSymbolOrString(RubyBaseNodeWithExecute name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return ToStringOrSymbolNodeGen.create(name);
@@ -1076,6 +1151,21 @@ public abstract class ModuleNodes {
 
         protected int getLimit() {
             return getLanguage().options.CONSTANT_CACHE;
+        }
+
+        RubyBaseNodeWithExecute getNameBeforeCasting() {
+            return ((ToStringOrSymbolNode) getNameNode()).getChildNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getModuleNode().cloneUninitialized(),
+                    getNameBeforeCasting().cloneUninitialized(),
+                    getInheritNode().cloneUninitialized(),
+                    getLookInObjectNode().cloneUninitialized(),
+                    getCheckNameNode().cloneUninitialized());
+            return copy.copyFlags(this);
         }
 
     }
@@ -1388,6 +1478,14 @@ public abstract class ModuleNodes {
 
                 RubyArguments.setDeclarationFrame(frame, proc.declarationFrame);
                 return lambdaBody.execute(frame);
+            }
+
+            public RubyNode cloneUninitialized() {
+                var copy = new CallMethodWithLambdaBody(
+                        proc,
+                        lambdaCallTarget,
+                        lambdaBody.cloneUninitialized());
+                return copy.copyFlags(this);
             }
 
         }
@@ -2052,11 +2150,19 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_remove_const")
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "moduleNode", type = RubyNode.class)
+    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveConstNode extends PrimitiveNode {
 
-        @CreateCast("name")
+        public static RemoveConstNode create(RubyNode module, RubyBaseNodeWithExecute name) {
+            return ModuleNodesFactory.RemoveConstNodeFactory.create(module, name);
+        }
+
+        abstract RubyNode getModuleNode();
+
+        abstract RubyBaseNodeWithExecute getNameNode();
+
+        @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
             return NameToJavaStringNode.create(name);
         }
@@ -2077,6 +2183,17 @@ public abstract class ModuleNodes {
             }
         }
 
+        RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
+            return ((NameToJavaStringNode) getNameNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getModuleNode().cloneUninitialized(),
+                    getNameNodeBeforeCasting().cloneUninitialized());
+            return copy.copyFlags(this);
+        }
     }
 
     @CoreMethod(names = "remove_method", rest = true)
@@ -2143,15 +2260,27 @@ public abstract class ModuleNodes {
             }
             return module;
         }
+    }
 
-        /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
-        @TruffleBoundary
-        @Specialization
-        protected RubyModule undefKeyword(RubyModule module, RubySymbol name) {
+    public static class UndefKeywordNode extends RubyContextSourceNode {
+
+        private final RubySymbol name;
+
+        public UndefKeywordNode(RubySymbol name) {
+            this.name = name;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
             module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
             return module;
         }
 
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new UndefKeywordNode(name).copyFlags(this);
+        }
     }
 
     @CoreMethod(names = "used_modules", onSingleton = true)

@@ -13,7 +13,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 
-@NodeChild(value = "arguments", type = RubyNode[].class)
+@NodeChild(value = "argumentNodes", type = RubyNode[].class)
 public abstract class CoreMethodArrayArgumentsNode extends CoreMethodNode {
 
 }

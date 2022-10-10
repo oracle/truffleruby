@@ -25,7 +25,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
 
-    private final RubyCallNodeParameters parameters;
+    protected final RubyCallNodeParameters parameters;
 
     @CompilationFinal(dimensions = 1) protected final Assumption[] assumptions;
 
@@ -35,7 +35,9 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
             RubyLanguage language,
             RubyCallNodeParameters callNodeParameters,
             Assumption... assumptions) {
-        this.parameters = callNodeParameters;
+        // nullify receiver, arguments and block for clarity
+        // because they should be overridden in subclasses.
+        this.parameters = callNodeParameters.withoutNodes();
 
         this.assumptions = new Assumption[1 + assumptions.length];
         this.assumptions[0] = language.traceFuncUnusedAssumption.getAssumption();
@@ -55,7 +57,7 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
                         getReceiverNode(),
                         getArgumentNodes(),
                         getBlockNode()));
-                callNode.unsafeSetSourceSection(getSourceIndexLength());
+                callNode.copyFlags(this);
                 replacedBy = callNode;
                 return replace(callNode, this + " could not be executed inline");
             } else {
@@ -69,7 +71,8 @@ public abstract class InlinedReplaceableNode extends RubyContextSourceNode {
     protected abstract RubyNode[] getArgumentNodes();
 
     protected RubyNode getBlockNode() {
-        return parameters.getBlock();
+        assert parameters.getBlock() == null;
+        return null;
     }
 
     @Override

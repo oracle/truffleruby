@@ -17,6 +17,7 @@ import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -35,7 +36,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
         this.children = children;
-        builderNode = RegexpBuilderNode.create(options);
+        this.builderNode = RegexpBuilderNode.create(options);
     }
 
     @Override
@@ -53,6 +54,22 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                     rubyStringLibrary.getEncoding(value));
         }
         return values;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new InterpolatedRegexpNode(
+                cloneUninitialized(children),
+                builderNode.options);
+        return copy.copyFlags(this);
+    }
+
+    protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {
+        ToSNode[] copies = new ToSNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (ToSNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
     }
 
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
@@ -107,5 +124,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                 throw dre.getException(getContext());
             }
         }
+
     }
+
 }

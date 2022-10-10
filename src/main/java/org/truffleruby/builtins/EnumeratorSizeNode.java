@@ -29,10 +29,10 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
     private final RubySymbol methodName;
     private final RubySymbol sizeMethodName;
 
-    public EnumeratorSizeNode(RubySymbol enumeratorSize, RubySymbol methodName, RubyNode method) {
+    public EnumeratorSizeNode(RubySymbol sizeMethodName, RubySymbol methodName, RubyNode method) {
         this.method = method;
         this.methodName = methodName;
-        this.sizeMethodName = enumeratorSize;
+        this.sizeMethodName = sizeMethodName;
     }
 
     @Override
@@ -55,6 +55,15 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
         } else {
             return method.execute(frame);
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new EnumeratorSizeNode(
+                sizeMethodName,
+                methodName,
+                method.cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

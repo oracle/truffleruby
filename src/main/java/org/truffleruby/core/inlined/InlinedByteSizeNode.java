@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -51,6 +52,15 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedByteSizeNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getSelfNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

@@ -66,18 +66,42 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     @Child private SplatToArgsNode splatToArgs;
 
     public RubyCallNode(RubyCallNodeParameters parameters) {
-        super(parameters.isSplatted(), parameters.getDescriptor());
-        this.methodName = parameters.getMethodName();
-        this.receiver = parameters.getReceiver();
-        this.arguments = parameters.getArguments();
-        this.block = parameters.getBlock();
+        this(
+                parameters.isSplatted(),
+                parameters.getDescriptor(),
+                parameters.getMethodName(),
+                parameters.getReceiver(),
+                parameters.getArguments(),
+                parameters.getBlock(),
+                parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED,
+                parameters.isVCall(),
+                parameters.isSafeNavigation(),
+                parameters.isAttrAssign());
+    }
 
-        this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
-        this.isVCall = parameters.isVCall();
-        this.isSafeNavigation = parameters.isSafeNavigation();
-        this.isAttrAssign = parameters.isAttrAssign();
+    public RubyCallNode(
+            boolean isSplatted,
+            ArgumentsDescriptor descriptor,
+            String methodName,
+            RubyNode receiver,
+            RubyNode[] arguments,
+            RubyNode block,
+            DispatchConfiguration dispatchConfig,
+            boolean isVCall,
+            boolean isSafeNavigation,
+            boolean isAttrAssign) {
+        super(isSplatted, descriptor);
 
-        if (parameters.isSafeNavigation()) {
+        this.methodName = methodName;
+        this.receiver = receiver;
+        this.arguments = arguments;
+        this.block = block;
+        this.dispatchConfig = dispatchConfig;
+        this.isVCall = isVCall;
+        this.isSafeNavigation = isSafeNavigation;
+        this.isAttrAssign = isAttrAssign;
+
+        if (isSafeNavigation) {
             nilProfile = ConditionProfile.createCountingProfile();
         } else {
             nilProfile = null;
@@ -231,10 +255,32 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     public Map<String, Object> getDebugProperties() {
         final Map<String, Object> map = super.getDebugProperties();
         map.put("methodName", methodName);
         return map;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        RubyCallNodeParameters parameters = new RubyCallNodeParameters(
+                receiver.cloneUninitialized(),
+                methodName,
+                cloneUninitialized(block),
+                descriptor,
+                cloneUninitialized(arguments),
+                isSplatted,
+                dispatchConfig == PRIVATE,
+                isVCall,
+                isSafeNavigation,
+                isAttrAssign);
+        var copy = getLanguage().coreMethodAssumptions.createCallNode(parameters);
+        return copy.copyFlags(this);
     }
 
     private class DefinedNode extends RubyBaseNode {
@@ -289,5 +335,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
             return FrozenStrings.METHOD;
         }
+
     }
+
 }

@@ -62,4 +62,14 @@ public class RescueSplatNode extends RescueNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return RubyNode.defaultIsDefined(this);
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RescueSplatNode(
+                getLanguage(),
+                splatCastNode.getChildNode().cloneUninitialized(),
+                getRescueBody().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

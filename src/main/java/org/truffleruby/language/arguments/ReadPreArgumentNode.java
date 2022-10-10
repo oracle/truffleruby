@@ -14,6 +14,7 @@ import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.utils.Utils;
 
 public class ReadPreArgumentNode extends RubyContextSourceNode {
@@ -61,6 +62,12 @@ public class ReadPreArgumentNode extends RubyContextSourceNode {
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + index;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadPreArgumentNode(index, keywordArguments, missingArgumentBehavior);
+        return copy.copyFlags(this);
     }
 
 }

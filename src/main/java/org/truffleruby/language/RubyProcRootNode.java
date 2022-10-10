@@ -50,6 +50,19 @@ public class RubyProcRootNode extends RubyRootNode {
                 : null;
     }
 
+    private RubyProcRootNode(
+            RubyLanguage language,
+            SourceSection sourceSection,
+            FrameDescriptor frameDescriptor,
+            SharedMethodInfo sharedMethodInfo,
+            RubyNode body,
+            Split split,
+            ReturnID returnID,
+            CheckKeywordArityNode checkKeywordArityNode) {
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
+        this.checkKeywordArityNode = checkKeywordArityNode;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         TruffleSafepoint.poll(this);
@@ -95,4 +108,20 @@ public class RubyProcRootNode extends RubyRootNode {
         }
     }
 
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        // CheckKeywordArityNode uses branch profiling, so it should be copied without profiling data
+        var checkKeywordArityNodeCopy = (checkKeywordArityNode == null)
+                ? null
+                : checkKeywordArityNode.cloneUninitialized();
+        return new RubyProcRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                checkKeywordArityNodeCopy);
+    }
 }

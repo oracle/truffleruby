@@ -150,4 +150,18 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
         }
     }
 
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyLambdaRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                breakID,
+                arityForCheck);
+    }
+
 }

@@ -13,9 +13,9 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.proc.RubyProc;
@@ -27,7 +27,7 @@ import org.truffleruby.language.yield.CallBlockNode;
 public abstract class TruffleMonitorNodes {
 
     @Primitive(name = "monitor_synchronize")
-    public abstract static class SynchronizeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class SynchronizeNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
@@ -54,7 +54,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_try_enter")
-    public abstract static class MonitorTryEnter extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorTryEnter extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object tryEnter(RubyMutex mutex) {
@@ -64,7 +64,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_enter")
-    public abstract static class MonitorEnter extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorEnter extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object enter(RubyMutex mutex) {
@@ -75,7 +75,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_exit")
-    public abstract static class MonitorExit extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorExit extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object exit(RubyMutex mutex) {

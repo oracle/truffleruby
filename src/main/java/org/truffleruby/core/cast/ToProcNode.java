@@ -35,9 +35,11 @@ import java.util.Map;
 
 /** The `&` in `foo(&block)`. Converts the passed block to a RubyProc or nil. Must be a RubyNode because it's used in
  * the translator. */
-@NodeChild(value = "child", type = RubyNode.class)
+@NodeChild(value = "childNode", type = RubyNode.class)
 @ImportStatic(DeclarationContext.class)
 public abstract class ToProcNode extends RubyContextSourceNode {
+
+    abstract RubyNode getChildNode();
 
     @Specialization
     protected Nil doNil(Nil nil) {
@@ -113,6 +115,12 @@ public abstract class ToProcNode extends RubyContextSourceNode {
 
     protected static Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {
         return RubyArguments.getDeclarationContext(frame).getRefinements();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ToProcNodeGen.create(getChildNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

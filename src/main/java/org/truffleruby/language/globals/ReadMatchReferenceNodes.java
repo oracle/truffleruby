@@ -62,6 +62,15 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
                 return FrozenStrings.GLOBAL_VARIABLE;
             }
         }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new ReadNthMatchNode(
+                    readMatchNode.cloneUninitialized(),
+                    index);
+            return copy.copyFlags(this);
+        }
+
     }
 
     public static class SetNamedVariablesMatchNode extends RubyContextSourceNode {
@@ -108,6 +117,16 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
             for (int n = 0; n < setters.length; n++) {
                 nilSetters[n].execute(frame);
             }
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = new SetNamedVariablesMatchNode(
+                    matchDataNode.cloneUninitialized(),
+                    readMatchNode.cloneUninitialized(),
+                    cloneUninitialized(setters),
+                    cloneUninitialized(nilSetters));
+            return copy.copyFlags(this);
         }
 
     }

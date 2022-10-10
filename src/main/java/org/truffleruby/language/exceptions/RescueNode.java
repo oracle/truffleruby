@@ -88,4 +88,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
     @Override
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
 
+    protected RubyNode getRescueBody() {
+        return rescueBody;
+    }
 }

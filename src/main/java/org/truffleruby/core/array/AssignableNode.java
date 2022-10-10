@@ -23,4 +23,6 @@ public interface AssignableNode extends NodeInterface {
     /** Execute the node and assign the given value */
     void assign(VirtualFrame frame, Object value);
 
+    AssignableNode cloneUninitializedAssignable();
+
 }

@@ -51,4 +51,12 @@ public class AndNode extends RubyContextSourceNode {
         return leftCast.execute(value);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new AndNode(
+                left.cloneUninitialized(),
+                right.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

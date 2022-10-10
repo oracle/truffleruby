@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.SimpleEntry;
@@ -56,7 +57,7 @@ public class ConcurrentMapNodes {
     }
 
     @Primitive(name = "concurrent_map_initialize", lowerFixnum = { 1, 2 })
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyConcurrentMap initializeWithOptions(RubyConcurrentMap self, int initialCapacity, int loadFactor) {

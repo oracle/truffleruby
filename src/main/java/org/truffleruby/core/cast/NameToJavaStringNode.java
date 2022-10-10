@@ -27,7 +27,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 /** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
  * name. */
 @GenerateUncached
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public static NameToJavaStringNode create() {
@@ -43,6 +43,8 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     }
 
     public abstract String execute(Object name);
+
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization(guards = "strings.isRubyString(value)", limit = "1")
     protected String stringNameToJavaString(Object value,
@@ -95,4 +97,8 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
         }
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getValueNode().cloneUninitialized());
+    }
 }

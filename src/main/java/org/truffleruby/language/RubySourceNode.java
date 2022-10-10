@@ -28,6 +28,13 @@ public abstract class RubySourceNode extends RubyNode {
         }
     }
 
+    public RubySourceNode copyFlags(RubySourceNode original) {
+        setSourceCharIndex(original.getSourceCharIndex());
+        setSourceLength(original.getSourceLength());
+        setFlags(original.getFlags());
+        return this;
+    }
+
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return RubyNode.defaultIsDefined(this);

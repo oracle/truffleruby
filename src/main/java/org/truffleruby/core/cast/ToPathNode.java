@@ -18,8 +18,14 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToPathNode extends RubyBaseNodeWithExecute {
+
+    public static ToPathNode create(RubyBaseNodeWithExecute child) {
+        return ToPathNodeGen.create(child);
+    }
+
+    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyString coerceRubyString(RubyString path) {
@@ -37,4 +43,8 @@ public abstract class ToPathNode extends RubyBaseNodeWithExecute {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
     }
 
+    @Override
+    public RubyBaseNodeWithExecute cloneUninitialized() {
+        return create(getChildNode().cloneUninitialized());
+    }
 }

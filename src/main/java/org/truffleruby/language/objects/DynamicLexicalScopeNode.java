@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -19,6 +20,12 @@ public class DynamicLexicalScopeNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return RubyArguments.getMethod(frame).getLexicalScope().getLiveModule();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DynamicLexicalScopeNode();
+        return copy.copyFlags(this);
     }
 
 }

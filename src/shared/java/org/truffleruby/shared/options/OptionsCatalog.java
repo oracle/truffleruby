@@ -144,12 +144,14 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CLONE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CORE_ALWAYS_CLONE_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> ALWAYS_CLONE_ALL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ALWAYS_SPLIT_HONOR_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> NEVER_SPLIT_HONOR_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_NEEDS_CALLER_FRAME_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> YIELD_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_DETAILED_KEY = new OptionKey<>(false);
@@ -1156,6 +1158,14 @@ public class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor ALWAYS_CLONE_ALL = OptionDescriptor
+            .newBuilder(ALWAYS_CLONE_ALL_KEY, "ruby.always-clone-all")
+            .help("Always clone all call targets (very slow, only for debugging)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static final OptionDescriptor ALWAYS_SPLIT_HONOR = OptionDescriptor
             .newBuilder(ALWAYS_SPLIT_HONOR_KEY, "ruby.always-split-honor")
             .help("Honor Truffle::Graal.always_split annotations")
@@ -1199,6 +1209,14 @@ public class OptionsCatalog {
     public static final OptionDescriptor METHODMISSING_ALWAYS_INLINE = OptionDescriptor
             .newBuilder(METHODMISSING_ALWAYS_INLINE_KEY, "ruby.method-missing-always-inline")
             .help("Always inline #method_missing")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor CHECK_CLONE_UNINITIALIZED_CORRECTNESS = OptionDescriptor
+            .newBuilder(CHECK_CLONE_UNINITIALIZED_CORRECTNESS_KEY, "ruby.check-clone-uninitialized-correctness")
+            .help("Check whether #cloneUninitialized correctly clones a root node AST")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1558,6 +1576,8 @@ public class OptionsCatalog {
                 return INLINE_DEFAULT;
             case "ruby.core-always-clone":
                 return CORE_ALWAYS_CLONE;
+            case "ruby.always-clone-all":
+                return ALWAYS_CLONE_ALL;
             case "ruby.always-split-honor":
                 return ALWAYS_SPLIT_HONOR;
             case "ruby.never-split-honor":
@@ -1570,6 +1590,8 @@ public class OptionsCatalog {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
+            case "ruby.check-clone-uninitialized-correctness":
+                return CHECK_CLONE_UNINITIALIZED_CORRECTNESS;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
@@ -1727,12 +1749,14 @@ public class OptionsCatalog {
             CLONE_DEFAULT,
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
+            ALWAYS_CLONE_ALL,
             ALWAYS_SPLIT_HONOR,
             NEVER_SPLIT_HONOR,
             INLINE_NEEDS_CALLER_FRAME,
             YIELD_ALWAYS_INLINE,
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,
+            CHECK_CLONE_UNINITIALIZED_CORRECTNESS,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
             REGEXP_INSTRUMENT_MATCH_DETAILED,

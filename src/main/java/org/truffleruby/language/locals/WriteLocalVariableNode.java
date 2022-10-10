@@ -48,6 +48,11 @@ public class WriteLocalVariableNode extends WriteLocalNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     protected String getVariableName() {
         return getRootNode().getFrameDescriptor().getSlotName(frameSlot).toString();
     }
@@ -55,6 +60,14 @@ public class WriteLocalVariableNode extends WriteLocalNode {
     @Override
     public String toString() {
         return super.toString() + " " + getVariableName() + " = " + valueNode;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new WriteLocalVariableNode(
+                frameSlot,
+                valueNode.cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

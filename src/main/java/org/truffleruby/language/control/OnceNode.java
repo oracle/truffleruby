@@ -54,4 +54,10 @@ public class OnceNode extends RubyContextSourceNode {
         return value;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new OnceNode(child.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

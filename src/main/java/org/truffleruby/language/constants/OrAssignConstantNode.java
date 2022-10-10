@@ -17,6 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** e.g. for {@code module::FOO ||= 1}
@@ -83,4 +84,12 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
         }
         return cast.execute(value);
     }
+
+    public RubyNode cloneUninitialized() {
+        var copy = new OrAssignConstantNode(
+                (ReadConstantNode) readConstant.cloneUninitialized(),
+                (WriteConstantNode) writeConstant.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

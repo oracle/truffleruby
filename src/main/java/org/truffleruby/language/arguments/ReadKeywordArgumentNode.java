@@ -91,4 +91,11 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
 
         return defaultValue;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ReadKeywordArgumentNode.create(name, cloneUninitialized(defaultValue));
+        return copy.copyFlags(this);
+    }
+
 }

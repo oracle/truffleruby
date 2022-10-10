@@ -54,10 +54,25 @@ public class WriteDeclarationVariableNode extends WriteLocalNode {
     }
 
     @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    @Override
     protected String getVariableName() {
         var descriptor = ParentFrameDescriptor.getDeclarationFrameDescriptor(
                 getRootNode().getFrameDescriptor(), frameDepth);
         return descriptor.getSlotName(frameSlot).toString();
+    }
+
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new WriteDeclarationVariableNode(
+                frameSlot,
+                frameDepth,
+                cloneUninitialized(valueNode));
+        return copy.copyFlags(this);
     }
 
 }

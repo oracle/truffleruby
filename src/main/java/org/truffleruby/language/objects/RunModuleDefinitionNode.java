@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
+import org.truffleruby.language.methods.ModuleBodyDefinition;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -24,18 +24,18 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
     @Child private RubyNode definingModule;
-    @Child private ModuleBodyDefinitionNode definitionMethod;
+    private final ModuleBodyDefinition moduleBodyDefinition;
     @Child private IndirectCallNode callModuleDefinitionNode = Truffle.getRuntime().createIndirectCallNode();
 
-    public RunModuleDefinitionNode(ModuleBodyDefinitionNode definition, RubyNode definingModule) {
+    public RunModuleDefinitionNode(ModuleBodyDefinition definition, RubyNode definingModule) {
         this.definingModule = definingModule;
-        this.definitionMethod = definition;
+        this.moduleBodyDefinition = definition;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final RubyModule module = (RubyModule) definingModule.execute(frame);
-        final InternalMethod definition = definitionMethod.createMethod(frame, module);
+        final InternalMethod definition = moduleBodyDefinition.createMethod(frame, module, this);
 
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(
                 null,
@@ -46,6 +46,14 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
                 nil,
                 EmptyArgumentsDescriptor.INSTANCE,
                 EMPTY_ARGUMENTS));
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new RunModuleDefinitionNode(
+                moduleBodyDefinition,
+                definingModule.cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

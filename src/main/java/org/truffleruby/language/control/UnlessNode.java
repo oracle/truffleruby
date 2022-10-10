@@ -57,4 +57,16 @@ public class UnlessNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         return new UnlessNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
+
+    private RubyNode getConditionBeforeCasting() {
+        return condition.getValueNode();
+    }
+
+    public RubyNode cloneUninitialized() {
+        var copy = new UnlessNode(
+                getConditionBeforeCasting().cloneUninitialized(),
+                thenBody.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

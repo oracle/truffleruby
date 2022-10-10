@@ -52,4 +52,17 @@ public class RubyTopLevelRootNode extends RubyMethodRootNode {
         }
     }
 
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyTopLevelRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                arityForCheck);
+    }
+
 }

@@ -13,6 +13,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
@@ -45,6 +46,16 @@ public abstract class InlinedIndexGetNode extends BinaryInlinedOperationNode {
     @Specialization
     protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedIndexGetNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

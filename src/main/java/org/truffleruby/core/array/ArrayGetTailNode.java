@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild(value = "array", type = RubyNode.class)
+@NodeChild(value = "arrayNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayGetTailNode extends RubyContextSourceNode {
 
@@ -27,6 +27,8 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
     public ArrayGetTailNode(int index) {
         this.index = index;
     }
+
+    public abstract RubyNode getArrayNode();
 
     @Specialization
     protected RubyArray getTail(RubyArray array,
@@ -39,6 +41,14 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
             final Object newStore = cowNode.execute(array, index, size - index);
             return createArray(newStore, size - index);
         }
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ArrayGetTailNodeGen.create(
+                index,
+                getArrayNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

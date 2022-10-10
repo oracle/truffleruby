@@ -56,4 +56,13 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return FrozenStrings.ASSIGNMENT;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new OrLazyValueDefinedNode(
+                left.cloneUninitialized(),
+                right.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

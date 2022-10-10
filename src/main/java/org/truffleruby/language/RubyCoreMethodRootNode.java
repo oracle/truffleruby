@@ -10,7 +10,10 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -24,6 +27,9 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
 
+    private final NodeFactory<? extends RubyBaseNode> nodeFactory;
+    private final CoreMethod coreMethod;
+
     @Child private TranslateExceptionNode translateExceptionNode;
 
     public RubyCoreMethodRootNode(
@@ -34,8 +40,12 @@ public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
             RubyNode body,
             Split split,
             ReturnID returnID,
-            Arity arityForCheck) {
+            Arity arityForCheck,
+            NodeFactory<? extends RubyBaseNode> nodeFactory,
+            CoreMethod coreMethod) {
         super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID, arityForCheck);
+        this.nodeFactory = nodeFactory;
+        this.coreMethod = coreMethod;
     }
 
     @Override
@@ -53,6 +63,12 @@ public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
             }
             throw translateExceptionNode.executeTranslation(t);
         }
+    }
+
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return CoreMethodNodeManager.createCoreMethodRootNode(nodeFactory, getLanguage(), getSharedMethodInfo(),
+                getSplit(), coreMethod);
     }
 
 }

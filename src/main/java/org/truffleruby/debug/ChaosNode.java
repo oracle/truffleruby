@@ -15,19 +15,22 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ChaosNode extends RubyContextSourceNode {
 
     public static ChaosNode create() {
         return ChaosNodeGen.create(null);
     }
 
-    public static ChaosNode create(RubyBaseNodeWithExecute child) {
-        return ChaosNodeGen.create(child);
+    public static ChaosNode create(RubyBaseNodeWithExecute value) {
+        return ChaosNodeGen.create(value);
     }
+
+    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected Object chaos(int value) {
@@ -60,6 +63,12 @@ public abstract class ChaosNode extends RubyContextSourceNode {
     @TruffleBoundary
     private boolean randomBoolean() {
         return ThreadLocalRandom.current().nextBoolean();
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = ChaosNodeGen.create(getValueNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

@@ -16,7 +16,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.NodeChild;
 
-@NodeChild(value = "self", type = RubyNode.class)
+@NodeChild(value = "selfNode", type = RubyNode.class)
 public abstract class UnaryInlinedOperationNode extends InlinedOperationNode {
 
     public UnaryInlinedOperationNode(
@@ -26,11 +26,11 @@ public abstract class UnaryInlinedOperationNode extends InlinedOperationNode {
         super(language, callNodeParameters, assumptions);
     }
 
-    protected abstract RubyNode getSelf();
+    protected abstract RubyNode getSelfNode();
 
     @Override
     protected RubyNode getReceiverNode() {
-        return getSelf();
+        return getSelfNode();
     }
 
     @Override

@@ -36,4 +36,11 @@ public class LocalReturnNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         return value;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new LocalReturnNode(value.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

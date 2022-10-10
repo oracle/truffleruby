@@ -77,6 +77,20 @@ public class RubyCallNodeParameters {
         return withReceiverAndArguments(receiver, arguments, block);
     }
 
+    public RubyCallNodeParameters withoutNodes() {
+        return new RubyCallNodeParameters(
+                null,
+                methodName,
+                null,
+                descriptor,
+                null,
+                isSplatted,
+                ignoreVisibility,
+                isVCall,
+                isSafeNavigation,
+                isAttrAssign);
+    }
+
     public RubyNode getReceiver() {
         return receiver;
     }

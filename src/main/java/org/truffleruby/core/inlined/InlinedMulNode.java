@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.MulNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -66,6 +67,16 @@ public abstract class InlinedMulNode extends BinaryInlinedOperationNode {
             fixnumMul = insert(MulNodeFactory.create(null));
         }
         return fixnumMul;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = InlinedMulNodeGen.create(
+                getLanguage(),
+                this.parameters,
+                getLeftNode().cloneUninitialized(),
+                getRightNode().cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
 }

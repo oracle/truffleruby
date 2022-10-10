@@ -17,7 +17,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
@@ -35,6 +34,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyLambdaRootNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -361,6 +361,13 @@ public abstract class MethodNodes {
                 final InternalMethod method = RubyArguments.getMethod(declarationFrame);
                 return CallNode.callBoundMethod(frame, method, receiver, frame.getArguments(), callInternalMethodNode);
             }
+
+            @Override
+            public RubyNode cloneUninitialized() {
+                var copy = new CallWithRubyMethodReceiverNode();
+                return copy.copyFlags(this);
+            }
+
         }
     }
 
@@ -401,7 +408,7 @@ public abstract class MethodNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

@@ -94,4 +94,14 @@ public class SuperCallNode extends LiteralCallNode {
         return lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SuperCallNode(
+                isSplatted,
+                arguments.cloneUninitialized(),
+                block.cloneUninitialized(),
+                descriptor);
+        return copy.copyFlags(this);
+    }
+
 }

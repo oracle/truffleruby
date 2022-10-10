@@ -130,4 +130,9 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
         return symbols;
     }
+
+    public CheckKeywordArityNode cloneUninitialized() {
+        return new CheckKeywordArityNode(arity);
+    }
+
 }

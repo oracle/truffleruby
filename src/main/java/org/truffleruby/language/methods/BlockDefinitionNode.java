@@ -15,6 +15,7 @@ import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -86,4 +87,11 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         }
         return withoutVisibilityNode.executeWithoutVisibility(ctxIn);
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new BlockDefinitionNode(type, sharedMethodInfo, callTargets, breakID, frameOnStackMarkerSlot);
+        return copy.copyFlags(this);
+    }
+
 }

@@ -31,10 +31,20 @@ public final class WhileNode extends RubyContextSourceNode {
         loopNode = Truffle.getRuntime().createLoopNode(repeatingNode);
     }
 
+    private WhileNode(LoopNode loopNode) {
+        this.loopNode = loopNode;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         loopNode.execute(frame);
         return nil;
+    }
+
+    public RubyNode cloneUninitialized() {
+        var repeatingNode = (WhileRepeatingBaseNode) loopNode.getRepeatingNode();
+        var copy = new WhileNode(repeatingNode.cloneUninitialized());
+        return copy.copyFlags(this);
     }
 
     private abstract static class WhileRepeatingBaseNode extends RubyBaseNode implements RepeatingNode {
@@ -55,6 +65,7 @@ public final class WhileNode extends RubyContextSourceNode {
             return "while loop at " + RubyLanguage.filenameLine(getEncapsulatingSourceSection());
         }
 
+        public abstract WhileRepeatingBaseNode cloneUninitialized();
     }
 
     public static class WhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
@@ -84,6 +95,13 @@ public final class WhileNode extends RubyContextSourceNode {
             }
         }
 
+        @Override
+        public WhileRepeatingBaseNode cloneUninitialized() {
+            return new WhileRepeatingNode(
+                    condition.getValueNode().cloneUninitialized(),
+                    body.cloneUninitialized());
+        }
+
     }
 
     public static class DoWhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
@@ -105,6 +123,17 @@ public final class WhileNode extends RubyContextSourceNode {
             }
 
             return condition.execute(frame);
+        }
+
+        private RubyNode getConditionBeforeCasting() {
+            return condition.getValueNode();
+        }
+
+        @Override
+        public WhileRepeatingBaseNode cloneUninitialized() {
+            return new DoWhileRepeatingNode(
+                    getConditionBeforeCasting().cloneUninitialized(),
+                    body.cloneUninitialized());
         }
 
     }

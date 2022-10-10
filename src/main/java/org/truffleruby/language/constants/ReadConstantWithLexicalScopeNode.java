@@ -17,6 +17,7 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -60,6 +61,11 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
         } else {
             return nil;
         }
+    }
+
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadConstantWithLexicalScopeNode(lexicalScope, name);
+        return copy.copyFlags(this);
     }
 
 }

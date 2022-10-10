@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.proc.ProcCallTargets;
@@ -36,7 +37,6 @@ import org.truffleruby.language.locals.WriteDeclarationVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -140,9 +140,8 @@ public abstract class TruffleGraalNodes {
 
     }
 
-    @NodeChild(value = "value", type = RubyNode.class)
     @Primitive(name = "assert_compilation_constant")
-    public abstract static class AssertCompilationConstantNode extends PrimitiveNode {
+    public abstract static class AssertCompilationConstantNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object assertCompilationConstant(Object value) {
@@ -178,8 +177,7 @@ public abstract class TruffleGraalNodes {
     }
 
     @Primitive(name = "compiler_bailout")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class BailoutNode extends PrimitiveNode {
+    public abstract static class BailoutNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected Object bailout(Object message,
@@ -190,9 +188,8 @@ public abstract class TruffleGraalNodes {
         }
     }
 
-    @NodeChild(value = "value", type = RubyNode.class)
     @Primitive(name = "blackhole")
-    public abstract static class BlackholeNode extends PrimitiveNode {
+    public abstract static class BlackholeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object blackhole(boolean value) {

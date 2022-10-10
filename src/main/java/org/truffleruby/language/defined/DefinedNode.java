@@ -27,4 +27,10 @@ public class DefinedNode extends RubyContextSourceNode {
         return child.isDefined(frame, getLanguage(), getContext());
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new DefinedNode(child.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

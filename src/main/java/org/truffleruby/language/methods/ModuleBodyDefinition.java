@@ -24,7 +24,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Define a method from a module body (module/class/class << self ... end). */
-public class ModuleBodyDefinitionNode extends RubyBaseNode {
+public final class ModuleBodyDefinition {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
@@ -33,7 +33,7 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
     private final LexicalScope staticLexicalScope;
     private final Map<RubyModule, LexicalScope> dynamicLexicalScopes;
 
-    public ModuleBodyDefinitionNode(
+    public ModuleBodyDefinition(
             String name,
             SharedMethodInfo sharedMethodInfo,
             RootCallTarget callTarget,
@@ -45,15 +45,15 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
         this.dynamicLexicalScopes = staticLexicalScope != null ? null : new ConcurrentHashMap<>();
     }
 
-    public InternalMethod createMethod(VirtualFrame frame, RubyModule module) {
+    public InternalMethod createMethod(VirtualFrame frame, RubyModule module, RubyBaseNode node) {
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-        final LexicalScope lexicalScope = prepareLexicalScope(staticLexicalScope, parentLexicalScope, module);
+        final LexicalScope lexicalScope = prepareLexicalScope(staticLexicalScope, parentLexicalScope, module, node);
         final DeclarationContext declarationContext = new DeclarationContext(
                 Visibility.PUBLIC,
                 new DeclarationContext.FixedDefaultDefinee(module),
                 RubyArguments.getDeclarationContext(frame).getRefinements());
         return new InternalMethod(
-                getContext(),
+                node.getContext(),
                 sharedMethodInfo,
                 lexicalScope,
                 declarationContext,
@@ -69,11 +69,11 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
 
     @TruffleBoundary
     private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope,
-            RubyModule module) {
+            RubyModule module, RubyBaseNode node) {
         if (staticLexicalScope != null) {
             staticLexicalScope.unsafeSetLiveModule(module);
             return staticLexicalScope;
-        } else if (getLanguage().singleContext) {
+        } else if (node.getLanguage().singleContext) {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
             return ConcurrentOperations.getOrCompute(

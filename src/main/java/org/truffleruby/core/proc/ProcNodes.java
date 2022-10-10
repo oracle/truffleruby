@@ -19,7 +19,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
@@ -53,7 +52,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public abstract class ProcNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyProc allocate(RubyClass rubyClass) {
@@ -109,7 +108,7 @@ public abstract class ProcNodes {
     }
 
     @CoreMethod(names = { "dup", "clone" })
-    public abstract static class DupNode extends UnaryCoreMethodNode {
+    public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyProc dup(RubyProc proc) {

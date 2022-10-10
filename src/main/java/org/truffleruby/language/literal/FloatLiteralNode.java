@@ -14,6 +14,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
 public class FloatLiteralNode extends RubyContextSourceNode {
@@ -27,6 +28,12 @@ public class FloatLiteralNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return value;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new FloatLiteralNode(value);
+        return copy.copyFlags(this);
     }
 
 }

@@ -14,6 +14,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.RubyNode;
 
 /** Passes through {@code int} values unmodified, but will convert a {@code long} value to an {@code int}, if it fits
  * within the range of an {@code int}. Leaves all other values unmodified. Used where a specialization only accepts
@@ -22,18 +23,20 @@ import com.oracle.truffle.api.dsl.Specialization;
  *
  * <p>
  * See {@link org.truffleruby.core.cast.ToIntNode} for a comparison of different integer conversion nodes. */
-@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
+@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
     public static FixnumLowerNode create() {
         return FixnumLowerNodeGen.create(null);
     }
 
-    public static FixnumLowerNode create(RubyBaseNodeWithExecute child) {
-        return FixnumLowerNodeGen.create(child);
+    public static FixnumLowerNode create(RubyBaseNodeWithExecute value) {
+        return FixnumLowerNodeGen.create(value);
     }
 
     public abstract Object executeLower(Object value);
+
+    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected int lower(int value) {
@@ -54,5 +57,11 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
     protected Object passThrough(Object value) {
         return value;
     }
+
+    public RubyNode cloneUninitialized() {
+        var copy = create(getValueNode().cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }
 

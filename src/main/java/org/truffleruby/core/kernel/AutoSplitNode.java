@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -28,6 +29,12 @@ public class AutoSplitNode extends RubyContextSourceNode {
         // $F = $_.split
         final Object lastLine = readGlobalVariableNode.execute(frame);
         return writeSimpleGlobalVariableNode.execute(callSplitNode.call(lastLine, "split"));
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new AutoSplitNode();
+        return copy.copyFlags(this);
     }
 
 }

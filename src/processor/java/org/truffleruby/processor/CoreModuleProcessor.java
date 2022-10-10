@@ -95,6 +95,10 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     // node types
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
+    TypeMirror primitiveNodeType;
+    TypeMirror coreMethodNodeType;
+    TypeMirror alwaysInlinedMethodNodeType;
+    TypeMirror rubySourceNodeType;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
@@ -107,6 +111,12 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         rootCallTargetType = elementUtils.getTypeElement("com.oracle.truffle.api.RootCallTarget").asType();
         rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
         rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();
+        primitiveNodeType = elementUtils.getTypeElement("org.truffleruby.builtins.PrimitiveNode").asType();
+        coreMethodNodeType = elementUtils.getTypeElement("org.truffleruby.builtins.CoreMethodNode").asType();
+        alwaysInlinedMethodNodeType = elementUtils
+                .getTypeElement("org.truffleruby.core.inlined.AlwaysInlinedMethodNode").asType();
+        rubySourceNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubySourceNode").asType();
+
 
         if (!annotations.isEmpty()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreModule.class)) {
@@ -189,6 +199,13 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                                             ? coreMethod
                                             : null;
                             coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
+                            if (!inherits(e.asType(), coreMethodNodeType) &&
+                                    !inherits(e.asType(), alwaysInlinedMethodNodeType) &&
+                                    !inherits(e.asType(), rubySourceNodeType)) {
+                                error(e +
+                                        " should inherit from CoreMethodArrayArgumentsNode, CoreMethodNode, AlwaysInlinedMethodNode or RubySourceNode",
+                                        e);
+                            }
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
                                     needsSelf);
                         }
@@ -208,6 +225,11 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
                             coreModuleChecks.checks(primitive.lowerFixnum(), null, klass, true);
+                            if (!inherits(e.asType(), primitiveNodeType) && !inherits(e.asType(), rubySourceNodeType)) {
+                                error(e +
+                                        " should inherit from PrimitiveArrayArgumentsNode, PrimitiveNode or RubySourceNode",
+                                        e);
+                            }
                         }
                     }
                 }

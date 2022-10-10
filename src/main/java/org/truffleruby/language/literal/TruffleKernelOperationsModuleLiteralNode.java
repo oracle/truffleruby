@@ -11,12 +11,19 @@ package org.truffleruby.language.literal;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 
 public class TruffleKernelOperationsModuleLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
         return getContext().getCoreLibrary().truffleKernelOperationsModule;
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new TruffleKernelOperationsModuleLiteralNode();
+        return copy.copyFlags(this);
     }
 
 }

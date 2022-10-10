@@ -93,4 +93,17 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
         node.copySourceSection(this);
         return node;
     }
+
+    @Override
+    public AssignableNode cloneUninitializedAssignable() {
+        return (AssignableNode) cloneUninitialized();
+    }
+
+    abstract RubyNode getValueNode();
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = WriteGlobalVariableNodeGen.create(name, cloneUninitialized(getValueNode()));
+        return copy.copyFlags(this);
+    }
 }

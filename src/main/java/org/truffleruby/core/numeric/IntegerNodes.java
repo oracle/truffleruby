@@ -39,6 +39,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -1867,24 +1868,35 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "mod_pow")
-    @NodeChild(value = "base", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "exponent", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "modulo", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "baseNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "exponentNode", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "moduloNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class ModPowNode extends PrimitiveNode {
 
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
-        @CreateCast("base")
+        public static ModPowNode create(RubyBaseNodeWithExecute base, RubyBaseNodeWithExecute exponent,
+                RubyBaseNodeWithExecute modulo) {
+            return IntegerNodesFactory.ModPowNodeFactory.create(base, exponent, modulo);
+        }
+
+        abstract RubyBaseNodeWithExecute getBaseNode();
+
+        abstract RubyBaseNodeWithExecute getExponentNode();
+
+        abstract RubyBaseNodeWithExecute getModuloNode();
+
+        @CreateCast("baseNode")
         protected RubyBaseNodeWithExecute baseToBigInteger(RubyBaseNodeWithExecute base) {
             return BigIntegerCastNode.create(base);
         }
 
-        @CreateCast("exponent")
+        @CreateCast("exponentNode")
         protected RubyBaseNodeWithExecute exponentToBigInteger(RubyBaseNodeWithExecute exponent) {
             return BigIntegerCastNode.create(exponent);
         }
 
-        @CreateCast("modulo")
+        @CreateCast("moduloNode")
         protected RubyBaseNodeWithExecute moduloToBigInteger(RubyBaseNodeWithExecute modulo) {
             return BigIntegerCastNode.create(modulo);
         }
@@ -1904,6 +1916,27 @@ public abstract class IntegerNodes {
         @Specialization(guards = "modulo.signum() == 0")
         protected Object mod_pow_zero(BigInteger base, BigInteger exponent, BigInteger modulo) {
             throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+        }
+
+        RubyBaseNodeWithExecute getBaseNodeBeforeCasting() {
+            return ((BigIntegerCastNode) getBaseNode()).getValueNode();
+        }
+
+        RubyBaseNodeWithExecute getExponentNodeBeforeCasting() {
+            return ((BigIntegerCastNode) getExponentNode()).getValueNode();
+        }
+
+        RubyBaseNodeWithExecute getModuloNodeBeforeCasting() {
+            return ((BigIntegerCastNode) getModuloNode()).getValueNode();
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = create(
+                    getBaseNodeBeforeCasting().cloneUninitialized(),
+                    getExponentNodeBeforeCasting().cloneUninitialized(),
+                    getModuloNodeBeforeCasting().cloneUninitialized());
+            return copy.copyFlags(this);
         }
     }
 

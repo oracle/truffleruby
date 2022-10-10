@@ -22,7 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.control.RaiseException;
 
 @GenerateUncached
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class ToJavaStringNode extends RubySourceNode {
 
     public static ToJavaStringNode create() {
@@ -34,6 +34,8 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     }
 
     public abstract String executeToJavaString(Object name);
+
+    abstract RubyNode getValueNode();
 
     @Specialization(guards = "interopLibrary.isString(value)", limit = "getLimit()")
     protected String interopString(Object value,
@@ -58,4 +60,10 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     protected int getLimit() {
         return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        return ToJavaStringNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
+    }
+
 }

@@ -51,4 +51,14 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
         return getClass().getSimpleName() + " " + index;
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadOptionalArgumentNode(
+                index,
+                minimum,
+                keywordArguments,
+                defaultValue.cloneUninitialized());
+        return copy.copyFlags(this);
+    }
+
 }

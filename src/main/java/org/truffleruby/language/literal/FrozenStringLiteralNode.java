@@ -15,6 +15,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class FrozenStringLiteralNode extends RubyContextSourceNode {
 
@@ -35,4 +36,11 @@ public class FrozenStringLiteralNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return definition;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new FrozenStringLiteralNode(frozenString, definition);
+        return copy.copyFlags(this);
+    }
+
 }

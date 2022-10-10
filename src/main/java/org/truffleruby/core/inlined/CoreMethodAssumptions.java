@@ -19,11 +19,11 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.parser.TranslatorEnvironment;
 
 /** We inline basic operations directly in the AST (instead of a method call) as it makes little sense to compile them
  * in isolation without the surrounding method and it delays more interesting compilations by filling the compilation
@@ -149,7 +149,7 @@ public class CoreMethodAssumptions {
         }
     }
 
-    public RubyNode createCallNode(RubyCallNodeParameters callParameters, TranslatorEnvironment environment) {
+    public RubyContextSourceNode createCallNode(RubyCallNodeParameters callParameters) {
         if (!language.options.BASICOPS_INLINE || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
         }

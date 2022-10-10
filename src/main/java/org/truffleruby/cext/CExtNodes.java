@@ -620,7 +620,7 @@ public class CExtNodes {
     }
 
     @Primitive(name = "rb_int_singlebit_p")
-    public abstract static class IntSinglebitPPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IntSinglebitPPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int intSinglebitP(int num) {

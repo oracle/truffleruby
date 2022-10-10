@@ -12,12 +12,19 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 public class ReadSelfNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
         return RubyArguments.getSelf(frame);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new ReadSelfNode();
+        return copy.copyFlags(this);
     }
 
 }

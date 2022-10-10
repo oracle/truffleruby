@@ -100,4 +100,17 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
         }
     }
 
+    @Override
+    protected RubyRootNode cloneUninitializedRootNode() {
+        return new RubyMethodRootNode(
+                getLanguage(),
+                getSourceSection(),
+                getFrameDescriptor(),
+                getSharedMethodInfo(),
+                body.cloneUninitialized(),
+                getSplit(),
+                returnID,
+                arityForCheck);
+    }
+
 }

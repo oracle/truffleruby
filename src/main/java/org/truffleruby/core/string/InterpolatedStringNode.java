@@ -19,6 +19,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.truffleruby.language.RubyNode;
 
 /** A list of expressions to build up into a string. */
 public final class InterpolatedStringNode extends RubyContextSourceNode {
@@ -31,9 +32,13 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     private final TruffleString emptyTString;
 
     public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
+        this(children, Encodings.getBuiltInEncoding(encoding));
+    }
+
+    private InterpolatedStringNode(ToSNode[] children, RubyEncoding encoding) {
         assert children.length > 0;
         this.children = children;
-        this.encoding = Encodings.getBuiltInEncoding(encoding);
+        this.encoding = encoding;
         this.emptyTString = this.encoding.tencoding.getEmpty();
     }
 
@@ -60,6 +65,22 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
             appendNode = insert(StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null));
         }
         return appendNode.executeStringAppend(builder, string);
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new InterpolatedStringNode(
+                cloneUninitialized(children),
+                encoding);
+        return copy.copyFlags(this);
+    }
+
+    protected static ToSNode[] cloneUninitialized(ToSNode[] nodes) {
+        ToSNode[] copies = new ToSNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            copies[i] = (ToSNode) nodes[i].cloneUninitialized();
+        }
+        return copies;
     }
 
 }

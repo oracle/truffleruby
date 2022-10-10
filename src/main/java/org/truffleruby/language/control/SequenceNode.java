@@ -68,4 +68,11 @@ public final class SequenceNode extends RubyContextSourceNode {
         }
         return this;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        var copy = new SequenceNode(cloneUninitialized(body));
+        return copy.copyFlags(this);
+    }
+
 }
