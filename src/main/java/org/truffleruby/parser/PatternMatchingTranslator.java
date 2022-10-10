@@ -108,12 +108,14 @@ public class PatternMatchingTranslator extends BaseTranslator {
 
         var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
+        receiver = new TruffleInternalModuleLiteralNode();
+        receiver.unsafeSetSourceSection(sourceSection);
         deconstructCallParameters = new RubyCallNodeParameters(
-                currentValueToMatch,
-                "deconstruct",
+                receiver,
+                "deconstruct_checked",
                 null,
                 EmptyArgumentsDescriptor.INSTANCE,
-                RubyNode.EMPTY_ARRAY,
+                new RubyNode[] {currentValueToMatch},
                 false,
                 true);
         deconstructed = language.coreMethodAssumptions
@@ -131,6 +133,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
         condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
                 currentValueToMatch, arrayPatternParseNode.hasRestArg());
 
+        // Constant == pattern.deconstruct
         if (arrayPatternParseNode.hasConstant()) {
             ConstParseNode constant = (ConstParseNode) arrayPatternParseNode.getConstant();
             RubyNode constVal = constant.accept(this);

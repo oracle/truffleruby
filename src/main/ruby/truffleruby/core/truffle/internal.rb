@@ -57,6 +57,14 @@ module Truffle::Internal
     end
   end
 
+  def self.deconstruct_checked(pattern)
+    if pattern.respond_to? "deconstruct"
+      return pattern.deconstruct
+    else
+      return nil
+    end
+  end
+
   def self.hash_pattern_matches?(pattern, expression)
     pattern.all? do |key, value|
       expression.has_key?(key) && value === expression.fetch(key)
