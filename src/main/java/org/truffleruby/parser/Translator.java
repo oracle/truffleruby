@@ -73,7 +73,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         for (RubyNode node : sequence) {
             final SourceIndexLength sourceSection = node.getSourceIndexLength();
 
-            if (sourceSection != null) {
+            if (sourceSection != null && sourceSection.isAvailable()) {
                 start = Integer.min(start, sourceSection.getCharIndex());
                 end = Integer.max(end, sourceSection.getCharEnd());
             }
