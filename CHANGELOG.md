@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Ensure every parse node has a source section and fix the source section for `ensure` (#2758, @eregon).
 
 Compatibility:
 

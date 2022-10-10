@@ -58,6 +58,8 @@ public abstract class ParseNode {
         Objects.requireNonNull(position);
         sourceCharIndex = position.getCharIndex();
         sourceLength = position.getLength();
+        assert this.hasPosition() || this instanceof NilImplicitParseNode ||
+                this instanceof RequiredKeywordArgumentValueParseNode : this.getClass();
     }
 
     public void setNewline() {
@@ -68,14 +70,31 @@ public abstract class ParseNode {
         return newline;
     }
 
+    public final boolean hasPosition() {
+        return sourceLength != SourceIndexLength.UNAVAILABLE;
+    }
+
     /** Location of this node within the source */
     public final SourceIndexLength getPosition() {
         return new SourceIndexLength(sourceCharIndex, sourceLength);
     }
 
-    public final void setPosition(SourceIndexLength position) {
-        sourceCharIndex = position.getCharIndex();
-        sourceLength = position.getLength();
+    public void extendPosition(ParseNode node) {
+        if (this.hasPosition() && node.hasPosition()) {
+            int begin = Math.min(this.sourceCharIndex, node.sourceCharIndex);
+            int end = Math.max(this.sourceCharIndex + this.sourceLength, node.sourceCharIndex + node.sourceLength);
+            this.sourceCharIndex = begin;
+            this.sourceLength = end - begin;
+        }
+    }
+
+    public void extendPosition(SourceIndexLength pos) {
+        if (this.hasPosition() && pos.isAvailable()) {
+            int begin = Math.min(this.sourceCharIndex, pos.getCharIndex());
+            int end = Math.max(this.sourceCharIndex + this.sourceLength, pos.getCharEnd());
+            this.sourceCharIndex = begin;
+            this.sourceLength = end - begin;
+        }
     }
 
     public abstract <T> T accept(NodeVisitor<T> visitor);
