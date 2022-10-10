@@ -68,7 +68,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
 
-        if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
+        if (language.options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
             this.bodyCopy = copyBody();
         } else {
             this.bodyCopy = null;
