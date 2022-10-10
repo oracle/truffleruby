@@ -42,7 +42,7 @@ public abstract class RubySourceNode extends RubyNode {
 
     @Override
     public String toString() {
-        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
+        return super.toString() + " at " + RubyLanguage.fileLineRange(getSourceSection());
     }
 
 }

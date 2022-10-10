@@ -305,6 +305,18 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    @CoreMethod(names = "print_source_sections", onSingleton = true, required = 1)
+    public abstract static class PrintSourceSectionsNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization
+        protected Object printSourceSections(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            NodeUtil.printSourceAttributionTree(System.err, callTarget.getRootNode());
+            return nil;
+        }
+    }
+
     @CoreMethod(names = "ast_size", onSingleton = true, required = 1)
     public abstract static class ASTSizeNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
