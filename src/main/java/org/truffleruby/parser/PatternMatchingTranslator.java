@@ -105,6 +105,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
         ListParseNode preNodes = arrayPatternParseNode.getPreArgs();
         ListParseNode postNodes = arrayPatternParseNode.getPostArgs();
         ParseNode restNode = arrayPatternParseNode.getRestArg();
+
         var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
         deconstructCallParameters = new RubyCallNodeParameters(
@@ -129,6 +130,23 @@ public class PatternMatchingTranslator extends BaseTranslator {
         RubyNode condition = null;
         condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
                 currentValueToMatch, arrayPatternParseNode.hasRestArg());
+
+        if (arrayPatternParseNode.hasConstant()) {
+            ConstParseNode constant = (ConstParseNode) arrayPatternParseNode.getConstant();
+            RubyNode constVal = constant.accept(this);
+            final RubyCallNodeParameters instanceCheckParameters = new RubyCallNodeParameters(
+                    constVal,
+                    "===",
+                    null,
+                    EmptyArgumentsDescriptor.INSTANCE,
+                    new RubyNode[]{ currentValueToMatch },
+                    false,
+                    true);
+            RubyNode isInstance = language.coreMethodAssumptions
+                    .createCallNode(instanceCheckParameters, environment);
+            condition = new AndNode(isInstance, condition);
+        }
+
 
         for (int i = 0; i < preSize; i++) {
             ParseNode loopPreNode = preNodes.get(i);
@@ -403,8 +421,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
     public RubyNode visitCallNode(CallParseNode node) {
         return bodyTranslator.visitCallNode(node);
     }
-
-
     //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
     //        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
     //        final int size = node.minimumArgsNum();
