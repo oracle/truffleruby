@@ -373,10 +373,11 @@ public class ParserSupport {
     public ParseNode addRootNode(ParseNode topOfAST) {
         final int endPosition = lexer.getEndPosition();
 
+        ParseNode body = topOfAST;
         SourceIndexLength position;
 
         if (topOfAST == null) {
-            topOfAST = NilImplicitParseNode.NIL;
+            body = NilImplicitParseNode.NIL;
             position = lexer.getPosition();
         } else {
             position = topOfAST.getPosition();
@@ -384,14 +385,14 @@ public class ParserSupport {
 
         BlockParseNode beginAST = null;
         if (!result.getBeginNodes().isEmpty()) {
-            position = topOfAST != null ? topOfAST.getPosition() : result.getBeginNodes().get(0).getPosition();
-            beginAST = new BlockParseNode(position);
+            SourceIndexLength beginPosition = result.getBeginNodes().get(0).getPosition();
+            beginAST = new BlockParseNode(beginPosition);
             for (ParseNode beginNode : result.getBeginNodes()) {
                 appendToBlock(beginAST, beginNode);
             }
         }
 
-        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, endPosition);
+        return new RootParseNode(lexer.getSource(), position, beginAST, body, endPosition);
     }
 
     /* MRI: block_append */
@@ -407,7 +408,7 @@ public class ParserSupport {
             head = new BlockParseNode(head.getPosition()).add(head);
         }
 
-        if (isBreakStatement(((ListParseNode) head).getLast())) {
+        if (isBreakStatement(((BlockParseNode) head).getLast())) {
             warnings.warning(
                     file,
                     tail.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
@@ -415,7 +416,7 @@ public class ParserSupport {
         }
 
         // Assumption: tail is never a list node
-        ((ListParseNode) head).add(tail);
+        ((BlockParseNode) head).add(tail);
         return head;
     }
 
@@ -514,7 +515,7 @@ public class ParserSupport {
             if (node2 == null) {
                 return new ArrayParseNode(position, NilImplicitParseNode.NIL);
             } else {
-                return new ArrayParseNode(node2.getPosition(), node2);
+                return new ArrayParseNode(position, node2);
             }
         }
         if (node1 instanceof ArrayParseNode) {
@@ -1029,13 +1030,11 @@ public class ParserSupport {
         SourceIndexLength position = lexer.tokline;  // FIXME: ruby_sourceline in new lexer.
 
         ParseNode newNode = new OpElementAsgnParseNode(
-                position,
+                receiverNode.getPosition(),
                 receiverNode,
                 operatorName.toJavaStringUncached(),
                 argsNode,
                 valueNode);
-
-        fixpos(newNode, receiverNode);
 
         return newNode;
     }
@@ -1132,14 +1131,6 @@ public class ParserSupport {
 
         fcall.setArgsNode(args);
         fcall.setIterNode(iter);
-    }
-
-    public void fixpos(ParseNode node, ParseNode orig) {
-        if (node == null || orig == null) {
-            return;
-        }
-
-        node.setPosition(orig.getPosition());
     }
 
     public ParseNode new_fcall(TruffleString operation) {
@@ -1299,7 +1290,6 @@ public class ParserSupport {
                     return tail;
                 }
             }
-            head.setPosition(head.getPosition());
             return ((ListParseNode) head).add(tail);
 
         } else if (tail instanceof DStrParseNode) {
@@ -1523,7 +1513,7 @@ public class ParserSupport {
     }
 
     public SourceIndexLength getPosition(ParseNode start) {
-        if (start != null) {
+        if (start != null && start.hasPosition()) {
             return start.getPosition();
         } else {
             return lexer.getPosition();

@@ -85,6 +85,7 @@ public abstract class ListParseNode extends ParseNode {
         }
 
         list[size++] = node;
+        extendPosition(node);
     }
 
     protected void addAllInternal(ListParseNode other) {
@@ -94,6 +95,7 @@ public abstract class ListParseNode extends ParseNode {
 
         System.arraycopy(other.list, 0, list, size, other.size);
         size += other.size;
+        extendPosition(other);
     }
 
     /** Add a node to this list

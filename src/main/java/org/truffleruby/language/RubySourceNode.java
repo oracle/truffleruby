@@ -40,9 +40,4 @@ public abstract class RubySourceNode extends RubyNode {
         return RubyNode.defaultIsDefined(this);
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
-    }
-
 }

@@ -62,9 +62,4 @@ public abstract class RubyContextSourceNode extends RubyNode {
         this.flags = original.flags;
         return this;
     }
-
-    @Override
-    public String toString() {
-        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
-    }
 }

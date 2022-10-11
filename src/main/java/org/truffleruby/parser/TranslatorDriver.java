@@ -185,7 +185,7 @@ public class TranslatorDriver {
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
         final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
-        final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
+        final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
 
         final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()
                 ? null

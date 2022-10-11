@@ -802,14 +802,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     /** Only use when no language/context is available (e.g. Node#toString). Prefer
      * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
     @TruffleBoundary
-    public static String fileLine(SourceSection section) {
+    public static String fileLineRange(SourceSection section) {
         if (section == null) {
             return "no source section";
         } else {
             final String path = getPath(section.getSource());
 
             if (section.isAvailable()) {
-                return path + ":" + section.getStartLine();
+                if (section.getStartLine() != section.getEndLine()) {
+                    return path + ":" + section.getStartLine() + "-" + section.getEndLine();
+                } else {
+                    return path + ":" + section.getStartLine();
+                }
             } else {
                 return path;
             }

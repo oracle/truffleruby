@@ -18,20 +18,28 @@ public final class SourceIndexLength {
     public static final int UNAVAILABLE = -1;
     public static final SourceIndexLength UNAVAILABLE_POSITION = new SourceIndexLength();
 
+    /** -1 indicates no source section, see {@link org.truffleruby.language.RubyNode#hasSource}. Never true for
+     * SourceIndexLength. */
     private final int charIndex;
-    private final int length; // -1 indicates unavailable, which is the same encoding as SourceSection
+    /** -1 indicates unavailable source section, only for usages of UNAVAILABLE_POSITION and unavailable SourceSections
+     * converted to SourceIndexLength. */
+    private final int length;
+
+    public static SourceIndexLength fromSourceSection(SourceSection sourceSection) {
+        if (!sourceSection.isAvailable()) {
+            return UNAVAILABLE_POSITION;
+        }
+        return new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
+    }
 
     private SourceIndexLength() {
-        this(UNAVAILABLE, UNAVAILABLE);
+        this(0, UNAVAILABLE);
     }
 
     public SourceIndexLength(int charIndex, int length) {
+        assert (charIndex >= 0 && length >= 0) || (charIndex == 0 && length == UNAVAILABLE);
         this.charIndex = charIndex;
         this.length = length;
-    }
-
-    public SourceIndexLength(SourceSection sourceSection) {
-        this(sourceSection.getCharIndex(), sourceSection.isAvailable() ? sourceSection.getCharLength() : UNAVAILABLE);
     }
 
     @TruffleBoundary

@@ -336,13 +336,12 @@ bodystmt      : compstmt opt_rescue opt_else opt_ensure {
                   }
                   if ($4 != null) {
                       if (node != null) {
-                          node = new EnsureParseNode(support.getPosition($1), support.makeNullNil(node), $4);
+                          node = new EnsureParseNode(support.extendedUntil(support.getPosition($1), support.getPosition($4)), support.makeNullNil(node), $4);
                       } else {
                           node = support.appendToBlock($4, NilImplicitParseNode.NIL);
                       }
                   }
 
-                  support.fixpos(node, $1);
                   $$ = node;
                 }
 
@@ -393,11 +392,11 @@ stmt            : keyword_alias fitem {
                 }
                 | stmt modifier_if expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), $1, null);
-                    support.fixpos($<ParseNode>$, $3);
+                    $<ParseNode>$.extendPosition($3);
                 }
                 | stmt modifier_unless expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), null, $1);
-                    support.fixpos($<ParseNode>$, $3);
+                    $<ParseNode>$.extendPosition($3);
                 }
                 | stmt modifier_while expr_value {
                     if ($1 != null && $1 instanceof BeginParseNode) {
@@ -439,7 +438,6 @@ stmt            : keyword_alias fitem {
                 | mlhs '=' mrhs_arg {
                     $<AssignableParseNode>1.setValueNode($3);
                     $$ = $1;
-                    $1.setPosition(support.getPosition($1));
                 }
                 | expr
 
@@ -460,7 +458,6 @@ command_asgn    : lhs '=' command_rhs {
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
                         $1.setValueNode(support.getOperatorCallNode(support.gettable2($1), asgnOp, $3));
-                        $1.setPosition(pos);
                         $$ = $1;
                     }
                 }
@@ -1083,7 +1080,7 @@ reswords        : keyword__LINE__ {
 arg             : lhs '=' arg_rhs {
                     $$ = support.node_assign($1, $3);
                     // FIXME: Consider fixing node_assign itself rather than single case
-                    $<ParseNode>$.setPosition(support.getPosition($1));
+                    $<ParseNode>$.extendPosition($1);
                 }
                 | var_lhs tOP_ASGN arg_rhs {
                     value_expr(lexer, $3);
@@ -1098,7 +1095,6 @@ arg             : lhs '=' arg_rhs {
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
                         $1.setValueNode(support.getOperatorCallNode(support.gettable2($1), asgnOp, $3));
-                        $1.setPosition(pos);
                         $$ = $1;
                     }
                 }
@@ -1309,7 +1305,7 @@ arg_rhs         : arg %prec tOP_ASGN {
 
 paren_args      : tLPAREN2 opt_call_args rparen {
                     $$ = $2;
-                    if ($$ != null) $<ParseNode>$.setPosition($1);
+                    if ($$ != null) $<ParseNode>$.extendPosition($1);
                 }
                 | tLPAREN2 args ',' args_forward rparen {
                     SourceIndexLength position = support.getPosition(null);
@@ -1398,8 +1394,7 @@ opt_block_arg   : ',' block_arg {
 
 // [!null]
 args            : arg_value { // ArrayNode
-                    SourceIndexLength pos = $1 == null ? lexer.getPosition() : $1.getPosition();
-                    $$ = support.newArrayNode(pos, $1);
+                    $$ = support.newArrayNode(support.getPosition($1), $1);
                 }
                 | tSTAR arg_value { // SplatNode
                     $$ = support.newSplatNode(support.getPosition($2), $2);
@@ -1497,7 +1492,7 @@ primary         : literal
                 | tLPAREN compstmt tRPAREN {
                     if ($2 != null) {
                         // compstmt position includes both parens around it
-                        $2.setPosition($1);
+                        $2.extendPosition($1);
                         $$ = $2;
                     } else {
                         $$ = new NilParseNode($1);
@@ -1552,7 +1547,7 @@ primary         : literal
                           lexer.compile_error(PID.BLOCK_ARG_AND_BLOCK_GIVEN, "Both block arg and actual block given.");
                     }
                     $$ = $<BlockAcceptingParseNode>1.setIterNode($2);
-                    $<ParseNode>$.setPosition($1.getPosition());
+                    $<ParseNode>$.extendPosition($1);
                 }
                 | tLAMBDA lambda {
                     $$ = $2;
@@ -1945,7 +1940,7 @@ block_call      : command do_block {
                         $<BlockAcceptingParseNode>1.setIterNode($2);
                     }
                     $$ = $1;
-                    $<ParseNode>$.setPosition($1.getPosition());
+                    $<ParseNode>$.extendPosition($1);
                 }
                 | block_call call_op2 operation2 opt_paren_args {
                     $$ = support.new_call($1, $2, $3, $4, null);
@@ -2040,7 +2035,7 @@ opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     if ($3 != null) {
                         node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(TStringConstants.DOLLAR_BANG))), $5);
                         if ($5 != null) {
-                            node.setPosition($1);
+                            node.extendPosition($1);
                         }
                     } else {
                         node = $5;
@@ -2121,8 +2116,6 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                         $$ = new XStrParseNode(position, $<StrParseNode>2);
                     } else if ($2 instanceof DStrParseNode) {
                         $$ = new DXStrParseNode(position, $<DStrParseNode>2);
-
-                        $<ParseNode>$.setPosition(position);
                     } else {
                         $$ = new DXStrParseNode(position).add($2);
                     }

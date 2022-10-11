@@ -16,6 +16,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TraceManager;
@@ -128,18 +129,22 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         if (!hasSource()) {
             return null;
         } else {
-            final com.oracle.truffle.api.source.Source source = getSource();
-
+            final Source source = getSource();
             if (source == null) {
                 return null;
             }
 
-            return getSourceIndexLength().toSourceSection(source);
+            int sourceLength = getSourceLength();
+            if (sourceLength == SourceIndexLength.UNAVAILABLE) {
+                return source.createUnavailableSection();
+            } else {
+                return source.createSection(getSourceCharIndex(), sourceLength);
+            }
         }
 
     }
 
-    private com.oracle.truffle.api.source.Source getSource() {
+    private Source getSource() {
         final RootNode rootNode = getRootNode();
 
         if (rootNode == null) {
@@ -163,13 +168,18 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
             }
 
             if (node instanceof RootNode) {
-                return new SourceIndexLength(node.getSourceSection());
+                return SourceIndexLength.fromSourceSection(node.getSourceSection());
             }
 
             node = node.getParent();
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " at " + RubyLanguage.fileLineRange(getSourceSection());
     }
 
     // Instrumentation

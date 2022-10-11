@@ -457,16 +457,9 @@ public class BodyTranslator extends Translator {
     public RubyNode visitBlockNode(BlockParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final List<RubyNode> translatedChildren = new ArrayList<>();
-
-        final int start = node.getPosition().getCharIndex();
-        int end = node.getPosition().getCharEnd();
+        final List<RubyNode> translatedChildren = new ArrayList<>(node.size());
 
         for (ParseNode child : node.children()) {
-            if (child.getPosition().isAvailable()) {
-                end = Math.max(end, child.getPosition().getCharEnd());
-            }
-
             final RubyNode translatedChild = translateNodeOrNil(sourceSection, child);
 
             if (!(translatedChild instanceof DeadNode)) {
@@ -479,7 +472,7 @@ public class BodyTranslator extends Translator {
         if (translatedChildren.size() == 1) {
             ret = translatedChildren.get(0);
         } else {
-            ret = sequence(new SourceIndexLength(start, end - start), translatedChildren);
+            ret = sequence(sourceSection, translatedChildren);
         }
 
         return addNewlineIfNeeded(node, ret);
