@@ -126,7 +126,7 @@ public abstract class TruffleDebugNodes {
                 javaString = string.toString();
             }
 
-            System.err.println(javaString);
+            getContext().getEnvErrStream().println(javaString);
             return nil;
         }
 
@@ -300,7 +300,7 @@ public abstract class TruffleDebugNodes {
         protected Object printAST(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
-            NodeUtil.printCompactTree(System.err, callTarget.getRootNode());
+            NodeUtil.printCompactTree(getContext().getEnvErrStream(), callTarget.getRootNode());
             return nil;
         }
     }
@@ -312,7 +312,7 @@ public abstract class TruffleDebugNodes {
         protected Object printSourceSections(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
-            NodeUtil.printSourceAttributionTree(System.err, callTarget.getRootNode());
+            NodeUtil.printSourceAttributionTree(getContext().getEnvErrStream(), callTarget.getRootNode());
             return nil;
         }
     }
