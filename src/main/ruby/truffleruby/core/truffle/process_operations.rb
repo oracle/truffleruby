@@ -254,9 +254,9 @@ module Truffle
         options.each do |key, value|
           case key
           when IO, Integer, :in, :out, :err
-            from = convert_io_fd key
-            to = convert_to_fd value, from
-            redirect from, to
+            child_fd = convert_io_fd key
+            parent_fd = convert_to_fd value, child_fd
+            redirect child_fd, parent_fd
           when Array
 
             # When redirecting multiple fds to one file, as in
@@ -279,8 +279,8 @@ module Truffle
             # duplicate the string containing the file path.
 
             fds = key.map { |k| convert_io_fd(k) }
-            to = convert_to_fd value, fds.first
-            fds.each { |fd| redirect fd, to }
+            parent_fd = convert_to_fd value, fds.first
+            fds.each { |fd| redirect fd, parent_fd }
           when :unsetenv_others
             if value
               @options[:unsetenv_others] = true
@@ -307,13 +307,25 @@ module Truffle
         end
       end
 
-      def redirect(from, to)
+      def redirect(child_fd, parent_fd)
         map = (@options[:redirect_fd] ||= [])
-        if to.nil?
-          @options[:fds_to_close] ||= []
-          @options[:fds_to_close] << from
+        if parent_fd.nil?
+          fds_to_close = (@options[:fds_to_close] ||= [])
+          fds_to_close << child_fd
+        elsif child_fd == parent_fd
+          # posix_spawn_file_actions_adddup2() noops (and so keeps the FD_CLOEXEC flag) on older OS and macOS:
+          # https://pubs.opengroup.org/onlinepubs/000095399/functions/posix_spawn_file_actions_adddup2.html
+          # This means the fd is actually closed in the child process.
+          # Workaround by dup'ing the fd so it's never noop, and it has no FD_CLOEXEC flag, as needed to use it in the child.
+
+          # autoclose: false means don't actually close(2) on IO#close (this IO instance does not own the fd)
+          io = IO.for_fd(parent_fd, autoclose: false)
+          # copies with F_DUPFD_CLOEXEC, which is nice to automatically close the copy in the child
+          copy = io.dup
+          @files_for_child << copy
+          map << child_fd << copy.fileno
         else
-          map << from << to
+          map << child_fd << parent_fd
         end
       end
 
@@ -460,8 +472,8 @@ module Truffle
           end
 
           if redirect_fd = @options[:redirect_fd]
-            redirect_fd.each_slice(2) do |from, to|
-              redirect_file_descriptor(from, to, alter_process)
+            redirect_fd.each_slice(2) do |child_fd, parent_fd|
+              redirect_file_descriptor(child_fd, parent_fd, alter_process)
             end
           end
         end
@@ -474,15 +486,15 @@ module Truffle
         (flags & File::FD_CLOEXEC) != 0
       end
 
-      def redirect_file_descriptor(from, to, alter_process)
-        to = (-to + 1) if to < 0
-        if alter_process && from == to
-          flags = Truffle::POSIX.fcntl(from, File::F_GETFD, 0)
+      def redirect_file_descriptor(child_fd, parent_fd, alter_process)
+        parent_fd = (-parent_fd + 1) if parent_fd < 0
+        if alter_process && child_fd == parent_fd
+          flags = Truffle::POSIX.fcntl(child_fd, File::F_GETFD, 0)
           if flags >= 0 && (flags & File::FD_CLOEXEC) != 0
-            Truffle::POSIX.fcntl(from, File::F_SETFD, flags ^ File::FD_CLOEXEC)
+            Truffle::POSIX.fcntl(child_fd, File::F_SETFD, flags ^ File::FD_CLOEXEC)
           end
         end
-        result = Truffle::POSIX.dup2(to, from)
+        result = Truffle::POSIX.dup2(parent_fd, child_fd)
         Errno.handle if result < 0
       end
 

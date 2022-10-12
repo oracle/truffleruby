@@ -81,3 +81,5 @@ slow:Process.spawn redirects both STDERR and STDOUT to the given file descriptor
 slow:Process.spawn defaults :close_others to false
 slow:Process.spawn closes STDERR in the child if :err => :close
 slow:Process.spawn returns the process ID of the new process as an Integer
+slow:Process.spawn redirects non-default file descriptor to itself
+slow:Process.spawn redirects default file descriptor to itself
