@@ -1742,7 +1742,7 @@ if_tail         : opt_else
 
 opt_else        : none
                 | keyword_else compstmt {
-                    $$ = $2;
+                    $$ = $2 == null ? NilImplicitParseNode.NIL : $2;
                 }
 
 // [!null]
@@ -2101,13 +2101,13 @@ p_top_expr_body : p_expr
                     $$ = support.new_array_pattern(support.getPosition($1), null, null, $1);
                 }
                 | p_kwargs {
-                    $$ = support.new_hash_pattern(null, $1);
+                    $$ = support.new_hash_pattern(null, $1); // new_hash_pattern
                 }
 
 p_expr          : p_as
 
 p_as            : p_expr tASSOC p_variable {
-                    $$ = new HashParseNode(support.getPosition($1), new ParseNodeTuple($1, $3));
+                    $$ = new HashParseNode(support.getPosition($1), new ParseNodeTuple($1, $3)); // p_as
                 }
                 | p_alt
 
@@ -2173,15 +2173,15 @@ p_expr_basic    : p_value
                             support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
                 }
                 | tLBRACE {
-                    $$ = support.push_pktbl();
+                    $$ = support.push_pktbl(); // p_expr_basic last production
                     $1 = lexer.inKwarg;
                     lexer.inKwarg = false;
                 } p_kwargs rbrace {
-                    support.pop_pktbl($<Set>2);
+                    support.pop_pktbl($<Set>2); // p_expr_basic last production 1
                     lexer.inKwarg = $<Boolean>1;
                     $$ = support.new_hash_pattern(null, $3);
                 }
-                | tLBRACE rbrace {
+                | tLBRACE rbrace {              // p_expr_basic last production 2
                     $$ = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition($1), null, null));
                 }
                 | tLPAREN {
@@ -2192,7 +2192,7 @@ p_expr_basic    : p_value
                 }
 
 p_args          : p_expr {
-                     ListParseNode preArgs = support.newArrayNode(support.getPosition($1), $1);
+                     ListParseNode preArgs = support.newArrayNode(support.getPosition($1), $1); // p_expr
                      $$ = support.new_array_pattern_tail(support.getPosition($1), preArgs, false, null, null);
                 }
                 | p_args_head {
@@ -2225,68 +2225,68 @@ p_args_head     : p_arg ',' {
                 }
 
 p_args_tail     : p_rest {
-                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, null);
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, null); // p_args_tail
                 }
                 | p_rest ',' p_args_post {
-                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, $3);
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, $3); // p_args_tail_2
                 }
                 
 p_find          : p_rest ',' p_args_post ',' p_rest {
-                     $$ = support.new_find_pattern_tail(support.getPosition($1), $1, $3, $5);
+                     $$ = support.new_find_pattern_tail(support.getPosition($1), $1, $3, $5); // p_find
                      support.warn(support.getPosition($1), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
                 }
 
 p_rest          : tSTAR tIDENTIFIER {
-                    $$ = $2;
+                    $$ = $2; // p_rest
                 }
                 | tSTAR {
-                    $$ = null;
+                    $$ = null; // p_rest_2
                 }
 
 // ListNode - [!null]
 p_args_post     : p_arg
                 | p_args_post ',' p_arg {
-                    $$ = support.list_concat($1, $3);
+                    $$ = support.list_concat($1, $3); // p_args_post
                 }
 
 // ListNode - [!null]
 p_arg           : p_expr {
-                    $$ = support.newArrayNode($1.getPosition(), $1);
+                    $$ = support.newArrayNode($1.getPosition(), $1); // p_arg
                 }
 
 // HashPatternNode - [!null]
 p_kwargs        : p_kwarg ',' p_any_kwrest {
-                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, $3);
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, $3); // p_kwargs_1
                 }
 		        | p_kwarg {
-                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null);
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null); // p_kwargs_2
                 }
                 | p_kwarg ',' {
-                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null);
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null); // p_kwargs_3
                 }
                 | p_any_kwrest {
-                    $$ = support.new_hash_pattern_tail(support.getPosition($1), null, $1);
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), null, $1); // p_kwargs_4
                 }
                 
 // HashParseNode - [!null]
-p_kwarg         : p_kw {
-                    $$ = new HashParseNode(support.getPosition($1), $1);
+p_kwarg         :  p_kw {
+                    $$ = new HashParseNode(support.getPosition($1), $1); // p_kwarg
                 }
                 | p_kwarg ',' p_kw {
-                    $1.add($3);
-                    $$ = $1;
-                }   
+                   $1.add($3); // p_kwarg 2
+                   $$ = $1;
+                }
                 
 // KeyValuePair - [!null]
 p_kw            : p_kw_label p_expr {
-                    support.error_duplicate_pattern_key($1);
+                    support.error_duplicate_pattern_key($1); // p_kw.
 
                     ParseNode label = support.asSymbol(support.getPosition($1), $1);
 
                     $$ = new ParseNodeTuple(label, $2);
                 }
                 | p_kw_label {
-                    support.error_duplicate_pattern_key($1);
+                    support.error_duplicate_pattern_key($1); // p_kw_label.
                     if ($1 != null && !support.is_local_id($1)) {
                         support.yyerror("key must be valid as local variables");
                     }
