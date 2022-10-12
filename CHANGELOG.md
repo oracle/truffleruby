@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `spawn(..., fd => fd)` on macOS, it did not work due to a macOS bug (@eregon).
 
 Compatibility:
 
