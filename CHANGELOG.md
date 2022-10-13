@@ -10,6 +10,7 @@ Bug fixes:
 
 Compatibility:
 
+* Fix `MatchData#[]` when passed unbounded Range (#2755, @andrykonchin).
 
 Performance:
 
