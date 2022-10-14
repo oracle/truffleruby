@@ -129,9 +129,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyLongRange;
-import org.truffleruby.core.range.RubyObjectRange;
+import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.StringHelperNodes.DeleteBangRopesNode;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
@@ -536,7 +534,6 @@ public abstract class StringNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
         //region Fields
 
-        @Child private StringHelperNodes.NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private ToLongNode toLongNode;
         @Child private CodePointLengthNode codePointLengthNode;
@@ -612,72 +609,22 @@ public abstract class StringNodes {
         // endregion
         // region Range Slice Specializations
 
-        @Specialization
-        protected Object sliceIntegerRange(Object string, RubyIntRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            return sliceRange(string, libString, range.begin, range.end, range.excludedEnd);
-        }
-
-        @Specialization
-        protected Object sliceLongRange(Object string, RubyLongRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            return sliceRange(string, libString, range.begin, range.end, range.excludedEnd);
-        }
-
-        @Specialization(guards = "range.isEndless()")
-        protected Object sliceEndlessRange(Object string, RubyObjectRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            final int stringEnd = range.excludedEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
-            return sliceRange(string, libString, toLong(range.begin), stringEnd, range.excludedEnd);
-        }
-
-        @Specialization(guards = "range.isBeginless()")
-        protected Object sliceBeginlessRange(Object string, RubyObjectRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            return sliceRange(string, libString, 0L, toLong(range.end), range.excludedEnd);
-        }
-
-        @Specialization(guards = "range.isBounded()")
-        protected Object sliceObjectRange(Object string, RubyObjectRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            return sliceRange(string, libString, toLong(range.begin), toLong(range.end), range.excludedEnd);
-        }
-
-        @Specialization(guards = "range.isBoundless()")
-        protected Object sliceBoundlessRange(Object string, RubyObjectRange range, NotProvided length,
-                @Cached RubyStringLibrary libString) {
-            final int stringEnd = range.excludedEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
-            return sliceRange(string, libString, 0L, stringEnd, range.excludedEnd);
-        }
-
-        // endregion
-        // region Range Slice Logic
-
-        private Object sliceRange(Object string, RubyStringLibrary libString, long begin, long end,
-                boolean excludesEnd) {
-            final int beginInt = (int) begin;
-            if (beginInt != begin) {
-                return outOfBoundsNil();
-            }
-
-            int endInt = (int) end;
-            if (endInt != end) {
-                // Get until the end of the string.
-                endInt = excludesEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
-            }
-
-            return sliceRange(string, libString, beginInt, endInt, excludesEnd);
-        }
-
-        private Object sliceRange(Object string, RubyStringLibrary libString, int begin, int end, boolean excludesEnd) {
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object sliceRange(Object string, Object range, NotProvided other,
+                @Cached RubyStringLibrary libString,
+                @Cached RangeNodes.NormalizedStartLengthNode startLengthNode,
+                @Cached ConditionProfile negativeStart) {
             final int stringLength = codePointLength(libString.getTString(string), libString.getEncoding(string));
-            begin = normalizeIndex(begin, stringLength);
-            if (begin < 0 || begin > stringLength) {
-                return outOfBoundsNil();
+            final int[] startLength = startLengthNode.execute(range, stringLength);
+
+            int start = startLength[0];
+            int length = Math.max(startLength[1], 0); // negative length means an empty string should be returned
+
+            if (negativeStart.profile(start < 0)) {
+                return Nil.INSTANCE;
             }
-            end = normalizeIndex(end, stringLength);
-            int length = StringOperations.clampExclusiveIndex(stringLength, excludesEnd ? end : end + 1) - begin;
-            return substring(string, begin, Math.max(length, 0));
+
+            return substring(string, start, length);
         }
 
         // endregion
@@ -770,15 +717,6 @@ public abstract class StringNodes {
             }
 
             return codePointLengthNode.execute(string, encoding.tencoding);
-        }
-
-        private int normalizeIndex(int index, int length) {
-            if (normalizeIndexNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                normalizeIndexNode = insert(StringHelperNodes.NormalizeIndexNode.create());
-            }
-
-            return normalizeIndexNode.executeNormalize(index, length);
         }
 
         // endregion
