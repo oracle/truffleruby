@@ -358,11 +358,11 @@ module Truffle
       Primitive.string_splice(string, replacement, start, index.bytesize, enc)
     end
 
-    def self.assign_range(string, index, replacement)
-      start, length = Primitive.range_normalized_start_length(index, string.size)
+    def self.assign_range(string, range, replacement)
+      start, length = Primitive.range_normalized_start_length(range, string.size)
       stop = start + length - 1
 
-      raise RangeError, "#{index.first} is out of range" if start < 0 or start > string.size
+      raise RangeError, "#{range} out of range" if start < 0 or start > string.size
 
       bi = Primitive.character_index_to_byte_index(string, start)
       raise IndexError, "unable to find character at: #{start}" unless bi

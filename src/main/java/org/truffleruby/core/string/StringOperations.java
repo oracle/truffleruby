@@ -33,7 +33,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 
@@ -62,10 +61,6 @@ public abstract class StringOperations {
                 Encodings.UTF_8);
 
         return instance;
-    }
-
-    public static int clampExclusiveIndex(int length, int index) {
-        return ArrayOperations.clampExclusiveIndex(length, index);
     }
 
     @TruffleBoundary

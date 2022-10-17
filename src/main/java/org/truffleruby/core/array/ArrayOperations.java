@@ -11,27 +11,9 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class ArrayOperations {
-
-    public static boolean isPrimitiveStorage(RubyArray array) {
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        Object store = stores.backingStore(array.getStore());
-        return stores.isPrimitive(store);
-    }
-
-    public static int clampExclusiveIndex(int length, int index) {
-        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, index < 0)) {
-            return 0;
-        } else if (CompilerDirectives
-                .injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, index > length)) {
-            return length;
-        } else {
-            return index;
-        }
-    }
 
     @TruffleBoundary
     public static Iterable<Object> toIterable(RubyArray array) {
@@ -39,12 +21,6 @@ public abstract class ArrayOperations {
                 .getFactory()
                 .getUncached()
                 .getIterable(array.getStore(), 0, array.size);
-    }
-
-    @TruffleBoundary
-    private static Object getBackingStore(RubyArray array) {
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        return stores.backingStore(array.getStore());
     }
 
     @TruffleBoundary
