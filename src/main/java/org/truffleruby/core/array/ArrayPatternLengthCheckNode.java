@@ -9,15 +9,20 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.literal.NilLiteralNode;
 
 public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
     @Child RubyNode currentValueToMatch;
-    int patternLength;
-    boolean hasRest;
+    final int patternLength;
+    final boolean hasRest;
+
+    final ConditionProfile isArrayProfile = ConditionProfile.create();
 
     public ArrayPatternLengthCheckNode(int patternLength, RubyNode currentValueToMatch, boolean hasRest) {
         this.currentValueToMatch = currentValueToMatch;
@@ -27,12 +32,16 @@ public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        RubyArray matchArray = (RubyArray) currentValueToMatch.execute(frame);
-        long aSize = matchArray.getArraySize();
-        if (hasRest) {
-            return patternLength <= aSize;
+        Object matchArray = currentValueToMatch.execute(frame);
+        if (isArrayProfile.profile(matchArray instanceof RubyArray)) {
+            long aSize = ((RubyArray) matchArray).getArraySize();
+            if (hasRest) {
+                return patternLength <= aSize;
+            } else {
+                return patternLength == aSize;
+            }
         } else {
-            return patternLength == aSize;
+            return false;
         }
     }
 
