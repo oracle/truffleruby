@@ -3226,7 +3226,7 @@ rparen          : opt_nl tRPAREN {
 rbracket        : opt_nl tRBRACK {
                     $$ = $2;
                 }
-rbrace          : opt_nl '}' {
+rbrace          : opt_nl tRCURLY {
                     $$ = TStringConstants.RCURLY;
                 }
 trailer         : /* none */ | '\n' | ','
