@@ -2815,7 +2815,7 @@ states[379] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[381] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((ParseNode)yyVals[0+yyTop]);
+    yyVal = ((ParseNode)yyVals[0+yyTop]) == null ? NilImplicitParseNode.NIL : ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
 states[383] = (support, lexer, yyVal, yyVals, yyTop) -> yyVal;
@@ -3235,11 +3235,11 @@ states[479] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[480] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern(null, ((HashPatternParseNode)yyVals[0+yyTop]));
+    yyVal = support.new_hash_pattern(null, ((HashPatternParseNode)yyVals[0+yyTop])); /* new_hash_pattern*/
     return yyVal;
 };
 states[482] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new HashParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), new ParseNodeTuple(((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop])));
+    yyVal = new HashParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), new ParseNodeTuple(((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]))); /* p_as*/
     return yyVal;
 };
 states[484] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3314,13 +3314,13 @@ states[500] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.push_pktbl();
+    yyVal = support.push_pktbl(); /* p_expr_basic last production*/
     yyVals[0+yyTop] = lexer.inKwarg;
     lexer.inKwarg = false;
     return yyVal;
 };
 states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    support.pop_pktbl(((Set)yyVals[-2+yyTop])); /* p_expr_basic last production 1*/
     lexer.inKwarg = ((Boolean)yyVals[-3+yyTop]);
     yyVal = support.new_hash_pattern(null, ((HashPatternParseNode)yyVals[-1+yyTop]));
     return yyVal;
@@ -3339,7 +3339,7 @@ states[505] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    ListParseNode preArgs = support.newArrayNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[0+yyTop]));
+    ListParseNode preArgs = support.newArrayNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[0+yyTop])); /* p_expr*/
     yyVal = support.new_array_pattern_tail(support.getPosition(((ParseNode)yyVals[0+yyTop])), preArgs, false, null, null);
     return yyVal;
 };
@@ -3380,61 +3380,61 @@ states[515] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, true, ((TruffleString)yyVals[0+yyTop]), null);
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, true, ((TruffleString)yyVals[0+yyTop]), null); /* p_args_tail*/
     return yyVal;
 };
 states[517] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[-2+yyTop])), null, true, ((TruffleString)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop]));
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[-2+yyTop])), null, true, ((TruffleString)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop])); /* p_args_tail_2*/
     return yyVal;
 };
 states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_find_pattern_tail(support.getPosition(((TruffleString)yyVals[-4+yyTop])), ((TruffleString)yyVals[-4+yyTop]), ((ListParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop]));
+    yyVal = support.new_find_pattern_tail(support.getPosition(((TruffleString)yyVals[-4+yyTop])), ((TruffleString)yyVals[-4+yyTop]), ((ListParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop])); /* p_find*/
     support.warn(support.getPosition(((TruffleString)yyVals[-4+yyTop])), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
     return yyVal;
 };
 states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((TruffleString)yyVals[0+yyTop]);
+    yyVal = ((TruffleString)yyVals[0+yyTop]); /* p_rest*/
     return yyVal;
 };
 states[520] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = null;
+    yyVal = null; /* p_rest_2*/
     return yyVal;
 };
 states[522] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.list_concat(((ListParseNode)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop]));
+    yyVal = support.list_concat(((ListParseNode)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop])); /* p_args_post*/
     return yyVal;
 };
 states[523] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.newArrayNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop]));
+    yyVal = support.newArrayNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop])); /* p_arg*/
     return yyVal;
 };
 states[524] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-2+yyTop])), ((HashParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop]));
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-2+yyTop])), ((HashParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop])); /* p_kwargs_1*/
     return yyVal;
 };
 states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[0+yyTop])), ((HashParseNode)yyVals[0+yyTop]), null);
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[0+yyTop])), ((HashParseNode)yyVals[0+yyTop]), null); /* p_kwargs_2*/
     return yyVal;
 };
 states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-1+yyTop])), ((HashParseNode)yyVals[-1+yyTop]), null);
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-1+yyTop])), ((HashParseNode)yyVals[-1+yyTop]), null); /* p_kwargs_3*/
     return yyVal;
 };
 states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_hash_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, ((TruffleString)yyVals[0+yyTop]));
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, ((TruffleString)yyVals[0+yyTop])); /* p_kwargs_4*/
     return yyVal;
 };
 states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new HashParseNode(support.getPosition(((ParseNodeTuple)yyVals[0+yyTop])), ((ParseNodeTuple)yyVals[0+yyTop]));
+    yyVal = new HashParseNode(support.getPosition(((ParseNodeTuple)yyVals[0+yyTop])), ((ParseNodeTuple)yyVals[0+yyTop])); /* p_kwarg*/
     return yyVal;
 };
 states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    ((HashParseNode)yyVals[-2+yyTop]).add(((ParseNodeTuple)yyVals[0+yyTop]));
+    ((HashParseNode)yyVals[-2+yyTop]).add(((ParseNodeTuple)yyVals[0+yyTop])); /* p_kwarg 2*/
     yyVal = ((HashParseNode)yyVals[-2+yyTop]);
     return yyVal;
 };
 states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.error_duplicate_pattern_key(((TruffleString)yyVals[-1+yyTop]));
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[-1+yyTop])); /* p_kw.*/
 
     ParseNode label = support.asSymbol(support.getPosition(((TruffleString)yyVals[-1+yyTop])), ((TruffleString)yyVals[-1+yyTop]));
 
@@ -3442,7 +3442,7 @@ states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[531] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.error_duplicate_pattern_key(((TruffleString)yyVals[0+yyTop]));
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[0+yyTop])); /* p_kw_label.*/
     if (((TruffleString)yyVals[0+yyTop]) != null && !support.is_local_id(((TruffleString)yyVals[0+yyTop]))) {
         support.yyerror("key must be valid as local variables");
     }
