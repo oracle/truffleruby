@@ -63,7 +63,7 @@ module Truffle::Internal
       if Primitive.object_kind_of?(decon, Array)
         decon
       else
-        raise TypeError,"deconstruct must return Array"
+        raise TypeError,'deconstruct must return Array'
       end
     else
       nil
