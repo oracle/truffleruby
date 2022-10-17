@@ -1,5 +1,4 @@
 fails:Pattern matching raises NoMatchingPatternError if no pattern matches and no else clause
-fails:Pattern matching guards does not evaluate guard if pattern does not match
 fails:Pattern matching guards raises NoMatchingPatternError if no guarded pattern matches and no else clause
 fails:Pattern matching variable pattern supports using any name with _ at the beginning in a pattern several times
 fails:Pattern matching variable pattern supports existing variables in a pattern specified with ^ operator
@@ -11,13 +10,6 @@ fails:Pattern matching alternative pattern support underscore prefixed variables
 fails:Pattern matching AS pattern binds a variable to a value if pattern matches
 fails:Pattern matching AS pattern can be used as a nested pattern
 fails:Pattern matching Array pattern supports form Constant(pat, pat, ...)
-fails:Pattern matching Array pattern does not match object without #deconstruct method
-fails:Pattern matching Array pattern raises TypeError if #deconstruct method does not return array
-fails:Pattern matching Array pattern does not match object if elements of array returned by #deconstruct method does not match elements in pattern
-fails:Pattern matching Array pattern binds variables
-fails:Pattern matching Array pattern supports splat operator *rest
-fails:Pattern matching Array pattern does match partially from the array beginning if list + , syntax used
-fails:Pattern matching Array pattern matches anything with *
 fails:Pattern matching Hash pattern supports form id: pat, id: pat, ...
 fails:Pattern matching Hash pattern supports a: which means a: a
 fails:Pattern matching Hash pattern can mix key (a:) and key-value (a: b) declarations
