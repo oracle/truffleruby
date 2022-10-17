@@ -960,8 +960,14 @@ module Commands
   end
 
   def rebuild(*options)
-    clean
-    build(*options)
+    case options
+    when ['cexts']
+      clean(*options)
+      build
+    else
+      clean
+      build(*options)
+    end
   end
 
   private def ruby_options(options, args)
