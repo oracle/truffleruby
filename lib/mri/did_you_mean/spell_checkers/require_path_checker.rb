@@ -2,7 +2,11 @@
 
 require_relative "../spell_checker"
 require_relative "../tree_spell_checker"
-require "rbconfig"
+
+# See ENV_SPECIFIC_EXT below
+unless defined?(::TruffleRuby)
+  require "rbconfig"
+end
 
 module DidYouMean
   class RequirePathChecker
@@ -12,8 +16,9 @@ module DidYouMean
     Ractor.make_shareable(INITIAL_LOAD_PATH) if defined?(Ractor)
 
     if defined?(::TruffleRuby)
-      # did_you_mean is loaded even with --disable-gems, and then there is no RbConfig autoload.
-      # Also we don't want to require 'rbconfig' as that needs the runtime home, but did_you_mean is loaded during preinit.
+      # did_you_mean is loaded even with --disable-gems on TruffleRuby, and then there is no RbConfig autoload.
+      # Also we don't want to require 'rbconfig' as that needs the runtime home,
+      # but did_you_mean is already loaded during context preinitialization.
       ENV_SPECIFIC_EXT  = ".#{Truffle::Platform::DLEXT}"
     else
       ENV_SPECIFIC_EXT = ".#{RbConfig::CONFIG["DLEXT"]}"
