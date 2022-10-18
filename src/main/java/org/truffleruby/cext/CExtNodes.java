@@ -1073,7 +1073,7 @@ public class CExtNodes {
                 return nil;
             }
 
-            return dispatchNode.call(coreLibrary().kernelModule, "eval", name);
+            return dispatchNode.call(coreLibrary().topLevelBinding, "eval", name);
         }
 
         private void warn(String message) {
