@@ -9,7 +9,7 @@ mkdir -p temp-gem-home
 
 GEM_HOME=$PWD/temp-gem-home jt gem install --local "$gem_test_pack/gem-cache/bundler-1.17.3.gem"
 
-output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/one bundler-version.rb)
+output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/gems/bundler-version/one bundler-version.rb)
 
 if [ "$output" = 'true' ]; then
   echo Success
@@ -19,7 +19,7 @@ else
   exit 1
 fi
 
-output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/two bundler-version.rb)
+output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/gems/bundler-version/two bundler-version.rb)
 
 if [ "$output" = 'true' ]; then
   echo Success
