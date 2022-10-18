@@ -21,7 +21,10 @@ class JT
     end
 
     private def docker_config
-      @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+      @config ||= begin
+        contents = File.read(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+        YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(contents) : YAML.load(contents)
+      end
     end
 
     private def docker_distros
@@ -205,7 +208,7 @@ class JT
         unless print_only
           chdir(docker_dir) do
             branch_args = test_branch == 'current' ? [] : ['--branch', test_branch]
-            raw_sh 'git', 'clone', *branch_args, TRUFFLERUBY_DIR, 'truffleruby-tests'
+            sh 'git', 'clone', *branch_args, TRUFFLERUBY_DIR, 'truffleruby-tests'
             test_files.each do |file|
               FileUtils.cp_r "truffleruby-tests/#{file}", '.'
             end
