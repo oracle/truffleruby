@@ -1,0 +1,7 @@
+fails:Enumerable#tally with a hash returns a hash with counts according to the value
+fails:Enumerable#tally with a hash returns the given hash
+fails:Enumerable#tally with a hash raises a FrozenError and does not update the given hash when the hash is frozen
+fails:Enumerable#tally with a hash does not call given block
+fails:Enumerable#tally with a hash ignores the default value
+fails:Enumerable#tally with a hash ignores the default proc
+fails:Enumerable#tally with a hash needs the values counting each elements to be an integer

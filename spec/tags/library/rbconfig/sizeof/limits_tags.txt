@@ -1,0 +1,2 @@
+fails:RbConfig::LIMITS contains FIXNUM_MIN and FIXNUM_MAX
+fails:RbConfig::LIMITS contains LONG_MIN and LONG_MAX

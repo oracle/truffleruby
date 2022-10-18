@@ -1,0 +1,1 @@
+fails:main#public returns argument

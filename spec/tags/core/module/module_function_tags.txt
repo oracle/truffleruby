@@ -1,0 +1,2 @@
+fails:Module#module_function with specific method names returns argument or arguments if given
+fails:Module#module_function as a toggle (no arguments) in a Module body returns nil

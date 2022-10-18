@@ -1,0 +1,2 @@
+fails:Array#intersect? when at least one element in two Arrays is the same returns true
+fails:Array#intersect? when there are no elements in common between two Arrays returns false

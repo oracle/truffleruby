@@ -1,0 +1,3 @@
+fails:MatchData#match returns the corresponding match when given an Integer
+fails:MatchData#match returns nil on non-matching index matches
+fails:MatchData#match returns the corresponding named match when given a Symbol
