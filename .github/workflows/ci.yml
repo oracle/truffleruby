@@ -163,6 +163,25 @@ jobs:
 
       - run: jt test --timeout 180 ${{ matrix.specs }}
 
+  test_integration:
+    name: test integration
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone TruffleRuby
+        uses: actions/checkout@v2
+      - name: Setup system Ruby
+        uses: ruby/setup-ruby@v1
+      - name: Setup jt
+        run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: truffleruby-jvm
+      - uses: ./.github/actions/setup-truffleruby
+
+      - run: jt test integration
+
   test_native:
     name: test native
     needs: [build_native]
@@ -194,7 +213,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.7, '3.0', 3.1]
+        ruby: ['2.7', '3.0', '3.1']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
