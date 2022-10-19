@@ -1399,7 +1399,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(arg)]))
+      Primitive.cext_unwrap(Primitive.interop_execute(func, [arg]))
     end
   end
   Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
