@@ -87,3 +87,6 @@ fails(https://github.com/ruby/typeprof/issues/64):The launcher runs typeprof as 
 fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof in any of the bin/ directories
 fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof symlinked
 slow:The launcher prints help:ruby containing ruby language options
+slow:The launcher runs rdbg as an -S command
+slow:The launcher supports running rdbg in any of the bin/ directories
+slow:The launcher supports running rdbg symlinked
