@@ -1746,8 +1746,8 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "to_java_string", onSingleton = true, required = 1)
-    public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "to_java_string")
+    public abstract static class ToJavaStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected String toJavaString(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {

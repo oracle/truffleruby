@@ -67,6 +67,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
@@ -84,6 +85,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
@@ -103,6 +105,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.LiteralCallNode;
+import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1031,6 +1034,63 @@ public class CExtNodes {
         protected Object rbConstSet(RubyModule module, String name, Object value,
                 @Cached ConstSetUncheckedNode constSetUncheckedNode) {
             return constSetUncheckedNode.execute(module, name, value);
+        }
+
+    }
+
+    @Primitive(name = "rb_gv_get")
+    @ReportPolymorphism
+    public abstract static class RbGvGetNode extends PrimitiveArrayArgumentsNode {
+
+        @Child WarnNode warnNode;
+
+        @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
+        protected Object rbGvGetCached(VirtualFrame frame, String name,
+                @Cached("name") String cachedName,
+                @Cached("create(cachedName)") ReadGlobalVariableNode readGlobalVariableNode,
+                @Cached BranchProfile notExistsProfile) {
+            boolean exists = getContext().getCoreLibrary().globalVariables.contains(cachedName);
+
+            if (!exists) {
+                notExistsProfile.enter();
+                warn(StringUtils.format("global variable `%s' not initialized", cachedName));
+
+                return nil;
+            }
+
+            return readGlobalVariableNode.execute(frame);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object rbGvGetUncached(String name,
+                @Cached DispatchNode dispatchNode) {
+            boolean exists = getContext().getCoreLibrary().globalVariables.contains(name);
+
+            if (!exists) {
+                warn(StringUtils.format("global variable `%s' not initialized", name));
+
+                return nil;
+            }
+
+            return dispatchNode.call(coreLibrary().topLevelBinding, "eval", name);
+        }
+
+        private void warn(String message) {
+            if (warnNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnNode = insert(new WarnNode());
+            }
+
+            if (warnNode.shouldWarn()) {
+                warnNode.warningMessage(
+                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        message);
+            }
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.DEFAULT_CACHE;
         }
 
     }

@@ -220,6 +220,10 @@ module Truffle
       Primitive.foreign_string_to_ruby_string(string)
     end
 
+    def self.to_java_string(string)
+      Primitive.to_java_string(string)
+    end
+
     def self.java_array(*array)
       to_java_array(array)
     end

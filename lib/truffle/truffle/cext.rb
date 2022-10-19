@@ -1173,8 +1173,8 @@ module Truffle::CExt
       raise ArgumentError, "no super class for `#{name}'"
     end
 
-    if mod.const_defined?(name, false)
-      current_class = mod.const_get(name, false)
+    if Primitive.module_const_defined?(mod, name, false, false)
+      current_class = Primitive.module_const_get(mod, name, false, false, false)
       unless current_class.class == Class
         raise TypeError, "#{mod}::#{name} is not a class"
       end
@@ -1183,7 +1183,7 @@ module Truffle::CExt
       end
       current_class
     else
-      mod.const_set name, Class.new(superclass)
+      rb_const_set(mod, name, Class.new(superclass))
     end
   end
 
@@ -1806,7 +1806,7 @@ module Truffle::CExt
     if name == '$~'
       rb_backref_get
     else
-      eval("#{name}")
+      Primitive.rb_gv_get(Primitive.to_java_string(name))
     end
   end
 
