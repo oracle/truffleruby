@@ -465,7 +465,6 @@ suite = {
                 ],
                 "lib/": [
                     "file:lib/json",
-                    "file:lib/gems",
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
@@ -479,6 +478,16 @@ suite = {
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
+                ],
+                "lib/gems/": [
+                    {
+                        "source_type": "file",
+                        "path": "lib/gems/*",
+                        "exclude": [
+                            "lib/gems/gems/debug-*/ext",
+                            "lib/gems/gems/rbs-*/ext",
+                        ],
+                    },
                 ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
