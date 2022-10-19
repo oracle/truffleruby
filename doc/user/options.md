@@ -33,18 +33,18 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
                   set warning level; 0=silence, 1=medium, 2=verbose
   -x[directory]   strip off text before #!ruby line and perhaps cd to directory
   --copyright     print the copyright
-  --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]
+  --enable={rubyopt|...}[,...], --disable={rubyopt|...}[,...]
                   enable or disable features. see below for available features
   --external-encoding=encoding, --internal-encoding=encoding
                   specify the default external or internal character encoding
+  --backtrace-limit=num
+                  limit the maximum length of backtrace
   --verbose       turn on verbose mode and disable script from stdin
   --version       print the version number, then exit
   --help          show this message, -h for short message
-  --backtrace-limit=num
-                  limit the maximum length of backtrace
 
 Features:
-  gems            rubygems (default: enabled)
+  gems            rubygems (only for debugging, default: enabled)
   did_you_mean    did_you_mean (default: enabled)
   rubyopt         RUBYOPT environment variable (default: enabled)
   frozen-string-literal
@@ -53,6 +53,45 @@ Features:
 Warning categories:
   deprecated      deprecated features
   experimental    experimental features
+
+Runtime options:
+  --polyglot                                   Run with all other guest languages accessible.
+  --native                                     Run using the native launcher with limited access to Java libraries
+                                               (default).
+  --jvm                                        Run on the Java Virtual Machine with access to Java libraries.
+  --vm.[option]                                Pass options to the host VM. To see available options, use '--help:vm'.
+  --log.file=<String>                          Redirect guest languages logging into a given file.
+  --log.[logger].level=<String>                Set language log level to OFF, SEVERE, WARNING, INFO, CONFIG, FINE,
+                                               FINER, FINEST or ALL.
+  --help                                       Print this help message.
+  --help:vm                                    Print options for the host VM.
+  --help:engine                                Print engine options.
+  --help:all                                   Print all options.
+  --version:graalvm                            Print GraalVM version information and exit.
+  --show-version:graalvm                       Print GraalVM version information and continue execution.
+
+Languages:
+  [id]        [name]                  [website]
+  llvm        LLVM                    https://www.graalvm.org/22.1/reference-manual/llvm/
+  ruby        Ruby                    https://www.graalvm.org/ruby/
+
+Tools:
+  [id]        [name]                  [website]
+  agentscript Agent Script            
+  coverage    Code Coverage           https://www.graalvm.org/tools/code-coverage/
+  cpusampler  CPU Sampler             https://www.graalvm.org/tools/profiling/
+  cputracer   CPU Tracer              https://www.graalvm.org/tools/profiling/
+  dap         Debug Protocol Server   https://www.graalvm.org/tools/dap/
+  heap        Heap Dump               
+  heapmonitor Heap Allocation Monitor 
+  insight     Insight                 https://www.graalvm.org/tools/graalvm-insight/
+  inspect     Chrome Inspector        https://www.graalvm.org/tools/chrome-debugger/
+  lsp         Language Server         https://www.graalvm.org/tools/lsp/
+  memtracer   Memory Tracer           https://www.graalvm.org/tools/profiling/
+
+  Use --help:[id] for component options.
+
+See http://www.graalvm.org for more information.
 ```
 
 TruffleRuby also reads the `RUBYOPT` environment variable, as in standard

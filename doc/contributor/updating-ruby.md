@@ -53,7 +53,7 @@ reference branches that include unmodified MRI sources.
 Check out the version of Ruby you want to create the branch for in `../ruby`, e.g.:
 
 ```
-git clone --branch v3_1_2  git@github.com:ruby/ruby.git ../ruby
+git clone --branch v3_1_2 https://github.com/ruby/ruby.git ../ruby
 ```
 
 Then create the reference branch in the TruffleRuby repository
@@ -98,7 +98,7 @@ but not for files under `test/mri/tests/cext-ruby`.
 ## Update config_*.h files
 
 Configuration files must be regenerated for each platform with `tool/generate-config-header.sh`.
-Adapt the Ruby versions in that script.
+Adapt the Ruby versions in that script by updating `.ruby-version`.
 Then run all the `ruby-generate-native-config-*` jobs in CI and copy their output.
 
 ## Update libraries from third-party repos
@@ -151,7 +151,7 @@ In a separate commit, update all of these:
 * Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
 * Update `TargetRubyVersion` in `.rubocop.yml`
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
-* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
@@ -161,7 +161,7 @@ In a separate commit, update all of these:
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
 
 For a new major version:
-* Make empty the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
+* Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
 * Update the docs for next version specs in [workflow.md](workflow.md).
 * Update the versions in the `ruby/spec on CRuby` job of `.github/workflows/ci.yml`.
 

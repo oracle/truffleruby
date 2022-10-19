@@ -96,7 +96,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF   ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 ================================================================================
 
-Ruby 3.0.x
+Ruby 3.1.x
 
 According to Ruby's license terms, Ruby is licensed under a dual license.  
 Oracle elects the 2-clause BSD license.
