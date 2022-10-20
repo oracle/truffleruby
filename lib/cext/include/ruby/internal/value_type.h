@@ -416,7 +416,6 @@ RB_TYPE_P(VALUE obj, enum ruby_value_type t)
      rbimpl_RB_TYPE_P_fastpath((obj), (t)) : \
      (RB_TYPE_P)((obj), (t)))
 #endif
-#endif // TRUFFLERUBY
 
 /* clang 3.x (4.2 compatible) can't eliminate CSE of RB_BUILTIN_TYPE
  * in inline function and caller function
@@ -441,6 +440,7 @@ RBIMPL_ATTR_ARTIFICIAL()
  * Defined in ruby/internal/core/rtypeddata.h
  */
 static inline bool rbimpl_rtypeddata_p(VALUE obj);
+#endif // TRUFFLERUBY
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -456,6 +456,9 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 Check_Type(VALUE v, enum ruby_value_type t)
 {
+#ifdef TRUFFLERUBY
+    rb_check_type(v, t);
+#else
     if (RB_UNLIKELY(! RB_TYPE_P(v, t))) {
         goto unexpected_type;
     }
@@ -469,6 +472,7 @@ Check_Type(VALUE v, enum ruby_value_type t)
 
   unexpected_type:
     rb_unexpected_type(v, t);
+#endif // TRUFFLERUBY
 }
 
 #endif /* RBIMPL_VALUE_TYPE_H */

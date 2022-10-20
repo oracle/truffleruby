@@ -76,15 +76,6 @@ VALUE rb_gv_get(const char *name) {
   return RUBY_CEXT_INVOKE("rb_gv_get", rb_str_new_cstr(name));
 }
 
-// NOTE: actually it's a bit simplified implementation.
-// The MRI version behaves in the following way:
-// - raise "wrong argument type %s (expected %s)" exception if t is a built-in class
-// - raise "unknown type 0x%x (0x%x given, probably comes from extension library for ruby 1.8)"
-// - raise "unknown type 0x%x (0x%x given)"
-void rb_unexpected_type(VALUE self, int t) {
-  rb_raise(rb_eTypeError, "wrong argument type %s", rb_obj_classname(self));
-}
-
 // $SAFE
 
 void rb_check_trusted(VALUE obj) {
