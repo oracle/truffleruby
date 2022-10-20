@@ -35,6 +35,10 @@ public class PrimitiveNodeConstructor {
         return factory.getExecutionSignature().size();
     }
 
+    public NodeFactory<? extends RubyBaseNode> getFactory() {
+        return factory;
+    }
+
     public RubyNode createInvokePrimitiveNode(Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
             throw new Error(
