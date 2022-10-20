@@ -2,7 +2,7 @@
 
 require_relative '../envutil'
 require_relative '../colorize'
-require_relative '../leakchecker'
+# require_relative '../leakchecker' # TruffleRuby: LeakChecker removed to avoid interferences
 require_relative '../test/unit/testcase'
 require 'optparse'
 
@@ -1506,7 +1506,7 @@ module Test
         end
         all_test_methods = @order.sort_by_name(all_test_methods)
 
-        leakchecker = LeakChecker.new
+        # leakchecker = LeakChecker.new # TruffleRuby: LeakChecker removed to avoid interferences
         if ENV["LEAK_CHECKER_TRACE_OBJECT_ALLOCATION"]
           require "objspace"
           trace = true
@@ -1534,7 +1534,7 @@ module Test
           $stdout.flush
 
           unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
-            leakchecker.check("#{inst.class}\##{inst.__name__}")
+            # leakchecker.check("#{inst.class}\##{inst.__name__}") # TruffleRuby: LeakChecker removed to avoid interferences
           end
 
           _end_method(inst)
