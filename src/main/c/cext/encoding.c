@@ -82,7 +82,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
   return (unsigned int) polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(array), "[]", 1));
 }
 
-int rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc) {
+OnigCodePoint rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc) {
   int length = e - p;
   if (length <= 0) {
     return 0;

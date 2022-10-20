@@ -638,7 +638,7 @@ rb_enc_codepoint(const char *p, const char *e, rb_encoding *enc)
  * @return      Code point of the character pointed by `p`.
  */
 #ifdef TRUFFLERUBY
-int rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc);
+OnigCodePoint rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc);
 #else
 static inline OnigCodePoint
 rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding *enc)
