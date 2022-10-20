@@ -255,6 +255,10 @@ module Truffle::CExt
     end
   end
 
+  def rbimpl_rtypeddata_p(obj)
+    Primitive.as_boolean Primitive.object_hidden_var_get(obj, DATA_TYPE)
+  end
+
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
     raise TypeError, format(message, klass, Primitive.object_class(obj)) unless Primitive.object_kind_of?(obj, klass)
   end

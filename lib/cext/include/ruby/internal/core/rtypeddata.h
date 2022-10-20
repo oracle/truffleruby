@@ -538,7 +538,11 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 rbimpl_rtypeddata_p(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rbimpl_rtypeddata_p", rb_tr_unwrap(obj)));
+#else
     return RTYPEDDATA(obj)->typed_flag == 1;
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
