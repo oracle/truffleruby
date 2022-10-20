@@ -307,6 +307,10 @@ module Truffle::CExt
     Primitive.object_kind_of?(value, Float)
   end
 
+  def rb_integer_type_p(value)
+    Primitive.ruby_integer?(value)
+  end
+
   def rb_require(feature)
     require feature
   end

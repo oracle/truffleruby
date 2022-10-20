@@ -214,6 +214,9 @@ RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline bool
 rb_integer_type_p(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_integer_type_p", rb_tr_unwrap(obj)));
+#else
     if (RB_FIXNUM_P(obj)) {
         return true;
     }
@@ -223,6 +226,7 @@ rb_integer_type_p(VALUE obj)
     else {
         return RB_BUILTIN_TYPE(obj) == RUBY_T_BIGNUM;
     }
+#endif
 }
 
 #ifndef TRUFFLERUBY // declared above
