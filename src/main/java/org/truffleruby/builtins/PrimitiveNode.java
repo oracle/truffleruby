@@ -10,7 +10,6 @@
 
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 
@@ -25,7 +24,8 @@ public abstract class PrimitiveNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        NodeFactory<RubyNode> factory = BuiltinsClasses.FACTORIES.get(getClass().getSuperclass());
+        String primitiveName = getClass().getSuperclass().getAnnotation(Primitive.class).name();
+        var factory = getLanguage().primitiveManager.getPrimitive(primitiveName).getFactory();
         var copy = (PrimitiveNode) CoreMethodNodeManager.createNodeFromFactory(factory, RubyNode.EMPTY_ARRAY);
         return copy.copyFlags(this);
     }
