@@ -250,13 +250,13 @@ module Truffle::CExt
 
   def rb_check_type(value, type)
     value_type = rb_type(value)
-    if value_type != type || (value_type == T_DATA && Primitive.object_hidden_var_get(value, DATA_TYPE))
+    if value_type != type || (value_type == T_DATA && Primitive.object_hidden_var_defined?(value, DATA_TYPE))
       raise TypeError, "wrong argument type #{Truffle::ExceptionOperations.to_class_name(value)} (expected #{BUILTIN_TYPES[type]})"
     end
   end
 
   def rbimpl_rtypeddata_p(obj)
-    Primitive.as_boolean Primitive.object_hidden_var_get(obj, DATA_TYPE)
+    Primitive.object_hidden_var_defined?(obj, DATA_TYPE)
   end
 
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
