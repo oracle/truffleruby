@@ -1726,24 +1726,24 @@ module Truffle::CExt
       Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], Primitive.cext_special_variables_from_stack, wrapped_callback))
   end
 
+  # From ruby.h
+  RB_WAITFD_IN = Truffle::IOOperations::POLLIN
+  RB_WAITFD_PRI = Truffle::IOOperations::POLLPRI
+  RB_WAITFD_OUT = Truffle::IOOperations::POLLOUT
+
   def rb_thread_wait_fd(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    Primitive.send_without_cext_lock(IO, :select, [[io]], nil)
-    nil
+    Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, RB_WAITFD_IN, nil], nil)
+    RB_WAITFD_IN
   end
 
   def rb_thread_fd_writable(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    _r, w, _e = Primitive.send_without_cext_lock(IO, :select, [nil, [io]], nil)
-    w.size
+    Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, RB_WAITFD_OUT, nil], nil)
+    RB_WAITFD_OUT
   end
-
-  # From ruby.h
-  RB_WAITFD_IN = 1
-  RB_WAITFD_PRI = 2
-  RB_WAITFD_OUT = 4
 
   def rb_wait_for_single_fd(fd, events, tv_secs, tv_usecs)
     io = IO.for_fd(fd)
