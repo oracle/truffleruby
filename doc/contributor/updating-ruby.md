@@ -95,12 +95,6 @@ git grep -E -- '^\s*require "-test-/'
 And comment any `require` found in files under `test/mri/tests`
 but not for files under `test/mri/tests/cext-ruby`.
 
-## Update config_*.h files
-
-Configuration files must be regenerated for each platform with `tool/generate-config-header.sh`.
-Adapt the Ruby versions in that script by updating `.ruby-version`.
-Then run all the `ruby-generate-native-config-*` jobs in CI and copy their output.
-
 ## Update libraries from third-party repos
 
 Look in `../ruby/ext/json/lib/json/version.rb` to see the version of `flori/json` being used,
@@ -144,7 +138,7 @@ Also update the list of `provided_executables` in `mx_truffleruby.py` if some la
 
 ## Make other changes
 
-In a separate commit, update all of these:
+Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
@@ -159,6 +153,8 @@ In a separate commit, update all of these:
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
+* Upload the [CRuby source archive](https://www.ruby-lang.org/en/downloads/) of that version to the CI (ask Benoit).
+* Update `config_*.h` files by running the gate and copying the output, or trigger the `ruby-generate-native-config-*` CI jobs.
 
 For a new major version:
 * Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
