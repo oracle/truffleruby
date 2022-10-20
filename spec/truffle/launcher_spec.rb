@@ -20,7 +20,7 @@ describe "The launcher" do
   @launchers = {
     bundle: escape["Bundler version #{@default_gems['bundler']}"],
     bundler: escape["Bundler version #{@default_gems['bundler']}"],
-    erb: escape["#{@default_gems['erb']}"],
+    erb: escape[@default_gems['erb']],
     gem: escape[@default_gems['gem']],
     irb: escape["irb #{@default_gems['irb']} (2021-12-25)"],
     racc: escape["racc version #{@default_gems['racc']}"],
