@@ -17,6 +17,7 @@ os=${os/Darwin/darwin}
 
 arch=$(uname -m)
 arch=${arch/x86_64/amd64}
+arch=${arch/arm64/aarch64}
 
 mx_platform="${os}_${arch}"
 
