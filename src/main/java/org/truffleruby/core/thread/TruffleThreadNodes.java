@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.thread;
 
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;

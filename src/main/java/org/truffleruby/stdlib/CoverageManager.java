@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 
 import com.oracle.truffle.api.CompilerDirectives;

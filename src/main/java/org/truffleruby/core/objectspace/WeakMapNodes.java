@@ -10,10 +10,10 @@
 package org.truffleruby.core.objectspace;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.SimpleEntry;
@@ -22,7 +22,7 @@ import org.truffleruby.core.hash.CompareByRubyIdentityWrapper;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

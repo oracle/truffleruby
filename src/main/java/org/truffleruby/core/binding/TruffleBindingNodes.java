@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.binding;
 
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.collections.Memo;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

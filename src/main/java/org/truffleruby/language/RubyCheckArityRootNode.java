@@ -21,7 +21,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;

@@ -29,7 +29,8 @@ import org.graalvm.collections.Pair;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
@@ -112,7 +113,7 @@ public class CoreLibrary {
     private final RubyContext context;
     private final RubyLanguage language;
 
-    /** Source section for core methods implemented in Java (marked by {@link org.truffleruby.builtins.CoreMethod}). */
+    /** Source section for core methods implemented in Java (marked by {@link CoreMethod}). */
     public static final SourceSection JAVA_CORE_SOURCE_SECTION = initCoreSourceSection();
 
     public final RubyClass argumentErrorClass;

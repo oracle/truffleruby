@@ -13,8 +13,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.mutex.RubyMutex;

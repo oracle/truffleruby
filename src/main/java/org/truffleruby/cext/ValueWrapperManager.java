@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;

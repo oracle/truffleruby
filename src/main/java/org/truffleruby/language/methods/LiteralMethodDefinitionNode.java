@@ -16,7 +16,7 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;

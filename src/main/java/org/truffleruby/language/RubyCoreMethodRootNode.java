@@ -12,12 +12,12 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives;

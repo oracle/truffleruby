@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;

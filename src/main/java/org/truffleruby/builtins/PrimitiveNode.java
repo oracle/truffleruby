@@ -10,6 +10,7 @@
 
 package org.truffleruby.builtins;
 
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 

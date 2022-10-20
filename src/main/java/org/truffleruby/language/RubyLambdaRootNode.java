@@ -24,7 +24,7 @@ import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives;

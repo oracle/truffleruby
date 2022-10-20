@@ -51,7 +51,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;

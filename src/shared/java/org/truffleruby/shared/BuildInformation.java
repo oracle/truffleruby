@@ -9,7 +9,7 @@
  */
 package org.truffleruby.shared;
 
-import org.truffleruby.PopulateBuildInformation;
+import org.truffleruby.annotations.PopulateBuildInformation;
 
 @PopulateBuildInformation
 public interface BuildInformation {

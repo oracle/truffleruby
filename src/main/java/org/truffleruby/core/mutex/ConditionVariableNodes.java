@@ -14,18 +14,18 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.SuppressFBWarnings;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;

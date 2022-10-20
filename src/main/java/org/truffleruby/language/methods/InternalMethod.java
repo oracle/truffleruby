@@ -21,7 +21,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

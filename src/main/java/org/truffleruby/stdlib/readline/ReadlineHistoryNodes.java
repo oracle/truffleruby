@@ -42,10 +42,10 @@ package org.truffleruby.stdlib.readline;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.History;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.basicobject.RubyBasicObject;

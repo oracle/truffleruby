@@ -38,10 +38,10 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToFNode;

@@ -10,7 +10,7 @@
 package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class MethodFilter {

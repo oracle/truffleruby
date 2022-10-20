@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;

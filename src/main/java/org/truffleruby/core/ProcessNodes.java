@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core;
 
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.symbol.RubySymbol;
 

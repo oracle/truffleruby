@@ -14,7 +14,7 @@ import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;

@@ -10,6 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.support.TypeNodes;

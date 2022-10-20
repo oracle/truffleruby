@@ -11,7 +11,7 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
 

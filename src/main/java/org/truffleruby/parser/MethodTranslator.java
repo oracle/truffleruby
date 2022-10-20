@@ -43,7 +43,7 @@ import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;

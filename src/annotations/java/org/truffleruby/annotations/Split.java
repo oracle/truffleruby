@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.methods;
+package org.truffleruby.annotations;
 
 public enum Split {
     /** Special value for the CoreMethod annotation, resolved to either HEURISTIC or ALWAYS, based on needsBlock */

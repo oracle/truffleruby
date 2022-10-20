@@ -34,9 +34,9 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-import org.truffleruby.PopulateBuildInformation;
+import org.truffleruby.annotations.PopulateBuildInformation;
 
-@SupportedAnnotationTypes("org.truffleruby.PopulateBuildInformation")
+@SupportedAnnotationTypes("org.truffleruby.annotations.PopulateBuildInformation")
 public class BuildInformationProcessor extends TruffleRubyProcessor {
 
     private static final String SUFFIX = "Impl";

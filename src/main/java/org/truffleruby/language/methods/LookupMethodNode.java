@@ -17,7 +17,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.objects.MetaClassNode;
