@@ -11,7 +11,7 @@ require "profile_test_all" if ENV.key?('RUBY_TEST_ALL_PROFILE')
 require "tracepointchecker" unless defined?(::TruffleRuby)
 require "zombie_hunter"
 require "iseq_loader_checker" unless defined?(::TruffleRuby)
-require "gc_compact_checker"
+require "gc_compact_checker" unless defined?(::TruffleRuby)
 require_relative "../test-coverage.rb" if ENV.key?('COVERAGE')
 
 case $0
