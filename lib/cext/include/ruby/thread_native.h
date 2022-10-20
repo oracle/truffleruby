@@ -19,8 +19,6 @@
  * please use Mutex directly.
  */
 
-#include "ruby/internal/dllexport.h"
-
 #if defined(_WIN32)
 #include <windows.h>
 typedef HANDLE rb_nativethread_id_t;

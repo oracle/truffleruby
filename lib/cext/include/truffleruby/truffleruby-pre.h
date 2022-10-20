@@ -75,8 +75,6 @@ extern void* (*rb_tr_id2sym)(ID obj);
 extern ID (*rb_tr_sym2id)(VALUE sym);
 extern void* (*rb_tr_force_native)(VALUE obj);
 
-#include <ruby/thread_native.h>
-
 // Helpers
 
 #ifndef offsetof
