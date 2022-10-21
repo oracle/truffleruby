@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.support;
 
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 
 import com.oracle.truffle.api.dsl.Specialization;
 

@@ -10,7 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.frame.Frame;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;

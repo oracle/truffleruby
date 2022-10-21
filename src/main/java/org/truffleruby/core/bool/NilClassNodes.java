@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.bool;
 
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.inlined.InlinedIsNilNode;
 
 import com.oracle.truffle.api.dsl.Specialization;

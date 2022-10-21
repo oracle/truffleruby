@@ -30,7 +30,7 @@ package org.truffleruby.parser.scope;
 
 import java.util.Arrays;
 
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.ArgsParseNode;

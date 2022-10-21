@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.language.control.RaiseException;

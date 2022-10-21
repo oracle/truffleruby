@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.builtins;
+package org.truffleruby.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

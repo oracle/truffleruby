@@ -11,9 +11,9 @@ package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;

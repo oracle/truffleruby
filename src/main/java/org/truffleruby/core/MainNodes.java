@@ -11,11 +11,11 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;

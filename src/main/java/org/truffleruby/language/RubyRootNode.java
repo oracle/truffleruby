@@ -24,7 +24,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.parser.ParentFrameDescriptor;
 
 import java.util.ArrayList;

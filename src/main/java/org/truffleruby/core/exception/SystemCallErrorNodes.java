@@ -10,13 +10,13 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
+import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;

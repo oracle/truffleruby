@@ -10,7 +10,7 @@
 package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.annotations.SuppressFBWarnings;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

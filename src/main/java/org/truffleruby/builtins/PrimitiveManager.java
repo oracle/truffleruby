@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.language.RubyBaseNode;
 

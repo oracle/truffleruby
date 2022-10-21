@@ -9,6 +9,7 @@
  */
 package org.truffleruby.builtins;
 
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;

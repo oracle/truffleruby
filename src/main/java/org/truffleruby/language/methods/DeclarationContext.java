@@ -15,7 +15,7 @@ import java.util.Map;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives;

@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.bool;
 
-import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.cast.BooleanCastNode;
 
 import com.oracle.truffle.api.dsl.Cached;

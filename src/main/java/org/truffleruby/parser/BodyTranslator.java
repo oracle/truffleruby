@@ -136,7 +136,7 @@ import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.language.objects.DefineClassNode;
 import org.truffleruby.language.objects.DefineModuleNode;
 import org.truffleruby.language.objects.DefineModuleNodeGen;
