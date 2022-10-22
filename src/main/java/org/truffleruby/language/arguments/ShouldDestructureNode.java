@@ -16,11 +16,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.InternalRespondToNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 public class ShouldDestructureNode extends RubyContextSourceNode {
 
-    @Child private InternalRespondToNode respondToToAry;
+    @Child private DispatchNode respondToToAry;
 
     private final boolean keywordArguments;
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
@@ -41,20 +41,25 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
         checkIsArrayProfile.enter();
 
-        final Object firstArgument = RubyArguments.getArgument(frame, 0);
+        final Object singleArgument = RubyArguments.getArgument(frame, 0);
 
-        if (RubyGuards.isRubyArray(firstArgument)) {
+        if (RubyGuards.isRubyArray(singleArgument)) {
             return true;
         }
 
         if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToAry = insert(InternalRespondToNode.create());
+            respondToToAry = insert(DispatchNode.create(DispatchNode.PRIVATE_RETURN_MISSING));
         }
 
-        // TODO(cseaton): check this is actually a static "find if there is such method" and not a
-        // dynamic call to respond_to?
-        return respondToToAry.execute(frame, firstArgument, "to_ary");
+        var respondToCallResult = respondToToAry.call(singleArgument, "respond_to?", getLanguage().coreSymbols.TO_ARY);
+        // the object may not have the #respond_to? method (e.g. an instance of BasicObject class)
+        if (respondToCallResult == DispatchNode.MISSING) {
+            return false;
+        }
+
+        assert respondToCallResult instanceof Boolean;
+        return (boolean) respondToCallResult;
     }
 
     @Override
