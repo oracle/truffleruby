@@ -42,6 +42,10 @@ class String
     end
 
     def convert
+      unless @value.encoding.ascii_compatible?
+        raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
+      end
+
       if m = PATTERN0.match(@value)
         sr = m[1]
         si = m[2]
