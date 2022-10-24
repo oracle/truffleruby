@@ -153,3 +153,12 @@ class Module
     end
   end
 end
+
+class Refinement < Module
+  def import_methods(mod)
+    (mod.instance_methods(false) + mod.private_instance_methods(false)).each do |name|
+      # TODO: apply refinements to these methods
+      define_method(name, mod.instance_method(name))
+    end
+  end
+end
