@@ -69,6 +69,21 @@ describe "String#to_c" do
     '79-4i'.to_c.should == Complex(79,-4)
   end
 
+  it "understands 'a+i' to mean a complex number with 'a' as the real part, 1i as the imaginary" do
+    '79+i'.to_c.should == Complex(79, 1)
+  end
+
+  it "understands 'a-i' to mean a complex number with 'a' as the real part, -1i as the imaginary" do
+    '79-i'.to_c.should == Complex(79, -1)
+  end
+
+  it "understands i, I, j, and J imaginary units" do
+    '79+4i'.to_c.should == Complex(79, 4)
+    '79+4I'.to_c.should == Complex(79, 4)
+    '79+4j'.to_c.should == Complex(79, 4)
+    '79+4J'.to_c.should == Complex(79, 4)
+  end
+
   it "understands scientific notation for the real part" do
     '2e3+4i'.to_c.should == Complex(2e3,4)
   end
@@ -93,7 +108,43 @@ describe "String#to_c" do
     '-2e3-2e4i'.to_c.should == Complex(-2e3,-2e4)
   end
 
+  it "understands scientific notation with e and E" do
+    '2e3+2e4i'.to_c.should == Complex(2e3, 2e4)
+    '2E3+2E4i'.to_c.should == Complex(2e3, 2e4)
+  end
+
+  it "understands 'm@a' to mean a complex number in polar form with 'm' as the modulus, 'a' as the argument" do
+    '79@4'.to_c.should == Complex.polar(79, 4)
+    '-79@4'.to_c.should == Complex.polar(-79, 4)
+    '79@-4'.to_c.should == Complex.polar(79, -4)
+  end
+
   it "returns a complex number with 0 as the real part, 0 as the imaginary part for unrecognised Strings" do
-  'ruby'.to_c.should == Complex(0,0)
+    'ruby'.to_c.should == Complex(0, 0)
+  end
+
+  it "ignores leading whitespaces" do
+    '  79+4i'.to_c.should == Complex(79, 4)
+  end
+
+  it "ignores trailing whitespaces" do
+    '79+4i  '.to_c.should == Complex(79, 4)
+  end
+
+  it "ignores trailing garbage" do
+    '79+4iruby'.to_c.should == Complex(79, 4)
+  end
+
+  it "understands Float::INFINITY" do
+    'Infinity'.to_c.should == Complex(0, 1)
+    '-Infinity'.to_c.should == Complex(0, -1)
+  end
+
+  it "understands Float::NAN" do
+    'NaN'.to_c.should == Complex(0, 0)
+  end
+
+  it "understands _" do
+    '7_9+4_0i'.to_c.should == Complex(79, 40)
   end
 end
