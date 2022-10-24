@@ -2433,7 +2433,7 @@ public abstract class ModuleNodes {
             final RubyModule refinement = createModule(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().moduleClass,
+                    coreLibrary().refinementClass,
                     null,
                     null,
                     this);
