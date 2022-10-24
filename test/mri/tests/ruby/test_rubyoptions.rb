@@ -7,7 +7,9 @@ require 'tempfile'
 require_relative '../lib/jit_support'
 
 class TestRubyOptions < Test::Unit::TestCase
-  def self.yjit_enabled? = defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
+  def self.yjit_enabled?
+    defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
+  end
 
   NO_JIT_DESCRIPTION =
     if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # checking -DMJIT_FORCE_ENABLE
