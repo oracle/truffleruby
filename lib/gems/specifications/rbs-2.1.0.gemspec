@@ -24,8 +24,4 @@ Gem::Specification.new do |s|
   s.summary = "Type signature for Ruby.".freeze
 
   s.installed_by_version = "3.3.7" if s.respond_to? :installed_by_version
-
-  def s.gem_build_complete_path
-    "#{full_gem_path}/lib/rbs_extension.#{Truffle::Platform::DLEXT}"
-  end if defined?(::TruffleRuby)
 end

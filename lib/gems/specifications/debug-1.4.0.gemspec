@@ -36,8 +36,4 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<irb>.freeze, [">= 1.3.6"])
     s.add_dependency(%q<reline>.freeze, [">= 0.2.7"])
   end
-
-  def s.gem_build_complete_path
-    "#{full_gem_path}/lib/debug/debug.#{Truffle::Platform::DLEXT}"
-  end if defined?(::TruffleRuby)
 end
