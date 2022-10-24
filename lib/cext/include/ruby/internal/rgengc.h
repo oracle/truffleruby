@@ -395,6 +395,7 @@ rb_obj_written(
     VALUE a,
     RBIMPL_ATTR_MAYBE_UNUSED()
     VALUE oldv,
+    RBIMPL_ATTR_MAYBE_UNUSED()
     VALUE b,
     RBIMPL_ATTR_MAYBE_UNUSED()
     const char *filename,
