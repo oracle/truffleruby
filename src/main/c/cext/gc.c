@@ -12,11 +12,13 @@
 
 // GC, rb_gc_*
 
+void rb_global_variable(VALUE *address) {
+  rb_gc_register_address(address);
+}
+
 void rb_gc_register_address(VALUE *address) {
-  /* TODO: This should guard the address of the pointer, not the
-     object pointed to, but we haven't yet found a good way to implement
-     that, or a real world use case where it is required. */
-  polyglot_invoke(RUBY_CEXT, "rb_gc_register_address", address, rb_tr_unwrap(*address));
+  /* NOTE: this captures the value after the Init_ function returns and assumes the value does not change after that. */
+  polyglot_invoke(RUBY_CEXT, "rb_gc_register_address", address);
 }
 
 void rb_gc_unregister_address(VALUE *address) {
@@ -58,9 +60,7 @@ void rb_gc_register_mark_object(VALUE obj) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
 }
 
-void rb_global_variable(VALUE *obj) {
-  /* TODO: This should guard the address of the pointer, not the
-     object pointed to, but we haven't yet found a good way to implement
-     that, or a real world use case where it is required. */
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_global_variable", *obj);
+void* rb_tr_read_VALUE_pointer(VALUE *pointer) {
+  VALUE value = *pointer;
+  return rb_tr_unwrap(value);
 }

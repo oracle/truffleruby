@@ -28,6 +28,7 @@ class NativeHandleChecker
     "C-API Util function rb_get_kwargs extracts required arguments in the order requested" => 2,
     "C-API Util function rb_get_kwargs extracts required and optional arguments in the order requested" => 1,
     "C-API Util function rb_get_kwargs raises an error if a required argument is not in the hash" => 1,
+    "CApiGCSpecs rb_gc_register_address can be called outside Init_" => 1,
     "Native handle conversion converts all elements to native handles when memcpying an RARRAY_PTR" => 1000,
   }
 

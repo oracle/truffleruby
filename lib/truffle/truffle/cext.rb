@@ -108,8 +108,6 @@ module Truffle::CExt
   RUBY_ECONV_PARTIAL_INPUT = Encoding::Converter::PARTIAL_INPUT
   RUBY_ECONV_AFTER_OUTPUT = Encoding::Converter::AFTER_OUTPUT
 
-  GLOBALLY_PRESERVED_VALUES = []
-
   SET_LIBTRUFFLERUBY = -> libtruffleruby do
     LIBTRUFFLERUBY = libtruffleruby
   end
@@ -1971,15 +1969,30 @@ module Truffle::CExt
     Primitive.exception_set_message(e, mesg)
   end
 
-  def rb_global_variable(obj)
-    GLOBALLY_PRESERVED_VALUES << obj
-  end
-
+  # This could also be an Array similar to the global_list in MRI.
+  # But that makes it more difficult to test the case the global is in native memory,
+  # and would be slower for rb_gc_unregister_address().
   GC_REGISTERED_ADDRESSES = {}
 
-  def rb_gc_register_address(address, obj)
+  def rb_gc_register_address(address)
+    # Make it a native pointer so its identity hash is stable
     Truffle::Interop.to_native(address) unless Truffle::Interop.pointer?(address)
-    GC_REGISTERED_ADDRESSES[address] = obj
+
+    c_global_variables = Primitive.fiber_c_global_variables
+    if c_global_variables # called during Init_ function
+      c_global_variables << address
+    else
+      # Read it immediately if outside Init_ function.
+      # This assumes the value is already set when this is called and does not change after that.
+      GC_REGISTERED_ADDRESSES[address] = LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
+    end
+  end
+
+  def resolve_registered_addresses
+    c_global_variables = Primitive.fiber_c_global_variables
+    c_global_variables.each do |address|
+      GC_REGISTERED_ADDRESSES[address] = LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
+    end
   end
 
   def rb_gc_unregister_address(address)

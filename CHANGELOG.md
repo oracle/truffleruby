@@ -7,6 +7,7 @@ Bug fixes:
 
 * Ensure every parse node has a source section and fix the source section for `ensure` (#2758, @eregon).
 * Fix `spawn(..., fd => fd)` on macOS, it did not work due to a macOS bug (@eregon).
+* Fix `rb_gc_register_address()`/`rb_global_variable()` to read the latest value (#2721, #2734, #2720, @eregon).
 
 Compatibility:
 

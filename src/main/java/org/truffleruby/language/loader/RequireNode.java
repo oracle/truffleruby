@@ -285,7 +285,11 @@ public abstract class RequireNode extends RubyBaseNode {
 
         requireMetric("before-execute-" + feature);
         ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
-        getLanguage().getCurrentFiber().extensionCallStack.push(false, nil, nil);
+        var currentFiber = getLanguage().getCurrentFiber();
+
+        var prevGlobals = currentFiber.cGlobalVariablesDuringInitFunction;
+        currentFiber.cGlobalVariablesDuringInitFunction = createEmptyArray();
+        currentFiber.extensionCallStack.push(false, nil, nil);
         try {
             InteropNodes
                     .execute(
@@ -294,9 +298,14 @@ public abstract class RequireNode extends RubyBaseNode {
                             initFunctionInteropLibrary,
                             TranslateInteropExceptionNode.getUncached());
         } finally {
-            getLanguage().getCurrentFiber().extensionCallStack.pop();
-            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
-            requireMetric("after-execute-" + feature);
+            try {
+                DispatchNode.getUncached().call(coreLibrary().truffleCExtModule, "resolve_registered_addresses");
+            } finally {
+                currentFiber.extensionCallStack.pop();
+                currentFiber.cGlobalVariablesDuringInitFunction = prevGlobals;
+                ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
+                requireMetric("after-execute-" + feature);
+            }
         }
     }
 

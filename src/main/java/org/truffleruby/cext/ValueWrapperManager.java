@@ -208,10 +208,6 @@ public class ValueWrapperManager {
 
     public static class HandleBlock {
 
-        public static final HandleBlock DUMMY_BLOCK = new HandleBlock();
-
-        private static final Set<HandleBlock> keepAlive = ConcurrentHashMap.newKeySet();
-
         private final long base;
         private final ValueWrapperWeakReference[] wrappers;
         private int count;
