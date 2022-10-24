@@ -43,7 +43,9 @@ module ErrorHighlight
     end
   end
 
-  NameError.prepend(CoreExt)
+  unless defined?(::TruffleRuby) # uses RubyVM::AbstractSyntaxTree
+    NameError.prepend(CoreExt)
+  end
 
   # The extension for TypeError/ArgumentError is temporarily disabled due to many test failures
 
