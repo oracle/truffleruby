@@ -1233,10 +1233,6 @@ class String
     end
   end
 
-  def encoding
-    Primitive.encoding_get_object_encoding self
-  end
-
   def <=>(other)
     if String === other
       return Primitive.string_cmp(self, other, Primitive.strings_compatible?(self, other))

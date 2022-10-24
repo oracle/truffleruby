@@ -217,6 +217,15 @@ public abstract class StringNodes {
 
     }
 
+    @CoreMethod(names = "encoding")
+    public abstract static class EncodingNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyEncoding encoding(Object string,
+                @Cached RubyStringLibrary libString) {
+            return libString.getEncoding(string);
+        }
+    }
+
     @CoreMethod(names = "+", required = 1)
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)

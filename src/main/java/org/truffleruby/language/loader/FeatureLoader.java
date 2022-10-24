@@ -465,10 +465,10 @@ public class FeatureLoader {
                 final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
                 language.getCurrentFiber().extensionCallStack.push(false, nil, nil);
                 try {
-                    // rb_tr_init(Truffle::CExt)
-                    interop.execute(initFunction, truffleCExt);
                     // Truffle::CExt.register_libtruffleruby(libtruffleruby)
                     interop.invokeMember(truffleCExt, "register_libtruffleruby", library);
+                    // rb_tr_init(Truffle::CExt)
+                    interop.execute(initFunction, truffleCExt);
                 } catch (InteropException e) {
                     throw TranslateInteropExceptionNode.getUncached().execute(e);
                 } finally {
