@@ -37,6 +37,10 @@ class String
     PATTERN1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}"
     PATTERN2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}"
 
+    PATTERN_STRICT0 = Regexp.new "\\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}\\Z"
+    PATTERN_STRICT1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}\\Z"
+    PATTERN_STRICT2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}\\Z"
+
     def initialize(value)
       @value = value
     end
@@ -46,20 +50,53 @@ class String
         raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
       end
 
-      if m = PATTERN0.match(@value)
+      convert_internal(strict: false) || Complex.new(0, 0)
+    end
+
+    def strict_convert(exception:)
+      unless @value.encoding.ascii_compatible?
+        raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
+      end
+
+      if (@value.include?("\0".b))
+        if exception
+          raise ArgumentError, 'string contains null byte'
+        else
+          return nil
+        end
+      end
+
+      complex_value = convert_internal(strict: true)
+
+      if complex_value.nil? && exception
+        raise ArgumentError, "invalid value for convert(): #{@value.inspect}"
+      end
+
+      complex_value
+    end
+
+    private
+
+    # Return nil if String format is incorrect
+    def convert_internal(strict:)
+      pattern0 = strict ? PATTERN_STRICT0 : PATTERN0
+      pattern1 = strict ? PATTERN_STRICT1 : PATTERN1
+      pattern2 = strict ? PATTERN_STRICT2 : PATTERN2
+
+      if m = pattern0.match(@value)
         sr = m[1]
         si = m[2]
         po = true
-      elsif m = PATTERN1.match(@value)
+      elsif m = pattern1.match(@value)
         sr = nil
         si = (m[1] || '') + (m[2] || '1')
         po = false
-      elsif m = PATTERN2.match(@value)
+      elsif m = pattern2.match(@value)
         sr = m[1]
         si = m[2] ? m[3] + (m[4] || '1') : nil
         po = false
       else
-        return Complex.new(0, 0)
+        return nil
       end
 
       r = 0

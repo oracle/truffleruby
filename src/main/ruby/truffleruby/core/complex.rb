@@ -52,8 +52,15 @@ class Complex < Numeric
     end
     imag = nil if Primitive.undefined?(imag)
 
-    real = real.to_c if Primitive.object_kind_of?(real, String)
-    imag = imag.to_c if Primitive.object_kind_of?(imag, String)
+    if Primitive.object_kind_of?(real, String)
+      real = String::Complexifier.new(real).strict_convert(exception: exception)
+      return nil if real.nil?
+    end
+
+    if Primitive.object_kind_of?(imag, String)
+      imag = String::Complexifier.new(imag).strict_convert(exception: exception)
+      return nil if imag.nil?
+    end
 
     if Primitive.object_kind_of?(real, Complex) && !Primitive.object_kind_of?(real.imag, Float) && real.imag == 0
       real = real.real
