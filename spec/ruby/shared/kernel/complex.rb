@@ -130,10 +130,4 @@ describe :kernel_complex, shared: true do
   it "understands _" do
     @object.send(@method, '7_9+4_0i').should == Complex(79, 40)
   end
-
-  it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-    -> {
-      @object.send(@method, '79+4i'.encode("UTF-16"))
-    }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-  end
 end
