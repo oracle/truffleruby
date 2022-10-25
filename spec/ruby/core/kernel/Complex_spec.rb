@@ -58,8 +58,187 @@ describe "Kernel.Complex()" do
     end
   end
 
-  describe "when passed a String" do
-    it "needs to be reviewed for spec completeness"
+  describe "when passed [String]" do
+    it "returns a Complex object" do
+      Complex("9").should be_an_instance_of(Complex)
+    end
+
+    it "understands integers" do
+      Complex("20").should == Complex(20)
+    end
+
+    it "understands negative integers" do
+      Complex("-3").should == Complex(-3)
+    end
+
+    it "understands fractions (numerator/denominator) for the real part" do
+      Complex("2/3").should == Complex(Rational(2, 3))
+    end
+
+    it "understands fractions (numerator/denominator) for the imaginary part" do
+      Complex("4+2/3i").should == Complex(4, Rational(2, 3))
+    end
+
+    it "understands negative fractions (-numerator/denominator) for the real part" do
+      Complex("-2/3").should == Complex(Rational(-2, 3))
+    end
+
+    it "understands negative fractions (-numerator/denominator) for the imaginary part" do
+      Complex("7-2/3i").should == Complex(7, Rational(-2, 3))
+    end
+
+    it "understands floats (a.b) for the real part" do
+      Complex("2.3").should == Complex(2.3)
+    end
+
+    it "understands floats (a.b) for the imaginary part" do
+      Complex("4+2.3i").should == Complex(4, 2.3)
+    end
+
+    it "understands negative floats (-a.b) for the real part" do
+      Complex("-2.33").should == Complex(-2.33)
+    end
+
+    it "understands negative floats (-a.b) for the imaginary part" do
+      Complex("7-28.771i").should == Complex(7, -28.771)
+    end
+
+    it "understands an integer followed by 'i' to mean that integer is the imaginary part" do
+      Complex("35i").should == Complex(0,35)
+    end
+
+    it "understands a negative integer followed by 'i' to mean that negative integer is the imaginary part" do
+      Complex("-29i").should == Complex(0,-29)
+    end
+
+    it "understands an 'i' by itself as denoting a complex number with an imaginary part of 1" do
+      Complex("i").should == Complex(0,1)
+    end
+
+    it "understands a '-i' by itself as denoting a complex number with an imaginary part of -1" do
+      Complex("-i").should == Complex(0,-1)
+    end
+
+    it "understands 'a+bi' to mean a complex number with 'a' as the real part, 'b' as the imaginary" do
+      Complex("79+4i").should == Complex(79,4)
+    end
+
+    it "understands 'a-bi' to mean a complex number with 'a' as the real part, '-b' as the imaginary" do
+      Complex("79-4i").should == Complex(79,-4)
+    end
+
+    it "understands 'a+i' to mean a complex number with 'a' as the real part, 1i as the imaginary" do
+      Complex("79+i").should == Complex(79, 1)
+    end
+
+    it "understands 'a-i' to mean a complex number with 'a' as the real part, -1i as the imaginary" do
+      Complex("79-i").should == Complex(79, -1)
+    end
+
+    it "understands i, I, j, and J imaginary units" do
+      Complex("79+4i").should == Complex(79, 4)
+      Complex("79+4I").should == Complex(79, 4)
+      Complex("79+4j").should == Complex(79, 4)
+      Complex("79+4J").should == Complex(79, 4)
+    end
+
+    it "understands scientific notation for the real part" do
+      Complex("2e3+4i").should == Complex(2e3,4)
+    end
+
+    it "understands negative scientific notation for the real part" do
+      Complex("-2e3+4i").should == Complex(-2e3,4)
+    end
+
+    it "understands scientific notation for the imaginary part" do
+      Complex("4+2e3i").should == Complex(4, 2e3)
+    end
+
+    it "understands negative scientific notation for the imaginary part" do
+      Complex("4-2e3i").should == Complex(4, -2e3)
+    end
+
+    it "understands scientific notation for the real and imaginary part in the same String" do
+      Complex("2e3+2e4i").should == Complex(2e3,2e4)
+    end
+
+    it "understands negative scientific notation for the real and imaginary part in the same String" do
+      Complex("-2e3-2e4i").should == Complex(-2e3,-2e4)
+    end
+
+    it "understands scientific notation with e and E" do
+      Complex("2e3+2e4i").should == Complex(2e3, 2e4)
+      Complex("2E3+2E4i").should == Complex(2e3, 2e4)
+    end
+
+    it "understands 'm@a' to mean a complex number in polar form with 'm' as the modulus, 'a' as the argument" do
+      Complex("79@4").should == Complex.polar(79, 4)
+      Complex("-79@4").should == Complex.polar(-79, 4)
+      Complex("79@-4").should == Complex.polar(79, -4)
+    end
+
+
+    it "ignores leading whitespaces" do
+      Complex("  79+4i").should == Complex(79, 4)
+    end
+
+    it "ignores trailing whitespaces" do
+      Complex("79+4i  ").should == Complex(79, 4)
+    end
+
+    it "understands _" do
+      Complex("7_9+4_0i").should == Complex(79, 40)
+    end
+
+    it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
+      -> {
+        Complex("79+4i".encode("UTF-16"))
+      }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+    end
+
+    it "raises ArgumentError for unrecognised Strings" do
+      -> {
+        Complex("ruby")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "ruby"')
+    end
+
+    it "raises ArgumentError for trailing garbage" do
+      -> {
+        Complex("79+4iruby")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "79+4iruby"')
+    end
+
+    it "does not understand Float::INFINITY" do
+      -> {
+        Complex("Infinity")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "Infinity"')
+
+      -> {
+        Complex("-Infinity")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "-Infinity"')
+    end
+
+    it "does not understand Float::NAN" do
+      -> {
+        Complex("NaN")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "NaN"')
+    end
+
+    it "does not understand a sequence of _" do
+      -> {
+        Complex("7__9+4__0i")
+      }.should raise_error(ArgumentError, 'invalid value for convert(): "7__9+4__0i"')
+    end
+
+    it "does not allow null-byte" do
+      -> {
+        Complex("1-2i\0")
+      }.should raise_error(ArgumentError, "string contains null byte")
+    end
+  end
+
+  describe "when passes [String, String]" do
+
   end
 
   describe "when passed an Object which responds to #to_c" do

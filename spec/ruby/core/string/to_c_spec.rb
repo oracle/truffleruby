@@ -119,16 +119,26 @@ describe "String#to_c" do
     '79@-4'.to_c.should == Complex.polar(79, -4)
   end
 
-  it "returns a complex number with 0 as the real part, 0 as the imaginary part for unrecognised Strings" do
-    'ruby'.to_c.should == Complex(0, 0)
-  end
-
   it "ignores leading whitespaces" do
     '  79+4i'.to_c.should == Complex(79, 4)
   end
 
   it "ignores trailing whitespaces" do
     '79+4i  '.to_c.should == Complex(79, 4)
+  end
+
+  it "understands _" do
+    '7_9+4_0i'.to_c.should == Complex(79, 40)
+  end
+
+  it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
+    -> {
+      '79+4i'.encode("UTF-16").to_c
+    }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+  end
+
+  it "returns a complex number with 0 as the real part, 0 as the imaginary part for unrecognised Strings" do
+    'ruby'.to_c.should == Complex(0, 0)
   end
 
   it "ignores trailing garbage" do
@@ -144,13 +154,13 @@ describe "String#to_c" do
     'NaN'.to_c.should == Complex(0, 0)
   end
 
-  it "understands _" do
-    '7_9+4_0i'.to_c.should == Complex(79, 40)
+  it "understands a sequence of _" do
+    '7__9+4__0i'.to_c.should == Complex(79, 40)
   end
 
-  it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-    -> {
-      '79+4i'.encode("UTF-16").to_c
-    }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+  it "allows null-byte" do
+    "1-2i\0".to_c.should == Complex(1, -2)
+    "1\0-2i".to_c.should == Complex(1, 0)
+    "\01-2i".to_c.should == Complex(0, 0)
   end
 end
