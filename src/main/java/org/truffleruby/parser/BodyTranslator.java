@@ -841,10 +841,20 @@ public class BodyTranslator extends BaseTranslator {
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-
+        RubyNode caseExprValue = node.getCaseNode().accept(this);
         RubyNode elseNode;
         if (node.getElseNode() == null) {
-            elseNode = new CheckIfPatternsMatchedNode();
+            RubyCallNodeParameters inspectCallParameters = new RubyCallNodeParameters(
+                    caseExprValue,
+                    "inspect",
+                    null,
+                    EmptyArgumentsDescriptor.INSTANCE,
+                    new RubyNode[0]{},
+                    false,
+                    true);
+            RubyNode inspected = language.coreMethodAssumptions
+                    .createCallNode(inspectCallParameters, environment);
+            elseNode = new CheckIfPatternsMatchedNode(inspected);
         } else {
             elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
         }
@@ -858,7 +868,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final int tempSlot = environment.declareLocalTemp("case in value");
         final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
-        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
+        final RubyNode assignTemp = readTemp.makeWriteNode(caseExprValue);
 
         /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
          * its else clause. */
