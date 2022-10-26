@@ -45,4 +45,8 @@ gem 'jbuilder', '~> 2.5'
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
+# App-specific
 gem 'asciidoctor'
+
+# Use a more recent mail gem to have the correct dependencies
+gem 'mail', '>= 2.8.0.rc1'
