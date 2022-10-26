@@ -27,37 +27,34 @@ workingsets.xml
 *.so
 *.bundle
 *.dylib
-/.ext
-conftest
-conftest.c
 *.log
 *.tmp
 
-bench/chunky_png/oily_png/ext/oily_png/Makefile
+/.ext
+conftest
+conftest.c
+extconf.h
+mkmf.log
 
+bench/chunky_png/oily_png/ext/oily_png/Makefile
 bench/psd.rb/psd_native/ext/psd_native/Makefile
 
+lib/gems/extensions
 lib/gems/gems/*/ext/*/Makefile
 lib/gems/gems/*/ext/*/.*.time
 
 src/main/c/*/Makefile
 !src/main/c/spawn-helper/Makefile
 !src/main/c/truffleposix/Makefile
-src/main/c/*/extconf.h
-src/main/c/*/mkmf.log
 src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
 
 spec/ffi/.bundle/config
 
 test/truffle/cexts/**/Makefile
-test/truffle/cexts/**/extconf.h
-test/truffle/cexts/**/mkmf.log
 
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/depend
-test/mri/tests/cext-c/**/extconf.h
-test/mri/tests/cext-c/**/mkmf.log
 
 # mx
 /mx.truffleruby/.pydevproject
@@ -75,6 +72,7 @@ test/mri/tests/cext-c/**/mkmf.log
 
 # Tests
 /mri_tests.txt
+/test/truffle/ecosystem/blog6/Gemfile
 /test/truffle/ecosystem/blog6/Gemfile.lock
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack
