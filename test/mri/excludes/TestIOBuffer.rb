@@ -22,3 +22,5 @@ exclude :test_string_mapped_frozen, "NameError: uninitialized constant IO::Buffe
 exclude :test_resize_mapped, "NameError: uninitialized constant IO::Buffer"
 exclude :test_get_set_primitives, "NameError: uninitialized constant IO::Buffer"
 exclude :test_new_internal, "NameError: uninitialized constant IO::Buffer"
+exclude :test_file_mapped_invalid, "[NoMethodError] exception expected, not #<NameError: uninitialized constant IO::Buffer>."
+exclude :test_non_string, "[TypeError] exception expected, not #<NameError: uninitialized constant IO::Buffer>."

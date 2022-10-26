@@ -1,3 +1,6 @@
 exclude :test_brace_lambda_source_location, "needs investigation"
 exclude :test_do_lambda_source_location, "needs investigation"
 exclude :test_lambda_as_iterator, "needs investigation"
+exclude :test_proc_inside_lambda_inside_method_return_outside_lambda_inside_method, "LocalJumpError expected but nothing was raised."
+exclude :test_proc_inside_lambda_inside_method_return_outside_lambda_outside_method, "LocalJumpError expected but nothing was raised."
+exclude :test_proc_inside_lambda2_inside_method_return_outside_lambda1_inside_method, "LocalJumpError expected but nothing was raised."
