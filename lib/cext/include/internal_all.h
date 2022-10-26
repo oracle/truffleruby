@@ -28,8 +28,8 @@
 #include <internal/sanitizers.h>
 #include <internal/string.h>
 #include <internal/symbol.h>
-#include <internal/time.h>
 #include <internal/thread.h>
+#include <internal/time.h>
 #include <internal/variable.h>
 #include <internal/vm.h>
 
