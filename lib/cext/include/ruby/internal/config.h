@@ -152,6 +152,7 @@
 # define USE_RVARGC 0
 #endif
 
+#define TRUFFLERUBY
 // Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
 #include <truffleruby/truffleruby-pre.h>
 

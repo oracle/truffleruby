@@ -20,8 +20,6 @@ extern "C" {
 
 RUBY_SYMBOL_EXPORT_BEGIN
 
-#define TRUFFLERUBY
-
 #include <graalvm/llvm/polyglot.h>
 
 #include <ctype.h> // isdigit
@@ -45,13 +43,6 @@ RUBY_SYMBOL_EXPORT_BEGIN
 // Skip DTrace-generated code
 #define DTRACE_PROBES_DISABLED 1
 
-// Value types
-
-typedef unsigned long VALUE;
-typedef unsigned long ID;
-
-POLYGLOT_DECLARE_TYPE(VALUE)
-
 // Support
 
 extern void* rb_tr_cext;
@@ -67,6 +58,8 @@ void* rb_tr_abi_version(void) {
 }
 
 // Wrapping and unwrapping of values.
+
+#include "ruby/internal/value.h"
 
 extern void* (*rb_tr_unwrap)(VALUE obj);
 extern VALUE (*rb_tr_wrap)(void *obj);
