@@ -431,7 +431,7 @@ public class ParserSupport {
     public ParseNode getOperatorCallNode(ParseNode firstNode, TruffleString operator) {
         value_expr(lexer, firstNode);
 
-        return new CallParseNode(firstNode.getPosition(), firstNode, operator.toJavaStringUncached(), null, null);
+        return new CallParseNode(getPosition(firstNode), firstNode, operator.toJavaStringUncached(), null, null);
     }
 
     public ParseNode getOperatorCallNode(ParseNode firstNode, TruffleString operator, ParseNode secondNode) {
