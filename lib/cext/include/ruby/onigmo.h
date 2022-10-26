@@ -335,9 +335,9 @@ int enc_is_unicode(const OnigEncodingType *enc);
 #define ONIGENC_NAME(enc)                      ((enc)->name)
 
 #ifdef TRUFFLERUBY
-int rb_tr_enc_mbc_case_fold(const OnigEncodingType *enc, int flag, const UChar** p, const UChar* end, UChar* lower);
+int rb_tr_enc_mbc_case_fold(OnigCaseFoldType flag, const OnigUChar** pp, const OnigUChar* end, OnigUChar* to, const struct OnigEncodingTypeST* enc);
 #define ONIGENC_MBC_CASE_FOLD(enc,flag,pp,end,buf) \
-  rb_tr_enc_mbc_case_fold(enc,flag,pp,end,buf)
+  rb_tr_enc_mbc_case_fold(flag,(const OnigUChar** )pp,end,buf,enc)
 #else
 #define ONIGENC_MBC_CASE_FOLD(enc,flag,pp,end,buf) \
   (enc)->mbc_case_fold(flag,(const OnigUChar** )pp,end,buf,enc)
@@ -376,12 +376,15 @@ int onigenc_mbclen_approximate(const OnigUChar* p,const OnigUChar* e, const stru
 #define ONIGENC_IS_MBC_NEWLINE(enc,p,end)      (enc)->is_mbc_newline((p),(end),enc)
 #define ONIGENC_MBC_TO_CODE(enc,p,end)         (enc)->mbc_to_code((p),(end),enc)
 #ifdef TRUFFLERUBY
-int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding);
+int rb_tr_code_to_mbclen(OnigCodePoint code, const struct OnigEncodingTypeST* enc);
 #define ONIGENC_CODE_TO_MBCLEN(enc,code)       rb_tr_code_to_mbclen(code,enc)
-int rb_tr_code_to_mbc(OnigCodePoint code, UChar *buf, OnigEncoding enc);
-#define ONIGENC_CODE_TO_MBC(enc,code,buf)      rb_tr_code_to_mbc(code,buf,enc)
 #else
 #define ONIGENC_CODE_TO_MBCLEN(enc,code)       (enc)->code_to_mbclen(code,enc)
+#endif
+#ifdef TRUFFLERUBY
+int rb_tr_code_to_mbc(OnigCodePoint code, OnigUChar *buf, const struct OnigEncodingTypeST* enc);
+#define ONIGENC_CODE_TO_MBC(enc,code,buf)      rb_tr_code_to_mbc(code,buf,enc)
+#else
 #define ONIGENC_CODE_TO_MBC(enc,code,buf)      (enc)->code_to_mbc(code,buf,enc)
 #endif
 #define ONIGENC_PROPERTY_NAME_TO_CTYPE(enc,p,end) \

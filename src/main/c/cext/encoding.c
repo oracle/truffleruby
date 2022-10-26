@@ -90,8 +90,8 @@ OnigCodePoint rb_enc_mbc_to_codepoint(const char *p, const char *e, rb_encoding 
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_mbc_to_codepoint", rb_tr_temporary_native_string(p, length, enc)));
 }
 
-int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "code_to_mbclen", code, rb_tr_unwrap(rb_enc_from_encoding(encoding))));
+int rb_tr_code_to_mbclen(OnigCodePoint code, const struct OnigEncodingTypeST* enc) {
+  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "code_to_mbclen", code, rb_tr_unwrap(rb_enc_from_encoding(enc))));
 }
 
 int rb_enc_codelen(int c, rb_encoding *enc) {
@@ -369,21 +369,21 @@ static void advance_p(const UChar** p, int offset) {
   *p = *p + offset;
 }
 
-int rb_tr_enc_mbc_case_fold(rb_encoding *enc, int flag, const UChar** p, const UChar* end, UChar* result) {
-  int length = end - *p;
+int rb_tr_enc_mbc_case_fold(OnigCaseFoldType flag, const OnigUChar** pp, const OnigUChar* end, OnigUChar* to, const struct OnigEncodingTypeST* enc) {
+  int length = end - *pp;
   VALUE result_str = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_enc_mbc_case_fold",
           flag,
-          rb_tr_unwrap(rb_tr_temporary_native_string((char *)*p, length, enc)),
+          rb_tr_unwrap(rb_tr_temporary_native_string((char *)*pp, length, enc)),
           advance_p,
-          p));
+          pp));
    int result_len = RSTRING_LEN(result_str);
    if (result_len > 0) {
-     memcpy(result, RSTRING_PTR(result_str), result_len);
+     memcpy(to, RSTRING_PTR(result_str), result_len);
    }
    return result_len;
 }
 
-int rb_tr_code_to_mbc(OnigCodePoint code, UChar *buf, OnigEncoding enc) {
+int rb_tr_code_to_mbc(OnigCodePoint code, OnigUChar *buf, const struct OnigEncodingTypeST* enc) {
     VALUE result_str = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_code_to_mbc",
             rb_tr_unwrap(rb_enc_from_encoding(enc)), code));
    int result_len = RSTRING_LEN(result_str);
