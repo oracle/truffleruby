@@ -60,7 +60,7 @@ cext-ruby/struct/test_len.rb
 cext-ruby/struct/test_member.rb
 cext-ruby/symbol/test_inadvertent_creation.rb
 cext-ruby/symbol/test_type.rb
-cext-ruby/thread_fd_close/test_thread_fd_close.rb
+cext-ruby/thread_fd/test_thread_fd_close.rb
 cext-ruby/test_bug-14834.rb
 cext-ruby/test_bug-3571.rb
 cext-ruby/test_bug-5832.rb
@@ -74,7 +74,7 @@ cext-ruby/time/test_new.rb
 cext-ruby/tracepoint/test_tracepoint.rb
 cext-ruby/typeddata/test_typeddata.rb
 cext-ruby/vm/test_at_exit.rb
-cext-ruby/wait_for_single_fd/test_wait_for_single_fd.rb
+cext-ruby/wait/test_wait.rb
 cext-ruby/win32/test_console_attr.rb
 cext-ruby/win32/test_dln.rb
 cext-ruby/win32/test_fd_setsize.rb
