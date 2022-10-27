@@ -33,13 +33,14 @@ class String
     DENOMINATOR = Rationalizer::DENOMINATOR
     NUMBER = "[-+]?#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
     NUMBERNOS = "#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
-    PATTERN0 = Regexp.new "\\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}"
-    PATTERN1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}"
-    PATTERN2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}"
 
-    PATTERN_STRICT0 = Regexp.new "\\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}\\Z"
-    PATTERN_STRICT1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}\\Z"
-    PATTERN_STRICT2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}\\Z"
+    PATTERN0 = /\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}/
+    PATTERN1 = /\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}/
+    PATTERN2 = /\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}/
+
+    PATTERN_STRICT0 = /\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}\z/
+    PATTERN_STRICT1 = /\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}\z/
+    PATTERN_STRICT2 = /\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}\z/
 
     def initialize(value)
       @value = value

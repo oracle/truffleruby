@@ -39,7 +39,7 @@ class String
     NUMERATOR = "(?:#{DIGITS}?\\.)?#{DIGITS}(?:[eE][-+]?#{DIGITS})?"
     DENOMINATOR = DIGITS
     RATIONAL = "\\A#{SPACE}([-+])?(#{NUMERATOR})(?:\\/(#{DENOMINATOR}))?#{SPACE}"
-    PATTERN = Regexp.new RATIONAL
+    PATTERN = /#{RATIONAL}/
 
     def initialize(value)
       @value = value
