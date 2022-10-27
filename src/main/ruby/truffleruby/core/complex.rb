@@ -53,12 +53,12 @@ class Complex < Numeric
     imag = nil if Primitive.undefined?(imag)
 
     if Primitive.object_kind_of?(real, String)
-      real = String::Complexifier.new(real).strict_convert(exception: exception)
+      real = String::Complexifier.new(real).strict_convert(exception)
       return nil if real.nil?
     end
 
     if Primitive.object_kind_of?(imag, String)
-      imag = String::Complexifier.new(imag).strict_convert(exception: exception)
+      imag = String::Complexifier.new(imag).strict_convert(exception)
       return nil if imag.nil?
     end
 
