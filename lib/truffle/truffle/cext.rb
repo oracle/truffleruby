@@ -2008,4 +2008,8 @@ module Truffle::CExt
       cmd.call(*args)
     end
   end
+
+  def rb_warning_category_enabled_p(category)
+    Warning[category]
+  end
 end
