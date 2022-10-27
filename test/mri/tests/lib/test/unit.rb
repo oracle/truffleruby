@@ -1547,6 +1547,11 @@ module Test
       def _start_method(inst)
       end
       def _end_method(inst)
+        if defined?(::TruffleRuby)
+          unless ENV['HOME']
+            abort "#{inst.class}\##{inst.__name__} unset HOME"
+          end
+        end
       end
 
       ##
