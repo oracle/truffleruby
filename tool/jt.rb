@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '9bba45bf28720fe125468380c16b3cef6aaa4670'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '6e8b3608313829629b4b4a1e85c54a04c1450f2c'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
