@@ -73,7 +73,7 @@ ruby update-truffleruby.rb $VERSION ../ruby-versions/pkg
 
 The script must be run after running the `ruby-versions` script above.
 
-cc `@havenwood, @pkuczynski` in the PR description.
+Add `@havenwood`, `@pkuczynski` as reviewers.
 
 ## ruby/setup-ruby
 
@@ -81,11 +81,9 @@ Almost everything is automatic as soon as the `rbenv/ruby-build` PR is merged.
 Either wait up to 1 day or manually trigger [this workflow](https://github.com/ruby/ruby-builder/actions/workflows/check-new-releases.yml).
 Just need to merge the automatic setup-ruby PR and create a release.
 
-## flavorjones/docker-truffleruby
+## flavorjones/truffleruby images
 
-Make a PR to [flavorjones/docker-truffleruby](https://github.com/flavorjones/docker-truffleruby).
-See [CONTRIBUTING.md](https://github.com/flavorjones/docker-truffleruby/blob/master/CONTRIBUTING.md)
-for how to update to the latest release.
+Ping Mike to run the [docker-stable](https://github.com/flavorjones/truffleruby/actions/workflows/docker-stable.yml) workflow.
 
 ## Conclusion
 
