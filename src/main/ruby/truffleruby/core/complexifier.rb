@@ -76,7 +76,7 @@ class String
         raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
       end
 
-      if (@value.include?("\0".b))
+      if @value.include?("\0")
         if exception
           raise ArgumentError, 'string contains null byte'
         else
