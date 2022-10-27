@@ -146,7 +146,7 @@ describe "Kernel.Complex()" do
   end
 
   describe "when passes [String, String]" do
-
+    it "needs to be reviewed for spec completeness"
   end
 
   describe "when passed an Object which responds to #to_c" do
