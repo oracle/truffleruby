@@ -21,6 +21,11 @@ describe :string_unpack_basic, shared: true do
     it "starts unpacking from the given offset" do
       "abc".unpack("CC", offset: 1).should == [98, 99]
     end
+
+    it "traits offset as a bytes offset" do
+      "؈".unpack("CC").should == [216, 136]
+      "؈".unpack("CC", offset: 1).should == [136, nil]
+    end
   end
 end
 
@@ -35,7 +40,7 @@ describe :string_unpack_no_platform, shared: true do
 
   ruby_version_is "3.1" do
     it "raises an ArgumentError when the offset is negative" do
-      -> { "a".unpack("C", offset: -1) }.should raise_error(ArgumentError)
+      -> { "a".unpack("C", offset: -1) }.should raise_error(ArgumentError, "offset can't be negative")
     end
 
     it "returns nil if the offset is at the end of the string" do
@@ -43,7 +48,7 @@ describe :string_unpack_no_platform, shared: true do
     end
 
     it "raises an ArgumentError when the offset is larget than the string" do
-      -> { "a".unpack("C", offset: 2) }.should raise_error(ArgumentError)
+      -> { "a".unpack("C", offset: 2) }.should raise_error(ArgumentError, "offset outside of string")
     end
   end
 end

@@ -9,6 +9,7 @@
 
 require_relative '../../ruby/spec_helper'
 
+# All the directive specs are located in core/string/unpack/
 describe "String#unpack" do
   it "should be able to unpack a tarball entry" do
     header = "metadata.gz0000444000000000000000000000426712721375272013457 0ustar00wheelwheel00000000000000"

@@ -1266,8 +1266,14 @@ class String
     crypted
   end
 
-  def unpack1(format)
-    unpack(format).first
+  def unpack(format, offset: undefined)
+    format = Truffle::Type.rb_convert_type(format, String, :to_str)
+    offset = Truffle::Type.rb_convert_type(offset, Integer, :to_int) unless Primitive.undefined?(offset)
+    Primitive.string_unpack(self, format, offset)
+  end
+
+  def unpack1(format, offset: undefined)
+    unpack(format, offset: offset).first
   end
 
   def unicode_normalize(form = :nfc)
