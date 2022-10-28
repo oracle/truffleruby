@@ -30,7 +30,7 @@ local common = import "common.json";
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "3.0.2",
+  local mri_version = "3.1.2",
 
   use: {
     common: {
@@ -357,6 +357,7 @@ local part_definitions = {
         "RUBY_SPEC_TEST_ZLIB_CRC_TABLE": "false", # CRuby was built on OL6 and is used on OL7
       },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
+            jt(["-u", mri_path("3.0.2"), "mspec", "spec/ruby"]) +
             jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]),
     },
 
