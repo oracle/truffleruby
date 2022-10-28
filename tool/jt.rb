@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '6e8b3608313829629b4b4a1e85c54a04c1450f2c'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '2ed4d160eaca59e2e38401cb14bea474abd750c2'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -1540,7 +1540,7 @@ module Commands
       port = Integer(ports)
 
       bundle_install_flags.each do |install_flags|
-        puts "Testing Bundler with install flags: #{install_flags}"
+        puts "\n\nTesting Bundler with install flags: #{install_flags}"
         gems.each do |gem_name|
           temp_dir = Dir.mktmpdir(gem_name)
           begin
