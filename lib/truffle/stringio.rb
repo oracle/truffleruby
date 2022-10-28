@@ -280,7 +280,7 @@ class StringIO
       d.pos = string.bytesize
     elsif pos > string.bytesize
       replacement = "\000" * (pos - string.bytesize)
-      Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
+      Primitive.string_byte_append(string, replacement)
       Primitive.string_byte_append(string, str)
       d.pos = string.bytesize
     else
@@ -418,7 +418,7 @@ class StringIO
       d.pos = string.bytesize
     elsif pos > string.bytesize
       replacement = "\000" * (pos - string.bytesize)
-      Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
+      Primitive.string_byte_append(string, replacement)
       Primitive.string_byte_append(string, char)
       d.pos = string.bytesize
     else
