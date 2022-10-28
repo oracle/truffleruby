@@ -403,8 +403,9 @@ describe "The launcher" do
   end
 
   it "warns if the locale is not set properly" do
-    ruby_exe("Encoding.find('locale')", args: "2>&1", env: { "LC_ALL" => "C" }).should.include? \
-      "[ruby] WARNING: Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly"
+    err = ruby_exe("Encoding.find('locale')", args: "2>&1", env: { "LC_ALL" => "C" })
+    err.should.include? "[ruby] WARNING: Encoding.find('locale') is US-ASCII (due to nl_langinfo(CODESET) which returned "
+    err.should.include? "), this often indicates that the system locale is not set properly"
   end
 
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
