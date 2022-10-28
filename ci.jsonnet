@@ -249,12 +249,17 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_deps = common.sulong.deps.linux + {
+    local linux_amd64_deps = common.sulong.deps.linux + {
       packages+: {
         git: ">=1.8.3",
-        mercurial: ">=3.2.4",
         binutils: ">=2.30",
         ruby: "==" + mri_version,
+      },
+    },
+
+    local linux_aarch64_deps = common.sulong.deps.linux + {
+      packages+: {
+        ruby: "==3.0.2",
       },
     },
 
@@ -270,7 +275,7 @@ local part_definitions = {
       },
     },
 
-    linux: linux_deps + {
+    linux: linux_amd64_deps + {
       platform_name:: "LinuxAMD64",
       platform: "linux",
       arch:: "amd64",
@@ -283,7 +288,7 @@ local part_definitions = {
         mount_modules: true,
       },
     },
-    linux_aarch64: linux_deps + {
+    linux_aarch64: linux_aarch64_deps + {
       platform_name:: "LinuxAArch64",
       platform: "linux",
       arch:: "aarch64",
