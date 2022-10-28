@@ -274,17 +274,18 @@ class StringIO
     d = @__data__
     pos = d.pos
     string = d.string
+    bytesize = string.bytesize
 
-    if @append || pos == string.bytesize
+    if @append || pos == bytesize
       Primitive.string_byte_append(string, str)
       d.pos = string.bytesize
-    elsif pos > string.bytesize
-      replacement = "\000" * (pos - string.bytesize)
+    elsif pos > bytesize
+      replacement = "\000" * (pos - bytesize)
       Primitive.string_byte_append(string, replacement)
       Primitive.string_byte_append(string, str)
       d.pos = string.bytesize
     else
-      stop = string.bytesize - pos
+      stop = bytesize - pos
       if str.bytesize < stop
         stop = str.bytesize
       end
@@ -412,12 +413,13 @@ class StringIO
     d = @__data__
     pos = d.pos
     string = d.string
+    bytesize = string.bytesize
 
-    if @append || pos == string.bytesize
+    if @append || pos == bytesize
       Primitive.string_byte_append(string, char)
       d.pos = string.bytesize
-    elsif pos > string.bytesize
-      replacement = "\000" * (pos - string.bytesize)
+    elsif pos > bytesize
+      replacement = "\000" * (pos - bytesize)
       Primitive.string_byte_append(string, replacement)
       Primitive.string_byte_append(string, char)
       d.pos = string.bytesize
@@ -553,11 +555,12 @@ class StringIO
     len = Truffle::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, 'negative length' if len < 0
     string = @__data__.string
+    bytesize = string.bytesize
 
-    if len < string.bytesize
-      string[len..string.bytesize] = ''
+    if len < bytesize
+      string[len..bytesize] = ''
     else
-      string << "\000" * (len - string.bytesize)
+      string << "\000" * (len - bytesize)
     end
     length
   end
@@ -565,18 +568,19 @@ class StringIO
   def ungetc(char)
     check_readable
 
-    d = @__data__
-    pos = d.pos
-    string = d.string
-
     if char.kind_of? Integer
       char = Truffle::Type.coerce_to char, String, :chr
     else
       char = Truffle::Type.coerce_to char, String, :to_str
     end
 
-    if pos > string.bytesize
-      string[string.bytesize..pos] = "\000" * (pos - string.bytesize)
+    d = @__data__
+    pos = d.pos
+    string = d.string
+    bytesize = string.bytesize
+
+    if pos > bytesize
+      string[bytesize..pos] = "\000" * (pos - bytesize)
       d.pos -= 1
       string[d.pos] = char
     elsif pos > 0
@@ -700,12 +704,13 @@ class StringIO
     d = @__data__
     pos = d.pos
     string = d.string
+    bytesize = string.bytesize
 
     if sep.nil?
       if limit
         line = string.byteslice(pos, limit)
       else
-        line = string.byteslice(pos, string.bytesize - pos)
+        line = string.byteslice(pos, bytesize - pos)
       end
       d.pos += line.bytesize
     elsif sep.empty?
@@ -717,8 +722,8 @@ class StringIO
         end
         d.pos = stop
       else
-        line = string.byteslice(pos, string.bytesize - pos)
-        d.pos = string.bytesize
+        line = string.byteslice(pos, bytesize - pos)
+        d.pos = bytesize
       end
     else
       if stop = Primitive.find_string(string, sep, pos)
@@ -733,7 +738,7 @@ class StringIO
         if limit
           line = string.byteslice(pos, limit)
         else
-          line = string.byteslice(pos, string.bytesize - pos)
+          line = string.byteslice(pos, bytesize - pos)
         end
         d.pos += line.bytesize
       end
