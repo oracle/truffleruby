@@ -243,9 +243,11 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'TruffleRuby license files': ('', []),
     },
     truffle_jars=[
+        # Distributions
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',
         'truffleruby:TRUFFLERUBY-ANNOTATIONS',
+        # Libraries
         'sdk:JLINE3',
         'truffleruby:JCODINGS',
         'truffleruby:JONI',
