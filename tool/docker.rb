@@ -227,7 +227,7 @@ class JT
 
       if basic_test || full_test
         configs.each do |c|
-          lines << "RUN cp -r #{ruby_base}/lib/gems /test/clean-gems"
+          lines << "RUN cp -R #{ruby_base}/lib/gems /test/clean-gems"
 
           gem_install = "ruby #{c} -S gem install --no-document"
           lines << "RUN #{gem_install} color"
