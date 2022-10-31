@@ -56,8 +56,10 @@ contents.scan(t) do |class_name, test_method, error|
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
   if i = lines.index { |line| line.start_with?(prefix) }
+    puts "already excluded: #{class_name}##{test_method}"
     lines[i] = new_line
   else
+    puts "adding exclude: #{class_name}##{test_method}"
     lines << new_line
   end
   File.write(file, lines.join)
