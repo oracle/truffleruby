@@ -42,7 +42,7 @@ PARSER_DIR=src/main/java/org/truffleruby/parser/parser
 pushd $PARSER_DIR
 
 # Generate grammar as intermediate file
-$JAY -v $DEBUG_FLAG $PARSER_BASE.y < skeleton.parser | grep -v $DEBUG_STRIP >$PARSER_BASE.out
+$JAY $DEBUG_FLAG $PARSER_BASE.y < skeleton.parser | grep -v $DEBUG_STRIP >$PARSER_BASE.out
 
 # Patch file to get around Java static initialization issues plus extract
 # a bunch of stuff to separate file (yytables).
