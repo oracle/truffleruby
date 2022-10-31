@@ -47,7 +47,7 @@ require 'fileutils'
 repo_root = File.expand_path("../..", __FILE__)
 excludes = "#{repo_root}/test/mri/excludes"
 
-t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*)\n/
+t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*)$/
 contents.scan(t) do |class_name, test_method, error|
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
   prefix = "exclude #{test_method.strip.to_sym.inspect}"
