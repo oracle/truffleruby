@@ -208,7 +208,7 @@ class IO
 
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count=nil, encoding=Encoding::ASCII_8BIT)
+    def shift(count=nil, encoding=Encoding::BINARY)
       TruffleRuby.synchronized(self) do
         total = size
         total = count if count and count < total
@@ -228,7 +228,7 @@ class IO
 
       peek_ahead = 0
       while size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
-        str.force_encoding Encoding::ASCII_8BIT
+        str.force_encoding Encoding::BINARY
         str << @storage[@start]
         @start += 1
         peek_ahead += 1
@@ -260,7 +260,7 @@ class IO
       TruffleRuby.synchronized(self) do
         char = +''
         while size > 0
-          char.force_encoding Encoding::ASCII_8BIT
+          char.force_encoding Encoding::BINARY
           char << @storage[@start]
           @start += 1
 
@@ -481,7 +481,7 @@ class IO
     internal = io.internal_encoding
     external = io.external_encoding || Encoding.default_external
 
-    if external.equal? Encoding::ASCII_8BIT
+    if external.equal? Encoding::BINARY
       str.force_encoding external
     elsif internal and external
       ec = Encoding::Converter.new external, internal
@@ -2102,7 +2102,7 @@ class IO
       raise ArgumentError, 'encoding conversion is set'
     end
 
-    if external_encoding && external_encoding != Encoding::ASCII_8BIT
+    if external_encoding && external_encoding != Encoding::BINARY
       raise ArgumentError, "encoding is set to #{external_encoding} already"
     end
 
@@ -2330,7 +2330,7 @@ class IO
 
     if !binmode? && external_encoding &&
        external_encoding != data.encoding &&
-       external_encoding != Encoding::ASCII_8BIT
+       external_encoding != Encoding::BINARY
       unless data.ascii_only? && external_encoding.ascii_compatible?
         data = data.encode(external_encoding)
       end

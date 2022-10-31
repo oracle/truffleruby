@@ -294,10 +294,10 @@ class Encoding
       end
 
       if result == :invalid_byte_sequence or result == :incomplete_input
-        exc.__send__ :error_bytes=, error_bytes.force_encoding(Encoding::ASCII_8BIT)
+        exc.__send__ :error_bytes=, error_bytes.force_encoding(Encoding::BINARY)
 
         if bytes = read_again_bytes
-          exc.__send__ :readagain_bytes=, bytes.force_encoding(Encoding::ASCII_8BIT)
+          exc.__send__ :readagain_bytes=, bytes.force_encoding(Encoding::BINARY)
         end
       end
 

@@ -227,7 +227,7 @@ module Marshal
     STRING_ALLOCATE = String.method(:__allocate__).unbind
 
     def construct_string
-      bytes = get_byte_sequence.force_encoding(Encoding::ASCII_8BIT)
+      bytes = get_byte_sequence.force_encoding(Encoding::BINARY)
 
       if @user_class
         cls = get_user_class
@@ -243,7 +243,7 @@ module Marshal
           end
         end
 
-        Primitive.string_initialize(obj, bytes, Encoding::ASCII_8BIT)
+        Primitive.string_initialize(obj, bytes, Encoding::BINARY)
       else
         obj = bytes
       end

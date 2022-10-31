@@ -83,7 +83,7 @@ module Truffle
     #
     def binmode
       @binmode = true
-      set_encoding(Encoding::ASCII_8BIT)
+      set_encoding(Encoding::BINARY)
       self
     end
 

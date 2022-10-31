@@ -73,7 +73,7 @@ module Truffle
         str = str.force_encoding(Primitive.object_ivar_get(dir, :@encoding))
 
         if Encoding.default_external == Encoding::US_ASCII && !str.valid_encoding?
-          str.force_encoding Encoding::ASCII_8BIT
+          str.force_encoding Encoding::BINARY
         else
           enc = Encoding.default_internal
           begin
