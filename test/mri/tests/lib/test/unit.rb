@@ -1551,6 +1551,10 @@ module Test
           unless ENV['HOME']
             abort "#{inst.class}\##{inst.__name__} unset HOME"
           end
+
+          if $stdout.external_encoding
+            abort "#{inst.class}\##{inst.__name__} set $stdout.external_encoding to #{$stdout.external_encoding}"
+          end
         end
       end
 
