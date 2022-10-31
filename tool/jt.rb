@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '2ed4d160eaca59e2e38401cb14bea474abd750c2'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '9e27a3e74db4322b757885dbefc93e31c290ee55'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -1531,7 +1531,12 @@ module Commands
     ]
     gems = %w[algebrick]
 
-    gem_server_env = { 'RUBYLIB' => "#{gem_test_pack}/gems/gems/webrick-1.7.0/lib" }
+    gem_server_env = {
+      'RUBYLIB' => [
+        "#{gem_test_pack}/gems/gems/webrick-1.7.0/lib",
+        "#{gem_test_pack}/gems/gems/rubygems-server-0.2.0/lib"
+      ].join(File::PATH_SEPARATOR)
+    }
     gem_server = spawn(gem_server_env, 'gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     SUBPROCESSES << gem_server
     begin
