@@ -368,11 +368,23 @@ module Truffle
       ret
     end
 
+    BOM = /\Abom\|/i
+
+    def self.parse_external_enc(io, external)
+      if BOM.match?(external)
+        external = external[4..-1]
+        io.__send__(:strip_bom) || Encoding.find(external)
+      else
+        Encoding.find(external)
+      end
+    end
+
     # MRI: parse_mode_enc
-    # Parses string as "enc" or "external:internal" or "enc:-"
-    def self.parse_mode_enc(mode, string)
+    # Parses string as "external" or "external:internal" or "external:-"
+    def self.parse_mode_enc(io, mode, string)
       external, internal = string.split(':', 2)
-      external = Encoding.find(external)
+      external = parse_external_enc(io, external)
+
       if internal
         if internal == '-' # Special case - "-" => no transcoding
           internal = nil
@@ -405,8 +417,8 @@ module Truffle
       if Primitive.nil?(internal) or
           (mode.nobits?(FMODE_SETENC_BY_BOM) && internal == external)
         # No internal encoding => use external + no transcoding
-        internal = (default_ext && internal != external) ? nil : external
-        external = nil
+        external = (default_ext && internal != external) ? nil : external
+        internal = nil
       end
 
       [external, internal]

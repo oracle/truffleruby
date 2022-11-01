@@ -619,7 +619,7 @@ class IO
     end
 
     if Primitive.object_kind_of?(mode, String)
-      mode, external, internal = mode.split(':')
+      mode, external, internal = mode.split(':', 3)
       raise ArgumentError, 'invalid access mode' unless mode
 
       binary = true  if mode.include?(?b)
@@ -653,10 +653,11 @@ class IO
           external = encoding
         elsif !Primitive.nil?(encoding)
           encoding = StringValue(encoding)
-          external, internal = encoding.split(':')
+          external, internal = encoding.split(':', 2)
         end
       end
     end
+    external = Encoding::BINARY if binary and !external and !internal
     perm ||= 0666
     [mode, binary, external, internal, autoclose, perm]
   end
@@ -677,7 +678,7 @@ class IO
     end
   end
 
-  def self.pipe(external = nil, internal = nil, options = nil)
+  def self.pipe(external = nil, internal = nil, **options)
     lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal)
 
     if block_given?
@@ -753,7 +754,7 @@ class IO
     end
 
     pipe.binmode if binary
-    pipe.set_encoding(external || Encoding.default_external, internal)
+    pipe.set_encoding(external, internal)
 
     if cmd == '-'
       Kernel.fork # will throw an error
@@ -1394,14 +1395,10 @@ class IO
 
   def external_encoding
     ensure_open
-
-    external = @external
-    return external if external
-
     if @mode.anybits?(FMODE_WRITABLE)
-      @internal
+      @external
     else
-      @internal || Encoding.default_external
+      @external || Encoding.default_external
     end
   end
 
@@ -1432,9 +1429,7 @@ class IO
 
   def internal_encoding
     ensure_open
-
-    return nil unless @external
-    @internal || Encoding.default_external
+    @internal
   end
 
   ##
@@ -2044,23 +2039,41 @@ class IO
   end
 
   # MRI: io_encoding_set
-  # enc = internal, enc2 = external (see struct rb_io_enc_t)
+  #
+  # Note that `enc` and `enc2` in MRI code,
+  # despite the confusing comments on struct rb_io_enc_t's fields,
+  # (see https://github.com/ruby/ruby/commit/f7bdac01c2)
+  # seem to mean:
+  # (enc=NULL, enc2=NULL) external = nil, internal = nil
+  # (enc=e1,   enc2=NULL) external = e1,  internal = nil
+  # (enc=e1,   enc2=e2  ) external = e2,  internal = e1
+  # In other words,
+  # enc  means internal if both are set, but external otherwise
+  # enc2 means external if both are set, but nothing (or internal) otherwise
+  # So a possible mapping is:
+  # Both enc/enc2 set => enc is internal, enc2 is external
+  # Otherwise         => enc is external, enc2 is internal
+  #
+  # We use the internal and external terminology only because enc/enc2 is so confusing.
   def set_encoding(external, internal = nil, **options)
     if !Primitive.nil?(internal)
-      external = Encoding.find(external)
+      unless Primitive.nil?(external) || Primitive.object_kind_of?(external, Encoding)
+        external = Truffle::IOOperations.parse_external_enc(self, StringValue(external))
+      end
 
       unless Primitive.object_kind_of?(internal, Encoding)
         internal = StringValue(internal)
         if internal == '-' # Special case - "-" => no transcoding
-          internal = external
-          external = nil
+          internal = nil
         else
           internal = Encoding.find(internal)
         end
       end
 
-      if internal == external # Special case => no transcoding
-        external = nil
+      if external == Encoding::BINARY # If external is BINARY, no transcoding
+        internal = nil
+      elsif internal == external # Special case => no transcoding
+        internal = nil
       end
     else
       if Primitive.nil?(external) # Set to default encodings
@@ -2068,7 +2081,7 @@ class IO
       else
         if !Primitive.object_kind_of?(external, Encoding) and
             external = StringValue(external) and external.encoding.ascii_compatible?
-          external, internal = Truffle::IOOperations.parse_mode_enc(@mode, external)
+          external, internal = Truffle::IOOperations.parse_mode_enc(self, @mode, external)
         else
           external, internal = Truffle::IOOperations.rb_io_ext_int_to_encs(@mode, Encoding.find(external), nil)
         end
@@ -2095,7 +2108,7 @@ class IO
 
     external = strip_bom
     if external
-      @external = Encoding.find(external)
+      @external = external
     end
   end
 
@@ -2111,7 +2124,7 @@ class IO
         if b3 == 0xFE
           b4 = getbyte
           if b4 == 0xFF
-            return +'UTF-32BE'
+            return Encoding::UTF_32BE
           end
           ungetbyte b4
         end
@@ -2126,12 +2139,12 @@ class IO
         if b3 == 0x00
           b4 = getbyte
           if b4 == 0x00
-            return +'UTF-32LE'
+            return Encoding::UTF_32LE
           end
           ungetbyte b4
         else
           ungetbyte b3
-          return +'UTF-16LE'
+          return Encoding::UTF_16LE
         end
         ungetbyte b3
       end
@@ -2140,7 +2153,7 @@ class IO
     when 0xFE
       b2 = getbyte
       if b2 == 0xFF
-        return +'UTF-16BE'
+        return Encoding::UTF_16BE
       end
       ungetbyte b2
 
@@ -2149,7 +2162,7 @@ class IO
       if b2 == 0xBB
         b3 = getbyte
         if b3 == 0xBF
-          return +'UTF-8'
+          return Encoding::UTF_8
         end
         ungetbyte b3
       end
