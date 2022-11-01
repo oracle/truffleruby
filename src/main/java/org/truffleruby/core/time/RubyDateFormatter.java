@@ -367,6 +367,7 @@ public abstract class RubyDateFormatter {
 
     @TruffleBoundary
     public static TStringBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
+            boolean isUtc,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         TStringBuilder toAppendTo = new TStringBuilder();
@@ -486,7 +487,7 @@ public abstract class RubyDateFormatter {
                     // custom logic because this is so weird
                     value = dt.getOffset().getTotalSeconds();
                     int colons = (Integer) token.getData();
-                    output = formatZone(colons, (int) value, formatter);
+                    output = formatZone(colons, (int) value, isUtc, formatter);
                     break;
                 case FORMAT_ZONE_ID:
                     output = getRubyTimeZoneName(dt, zone);
@@ -702,7 +703,7 @@ public abstract class RubyDateFormatter {
         return value;
     }
 
-    private static String formatZone(int colons, int value, RubyTimeOutputFormatter formatter) {
+    private static String formatZone(int colons, int value, boolean isUtc, RubyTimeOutputFormatter formatter) {
         int seconds = Math.abs(value);
         int hours = seconds / 3600;
         seconds %= 3600;
@@ -716,7 +717,7 @@ public abstract class RubyDateFormatter {
         String mm = RubyTimeOutputFormatter.formatNumber(minutes, 2, '0');
         String ss = RubyTimeOutputFormatter.formatNumber(seconds, 2, '0');
 
-        char padder = formatter.getPadder('0');
+        char padder = formatter.getPadderIgnoreUMinus('0');
         int defaultWidth = -1;
         String after = null;
 
@@ -749,7 +750,7 @@ public abstract class RubyDateFormatter {
         }
 
         int minWidth = defaultWidth - 1;
-        int width = formatter.getWidth(defaultWidth);
+        int width = formatter.getWidthForNonNumericalOutput(defaultWidth);
         if (width < minWidth) {
             width = minWidth;
         }
@@ -759,6 +760,11 @@ public abstract class RubyDateFormatter {
         if (value < 0 && hours == 0) { // the formatter could not handle this case
             before = before.replace('+', '-');
         }
+
+        if (isUtc && formatter.hasUMinusFlag()) { // support %-z (unknown local offset, RFC 3339)
+            before = before.replace('+', '-');
+        }
+
         return before + after;
     }
 

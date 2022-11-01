@@ -123,7 +123,6 @@ public class StrftimeLexer {
 
         n = from;
         return null;
-
     }
 
     private String parseFlags() {

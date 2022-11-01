@@ -437,6 +437,7 @@ public abstract class TimeNodes {
                     pattern,
                     time.dateTime,
                     time.zone,
+                    time.isUtc,
                     getContext(),
                     getLanguage(),
                     this,
