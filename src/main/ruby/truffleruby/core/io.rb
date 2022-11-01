@@ -678,7 +678,7 @@ class IO
   end
 
   def self.pipe(external = nil, internal = nil, options = nil)
-    lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal, options)
+    lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal)
 
     if block_given?
       begin
@@ -743,7 +743,7 @@ class IO
 
     if readable and writable
       pipe = pa_read
-      pipe.instance_variable_set(:@write, pa_write)
+      Primitive.object_ivar_set pipe, :@write, pa_write
     elsif readable
       pipe = pa_read
     elsif writable
@@ -780,7 +780,7 @@ class IO
       pid = Truffle::ProcessOperations.spawn(env || {}, *cmd, options)
     end
 
-    pipe.instance_variable_set :@pid, pid
+    Primitive.object_ivar_set pipe, :@pid, pid
 
     ch_write.close if readable
     ch_read.close  if writable
@@ -920,12 +920,12 @@ class IO
     io.close if Primitive.io_fd(io) != -1
 
     Primitive.io_set_fd(io, fd)
-    io.instance_variable_set :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
+    Primitive.object_ivar_set io, :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
     io.sync = sync
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
-    io.instance_variable_set :@ibuffer, ibuffer
-    io.instance_variable_set :@lineno, 0
+    Primitive.object_ivar_set io, :@ibuffer, ibuffer
+    Primitive.object_ivar_set io, :@lineno, 0
   end
 
   #
@@ -950,30 +950,6 @@ class IO
     set_encoding external, internal
 
     @autoclose = autoclose_tmp
-
-    if @external && !external
-      @external = nil
-    end
-
-    if @internal
-      if Encoding.default_external == Encoding.default_internal or
-         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
-        @internal = nil
-      end
-    elsif !mode_read_only?
-      if Encoding.default_external != Encoding.default_internal
-        @internal = Encoding.default_internal
-      end
-    end
-
-    unless @external
-      if @binmode
-        @external = Encoding::ASCII_8BIT
-      elsif @internal or Encoding.default_internal
-        @external = Encoding.default_external
-      end
-    end
-
     @pipe = false
   end
 
@@ -1418,10 +1394,14 @@ class IO
 
   def external_encoding
     ensure_open
-    if @mode & FMODE_WRITABLE == 0
-      @external || Encoding.default_external
+
+    external = @external
+    return external if external
+
+    if @mode.anybits?(FMODE_WRITABLE)
+      @internal
     else
-      @external
+      @internal || Encoding.default_external
     end
   end
 
@@ -1452,7 +1432,9 @@ class IO
 
   def internal_encoding
     ensure_open
-    @internal
+
+    return nil unless @external
+    @internal || Encoding.default_external
   end
 
   ##
@@ -2061,65 +2043,40 @@ class IO
     0
   end
 
-  def set_encoding(external, internal=nil, options=undefined)
-    case external
-    when Encoding
-      @external = external
-    when String
-      @external = nil
-    when nil
-      if (@mode & FMODE_WRITABLE == 0) || @external
-        @external = nil
-      else
-        @external = Encoding.default_external
-      end
-    else
-      @external = nil
-      external = StringValue(external)
-    end
+  # MRI: io_encoding_set
+  # enc = internal, enc2 = external (see struct rb_io_enc_t)
+  def set_encoding(external, internal = nil, **options)
+    if !Primitive.nil?(internal)
+      external = Encoding.find(external)
 
-    if Primitive.nil?(@external) && !Primitive.nil?(external)
-      if index = external.index(':')
-        internal = external[index+1..-1]
-        external = external[0, index]
-      end
-
-      if external[3] == ?|
-        if encoding = strip_bom
-          external = encoding
+      unless Primitive.object_kind_of?(internal, Encoding)
+        internal = StringValue(internal)
+        if internal == '-' # Special case - "-" => no transcoding
+          internal = external
+          external = nil
         else
-          external = external[4..-1]
+          internal = Encoding.find(internal)
         end
       end
 
-      @external = Encoding.find external
-    end
-
-    unless Primitive.undefined? options
-      # TODO: set the encoding options on the IO instance
-      if options and not Primitive.object_kind_of?(options, Hash)
-        _options = Truffle::Type.coerce_to options, Hash, :to_hash
+      if internal == external # Special case => no transcoding
+        external = nil
+      end
+    else
+      if Primitive.nil?(external) # Set to default encodings
+        external, internal = Truffle::IOOperations.rb_io_ext_int_to_encs(@mode, nil, nil)
+      else
+        if !Primitive.object_kind_of?(external, Encoding) and
+            external = StringValue(external) and external.encoding.ascii_compatible?
+          external, internal = Truffle::IOOperations.parse_mode_enc(@mode, external)
+        else
+          external, internal = Truffle::IOOperations.rb_io_ext_int_to_encs(@mode, Encoding.find(external), nil)
+        end
       end
     end
 
-    case internal
-    when Encoding
-      @internal = nil if @external == internal
-    when String
-      # do nothing
-    when nil
-      internal = Encoding.default_internal
-    else
-      internal = StringValue(internal)
-    end
-
-    if Primitive.object_kind_of?(internal, String)
-      return self if internal == '-'
-      internal = Encoding.find internal
-    end
-
-    @internal = internal unless internal && @external == internal
-
+    @internal = internal
+    @external = external
     self
   end
 
