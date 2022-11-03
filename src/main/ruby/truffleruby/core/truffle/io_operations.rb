@@ -106,7 +106,7 @@ module Truffle
 
     CLASS_NEW = Class.instance_method(:new)
 
-    def self.create_pipe(read_class, write_class, external = nil, internal = nil, options = nil)
+    def self.create_pipe(read_class, write_class, external = nil, internal = nil)
       fds = Truffle::FFI::MemoryPointer.new(:int, 2) do |ptr|
         res = Truffle::POSIX.pipe(ptr)
         Errno.handle if res == -1
@@ -117,7 +117,7 @@ module Truffle
       rhs = pipe_end_setup(CLASS_NEW.bind_call(write_class, fds[1], IO::WRONLY))
 
       lhs.set_encoding external || Encoding.default_external,
-                       internal || Encoding.default_internal, options
+                       internal || Encoding.default_internal
 
       [lhs, rhs]
     end
@@ -368,5 +368,60 @@ module Truffle
       ret
     end
 
+    BOM = /\Abom\|/i
+
+    def self.parse_external_enc(io, external)
+      if BOM.match?(external)
+        external = external[4..-1]
+        io.__send__(:strip_bom) || Encoding.find(external)
+      else
+        Encoding.find(external)
+      end
+    end
+
+    # MRI: parse_mode_enc
+    # Parses string as "external" or "external:internal" or "external:-"
+    def self.parse_mode_enc(io, mode, string)
+      external, internal = string.split(':', 2)
+      external = parse_external_enc(io, external)
+
+      if internal
+        if internal == '-' # Special case - "-" => no transcoding
+          internal = nil
+        else
+          internal = Encoding.find(internal)
+        end
+        if mode.nobits?(FMODE_SETENC_BY_BOM) && internal == external
+          internal = nil
+        end
+      end
+
+      rb_io_ext_int_to_encs(mode, external, internal)
+    end
+
+    # MRI: rb_io_ext_int_to_encs
+    def self.rb_io_ext_int_to_encs(mode, external, internal)
+      default_ext = false
+      if Primitive.nil?(external)
+        external = Encoding.default_external
+        default_ext = true
+      end
+
+      if external == Encoding::BINARY
+        # If external is BINARY, no transcoding
+        internal = nil
+      elsif Primitive.nil?(internal)
+        internal = Encoding.default_internal
+      end
+
+      if Primitive.nil?(internal) or
+          (mode.nobits?(FMODE_SETENC_BY_BOM) && internal == external)
+        # No internal encoding => use external + no transcoding
+        external = (default_ext && internal != external) ? nil : external
+        internal = nil
+      end
+
+      [external, internal]
+    end
   end
 end

@@ -158,7 +158,7 @@ module Truffle
       unless Primitive.object_kind_of?(other, String)
         if Primitive.object_kind_of?(other, Integer)
           if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
-            string.force_encoding(Encoding::ASCII_8BIT)
+            string.force_encoding(Encoding::BINARY)
           end
 
           other = other.chr(string.encoding)

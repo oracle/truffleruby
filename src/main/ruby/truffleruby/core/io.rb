@@ -208,7 +208,7 @@ class IO
 
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count=nil, encoding=Encoding::ASCII_8BIT)
+    def shift(count=nil, encoding=Encoding::BINARY)
       TruffleRuby.synchronized(self) do
         total = size
         total = count if count and count < total
@@ -228,7 +228,7 @@ class IO
 
       peek_ahead = 0
       while size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
-        str.force_encoding Encoding::ASCII_8BIT
+        str.force_encoding Encoding::BINARY
         str << @storage[@start]
         @start += 1
         peek_ahead += 1
@@ -260,7 +260,7 @@ class IO
       TruffleRuby.synchronized(self) do
         char = +''
         while size > 0
-          char.force_encoding Encoding::ASCII_8BIT
+          char.force_encoding Encoding::BINARY
           char << @storage[@start]
           @start += 1
 
@@ -481,7 +481,7 @@ class IO
     internal = io.internal_encoding
     external = io.external_encoding || Encoding.default_external
 
-    if external.equal? Encoding::ASCII_8BIT
+    if external.equal? Encoding::BINARY
       str.force_encoding external
     elsif internal and external
       ec = Encoding::Converter.new external, internal
@@ -619,7 +619,7 @@ class IO
     end
 
     if Primitive.object_kind_of?(mode, String)
-      mode, external, internal = mode.split(':')
+      mode, external, internal = mode.split(':', 3)
       raise ArgumentError, 'invalid access mode' unless mode
 
       binary = true  if mode.include?(?b)
@@ -653,10 +653,11 @@ class IO
           external = encoding
         elsif !Primitive.nil?(encoding)
           encoding = StringValue(encoding)
-          external, internal = encoding.split(':')
+          external, internal = encoding.split(':', 2)
         end
       end
     end
+    external = Encoding::BINARY if binary and !external and !internal
     perm ||= 0666
     [mode, binary, external, internal, autoclose, perm]
   end
@@ -677,8 +678,8 @@ class IO
     end
   end
 
-  def self.pipe(external = nil, internal = nil, options = nil)
-    lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal, options)
+  def self.pipe(external = nil, internal = nil, **options)
+    lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal)
 
     if block_given?
       begin
@@ -743,7 +744,7 @@ class IO
 
     if readable and writable
       pipe = pa_read
-      pipe.instance_variable_set(:@write, pa_write)
+      Primitive.object_ivar_set pipe, :@write, pa_write
     elsif readable
       pipe = pa_read
     elsif writable
@@ -753,7 +754,7 @@ class IO
     end
 
     pipe.binmode if binary
-    pipe.set_encoding(external || Encoding.default_external, internal)
+    pipe.set_encoding(external, internal)
 
     if cmd == '-'
       Kernel.fork # will throw an error
@@ -780,7 +781,7 @@ class IO
       pid = Truffle::ProcessOperations.spawn(env || {}, *cmd, options)
     end
 
-    pipe.instance_variable_set :@pid, pid
+    Primitive.object_ivar_set pipe, :@pid, pid
 
     ch_write.close if readable
     ch_read.close  if writable
@@ -920,12 +921,12 @@ class IO
     io.close if Primitive.io_fd(io) != -1
 
     Primitive.io_set_fd(io, fd)
-    io.instance_variable_set :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
+    Primitive.object_ivar_set io, :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
     io.sync = sync
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
-    io.instance_variable_set :@ibuffer, ibuffer
-    io.instance_variable_set :@lineno, 0
+    Primitive.object_ivar_set io, :@ibuffer, ibuffer
+    Primitive.object_ivar_set io, :@lineno, 0
   end
 
   #
@@ -950,30 +951,6 @@ class IO
     set_encoding external, internal
 
     @autoclose = autoclose_tmp
-
-    if @external && !external
-      @external = nil
-    end
-
-    if @internal
-      if Encoding.default_external == Encoding.default_internal or
-         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
-        @internal = nil
-      end
-    elsif !mode_read_only?
-      if Encoding.default_external != Encoding.default_internal
-        @internal = Encoding.default_internal
-      end
-    end
-
-    unless @external
-      if @binmode
-        @external = Encoding::ASCII_8BIT
-      elsif @internal or Encoding.default_internal
-        @external = Encoding.default_external
-      end
-    end
-
     @pipe = false
   end
 
@@ -1418,10 +1395,10 @@ class IO
 
   def external_encoding
     ensure_open
-    if @mode & FMODE_WRITABLE == 0
-      @external || Encoding.default_external
-    else
+    if @mode.anybits?(FMODE_WRITABLE)
       @external
+    else
+      @external || Encoding.default_external
     end
   end
 
@@ -2061,65 +2038,58 @@ class IO
     0
   end
 
-  def set_encoding(external, internal=nil, options=undefined)
-    case external
-    when Encoding
-      @external = external
-    when String
-      @external = nil
-    when nil
-      if (@mode & FMODE_WRITABLE == 0) || @external
-        @external = nil
-      else
-        @external = Encoding.default_external
+  # MRI: io_encoding_set
+  #
+  # Note that `enc` and `enc2` in MRI code,
+  # despite the confusing comments on struct rb_io_enc_t's fields,
+  # (see https://github.com/ruby/ruby/commit/f7bdac01c2)
+  # seem to mean:
+  # (enc=NULL, enc2=NULL) external = nil, internal = nil
+  # (enc=e1,   enc2=NULL) external = e1,  internal = nil
+  # (enc=e1,   enc2=e2  ) external = e2,  internal = e1
+  # In other words,
+  # enc  means internal if both are set, but external otherwise
+  # enc2 means external if both are set, but nothing (or internal) otherwise
+  # So a possible mapping is:
+  # Both enc/enc2 set => enc is internal, enc2 is external
+  # Otherwise         => enc is external, enc2 is internal
+  #
+  # We use the internal and external terminology only because enc/enc2 is so confusing.
+  def set_encoding(external, internal = nil, **options)
+    if !Primitive.nil?(internal)
+      unless Primitive.nil?(external) || Primitive.object_kind_of?(external, Encoding)
+        external = Truffle::IOOperations.parse_external_enc(self, StringValue(external))
       end
-    else
-      @external = nil
-      external = StringValue(external)
-    end
 
-    if Primitive.nil?(@external) && !Primitive.nil?(external)
-      if index = external.index(':')
-        internal = external[index+1..-1]
-        external = external[0, index]
-      end
-
-      if external[3] == ?|
-        if encoding = strip_bom
-          external = encoding
+      unless Primitive.object_kind_of?(internal, Encoding)
+        internal = StringValue(internal)
+        if internal == '-' # Special case - "-" => no transcoding
+          internal = nil
         else
-          external = external[4..-1]
+          internal = Encoding.find(internal)
         end
       end
 
-      @external = Encoding.find external
-    end
-
-    unless Primitive.undefined? options
-      # TODO: set the encoding options on the IO instance
-      if options and not Primitive.object_kind_of?(options, Hash)
-        _options = Truffle::Type.coerce_to options, Hash, :to_hash
+      if external == Encoding::BINARY # If external is BINARY, no transcoding
+        internal = nil
+      elsif internal == external # Special case => no transcoding
+        internal = nil
+      end
+    else
+      if Primitive.nil?(external) # Set to default encodings
+        external, internal = Truffle::IOOperations.rb_io_ext_int_to_encs(@mode, nil, nil)
+      else
+        if !Primitive.object_kind_of?(external, Encoding) and
+            external = StringValue(external) and external.encoding.ascii_compatible?
+          external, internal = Truffle::IOOperations.parse_mode_enc(self, @mode, external)
+        else
+          external, internal = Truffle::IOOperations.rb_io_ext_int_to_encs(@mode, Encoding.find(external), nil)
+        end
       end
     end
 
-    case internal
-    when Encoding
-      @internal = nil if @external == internal
-    when String
-      # do nothing
-    when nil
-      internal = Encoding.default_internal
-    else
-      internal = StringValue(internal)
-    end
-
-    if Primitive.object_kind_of?(internal, String)
-      return self if internal == '-'
-      internal = Encoding.find internal
-    end
-
-    @internal = internal unless internal && @external == internal
-
+    @internal = internal
+    @external = external
     self
   end
 
@@ -2132,13 +2102,13 @@ class IO
       raise ArgumentError, 'encoding conversion is set'
     end
 
-    if external_encoding && external_encoding != Encoding::ASCII_8BIT
+    if external_encoding && external_encoding != Encoding::BINARY
       raise ArgumentError, "encoding is set to #{external_encoding} already"
     end
 
     external = strip_bom
     if external
-      @external = Encoding.find(external)
+      @external = external
     end
   end
 
@@ -2154,7 +2124,7 @@ class IO
         if b3 == 0xFE
           b4 = getbyte
           if b4 == 0xFF
-            return +'UTF-32BE'
+            return Encoding::UTF_32BE
           end
           ungetbyte b4
         end
@@ -2169,12 +2139,12 @@ class IO
         if b3 == 0x00
           b4 = getbyte
           if b4 == 0x00
-            return +'UTF-32LE'
+            return Encoding::UTF_32LE
           end
           ungetbyte b4
         else
           ungetbyte b3
-          return +'UTF-16LE'
+          return Encoding::UTF_16LE
         end
         ungetbyte b3
       end
@@ -2183,7 +2153,7 @@ class IO
     when 0xFE
       b2 = getbyte
       if b2 == 0xFF
-        return +'UTF-16BE'
+        return Encoding::UTF_16BE
       end
       ungetbyte b2
 
@@ -2192,7 +2162,7 @@ class IO
       if b2 == 0xBB
         b3 = getbyte
         if b3 == 0xBF
-          return +'UTF-8'
+          return Encoding::UTF_8
         end
         ungetbyte b3
       end
@@ -2360,7 +2330,7 @@ class IO
 
     if !binmode? && external_encoding &&
        external_encoding != data.encoding &&
-       external_encoding != Encoding::ASCII_8BIT
+       external_encoding != Encoding::BINARY
       unless data.ascii_only? && external_encoding.ascii_compatible?
         data = data.encode(external_encoding)
       end
