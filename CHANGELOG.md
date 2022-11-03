@@ -17,6 +17,7 @@ Compatibility:
 * Added implementations of `rb_gvar_val_getter` and `rb_define_virtual_variable` (#2750, @nirvdrum).
 * Implement `rb_warning_category_enabled_p` to support the `syntax_tree` gem (#2764, @andrykonchin).
 * Fix desctructuring of a single block argument that implements `#to_ary` dynamically (#2719, @andrykonchin).
+* Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
 
 Performance:
 

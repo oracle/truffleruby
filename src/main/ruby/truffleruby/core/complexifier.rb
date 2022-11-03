@@ -33,15 +33,25 @@ class String
     DENOMINATOR = Rationalizer::DENOMINATOR
     NUMBER = "[-+]?#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
     NUMBERNOS = "#{NUMERATOR}(?:\\/#{DENOMINATOR})?"
-    PATTERN0 = Regexp.new "\\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}"
-    PATTERN1 = Regexp.new "\\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}"
-    PATTERN2 = Regexp.new "\\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}"
+
+    PATTERN0 = /\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}/
+    PATTERN1 = /\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}/
+    PATTERN2 = /\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}/
+
+    PATTERN_STRICT0 = /\A#{SPACE}(#{NUMBER})@(#{NUMBER})#{SPACE}\z/
+    PATTERN_STRICT1 = /\A#{SPACE}([-+])?(#{NUMBER})?[iIjJ]#{SPACE}\z/
+    PATTERN_STRICT2 = /\A#{SPACE}(#{NUMBER})(([-+])(#{NUMBERNOS})?[iIjJ])?#{SPACE}\z/
 
     def initialize(value)
       @value = value
     end
 
     def convert
+      unless @value.encoding.ascii_compatible?
+        raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
+      end
+
+      # Moved this parsing logic out of #convert_internal to avoid a called splitting and improve performance
       if m = PATTERN0.match(@value)
         sr = m[1]
         si = m[2]
@@ -58,30 +68,73 @@ class String
         return Complex.new(0, 0)
       end
 
+      convert_internal(sr, si, po)
+    end
+
+    def strict_convert(exception)
+      unless @value.encoding.ascii_compatible?
+        raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@value.encoding.name}"
+      end
+
+      if @value.include?("\0")
+        if exception
+          raise ArgumentError, 'string contains null byte'
+        else
+          return nil
+        end
+      end
+
+      # Moved this parsing logic out of #convert_internal to avoid a called splitting and improve performance
+      if m = PATTERN_STRICT0.match(@value)
+        sr = m[1]
+        si = m[2]
+        po = true
+      elsif m = PATTERN_STRICT1.match(@value)
+        sr = nil
+        si = (m[1] || '') + (m[2] || '1')
+        po = false
+      elsif m = PATTERN_STRICT2.match(@value)
+        sr = m[1]
+        si = m[2] ? m[3] + (m[4] || '1') : nil
+        po = false
+      else
+        if exception
+          raise ArgumentError, "invalid value for convert(): #{@value.inspect}"
+        else
+          return nil
+        end
+      end
+
+      convert_internal(sr, si, po)
+    end
+
+    private
+
+    def convert_internal(real_string, imaginary_string, is_polar)
       r = 0
       i = 0
 
-      if sr
-        if sr.include?('/')
-          r = sr.to_r
-        elsif sr.match(/[.eE]/)
-          r = sr.to_f
+      if real_string
+        if real_string.include?('/')
+          r = real_string.to_r
+        elsif real_string.match(/[.eE]/)
+          r = real_string.to_f
         else
-          r = sr.to_i
+          r = real_string.to_i
         end
       end
 
-      if si
-        if si.include?('/')
-          i = si.to_r
-        elsif si.match(/[.eE]/)
-          i = si.to_f
+      if imaginary_string
+        if imaginary_string.include?('/')
+          i = imaginary_string.to_r
+        elsif imaginary_string.match(/[.eE]/)
+          i = imaginary_string.to_f
         else
-          i = si.to_i
+          i = imaginary_string.to_i
         end
       end
 
-      if po
+      if is_polar
         Complex.polar(r, i)
       else
         Complex.rect(r, i)
