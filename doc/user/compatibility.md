@@ -79,12 +79,6 @@ In MRI, threads are scheduled concurrently but not in parallel.
 In TruffleRuby threads are scheduled in parallel.
 As in JRuby and Rubinius, you are responsible for correctly synchronising access to your own shared mutable data structures, and TruffleRuby will be responsible for correctly synchronising the state of the interpreter.
 
-### Threads detect interrupts at different points
-
-TruffleRuby threads may detect that they have been interrupted at different points in the program compared to where they would on MRI.
-In general, TruffleRuby seems to detect an interrupt sooner than MRI.
-JRuby and Rubinius are also different from MRI; the behavior is not documented in MRI, and it is likely to change between MRI versions, so it is not recommended to depend on interrupt points.
-
 ### Fibers do not have the same performance characteristics as in MRI
 
 Most use cases of fibers rely on them being easy and cheap to start up, and with low memory overheads.
@@ -112,11 +106,6 @@ Programs passed in `-e` arguments with magic-comments must have an encoding that
 
 The `--jit` option and the `jit` feature have no effect on TruffleRuby and warn. The GraalVM compiler is always used when available.
 
-### Time is limited to millisecond precision
-
-Ruby normally provides microsecond (millionths of a second) clock precision, but TruffleRuby is currently limited to millisecond (thousands of a second) precision.
-This applies to `Time.now` and `Process.clock_gettime(Process::CLOCK_REALTIME)`.
-
 ### Strings have a maximum bytesize of 2<sup>31</sup>-1
 
 Ruby Strings are represented as a Java `byte[]`.
@@ -124,10 +113,11 @@ The JVM enforces a maximum array size of 2<sup>31</sup>-1 (by storing the size i
 That is, Strings must be smaller than 2GB. This is the same restriction as JRuby.
 A possible workaround could be to use natively-allocated strings, but it would be a large effort to support every Ruby String operation on native strings.
 
-### The process title might be truncated
+### Threads detect interrupts at different points
 
-Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done as best-effort.
-It may not work, or the title you try to set may be truncated.
+TruffleRuby threads may detect that they have been interrupted at different points in the program compared to where they would on MRI.
+In general, TruffleRuby seems to detect an interrupt sooner than MRI.
+JRuby and Rubinius are also different from MRI; the behavior is not documented in MRI, and it is likely to change between MRI versions, so it is not recommended to depend on interrupt points.
 
 ### Polyglot standard I/O streams
 
@@ -163,6 +153,8 @@ TruffleRuby provides similar `GC.stat` statistics to MRI, but not all statistics
 
 ### `ObjectSpace`
 
+`ObjectSpace#each_object` is implemented but is fairly slow due to needing to iterate the whole heap and essentially doing the equivalent of a GC marking phase.
+`ObjectSpace#trace_object_allocations_start` slows down all allocations, similar to the behavior on CRuby.
 Using most methods on `ObjectSpace` will temporarily lower the performance of your program.
 Using them in test cases and other similar 'offline' operations is fine, but you probably do not want to use them in the inner loop of your production application.
 
@@ -173,7 +165,7 @@ As with `ObjectSpace`, it is recommended that you do not use this in the inner l
 
 ### Backtraces
 
-Throwing exceptions and other operations which need to create a backtrace are slower than on MRI.
+Throwing exceptions and other operations which need to create a backtrace are in general slower than on MRI.
 This is because TruffleRuby needs to undo optimizations that have been applied to run your Ruby code fast in order to recreate the backtrace entries.
 It is not recommended to use exceptions for control flow on any implementation of Ruby anyway.
 
