@@ -118,6 +118,8 @@ void rb_fd_init_copy(rb_fdset_t *dst, rb_fdset_t *src) {
   memcpy(dst->fdset, src->fdset, size);
 }
 
+// These functions are based on https://www.gnu.org/software/libc/manual/html_node/Calculating-Elapsed-Time.html
+// See also https://stackoverflow.com/questions/15846762/timeval-subtract-explanation
 static bool timespec_subtract(struct timespec *result, struct timespec x, struct timespec y) {
   /* Perform the carry for the later subtraction by updating y. */
   if (x.tv_nsec < y.tv_nsec) {
@@ -190,9 +192,9 @@ struct select_set {
   rb_fdset_t *rset;
   rb_fdset_t *wset;
   rb_fdset_t *eset;
-  rb_fdset_t *orig_rset;
-  rb_fdset_t *orig_wset;
-  rb_fdset_t *orig_eset;
+  rb_fdset_t orig_rset;
+  rb_fdset_t orig_wset;
+  rb_fdset_t orig_eset;
   struct timeval *timeout;
   struct timeval *orig_timeout;
 };
@@ -213,7 +215,7 @@ static bool update_timeout(struct timeval *timeout, struct timeval *orig_timeout
     timespec_subtract(&difftime, currenttime, *starttime);
     difftimeout.tv_sec = difftime.tv_sec;
     difftimeout.tv_usec = difftime.tv_nsec / 1000;
-    timeleft = timeval_subtract(timeout, *orig_timeout, difftimeout);
+    timeleft = !timeval_subtract(timeout, *orig_timeout, difftimeout);
   }
 
   return timeleft;
@@ -230,9 +232,9 @@ static void* rb_thread_fd_select_blocking(void *data) {
   int result = 0;
   bool timeleft = true;
   do {
-    restore_fds(set->rset, set->orig_rset);
-    restore_fds(set->wset, set->orig_wset);
-    restore_fds(set->eset, set->orig_eset);
+    restore_fds(set->rset, &set->orig_rset);
+    restore_fds(set->wset, &set->orig_wset);
+    restore_fds(set->eset, &set->orig_eset);
     timeleft = update_timeout(set->timeout, set->orig_timeout, &starttime);
     if (!timeleft) {
       break;
@@ -247,39 +249,48 @@ static void* rb_thread_fd_select_internal(void *sets) {
 }
 
 static void rb_thread_fd_select_set_free(struct select_set *sets) {
-  if (sets->orig_rset) {
-    rb_fd_term(sets->orig_rset);
+  if (sets->rset) {
+    rb_fd_term(&sets->orig_rset);
   }
-  if (sets->orig_wset) {
-    rb_fd_term(sets->orig_wset);
+  if (sets->wset) {
+    rb_fd_term(&sets->orig_wset);
   }
-  if (sets->orig_eset) {
-    rb_fd_term(sets->orig_eset);
+  if (sets->eset) {
+    rb_fd_term(&sets->orig_eset);
   }
 }
 
 static void fd_init_copy(rb_fdset_t *dst, int max, rb_fdset_t *src) {
   if (src) {
     rb_fd_resize(max - 1, src);
-    if (dst != src) {
-      rb_fd_init_copy(dst, src);
-    }
+    rb_fd_init_copy(dst, src);
+  } else {
+    dst->fdset = NULL;
+    dst->maxfd = 0;
   }
 }
 
 int rb_thread_fd_select(int max, rb_fdset_t *read, rb_fdset_t *write, rb_fdset_t *except, struct timeval *timeout) {
   // NOTE: MRI has more logic in here
   struct select_set set;
+  struct timeval orig_timeval;
+
   set.max = max;
   set.rset = read;
   set.wset = write;
   set.eset = except;
   set.timeout = timeout;
-  fd_init_copy(set.orig_rset, set.max, set.rset);
-  fd_init_copy(set.orig_wset, set.max, set.wset);
-  fd_init_copy(set.orig_eset, set.max, set.eset);
-  struct timeval orig_timeval = *timeout;
-  set.orig_timeout = &orig_timeval;
+
+  fd_init_copy(&set.orig_rset, max, set.rset);
+  fd_init_copy(&set.orig_wset, max, set.wset);
+  fd_init_copy(&set.orig_eset, max, set.eset);
+
+  if (timeout) {
+    orig_timeval = *timeout;
+    set.orig_timeout = &orig_timeval;
+  } else {
+    set.orig_timeout = NULL;
+  }
 
   void* result = rb_ensure(rb_thread_fd_select_internal, (VALUE)&set, rb_thread_fd_select_set_free, (VALUE)&set);
   return (int)(long)result;
