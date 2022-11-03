@@ -462,12 +462,7 @@ module Truffle
       offset = String.try_convert(offset) || offset
 
       if Primitive.object_kind_of? offset, String
-        unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
-          raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
-        end
-
-        offset = $2.to_i*60*60 + $3.to_i*60 + ( $4 || '0' ).to_i
-        offset = -offset if $1.ord == 45
+        offset = Truffle::Type.coerce_string_to_utc_offset(offset)
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end
@@ -478,6 +473,33 @@ module Truffle
 
       if offset <= -86400 || offset >= 86400
         raise ArgumentError, 'utc_offset out of range'
+      end
+
+      offset
+    end
+
+    def self.coerce_string_to_utc_offset(offset)
+      if offset.bytes.include?(0)
+        raise ArgumentError, 'string contains null byte'
+      end
+
+      if offset == 'UTC'
+        offset = 0
+      elsif offset.size == 1 && ('A'..'Z') === offset && offset != 'J'
+        if offset == 'Z'
+          offset = 0
+        elsif offset < 'J' # skip J
+          offset = (offset.ord - 'A'.ord + 1) * 3600 # ("A".."I") => 1, 2, ...
+        elsif offset > 'J' && offset <= 'M'
+          offset = (offset.ord - 'A'.ord) * 3600 # ("K".."M") => 10, 11, 12
+        else
+          offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
+        end
+      elsif offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
+        offset = $2.to_i*60*60 + $3.to_i*60 + ( $4 || '0' ).to_i
+        offset = -offset if $1.ord == 45
+      else
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset
       end
 
       offset

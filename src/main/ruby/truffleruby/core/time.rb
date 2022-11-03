@@ -449,8 +449,10 @@ class Time
         self.now
       elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
+      elsif utc_offset.instance_of?(String) && utc_offset.bytes.include?(0)
+        raise ArgumentError, 'string contains null byte'
       elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
-        raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset
       elsif utc_offset == :std
         compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst
@@ -462,8 +464,11 @@ class Time
     end
 
     def valid_utc_offset_string?(utc_offset)
-      return false unless utc_offset.encoding.ascii_compatible?
-      utc_offset =~ /\A[+-](\d{2}):(\d{2})(?::(\d{2}))?\z/ && $1.to_i < 24 && $2.to_i < 60 && ($3 || '0').to_i < 60
+      return true if utc_offset == 'UTC'
+      return true if utc_offset.size == 1 && ('A'..'Z') === utc_offset && utc_offset != 'J'
+      return true if utc_offset =~ /\A[+-](\d{2}):(\d{2})(?::(\d{2}))?\z/ && $1.to_i < 24 && $2.to_i < 60 && ($3 || '0').to_i < 60
+
+      false
     end
     private :valid_utc_offset_string?
 
