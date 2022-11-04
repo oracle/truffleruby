@@ -58,13 +58,7 @@
 #endif
 
 #define RB_FIX2ULONG rb_fix2ulong         /**< @alias{rb_fix2ulong} */
-
-#ifdef TRUFFLERUBY
-#define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
-#else
 #define RB_LONG2FIX  RB_INT2FIX           /**< @alias{RB_INT2FIX} */
-#endif
-
 #define RB_LONG2NUM  rb_long2num_inline   /**< @alias{rb_long2num_inline} */
 #define RB_NUM2LONG  rb_num2long_inline   /**< @alias{rb_num2long_inline} */
 #define RB_NUM2ULONG rb_num2ulong_inline  /**< @alias{rb_num2ulong_inline} */
@@ -118,8 +112,10 @@ int rb_long2int(long value);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
+#endif
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Converts a C's `long` into an instance of ::rb_cInteger.
@@ -130,6 +126,9 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_INT2FIX(long i)
 {
+#ifdef TRUFFLERUBY
+    return rb_tr_longwrap(i);
+#else
     RBIMPL_ASSERT_OR_ASSUME(RB_FIXABLE(i));
 
     /* :NOTE: VALUE can be wider than long.  As j being unsigned, 2j+1 is fully
@@ -142,6 +141,7 @@ RB_INT2FIX(long i)
 
     RBIMPL_ASSERT_OR_ASSUME(RB_FIXNUM_P(n));
     return n;
+#endif
 }
 
 /**
