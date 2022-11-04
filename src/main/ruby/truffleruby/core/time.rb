@@ -458,7 +458,11 @@ class Time
       elsif utc_offset == :dst
         compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
       else
-        utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+        if utc_offset_in_utc?(utc_offset)
+          utc_offset = :utc
+        else
+          utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+        end
         compose(utc_offset, year, month, day, hour, minute, second)
       end
     end
@@ -471,6 +475,11 @@ class Time
       false
     end
     private :valid_utc_offset_string?
+
+    def utc_offset_in_utc?(utc_offset)
+      utc_offset == 'UTC' || utc_offset == 'Z' || utc_offset == '-00:00'
+    end
+    private :utc_offset_in_utc?
 
     def local(*args)
       compose(:local, *args)
