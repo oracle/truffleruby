@@ -186,8 +186,11 @@ class StringIO
 
   def set_encoding(external, internal=nil, options=nil)
     encoding = external || Encoding.default_external
-    @__data__.encoding = encoding
-    @__data__.string.force_encoding(encoding) if @writable
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      d.encoding = encoding
+      d.string.force_encoding(encoding) if @writable
+    end
 
     self
   end
@@ -272,27 +275,30 @@ class StringIO
     return 0 if str.empty?
 
     d = @__data__
-    pos = d.pos
-    string = d.string
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string
+      bytesize = string.bytesize
 
-    if @append || pos == string.bytesize
-      Primitive.string_byte_append(string, str)
-      d.pos = string.bytesize
-    elsif pos > string.bytesize
-      replacement = "\000" * (pos - string.bytesize)
-      Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
-      Primitive.string_byte_append(string, str)
-      d.pos = string.bytesize
-    else
-      stop = string.bytesize - pos
-      if str.bytesize < stop
-        stop = str.bytesize
+      if @append || pos == bytesize
+        Primitive.string_byte_append(string, str)
+        d.pos = string.bytesize
+      elsif pos > bytesize
+        replacement = "\000" * (pos - bytesize)
+        Primitive.string_byte_append(string, replacement)
+        Primitive.string_byte_append(string, str)
+        d.pos = string.bytesize
+      else
+        stop = bytesize - pos
+        if str.bytesize < stop
+          stop = str.bytesize
+        end
+        Primitive.string_splice(string, str, pos, stop, string.encoding)
+        d.pos += str.bytesize
       end
-      Primitive.string_splice(string, str, pos, stop, string.encoding)
-      d.pos += str.bytesize
-    end
 
-    str.bytesize
+      str.bytesize
+    end
   end
 
   def close
@@ -323,7 +329,9 @@ class StringIO
 
   def eof?
     d = @__data__
-    d.pos >= d.string.bytesize
+    TruffleRuby.synchronized(d) do
+      d.pos >= d.string.bytesize
+    end
   end
   alias_method :eof, :eof?
 
@@ -345,24 +353,26 @@ class StringIO
 
   def getc
     check_readable
-    d = @__data__
-
     return nil if eof?
 
-    char = Primitive.string_find_character(d.string, d.pos)
-    d.pos += char.bytesize
-    char
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      char = Primitive.string_find_character(d.string, d.pos)
+      d.pos += char.bytesize
+      char
+    end
   end
 
   def getbyte
     check_readable
-    d = @__data__
-
     return nil if eof?
 
-    byte = d.string.getbyte(d.pos)
-    d.pos += 1
-    byte
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      byte = d.string.getbyte(d.pos)
+      d.pos += 1
+      byte
+    end
   end
 
   def gets(sep=$/, limit=Undefined, chomp: false)
@@ -410,20 +420,23 @@ class StringIO
     end
 
     d = @__data__
-    pos = d.pos
-    string = d.string
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string
+      bytesize = string.bytesize
 
-    if @append || pos == string.bytesize
-      Primitive.string_byte_append(string, char)
-      d.pos = string.bytesize
-    elsif pos > string.bytesize
-      replacement = "\000" * (pos - string.bytesize)
-      Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
-      Primitive.string_byte_append(string, char)
-      d.pos = string.bytesize
-    else
-      Primitive.string_splice(string, char, pos, char.bytesize, string.encoding)
-      d.pos += char.bytesize
+      if @append || pos == bytesize
+        Primitive.string_byte_append(string, char)
+        d.pos = string.bytesize
+      elsif pos > bytesize
+        replacement = "\000" * (pos - bytesize)
+        Primitive.string_byte_append(string, replacement)
+        Primitive.string_byte_append(string, char)
+        d.pos = string.bytesize
+      else
+        Primitive.string_splice(string, char, pos, char.bytesize, string.encoding)
+        d.pos += char.bytesize
+      end
     end
 
     obj
@@ -432,40 +445,42 @@ class StringIO
   def read(length = nil, buffer = nil)
     check_readable
     d = @__data__
-    pos = d.pos
-    string = d.string
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string
 
-    if length
-      length = Truffle::Type.coerce_to length, Integer, :to_int
-      raise ArgumentError if length < 0
+      if length
+        length = Truffle::Type.coerce_to length, Integer, :to_int
+        raise ArgumentError if length < 0
 
-      buffer = StringValue(buffer) if buffer
+        buffer = StringValue(buffer) if buffer
 
-      if eof?
-        buffer.clear if buffer
-        if length == 0
-          return ''.force_encoding(Encoding::ASCII_8BIT)
-        else
-          return nil
+        if eof?
+          buffer.clear if buffer
+          if length == 0
+            return ''.force_encoding(Encoding::ASCII_8BIT)
+          else
+            return nil
+          end
         end
+
+        str = string.byteslice(pos, length)
+        str.force_encoding Encoding::ASCII_8BIT
+
+        str = buffer.replace(str) if buffer
+      else
+        if eof?
+          buffer.clear if buffer
+          return ''.force_encoding(Encoding::ASCII_8BIT)
+        end
+
+        str = string.byteslice(pos..-1)
+        buffer.replace str if buffer
       end
 
-      str = string.byteslice(pos, length)
-      str.force_encoding Encoding::ASCII_8BIT
-
-      str = buffer.replace(str) if buffer
-    else
-      if eof?
-        buffer.clear if buffer
-        return ''.force_encoding(Encoding::ASCII_8BIT)
-      end
-
-      str = string.byteslice(pos..-1)
-      buffer.replace str if buffer
+      d.pos += str.bytesize
+      str
     end
-
-    d.pos += str.bytesize
-    str
   end
 
   def readlines(sep=$/, limit=Undefined, chomp: false)
@@ -496,26 +511,31 @@ class StringIO
 
   def rewind
     d = @__data__
-    d.pos = d.lineno = 0
+    TruffleRuby.synchronized(d) do
+      d.pos = d.lineno = 0
+    end
   end
 
   def seek(to, whence = IO::SEEK_SET)
     raise IOError, 'closed stream' if self.closed?
     to = Truffle::Type.coerce_to to, Integer, :to_int
 
-    case whence
-    when IO::SEEK_CUR
-      to += @__data__.pos
-    when IO::SEEK_END
-      to += @__data__.string.bytesize
-    when IO::SEEK_SET, nil
-    else
-      raise Errno::EINVAL, 'invalid whence'
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      case whence
+      when IO::SEEK_CUR
+        to += d.pos
+      when IO::SEEK_END
+        to += d.string.bytesize
+      when IO::SEEK_SET, nil
+      else
+        raise Errno::EINVAL, 'invalid whence'
+      end
+
+      raise Errno::EINVAL if to < 0
+
+      d.pos = to
     end
-
-    raise Errno::EINVAL if to < 0
-
-    @__data__.pos = to
 
     0
   end
@@ -531,9 +551,11 @@ class StringIO
 
   def string=(string)
     d = @__data__
-    d.string = StringValue(string)
-    d.pos = 0
-    d.lineno = 0
+    TruffleRuby.synchronized(d) do
+      d.string = StringValue(string)
+      d.pos = 0
+      d.lineno = 0
+    end
   end
 
   def sync
@@ -552,22 +574,24 @@ class StringIO
     check_writable
     len = Truffle::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, 'negative length' if len < 0
-    string = @__data__.string
 
-    if len < string.bytesize
-      string[len..string.bytesize] = ''
-    else
-      string << "\000" * (len - string.bytesize)
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      string = d.string
+      bytesize = string.bytesize
+
+      if len < bytesize
+        string[len..bytesize] = ''
+      else
+        string << "\000" * (len - bytesize)
+      end
     end
+
     length
   end
 
   def ungetc(char)
     check_readable
-
-    d = @__data__
-    pos = d.pos
-    string = d.string
 
     if char.kind_of? Integer
       char = Truffle::Type.coerce_to char, String, :chr
@@ -575,13 +599,20 @@ class StringIO
       char = Truffle::Type.coerce_to char, String, :to_str
     end
 
-    if pos > string.bytesize
-      string[string.bytesize..pos] = "\000" * (pos - string.bytesize)
-      d.pos -= 1
-      string[d.pos] = char
-    elsif pos > 0
-      d.pos -= 1
-      string[d.pos] = char
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string
+      bytesize = string.bytesize
+
+      if pos > bytesize
+        string[bytesize..pos] = "\000" * (pos - bytesize)
+        d.pos -= 1
+        string[d.pos] = char
+      elsif pos > 0
+        d.pos -= 1
+        string[d.pos] = char
+      end
     end
 
     nil
@@ -600,22 +631,25 @@ class StringIO
     end
 
     d = @__data__
-    pos = d.pos
-    string = d.string.b
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string.b
 
-    enc = d.string.encoding
+      enc = d.string.encoding
 
-    if d.pos == 0
-      d.string = bytes << string
-    else
-      size = bytes.bytesize
-      a = string.byteslice(0, pos - size) if size < pos
-      b = string.byteslice(pos..-1)
-      d.string = "#{a}#{bytes}#{b}"
-      d.pos = pos > size ? pos - size : 0
+      if d.pos == 0
+        d.string = bytes << string
+      else
+        size = bytes.bytesize
+        a = string.byteslice(0, pos - size) if size < pos
+        b = string.byteslice(pos..-1)
+        d.string = "#{a}#{bytes}#{b}"
+        d.pos = pos > size ? pos - size : 0
+      end
+
+      d.string.force_encoding enc
     end
 
-    d.string.force_encoding enc
     nil
   end
 
@@ -652,14 +686,14 @@ class StringIO
       @readable = mode[-1] == ?+ ? true : false
     end
 
-    d = @__data__
+    d = @__data__ # no sync, only called from initialize
     raise Errno::EACCES, 'Permission denied' if @writable && d.string.frozen?
     d.string.replace('') if truncate
   end
 
   private def mode_from_integer(mode)
     @readable = @writable = @append = false
-    d = @__data__
+    d = @__data__ # no sync, only called from initialize
 
     if mode == 0 or mode & IO::RDWR != 0
       @readable = true
@@ -697,49 +731,53 @@ class StringIO
 
     return nil if eof?
 
+    line = nil
     d = @__data__
-    pos = d.pos
-    string = d.string
+    TruffleRuby.synchronized(d) do
+      pos = d.pos
+      string = d.string
+      bytesize = string.bytesize
 
-    if sep.nil?
-      if limit
-        line = string.byteslice(pos, limit)
-      else
-        line = string.byteslice(pos, string.bytesize - pos)
-      end
-      d.pos += line.bytesize
-    elsif sep.empty?
-      if stop = Primitive.find_string(string, "\n\n", pos)
-        stop += 2
-        line = string.byteslice(pos, stop - pos)
-        while string.getbyte(stop) == 10
-          stop += 1
-        end
-        d.pos = stop
-      else
-        line = string.byteslice(pos, string.bytesize - pos)
-        d.pos = string.bytesize
-      end
-    else
-      if stop = Primitive.find_string(string, sep, pos)
-        if limit && stop - pos >= limit
-          stop = pos + limit
-        else
-          stop += sep.bytesize
-        end
-        line = string.byteslice(pos, stop - pos)
-        d.pos = stop
-      else
+      if sep.nil?
         if limit
           line = string.byteslice(pos, limit)
         else
-          line = string.byteslice(pos, string.bytesize - pos)
+          line = string.byteslice(pos, bytesize - pos)
         end
         d.pos += line.bytesize
+      elsif sep.empty?
+        if stop = Primitive.find_string(string, "\n\n", pos)
+          stop += 2
+          line = string.byteslice(pos, stop - pos)
+          while string.getbyte(stop) == 10
+            stop += 1
+          end
+          d.pos = stop
+        else
+          line = string.byteslice(pos, bytesize - pos)
+          d.pos = bytesize
+        end
+      else
+        if stop = Primitive.find_string(string, sep, pos)
+          if limit && stop - pos >= limit
+            stop = pos + limit
+          else
+            stop += sep.bytesize
+          end
+          line = string.byteslice(pos, stop - pos)
+          d.pos = stop
+        else
+          if limit
+            line = string.byteslice(pos, limit)
+          else
+            line = string.byteslice(pos, bytesize - pos)
+          end
+          d.pos += line.bytesize
+        end
       end
-    end
 
-    d.lineno += 1
+      d.lineno += 1
+    end
 
     if chomp
       line.chomp!(sep || DEFAULT_RECORD_SEPARATOR)
