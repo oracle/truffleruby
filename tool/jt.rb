@@ -1531,12 +1531,13 @@ module Commands
     ]
     gems = %w[algebrick]
 
-    gem_server_env = {
-      'RUBYLIB' => [
-        "#{gem_test_pack}/gems/gems/webrick-1.7.0/lib",
-        "#{gem_test_pack}/gems/gems/rubygems-server-0.2.0/lib"
-      ].join(File::PATH_SEPARATOR)
-    }
+    rubylib = ["#{gem_test_pack}/gems/gems/webrick-1.7.0/lib"]
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('3.3.0')
+      rubylib << "#{gem_test_pack}/gems/gems/rubygems-server-0.2.0/lib"
+    end
+
+    # TODO: probably we should use https://github.com/rubygems/gemstash in the future
+    gem_server_env = { 'RUBYLIB' => rubylib.join(File::PATH_SEPARATOR) }
     gem_server = spawn(gem_server_env, 'gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     SUBPROCESSES << gem_server
     begin
