@@ -495,8 +495,11 @@ module Truffle
         else
           offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
         end
-      elsif offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
-        offset = $2.to_i*60*60 + $3.to_i*60 + ( $4 || '0' ).to_i
+      elsif offset.match(/\A(\+|-)(\d\d)(?::(\d\d)(?::(\d\d))?)?\z/) # with ":" separators
+        offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
+        offset = -offset if $1.ord == 45
+      elsif offset.match(/\A(\+|-)(\d\d)(?:(\d\d)(?:(\d\d))?)?\z/) # without ":" separators
+        offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
         offset = -offset if $1.ord == 45
       else
         raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset

@@ -58,6 +58,33 @@ describe "Time.new with a utc_offset argument" do
     Time.new(2000, 1, 1, 0, 0, 0, "-04:10:43").utc_offset.should == -15043
   end
 
+  # https://bugs.ruby-lang.org/issues/19121
+  guard -> { ruby_version_is ""..."3.0" or ruby_version_is "3.1" } do
+    it "returns a Time with a UTC offset specified as +HH" do
+      Time.new(2000, 1, 1, 0, 0, 0, "+05").utc_offset.should == 3600 * 5
+    end
+
+    it "returns a Time with a UTC offset specified as -HH" do
+      Time.new(2000, 1, 1, 0, 0, 0, "-05").utc_offset.should == -3600 * 5
+    end
+
+    it "returns a Time with a UTC offset specified as +HHMM" do
+      Time.new(2000, 1, 1, 0, 0, 0, "+0530").utc_offset.should == 19800
+    end
+
+    it "returns a Time with a UTC offset specified as -HHMM" do
+      Time.new(2000, 1, 1, 0, 0, 0, "-0530").utc_offset.should == -19800
+    end
+
+    it "returns a Time with a UTC offset specified as +HHMMSS" do
+      Time.new(2000, 1, 1, 0, 0, 0, "+053037").utc_offset.should == 19837
+    end
+
+    it "returns a Time with a UTC offset specified as -HHMMSS" do
+      Time.new(2000, 1, 1, 0, 0, 0, "-053037").utc_offset.should == -19837
+    end
+  end
+
   describe "with an argument that responds to #to_str" do
     it "coerces using #to_str" do
       o = mock('string')
