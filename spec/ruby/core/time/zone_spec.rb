@@ -66,10 +66,13 @@ describe "Time#zone" do
     Time.new(2022, 1, 1, 0, 0, 0, "Z").zone.should == "UTC"
     Time.now.localtime("UTC").zone.should == "UTC"
     Time.now.localtime("Z").zone.should == "UTC"
+    Time.at(Time.now, in: 'UTC').zone.should == "UTC"
+    Time.at(Time.now, in: 'Z').zone.should == "UTC"
 
     ruby_version_is "3.1" do
       Time.new(2022, 1, 1, 0, 0, 0, "-00:00").zone.should == "UTC"
       Time.now.localtime("-00:00").zone.should == "UTC"
+      Time.at(Time.now, in: '-00:00').zone.should == "UTC"
     end
   end
 

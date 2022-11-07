@@ -310,6 +310,7 @@ class Time
     def at(sec, sub_sec=undefined, unit=undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
       offset = kwargs[:in] ? Truffle::Type.coerce_to_utc_offset(kwargs[:in]) : nil
+      isUtc = utc_offset_in_utc?(kwargs[:in]) if offset
 
       result = if Primitive.undefined?(sub_sec)
                  if Primitive.object_kind_of?(sec, Time)
@@ -323,8 +324,10 @@ class Time
                    Primitive.time_at self, sec.to_i, ns
                  end
                end
+      if result && offset
+        result = isUtc ? Primitive.time_utctime(result) : Primitive.time_localtime(result, offset)
+      end
       if result
-        result = Primitive.time_localtime(result, offset) if offset
         return result
       end
 
@@ -354,7 +357,11 @@ class Time
       nsec %= 1_000_000_000
 
       time = Primitive.time_at self, seconds, nsec
-      time = Primitive.time_localtime(time, offset) if offset
+
+      if offset
+        time = isUtc ? Primitive.time_utctime(time) : Primitive.time_localtime(time, offset)
+      end
+
       time
     end
 
