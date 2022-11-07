@@ -32,9 +32,6 @@ public class FixnumOrBignumNode extends RubyBaseNode {
     private final ConditionProfile lowerProfile = ConditionProfile.create();
     private final ConditionProfile intProfile = ConditionProfile.create();
 
-    private final ConditionProfile integerFromDoubleProfile = ConditionProfile.create();
-    private final ConditionProfile longFromDoubleProfile = ConditionProfile.create();
-
     public Object fixnumOrBignum(BigInteger value) {
         if (lowerProfile.profile(fitsIntoLong(value))) {
             final long longValue = BigIntegerOps.longValue(value);
@@ -54,13 +51,4 @@ public class FixnumOrBignumNode extends RubyBaseNode {
         return value.compareTo(LONG_MIN_BIGINT) >= 0 && value.compareTo(LONG_MAX_BIGINT) <= 0;
     }
 
-    public Object fixnumOrBignum(double value) {
-        if (integerFromDoubleProfile.profile(value > Integer.MIN_VALUE && value < Integer.MAX_VALUE)) {
-            return (int) value;
-        } else if (longFromDoubleProfile.profile(value > Long.MIN_VALUE && value < Long.MAX_VALUE)) {
-            return (long) value;
-        } else {
-            return fixnumOrBignum(BigIntegerOps.fromDouble(value));
-        }
-    }
 }

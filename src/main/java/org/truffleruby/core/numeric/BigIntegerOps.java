@@ -189,6 +189,9 @@ public final class BigIntegerOps {
     public static int compare(BigInteger a, double b) {
         // Emulate MRI behaviour.
         // This is also more precise than converting the BigInteger to a double.
+
+        // TODO NAN/infinity
+
         int cmp = a.compareTo(fromDouble(b));
         double fractional = b % 1;
         return cmp != 0 || fractional == 0.0
@@ -258,6 +261,7 @@ public final class BigIntegerOps {
         return longValue(value.value);
     }
 
+    /** This throws NumberFormatException if value is NaN or infinity */
     @TruffleBoundary
     public static BigInteger fromDouble(double value) {
         return new BigDecimal(value).toBigInteger();

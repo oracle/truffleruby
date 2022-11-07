@@ -40,6 +40,7 @@ import org.truffleruby.core.MarkingServiceNodes.RunMarkOnExitNode;;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.HashCastNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -62,7 +63,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
@@ -647,24 +647,10 @@ public class CExtNodes {
 
     @CoreMethod(names = "DBL2BIG", onSingleton = true, required = 1)
     public abstract static class DBL2BIGNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
         @Specialization
-        @TruffleBoundary
         protected Object dbl2big(double num,
-                @Cached BranchProfile errorProfile) {
-            if (Double.isInfinite(num)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
-            }
-
-            if (Double.isNaN(num)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
-            }
-
-            return fixnumOrBignum.fixnumOrBignum(num);
+                @Cached FloatToIntegerNode floatToIntegerNode) {
+            return floatToIntegerNode.fixnumOrBignum(num);
         }
 
     }

@@ -28,6 +28,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
@@ -482,17 +483,17 @@ public abstract class IntegerNodes {
     public abstract static class IDivNode extends BignumCoreMethodNode {
 
         @Child private DivNode divNode = DivNodeFactory.create(null);
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         @Specialization
         protected Object idiv(Object a, Object b,
-                @Cached ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile,
+                @Cached FloatToIntegerNode floatToIntegerNode) {
             Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile((double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
-                return fixnumOrBignum.fixnumOrBignum(Math.floor((double) quotient));
+                return floatToIntegerNode.fixnumOrBignum(Math.floor((double) quotient));
             } else {
                 return quotient;
             }
