@@ -127,6 +127,26 @@ public abstract class TimeNodes {
 
     }
 
+    @Primitive(name = "time_utctime")
+    public abstract static class UtcTimeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyTime utc(RubyTime time) {
+            time.isUtc = true;
+            time.relativeOffset = false;
+            time.zone = coreStrings().UTC.createInstance(getContext());
+            time.dateTime = inUTC(time.dateTime);
+
+            return time;
+        }
+
+        @TruffleBoundary
+        private ZonedDateTime inUTC(ZonedDateTime dateTime) {
+            return dateTime.withZoneSameInstant(GetTimeZoneNode.UTC);
+        }
+    }
+
+
     @Primitive(name = "time_add")
     public abstract static class TimeAddNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary

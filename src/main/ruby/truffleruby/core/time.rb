@@ -172,9 +172,16 @@ class Time
 
   def localtime(offset = nil)
     if offset
+      isUtc = self.class.send(:utc_offset_in_utc?, offset)
       offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
-    Primitive.time_localtime(self, offset)
+
+    # the only time zone that could be derived from utc_offset now is UTC
+    if isUtc
+      Primitive.time_utctime(self)
+    else
+      Primitive.time_localtime(self, offset)
+    end
   end
 
   def succ

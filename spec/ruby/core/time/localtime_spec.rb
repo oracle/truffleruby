@@ -79,6 +79,18 @@ describe "Time#localtime" do
     t.utc_offset.should == -3600
   end
 
+  it "returns a Time with a UTC offset specified as UTC" do
+    t = Time.new(2007, 1, 9, 12, 0, 0, 3600)
+    t.localtime("UTC")
+    t.utc_offset.should == 0
+  end
+
+  it "returns a Time with a UTC offset specified as A-Z military zone" do
+    t = Time.new(2007, 1, 9, 12, 0, 0, 3600)
+    t.localtime("B")
+    t.utc_offset.should == 3600 * 2
+  end
+
   platform_is_not :windows do
     it "changes the timezone according to the set one" do
       t = Time.new(2005, 2, 27, 22, 50, 0, -3600)
