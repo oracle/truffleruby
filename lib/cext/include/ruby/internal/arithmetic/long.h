@@ -50,13 +50,7 @@
 #define LONG2NUM     RB_LONG2NUM          /**< @old{RB_LONG2NUM} */
 #define NUM2LONG     RB_NUM2LONG          /**< @old{RB_NUM2LONG} */
 #define NUM2ULONG    RB_NUM2ULONG         /**< @old{RB_NUM2ULONG} */
-
-#ifdef TRUFFLERUBY
-#define RB_FIX2LONG(x) ((long)polyglot_as_i64(rb_tr_unwrap(x)))
-#else
 #define RB_FIX2LONG  rb_fix2long          /**< @alias{rb_fix2long} */
-#endif
-
 #define RB_FIX2ULONG rb_fix2ulong         /**< @alias{rb_fix2ulong} */
 #define RB_LONG2FIX  RB_INT2FIX           /**< @alias{RB_INT2FIX} */
 #define RB_LONG2NUM  rb_long2num_inline   /**< @alias{rb_long2num_inline} */
