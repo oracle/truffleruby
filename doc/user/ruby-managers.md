@@ -89,6 +89,8 @@ asdf install ruby truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
 
 ### `ruby-install` and `chruby`
 
+See https://github.com/postmodern/ruby-install#install for installing and updating `ruby-install`.
+
 First, ensure you have the latest `ruby-install` release.
 Check your version with:
 

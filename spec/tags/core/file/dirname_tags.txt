@@ -1,0 +1,2 @@
+fails:File.dirname returns all the components of filename except the last parts by the level
+fails:File.dirname returns the same string if the level is 0

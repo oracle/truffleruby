@@ -7,7 +7,7 @@
 # or
 #     jt test mri test/mri/tests/rdoc/test_rdoc_token_stream.rb | tool/parse_mri_errors.rb
 
-REASON = ENV.fetch('REASON', 'needs investigation')
+REASON = ENV['REASON']
 
 contents = ARGF.read
 
@@ -47,13 +47,20 @@ require 'fileutils'
 repo_root = File.expand_path("../..", __FILE__)
 excludes = "#{repo_root}/test/mri/excludes"
 
-t = /((?:\w+::)?\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:$/
-contents.scan(t) do |class_name, test_method, result|
+t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*)$/
+contents.scan(t) do |class_name, test_method, error|
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
-  unless result == "."
-    FileUtils.mkdir_p(File.dirname(file))
-    File.open(file, 'a') do |f|
-      f.puts "exclude #{test_method.strip.to_sym.inspect}, #{REASON.inspect}"
-    end
+  prefix = "exclude #{test_method.strip.to_sym.inspect}"
+  new_line = "#{prefix}, #{(REASON || error).inspect}\n"
+
+  FileUtils.mkdir_p(File.dirname(file))
+  lines = File.exist?(file) ? File.readlines(file) : []
+  if i = lines.index { |line| line.start_with?(prefix) }
+    puts "already excluded: #{class_name}##{test_method}"
+    lines[i] = new_line
+  else
+    puts "adding exclude: #{class_name}##{test_method}"
+    lines << new_line
   end
+  File.write(file, lines.join)
 end

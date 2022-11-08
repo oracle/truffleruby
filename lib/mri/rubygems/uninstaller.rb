@@ -200,13 +200,13 @@ class Gem::Uninstaller
     executables = executables.map {|exec| formatted_program_filename exec }
 
     remove = if @force_executables.nil?
-               ask_yes_no("Remove executables:\n" +
-                          "\t#{executables.join ', '}\n\n" +
-                          "in addition to the gem?",
-                          true)
-             else
-               @force_executables
-             end
+      ask_yes_no("Remove executables:\n" +
+                 "\t#{executables.join ', '}\n\n" +
+                 "in addition to the gem?",
+                 true)
+    else
+      @force_executables
+    end
 
     if remove
       bin_dir = @bin_dir || Gem.bindir(spec.base_dir)
@@ -262,7 +262,10 @@ class Gem::Uninstaller
 
     safe_delete { FileUtils.rm_r gem }
 
-    Gem::RDoc.new(spec).remove
+    begin
+      Gem::RDoc.new(spec).remove
+    rescue NameError
+    end
 
     gemspec = spec.spec_file
 

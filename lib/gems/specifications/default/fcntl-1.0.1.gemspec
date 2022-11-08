@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-03-17"
+  s.date = "2022-10-19"
   s.description = "Loads constants defined in the OS fcntl.h C header file".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/fcntl/extconf.rb".freeze]
@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/fcntl".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.2.32".freeze
+  s.rubygems_version = "3.3.7".freeze
   s.summary = "Loads constants defined in the OS fcntl.h C header file".freeze
 end

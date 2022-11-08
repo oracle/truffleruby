@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '1da2256bb66e7a055ae5531ee2d61a8836a496ee'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '9e27a3e74db4322b757885dbefc93e31c290ee55'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -960,8 +960,14 @@ module Commands
   end
 
   def rebuild(*options)
-    clean
-    build(*options)
+    case options
+    when ['cexts']
+      clean(*options)
+      build
+    else
+      clean
+      build(*options)
+    end
   end
 
   private def ruby_options(options, args)
@@ -1525,7 +1531,13 @@ module Commands
     ]
     gems = %w[algebrick]
 
-    gem_server_env = { 'RUBYLIB' => "#{gem_test_pack}/gems/gems/webrick-1.7.0/lib" }
+    rubylib = ["#{gem_test_pack}/gems/gems/webrick-1.7.0/lib"]
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('3.3.0')
+      rubylib << "#{gem_test_pack}/gems/gems/rubygems-server-0.2.0/lib"
+    end
+
+    # TODO: probably we should use https://github.com/rubygems/gemstash in the future
+    gem_server_env = { 'RUBYLIB' => rubylib.join(File::PATH_SEPARATOR) }
     gem_server = spawn(gem_server_env, 'gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     SUBPROCESSES << gem_server
     begin
@@ -1534,7 +1546,7 @@ module Commands
       port = Integer(ports)
 
       bundle_install_flags.each do |install_flags|
-        puts "Testing Bundler with install flags: #{install_flags}"
+        puts "\n\nTesting Bundler with install flags: #{install_flags}"
         gems.each do |gem_name|
           temp_dir = Dir.mktmpdir(gem_name)
           begin
@@ -2688,7 +2700,7 @@ module Commands
     hardcoded_urls = `git -C #{TRUFFLERUBY_DIR} grep -Fn #{url_base.inspect}`
     status = true
     hardcoded_urls.each_line do |line|
-      abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)[ "'\n]/ =~ line
+      abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)(#[\w-]+)?[ "'\n]/ =~ line
       file, line, url = $1, $2, $3
       if !%w[tool/jt.rb tool/generate-user-doc.rb].include?(file) and !known_hardcoded_urls.include?(url)
         puts "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"

@@ -12,25 +12,21 @@ module Bundler
       EXT_LOCK = Monitor.new
     end
 
-    def self.version
-      @version ||= Gem::Version.new(Gem::VERSION)
-    end
-
-    def self.provides?(req_str)
-      Gem::Requirement.new(req_str).satisfied_by?(version)
-    end
-
     def initialize
       @replaced_methods = {}
       backport_ext_builder_monitor
     end
 
     def version
-      self.class.version
+      @version ||= Gem.rubygems_version
     end
 
     def provides?(req_str)
-      self.class.provides?(req_str)
+      Gem::Requirement.new(req_str).satisfied_by?(version)
+    end
+
+    def supports_bundler_trampolining?
+      provides?(">= 3.3.0.a")
     end
 
     def build_args
@@ -108,18 +104,6 @@ module Bundler
       obj.to_s
     end
 
-    def configuration
-      require_relative "psyched_yaml"
-      Gem.configuration
-    rescue Gem::SystemExitException, LoadError => e
-      Bundler.ui.error "#{e.class}: #{e.message}"
-      Bundler.ui.trace e
-      raise
-    rescue YamlLibrarySyntaxError => e
-      raise YamlSyntaxError.new(e, "Your RubyGems configuration, which is " \
-        "usually located in ~/.gemrc, contains invalid YAML syntax.")
-    end
-
     def ruby_engine
       Gem.ruby_engine
     end
@@ -140,19 +124,6 @@ module Bundler
       else
         path
       end
-    end
-
-    def sources=(val)
-      # Gem.configuration creates a new Gem::ConfigFile, which by default will read ~/.gemrc
-      # If that file exists, its settings (including sources) will overwrite the values we
-      # are about to set here. In order to avoid that, we force memoizing the config file now.
-      configuration
-
-      Gem.sources = val
-    end
-
-    def sources
-      Gem.sources
     end
 
     def gem_dir
@@ -232,21 +203,9 @@ module Bundler
       EXT_LOCK
     end
 
-    def with_build_args(args)
-      ext_lock.synchronize do
-        old_args = build_args
-        begin
-          self.build_args = args
-          yield
-        ensure
-          self.build_args = old_args
-        end
-      end
-    end
-
     def spec_from_gem(path, policy = nil)
       require "rubygems/security"
-      require_relative "psyched_yaml"
+      require "psych"
       gem_from_path(path, security_policies[policy]).spec
     rescue Exception, Gem::Exception, Gem::Security::Exception => e # rubocop:disable Lint/RescueException
       if e.is_a?(Gem::Security::Exception) ||
@@ -551,7 +510,7 @@ module Bundler
 
     def gem_remote_fetcher
       require "rubygems/remote_fetcher"
-      proxy = configuration[:http_proxy]
+      proxy = Gem.configuration[:http_proxy]
       Gem::RemoteFetcher.new(proxy)
     end
 
@@ -569,10 +528,6 @@ module Bundler
 
     def repository_subdirectories
       Gem::REPOSITORY_SUBDIRECTORIES
-    end
-
-    def install_with_build_args(args)
-      yield
     end
 
     def path_separator
@@ -604,6 +559,10 @@ module Bundler
       end
     end
 
+    def find_bundler(version)
+      find_name("bundler").find {|s| s.version.to_s == version }
+    end
+
     def find_name(name)
       Gem::Specification.stubs_for(name).map(&:to_spec)
     end
@@ -616,14 +575,6 @@ module Bundler
       def default_stubs
         Gem::Specification.send(:default_stubs, "*.gemspec")
       end
-    end
-
-    def use_gemdeps(gemfile)
-      ENV["BUNDLE_GEMFILE"] ||= File.expand_path(gemfile)
-      require_relative "gemdeps"
-      runtime = Bundler.setup
-      activated_spec_names = runtime.requested_specs.map(&:to_spec).sort_by(&:name)
-      [Gemdeps.new(runtime), activated_spec_names]
     end
   end
 

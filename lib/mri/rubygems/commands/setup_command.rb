@@ -12,8 +12,6 @@ class Gem::Commands::SetupCommand < Gem::Command
   ENV_PATHS = %w[/usr/bin/env /bin/env].freeze
 
   def initialize
-    require 'tmpdir'
-
     super 'setup', 'Install RubyGems',
           :format_executable => false, :document => %w[ri],
           :force => true,
@@ -56,10 +54,10 @@ class Gem::Commands::SetupCommand < Gem::Command
                'List the documentation types you wish to',
                'generate.  For example: rdoc,ri' do |value, options|
       options[:document] = case value
-                           when nil   then %w[rdoc ri]
-                           when false then []
-                           else            value
-                           end
+      when nil   then %w[rdoc ri]
+      when false then []
+      else            value
+      end
     end
 
     add_option '--[no-]rdoc',
@@ -182,8 +180,8 @@ By default, this RubyGems will install gem as:
 
     say "RubyGems #{Gem::VERSION} installed"
 
-    regenerate_binstubs if options[:regenerate_binstubs]
-    regenerate_plugins if options[:regenerate_plugins]
+    regenerate_binstubs(bin_dir) if options[:regenerate_binstubs]
+    regenerate_plugins(bin_dir) if options[:regenerate_plugins]
 
     uninstall_old_gemcutter
 
@@ -252,6 +250,8 @@ By default, this RubyGems will install gem as:
 
       Dir.chdir path do
         bin_file = "gem"
+
+        require 'tmpdir'
 
         dest_file = target_bin_path(bin_dir, bin_file)
         bin_tmp_file = File.join Dir.tmpdir, "#{bin_file}.#{$$}"
@@ -411,8 +411,16 @@ By default, this RubyGems will install gem as:
     Dir.chdir("bundler") do
       built_gem = Gem::Package.build(bundler_spec)
       begin
-        installer = Gem::Installer.at(built_gem, env_shebang: options[:env_shebang], format_executable: options[:format_executable], force: options[:force], install_as_default: true, bin_dir: bin_dir, wrappers: true)
-        installer.install
+        Gem::Installer.at(
+          built_gem,
+          env_shebang: options[:env_shebang],
+          format_executable: options[:format_executable],
+          force: options[:force],
+          install_as_default: true,
+          bin_dir: bin_dir,
+          install_dir: default_dir,
+          wrappers: true
+        ).install
       ensure
         FileUtils.rm_f built_gem
       end
@@ -457,20 +465,8 @@ By default, this RubyGems will install gem as:
       lib_dir = RbConfig::CONFIG[site_or_vendor]
       bin_dir = RbConfig::CONFIG['bindir']
     else
-      # Apple installed RubyGems into libdir, and RubyGems <= 1.1.0 gets
-      # confused about installation location, so switch back to
-      # sitelibdir/vendorlibdir.
-      if defined?(APPLE_GEM_HOME) and
-        # just in case Apple and RubyGems don't get this patched up proper.
-        (prefix == RbConfig::CONFIG['libdir'] or
-         # this one is important
-         prefix == File.join(RbConfig::CONFIG['libdir'], 'ruby'))
-        lib_dir = RbConfig::CONFIG[site_or_vendor]
-        bin_dir = RbConfig::CONFIG['bindir']
-      else
-        lib_dir = File.join prefix, 'lib'
-        bin_dir = File.join prefix, 'bin'
-      end
+      lib_dir = File.join prefix, 'lib'
+      bin_dir = File.join prefix, 'bin'
     end
 
     [prepend_destdir_if_present(lib_dir), prepend_destdir_if_present(bin_dir)]
@@ -594,11 +590,12 @@ abort "#{deprecation_message}"
   rescue Gem::InstallError
   end
 
-  def regenerate_binstubs
+  def regenerate_binstubs(bindir)
     require_relative "pristine_command"
     say "Regenerating binstubs"
 
     args = %w[--all --only-executables --silent]
+    args << "--bindir=#{bindir}"
     if options[:env_shebang]
       args << "--env-shebang"
     end
@@ -607,11 +604,13 @@ abort "#{deprecation_message}"
     command.invoke(*args)
   end
 
-  def regenerate_plugins
+  def regenerate_plugins(bindir)
     require_relative "pristine_command"
     say "Regenerating plugins"
 
     args = %w[--all --only-plugins --silent]
+    args << "--bindir=#{bindir}"
+    args << "--install-dir=#{default_dir}"
 
     command = Gem::Commands::PristineCommand.new
     command.invoke(*args)
@@ -667,10 +666,10 @@ abort "#{deprecation_message}"
 
   def target_bin_path(bin_dir, bin_file)
     bin_file_formatted = if options[:format_executable]
-                           Gem.default_exec_format % bin_file
-                         else
-                           bin_file
-                         end
+      Gem.default_exec_format % bin_file
+    else
+      bin_file
+    end
     File.join bin_dir, bin_file_formatted
   end
 

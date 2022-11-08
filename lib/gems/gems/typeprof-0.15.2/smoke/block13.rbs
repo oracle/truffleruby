@@ -1,3 +1,0 @@
-class Object
-  def foo : { (?Integer) -> String } -> String
-end

@@ -1,9 +1,0 @@
-class Cell[A, B, C]
-  def initialize : (A, B, C) -> void
-  def set_a : (A) -> void
-  def set_b : (B) -> void
-  def set_c : (C) -> void
-  def get_a : -> A
-  def get_b : -> B
-  def get_c : -> C
-end

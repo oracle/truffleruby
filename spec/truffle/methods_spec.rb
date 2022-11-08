@@ -8,9 +8,10 @@
 
 require_relative '../ruby/spec_helper'
 
-# Switch to MRI, the version we are compatible with, and run:
-# $ jt -u ruby test spec/truffle/methods_spec.rb
-# to regenerate the files under methods/.
+# How to regenerate files:
+#
+# - switch to MRI, the version we are compatible with
+# - run `jt -u ruby test spec/truffle/methods_spec.rb`
 
 # jt test and jt tag can be used as normal,
 # but instead of jt untag, jt purge must be used to remove tags:

@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/debug/config'
+config = DEBUGGER__::Config::parse_argv(ARGV)
+
+case config[:mode]
+when :start
+  require 'rbconfig'
+
+  libpath = File.join(File.expand_path(File.dirname(__dir__)), 'lib/debug')
+  start_mode = config[:remote] ? "open" : 'start'
+  cmd = config[:command] ? ARGV.shift : (ENV['RUBY'] || RbConfig.ruby)
+
+  env = ::DEBUGGER__::Config.config_to_env_hash(config)
+  env['RUBYOPT'] = "-r #{libpath}/#{start_mode}"
+
+  exec(env, cmd, *ARGV)
+
+when :attach
+  require_relative "../lib/debug/client"
+  ::DEBUGGER__::CONFIG.update config
+
+  begin
+    if ARGV.empty? && config[:port]
+      DEBUGGER__::Client.new([config[:host], config[:port]].compact).connect
+    else
+      DEBUGGER__::Client.new(ARGV).connect
+    end
+  rescue DEBUGGER__::CommandLineOptionError
+    puts opt.help
+  end
+else
+  raise # assert
+end

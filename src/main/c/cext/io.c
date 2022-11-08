@@ -69,8 +69,8 @@ int rb_io_wait_writable(int fd) {
   }
 }
 
-void rb_thread_wait_fd(int fd) {
-  polyglot_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd);
+int rb_thread_wait_fd(int fd) {
+  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd));
 }
 
 int rb_wait_for_single_fd(int fd, int events, struct timeval *tv) {

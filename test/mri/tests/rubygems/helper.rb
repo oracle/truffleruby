@@ -143,15 +143,13 @@ class Gem::TestCase < Test::Unit::TestCase
 
         return captured_stdout.read, captured_stderr.read
       ensure
-        captured_stdout.unlink
-        captured_stderr.unlink
         $stdout.reopen orig_stdout
         $stderr.reopen orig_stderr
 
         orig_stdout.close
         orig_stderr.close
-        captured_stdout.close
-        captured_stderr.close
+        captured_stdout.close!
+        captured_stderr.close!
       end
     end
   end
@@ -341,10 +339,10 @@ class Gem::TestCase < Test::Unit::TestCase
     ENV["GEM_SPEC_CACHE"] = File.join @tempdir, 'spec_cache'
 
     @orig_ruby = if ENV['RUBY']
-                   ruby = Gem.ruby
-                   Gem.ruby = ENV['RUBY']
-                   ruby
-                 end
+      ruby = Gem.ruby
+      Gem.ruby = ENV['RUBY']
+      ruby
+    end
 
     @git = ENV['GIT'] || (win_platform? ? 'git.exe' : 'git')
 
@@ -591,7 +589,7 @@ class Gem::TestCase < Test::Unit::TestCase
   def have_git?
     return if in_path? @git
 
-    skip 'cannot find git executable, use GIT environment variable to set'
+    pend 'cannot find git executable, use GIT environment variable to set'
   end
 
   def in_path?(executable) # :nodoc:
@@ -687,10 +685,10 @@ class Gem::TestCase < Test::Unit::TestCase
   # Load a YAML string, the psych 3 way
 
   def load_yaml(yaml)
-    if YAML.respond_to?(:unsafe_load)
-      YAML.unsafe_load(yaml)
+    if Psych.respond_to?(:unsafe_load)
+      Psych.unsafe_load(yaml)
     else
-      YAML.load(yaml)
+      Psych.load(yaml)
     end
   end
 
@@ -698,10 +696,10 @@ class Gem::TestCase < Test::Unit::TestCase
   # Load a YAML file, the psych 3 way
 
   def load_yaml_file(file)
-    if YAML.respond_to?(:unsafe_load_file)
-      YAML.unsafe_load_file(file)
+    if Psych.respond_to?(:unsafe_load_file)
+      Psych.unsafe_load_file(file)
     else
-      YAML.load_file(file)
+      Psych.load_file(file)
     end
   end
 
@@ -1302,6 +1300,22 @@ Also, a list:
     Gem.instance_variable_set :@ruby, orig_ruby
   end
 
+  def with_internal_encoding(encoding)
+    int_enc = Encoding.default_internal
+    silence_warnings { Encoding.default_internal = encoding }
+
+    yield
+  ensure
+    silence_warnings { Encoding.default_internal = int_enc }
+  end
+
+  def silence_warnings
+    old_verbose, $VERBOSE = $VERBOSE, false
+    yield
+  ensure
+    $VERBOSE = old_verbose
+  end
+
   class << self
     # :nodoc:
     ##
@@ -1589,7 +1603,7 @@ class Object
     metaclass.send :undef_method, name
     metaclass.send :alias_method, name, new_name
     metaclass.send :undef_method, new_name
-  end
+  end unless method_defined?(:stub) # lib/resolv/test_dns.rb also has the same method definition
 end
 
 require_relative 'utilities'

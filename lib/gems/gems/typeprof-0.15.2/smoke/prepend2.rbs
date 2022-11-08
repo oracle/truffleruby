@@ -1,9 +1,0 @@
-module Mod
-  def foo: (String | Integer) -> Integer
-end
-
-class Foo
-  prepend Mod
-
-  def foo: (Integer) -> (String | Integer)
-end

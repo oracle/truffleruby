@@ -250,9 +250,13 @@ module Truffle::CExt
 
   def rb_check_type(value, type)
     value_type = rb_type(value)
-    if value_type != type || (value_type == T_DATA && Primitive.object_hidden_var_get(value, DATA_TYPE))
+    if value_type != type || (value_type == T_DATA && Primitive.object_hidden_var_defined?(value, DATA_TYPE))
       raise TypeError, "wrong argument type #{Truffle::ExceptionOperations.to_class_name(value)} (expected #{BUILTIN_TYPES[type]})"
     end
+  end
+
+  def rbimpl_rtypeddata_p(obj)
+    Primitive.object_hidden_var_defined?(obj, DATA_TYPE)
   end
 
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
@@ -301,6 +305,10 @@ module Truffle::CExt
 
   def RB_FLOAT_TYPE_P(value)
     Primitive.object_kind_of?(value, Float)
+  end
+
+  def rb_integer_type_p(value)
+    Primitive.ruby_integer?(value)
   end
 
   def rb_require(feature)
@@ -553,7 +561,7 @@ module Truffle::CExt
                nil
              end
     if err
-      Truffle::Type.set_last_exception(err)
+      Primitive.thread_set_exception(err)
       nil
     else
       result
@@ -1061,6 +1069,7 @@ module Truffle::CExt
       e = retrieve_exception
       tag = extract_tag(e)
       raise RuntimeError, 'mismatch between jump tag and captured exception' unless pos == tag
+      Primitive.thread_set_exception(nil)
       raise_exception(e)
     end
   end
@@ -1114,7 +1123,11 @@ module Truffle::CExt
   end
 
   def rb_set_errinfo(error)
-    Truffle::Type.set_last_exception(error)
+    if Primitive.nil?(error) || Primitive.object_kind_of?(error, Exception)
+      Primitive.thread_set_exception(error)
+    else
+      raise TypeError, 'assigning non-exception to ?!'
+    end
   end
 
   def rb_make_exception(args)
@@ -1399,7 +1412,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(arg)]))
+      Primitive.cext_unwrap(Primitive.interop_execute(func, [arg]))
     end
   end
   Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
@@ -1718,24 +1731,24 @@ module Truffle::CExt
       Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], Primitive.cext_special_variables_from_stack, wrapped_callback))
   end
 
+  # From ruby.h
+  RB_WAITFD_IN = Truffle::IOOperations::POLLIN
+  RB_WAITFD_PRI = Truffle::IOOperations::POLLPRI
+  RB_WAITFD_OUT = Truffle::IOOperations::POLLOUT
+
   def rb_thread_wait_fd(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    Primitive.send_without_cext_lock(IO, :select, [[io]], nil)
-    nil
+    Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, RB_WAITFD_IN, nil], nil)
+    RB_WAITFD_IN
   end
 
   def rb_thread_fd_writable(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    _r, w, _e = Primitive.send_without_cext_lock(IO, :select, [nil, [io]], nil)
-    w.size
+    Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, RB_WAITFD_OUT, nil], nil)
+    RB_WAITFD_OUT
   end
-
-  # From ruby.h
-  RB_WAITFD_IN = 1
-  RB_WAITFD_PRI = 2
-  RB_WAITFD_OUT = 4
 
   def rb_wait_for_single_fd(fd, events, tv_secs, tv_usecs)
     io = IO.for_fd(fd)

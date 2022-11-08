@@ -1,24 +1,25 @@
 {
   "gems": {
     "default": {
-      "bundler": "2.2.32",
-      "erb": "2.2.0",
-      "gem": "3.2.32",
-      "irb": "1.3.5",
-      "racc": "1.5.2",
-      "rdoc": "6.3.3",
-      "did_you_mean": "1.5.0"
+      "bundler": "2.3.7",
+      "erb": "2.2.3",
+      "gem": "3.3.7",
+      "irb": "1.4.1",
+      "racc": "1.6.0",
+      "rdoc": "6.4.0",
+      "did_you_mean": "1.6.1"
     },
 
     "bundled": {
-      "minitest": "5.14.2",
-      "power_assert": "1.2.0",
-      "rake": "13.0.3",
-      "test-unit": "3.3.7",
+      "debug": "1.4.0",
+      "minitest": "5.15.0",
+      "power_assert": "2.0.1",
+      "rake": "13.0.6",
+      "test-unit": "3.5.3",
+      "rbs": "2.1.0",
       "rexml": "3.2.5",
       "rss": "0.2.9",
-      "typeprof": "0.15.2",
-      "rbs": "1.4.0"
+      "typeprof": "0.21.2"
     }
   }
 }

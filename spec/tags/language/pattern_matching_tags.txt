@@ -70,3 +70,9 @@ fails:Pattern matching find pattern can be nested
 fails:Pattern matching find pattern can be nested with an array pattern
 fails:Pattern matching find pattern can be nested within a hash pattern
 fails:Pattern matching find pattern can nest hash and array patterns
+fails:Pattern matching can omit parentheses in one line pattern matching
+fails:Pattern matching supports pinning instance variables
+fails:Pattern matching supports pinning class variables
+fails:Pattern matching supports pinning global variables
+fails:Pattern matching supports pinning expressions
+fails:Pattern matching warning when one-line form does not warn about pattern matching is experimental feature

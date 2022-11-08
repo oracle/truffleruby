@@ -1,5 +1,0 @@
-class Cell[T]
-  def initialize : (T) -> void
-  def map: [A] { (T) -> A } -> Cell[A]
-  def map!: { (T) -> T } -> self
-end

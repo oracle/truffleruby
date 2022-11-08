@@ -4,6 +4,10 @@ module DidYouMean
   module TestHelper
     class << self
       attr_reader :root
+
+      def ractor_compatible?
+        defined?(Ractor) && RUBY_VERSION >= "3.1.0"
+      end
     end
 
     if defined?(::TruffleRuby)

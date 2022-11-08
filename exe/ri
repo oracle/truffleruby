@@ -27,6 +27,8 @@ exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 
 require 'rubygems'
 
+Gem.use_gemdeps
+
 version = ">= 0.a"
 
 str = ARGV.first

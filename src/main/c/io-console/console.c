@@ -80,13 +80,20 @@ static ID id_getc, id_console, id_close, id_min, id_time, id_intr;
 static ID id_gets, id_chomp_bang;
 #endif
 
-#ifdef HAVE_RB_SCHEDULER_TIMEOUT
+#if defined HAVE_RUBY_FIBER_SCHEDULER_H
+# include "ruby/fiber/scheduler.h"
+#elif defined HAVE_RB_SCHEDULER_TIMEOUT
 extern VALUE rb_scheduler_timeout(struct timeval *timeout);
+# define rb_fiber_scheduler_make_timeout rb_scheduler_timeout
 #endif
 
 #define sys_fail_fptr(fptr) rb_sys_fail_str((fptr)->pathv)
 
 #ifndef HAVE_RB_F_SEND
+#ifndef RB_PASS_CALLED_KEYWORDS
+# define rb_funcallv_kw(recv, mid, arg, argv, kw_splat) rb_funcallv(recv, mid, arg, argv)
+#endif
+
 static ID id___send__;
 
 static VALUE
@@ -101,7 +108,7 @@ rb_f_send(int argc, VALUE *argv, VALUE recv)
     else {
 	vid = id___send__;
     }
-    return rb_funcallv(recv, vid, argc, argv);
+    return rb_funcallv_kw(recv, vid, argc, argv, RB_PASS_CALLED_KEYWORDS);
 }
 #endif
 
@@ -534,7 +541,7 @@ console_getch(int argc, VALUE *argv, VALUE io)
 	    tv.tv_sec = optp->vtime / 10;
 	    tv.tv_usec = (optp->vtime % 10) * 100000;
 # ifdef HAVE_RB_IO_WAIT
-	    timeout = rb_scheduler_timeout(&tv);
+	    timeout = rb_fiber_scheduler_make_timeout(&tv);
 # endif
 	}
 	switch (optp->vmin) {
@@ -552,8 +559,8 @@ console_getch(int argc, VALUE *argv, VALUE io)
 	    if (w < 0) rb_eof_error();
 	    if (!(w & RB_WAITFD_IN)) return Qnil;
 # else
-	    VALUE result = rb_io_wait(io, RUBY_IO_READABLE, timeout);
-	    if (result == Qfalse) return Qnil;
+	    VALUE result = rb_io_wait(io, RB_INT2NUM(RUBY_IO_READABLE), timeout);
+	    if (!RTEST(result)) return Qnil;
 # endif
 	}
 	else if (optp->vtime) {

@@ -1,0 +1,2 @@
+fails:C-API Fiber function rb_fiber_raise raises an exception on the resumed fiber
+fails:C-API Fiber function rb_fiber_raise raises an exception on the transferred fiber

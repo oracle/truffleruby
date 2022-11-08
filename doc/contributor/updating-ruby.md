@@ -42,12 +42,19 @@ ruby-install --no-install-deps -r ~/tmp ruby $VERSION
 (required as `RUBY_BUILD_DIR` for `tool/import-mri-files.sh`),
 so one needs the extra `ruby-install` command when using `ruby-build`.
 
+See https://github.com/oracle/truffleruby/blob/master/doc/user/ruby-managers.md#ruby-install-and-chruby for details
+about `ruby-install`.
+
 ## Create reference branches
 
 For both the current version of Ruby you're using, and the new version, create
 reference branches that include unmodified MRI sources.
 
-Check out the version of Ruby you want to create the branch for in `../ruby`.
+Check out the version of Ruby you want to create the branch for in `../ruby`, e.g.:
+
+```
+git clone --branch v3_1_2 https://github.com/ruby/ruby.git ../ruby
+```
 
 Then create the reference branch in the TruffleRuby repository
 
@@ -87,12 +94,6 @@ git grep -E -- '^\s*require "-test-/'
 
 And comment any `require` found in files under `test/mri/tests`
 but not for files under `test/mri/tests/cext-ruby`.
-
-## Update config_*.h files
-
-Configuration files must be regenerated for each platform with `tool/generate-config-header.sh`.
-Adapt the Ruby versions in that script.
-Then run all the `ruby-generate-native-config-*` jobs in CI and copy their output.
 
 ## Update libraries from third-party repos
 
@@ -137,21 +138,23 @@ Also update the list of `provided_executables` in `mx_truffleruby.py` if some la
 
 ## Make other changes
 
-In a separate commit, update all of these:
+Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
-* Update `versions.json` (from `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
+* Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
 * Update `TargetRubyVersion` in `.rubocop.yml`
-* Copy and paste `-h` and `--help` output to `RubyLauncher`
-* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
+* Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Run `jt test gems default-bundled-gems`
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
-* If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
+* If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
+* Upload the [CRuby source archive](https://www.ruby-lang.org/en/downloads/) of that version to the CI (ask Benoit).
+* Update `config_*.h` files by running the gate and copying the output, or trigger the `ruby-generate-native-config-*` CI jobs.
 
 For a new major version:
 * Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.

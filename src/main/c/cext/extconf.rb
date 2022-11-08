@@ -13,7 +13,11 @@ if Truffle::Platform.darwin?
     DLEXT = SOEXT
   end
 
-  require 'rbconfig'
+  was_loaded_now = require 'rbconfig'
+  unless was_loaded_now
+    raise "rbconfig.rb is already loaded. It doesn't allow to apply the change of Truffle::Platform::DLEXT made above"
+  end
+
   RbConfig::CONFIG['LDSHARED'] = "#{RbConfig::CONFIG['CC']} -shared"
   RbConfig::MAKEFILE_CONFIG['LDSHARED'] = '$(CC) -shared'
 end

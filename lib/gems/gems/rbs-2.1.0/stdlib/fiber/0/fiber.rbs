@@ -1,0 +1,99 @@
+%a{annotate:rdoc:skip}
+class Fiber
+  # <!--
+  #   rdoc-file=cont.c
+  #   - Fiber.current -> fiber
+  # -->
+  # Returns the current fiber. If you are not running in the context of a fiber
+  # this method will return the root fiber.
+  #
+  def self.current: () -> Fiber
+
+  public
+
+  # <!--
+  #   rdoc-file=cont.c
+  #   - fiber.alive? -> true or false
+  # -->
+  # Returns true if the fiber can still be resumed (or transferred to). After
+  # finishing execution of the fiber block this method will always return `false`.
+  #
+  def alive?: () -> bool
+
+  # <!--
+  #   rdoc-file=cont.c
+  #   - fiber.transfer(args, ...) -> obj
+  # -->
+  # Transfer control to another fiber, resuming it from where it last stopped or
+  # starting it if it was not resumed before. The calling fiber will be suspended
+  # much like in a call to Fiber.yield.
+  #
+  # The fiber which receives the transfer call treats it much like a resume call.
+  # Arguments passed to transfer are treated like those passed to resume.
+  #
+  # The two style of control passing to and from fiber (one is #resume and
+  # Fiber::yield, another is #transfer to and from fiber) can't be freely mixed.
+  #
+  # *   If the Fiber's lifecycle had started with transfer, it will never be able
+  #     to yield or be resumed control passing, only finish or transfer back. (It
+  #     still can resume other fibers that are allowed to be resumed.)
+  # *   If the Fiber's lifecycle had started with resume, it can yield or transfer
+  #     to another Fiber, but can receive control back only the way compatible
+  #     with the way it was given away: if it had transferred, it only can be
+  #     transferred back, and if it had yielded, it only can be resumed back.
+  #     After that, it again can transfer or yield.
+  #
+  #
+  # If those rules are broken FiberError is raised.
+  #
+  # For an individual Fiber design, yield/resume is easier to use (the Fiber just
+  # gives away control, it doesn't need to think about who the control is given
+  # to), while transfer is more flexible for complex cases, allowing to build
+  # arbitrary graphs of Fibers dependent on each other.
+  #
+  # Example:
+  #
+  #     manager = nil # For local var to be visible inside worker block
+  #
+  #     # This fiber would be started with transfer
+  #     # It can't yield, and can't be resumed
+  #     worker = Fiber.new { |work|
+  #       puts "Worker: starts"
+  #       puts "Worker: Performed #{work.inspect}, transferring back"
+  #       # Fiber.yield     # this would raise FiberError: attempt to yield on a not resumed fiber
+  #       # manager.resume  # this would raise FiberError: attempt to resume a resumed fiber (double resume)
+  #       manager.transfer(work.capitalize)
+  #     }
+  #
+  #     # This fiber would be started with resume
+  #     # It can yield or transfer, and can be transferred
+  #     # back or resumed
+  #     manager = Fiber.new {
+  #       puts "Manager: starts"
+  #       puts "Manager: transferring 'something' to worker"
+  #       result = worker.transfer('something')
+  #       puts "Manager: worker returned #{result.inspect}"
+  #       # worker.resume    # this would raise FiberError: attempt to resume a transferring fiber
+  #       Fiber.yield        # this is OK, the fiber transferred from and to, now it can yield
+  #       puts "Manager: finished"
+  #     }
+  #
+  #     puts "Starting the manager"
+  #     manager.resume
+  #     puts "Resuming the manager"
+  #     # manager.transfer  # this would raise FiberError: attempt to transfer to a yielding fiber
+  #     manager.resume
+  #
+  # *produces*
+  #
+  #     Starting the manager
+  #     Manager: starts
+  #     Manager: transferring 'something' to worker
+  #     Worker: starts
+  #     Worker: Performed "something", transferring back
+  #     Manager: worker returned "Something"
+  #     Resuming the manager
+  #     Manager: finished
+  #
+  def transfer: (*untyped) -> untyped
+end

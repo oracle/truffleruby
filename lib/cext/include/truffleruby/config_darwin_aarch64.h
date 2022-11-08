@@ -43,6 +43,7 @@
 #define HAVE_SYS_FILE_H 1
 #define HAVE_SYS_IOCTL_H 1
 #define HAVE_SYS_PARAM_H 1
+#define HAVE_SYS_RANDOM_H 1
 #define HAVE_SYS_RESOURCE_H 1
 #define HAVE_SYS_SELECT_H 1
 #define HAVE_SYS_SOCKET_H 1
@@ -52,8 +53,6 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
-#define HAVE_GMP_H 1
-#define HAVE_LIBGMP 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict
 #define HAVE_LONG_LONG 1
@@ -99,33 +98,33 @@
 #define PRI_TIMET_PREFIX PRI_LONG_PREFIX
 #define HAVE_DEV_T 1
 #define rb_dev_t dev_t
-#define SIGNEDNESS_OF_DEV_T +1
-#define DEVT2NUM(v) ULONG2NUM(v)
-#define NUM2DEVT(v) NUM2ULONG(v)
-#define PRI_DEVT_PREFIX PRI_LONG_PREFIX
+#define SIGNEDNESS_OF_DEV_T -1
+#define DEVT2NUM(v) INT2NUM(v)
+#define NUM2DEVT(v) NUM2INT(v)
+#define PRI_DEVT_PREFIX PRI_INT_PREFIX
 #define HAVE_MODE_T 1
 #define rb_mode_t mode_t
 #define SIGNEDNESS_OF_MODE_T +1
-#define MODET2NUM(v) UINT2NUM(v)
-#define NUM2MODET(v) NUM2UINT(v)
-#define PRI_MODET_PREFIX PRI_INT_PREFIX
+#define MODET2NUM(v) USHORT2NUM(v)
+#define NUM2MODET(v) NUM2USHORT(v)
+#define PRI_MODET_PREFIX PRI_SHORT_PREFIX
 #define HAVE_RLIM_T 1
 #define rb_rlim_t rlim_t
 #define SIGNEDNESS_OF_RLIM_T +1
-#define RLIM2NUM(v) ULONG2NUM(v)
-#define NUM2RLIM(v) NUM2ULONG(v)
-#define PRI_RLIM_PREFIX PRI_LONG_PREFIX
+#define RLIM2NUM(v) ULL2NUM(v)
+#define NUM2RLIM(v) NUM2ULL(v)
+#define PRI_RLIM_PREFIX PRI_LL_PREFIX
 #define HAVE_OFF_T 1
 #define rb_off_t off_t
 #define SIGNEDNESS_OF_OFF_T -1
-#define OFFT2NUM(v) LONG2NUM(v)
-#define NUM2OFFT(v) NUM2LONG(v)
-#define PRI_OFFT_PREFIX PRI_LONG_PREFIX
+#define OFFT2NUM(v) LL2NUM(v)
+#define NUM2OFFT(v) NUM2LL(v)
+#define PRI_OFFT_PREFIX PRI_LL_PREFIX
 #define HAVE_CLOCKID_T 1
 #define rb_clockid_t clockid_t
-#define SIGNEDNESS_OF_CLOCKID_T -1
-#define CLOCKID2NUM(v) INT2NUM(v)
-#define NUM2CLOCKID(v) NUM2INT(v)
+#define SIGNEDNESS_OF_CLOCKID_T +1
+#define CLOCKID2NUM(v) UINT2NUM(v)
+#define NUM2CLOCKID(v) NUM2UINT(v)
 #define PRI_CLOCKID_PREFIX PRI_INT_PREFIX
 #define HAVE_VA_ARGS_MACRO 1
 #define HAVE__ALIGNOF 1
@@ -148,13 +147,16 @@
 #define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
+#define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
 #define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
+#define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
 #define HAVE_DECL_GETENV 1
 #define SIZEOF_SIZE_T 8
 #define SIZEOF_PTRDIFF_T 8
+#define SIZEOF_DEV_T 4
 #define PRI_SIZE_PREFIX "z"
 #define PRI_PTRDIFF_PREFIX "t"
 #define HAVE_STRUCT_STAT_ST_BLKSIZE 1
@@ -163,6 +165,8 @@
 #define SIZEOF_STRUCT_STAT_ST_SIZE SIZEOF_OFF_T
 #define SIZEOF_STRUCT_STAT_ST_BLOCKS SIZEOF_OFF_T
 #define SIZEOF_STRUCT_STAT_ST_INO SIZEOF_LONG
+#define SIZEOF_STRUCT_STAT_ST_DEV SIZEOF_DEV_T
+#define SIZEOF_STRUCT_STAT_ST_RDEV SIZEOF_DEV_T
 #define HAVE_STRUCT_STAT_ST_ATIMESPEC 1
 #define HAVE_STRUCT_STAT_ST_MTIMESPEC 1
 #define HAVE_STRUCT_STAT_ST_CTIMESPEC 1
@@ -198,15 +202,18 @@
 #define SIZEOF_INTPTR_T 8
 #define HAVE_UINTPTR_T 1
 #define SIZEOF_UINTPTR_T 8
+#define PRI_PTR_PREFIX "l"
 #define HAVE_SSIZE_T 1
 #define SIZEOF_SSIZE_T 8
+#define PRI_64_PREFIX "ll"
 #define GETGROUPS_T gid_t
 #define HAVE_ALLOCA_H 1
 #define HAVE_ALLOCA 1
+#define HAVE_DUP 1
+#define HAVE_DUP2 1
 #define HAVE_ACOSH 1
 #define HAVE_CBRT 1
 #define HAVE_CRYPT 1
-#define HAVE_DUP2 1
 #define HAVE_ERF 1
 #define HAVE_FFS 1
 #define HAVE_FLOCK 1
@@ -221,9 +228,7 @@
 #define HAVE_STRLCPY 1
 #define HAVE_STRSTR 1
 #define HAVE_TGAMMA 1
-#define HAVE_FINITE 1
-#define HAVE_ISINF 1
-#define HAVE_ISNAN 1
+#define HAVE_ISFINITE 1
 #define SPT_TYPE SPT_REUSEARGV
 #define HAVE_SIGNBIT 1
 #define HAVE_FORK 1
@@ -239,7 +244,6 @@
 #define HAVE_DIRFD 1
 #define HAVE_DLOPEN 1
 #define HAVE_DLADDR 1
-#define HAVE_DUP 1
 #define HAVE_ENDGRENT 1
 #define HAVE_FCOPYFILE 1
 #define HAVE_FCHMOD 1
@@ -253,6 +257,7 @@
 #define HAVE_FTRUNCATE 1
 #define HAVE_GETATTRLIST 1
 #define HAVE_GETCWD 1
+#define HAVE_GETENTROPY 1
 #define HAVE_GETGRNAM 1
 #define HAVE_GETGRNAM_R 1
 #define HAVE_GETGROUPS 1
@@ -290,6 +295,7 @@
 #define HAVE_MKFIFO 1
 #define HAVE_MKNOD 1
 #define HAVE_MKTIME 1
+#define HAVE_MMAP 1
 #define HAVE_OPENAT 1
 #define HAVE_POLL 1
 #define HAVE_POSIX_MEMALIGN 1
@@ -357,6 +363,7 @@
 #define HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P 1
 #define HAVE_BUILTIN___BUILTIN_TYPES_COMPATIBLE_P 1
 #define HAVE_BUILTIN___BUILTIN_TRAP 1
+#define HAVE_BUILTIN___BUILTIN_EXPECT 1
 #define HAVE_BSD_QSORT_R 1
 #define ATAN2_INF_C99 1
 #define HAVE_CLOCK_GETRES 1
@@ -380,10 +387,14 @@
 #define HAVE_PTHREAD_ATTR_GETGUARDSIZE 1
 #define HAVE_PTHREAD_GET_STACKADDR_NP 1
 #define HAVE_PTHREAD_GET_STACKSIZE_NP 1
-#define HAVE_PTHREAD_SIGMASK 1
 #define HAVE_PTHREAD_SETNAME_NP 1
+#define HAVE_PTHREAD_SIGMASK 1
 #define SET_CURRENT_THREAD_NAME(name) pthread_setname_np(name)
 #define DEFINE_MCONTEXT_PTR(mc, uc) mcontext_t mc = (uc)->uc_mcontext
+#define HAVE_SYS_USER_H 1
+#define HAVE_CONST_PAGE_SIZE 0
+#define IOCTL_REQ_TYPE unsigned long
+#define NUM2IOCTLREQ(num) NUM2ULONG(num)
 #define HAVE_MACH_O_LOADER_H 1
 #define HAVE_LIBPROC_H 1
 #define HAVE_EXECINFO_H 1
@@ -399,5 +410,7 @@
 #define RUBY_JMP_BUF sigjmp_buf
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
-#define RUBY_PLATFORM "aarch64-darwin21"
+#define THREAD_IMPL_H "thread_pthread.h"
+#define THREAD_IMPL_SRC "thread_pthread.c"
+#define RUBY_PLATFORM "arm64-darwin20"
 #endif /* INCLUDE_RUBY_CONFIG_H */

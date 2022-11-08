@@ -45,7 +45,7 @@ module JSON
           /(?=\*/)      # single slash before this comment's end
          )*
            \*/               # the End of this comment
-           |[ \t\r\n]+       # whitespaces: space, horicontal tab, lf, cr
+           |[ \t\r\n]+       # whitespaces: space, horizontal tab, lf, cr
         )+
       )mx
 

@@ -1,3 +1,0 @@
-class Foo
-  attr_reader name: String
-end

@@ -7,7 +7,7 @@ permalink: /reference-manual/ruby/Compatibility/
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of
-Ruby, MRI, version 3.0.3, [including C extensions](#c-extension-compatibility).
+Ruby, MRI, version 3.1.2, [including C extensions](#c-extension-compatibility).
 TruffleRuby is still in development, so it is not 100% compatible yet.
 
 TruffleRuby can run Rails and is compatible with many gems, including C extensions.
@@ -93,7 +93,7 @@ These classes are implemented if it is practical to do so, but this is not alway
 ### `Regexp`
 
 `Regexp` instances are always immutable in TruffleRuby.
-In CRuby 3.0, all literal `Regexp` are immutable, but non-literal are still mutable.
+In CRuby 3.1, all literal `Regexp` are immutable, but non-literal are still mutable.
 This limitation means that one cannot define singleton methods on a Regexp instance, and cannot create instances of subclasses of Regexp on TruffleRuby.
 
 ## Features with Subtle Differences

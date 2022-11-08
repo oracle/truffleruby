@@ -1,3 +1,8 @@
 fails:Dir.[] result is sorted by default
 fails:Dir.[] result is sorted with sort: true
 fails:Dir.[] sort: false returns same files
+fails:Dir.[] raises an ArgumentError if sort: is not true or false
+fails:Dir.[] matches dotfiles except .. with '.*'
+fails:Dir.[] matches dotfiles in the current directory except .. with '.**'
+fails:Dir.[] recursively matches any subdirectories including ./ with '.**/'
+fails:Dir.[] matches dot or non-dotfiles with '{,.}*'

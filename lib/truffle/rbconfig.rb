@@ -89,7 +89,7 @@ module RbConfig
   dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
 
   cext_dir = "#{prefix}/lib/cext"
-  dlext = Truffle::Platform::DLEXT
+  soext = Truffle::Platform::SOEXT
 
   toolchain_path = Truffle::Boot.toolchain_paths(:PATH)
 
@@ -107,7 +107,7 @@ module RbConfig
 
   # Set extra flags needed for --building-core-cexts
   if Truffle::Boot.get_option 'building-core-cexts'
-    libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
+    libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{soext}"
 
     relative_debug_paths = " -fdebug-prefix-map=#{ruby_home}=."
     cppflags << relative_debug_paths
@@ -115,7 +115,7 @@ module RbConfig
     warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
     warnflags << '-Werror' # Make sure there are no warnings in core C extensions
   else
-    libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
+    libtruffleruby = "#{cext_dir}/libtruffleruby.#{soext}"
   end
 
   # We do not link to libtruffleruby here to workaround GR-29448
@@ -142,7 +142,7 @@ module RbConfig
     'DEFS'              => defs,
     'DLDFLAGS'          => dldflags,
     'DLDLIBS'           => '',
-    'DLEXT'             => dlext.dup,
+    'DLEXT'             => Truffle::Platform::DLEXT.dup,
     'ENABLE_SHARED'     => 'yes', # We use a dynamic library for libruby
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
@@ -160,12 +160,12 @@ module RbConfig
     'LIBEXT'            => 'a',
     'LIBPATHENV'        => 'LD_LIBRARY_PATH',
     'LIBPATHFLAG'       => ' -L%1$-s',
-    'LIBRUBY'           => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
+    'LIBRUBY'           => "cext/libtruffleruby.#{soext}",
     'LIBRUBY_A'         => '',
     'LIBRUBYARG'        => librubyarg,
     'LIBRUBYARG_SHARED' => librubyarg,
     'LIBRUBYARG_STATIC' => '',
-    'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
+    'LIBRUBY_SO'        => "cext/libtruffleruby.#{soext}",
     'LIBS'              => libs,
     'libtruffleruby'    => libtruffleruby,
     'MAKEDIRS'          => 'mkdir -p',
@@ -189,7 +189,7 @@ module RbConfig
     'ruby_version'      => ruby_abi_version.dup,
     'rubyarchhdrdir'    => rubyhdrdir.dup,
     'rubyhdrdir'        => rubyhdrdir,
-    'SOEXT'             => Truffle::Platform::SOEXT.dup,
+    'SOEXT'             => soext.dup,
     'STRIP'             => strip,
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,

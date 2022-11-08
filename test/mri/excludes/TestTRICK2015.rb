@@ -1,0 +1,5 @@
+exclude :test_monae, "Errno::ENOENT: No such file or directory - /home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/../sample/trick2015/monae/entry.rb"
+exclude :test_kinaba, "pid 293064 exit 1"
+exclude :test_ksk_1, "pid 293084 exit 1"
+exclude :test_ksk_2, "pid 293104 exit 1"
+exclude :test_eregon, "pid 293124 exit 1"

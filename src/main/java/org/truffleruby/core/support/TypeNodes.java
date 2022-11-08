@@ -268,6 +268,21 @@ public abstract class TypeNodes {
         }
     }
 
+    @Primitive(name = "object_hidden_var_defined?")
+    public abstract static class ObjectHiddenVarDefinedNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected boolean objectHiddenVarDefined(RubyDynamicObject object, Object identifier,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
+            return objectLibrary.containsKey(object, identifier);
+        }
+
+        @Fallback
+        protected boolean immutable(Object object, Object identifier) {
+            return false;
+        }
+    }
+
     @Primitive(name = "object_hidden_var_get")
     public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {
 

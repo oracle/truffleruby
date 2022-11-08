@@ -1,3 +1,0 @@
-class Foo
-  def foo: (^(Integer) -> Integer) -> String
-end

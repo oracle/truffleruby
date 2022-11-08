@@ -770,7 +770,7 @@ rebuild_table(st_table *tab)
    guarantees traversing all table bins in extreme case.
 
    According the Hull-Dobell theorem a generator
-   "Xnext = (a*Xprev + c) mod m" is a full cycle generator iff
+   "Xnext = (a*Xprev + c) mod m" is a full cycle generator if and only if
      o m and c are relatively prime
      o a-1 is divisible by all prime factors of m
      o a-1 is divisible by 4 if m is divisible by 4.
@@ -843,7 +843,8 @@ find_table_entry_ind(st_table *tab, st_hash_t hash_value, st_data_t key)
 		return REBUILT_TABLE_ENTRY_IND;
 	    if (eq_p)
 		break;
-	} else if (EMPTY_BIN_P(bin))
+	}
+	else if (EMPTY_BIN_P(bin))
             return UNDEFINED_ENTRY_IND;
 #ifdef QUADRATIC_PROBE
 	ind = hash_bin(ind + d, tab);
@@ -888,7 +889,8 @@ find_table_bin_ind(st_table *tab, st_hash_t hash_value, st_data_t key)
 		return REBUILT_TABLE_BIN_IND;
 	    if (eq_p)
 		break;
-	} else if (EMPTY_BIN_P(bin))
+	}
+	else if (EMPTY_BIN_P(bin))
             return UNDEFINED_BIN_IND;
 #ifdef QUADRATIC_PROBE
 	ind = hash_bin(ind + d, tab);
@@ -1246,8 +1248,13 @@ update_range_for_deleted(st_table *tab, st_index_t n)
 {
     /* Do not update entries_bound here.  Otherwise, we can fill all
        bins by deleted entry value before rebuilding the table.  */
-    if (tab->entries_start == n)
-        tab->entries_start = n + 1;
+    if (tab->entries_start == n) {
+        st_index_t start = n + 1;
+        st_index_t bound = tab->entries_bound;
+        st_table_entry *entries = tab->entries;
+        while (start < bound && DELETED_ENTRY_P(&entries[start])) start++;
+        tab->entries_start = start;
+    }
 }
 
 /* Delete entry with KEY from table TAB, set up *VALUE (unless
@@ -1358,7 +1365,6 @@ st_shift(st_table *tab, st_data_t *key, st_data_t *value)
 	    return 1;
 	}
     }
-    tab->entries_start = tab->entries_bound = 0;
     if (value != 0) *value = 0;
     return 0;
 }
@@ -2117,7 +2123,7 @@ st_rehash_indexed(st_table *tab)
             continue;
 
         ind = hash_bin(p->hash, tab);
-        for(;;) {
+        for (;;) {
             st_index_t bin = get_bin(bins, size_ind, ind);
             if (EMPTY_OR_DELETED_BIN_P(bin)) {
                 /* ok, new room */

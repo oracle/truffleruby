@@ -11,3 +11,12 @@ fails:Marshal.restore for a wrapped C pointer raises ArgumentError when the loca
 fails:Marshal.restore when a class does not exist in the namespace raises an ArgumentError
 fails(immutable regexp):Marshal.restore for a Regexp loads an extended Regexp
 fails(immutable regexp):Marshal.restore for a Regexp loads a extended_user_regexp having ivar
+fails:Marshal.restore when called with freeze: true returns frozen strings
+fails:Marshal.restore when called with freeze: true returns frozen arrays
+fails:Marshal.restore when called with freeze: true returns frozen hashes
+fails:Marshal.restore when called with freeze: true returns frozen regexps
+fails:Marshal.restore when called with freeze: true returns frozen objects
+fails:Marshal.restore when called with freeze: true does not freeze modules
+fails:Marshal.restore when called with freeze: true does not freeze classes
+fails:Marshal.restore when called with freeze: true when called with a proc call the proc with frozen objects
+fails:Marshal.restore when called with freeze: true when called with a proc does not freeze the object returned by the proc

@@ -2,6 +2,7 @@ chunk
 chunk_while
 collect
 collect_concat
+compact
 drop
 drop_while
 eager

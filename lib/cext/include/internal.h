@@ -21,4 +21,6 @@
 
 #include "ruby/ruby.h"
 
+#define RBOOL(v) ((v) ? Qtrue : Qfalse)
+
 #endif /* RUBY_INTERNAL_H */

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "rbconfig"
+require "shellwords"
+require "fiddle"
 
 module Bundler
   class CLI::Doctor
@@ -22,14 +24,14 @@ module Bundler
     end
 
     def dylibs_darwin(path)
-      output = `/usr/bin/otool -L "#{path}"`.chomp
+      output = `/usr/bin/otool -L #{path.shellescape}`.chomp
       dylibs = output.split("\n")[1..-1].map {|l| l.match(DARWIN_REGEX).captures[0] }.uniq
       # ignore @rpath and friends
       dylibs.reject {|dylib| dylib.start_with? "@" }
     end
 
     def dylibs_ldd(path)
-      output = `/usr/bin/ldd "#{path}"`.chomp
+      output = `/usr/bin/ldd #{path.shellescape}`.chomp
       output.split("\n").map do |l|
         match = l.match(LDD_REGEX)
         next if match.nil?
@@ -70,7 +72,14 @@ module Bundler
 
       definition.specs.each do |spec|
         bundles_for_gem(spec).each do |bundle|
-          bad_paths = dylibs(bundle).select {|f| !File.exist?(f) }
+          bad_paths = dylibs(bundle).select do |f|
+            begin
+              Fiddle.dlopen(f)
+              false
+            rescue Fiddle::DLError
+              true
+            end
+          end
           if bad_paths.any?
             broken_links[spec] ||= []
             broken_links[spec].concat(bad_paths)

@@ -179,16 +179,6 @@ module Fiddle
     end
 
     def test_free=
-      assert_normal_exit(<<-"End", '[ruby-dev:39269]')
-        require 'fiddle'
-        include Fiddle
-        free = Fiddle::Function.new(Fiddle::RUBY_FREE, [TYPE_VOIDP], TYPE_VOID)
-        ptr = Fiddle::Pointer.malloc(4)
-        ptr.free = free
-        free.ptr
-        ptr.free.ptr
-      End
-
       free = Function.new(Fiddle::RUBY_FREE, [TYPE_VOIDP], TYPE_VOID)
       ptr = Pointer.malloc(4)
       ptr.free = free
@@ -282,7 +272,17 @@ module Fiddle
     end
 
     def test_no_memory_leak
-      assert_no_memory_leak(%w[-W0 -rfiddle], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true) # TruffleRuby - MRI was -rfiddle.so
+      if respond_to?(:assert_nothing_leaked_memory)
+        n_tries = 100_000
+        assert_nothing_leaked_memory(SIZEOF_VOIDP * (n_tries / 100)) do
+          n_tries.times do
+            Fiddle::Pointer.allocate
+          end
+        end
+      else
+        # TruffleRuby - MRI was -rfiddle.so
+        assert_no_memory_leak(%w[-W0 -rfiddle], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true)
+      end
     end
   end
 end if defined?(Fiddle)

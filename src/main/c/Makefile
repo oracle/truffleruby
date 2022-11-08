@@ -30,12 +30,22 @@ BASIC_EXTCONF_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) 
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
 
+DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.4.0
+DEBUG_GEM_EXT := $(DEBUG_GEM)/ext/debug
+DEBUG_GEM_EXT_SO := $(DEBUG_GEM_EXT)/debug.$(DLEXT)
+DEBUG_GEM_LIB_SO := $(DEBUG_GEM)/lib/debug/debug.$(DLEXT)
+
+RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.1.0
+RBS_GEM_EXT := $(RBS_GEM)/ext/rbs_extension
+RBS_GEM_EXT_SO := $(RBS_GEM_EXT)/rbs_extension.$(DLEXT)
+RBS_GEM_LIB_SO := $(RBS_GEM)/lib/rbs_extension.$(DLEXT)
+
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
 all: $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) ripper/ripper.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
 			bigdecimal/bigdecimal.$(DLEXT) date/date_core.$(DLEXT) io-console/console.$(DLEXT) etc/etc.$(DLEXT) \
-			rbconfig-sizeof/sizeof.$(DLEXT)
+			rbconfig-sizeof/sizeof.$(DLEXT) $(DEBUG_GEM_LIB_SO) $(RBS_GEM_LIB_SO)
 
 clean: clean_cexts clean_truffleposix
 
@@ -55,6 +65,8 @@ clean_cexts:
 	$(Q) rm -f io-console/Makefile io-console/*.o io-console/console.$(DLEXT)
 	$(Q) rm -f etc/Makefile etc/*.o etc/etc.$(DLEXT) etc/constdefs.h
 	$(Q) rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.o rbconfig-sizeof/sizeof.$(DLEXT)
+	$(Q) rm -f $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.o $(DEBUG_GEM_EXT_SO) $(DEBUG_GEM_LIB_SO)
+	$(Q) rm -f $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.o $(RBS_GEM_EXT_SO) $(RBS_GEM_LIB_SO)
 
 # spawn-helper
 $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
@@ -153,3 +165,23 @@ psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
 
 psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
 	$(Q) cd psych && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+
+# debug bundled gem
+$(DEBUG_GEM_EXT)/Makefile: $(DEBUG_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
+	$(Q) cd $(DEBUG_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c $(DEBUG_GEM_EXT)/*.h
+	$(Q) cd $(DEBUG_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+
+$(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)
+	$(Q) cp $< $@
+
+# rbs bundled gem
+$(RBS_GEM_EXT)/Makefile: $(RBS_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
+	$(Q) cd $(RBS_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+$(RBS_GEM_EXT_SO): $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
+	$(Q) cd $(RBS_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+
+$(RBS_GEM_LIB_SO): $(RBS_GEM_EXT_SO)
+	$(Q) cp $< $@

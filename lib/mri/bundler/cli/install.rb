@@ -12,6 +12,8 @@ module Bundler
 
       warn_if_root
 
+      Bundler.self_manager.install_locked_bundler_and_restart_with_it_if_needed
+
       Bundler::SharedHelpers.set_env "RB_USER_INSTALL", "1" if Bundler::FREEBSD
 
       # Disable color in deployment mode
@@ -133,39 +135,17 @@ module Bundler
     end
 
     def normalize_groups
-      options[:with] &&= options[:with].join(":").tr(" ", ":").split(":")
-      options[:without] &&= options[:without].join(":").tr(" ", ":").split(":")
-
       check_for_group_conflicts_in_cli_options
 
-      Bundler.settings.set_command_option :with, nil if options[:with] == []
-      Bundler.settings.set_command_option :without, nil if options[:without] == []
-
-      with = options.fetch(:with, [])
-      with |= Bundler.settings[:with].map(&:to_s)
-      with -= options[:without] if options[:without]
-
-      without = options.fetch(:without, [])
-      without |= Bundler.settings[:without].map(&:to_s)
-      without -= options[:with] if options[:with]
-
-      options[:with]    = with
-      options[:without] = without
-
-      unless Bundler.settings[:without] == options[:without] && Bundler.settings[:with] == options[:with]
-        # need to nil them out first to get around validation for backwards compatibility
-        Bundler.settings.set_command_option :without, nil
-        Bundler.settings.set_command_option :with,    nil
-        Bundler.settings.set_command_option :without, options[:without] - options[:with]
-        Bundler.settings.set_command_option :with,    options[:with]
-      end
+      # need to nil them out first to get around validation for backwards compatibility
+      Bundler.settings.set_command_option :without, nil
+      Bundler.settings.set_command_option :with,    nil
+      Bundler.settings.set_command_option :without, options[:without]
+      Bundler.settings.set_command_option :with,    options[:with]
     end
 
     def normalize_settings
       Bundler.settings.set_command_option :path, nil if options[:system]
-      Bundler.settings.temporary(:path_relative_to_cwd => false) do
-        Bundler.settings.set_command_option :path, "vendor/bundle" if Bundler.settings[:deployment] && Bundler.settings[:path].nil?
-      end
       Bundler.settings.set_command_option_if_given :path, options[:path]
       Bundler.settings.temporary(:path_relative_to_cwd => false) do
         Bundler.settings.set_command_option :path, "bundle" if options["standalone"] && Bundler.settings[:path].nil?
@@ -185,7 +165,7 @@ module Bundler
 
       Bundler.settings.set_command_option_if_given :clean, options["clean"]
 
-      normalize_groups
+      normalize_groups if options[:without] || options[:with]
 
       options[:force] = options[:redownload]
     end

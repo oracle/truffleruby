@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 require_relative 'helper'
+begin
+  require 'webrick'
+rescue LoadError
+end
 
 # Load those eagerly, otherwise require 'json' inside fails due to `Gem::Specification.all = [@spec]`, also on CRuby
 _load_eagerly = [

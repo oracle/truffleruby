@@ -1,0 +1,5 @@
+exclude :test_05_tompng, "pid 272929 exit 1"
+exclude :test_01_kinaba, "pid 272949 exit 1"
+exclude :test_03_tompng, "pid 272969 exit 1"
+exclude :test_02_mame, "Errno::ENOENT: No such file or directory - /home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/../sample/trick2018/02-mame/entry.rb"
+exclude :test_04_colin, "Errno::ENOENT: No such file or directory - /home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/../sample/trick2018/04-colin/entry.rb"

@@ -35,10 +35,10 @@ module Gem::InstallUpdateOptions
                'List the documentation types you wish to',
                'generate.  For example: rdoc,ri') do |value, options|
       options[:document] = case value
-                           when nil   then %w[ri]
-                           when false then []
-                           else            value
-                           end
+      when nil   then %w[ri]
+      when false then []
+      else            value
+      end
     end
 
     add_option(:"Install/Update", '--build-root DIR',
@@ -181,10 +181,19 @@ module Gem::InstallUpdateOptions
   end
 
   ##
-  # Default options for the gem install command.
+  # Default options for the gem install and update commands.
+
+  def install_update_options
+    {
+      :document => %w[ri],
+    }
+  end
+
+  ##
+  # Default description for the gem install and update commands.
 
   def install_update_defaults_str
-    '--document=rdoc,ri --wrappers'
+    '--document=ri'
   end
 
 end

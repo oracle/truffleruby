@@ -8,7 +8,7 @@
 require 'rbconfig'
 
 module Gem
-  VERSION = "3.2.32".freeze
+  VERSION = "3.3.7".freeze
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -163,16 +163,6 @@ module Gem
     specifications/default
   ].freeze
 
-  ##
-  # Exception classes used in a Gem.read_binary +rescue+ statement
-
-  READ_BINARY_ERRORS = [Errno::EACCES, Errno::EROFS, Errno::ENOSYS, Errno::ENOTSUP].freeze
-
-  ##
-  # Exception classes used in Gem.write_binary +rescue+ statement
-
-  WRITE_BINARY_ERRORS = [Errno::ENOSYS, Errno::ENOTSUP].freeze
-
   @@win_platform = nil
 
   @configuration = nil
@@ -272,9 +262,6 @@ module Gem
 
     unless spec = specs.first
       msg = "can't find gem #{dep} with executable #{exec_name}"
-      if dep.filters_bundler? && bundler_message = Gem::BundlerVersionFinder.missing_version_message
-        msg = bundler_message
-      end
       raise Gem::GemNotFoundException, msg
     end
 
@@ -619,17 +606,10 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   def self.load_yaml
     return if @yaml_loaded
 
-    begin
-      # Try requiring the gem version *or* stdlib version of psych.
-      require 'psych'
-    rescue ::LoadError
-      # If we can't load psych, that's fine, go on.
-    else
-      require_relative 'rubygems/psych_additions'
-      require_relative 'rubygems/psych_tree'
-    end
+    require 'psych'
+    require_relative 'rubygems/psych_additions'
+    require_relative 'rubygems/psych_tree'
 
-    require 'yaml'
     require_relative 'rubygems/safe_yaml'
 
     @yaml_loaded = true
@@ -779,40 +759,42 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   # Safely read a file in binary mode on all platforms.
 
   def self.read_binary(path)
-    File.open path, 'rb+' do |f|
-      f.flock(File::LOCK_EX)
-      f.read
+    open_file(path, 'rb+') do |io|
+      io.read
     end
-  rescue *READ_BINARY_ERRORS
-    File.open path, 'rb' do |f|
-      f.read
-    end
-  rescue Errno::ENOLCK # NFS
-    if Thread.main != Thread.current
-      raise
-    else
-      File.open path, 'rb' do |f|
-        f.read
-      end
+  rescue Errno::EACCES, Errno::EROFS
+    open_file(path, 'rb') do |io|
+      io.read
     end
   end
 
   ##
   # Safely write a file in binary mode on all platforms.
   def self.write_binary(path, data)
-    File.open(path, 'wb') do |io|
-      begin
-        io.flock(File::LOCK_EX)
-      rescue *WRITE_BINARY_ERRORS
-      end
+    open_file(path, 'wb') do |io|
       io.write data
+    end
+  end
+
+  ##
+  # Open a file with given flags, and on Windows protect access with flock
+
+  def self.open_file(path, flags, &block)
+    File.open(path, flags) do |io|
+      if !java_platform? && win_platform?
+        begin
+          io.flock(File::LOCK_EX)
+        rescue Errno::ENOSYS, Errno::ENOTSUP
+        end
+      end
+      yield io
     end
   rescue Errno::ENOLCK # NFS
     if Thread.main != Thread.current
       raise
     else
-      File.open(path, 'wb') do |io|
-        io.write data
+      File.open(path, flags) do |io|
+        yield io
       end
     end
   end
@@ -854,7 +836,7 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
     fetcher      = Gem::SpecFetcher.fetcher
     spec_tuples, = fetcher.spec_for_dependency dependency
 
-    spec, = spec_tuples.first
+    spec, = spec_tuples.last
 
     spec
   end
@@ -1024,6 +1006,13 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
 
   def self.java_platform?
     RUBY_PLATFORM == "java"
+  end
+
+  ##
+  # Is this platform Solaris?
+
+  def self.solaris_platform?
+    RUBY_PLATFORM =~ /solaris/
   end
 
   ##
@@ -1293,7 +1282,12 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
     end
 
     def default_gem_load_paths
-      @default_gem_load_paths ||= $LOAD_PATH[load_path_insert_index..-1]
+      @default_gem_load_paths ||= $LOAD_PATH[load_path_insert_index..-1].map do |lp|
+        expanded = File.expand_path(lp)
+        next expanded unless File.exist?(expanded)
+
+        File.realpath(expanded)
+      end
     end
   end
 
@@ -1310,40 +1304,21 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   autoload :Licenses,           File.expand_path('rubygems/util/licenses', __dir__)
   autoload :NameTuple,          File.expand_path('rubygems/name_tuple', __dir__)
   autoload :PathSupport,        File.expand_path('rubygems/path_support', __dir__)
-  autoload :Platform,           File.expand_path('rubygems/platform', __dir__)
   autoload :RequestSet,         File.expand_path('rubygems/request_set', __dir__)
-  autoload :Requirement,        File.expand_path('rubygems/requirement', __dir__)
   autoload :Resolver,           File.expand_path('rubygems/resolver', __dir__)
   autoload :Source,             File.expand_path('rubygems/source', __dir__)
   autoload :SourceList,         File.expand_path('rubygems/source_list', __dir__)
   autoload :SpecFetcher,        File.expand_path('rubygems/spec_fetcher', __dir__)
-  autoload :Specification,      File.expand_path('rubygems/specification', __dir__)
+  autoload :SpecificationPolicy, File.expand_path('rubygems/specification_policy', __dir__)
   autoload :Util,               File.expand_path('rubygems/util', __dir__)
   autoload :Version,            File.expand_path('rubygems/version', __dir__)
 end
 
 require_relative 'rubygems/exceptions'
+# the autoload + patch seems problematic for require 'rubygems/specification' in user code before require 'rubygems'
+require_relative 'rubygems/specification' if defined?(::TruffleRuby)
 
 # REFACTOR: This should be pulled out into some kind of hacks file.
-begin
-  ##
-  # Defaults the Ruby implementation wants to provide for RubyGems
-
-  require "rubygems/defaults/#{RUBY_ENGINE}"
-rescue LoadError
-end
-
-# the autoload + patch seems problematic for require 'rubygems/specification' in user code before require 'rubygems'
-require 'rubygems/specification' if defined?(::TruffleRuby)
-
-##
-# Loads the default specs.
-Gem::Specification.load_defaults
-
-require_relative 'rubygems/core_ext/kernel_gem'
-require_relative 'rubygems/core_ext/kernel_require'
-require_relative 'rubygems/core_ext/kernel_warn'
-
 begin
   ##
   # Defaults the operating system (or packager) wants to provide for RubyGems.
@@ -1359,3 +1334,19 @@ rescue StandardError => e
     "the problem and ask for help."
   raise e.class, msg
 end
+
+begin
+  ##
+  # Defaults the Ruby implementation wants to provide for RubyGems
+
+  require "rubygems/defaults/#{RUBY_ENGINE}"
+rescue LoadError
+end
+
+##
+# Loads the default specs.
+Gem::Specification.load_defaults
+
+require_relative 'rubygems/core_ext/kernel_gem'
+require_relative 'rubygems/core_ext/kernel_require'
+require_relative 'rubygems/core_ext/kernel_warn'

@@ -382,11 +382,17 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return implementationName;
     }
 
-    // To update this, use:
-    // ruby --help | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
-    // replace ruby by truffleruby for the first line, and remove unsupported flags.
-    // Also add an extra out.println(); before out.println("Features:"); and out.println("Warning categories:");
-    // Remove the "Dump List:" section and jit-related lines.
+    /*-
+     * To update this:
+     *   - run `ruby --help | ruby -e 'puts STDIN.readlines.map { |line| "out.println(#{line.chomp.inspect});" }'`;
+     *   - replace "ruby" by "truffleruby" in the first line;
+     *   - remove unsupported flags;
+     *   - add an extra `out.println();` before:
+     *     - `out.println("Features:");` and
+     *     - `out.println("Warning categories:");`;
+     *   - remove the "Dump List:" section;
+     *   - remove JIT-related lines.
+     */
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\\0, if no argument)");
@@ -412,18 +418,18 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("                  set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  --copyright     print the copyright");
-        out.println("  --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]");
+        out.println("  --enable={rubyopt|...}[,...], --disable={rubyopt|...}[,...]");
         out.println("                  enable or disable features. see below for available features");
         out.println("  --external-encoding=encoding, --internal-encoding=encoding");
         out.println("                  specify the default external or internal character encoding");
+        out.println("  --backtrace-limit=num");
+        out.println("                  limit the maximum length of backtrace");
         out.println("  --verbose       turn on verbose mode and disable script from stdin");
         out.println("  --version       print the version number, then exit");
         out.println("  --help          show this message, -h for short message");
-        out.println("  --backtrace-limit=num");
-        out.println("                  limit the maximum length of backtrace");
         out.println();
         out.println("Features:");
-        out.println("  gems            rubygems (default: enabled)");
+        out.println("  gems            rubygems (only for debugging, default: enabled)");
         out.println("  did_you_mean    did_you_mean (default: enabled)");
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");

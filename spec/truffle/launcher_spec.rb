@@ -20,12 +20,13 @@ describe "The launcher" do
   @launchers = {
     bundle: escape["Bundler version #{@default_gems['bundler']}"],
     bundler: escape["Bundler version #{@default_gems['bundler']}"],
-    erb: escape["erb.rb [#{@default_gems['erb']} $]"],
+    erb: escape[@default_gems['erb']],
     gem: escape[@default_gems['gem']],
-    irb: escape["irb #{@default_gems['irb']} (2021-04-03)"],
+    irb: escape["irb #{@default_gems['irb']} (2021-12-25)"],
     racc: escape["racc version #{@default_gems['racc']}"],
     rake: escape["rake, version #{@bundled_gems['rake']}"],
     rbs: escape["rbs #{@bundled_gems['rbs']}"],
+    rdbg: escape["rdbg #{@bundled_gems['debug']}"],
     rdoc: escape[@default_gems['rdoc']],
     ri: escape["ri #{@default_gems['rdoc']}"],
     ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
@@ -402,8 +403,9 @@ describe "The launcher" do
   end
 
   it "warns if the locale is not set properly" do
-    ruby_exe("Encoding.find('locale')", args: "2>&1", env: { "LC_ALL" => "C" }).should.include? \
-      "[ruby] WARNING: Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly"
+    err = ruby_exe("Encoding.find('locale')", args: "2>&1", env: { "LC_ALL" => "C" })
+    err.should.include? "[ruby] WARNING: Encoding.find('locale') is US-ASCII (due to nl_langinfo(CODESET) which returned "
+    err.should.include? "), this often indicates that the system locale is not set properly"
   end
 
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|

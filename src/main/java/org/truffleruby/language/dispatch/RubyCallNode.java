@@ -165,6 +165,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(rubyArgs)) {
             rubyArgs = removeEmptyKeywordArguments(rubyArgs);
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
+            ruby2KeywordsHash = false;
         }
         RubyArguments.setDescriptor(rubyArgs, descriptor);
 

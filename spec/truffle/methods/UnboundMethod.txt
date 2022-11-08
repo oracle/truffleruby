@@ -10,6 +10,9 @@ name
 original_name
 owner
 parameters
+private?
+protected?
+public?
 source_location
 super_method
 to_s

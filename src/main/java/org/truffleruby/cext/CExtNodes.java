@@ -1498,7 +1498,7 @@ public class CExtNodes {
     public abstract static class RetrieveException extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object retrieveException() {
+        protected CapturedException retrieveException() {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             return extensionStack.getException();
         }

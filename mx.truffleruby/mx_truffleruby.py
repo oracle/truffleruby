@@ -263,6 +263,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'bin/racc',
         'bin/rake',
         'bin/rbs',
+        'bin/rdbg',
         'bin/rdoc',
         'bin/ri',
         'bin/typeprof',

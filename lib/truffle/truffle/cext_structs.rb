@@ -174,9 +174,10 @@ class Truffle::CExt::RBasic
     when 1<<6;        'RUBY_FL_PROMOTED1 (1<<6)'
     when 1<<5 | 1<<6; 'RUBY_FL_PROMOTED (1<<5 | 1<<6)'
     when 1<<7;        'RUBY_FL_FINALIZE (1<<7)'
-    when 1<<8;        'RUBY_FL_FREEZE (1<<8)'
+    when 1<<8;        'RUBY_FL_TAINT or RUBY_FL_SHAREABLE (1<<8)'
+    when 1<<9;        'RUBY_FL_SEEN_OBJ_ID (1<<9)'
     when 1<<10;       'RUBY_FL_EXIVAR (1<<10)'
-    when 1<<11;       'RUBY_FL_TAINT (1<<11)'
+    when 1<<11;       'RUBY_FL_FREEZE (1<<11)'
     when 1<<2 | 1<<3; 'RUBY_FL_USHIFT (1<<2 | 1<<3)'
     else;             "unknown flag (#{flag})"
     end
@@ -200,6 +201,7 @@ class Truffle::CExt::RBasic
 
   def set_flags(flags)
     if flags & RUBY_FL_TAINT != 0
+      # noop
       flags &= ~RUBY_FL_TAINT
     end
 

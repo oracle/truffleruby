@@ -147,6 +147,7 @@ end
   end
 
   def test_find_in_unresolved_tree_is_not_exponentiental
+    pend "currently slower in CI on TruffleRuby" if RUBY_ENGINE == 'truffleruby'
     num_of_pkg = 7
     num_of_version_per_pkg = 3
     packages = (0..num_of_pkg).map do |pkgi|
@@ -873,24 +874,21 @@ dependencies: []
   end
 
   def test_self_load_utf8_with_ascii_encoding
-    int_enc = Encoding.default_internal
-    silence_warnings { Encoding.default_internal = 'US-ASCII' }
+    with_internal_encoding('US-ASCII') do
+      spec2 = @a2.dup
+      bin = "\u5678".dup
+      spec2.authors = [bin]
+      full_path = spec2.spec_file
+      write_file full_path do |io|
+        io.write spec2.to_ruby_for_cache.force_encoding('BINARY').sub("\\u{5678}", bin.force_encoding('BINARY'))
+      end
 
-    spec2 = @a2.dup
-    bin = "\u5678".dup
-    spec2.authors = [bin]
-    full_path = spec2.spec_file
-    write_file full_path do |io|
-      io.write spec2.to_ruby_for_cache.force_encoding('BINARY').sub("\\u{5678}", bin.force_encoding('BINARY'))
+      spec = Gem::Specification.load full_path
+
+      spec2.files.clear
+
+      assert_equal spec2, spec
     end
-
-    spec = Gem::Specification.load full_path
-
-    spec2.files.clear
-
-    assert_equal spec2, spec
-  ensure
-    silence_warnings { Encoding.default_internal = int_enc }
   end
 
   def test_self_load_legacy_ruby
@@ -944,7 +942,7 @@ dependencies: []
   end
 
   def test_self_outdated_and_latest_remotes
-    specs = spec_fetcher do |fetcher|
+    spec_fetcher do |fetcher|
       fetcher.download 'a', 4
       fetcher.download 'b', 3
 
@@ -953,8 +951,8 @@ dependencies: []
     end
 
     expected = [
-      [specs['a-3.a'], v(4)],
-      [specs['b-2'],   v(3)],
+      [Gem::Specification.stubs.find {|s| s.full_name == 'a-3.a' }, v(4)],
+      [Gem::Specification.stubs.find {|s| s.full_name == 'b-2' }, v(3)],
     ]
 
     assert_equal expected, Gem::Specification.outdated_and_latest_version.to_a
@@ -3744,12 +3742,5 @@ end
         File.umask(umask_orig)
       end
     end
-  end
-
-  def silence_warnings
-    old_verbose, $VERBOSE = $VERBOSE, false
-    yield
-  ensure
-    $VERBOSE = old_verbose
   end
 end

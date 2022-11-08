@@ -1,10 +1,8 @@
 # coding: utf-8
 
-bigdecimal_version = '3.0.0'
-
 Gem::Specification.new do |s|
   s.name          = "bigdecimal"
-  s.version       = bigdecimal_version
+  s.version       = "3.1.1"
   s.authors       = ["Kenta Murata", "Zachary Scott", "Shigeo Kobayashi"]
   s.email         = ["mrkn@mrkn.jp"]
 
@@ -19,6 +17,12 @@ Gem::Specification.new do |s|
     bigdecimal.gemspec
     ext/bigdecimal/bigdecimal.c
     ext/bigdecimal/bigdecimal.h
+    ext/bigdecimal/bits.h
+    ext/bigdecimal/feature.h
+    ext/bigdecimal/missing.c
+    ext/bigdecimal/missing.h
+    ext/bigdecimal/missing/dtoa.c
+    ext/bigdecimal/static_assert.h
     lib/bigdecimal.rb
     lib/bigdecimal/jacobian.rb
     lib/bigdecimal/ludcmp.rb
@@ -30,10 +34,5 @@ Gem::Specification.new do |s|
     sample/pi.rb
   ]
 
-  s.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
-
-  s.add_development_dependency "rake", ">= 12.3.3"
-  s.add_development_dependency "rake-compiler", ">= 0.9"
-  s.add_development_dependency "minitest", "< 5.0.0"
-  s.add_development_dependency "pry"
+  s.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 end

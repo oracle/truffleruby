@@ -17,7 +17,7 @@
  *             recursively included  from extension  libraries written  in C++.
  *             Do not  expect for  instance `__VA_ARGS__` is  always available.
  *             We assume C99  for ruby itself but we don't  assume languages of
- *             extension libraries. They could be written in C++98.
+ *             extension libraries.  They could be written in C++98.
  * @brief      Defines struct ::RFile.
  */
 #include "ruby/internal/core/rbasic.h"
@@ -27,8 +27,17 @@
  * into ruby/ruby.h.  We follow that tradition. */
 struct rb_io_t;
 
+/**
+ * Ruby's File  and IO.  Ruby's  IO are not  just file descriptors.   They have
+ * buffers.   They also  have  encodings.  Various  information are  controlled
+ * using this struct.
+ */
 struct RFile {
+
+    /** Basic part, including flags and class. */
     struct RBasic basic;
+
+    /** IO's specific fields. */
     struct rb_io_t *fptr;
 };
 
@@ -36,6 +45,12 @@ struct RFile {
 POLYGLOT_DECLARE_STRUCT(RFile)
 #endif
 
+/**
+ * Convenient casting macro.
+ *
+ * @param   obj  An object, which is in fact an ::RFile.
+ * @return  The passed object casted to ::RFile.
+ */
 #ifdef TRUFFLERUBY
 #define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
 #else

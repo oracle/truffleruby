@@ -29,8 +29,7 @@ local common = import "common.json";
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
-  local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "3.0.2",
+  local mri_version = "3.1.2",
 
   use: {
     common: {
@@ -133,7 +132,7 @@ local part_definitions = {
         HOST_VM_CONFIG: "default",
         GUEST_VM: "mri",
         GUEST_VM_CONFIG: "default",
-        RUBY_BIN: mri_path(mri_version),
+        RUBY_BIN: "ruby",
       },
     },
 
@@ -249,12 +248,17 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_deps = common.sulong.deps.linux + {
+    local linux_amd64_deps = common.sulong.deps.linux + {
       packages+: {
         git: ">=1.8.3",
-        mercurial: ">=3.2.4",
         binutils: ">=2.30",
         ruby: "==" + mri_version,
+      },
+    },
+
+    local linux_aarch64_deps = common.sulong.deps.linux + {
+      packages+: {
+        ruby: "==3.0.2",
       },
     },
 
@@ -270,7 +274,7 @@ local part_definitions = {
       },
     },
 
-    linux: linux_deps + {
+    linux: linux_amd64_deps + {
       platform_name:: "LinuxAMD64",
       platform: "linux",
       arch:: "amd64",
@@ -283,7 +287,7 @@ local part_definitions = {
         mount_modules: true,
       },
     },
-    linux_aarch64: linux_deps + {
+    linux_aarch64: linux_aarch64_deps + {
       platform_name:: "LinuxAArch64",
       platform: "linux",
       arch:: "aarch64",
@@ -351,8 +355,9 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
         "RUBY_SPEC_TEST_ZLIB_CRC_TABLE": "false", # CRuby was built on OL6 and is used on OL7
       },
-      run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
-            jt(["-u", mri_path("2.7.2"), "mspec", "spec/ruby"]),
+      run+: jt(["-u", "ruby", "mspec", "spec/ruby"]) +
+            jt(["-u", "/cm/shared/apps/ruby/3.0.2/bin/ruby", "mspec", "spec/ruby"]) +
+            jt(["-u", "/cm/shared/apps/ruby/2.7.2/bin/ruby", "mspec", "spec/ruby"]),
     },
 
     test_fast: {

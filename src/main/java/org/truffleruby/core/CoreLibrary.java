@@ -158,6 +158,7 @@ public class CoreLibrary {
     public final RubyClass regexpErrorClass;
     public final RubyClass graalErrorClass;
     public final RubyClass runtimeErrorClass;
+    public final RubyClass refinementClass;
     public final RubyClass signalExceptionClass;
     public final RubyClass systemStackErrorClass;
     public final RubyClass securityErrorClass;
@@ -410,6 +411,7 @@ public class CoreLibrary {
         rangeClass = defineClass("Range");
 
         regexpClass = defineClass("Regexp");
+        refinementClass = defineClass(moduleClass, "Refinement");
         stringClass = defineClass("String");
         symbolClass = defineClass("Symbol");
 

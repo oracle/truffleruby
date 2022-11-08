@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -1543,6 +1544,30 @@ public abstract class IntegerNodes {
                     Encodings.US_ASCII); // CR_7BIT
         }
 
+    }
+
+    @Primitive(name = "ruby_integer?")
+    public abstract static class IsRubyIntegerNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean doInt(int a) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doLong(long a) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doBignum(RubyBignum a) {
+            return true;
+        }
+
+        @Fallback
+        protected boolean other(Object a) {
+            return false;
+        }
     }
 
     @Primitive(name = "integer_fits_into_int")
