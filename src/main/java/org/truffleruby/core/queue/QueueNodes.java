@@ -227,15 +227,12 @@ public abstract class QueueNodes {
                         coreExceptions().typeErrorCantConvertTo(enumerable, "Array", "to_a", coerced, this));
             }
 
-            RubyArray array = (RubyArray) coerced;
-            final int size = array.size;
-            final Object store = array.getStore();
+            RubyArray rubyArray = (RubyArray) coerced;
+            final int size = rubyArray.size;
+            final Object store = rubyArray.getStore();
             final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-
-            for (int i = 0; i < size; i++) {
-                Object v = stores.read(store, i);
-                self.queue.add(v);
-            }
+            final Object[] array = stores.boxedCopyOfRange(store, 0, size);
+            self.queue.addAll(array);
 
             return self;
         }
