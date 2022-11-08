@@ -1,0 +1,3 @@
+fails:UnboundMethod#protected? returns false when the method is public
+fails:UnboundMethod#protected? returns true when the method is protected
+fails:UnboundMethod#protected? returns false when the method is private

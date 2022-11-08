@@ -1,1 +1,2 @@
 fails:Time#strftime with %N formats the picoseconds of the second with %12N
+fails:Time#strftime supports RFC 3339 UTC for unknown offset local time, -0000, as %-z

@@ -1,0 +1,1 @@
+fails:Enumerable#each_slice returns self when a block is given
