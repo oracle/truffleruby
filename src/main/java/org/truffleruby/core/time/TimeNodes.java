@@ -13,7 +13,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -36,6 +38,7 @@ import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -161,8 +164,16 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "gmtime", "utc" })
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected RubyTime gmtime(RubyTime time) {
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected RubyTime gmtime(RubyTime time,
+                @Cached BranchProfile errorProfile,
+                @CachedLibrary("time") RubyLibrary rubyLibrary) {
+
+            if (!time.isUtc && rubyLibrary.isFrozen(time)) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().frozenError(time, this));
+            }
+
             final ZonedDateTime dateTime = time.dateTime;
 
             time.isUtc = true;

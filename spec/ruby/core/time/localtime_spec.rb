@@ -29,10 +29,10 @@ describe "Time#localtime" do
       time.localtime.should equal(time)
     end
 
-    it "raises a RuntimeError if the time has a different time zone" do
+    it "raises a FrozenError if the time has a different time zone" do
       time = Time.gm(2007, 1, 9, 12, 0, 0)
       time.freeze
-      -> { time.localtime }.should raise_error(RuntimeError)
+      -> { time.localtime }.should raise_error(FrozenError)
     end
   end
 

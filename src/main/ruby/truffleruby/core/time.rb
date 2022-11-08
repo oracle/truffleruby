@@ -172,12 +172,19 @@ class Time
 
   def localtime(offset = nil)
     if offset
-      isUtc = self.class.send(:utc_offset_in_utc?, offset)
+      toUtc = self.class.send(:utc_offset_in_utc?, offset)
       offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
 
+    # the only cases when #localtime is allowed for a frozen time -
+    # - to covert from UTC to UTC
+    # - to convert from local time to the same local time
+    if frozen? && !(utc? && toUtc || !utc? && offset.nil?)
+      raise FrozenError, "can't modify frozen Time: #{self}"
+    end
+
     # the only time zone that could be derived from utc_offset now is UTC
-    if isUtc
+    if toUtc
       Primitive.time_utctime(self)
     else
       Primitive.time_localtime(self, offset)

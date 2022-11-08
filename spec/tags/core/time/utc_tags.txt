@@ -1,2 +1,1 @@
-fails:Time#utc on a frozen time raises a RuntimeError if the time is not UTC
 fails:Time.utc raises an ArgumentError for out of range microsecond
