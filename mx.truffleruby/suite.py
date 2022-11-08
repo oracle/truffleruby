@@ -62,8 +62,8 @@ suite = {
                 "artifactId": "joni",
                 "version": "2.1.41"
             },
-            "sha1": "4a35f4eaef792073bc081b756b1f4949879cd41e",
-            "sourceSha1": "47c1c2b6ee8c27b9c76d1ad57fa65a936743b2ff",
+            "digest": "sha512:88728bb3b6cf8b385e3a4639981ab8a54e977291cbb1d8b60fddd3a3381d9d5f356faa46b6b15b9ccf6ed4a2a42552152a254bfeab60f8b2ddac4959300212ac",
+            "sourceDigest": "sha512:8502efcc9ab4d31aa92eb9c279f02b9cb1ab2d9c65660635a84d9ef6e773b05ebae026043ed7749a41dc0ee8b5f822d2e88ba44b3f6e244b145d61f2095e8d77",
             "license": ["MIT"],
         },
 
@@ -73,19 +73,19 @@ suite = {
                 "artifactId": "jcodings",
                 "version": "1.0.55"
             },
-            "sha1": "57169ef6964f44aef67b247cb87f053d93182488",
-            "sourceSha1": "071891163f601416a5426d8f05b7d46139217ff1",
+            "digest": "sha512:791c1442ca0aad9132f5d2d641f9bacf5b461e11fa2f8d2010af0de77ee2629a330c739004699bb987e331798e1eea06b5b6b15b7e7dd6d41f3322edce805d6b",
+            "sourceDigest": "sha512:8935def3d670972d1d82a981fe3fbd999abffac07350c46419f1e542c4529f00c949e3eef442321fce23941b648cb09de157114ec751c0ef85c7ccfa6b719445",
             "license": ["MIT"],
         },
 
-        "NETBEANS-LIB-PROFILER" : {
-            "moduleName" : "org.netbeans.modules.org-netbeans-lib-profiler",
-            "sha1" : "2bcd32411df5d9c5348c98cf7024ac8b76137868",
-            "sourceSha1" : "9943534904689dcf93d3bcaca8293583e9d56266",
-            "maven" : {
-              "groupId" : "org.netbeans.modules",
-              "artifactId" : "org-netbeans-lib-profiler",
-              "version" : "RELEASE120-1",
+        "NETBEANS-LIB-PROFILER": {
+            "moduleName": "org.netbeans.modules.org-netbeans-lib-profiler",
+            "digest": "sha512:1de81a0340c0266b41ba774600346ac977910663016a0afa22859cf1eb9d9e507de4f66e3f51d5bd9575b1d1f083765ecb9b30c4d43adb201f68b83257e8a17d",
+            "sourceDigest": "sha512:92c50b8832e3a9afc93f9eaacdfc79cdf2487a74a9f5cf93c54bed50e904ef70ac6504018558d7183f074132c37fe57b21bc1e662a71c74c4201b75cdc5f8947",
+            "maven": {
+              "groupId": "org.netbeans.modules",
+              "artifactId": "org-netbeans-lib-profiler",
+              "version": "RELEASE120-1",
             },
         },
     },
