@@ -1069,6 +1069,7 @@ module Truffle::CExt
       e = retrieve_exception
       tag = extract_tag(e)
       raise RuntimeError, 'mismatch between jump tag and captured exception' unless pos == tag
+      Primitive.thread_set_exception(nil)
       raise_exception(e)
     end
   end
