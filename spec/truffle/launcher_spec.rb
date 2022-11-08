@@ -31,7 +31,6 @@ describe "The launcher" do
     ri: escape["ri #{@default_gems['rdoc']}"],
     ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
     truffleruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
-    typeprof: escape["typeprof #{@bundled_gems['typeprof']}"],
   }
 
   before :all do
