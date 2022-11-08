@@ -530,7 +530,8 @@ public abstract class TimeNodes {
         private RubyTime buildTime(RubyLanguage language, RubyClass timeClass, int sec, int min, int hour, int mday,
                 int month,
                 int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
-            if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
+            if (nsec < 0 || nsec > 999999999 ||
+                    sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
                     mday < 1 || mday > 31 ||
