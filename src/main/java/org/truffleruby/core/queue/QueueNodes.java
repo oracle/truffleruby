@@ -17,13 +17,13 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
+import org.truffleruby.core.cast.ToANode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -203,35 +203,10 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "wasProvided(enumerable)")
         protected RubyQueue initialize(RubyQueue self, Object enumerable,
-                @Cached BranchProfile errorProfile,
-                @Cached DispatchNode toANode) {
-            final Object coerced;
-
-            try {
-                coerced = toANode.call(enumerable, "to_a");
-            } catch (RaiseException e) {
-                errorProfile.enter();
-                if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().typeErrorCantConvertInto(enumerable, "Array", this));
-                } else {
-                    throw e;
-                }
-            }
-
-            if (!(coerced instanceof RubyArray)) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorCantConvertTo(enumerable, "Array", "to_a", coerced, this));
-            }
-
-            RubyArray rubyArray = (RubyArray) coerced;
-            final int size = rubyArray.size;
-            final Object store = rubyArray.getStore();
+                @Cached ToANode toANode) {
+            final RubyArray rubyArray = toANode.executeToA(enumerable);
             final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-            final Object[] array = stores.boxedCopyOfRange(store, 0, size);
+            final Object[] array = stores.boxedCopyOfRange(rubyArray.getStore(), 0, rubyArray.size);
             self.queue.addAll(array);
 
             return self;

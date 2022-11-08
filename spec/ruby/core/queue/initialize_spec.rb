@@ -34,9 +34,16 @@ describe "Queue#initialize" do
       q.should.empty?
     end
 
-    it "raises if the provided Enumerable does not respond to #to_a" do
+    it "raises TypeError if the provided Enumerable does not respond to #to_a" do
       enumerable = MockObject.new('mock-enumerable')
       -> { Queue.new(enumerable) }.should raise_error(TypeError, "can't convert MockObject into Array")
+    end
+
+    it "raises TypeError if #to_a does not return Array" do
+      enumerable = MockObject.new('mock-enumerable')
+      enumerable.should_receive(:to_a).and_return("string")
+
+      -> { Queue.new(enumerable) }.should raise_error(TypeError, "can't convert MockObject to Array (MockObject#to_a gives String)")
     end
   end
 end
