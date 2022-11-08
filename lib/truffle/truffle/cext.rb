@@ -561,7 +561,7 @@ module Truffle::CExt
                nil
              end
     if err
-      Truffle::Type.set_last_exception(err)
+      Primitive.thread_set_exception(err)
       nil
     else
       result
@@ -1122,7 +1122,11 @@ module Truffle::CExt
   end
 
   def rb_set_errinfo(error)
-    Truffle::Type.set_last_exception(error)
+    if Primitive.nil?(error) || Primitive.object_kind_of?(error, Exception)
+      Primitive.thread_set_exception(error)
+    else
+      raise TypeError, 'assigning non-exception to ?!'
+    end
   end
 
   def rb_make_exception(args)
