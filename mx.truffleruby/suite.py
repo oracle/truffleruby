@@ -440,29 +440,11 @@ suite = {
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT": {
+            "fileListPurpose": 'native-image-resources',
             "native": True,
             "platformDependent": True,
             "description": "TruffleRuby support distribution for the GraalVM",
             "layout": {
-                "./": [
-                    "file:CHANGELOG.md",
-                    "file:README.md",
-                    "file:mx.truffleruby/native-image.properties",
-                ],
-                "bin/": [
-                    "file:exe/*",
-                ],
-                "doc/": [
-                    "file:doc/user",
-                    "file:doc/legal",
-                ],
-                "logo/": [
-                    "file:logo/ATTRIBUTION.md",
-                    "file:logo/LICENSE.txt",
-                ],
-                "logo/png/": [
-                    "file:logo/png/truffleruby_logo_horizontal_medium.png",
-                ],
                 "lib/": [
                     "file:lib/json",
                     "file:lib/mri",
@@ -509,6 +491,39 @@ suite = {
                 "lib/truffle/": [
                     "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
                 ],
+            },
+            "license": [
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+            ],
+        },
+
+        "TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES": {
+            "native": True,
+            "platformDependent": True,
+            "description": "TruffleRuby support distribution for the GraalVM, the contents is not included as native image resources.",
+            "layout": {
+                "./": [
+                    "file:CHANGELOG.md",
+                    "file:README.md",
+                    "file:mx.truffleruby/native-image.properties",
+                ],
+                "bin/": [
+                    "file:exe/*",
+                ],
+                "doc/": [
+                    "file:doc/user",
+                    "file:doc/legal",
+                ],
+                "logo/": [
+                    "file:logo/ATTRIBUTION.md",
+                    "file:logo/LICENSE.txt",
+                ],
+                "logo/png/": [
+                    "file:logo/png/truffleruby_logo_horizontal_medium.png",
+                ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/extconf.rb",
                     "file:src/main/c/openssl/*.c",
@@ -519,15 +534,10 @@ suite = {
                     },
                 ],
             },
-            "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # minitest, did_you_mean, rake
-                "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI
-            ],
         },
 
         "TRUFFLERUBY_GRAALVM_LICENSES": {
+            "fileListPurpose": 'native-image-resources',
             "native": True,
             "platformDependent": True,
             "description": "TruffleRuby support distribution for the GraalVM license files",

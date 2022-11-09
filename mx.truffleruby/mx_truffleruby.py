@@ -253,6 +253,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     ],
     support_distributions=[
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
+        'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES',
     ],
     provided_executables=[
         'bin/bundle',
