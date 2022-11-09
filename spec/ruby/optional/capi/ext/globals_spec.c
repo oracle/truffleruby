@@ -21,12 +21,12 @@ static VALUE sb_define_hooked_variable(VALUE self, VALUE var_name) {
 }
 
 static VALUE sb_define_hooked_variable_default_accessors(VALUE self, VALUE var_name) {
-  rb_define_hooked_variable(StringValuePtr(var_name), &g_hooked_var, NULL, NULL);
+  rb_define_hooked_variable(StringValuePtr(var_name), &g_hooked_var, (rb_gvar_getter_t*) NULL, (rb_gvar_setter_t*) NULL);
   return Qnil;
 }
 
 static VALUE sb_define_hooked_variable_null_var(VALUE self, VALUE var_name) {
-    rb_define_hooked_variable(StringValuePtr(var_name), NULL, NULL, NULL);
+    rb_define_hooked_variable(StringValuePtr(var_name), NULL, (rb_gvar_getter_t*) NULL, (rb_gvar_setter_t*) NULL);
     return Qnil;
 }
 
@@ -61,7 +61,7 @@ void incrementing_setter(VALUE val, ID id, VALUE *data) {
 }
 
 static VALUE sb_define_virtual_variable_default_accessors(VALUE self, VALUE name) {
-  rb_define_virtual_variable(StringValuePtr(name), NULL, NULL);
+  rb_define_virtual_variable(StringValuePtr(name), (rb_gvar_getter_t*) NULL, (rb_gvar_setter_t*) NULL);
   return Qnil;
 }
 

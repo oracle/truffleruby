@@ -28,6 +28,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
@@ -482,17 +483,17 @@ public abstract class IntegerNodes {
     public abstract static class IDivNode extends BignumCoreMethodNode {
 
         @Child private DivNode divNode = DivNodeFactory.create(null);
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         @Specialization
         protected Object idiv(Object a, Object b,
-                @Cached ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile,
+                @Cached FloatToIntegerNode floatToIntegerNode) {
             Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile((double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
-                return fixnumOrBignum.fixnumOrBignum(Math.floor((double) quotient));
+                return floatToIntegerNode.fixnumOrBignum(Math.floor((double) quotient));
             } else {
                 return quotient;
             }
@@ -709,7 +710,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean less(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b) < 0;
+            return BigIntegerOps.less(a, b);
         }
 
         @Specialization
@@ -754,7 +755,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean lessEqual(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b) <= 0;
+            return BigIntegerOps.lessEqual(a, b);
         }
 
         @Specialization
@@ -805,7 +806,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean equal(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b) == 0;
+            return BigIntegerOps.equal(a, b);
         }
 
         @Specialization
@@ -852,7 +853,12 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization
+        @Specialization(guards = "isNaN(b)")
+        protected Object compareNaN(long a, double b) {
+            return nil;
+        }
+
+        @Specialization(guards = "!isNaN(b)")
         protected int compare(long a, double b,
                 @Cached ConditionProfile equalProfile) {
             return FloatNodes.CompareNode.compareDoubles(a, b, equalProfile);
@@ -868,18 +874,14 @@ public abstract class IntegerNodes {
             return BigIntegerOps.compare(a, b);
         }
 
-        @Specialization(guards = "!isInfinity(b)")
-        protected int compare(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b);
+        @Specialization(guards = "isNaN(b)")
+        protected Object compareNaN(RubyBignum a, double b) {
+            return nil;
         }
 
-        @Specialization(guards = "isInfinity(b)")
-        protected int compareInfinity(RubyBignum a, double b) {
-            if (b < 0) {
-                return +1;
-            } else {
-                return -1;
-            }
+        @Specialization(guards = "!isNaN(b)")
+        protected int compare(RubyBignum a, double b) {
+            return BigIntegerOps.compare(a.value, b);
         }
 
         @Specialization
@@ -925,7 +927,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean greaterEqual(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b) >= 0;
+            return BigIntegerOps.greaterEqual(a, b);
         }
 
         @Specialization
@@ -971,7 +973,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean greater(RubyBignum a, double b) {
-            return BigIntegerOps.compare(a, b) > 0;
+            return BigIntegerOps.greater(a, b);
         }
 
         @Specialization

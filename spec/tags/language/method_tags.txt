@@ -4,3 +4,5 @@ fails:"An endless method definition with multiline body for definition \n    def
 fails:"An endless method definition with args forwarding for definition \n    def mm(word, num:)\n      word * num\n    end\n    def m(...) = mm(...) + mm(...)"
 fails:kwarg with omitted value in a method call accepts short notation 'kwarg' in method call for definition 'def call(*args, **kwargs) = [args, kwargs]'
 fails:"kwarg with omitted value in a method call with methods and local variables for definition \n    def call(*args, **kwargs) = [args, kwargs]\n    def bar\n      "baz"\n    end\n    def foo(val)\n      call bar:, val:\n    end"
+fails:An endless method definition without arguments without parenthesis for definition 'def m = 42'
+fails:Inside 'endless' method definitions allows method calls without parenthesis

@@ -185,15 +185,28 @@ public final class BigIntegerOps {
         return valueOf(a).compareTo(b);
     }
 
+    /** This throws NumberFormatException if value is NaN */
     @TruffleBoundary
     public static int compare(BigInteger a, double b) {
         // Emulate MRI behaviour.
         // This is also more precise than converting the BigInteger to a double.
+
+        if (Double.isInfinite(b)) {
+            return b < 0 ? 1 : -1;
+        }
+
         int cmp = a.compareTo(fromDouble(b));
         double fractional = b % 1;
         return cmp != 0 || fractional == 0.0
                 ? cmp
                 : fractional < 0 ? -1 : 1;
+    }
+
+    /** This throws NumberFormatException if value is NaN */
+    @TruffleBoundary
+    @SuppressFBWarnings("RV") // compare only returns -1, 0 or 1
+    public static int compare(double a, BigInteger b) {
+        return -compare(b, a);
     }
 
     // We add these RubyBignum overloads for compare because it is used relatively often,
@@ -211,13 +224,58 @@ public final class BigIntegerOps {
         return compare(a.value, b.value);
     }
 
-    public static int compare(RubyBignum a, double b) {
-        return compare(a.value, b);
+    // RubyBignum <=> double
+
+    @TruffleBoundary
+    public static boolean less(RubyBignum a, double b) {
+        return !Double.isNaN(b) && compare(a.value, b) < 0;
     }
 
-    @SuppressFBWarnings("RV") // compare only returns -1, 0 or 1
-    public static int compare(double a, RubyBignum b) {
-        return -compare(b.value, a);
+    @TruffleBoundary
+    public static boolean lessEqual(RubyBignum a, double b) {
+        return !Double.isNaN(b) && compare(a.value, b) <= 0;
+    }
+
+    @TruffleBoundary
+    public static boolean equal(RubyBignum a, double b) {
+        return !Double.isNaN(b) && compare(a.value, b) == 0;
+    }
+
+    @TruffleBoundary
+    public static boolean greaterEqual(RubyBignum a, double b) {
+        return !Double.isNaN(b) && compare(a.value, b) >= 0;
+    }
+
+    @TruffleBoundary
+    public static boolean greater(RubyBignum a, double b) {
+        return !Double.isNaN(b) && compare(a.value, b) > 0;
+    }
+
+    // double <=> RubyBignum
+
+    @TruffleBoundary
+    public static boolean less(double a, RubyBignum b) {
+        return !Double.isNaN(a) && compare(a, b.value) < 0;
+    }
+
+    @TruffleBoundary
+    public static boolean lessEqual(double a, RubyBignum b) {
+        return !Double.isNaN(a) && compare(a, b.value) <= 0;
+    }
+
+    @TruffleBoundary
+    public static boolean equal(double a, RubyBignum b) {
+        return !Double.isNaN(a) && compare(a, b.value) == 0;
+    }
+
+    @TruffleBoundary
+    public static boolean greaterEqual(double a, RubyBignum b) {
+        return !Double.isNaN(a) && compare(a, b.value) >= 0;
+    }
+
+    @TruffleBoundary
+    public static boolean greater(double a, RubyBignum b) {
+        return !Double.isNaN(a) && compare(a, b.value) > 0;
     }
 
     public static boolean isPositive(RubyBignum value) {
@@ -258,6 +316,7 @@ public final class BigIntegerOps {
         return longValue(value.value);
     }
 
+    /** This throws NumberFormatException if value is NaN or Infinity */
     @TruffleBoundary
     public static BigInteger fromDouble(double value) {
         return new BigDecimal(value).toBigInteger();

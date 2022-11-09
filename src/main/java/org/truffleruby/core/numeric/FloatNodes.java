@@ -28,6 +28,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
@@ -306,7 +307,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected boolean lessBignum(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b) < 0;
+            return BigIntegerOps.less(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -331,7 +332,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected boolean lessEqual(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b) <= 0;
+            return BigIntegerOps.lessEqual(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -372,7 +373,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected boolean equal(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b) == 0;
+            return BigIntegerOps.equal(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -405,20 +406,15 @@ public abstract class FloatNodes {
             return compareDoubles(a, b, equalProfile);
         }
 
-        @Specialization(guards = { "!isNaN(a)" })
+        @Specialization(guards = "!isNaN(a)")
         protected int compareDoubleLong(double a, long b,
                 @Cached ConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile);
         }
 
-        @Specialization(guards = { "isInfinity(a)" })
-        protected int compareInfinity(double a, RubyBignum b) {
-            return a < 0 ? -1 : +1;
-        }
-
-        @Specialization(guards = { "!isNaN(a)", "!isInfinity(a)" })
+        @Specialization(guards = "!isNaN(a)")
         protected int compareBignum(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b);
+            return BigIntegerOps.compare(a, b.value);
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyNumber(b)" })
@@ -451,7 +447,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected boolean greaterEqual(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b) >= 0;
+            return BigIntegerOps.greaterEqual(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -477,7 +473,7 @@ public abstract class FloatNodes {
 
         @Specialization
         protected boolean greater(double a, RubyBignum b) {
-            return BigIntegerOps.compare(a, b) > 0;
+            return BigIntegerOps.greater(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -561,12 +557,10 @@ public abstract class FloatNodes {
 
     @Primitive(name = "float_ceil")
     public abstract static class FloatCeilPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
         @Specialization
-        protected Object ceil(double n) {
-            return fixnumOrBignum.fixnumOrBignum(Math.ceil(n));
+        protected Object ceil(double n,
+                @Cached FloatToIntegerNode floatToIntegerNode) {
+            return floatToIntegerNode.fixnumOrBignum(Math.ceil(n));
         }
     }
 
@@ -583,12 +577,10 @@ public abstract class FloatNodes {
 
     @Primitive(name = "float_floor")
     public abstract static class FloatFloorPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
         @Specialization
-        protected Object floor(double n) {
-            return fixnumOrBignum.fixnumOrBignum(Math.floor(n));
+        protected Object floor(double n,
+                @Cached FloatToIntegerNode floatToIntegerNode) {
+            return floatToIntegerNode.fixnumOrBignum(Math.floor(n));
         }
     }
 
@@ -631,14 +623,14 @@ public abstract class FloatNodes {
 
         @Specialization(replaces = "roundFittingLong")
         protected Object round(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
             double d = Math.abs(n) - f;
             if (d >= 0.5) {
                 f += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.fixnumOrBignum(f * signum);
         }
     }
 
@@ -727,7 +719,7 @@ public abstract class FloatNodes {
 
         @Specialization(replaces = "roundFittingLong")
         protected Object round(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
             double d = Math.abs(n) - f;
@@ -736,7 +728,7 @@ public abstract class FloatNodes {
             } else if (d == 0.5) {
                 f += f % 2;
             }
-            return fixnumOrBignum.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.fixnumOrBignum(f * signum);
         }
     }
 
@@ -794,14 +786,14 @@ public abstract class FloatNodes {
 
         @Specialization(replaces = "roundFittingLong")
         protected Object round(double n,
-                @Cached FixnumOrBignumNode fixnumOrBignum) {
+                @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
             double d = Math.abs(n) - f;
             if (d > 0.5) {
                 f += 1;
             }
-            return fixnumOrBignum.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.fixnumOrBignum(f * signum);
         }
     }
 
@@ -839,31 +831,11 @@ public abstract class FloatNodes {
 
     @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends CoreMethodArrayArgumentsNode {
-
-        public static ToINode create() {
-            return FloatNodesFactory.ToINodeFactory.create(null);
-        }
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
-        public abstract Object executeToI(double value);
-
         @Specialization
         protected Object toI(double value,
-                @Cached BranchProfile errorProfile) {
-            if (Double.isInfinite(value)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
-            }
-
-            if (Double.isNaN(value)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
-            }
-
-            return fixnumOrBignum.fixnumOrBignum(value);
+                @Cached FloatToIntegerNode floatToIntegerNode) {
+            return floatToIntegerNode.fixnumOrBignum(value);
         }
-
     }
 
     @CoreMethod(names = "to_f")

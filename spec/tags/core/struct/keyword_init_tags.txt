@@ -1,0 +1,3 @@
+fails:StructClass#keyword_init? returns true for a struct that accepts keyword arguments to initialize
+fails:StructClass#keyword_init? returns false for a struct that does not accept keyword arguments to initialize
+fails:StructClass#keyword_init? returns nil for a struct that did not explicitly specify keyword_init

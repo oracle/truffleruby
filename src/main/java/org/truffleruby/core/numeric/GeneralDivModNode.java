@@ -13,6 +13,7 @@ import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -23,6 +24,7 @@ public class GeneralDivModNode extends RubyBaseNode {
 
     @Child private FixnumOrBignumNode fixnumOrBignumQuotient = new FixnumOrBignumNode();
     @Child private FixnumOrBignumNode fixnumOrBignumRemainder = new FixnumOrBignumNode();
+    @Child private FloatToIntegerNode floatToIntegerNode = FloatToIntegerNode.create();
 
     private final BranchProfile bZeroProfile = BranchProfile.create();
     private final BranchProfile bMinusOneProfile = BranchProfile.create();
@@ -134,9 +136,7 @@ public class GeneralDivModNode extends RubyBaseNode {
             mod += b;
         }
 
-        return createArray(new Object[]{
-                fixnumOrBignumQuotient.fixnumOrBignum(div),
-                mod });
+        return createArray(new Object[]{ floatToIntegerNode.fixnumOrBignum(div), mod });
     }
 
     @TruffleBoundary
