@@ -1,5 +1,0 @@
-/out
-node_modules
-.vscode/*
-!.vscode/launch.json
-*.vsix

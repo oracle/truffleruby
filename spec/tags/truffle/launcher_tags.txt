@@ -78,14 +78,8 @@ slow:The launcher supports running racc2y symlinked
 slow:The launcher supports running y2racc symlinked
 slow:The launcher warns if the locale is not set properly
 slow:The launcher runs rbs as an -S command
-slow:The launcher runs typeprof as an -S command
 slow:The launcher supports running rbs in any of the bin/ directories
-slow:The launcher supports running typeprof in any of the bin/ directories
 slow:The launcher supports running rbs symlinked
-slow:The launcher supports running typeprof symlinked
-fails(https://github.com/ruby/typeprof/issues/64):The launcher runs typeprof as an -S command
-fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof in any of the bin/ directories
-fails(https://github.com/ruby/typeprof/issues/64):The launcher supports running typeprof symlinked
 slow:The launcher prints help:ruby containing ruby language options
 slow:The launcher runs rdbg as an -S command
 slow:The launcher supports running rdbg in any of the bin/ directories

@@ -122,6 +122,7 @@ cp -R lib/ruby/gems/*.0/gems $TRUFFLERUBY/lib/gems
 cp -R lib/ruby/gems/*.0/specifications $TRUFFLERUBY/lib/gems
 
 cd $TRUFFLERUBY
+rm -rf lib/gems/gems/typeprof-* lib/gems/specifications/typeprof-*.gemspec
 ruby tool/patch-default-gemspecs.rb
 ```
 
@@ -130,7 +131,7 @@ ruby tool/patch-default-gemspecs.rb
 ```
 rm -rf exe
 cp -R ~/.rubies/ruby-$VERSION/bin exe
-rm -f exe/ruby
+rm -f exe/ruby exe/typeprof
 ruby tool/patch_launchers.rb
 ```
 

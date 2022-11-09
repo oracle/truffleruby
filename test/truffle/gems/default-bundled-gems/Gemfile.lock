@@ -98,8 +98,6 @@ GEM
     tmpdir (0.1.2)
       fileutils
     tsort (0.1.0)
-    typeprof (0.21.2)
-      rbs (>= 1.8.1)
     un (0.2.0)
     uri (0.11.0)
     weakref (0.1.1)
@@ -184,7 +182,6 @@ DEPENDENCIES
   timeout (= 0.2.0)
   tmpdir (= 0.1.2)
   tsort (= 0.1.0)
-  typeprof (= 0.21.2)
   un (= 0.2.0)
   uri (= 0.11.0)
   weakref (= 0.1.1)
