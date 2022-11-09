@@ -10,12 +10,10 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.literal.NilLiteralNode;
 
 public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
     @Child RubyNode currentValueToMatch;
@@ -45,4 +43,9 @@ public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public RubyNode cloneUninitialized() {
+        return new ArrayPatternLengthCheckNode(patternLength, currentValueToMatch.cloneUninitialized(), hasRest)
+                .copyFlags(this);
+    }
 }

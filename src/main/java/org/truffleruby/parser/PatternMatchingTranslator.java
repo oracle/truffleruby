@@ -119,7 +119,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 false,
                 true);
         deconstructed = language.coreMethodAssumptions
-                .createCallNode(deconstructCallParameters, environment);
+                .createCallNode(deconstructCallParameters);
 
         final int deconSlot = environment.declareLocalTemp("p_decon_array");
         final ReadLocalNode readTemp = environment.readNode(deconSlot, sourceSection);
@@ -146,7 +146,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     false,
                     true);
             RubyNode isInstance = language.coreMethodAssumptions
-                    .createCallNode(instanceCheckParameters, environment);
+                    .createCallNode(instanceCheckParameters);
             condition = new AndNode(isInstance, condition);
         }
 
@@ -172,7 +172,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     false,
                     true);
 
-            var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
+            var callNode = language.coreMethodAssumptions.createCallNode(parameters);
             if (condition == null) {
                 condition = callNode;
             } else {
@@ -229,7 +229,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         false,
                         true);
 
-                var callNode = language.coreMethodAssumptions.createCallNode(parameters, environment);
+                var callNode = language.coreMethodAssumptions.createCallNode(parameters);
                 if (condition == null) {
                     condition = callNode;
                 } else {
@@ -271,7 +271,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
-                        .createCallNode(deconstructCallParameters, environment);
+                        .createCallNode(deconstructCallParameters);
 
                 receiver = new TruffleInternalModuleLiteralNode();
                 receiver.unsafeSetSourceSection(sourceSection);
@@ -286,7 +286,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         true);
 
                 return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters, environment);
+                        .createCallNode(matcherCallParameters);
             case FINDPATTERNNODE:
                 //                throw CompilerDirectives.shouldNotReachHere();
                 final RubyContext context = RubyLanguage.getCurrentContext();
@@ -330,7 +330,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         false,
                         true);
                 return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters, environment);
+                        .createCallNode(matcherCallParameters);
         }
     }
 

@@ -26,4 +26,9 @@ public final class ExecuteAndReturnTrueNode extends RubyContextSourceNode {
         child.execute(frame);
         return true;
     }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        return new ExecuteAndReturnTrueNode(child.cloneUninitialized()).copyFlags(this);
+    }
 }

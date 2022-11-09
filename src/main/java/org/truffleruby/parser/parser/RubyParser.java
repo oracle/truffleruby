@@ -3207,12 +3207,12 @@ states[471] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[473] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new IfParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.getConditionNode(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[-2+yyTop]), null);
-    support.fixpos(((ParseNode)yyVal), ((ParseNode)yyVals[0+yyTop]));
+    ((ParseNode)yyVal).extendPosition(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[474] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new IfParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.getConditionNode(((ParseNode)yyVals[0+yyTop])), null, ((ParseNode)yyVals[-2+yyTop]));
-    support.fixpos(((ParseNode)yyVal), ((ParseNode)yyVals[0+yyTop]));
+    ((ParseNode)yyVal).extendPosition(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[476] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -4509,8 +4509,4 @@ states[781] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-<<<<<<< HEAD
-// line 12302 "-"
-=======
-// line 12101 "-"
->>>>>>> 3fc6ad8a15 (The rbrace rule should match tRCURLY since that is what RubyLexer emits)
+// line 12094 "-"

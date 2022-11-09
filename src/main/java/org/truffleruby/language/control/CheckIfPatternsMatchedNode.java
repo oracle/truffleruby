@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyNode;
 
 public final class CheckIfPatternsMatchedNode extends RubyContextSourceNode {
 
-    RubyNode inspected;
+    @Child RubyNode inspected;
 
     public CheckIfPatternsMatchedNode(RubyNode inspected) {
         this.inspected = inspected;
@@ -26,5 +26,10 @@ public final class CheckIfPatternsMatchedNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         String message = inspected.execute(frame).toString();
         throw new RaiseException(getContext(), coreExceptions().noMatchingPatternError(message, this));
+    }
+
+    @Override
+    public RubyNode cloneUninitialized() {
+        return new CheckIfPatternsMatchedNode(inspected.cloneUninitialized()).copyFlags(this);
     }
 }

@@ -2077,11 +2077,11 @@ p_cases         : opt_else
 p_top_expr      : p_top_expr_body
                 | p_top_expr_body modifier_if expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), $1, null);
-                    support.fixpos($<ParseNode>$, $3);
+                    $<ParseNode>$.extendPosition($3);
                 }
                 | p_top_expr_body modifier_unless expr_value {
                     $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), null, $1);
-                    support.fixpos($<ParseNode>$, $3);
+                    $<ParseNode>$.extendPosition($3);
                 }
 
 p_top_expr_body : p_expr

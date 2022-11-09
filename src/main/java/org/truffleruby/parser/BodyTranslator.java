@@ -219,6 +219,7 @@ import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.NilRestArgParseNode;
+import org.truffleruby.parser.ast.NodeType;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -302,11 +303,6 @@ public class BodyTranslator extends BaseTranslator {
         this.parent = parent;
         this.environment = environment;
         this.rubyWarnings = rubyWarnings;
-    }
-
-
-    private static RubyNode[] createArray(int size) {
-        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
     }
 
     private RubySymbol translateNameNodeToSymbol(ParseNode node) {
@@ -849,11 +845,11 @@ public class BodyTranslator extends BaseTranslator {
                     "inspect",
                     null,
                     EmptyArgumentsDescriptor.INSTANCE,
-                    new RubyNode[0]{},
+                    new RubyNode[0],
                     false,
                     true);
             RubyNode inspected = language.coreMethodAssumptions
-                    .createCallNode(inspectCallParameters, environment);
+                    .createCallNode(inspectCallParameters);
             elseNode = new CheckIfPatternsMatchedNode(inspected);
         } else {
             elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
