@@ -1,3 +1,0 @@
-fails:Method#private? returns false when the method is public
-fails:Method#private? returns false when the method is protected
-fails:Method#private? returns true when the method is private

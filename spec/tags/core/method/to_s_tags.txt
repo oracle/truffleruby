@@ -1,3 +1,1 @@
-fails:Method#to_s returns a String containing the singleton class if method is defined in the singleton class
-fails:Method#to_s returns a String containing method arguments
 fails:Method#to_s returns a String containing the Module containing the method if object has a singleton class but method is not defined in the singleton class

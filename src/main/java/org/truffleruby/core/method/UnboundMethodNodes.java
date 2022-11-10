@@ -157,6 +157,30 @@ public abstract class UnboundMethodNodes {
 
     }
 
+    @CoreMethod(names = "private?")
+    public abstract static class IsPrivateNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isPrivate(RubyUnboundMethod unboundMethod) {
+            return unboundMethod.method.isPrivate();
+        }
+    }
+
+    @CoreMethod(names = "protected?")
+    public abstract static class IsProtectedNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isProtected(RubyUnboundMethod unboundMethod) {
+            return unboundMethod.method.isProtected();
+        }
+    }
+
+    @CoreMethod(names = "public?")
+    public abstract static class IsPublicNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isPublic(RubyUnboundMethod unboundMethod) {
+            return unboundMethod.method.isPublic();
+        }
+    }
+
     @CoreMethod(names = "parameters")
     public abstract static class ParametersNode extends CoreMethodArrayArgumentsNode {
 
