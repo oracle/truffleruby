@@ -20,6 +20,7 @@ Compatibility:
 * Implement `rb_warning_category_enabled_p` to support the `syntax_tree` gem (#2764, @andrykonchin).
 * Fix desctructuring of a single block argument that implements `#to_ary` dynamically (#2719, @andrykonchin).
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
+* Improve argument validation in `Struct#valies_at` - raise `IndexError` or `RangeError` when arguments are out of range (#2773, @andrykonchin).
 
 Performance:
 

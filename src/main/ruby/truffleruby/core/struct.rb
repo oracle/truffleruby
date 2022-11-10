@@ -373,7 +373,31 @@ class Struct
   end
 
   def values_at(*args)
-    to_a.values_at(*args)
+    out = []
+
+    args.each do |elem|
+      if Primitive.object_kind_of?(elem, Range)
+        start, length = Primitive.range_normalized_start_length(elem, size)
+        finish = start + length - 1
+
+        raise RangeError, "#{elem} out of range" if start < 0
+        next if finish < start
+
+        finish_in_bounds = [finish, _attrs.length - 1].min
+        start.upto(finish_in_bounds) do |index|
+          name = check_index_var(index)
+          out << Primitive.object_hidden_var_get(self, name)
+        end
+
+        (finish_in_bounds + 1).upto(finish) { out << nil }
+      else
+        index = Primitive.rb_num2int(elem)
+        name = check_index_var(index)
+        out << Primitive.object_hidden_var_get(self, name)
+      end
+    end
+
+    out
   end
 
   private def polyglot_read_member(name)
