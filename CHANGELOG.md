@@ -20,6 +20,11 @@ Compatibility:
 * Implement `rb_warning_category_enabled_p` to support the `syntax_tree` gem (#2764, @andrykonchin).
 * Fix desctructuring of a single block argument that implements `#to_ary` dynamically (#2719, @andrykonchin).
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
+* Add support for `%-z` (UTC for unknown local time offset, RFC 3339) to `Time#strftime` (@andrykonchin).
+* Add support for `UTC` and `A`-`Z` utc offset values, as well as `+/-HH`, `+/-HHMM`, `+/-HHMMSS` (without `:`) (@andrykonchin).
+* Treat time with `UTC`, `Z` and `-00:00` utc offset as UTC time (@andrykonchin).
+* Raise `FrozenError` when `Time#localtime`, `Time#utc` and `Time#gmtime` is called on a frozen time object (@andrykonchin).
+* Validate a microseconds argument used to create a time object (@andrykonchin).
 
 Performance:
 
