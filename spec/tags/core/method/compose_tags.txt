@@ -1,5 +1,1 @@
-fails:Method#<< raises TypeError if passed not callable object
-fails:Method#<< does not try to coerce argument with #to_proc
-fails:Method#>> raises TypeError if passed not callable object
-fails:Method#>> does not try to coerce argument with #to_proc
 fails:Method#<< composition is a lambda
