@@ -20,6 +20,7 @@ Compatibility:
 * Implement `rb_warning_category_enabled_p` to support the `syntax_tree` gem (#2764, @andrykonchin).
 * Fix desctructuring of a single block argument that implements `#to_ary` dynamically (#2719, @andrykonchin).
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
+* Support `offset` keyword argument for `String#unpack` and `String#unpack1` (@andrykonchin).
 
 Performance:
 
