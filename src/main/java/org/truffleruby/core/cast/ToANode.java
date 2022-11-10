@@ -35,12 +35,12 @@ public abstract class ToANode extends RubyBaseNodeWithExecute {
     abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
-    protected RubyArray coerceRubyArray(RubyArray array) {
+    protected RubyArray execute(RubyArray array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(enumerable)")
-    protected RubyArray coerceObject(Object enumerable,
+    protected RubyArray execute(Object enumerable,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toANode) {
         final Object coerced;
