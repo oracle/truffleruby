@@ -289,11 +289,15 @@ class StringIO
         Primitive.string_byte_append(string, str)
         d.pos = string.bytesize
       else
-        stop = bytesize - pos
-        if str.bytesize < stop
-          stop = str.bytesize
+        bytes_to_replace = str.bytesize
+        bytes_after = bytesize - pos
+        if bytes_to_replace > bytes_after
+          bytes_to_replace = bytes_after
         end
-        Primitive.string_splice(string, str, pos, stop, string.encoding)
+
+        enc = string.encoding
+        str_in_enc = str.dup.force_encoding(enc)
+        Primitive.string_splice(string, str_in_enc, pos, bytes_to_replace, enc)
         d.pos += str.bytesize
       end
 
@@ -419,26 +423,7 @@ class StringIO
       char = (c & 0xff).chr
     end
 
-    d = @__data__
-    TruffleRuby.synchronized(d) do
-      pos = d.pos
-      string = d.string
-      bytesize = string.bytesize
-
-      if @append || pos == bytesize
-        Primitive.string_byte_append(string, char)
-        d.pos = string.bytesize
-      elsif pos > bytesize
-        replacement = "\000" * (pos - bytesize)
-        Primitive.string_byte_append(string, replacement)
-        Primitive.string_byte_append(string, char)
-        d.pos = string.bytesize
-      else
-        Primitive.string_splice(string, char, pos, char.bytesize, string.encoding)
-        d.pos += char.bytesize
-      end
-    end
-
+    write(char)
     obj
   end
 
