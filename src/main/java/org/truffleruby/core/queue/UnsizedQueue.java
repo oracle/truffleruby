@@ -67,6 +67,25 @@ public class UnsizedQueue {
     }
 
     @TruffleBoundary
+    public boolean addAll(Object[] items) {
+        lock.lock();
+
+        try {
+            if (closed) {
+                return false;
+            }
+
+            for (Object i : items) {
+                doAdd(i);
+            }
+
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @TruffleBoundary
     public Object take() throws InterruptedException {
         lock.lock();
 

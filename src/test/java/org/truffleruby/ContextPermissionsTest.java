@@ -11,6 +11,7 @@ package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.IOAccess;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -69,7 +70,7 @@ public class ContextPermissionsTest {
 
     @Test
     public void testRequireGem() {
-        try (Context context = Context.newBuilder("ruby").allowIO(true).allowNativeAccess(true).build()) {
+        try (Context context = Context.newBuilder("ruby").allowIO(IOAccess.ALL).allowNativeAccess(true).build()) {
             // NOTE: rake is a bundled gem, so it needs RubyGems to be required
             Assert.assertEquals("Rake", context.eval("ruby", "require 'rake'; Rake.to_s").asString());
         }
