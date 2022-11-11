@@ -12,7 +12,7 @@
 // RData and RTypedData, rb_data_*, rb_typeddata_*
 
 static RUBY_DATA_FUNC rb_tr_free_function(RUBY_DATA_FUNC dfree) {
-  return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? free : dfree;
+  return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? ruby_xfree : dfree;
 }
 
 #undef rb_data_object_wrap
@@ -22,7 +22,7 @@ VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DA
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  void *data = calloc(1, size);
+  void *data = ruby_xcalloc(1, size);
   return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
@@ -34,7 +34,7 @@ VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
-  void *data = calloc(1, size);
+  void *data = ruby_xcalloc(1, size);
   return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 
