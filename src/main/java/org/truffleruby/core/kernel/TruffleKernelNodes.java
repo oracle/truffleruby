@@ -81,8 +81,8 @@ public abstract class TruffleKernelNodes {
     public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = {"strings.isRubyString(file)", "isNil(wrapModule)"}, limit = "1")
-        protected boolean load(Object file, Object wrapModule,
+        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
+        protected boolean load(Object file, Nil wrapModule,
                 @Cached RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
