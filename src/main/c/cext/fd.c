@@ -82,7 +82,7 @@ int rb_fd_isset(int n, const rb_fdset_t *fds) {
   if (n >= fds->maxfd) {
     return 0;
   }
-  return FD_ISSET(n, fds->fdset);
+  return FD_ISSET(n, fds->fdset) != 0;
 }
 
 void rb_fd_copy(rb_fdset_t *dst, const fd_set *src, int max) {
