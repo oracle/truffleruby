@@ -27,8 +27,8 @@
 
 void rb_fd_init(rb_fdset_t *fds) {
   fds->maxfd = 0;
-  fds->fdset = ALLOC(fd_set);
-  FD_ZERO(fds->fdset);
+  // TruffleRuby: use calloc() instead of ALLOC+FD_ZERO, because FD_ZERO is problematic on some platforms (GR-42420)
+  fds->fdset = RB_ZALLOC(fd_set);
 }
 
 void rb_fd_term(rb_fdset_t *fds) {
