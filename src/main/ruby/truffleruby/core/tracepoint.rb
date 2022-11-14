@@ -31,10 +31,11 @@ class TracePoint
   end
 
   def inspect
-    if enabled?
-      "#<TracePoint:#{event} #{path}:#{lineno}>"
-    else
-      '#<TracePoint:disabled>'
+    if Primitive.trace_point_inside_proc?
+      return "#<TracePoint:#{event} #{path}:#{lineno}>"
     end
+
+    state = enabled? ? 'enabled' : 'disabled'
+    "#<TracePoint:#{state}>"
   end
 end

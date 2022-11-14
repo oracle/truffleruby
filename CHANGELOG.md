@@ -11,6 +11,7 @@ Bug fixes:
 * Fix `rb_gc_register_address()`/`rb_global_variable()` to read the latest value (#2721, #2734, #2720, @eregon).
 * Synchronize concurrent writes to the same StringIO (@eregon).
 * Fix `StringIO#write(str)` when `str` is of an incompatible encoding and position < buffer size (#2770, @eregon).
+* Fix `TracePoint#inspect` when it's called outside of a callback (@andrykonchin).
 
 Compatibility:
 
