@@ -1537,7 +1537,7 @@ module Commands
     end
 
     # TODO: probably we should use https://github.com/rubygems/gemstash in the future
-    gem_server_env = { 'RUBYLIB' => rubylib.join(File::PATH_SEPARATOR) }
+    gem_server_env = ruby_running_jt_env.merge({ 'RUBYLIB' => rubylib.join(File::PATH_SEPARATOR) })
     gem_server = spawn(gem_server_env, 'gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     SUBPROCESSES << gem_server
     begin
