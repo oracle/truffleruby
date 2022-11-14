@@ -527,11 +527,8 @@ suite = {
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/extconf.rb",
                     "file:src/main/c/openssl/*.c",
-                    {
-                        "source_type": "file",
-                        "path": "src/main/c/openssl/*.h",
-                        "exclude": ["src/main/c/openssl/extconf.h"]
-                    },
+                    "file:src/main/c/openssl/ossl*.h",
+                    "file:src/main/c/openssl/openssl_missing.h",
                 ],
             },
         },
