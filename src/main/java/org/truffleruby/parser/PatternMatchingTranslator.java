@@ -38,11 +38,11 @@ import org.truffleruby.parser.ast.DotParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.LambdaParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
-import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 
@@ -246,8 +246,41 @@ public class PatternMatchingTranslator extends BaseTranslator {
         return findPatternParseNode.accept(this);
     }
 
-    public RubyNode translatePatternNode(ParseNode patternNode,
-            ParseNode expressionNode /* TODO should not be passed */, RubyNode expressionValue,
+    @Override
+    public RubyNode visitHashPatternNode(HashPatternParseNode node) {
+        final RubyCallNodeParameters deconstructCallParameters;
+        final RubyCallNodeParameters matcherCallParameters;
+        final RubyCallNodeParameters matcherCallParametersPost;
+        final RubyNode receiver;
+        final RubyNode deconstructed;
+        deconstructCallParameters = new RubyCallNodeParameters(
+                currentValueToMatch,
+                "deconstruct_keys",
+                null,
+                EmptyArgumentsDescriptor.INSTANCE,
+                new RubyNode[]{ new NilLiteralNode(true) },
+                false,
+                true);
+        deconstructed = language.coreMethodAssumptions
+                .createCallNode(deconstructCallParameters);
+
+        receiver = new TruffleInternalModuleLiteralNode();
+        receiver.unsafeSetSourceSection(node.getPosition());
+
+        matcherCallParameters = new RubyCallNodeParameters(
+                receiver,
+                "hash_pattern_matches?",
+                null,
+                EmptyArgumentsDescriptor.INSTANCE,
+                new RubyNode[]{ node.accept(this), NodeUtil.cloneNode(deconstructed) },
+                false,
+                true);
+
+        return language.coreMethodAssumptions
+                .createCallNode(matcherCallParameters);
+    }
+
+    public RubyNode translatePatternNode(ParseNode patternNode, RubyNode expressionValue,
             SourceIndexLength sourceSection) {
         final RubyCallNodeParameters deconstructCallParameters;
         final RubyCallNodeParameters matcherCallParameters;
@@ -261,32 +294,8 @@ public class PatternMatchingTranslator extends BaseTranslator {
         switch (patternNode.getNodeType()) {
             case ARRAYPATTERNNODE:
                 return this.visitArrayPatternNode((ArrayPatternParseNode) patternNode);
-            case HASHNODE:
-                deconstructCallParameters = new RubyCallNodeParameters(
-                        expressionValue,
-                        "deconstruct_keys",
-                        null,
-                        EmptyArgumentsDescriptor.INSTANCE,
-                        new RubyNode[]{ new NilLiteralNode(true) },
-                        false,
-                        true);
-                deconstructed = language.coreMethodAssumptions
-                        .createCallNode(deconstructCallParameters);
-
-                receiver = new TruffleInternalModuleLiteralNode();
-                receiver.unsafeSetSourceSection(sourceSection);
-
-                matcherCallParameters = new RubyCallNodeParameters(
-                        receiver,
-                        "hash_pattern_matches?",
-                        null,
-                        EmptyArgumentsDescriptor.INSTANCE,
-                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
-                        false,
-                        true);
-
-                return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters);
+            case HASHPATTERNNODE:
+                return this.visitHashPatternNode((HashPatternParseNode) patternNode);
             case FINDPATTERNNODE:
                 //                throw CompilerDirectives.shouldNotReachHere();
                 final RubyContext context = RubyLanguage.getCurrentContext();
@@ -297,24 +306,15 @@ public class PatternMatchingTranslator extends BaseTranslator {
                                 "not yet handled in pattern matching: " + node.toString() + " " + node.getPosition(),
                                 currentNode,
                                 node.getPosition().toSourceSection(source)));
-            case LOCALVARNODE:
-                // Assigns the value of an existing variable pattern as the value of the expression.
-                // May need to add a case with same/similar logic for new variables.
-                final RubyNode assignmentNode = new LocalAsgnParseNode(
-                        patternNode.getPosition(),
-                        ((LocalVarParseNode) patternNode).getName(),
-                        ((LocalVarParseNode) patternNode).getDepth(),
-                        expressionNode).accept(this);
-                return new ExecuteAndReturnTrueNode(assignmentNode); // TODO refactor to remove "|| true"
             case IFNODE: // handles both if and unless
                 var ifNode = (IfParseNode) patternNode;
                 RubyNode pattern;
                 RubyNode condition = ifNode.getCondition().accept(bodyTranslator);
                 if (ifNode.getThenBody() != null) {
-                    pattern = translatePatternNode(ifNode.getThenBody(), expressionNode, expressionValue,
+                    pattern = translatePatternNode(ifNode.getThenBody(), expressionValue,
                             sourceSection);
                 } else {
-                    pattern = translatePatternNode(ifNode.getElseBody(), expressionNode, expressionValue,
+                    pattern = translatePatternNode(ifNode.getElseBody(), expressionValue,
                             sourceSection);
                     condition = new NotNode(condition);
                 }

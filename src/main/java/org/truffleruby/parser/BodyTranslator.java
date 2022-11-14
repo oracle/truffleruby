@@ -877,7 +877,7 @@ public class BodyTranslator extends BaseTranslator {
             // us we-using the 'when' parser for 'in' temporarily.
             final ParseNode patternNode = in.getExpressionNodes();
 
-            final RubyNode conditionNode = tr.translatePatternNode(patternNode, node.getCaseNode(), readTemp,
+            final RubyNode conditionNode = tr.translatePatternNode(patternNode, readTemp,
                     sourceSection);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
