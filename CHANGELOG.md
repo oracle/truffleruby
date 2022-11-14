@@ -23,6 +23,7 @@ Compatibility:
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
+* `rb_to_id()` should create a static `ID`, used by RMagick (@eregon).
 
 Performance:
 
