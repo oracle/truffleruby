@@ -34,6 +34,7 @@ Compatibility:
 * Treat time with `UTC`, `Z` and `-00:00` utc offset as UTC time (@andrykonchin).
 * Raise `FrozenError` when `Time#localtime`, `Time#utc` and `Time#gmtime` is called on a frozen time object (@andrykonchin).
 * Validate a microseconds argument used to create a time object (@andrykonchin).
+* Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
 
 Performance:
 

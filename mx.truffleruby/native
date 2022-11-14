@@ -1,6 +1,6 @@
 GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/compiler,/substratevm
-COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM
+COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM,Native Image
 NATIVE_IMAGES=suite:sulong,lib:rubyvm
 # To also create the standalone
 DISABLE_INSTALLABLES=false
