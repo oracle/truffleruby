@@ -19,6 +19,7 @@ import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.core.array.ArrayGuards;
 
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */
@@ -38,8 +39,18 @@ public abstract class ArrayStoreLibrary extends Library {
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
 
-    public static LibraryFactory<ArrayStoreLibrary> getFactory() {
-        return FACTORY;
+    public static ArrayStoreLibrary createDispatched() {
+        return FACTORY.createDispatched(ArrayGuards.storageStrategyLimit());
+    }
+
+    public static ArrayStoreLibrary getUncached() {
+        CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
+        return FACTORY.getUncached();
+    }
+
+    public static ArrayStoreLibrary getUncached(Object store) {
+        CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
+        return FACTORY.getUncached(store);
     }
 
     public static Object initialStorage(boolean shared) {

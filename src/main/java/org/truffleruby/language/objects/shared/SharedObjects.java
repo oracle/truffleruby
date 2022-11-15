@@ -172,7 +172,7 @@ public class SharedObjects {
             DynamicObjectLibrary.getUncached().markShared(classVariables);
         } else if (object instanceof RubyArray) {
             RubyArray array = (RubyArray) object;
-            array.setStore(ArrayStoreLibrary.getFactory().getUncached().makeShared(array.getStore(), array.size));
+            array.setStore(ArrayStoreLibrary.getUncached().makeShared(array.getStore(), array.size));
         }
     }
 

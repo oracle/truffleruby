@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.library;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -31,6 +32,7 @@ public abstract class RubyStringLibrary {
     }
 
     public static RubyStringLibrary getUncached() {
+        CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
         return Uncached.INSTANCE;
     }
 

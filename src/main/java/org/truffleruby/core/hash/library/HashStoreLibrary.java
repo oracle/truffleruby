@@ -39,15 +39,12 @@ public abstract class HashStoreLibrary extends Library {
 
     private static final LibraryFactory<HashStoreLibrary> FACTORY = LibraryFactory.resolve(HashStoreLibrary.class);
 
-    public static LibraryFactory<HashStoreLibrary> getFactory() {
-        return FACTORY;
-    }
-
     public static HashStoreLibrary createDispatched() {
         return FACTORY.createDispatched(HashGuards.hashStrategyLimit());
     }
 
     public static HashStoreLibrary getUncached(RubyHash hash) {
+        CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
         final Object store = hash.store;
         return FACTORY.getUncached(store);
     }

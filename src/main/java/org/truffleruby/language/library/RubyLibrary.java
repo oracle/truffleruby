@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.library;
 
-import com.oracle.truffle.api.library.LibraryFactory;
-
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
+import com.oracle.truffle.api.library.LibraryFactory;
 
 @GenerateLibrary
 @DefaultExport(BooleanRubyLibrary.class)
@@ -22,15 +22,16 @@ import com.oracle.truffle.api.library.Library;
 @DefaultExport(DoubleRubyLibrary.class)
 public abstract class RubyLibrary extends Library {
 
-    public static LibraryFactory<RubyLibrary> getFactory() {
-        return FACTORY;
+    private static final LibraryFactory<RubyLibrary> FACTORY = LibraryFactory.resolve(RubyLibrary.class);
+
+    public static RubyLibrary createDispatched(int limit) {
+        return FACTORY.createDispatched(limit);
     }
 
     public static RubyLibrary getUncached() {
+        CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
         return FACTORY.getUncached();
     }
-
-    private static final LibraryFactory<RubyLibrary> FACTORY = LibraryFactory.resolve(RubyLibrary.class);
 
     public abstract void freeze(Object object);
 
