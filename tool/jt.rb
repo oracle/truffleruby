@@ -36,7 +36,7 @@ JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'f095e92db0fe8f714873e95ac98452036d16a29f'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '9973abc50f1d5c9cbaa3e6e050d86b50151c729f'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -54,6 +54,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 
 RUBOCOP_VERSION = '1.36.0'
 SEAFOAM_VERSION = '0.14'
+CFG2ASM_VERSION = '0.2'
 
 DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
@@ -847,7 +848,10 @@ module Commands
                               --simplify             simplify the graph by disabling some optimizations which tend to duplicate parts of the graph
                               --igv                  send the graphs to IGV over the network instead of using seafoam
                               --describe             describe the shape of the graph (linear, branches, loops, calls, deopts)
+                              --cfg2asm              use cfg2asm to print assembly code
+                                --no-comments        do not print comments in the assembly code
                               SEAFOAM_DIR            use the seafoam in the given directory
+                              CFG2ASM_DIR            use the cfg2asm in the given directory
       jt igv                                         launches IdealGraphVisualizer
       jt next                                        tell you what to work on next (give you a random core library spec)
       jt install [jvmci|eclipse]                     install [the right JVMCI JDK | Eclipse] in the parent directory
@@ -2101,7 +2105,9 @@ module Commands
     simplify = false
     describe = false
     json = false
+    cfg2asm = false
     seafoam_args = []
+    cfg2asm_args = []
 
     # Must be handled before ruby_options() otherwise that would consume it
     igv = args.delete('--igv')
@@ -2125,6 +2131,10 @@ module Commands
         simplify = true
       when '--describe'
         describe = true
+      when '--cfg2asm'
+        cfg2asm = true
+      when '--no-comments'
+        cfg2asm_args << '--no-comments'
       when '--'
         seafoam_args = args.dup
         args.clear
@@ -2152,6 +2162,7 @@ module Commands
       '--engine.MultiTier=false',
       '--engine.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
+      *('--vm.Dgraal.PrintBackendCFG=true' if cfg2asm),
       '--vm.Dgraal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
@@ -2191,13 +2202,22 @@ module Commands
         end
 
         dumps = Dir.glob('graal_dumps/*').select { |path| File.directory?(path) }.sort.last
-        raise 'Could not dump directory under graal_dumps/' unless dumps
+        raise 'Could not find dump directory under graal_dumps/' unless dumps
         graphs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].bgv").sort
         graph = graphs.last
         raise "Could not find graph in #{dumps}" unless graph
 
         FileUtils.cp graph, 'graph.bgv'
         graph = 'graph.bgv'
+
+        if cfg2asm
+          cfgs = Dir.glob("#{dumps}/*\\[#{method_glob_pattern}*\\].cfg").sort
+          cfg = cfgs.last
+          raise "Could not find CFG in #{dumps}" unless cfg
+
+          FileUtils.cp cfg, 'cfg.cfg'
+          cfg = 'cfg.cfg'
+        end
 
         list = seafoam('--json', graph, 'list', capture: :out, no_print_cmd: true)
         decoded = JSON.parse(list)
@@ -2210,6 +2230,8 @@ module Commands
         json_args = json ? %w[--json] : []
         action = describe ? 'describe' : 'render'
         seafoam(*json_args, "#{graph}:#{n}", action, *seafoam_args)
+
+        cfg2asm(cfg, *cfg2asm_args) if cfg2asm
       end
 
       break unless watch
@@ -2230,6 +2252,16 @@ module Commands
     end
   end
   ruby2_keywords :seafoam if respond_to?(:ruby2_keywords, true)
+
+  private def cfg2asm(*args)
+    cfg2asm_dir = ENV['CFG2ASM_DIR']
+    if cfg2asm_dir
+      sh(RbConfig.ruby, "-I#{cfg2asm_dir}/lib", "#{cfg2asm_dir}/bin/cfg2asm", *args)
+    else
+      run_gem_test_pack_gem_or_install('cfg2asm', CFG2ASM_VERSION, *args)
+    end
+  end
+  ruby2_keywords :cfg2asm if respond_to?(:ruby2_keywords, true)
 
   def igv
     clone_enterprise
