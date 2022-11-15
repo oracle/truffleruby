@@ -37,15 +37,19 @@
 # include "ruby/internal/intern/select/win32.h"
 # define rb_fd_resize(n, f) ((void)(f))
 #else
+#ifndef TRUFFLERUBY // Don't define an incorrect rb_fdset_t if NFDBITS is not set
 # include "ruby/internal/intern/select/posix.h"
 # define rb_fd_resize(n, f) ((void)(f))
+#endif
 #endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
 struct timeval;
 
+#if defined(TRUFFLERUBY) && defined(NFDBITS) && defined(HAVE_RB_FD_INIT) // Don't define an incorrect rb_fdset_t if NFDBITS is not set
 int rb_thread_fd_select(int, rb_fdset_t *, rb_fdset_t *, rb_fdset_t *, struct timeval *);
+#endif
 
 RBIMPL_SYMBOL_EXPORT_END()
 

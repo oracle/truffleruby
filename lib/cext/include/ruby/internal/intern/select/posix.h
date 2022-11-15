@@ -33,6 +33,10 @@
 #include "ruby/internal/attr/pure.h"
 #include "ruby/internal/attr/const.h"
 
+#ifdef TRUFFLERUBY
+#error "Expected defined(NFDBITS) && defined(HAVE_RB_FD_INIT)"
+#endif
+
 typedef fd_set rb_fdset_t;
 
 #define rb_fd_zero   FD_ZERO
