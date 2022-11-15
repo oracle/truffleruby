@@ -59,20 +59,27 @@ module Signal
   @handlers = {}
 
   def self.trap(signal, handler=nil, &block)
+    unless Primitive.object_kind_of?(signal, Symbol) || Primitive.object_kind_of?(signal, String) \
+        || Primitive.object_kind_of?(signal, Integer)
+      raise ArgumentError, "bad signal type #{signal.class}"
+    end
+
     signal = signal.to_s if Primitive.object_kind_of?(signal, Symbol)
 
     if Primitive.object_kind_of?(signal, String)
-      original_signal = signal
-
       if signal.start_with? 'SIG'
         signal = signal[3..-1]
       end
 
       unless number = Names[signal]
-        raise ArgumentError, "Unknown signal '#{original_signal}'"
+        raise ArgumentError, "unsupported signal `SIG#{signal}'"
       end
     else
       number = Primitive.rb_to_int signal
+
+      unless Numbers.key? number
+        raise ArgumentError, "invalid signal number (#{number})"
+      end
     end
 
     signame = self.signame(number)
