@@ -192,7 +192,7 @@ VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
     default:
       {
         char *err_str;
-        if (asprintf(&err_str, "unhandled rb_sprintf arg type %d", type) > 0 ) {
+        if (asprintf(&err_str, "unhandled rb_sprintf arg type %d", type) > 0) {
           rb_tr_error(err_str);
           free(err_str);
         }
