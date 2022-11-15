@@ -63,7 +63,7 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-JDK_VERSIONS =  [11, 17, 19]
+JDK_VERSIONS =  [17, 19]
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
@@ -171,7 +171,7 @@ module Utilities
   def jvmci_version
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-11\..+-(jvmci-[^"]+)"\s*,/
+      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-17\..+-(jvmci-[^"]+)"\s*,/
       raise 'JVMCI version not found in common.json' unless regex =~ ci
       $1
     end
@@ -3080,7 +3080,7 @@ class JT
     needs_rebuild = false
     @silent = false
     @verbose = false
-    @jdk_version = Integer(ENV['JT_JDK'] || 11)
+    @jdk_version = Integer(ENV['JT_JDK'] || 17)
 
     until args.empty?
       arg = args.shift
