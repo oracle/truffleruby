@@ -12,6 +12,7 @@ Bug fixes:
 * Synchronize concurrent writes to the same StringIO (@eregon).
 * Fix `StringIO#write(str)` when `str` is of an incompatible encoding and position < buffer size (#2770, @eregon).
 * Fix `rb_thread_fd_select()` to correctly initialize fdset copies and handle the timeout (@eregon).
+* Fix `TracePoint#inspect` when it's called outside of a callback (@andrykonchin).
 
 Compatibility:
 

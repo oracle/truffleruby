@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
@@ -175,6 +176,15 @@ public abstract class TracePointNodes {
             return state;
         }
 
+    }
+
+    @Primitive(name = "trace_point_inside_proc?")
+    public abstract static class InsideProcNode extends PrimitiveNode {
+        @Specialization
+        protected Object execute() {
+            final TracePointState state = getLanguage().getCurrentThread().tracePointState;
+            return state.insideProc;
+        }
     }
 
     @CoreMethod(names = "event")
