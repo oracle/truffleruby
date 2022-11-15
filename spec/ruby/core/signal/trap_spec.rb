@@ -227,6 +227,12 @@ describe "Signal.trap" do
       -> { Signal.trap("SIGUSR10") { } }.should raise_error(ArgumentError, "unsupported signal `SIGUSR10'")
     end
 
+    it "raises ArgumentError when passed signal is not Integer, String or Symbol" do
+      -> { Signal.trap(nil) { } }.should raise_error(ArgumentError, "bad signal type NilClass")
+      -> { Signal.trap(100.0) { } }.should raise_error(ArgumentError, "bad signal type Float")
+      -> { Signal.trap(Rational(100)) { } }.should raise_error(ArgumentError, "bad signal type Rational")
+    end
+
     # See man 2 signal
     %w[KILL STOP].each do |signal|
       it "raises ArgumentError or Errno::EINVAL for SIG#{signal}" do
