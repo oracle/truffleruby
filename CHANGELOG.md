@@ -24,6 +24,7 @@ Compatibility:
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
+* Fix `MatchData#values_at` and handling indices that are out of range (#2783, @andrykonchin).
 
 Performance:
 
