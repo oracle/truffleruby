@@ -26,6 +26,7 @@ Compatibility:
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
+* Fix `Process.detach` and cast `pid` argument to `Integer` (#2782, @andrykonchin).
 
 Performance:
 
