@@ -304,6 +304,9 @@ class Dir
 
     def mkdir(path, mode = 0777)
       path = Truffle::Type.coerce_to_path(path)
+      if mode
+        mode = Truffle::Type.rb_convert_type(mode, Integer, :to_int)
+      end
       ret = Truffle::POSIX.mkdir(path, mode)
       Errno.handle path if ret != 0
       ret
