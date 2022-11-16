@@ -9,6 +9,7 @@
  */
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
+#include <internal/string.h>
 
 // Encoding, rb_enc_*
 
@@ -255,6 +256,57 @@ long rb_enc_strlen(const char *p, const char *e, rb_encoding *enc) {
   }
 
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_strlen", rb_tr_temporary_native_string(p, length, enc)));
+}
+
+static char* str_nth_len(const char *p, const char *e, long *nthp, rb_encoding *enc) {
+  long nth = *nthp;
+  if (rb_enc_mbmaxlen(enc) == 1) {
+    p += nth;
+  } else if (rb_enc_mbmaxlen(enc) == rb_enc_mbminlen(enc)) {
+    p += nth * rb_enc_mbmaxlen(enc);
+  } else if (rb_enc_asciicompat(enc)) {
+    const char *p2, *e2;
+    int n;
+
+    while (p < e && 0 < nth) {
+      e2 = p + nth;
+      if (e < e2) {
+        *nthp = nth;
+        return (char *)e;
+      }
+      if (ISASCII(*p)) {
+        p2 = search_nonascii(p, e2);
+        if (!p2) {
+          nth -= e2 - p;
+          *nthp = nth;
+          return (char *)e2;
+        }
+        nth -= p2 - p;
+        p = p2;
+      }
+      n = rb_enc_mbclen(p, e, enc);
+      p += n;
+      nth--;
+    }
+    *nthp = nth;
+    if (nth != 0) {
+      return (char *)e;
+    }
+    return (char *)p;
+  } else {
+    while (p < e && nth--) {
+      p += rb_enc_mbclen(p, e, enc);
+    }
+  }
+  if (p > e) {
+    p = e;
+  }
+  *nthp = nth;
+  return (char*)p;
+}
+
+char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
+    return str_nth_len(p, e, &nth, enc);
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {

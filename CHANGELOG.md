@@ -27,6 +27,7 @@ Compatibility:
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
 * Support accessing `dmark` and `dfree` fields for `RData` (#2771, @eregon).
+* Implement `rb_enc_nth()` (#2771, @eregon).
 
 Performance:
 
