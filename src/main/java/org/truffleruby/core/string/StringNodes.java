@@ -2806,6 +2806,8 @@ public abstract class StringNodes {
     public abstract static class UnpackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
+        private final BranchProfile negativeOffsetProfile = BranchProfile.create();
+        private final BranchProfile tooLargeOffsetProfile = BranchProfile.create();
 
         @Specialization(guards = { "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" })
         protected RubyArray unpackCached(Object string, Object format, Object offsetObject,
@@ -2823,6 +2825,7 @@ public abstract class StringNodes {
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
+                negativeOffsetProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2830,6 +2833,7 @@ public abstract class StringNodes {
             }
 
             if (offset > byteArray.getLength()) {
+                tooLargeOffsetProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2867,6 +2871,7 @@ public abstract class StringNodes {
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
+                negativeOffsetProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2874,6 +2879,7 @@ public abstract class StringNodes {
             }
 
             if (offset > byteArray.getLength()) {
+                tooLargeOffsetProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
