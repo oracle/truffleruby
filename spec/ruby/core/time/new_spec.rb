@@ -58,8 +58,7 @@ describe "Time.new with a utc_offset argument" do
     Time.new(2000, 1, 1, 0, 0, 0, "-04:10:43").utc_offset.should == -15043
   end
 
-  # https://bugs.ruby-lang.org/issues/19121
-  guard -> { ruby_version_is ""..."3.0" or ruby_version_is "3.1" } do
+  ruby_bug '#13669', '3.0'...'3.1' do
     it "returns a Time with a UTC offset specified as +HH" do
       Time.new(2000, 1, 1, 0, 0, 0, "+05").utc_offset.should == 3600 * 5
     end
@@ -170,20 +169,13 @@ describe "Time.new with a utc_offset argument" do
     -> { Time.new(2000, 1, 1, 0, 0, 0, "+24:00") }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is ""..."3.1" do
-    it "raises ArgumentError if the String argument is not in an ASCII-compatible encoding" do
-      -> {
-        Time.new(2000, 1, 1, 0, 0, 0, "-04:10".encode("UTF-16LE"))
-      }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
-    end
-  end
-
-  ruby_version_is "3.1" do
-    it "raises ArgumentError if the String argument is not in an ASCII-compatible encoding" do
-      -> {
-        Time.new(2000, 1, 1, 0, 0, 0, "-04:10".encode("UTF-16LE"))
-      }.should raise_error(ArgumentError, "string contains null byte")
-    end
+  it "raises ArgumentError if the String argument is not in an ASCII-compatible encoding" do
+    # Don't check exception message - it was changed in previous CRuby versions:
+    # - "string contains null byte"
+    # - '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset'
+    -> {
+      Time.new(2000, 1, 1, 0, 0, 0, "-04:10".encode("UTF-16LE"))
+    }.should raise_error(ArgumentError)
   end
 
   it "raises ArgumentError if the argument represents a value less than or equal to -86400 seconds" do
