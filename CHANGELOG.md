@@ -26,6 +26,7 @@ Compatibility:
 * Fix `Kernel#Complex` and raise exception when an argument is formatted incorrectly (#2765, @andrykonchin).
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
+* Support accessing `dmark` and `dfree` fields for `RData` (#2771, @eregon).
 
 Performance:
 

@@ -2073,8 +2073,8 @@ public class CExtNodes {
     public abstract static class DataHolderCreate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DataHolder create(Object address) {
-            return new DataHolder(address, Pointer.getNullPointer(getContext()));
+        protected DataHolder create(Object address, Object marker, Object free) {
+            return new DataHolder(address, marker, free);
         }
     }
 
@@ -2105,19 +2105,17 @@ public class CExtNodes {
             return data.getMarker();
         }
 
-        @Specialization
+        @Specialization // For Truffle::CExt#run_marker
         protected Object getMarker(Nil data) {
             return data;
         }
     }
 
-    @Primitive(name = "data_holder_set_marker")
-    public abstract static class DataHolderSetMarker extends PrimitiveArrayArgumentsNode {
-
+    @Primitive(name = "data_holder_get_free")
+    public abstract static class DataHolderGetFree extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object setMarker(DataHolder data, Object marker) {
-            data.setMarker(marker);
-            return nil;
+        protected Object getMarker(DataHolder data) {
+            return data.getFree();
         }
     }
 
