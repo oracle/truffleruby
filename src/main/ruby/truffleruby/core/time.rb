@@ -490,12 +490,10 @@ class Time
     end
 
     def valid_utc_offset_string?(utc_offset)
-      return true if utc_offset == 'UTC'
-      return true if utc_offset.size == 1 && ('A'..'Z') === utc_offset && utc_offset != 'J'
-      return true if utc_offset =~ /\A[+-](\d{2})(?::(\d{2})(?::(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # with ":" separators
-      return true if utc_offset =~ /\A[+-](\d{2})(?:(\d{2})(?:(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # without ":" separators
-
-      false
+      utc_offset == 'UTC' \
+        || (utc_offset.size == 1 && ('A'..'Z') === utc_offset && utc_offset != 'J') \
+        || (utc_offset =~ /\A[+-](\d{2})(?::(\d{2})(?::(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) \
+        || (utc_offset =~ /\A[+-](\d{2})(?:(\d{2})(?:(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) # without ":" separators
     end
     private :valid_utc_offset_string?
 
