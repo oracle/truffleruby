@@ -28,6 +28,7 @@ Compatibility:
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
 * Support a module as the second argument of `Kernel#load` (@andrykonchin).
 * Improve argument validation in `Struct#valies_at` - raise `IndexError` or `RangeError` when arguments are out of range (#2773, @andrykonchin).
+* Fix `MatchData#values_at` and handling indices that are out of range (#2783, @andrykonchin).
 
 Performance:
 

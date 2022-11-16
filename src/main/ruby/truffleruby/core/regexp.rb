@@ -359,7 +359,36 @@ class MatchData
   end
 
   def values_at(*indexes)
-    indexes.map { |i| self[i] }.flatten(1)
+    out = []
+    size = self.size
+
+    indexes.each do |elem|
+      if Primitive.object_kind_of?(elem, String) || Primitive.object_kind_of?(elem, Symbol)
+        out << self[elem]
+      elsif Primitive.object_kind_of?(elem, Range)
+        start, length = Primitive.range_normalized_start_length(elem, size)
+        finish = start + length - 1
+
+        raise RangeError, "#{elem} out of range" if start < 0
+        next if finish < start # ignore empty ranges
+
+        finish_in_bounds = [finish, size - 1].min
+        start.upto(finish_in_bounds) do |index|
+          out << self[index]
+        end
+
+        (finish_in_bounds + 1).upto(finish) { out << nil }
+      else
+        index = Primitive.rb_num2int(elem)
+        if index >= size || index < -size
+          out << nil
+        else
+          out << self[index]
+        end
+      end
+    end
+
+    out
   end
 
   def to_s
