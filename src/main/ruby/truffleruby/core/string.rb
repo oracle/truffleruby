@@ -1268,7 +1268,9 @@ class String
 
   def unpack(format, offset: undefined)
     format = Truffle::Type.rb_convert_type(format, String, :to_str)
-    offset = Truffle::Type.rb_convert_type(offset, Integer, :to_int) unless Primitive.undefined?(offset)
+    unless Primitive.undefined?(offset)
+      offset = Primitive.rb_num2int(offset) # to guarantee it's `int` finally
+    end
     Primitive.string_unpack(self, format, offset)
   end
 
