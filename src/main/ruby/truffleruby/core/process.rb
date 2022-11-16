@@ -618,6 +618,7 @@ module Process
   #       and called periodically.
   #
   def detach(pid)
+    pid = Truffle::Type.rb_convert_type(pid, Integer, :to_int)
     raise ArgumentError, 'Only positive pids may be detached' unless pid > 0
 
     thread = Thread.new { Process.wait pid; $? }
