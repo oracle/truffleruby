@@ -479,9 +479,7 @@ module Truffle
     end
 
     def self.coerce_string_to_utc_offset(offset)
-      if offset.bytes.include?(0)
-        raise ArgumentError, 'string contains null byte'
-      end
+      check_null_safe(offset)
 
       if offset == 'UTC'
         offset = 0
