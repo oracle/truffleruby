@@ -27,6 +27,7 @@ Compatibility:
 * Add `#public?`, `#private?` and `#protected?` methods for `Method` and `UnboundMethod` classes (@andrykonchin).
 * Add optional argument to `Thread::Queue.new` (@andrykonchin).
 * Support a module as the second argument of `Kernel#load` (@andrykonchin).
+* Improve argument validation in `Struct#valies_at` - raise `IndexError` or `RangeError` when arguments are out of range (#2773, @andrykonchin).
 
 Performance:
 
