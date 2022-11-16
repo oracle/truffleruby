@@ -479,7 +479,9 @@ module Truffle
     end
 
     def self.coerce_string_to_utc_offset(offset)
-      check_null_safe(offset)
+      unless offset.encoding.ascii_compatible?
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset.inspect
+      end
 
       if offset == 'UTC'
         offset = 0

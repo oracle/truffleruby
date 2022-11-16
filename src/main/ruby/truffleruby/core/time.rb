@@ -467,12 +467,12 @@ class Time
     private :compose
 
     def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
-      Truffle::Type.check_null_safe(utc_offset) if utc_offset.instance_of?(String)
-
       if Primitive.undefined?(year)
         self.now
       elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
+      elsif utc_offset.instance_of?(String) && !utc_offset.encoding.ascii_compatible?
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset.inspect
       elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
         raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset
       elsif utc_offset == :std
