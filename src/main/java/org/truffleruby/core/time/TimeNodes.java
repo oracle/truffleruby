@@ -167,9 +167,15 @@ public abstract class TimeNodes {
         @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected RubyTime gmtime(RubyTime time,
                 @Cached BranchProfile errorProfile,
+                @Cached BranchProfile notModifiedProfile,
                 @CachedLibrary("time") RubyLibrary rubyLibrary) {
 
-            if (!time.isUtc && rubyLibrary.isFrozen(time)) {
+            if (time.isUtc) {
+                notModifiedProfile.enter();
+                return time;
+            }
+
+            if (rubyLibrary.isFrozen(time)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(time, this));
             }
