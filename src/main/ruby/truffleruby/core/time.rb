@@ -172,9 +172,23 @@ class Time
 
   def localtime(offset = nil)
     if offset
+      to_utc = Time.send(:utc_offset_in_utc?, offset)
       offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
-    Primitive.time_localtime(self, offset)
+
+    # the only cases when #localtime is allowed for a frozen time -
+    # - to covert from UTC to UTC
+    # - to convert from local time to the same local time
+    if frozen? && !(utc? && to_utc || !utc? && offset.nil?)
+      raise FrozenError, "can't modify frozen Time: #{self}"
+    end
+
+    # the only time zone that could be derived from utc_offset now is UTC
+    if to_utc
+      Primitive.time_utctime(self)
+    else
+      Primitive.time_localtime(self, offset)
+    end
   end
 
   def succ
@@ -302,7 +316,9 @@ class Time
   class << self
     def at(sec, sub_sec=undefined, unit=undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
-      offset = kwargs[:in] ? Truffle::Type.coerce_to_utc_offset(kwargs[:in]) : nil
+      timezone = kwargs[:in]
+      offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone) : nil
+      is_utc = utc_offset_in_utc?(timezone) if offset
 
       result = if Primitive.undefined?(sub_sec)
                  if Primitive.object_kind_of?(sec, Time)
@@ -316,8 +332,10 @@ class Time
                    Primitive.time_at self, sec.to_i, ns
                  end
                end
+      if result && offset
+        result = is_utc ? Primitive.time_utctime(result) : Primitive.time_localtime(result, offset)
+      end
       if result
-        result = Primitive.time_localtime(result, offset) if offset
         return result
       end
 
@@ -347,7 +365,11 @@ class Time
       nsec %= 1_000_000_000
 
       time = Primitive.time_at self, seconds, nsec
-      time = Primitive.time_localtime(time, offset) if offset
+
+      if offset
+        time = is_utc ? Primitive.time_utctime(time) : Primitive.time_localtime(time, offset)
+      end
+
       time
     end
 
@@ -449,23 +471,36 @@ class Time
         self.now
       elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
+      elsif utc_offset.instance_of?(String) && !utc_offset.encoding.ascii_compatible?
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset.inspect
       elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
-        raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset
       elsif utc_offset == :std
         compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst
         compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
       else
-        utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+        if utc_offset_in_utc?(utc_offset)
+          utc_offset = :utc
+        else
+          utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+        end
         compose(utc_offset, year, month, day, hour, minute, second)
       end
     end
 
     def valid_utc_offset_string?(utc_offset)
-      return false unless utc_offset.encoding.ascii_compatible?
-      utc_offset =~ /\A[+-](\d{2}):(\d{2})(?::(\d{2}))?\z/ && $1.to_i < 24 && $2.to_i < 60 && ($3 || '0').to_i < 60
+      utc_offset == 'UTC' \
+        || (utc_offset.size == 1 && ('A'..'Z') === utc_offset && utc_offset != 'J') \
+        || (utc_offset =~ /\A[+-](\d{2})(?::(\d{2})(?::(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) \
+        || (utc_offset =~ /\A[+-](\d{2})(?:(\d{2})(?:(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) # without ":" separators
     end
     private :valid_utc_offset_string?
+
+    def utc_offset_in_utc?(utc_offset)
+      utc_offset == 'UTC' || utc_offset == 'Z' || utc_offset == '-00:00'
+    end
+    private :utc_offset_in_utc?
 
     def local(*args)
       compose(:local, *args)

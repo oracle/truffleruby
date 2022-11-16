@@ -29,6 +29,11 @@ Compatibility:
 * Support a module as the second argument of `Kernel#load` (@andrykonchin).
 * Improve argument validation in `Struct#valies_at` - raise `IndexError` or `RangeError` when arguments are out of range (#2773, @andrykonchin).
 * Fix `MatchData#values_at` and handling indices that are out of range (#2783, @andrykonchin).
+* Add support for `%-z` (UTC for unknown local time offset, RFC 3339) to `Time#strftime` (@andrykonchin).
+* Add support for `UTC` and `A`-`Z` utc offset values, as well as `+/-HH`, `+/-HHMM`, `+/-HHMMSS` (without `:`) (@andrykonchin).
+* Treat time with `UTC`, `Z` and `-00:00` utc offset as UTC time (@andrykonchin).
+* Raise `FrozenError` when `Time#localtime`, `Time#utc` and `Time#gmtime` is called on a frozen time object (@andrykonchin).
+* Validate a microseconds argument used to create a time object (@andrykonchin).
 
 Performance:
 

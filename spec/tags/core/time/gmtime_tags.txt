@@ -1,1 +1,0 @@
-fails:Time#gmtime on a frozen time raises a RuntimeError if the time is not UTC

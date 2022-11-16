@@ -2,5 +2,4 @@ fails:Time#localtime returns a Time with a UTC offset of the specified number of
 fails:Time#localtime with an argument that responds to #to_r coerces using #to_r
 fails(ZoneOffset.ofTotalSeconds has smaller range):Time#localtime raises ArgumentError if the argument represents a value less than or equal to -86400 seconds
 fails(ZoneOffset.ofTotalSeconds has smaller range):Time#localtime raises ArgumentError if the argument represents a value greater than or equal to 86400 seconds
-fails:Time#localtime on a frozen time raises a RuntimeError if the time has a different time zone
 fails:Time#localtime does nothing if already in a local time zone
