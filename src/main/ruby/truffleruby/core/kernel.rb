@@ -371,31 +371,36 @@ module Kernel
   def load(filename, wrap = false)
     filename = Truffle::Type.coerce_to_path filename
 
+    # module_to_wrap either is a module or is nil
+    if wrap
+      module_to_wrap = wrap.is_a?(Module) ? wrap : Module.new
+    end
+
     # load absolute path
     if filename.start_with? File::SEPARATOR
-      return Truffle::KernelOperations.load File.expand_path(filename), wrap
+      return Primitive.kernel_load File.expand_path(filename), module_to_wrap
     end
 
     # if path starts with . only try relative paths
     if filename.start_with? '.'
-      return Truffle::KernelOperations.load File.expand_path(filename), wrap
+      return Primitive.kernel_load File.expand_path(filename), module_to_wrap
     end
 
     # try to resolve with current working directory
     if Truffle::FileOperations.exist?(filename)
-      return Truffle::KernelOperations.load File.expand_path(filename), wrap
+      return Primitive.kernel_load File.expand_path(filename), module_to_wrap
     end
 
     # try to find relative path in $LOAD_PATH
     $LOAD_PATH.each do |dir|
       path = File.expand_path(File.join(dir, filename))
       if Truffle::FileOperations.exist?(path)
-        return Truffle::KernelOperations.load path, wrap
+        return Primitive.kernel_load path, module_to_wrap
       end
     end
 
     # file not found trigger an error
-    Truffle::KernelOperations.load filename, wrap
+    Primitive.kernel_load filename, module_to_wrap
   end
   module_function :load
 

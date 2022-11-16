@@ -19,15 +19,12 @@ import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
-import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -37,9 +34,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -60,9 +55,7 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -84,58 +77,21 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @NodeChild(value = "file", type = RubyNode.class)
-    @NodeChild(value = "wrap", type = RubyBaseNodeWithExecute.class)
-    @CoreMethod(names = "load", onSingleton = true, required = 1, optional = 1)
-    public abstract static class LoadNode extends CoreMethodNode {
-
-        @CreateCast("wrap")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
-            return BooleanCastWithDefaultNode.create(false, inherit);
-        }
+    @Primitive(name = "kernel_load")
+    public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)", limit = "1")
-        protected boolean load(Object file, boolean wrap,
+        protected boolean load(Object file, Nil wrapModule,
                 @Cached RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
-            final Pair<Source, TStringWithEncoding> sourceRopePair;
-            try {
-                final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                sourceRopePair = fileLoader.loadFile(feature);
-            } catch (IOException e) {
-                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
-            }
+            final Pair<Source, TStringWithEncoding> sourceRopePair = getSourceRopePair(feature);
 
-            final RubyBasicObject mainObject = getContext().getCoreLibrary().mainObject;
-
-            final RootCallTarget callTarget;
-            final DeclarationContext declarationContext;
-            final Object self;
-            final LexicalScope lexicalScope;
-            if (!wrap) {
-                lexicalScope = getContext().getRootLexicalScope();
-                callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
-
-                declarationContext = DeclarationContext.topLevel(getContext());
-                self = mainObject;
-            } else {
-                final RubyModule wrapModule = ModuleNodes
-                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
-                lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), wrapModule);
-                final RubySource rubySource = new RubySource(
-                        sourceRopePair.getLeft(),
-                        feature,
-                        sourceRopePair.getRight());
-                callTarget = getContext()
-                        .getCodeLoader()
-                        .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, this);
-
-                declarationContext = DeclarationContext.topLevel(wrapModule);
-                self = DispatchNode.getUncached().call(mainObject, "clone");
-                DispatchNode.getUncached().call(self, "extend", wrapModule);
-            }
+            final DeclarationContext declarationContext = DeclarationContext.topLevel(getContext());
+            final LexicalScope lexicalScope = getContext().getRootLexicalScope();
+            final Object self = getContext().getCoreLibrary().mainObject;
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,
@@ -148,6 +104,53 @@ public abstract class TruffleKernelNodes {
             deferredCall.call(callNode);
 
             return true;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
+        protected boolean load(Object file, RubyModule wrapModule,
+                @Cached RubyStringLibrary strings,
+                @Cached IndirectCallNode callNode) {
+            final String feature = RubyGuards.getJavaString(file);
+            final Pair<Source, TStringWithEncoding> sourceRopePair = getSourceRopePair(feature);
+
+            final DeclarationContext declarationContext = DeclarationContext.topLevel(wrapModule);
+            final LexicalScope lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), wrapModule);
+
+            // self
+            final RubyBasicObject mainObject = getContext().getCoreLibrary().mainObject;
+            final Object self = DispatchNode.getUncached().call(mainObject, "clone");
+            DispatchNode.getUncached().call(self, "extend", wrapModule);
+
+            // callTarget
+            final RubySource rubySource = new RubySource(
+                    sourceRopePair.getLeft(),
+                    feature,
+                    sourceRopePair.getRight());
+            final RootCallTarget callTarget = getContext()
+                    .getCodeLoader()
+                    .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, this);
+
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    callTarget,
+                    ParserContext.TOP_LEVEL,
+                    declarationContext,
+                    null,
+                    self,
+                    lexicalScope);
+
+            deferredCall.call(callNode);
+
+            return true;
+        }
+
+        private Pair<Source, TStringWithEncoding> getSourceRopePair(String feature) {
+            try {
+                final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
+                return fileLoader.loadFile(feature);
+            } catch (IOException e) {
+                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
+            }
         }
 
     }
