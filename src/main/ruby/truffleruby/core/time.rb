@@ -316,8 +316,9 @@ class Time
   class << self
     def at(sec, sub_sec=undefined, unit=undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
-      offset = kwargs[:in] ? Truffle::Type.coerce_to_utc_offset(kwargs[:in]) : nil
-      isUtc = utc_offset_in_utc?(kwargs[:in]) if offset
+      timezone = kwargs[:in]
+      offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone) : nil
+      is_utc = utc_offset_in_utc?(timezone) if offset
 
       result = if Primitive.undefined?(sub_sec)
                  if Primitive.object_kind_of?(sec, Time)
