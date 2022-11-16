@@ -717,7 +717,7 @@ public abstract class RubyDateFormatter {
         String mm = RubyTimeOutputFormatter.formatNumber(minutes, 2, '0');
         String ss = RubyTimeOutputFormatter.formatNumber(seconds, 2, '0');
 
-        char padder = formatter.getPadderIgnoreUMinus('0');
+        char padder = formatter.getPadderAlwaysPad('0');
         int defaultWidth = -1;
         String after = null;
 
@@ -750,7 +750,7 @@ public abstract class RubyDateFormatter {
         }
 
         int minWidth = defaultWidth - 1;
-        int width = formatter.getWidthForNonNumericalOutput(defaultWidth);
+        int width = formatter.getWidthAlwaysPad(defaultWidth);
         if (width < minWidth) {
             width = minWidth;
         }
@@ -761,7 +761,7 @@ public abstract class RubyDateFormatter {
             before = before.replace('+', '-');
         }
 
-        if (isUtc && formatter.hasUMinusFlag()) { // support %-z (unknown local offset, RFC 3339)
+        if (isUtc && formatter.hasNoPaddingFlag()) { // support %-z (unknown local offset, RFC 3339)
             before = before.replace('+', '-');
         }
 

@@ -46,13 +46,13 @@ public class RubyTimeOutputFormatter {
         if (flags.indexOf('-') != -1) { // no padding
             return 0;
         }
-        return this.width != 0 ? this.width : defaultWidth;
+        return getWidthAlwaysPad(defaultWidth);
     }
 
 
     // For non-numerical output flag "-" should be ignored.
     // On the other hand in fact it's applied to some non-numerical directives, e.g. %b, %B etc.
-    public int getWidthForNonNumericalOutput(int defaultWidth) {
+    public int getWidthAlwaysPad(int defaultWidth) {
         return this.width != 0 ? this.width : defaultWidth;
     }
 
@@ -75,7 +75,7 @@ public class RubyTimeOutputFormatter {
     }
 
     // some directives treat "-" in some different way, e.g. %z
-    public char getPadderIgnoreUMinus(char defaultPadder) {
+    public char getPadderAlwaysPad(char defaultPadder) {
         char padder = defaultPadder;
         for (int i = 0; i < flags.length(); i++) {
             switch (flags.charAt(i)) {
@@ -143,7 +143,7 @@ public class RubyTimeOutputFormatter {
         }
     }
 
-    public boolean hasUMinusFlag() {
+    public boolean hasNoPaddingFlag() {
         return flags.contains("-");
     }
 
