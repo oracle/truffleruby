@@ -31,6 +31,8 @@ module Test
     end
 
     module CoreAssertions
+      ALLOW_SUBPROCESSES = true # !defined?(::TruffleRuby)
+
       require_relative 'envutil'
       require 'pp'
       nil.pretty_inspect
@@ -52,6 +54,8 @@ module Test
 
       def assert_in_out_err(args, test_stdin = "", test_stdout = [], test_stderr = [], message = nil,
                             success: nil, **opt)
+        skip 'assert_in_out_err is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+
         args = Array(args).dup
         args.insert((Hash === args[0] ? 1 : 0), '--disable=gems')
         stdout, stderr, status = EnvUtil.invoke_ruby(args, test_stdin, true, true, **opt)
@@ -219,6 +223,8 @@ module Test
       end
 
       def assert_normal_exit(testsrc, message = '', child_env: nil, **opt)
+        skip 'assert_normal_exit is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+
         assert_valid_syntax(testsrc, caller_locations(1, 1)[0])
         if child_env
           child_env = [child_env]
@@ -230,6 +236,8 @@ module Test
       end
 
       def assert_ruby_status(args, test_stdin="", message=nil, **opt)
+        skip 'assert_ruby_status is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+
         out, _, status = EnvUtil.invoke_ruby(args, test_stdin, true, :merge_to_stdout, **opt)
         desc = FailDesc[status, message, out]
         assert(!status.signaled?, desc)
@@ -249,6 +257,8 @@ module Test
       end
 
       def assert_separately(args, file = nil, line = nil, src, ignore_stderr: nil, **opt)
+        skip 'assert_separately is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+
         unless file and line
           loc, = caller_locations(1,1)
           file ||= loc.path
