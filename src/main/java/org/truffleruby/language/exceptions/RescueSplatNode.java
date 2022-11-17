@@ -13,7 +13,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -36,7 +35,7 @@ public class RescueSplatNode extends RescueNode {
                 false,
                 handlingClassesArray);
         this.splatCastNode.doNotCopy();
-        this.stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());
+        this.stores = ArrayStoreLibrary.createDispatched();
     }
 
     @Override

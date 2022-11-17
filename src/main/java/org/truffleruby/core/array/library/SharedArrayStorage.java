@@ -53,8 +53,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
         if (storage == null || storage instanceof ZeroLengthArrayStore) {
             return true;
         }
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory()
-                .getUncached(storage);
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached(storage);
         var elements = stores.getIterable(storage, 0, size);
         for (var e : elements) {
             if (e == null || !(e instanceof RubyDynamicObject) || SharedObjects.isShared(e)) {

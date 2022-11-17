@@ -79,7 +79,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
     private RubyLibrary getRubyLibrary() {
         if (rubyLibrary == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
+            rubyLibrary = insert(RubyLibrary.createDispatched(getRubyLibraryCacheLimit()));
         }
         return rubyLibrary;
     }

@@ -113,7 +113,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             // strategy explicitly here and returning it from this
             // function.
             if (oldStrategy != newStrategy) {
-                updatedAllocator = ArrayStoreLibrary.getFactory().getUncached().generalizeForStore(
+                updatedAllocator = ArrayStoreLibrary.getUncached().generalizeForStore(
                         oldStrategy.allocate(0),
                         newStrategy.allocate(0));
             } else {
@@ -216,7 +216,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @CachedLibrary("store") ArrayStoreLibrary arrays) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             assert state.nextIndex == index;
-            final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+            final ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
             ArrayStoreLibrary.ArrayAllocator newAllocator = stores.generalizeForValue(state.store, value);
 
             final int currentCapacity = state.capacity;
@@ -284,7 +284,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final int otherSize = other.size;
             if (otherSize != 0) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                final ArrayStoreLibrary newArrayLibrary = ArrayStoreLibrary.getFactory().getUncached();
+                final ArrayStoreLibrary newArrayLibrary = ArrayStoreLibrary.getUncached();
                 final int neededSize = index + otherSize;
 
                 final Object newStore;

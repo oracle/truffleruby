@@ -349,7 +349,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString arrayStorage(RubyArray array) {
-            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.getStore());
+            String storage = ArrayStoreLibrary.getUncached().toString(array.getStore());
             return createString(fromJavaStringNode, storage, Encodings.US_ASCII);
         }
 

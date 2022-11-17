@@ -22,7 +22,7 @@ public class ArrayStoreTest {
     @Test
     public void zeroLengthGeneralisesToInteger() {
         Object store = ArrayStoreLibrary.initialStorage(false);
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         int newValue = 7;
         assertFalse(stores.acceptsValue(store, newValue));
@@ -33,7 +33,7 @@ public class ArrayStoreTest {
     @Test
     public void zeroLengthGeneralisesToLong() {
         Object store = ArrayStoreLibrary.initialStorage(false);
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         long newValue = 7;
         assertFalse(stores.acceptsValue(store, newValue));
@@ -44,7 +44,7 @@ public class ArrayStoreTest {
     @Test
     public void zeroLengthGeneralisesToDouble() {
         Object store = ArrayStoreLibrary.initialStorage(false);
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         double newValue = 7.2;
         assertFalse(stores.acceptsValue(store, newValue));
@@ -55,7 +55,7 @@ public class ArrayStoreTest {
     @Test
     public void zeroLengthGeneralisesToObject() {
         Object store = ArrayStoreLibrary.initialStorage(false);
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         Object newValue = new Object();
         assertFalse(stores.acceptsValue(store, newValue));
@@ -66,7 +66,7 @@ public class ArrayStoreTest {
     @Test
     public void intArrayAcceptsInt() {
         int[] store = new int[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         int newValue = 1;
         assertTrue(stores.acceptsValue(store, newValue));
@@ -75,7 +75,7 @@ public class ArrayStoreTest {
     @Test
     public void intArrayGeneralisesToLong() {
         int[] store = new int[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         long newValue = 1L << 33;
         assertFalse(stores.acceptsValue(store, newValue));
@@ -86,7 +86,7 @@ public class ArrayStoreTest {
     @Test
     public void intArrayGeneralisesToObject() {
         int[] store = new int[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         Object newValue = new Object();
         assertFalse(stores.acceptsValue(store, newValue));
@@ -97,7 +97,7 @@ public class ArrayStoreTest {
     @Test
     public void longArrayAcceptsLong() {
         long[] store = new long[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         long newValue = 1;
         assertTrue(stores.acceptsValue(store, newValue));
@@ -106,7 +106,7 @@ public class ArrayStoreTest {
     @Test
     public void longArrayGeneralisesToObject() {
         long[] store = new long[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         Object newValue = new Object();
         assertFalse(stores.acceptsValue(store, newValue));
@@ -117,7 +117,7 @@ public class ArrayStoreTest {
     @Test
     public void doubleArrayAcceptsDouble() {
         double[] store = new double[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         double newValue = 1;
         assertTrue(stores.acceptsValue(store, newValue));
@@ -126,7 +126,7 @@ public class ArrayStoreTest {
     @Test
     public void doubleArrayGeneralisesToObject() {
         double[] store = new double[1];
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
 
         Object newValue = new Object();
         assertFalse(stores.acceptsValue(store, newValue));
@@ -136,7 +136,7 @@ public class ArrayStoreTest {
 
     @Test
     public void extractRangeOnArrayReturnsDelegatedStorage() {
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
         assertEquals(stores.extractRange(new int[10], 0, 10).getClass(), DelegatedArrayStorage.class);
         assertEquals(stores.extractRange(new long[10], 0, 10).getClass(), DelegatedArrayStorage.class);
         assertEquals(stores.extractRange(new double[10], 0, 10).getClass(), DelegatedArrayStorage.class);
@@ -145,7 +145,7 @@ public class ArrayStoreTest {
 
     @Test
     public void extractRangeOnZeroLengthArrayReturnssZeroLengthArray() {
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+        ArrayStoreLibrary stores = ArrayStoreLibrary.getUncached();
         assertEquals(stores.extractRange(ArrayStoreLibrary.initialStorage(false), 0, 0),
                 ArrayStoreLibrary.initialStorage(false));
     }

@@ -17,16 +17,12 @@ public abstract class ArrayOperations {
 
     @TruffleBoundary
     public static Iterable<Object> toIterable(RubyArray array) {
-        return ArrayStoreLibrary
-                .getFactory()
-                .getUncached()
-                .getIterable(array.getStore(), 0, array.size);
+        return ArrayStoreLibrary.getUncached().getIterable(array.getStore(), 0, array.size);
     }
 
     @TruffleBoundary
     public static int getStoreCapacity(RubyArray array) {
-        ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-        return stores.capacity(array.getStore());
+        return ArrayStoreLibrary.getUncached().capacity(array.getStore());
     }
 
 }
