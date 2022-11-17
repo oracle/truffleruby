@@ -1,4 +1,3 @@
-exclude :test_no_memory_leak, "needs investigation"
 exclude :test_static_sym_unknown, "needs investigation"
 exclude :test_sym_unknown, "needs investigation"
 exclude :test_disable_close, "needs investigation"

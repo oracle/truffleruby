@@ -108,6 +108,7 @@ module Test
 
       def assert_no_memory_leak(args, prepare, code, message=nil, limit: 2.0, rss: false, **opt)
         # TODO: consider choosing some appropriate limit for MJIT and stop skipping this once it does not randomly fail
+        skip 'assert_no_memory_leak fails transiently on TruffleRuby and is too slow' if defined?(::TruffleRuby)
         pend 'assert_no_memory_leak may consider MJIT memory usage as leak' if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled?
 
         require_relative 'memory_status'
