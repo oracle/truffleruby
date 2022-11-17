@@ -19,6 +19,18 @@ describe "Dir.home" do
     it "returns a non-frozen string" do
       Dir.home.should_not.frozen?
     end
+
+    it "returns a string with the filesystem encoding" do
+      Dir.home.encoding.should == Encoding.find("filesystem")
+    end
+
+    platform_is_not :windows do
+      it "works even if HOME is unset" do
+        ENV.delete('HOME')
+        Dir.home.should.start_with?('/')
+        Dir.home.encoding.should == Encoding.find("filesystem")
+      end
+    end
   end
 
   describe "when called with the current user name" do
@@ -36,6 +48,10 @@ describe "Dir.home" do
 
     it "returns a non-frozen string" do
       Dir.home(ENV['USER']).should_not.frozen?
+    end
+
+    it "returns a string with the filesystem encoding" do
+      Dir.home(ENV['USER']).encoding.should == Encoding.find("filesystem")
     end
   end
 

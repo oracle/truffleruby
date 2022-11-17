@@ -22,35 +22,18 @@ module Truffle
       first = path[0]
       if first == ?~ && expand_tilde
         first_char = path[1]
-
-        if first_char == ?/ || Primitive.nil?(first_char)
-          home = ENV['HOME']
-          raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if Primitive.nil? home
-          raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
-        end
-
         case first_char
         when ?/
+          home = Dir.home
           path = home + path.byteslice(1, path.bytesize - 1)
         when nil
-          if home.empty?
-            raise ArgumentError, "HOME environment variable is empty expanding '~'"
-          end
-
-          return home.dup
+          home = Dir.home
+          raise ArgumentError, "HOME environment variable is empty expanding '~'" if home.empty?
+          return home
         else
           length = Primitive.find_string(path, '/', 1) || path.bytesize
           name = path.byteslice 1, length - 1
-
-          ptr = Truffle::POSIX.truffleposix_get_user_home(name)
-          if !ptr.null?
-            dir = ptr.read_string
-            Truffle::POSIX.truffleposix_free ptr
-            raise ArgumentError, "user #{name} does not exist" if dir.empty?
-          else
-            Errno.handle
-          end
-
+          dir = Dir.home(name)
           path = dir + path.byteslice(length, path.bytesize - length)
         end
       elsif first != ?/

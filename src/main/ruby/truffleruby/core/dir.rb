@@ -208,8 +208,38 @@ class Dir
     end
     alias_method :exists?, :exist?
 
-    def home(user=nil)
-      PrivateFile.expand_path("~#{user}")
+    def home(user = nil)
+      user = StringValue(user) unless Primitive.nil?(user)
+
+      if user and !user.empty?
+        ptr = Truffle::POSIX.truffleposix_get_user_home(user)
+        if !ptr.null?
+          home = ptr.read_string.force_encoding(Encoding.filesystem)
+          Truffle::POSIX.truffleposix_free ptr
+          raise ArgumentError, "user #{user} does not exist" if home.empty?
+          home
+        else
+          Errno.handle
+        end
+      else
+        home = ENV['HOME'].dup
+        if home
+          home = home.dup.force_encoding(Encoding.filesystem)
+        else
+          ptr = Truffle::POSIX.truffleposix_get_current_user_home
+          if !ptr.null?
+            home = ptr.read_string.force_encoding(Encoding.filesystem)
+            Truffle::POSIX.truffleposix_free ptr
+            raise ArgumentError, "couldn't find home for uid `#{Process.uid}'" if home.empty?
+            home
+          else
+            Errno.handle
+          end
+        end
+
+        raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
+        home
+      end
     end
 
     def [](*patterns, base: nil, sort: true)

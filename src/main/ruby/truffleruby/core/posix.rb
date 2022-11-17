@@ -301,6 +301,7 @@ module Truffle::POSIX
 
   # Other routines
   attach_function :crypt, [:string, :string], :string, LIBCRYPT
+  attach_function :truffleposix_get_current_user_home, [], :pointer, LIBTRUFFLEPOSIX
   attach_function :truffleposix_get_user_home, [:string], :pointer, LIBTRUFFLEPOSIX
   attach_function :truffleposix_free, [:pointer], :void, LIBTRUFFLEPOSIX
 

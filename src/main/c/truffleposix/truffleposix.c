@@ -177,6 +177,52 @@ int truffleposix_getrusage(double times[4]) {
    return 0;
 }
 
+// Keep in sync with truffleposix_get_user_home() below
+char* truffleposix_get_current_user_home(void) {
+  uid_t uid = getuid();
+
+  struct passwd entry;
+  struct passwd *result = NULL;
+  int ret;
+
+  size_t buffer_size = sysconf(_SC_GETPW_R_SIZE_MAX);
+  if (buffer_size <= 0) {
+    buffer_size = 16384;
+  }
+
+  char *buffer = malloc(buffer_size);
+  if (buffer == NULL) {
+    return NULL;
+  }
+
+retry:
+  ret = getpwuid_r(uid, &entry, buffer, buffer_size, &result);
+  if (result != NULL) {
+    char *home = strdup(entry.pw_dir);
+    free(buffer);
+    return home;
+  } else if (ret == ERANGE) {
+    buffer_size *= 2;
+    free(buffer);
+    buffer = malloc(buffer_size);
+    if (buffer == NULL) {
+      return NULL;
+    }
+    goto retry;
+  } else if (ret == EINTR) {
+    goto retry;
+  } else if (ret == EIO || ret == EMFILE || ret == ENFILE) {
+    free(buffer);
+    errno = ret;
+    return NULL;
+  } else { // result == NULL, which means not found
+    // ret should be 0 in that case according to the man page, but it doesn't seem to always hold
+    free(buffer);
+    return strdup("");
+  }
+}
+
+// Keep in sync with truffleposix_get_current_user_home() above
 char* truffleposix_get_user_home(const char *name) {
   struct passwd entry;
   struct passwd *result = NULL;

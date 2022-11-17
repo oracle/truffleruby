@@ -39,6 +39,7 @@ Compatibility:
 * Support `offset` keyword argument for `String#unpack` and `String#unpack1` (@andrykonchin).
 * Fix `Process.detach` and cast `pid` argument to `Integer` (#2782, @andrykonchin).
 * `rb_to_id()` should create a static `ID`, used by RMagick (@eregon).
+* Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
 
 Performance:
 
