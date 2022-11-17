@@ -2801,21 +2801,16 @@ public abstract class StringNodes {
         }
     }
 
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
-    @CoreMethod(names = "unpack", required = 1)
+    @Primitive(name = "string_unpack")
     @ReportPolymorphism
-    public abstract static class UnpackNode extends CoreMethodNode {
+    public abstract static class UnpackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
-
-        @CreateCast("format")
-        protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
-            return ToStrNodeGen.create(format);
-        }
+        private final BranchProfile negativeOffsetProfile = BranchProfile.create();
+        private final BranchProfile tooLargeOffsetProfile = BranchProfile.create();
 
         @Specialization(guards = { "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" })
-        protected RubyArray unpackCached(Object string, Object format,
+        protected RubyArray unpackCached(Object string, Object format, Object offsetObject,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
@@ -2827,13 +2822,30 @@ public abstract class StringNodes {
             var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
+            final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
+
+            if (offset < 0) {
+                negativeOffsetProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(
+                                "offset can't be negative", this, null));
+            }
+
+            if (offset > byteArray.getLength()) {
+                tooLargeOffsetProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(
+                                "offset outside of string", this, null));
+            }
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
-                                byteArray.getOffset(),
+                                byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) }); // TODO impl associated for ImmutableRubyString
             } catch (FormatException e) {
                 exceptionProfile.enter();
@@ -2846,7 +2858,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
                 replaces = "unpackCached", limit = "1")
-        protected RubyArray unpackUncached(Object string, Object format,
+        protected RubyArray unpackUncached(Object string, Object format, Object offsetObject,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -2856,6 +2868,23 @@ public abstract class StringNodes {
             var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
+            final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
+
+            if (offset < 0) {
+                negativeOffsetProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(
+                                "offset can't be negative", this, null));
+            }
+
+            if (offset > byteArray.getLength()) {
+                tooLargeOffsetProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(
+                                "offset outside of string", this, null));
+            }
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
@@ -2863,7 +2892,7 @@ public abstract class StringNodes {
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
-                                byteArray.getOffset(),
+                                byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();

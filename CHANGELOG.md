@@ -36,6 +36,7 @@ Compatibility:
 * Validate a microseconds argument used to create a time object (@andrykonchin).
 * Support accessing `dmark` and `dfree` fields for `RData` (#2771, @eregon).
 * Implement `rb_enc_nth()` (#2771, @eregon).
+* Support `offset` keyword argument for `String#unpack` and `String#unpack1` (@andrykonchin).
 
 Performance:
 

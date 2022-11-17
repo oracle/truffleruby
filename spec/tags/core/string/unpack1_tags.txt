@@ -1,2 +1,0 @@
-fails:String#unpack1 starts unpacking from the given offset
-fails:String#unpack1 returns nil if the offset is at the end of the string
