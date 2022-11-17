@@ -34,6 +34,8 @@ Compatibility:
 * Treat time with `UTC`, `Z` and `-00:00` utc offset as UTC time (@andrykonchin).
 * Raise `FrozenError` when `Time#localtime`, `Time#utc` and `Time#gmtime` is called on a frozen time object (@andrykonchin).
 * Validate a microseconds argument used to create a time object (@andrykonchin).
+* Support accessing `dmark` and `dfree` fields for `RData` (#2771, @eregon).
+* Implement `rb_enc_nth()` (#2771, @eregon).
 
 Performance:
 

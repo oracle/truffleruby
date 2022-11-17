@@ -1472,15 +1472,13 @@ module Truffle::CExt
   end
 
   def define_marker(object, marker)
-    data_holder = Primitive.object_hidden_var_get object, DATA_HOLDER
-    Primitive.data_holder_set_marker(data_holder, marker)
     Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(marker)
   end
 
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
-    data_holder = Primitive.data_holder_create(data)
+    data_holder = Primitive.data_holder_create(data, mark, free)
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
 
     Primitive.object_space_define_data_finalizer object, free, data_holder unless Truffle::Interop.null?(free)
@@ -1493,7 +1491,7 @@ module Truffle::CExt
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
-    data_holder = Primitive.data_holder_create(data)
+    data_holder = Primitive.data_holder_create(data, mark, free)
     Primitive.object_hidden_var_set object, DATA_TYPE, data_type
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
     Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless Truffle::Interop.null?(size)

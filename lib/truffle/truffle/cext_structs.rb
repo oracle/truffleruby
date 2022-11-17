@@ -49,7 +49,7 @@ module Truffle::CExt
   end
 end
 
-# ruby.h: `struct RData` and struct `RTypedData`
+# ruby.h: `struct RData` and `struct RTypedData`
 class Truffle::CExt::RData
   def initialize(object, data_holder)
     @object = object
@@ -63,7 +63,7 @@ class Truffle::CExt::RData
   end
 
   def polyglot_members(internal)
-    %w[basic data type typed_flag]
+    %w[data type typed_flag dmark dfree basic]
   end
 
   def polyglot_read_member(name)
@@ -75,6 +75,10 @@ class Truffle::CExt::RData
       type
     when 'typed_flag'
       type ? 1 : 0
+    when 'dmark'
+      Primitive.data_holder_get_marker(@data_holder)
+    when 'dfree'
+      Primitive.data_holder_get_free(@data_holder)
     when 'basic'
       get_basic
     else
@@ -96,7 +100,7 @@ class Truffle::CExt::RData
   end
 
   def polyglot_member_readable?(name)
-    name == 'basic' or name == 'data' or name == 'type' or name == 'typed_flag'
+    name == 'data' or name == 'type' or name == 'typed_flag' or name == 'dmark' or name == 'dfree' or name == 'basic'
   end
 
   def polyglot_member_modifiable?(name)
