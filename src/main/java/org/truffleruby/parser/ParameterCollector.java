@@ -16,13 +16,10 @@ import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
-import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
-import org.truffleruby.parser.ast.FindPatternParseNode;
-import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
@@ -70,11 +67,6 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
             }
         }
         return null;
-    }
-
-    @Override
-    public Object visitArrayPatternNode(ArrayPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
@@ -159,16 +151,5 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
     public Object visitNilRestArgNode(NilRestArgParseNode node) {
         throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
-
-    @Override
-    public Object visitFindPatternNode(FindPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
-    }
-
-    @Override
-    public Object visitHashPatternNode(HashPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
-    }
-
 
 }

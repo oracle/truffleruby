@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
@@ -23,14 +22,10 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
-import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
-import org.truffleruby.parser.ast.FindPatternParseNode;
-import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
-import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -186,26 +181,6 @@ public class ReloadArgumentsTranslator extends Translator {
     protected RubyNode defaultVisit(ParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         return nilNode(sourceSection);
-    }
-
-    @Override
-    public RubyNode visitNilRestArgNode(NilRestArgParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
-    }
-
-    @Override
-    public RubyNode visitArrayPatternNode(ArrayPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
-    }
-
-    @Override
-    public RubyNode visitFindPatternNode(FindPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
-    }
-
-    @Override
-    public RubyNode visitHashPatternNode(HashPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
     }
 
 }
