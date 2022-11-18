@@ -1572,7 +1572,7 @@ class IO
   #  $. # lineno of last read   #=> 1001
   def lineno=(line_number)
     ensure_open_and_readable
-    @lineno = Integer(line_number)
+    @lineno = Primitive.rb_num2int(line_number)
   end
 
   # Normally only provided by io/nonblock
