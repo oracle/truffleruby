@@ -70,13 +70,13 @@ public class PatternMatchingTranslator extends BaseTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ParseNode data,
-            ListParseNode cases,
+            ParseNode data, /* data to match on */
+            ListParseNode cases, /* cases to check. */
             TranslatorEnvironment environment,
             BodyTranslator bodyTranslator) {
         super(language, source, parserContext, currentNode, environment);
-        this.data = data; // data to match on
-        this.cases = cases; // cases to check.
+        this.data = data;
+        this.cases = cases;
         this.environment = environment;
         this.bodyTranslator = bodyTranslator;
     }
@@ -90,7 +90,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         "not yet handled in pattern matching: " + node.toString() + " " + node.getPosition(),
                         currentNode,
                         node.getPosition().toSourceSection(source)));
-        //        throw new UnsupportedOperationException(node.toString() + " " + node.getPosition());
     }
 
     @Override
@@ -297,7 +296,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
             case HASHPATTERNNODE:
                 return this.visitHashPatternNode((HashPatternParseNode) patternNode);
             case FINDPATTERNNODE:
-                //                throw CompilerDirectives.shouldNotReachHere();
                 final RubyContext context = RubyLanguage.getCurrentContext();
                 var node = patternNode;
                 throw new RaiseException(
@@ -424,16 +422,4 @@ public class PatternMatchingTranslator extends BaseTranslator {
     public RubyNode visitCallNode(CallParseNode node) {
         return bodyTranslator.visitCallNode(node);
     }
-
-    //    public RubyNode translateArrayPatternNode(ArrayPatternParseNode node, ArrayParseNode data) {
-    //        // For now, we are assuming that only preArgs exist, and the pattern only consists of simple constant values.
-    //        final int size = node.minimumArgsNum();
-    //        ListParseNode pre = node.getPreArgs();
-    //        ParseNode[] ch = pre.children();
-    //        for (int i = 0; i < pre.size(); i++) {
-    //            if (ch[i] === data ) {}
-    //        }
-    //    }
-
-
 }
