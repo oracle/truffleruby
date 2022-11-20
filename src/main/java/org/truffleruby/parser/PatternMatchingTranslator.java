@@ -58,10 +58,10 @@ import java.util.Arrays;
 
 public class PatternMatchingTranslator extends BaseTranslator {
 
-    ParseNode data;
-    ListParseNode cases;
-    TranslatorEnvironment environment;
-    BodyTranslator bodyTranslator;
+    final ParseNode data;
+    final ListParseNode cases;
+    final TranslatorEnvironment environment;
+    final BodyTranslator bodyTranslator;
 
     RubyNode currentValueToMatch;
 
