@@ -70,8 +70,10 @@ public class PatternMatchingTranslator extends BaseTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ParseNode data, /* data to match on */
-            ListParseNode cases, /* cases to check. */
+            /** data to match on */
+            ParseNode data,
+            /** cases to check. */
+            ListParseNode cases,
             TranslatorEnvironment environment,
             BodyTranslator bodyTranslator) {
         super(language, source, parserContext, currentNode, environment);
