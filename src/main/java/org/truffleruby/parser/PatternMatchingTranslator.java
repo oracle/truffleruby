@@ -291,12 +291,12 @@ public class PatternMatchingTranslator extends BaseTranslator {
 
         currentValueToMatch = expressionValue;
 
+
         // TODO move the other cases to the visitor pattern
         switch (patternNode.getNodeType()) {
             case ARRAYPATTERNNODE:
                 return this.visitArrayPatternNode((ArrayPatternParseNode) patternNode);
-            case HASHPATTERNNODE:
-                return this.visitHashPatternNode((HashPatternParseNode) patternNode);
+            case HASHPATTERNNODE: // both of these throw the same exception, hence this is skipped.
             case FINDPATTERNNODE:
                 final RubyContext context = RubyLanguage.getCurrentContext();
                 var node = patternNode;
