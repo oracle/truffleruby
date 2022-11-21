@@ -42,3 +42,12 @@ fails:Pattern matching supports pinning class variables
 fails:Pattern matching supports pinning global variables
 fails:Pattern matching supports pinning expressions
 fails:Pattern matching warning when one-line form does not warn about pattern matching is experimental feature
+fails:Pattern matching Hash pattern supports form Constant(id: pat, id: pat, ...)
+fails:Pattern matching Hash pattern supports form Constant[id: pat, id: pat, ...]
+fails:Pattern matching Hash pattern supports form {id: pat, id: pat, ...}
+fails:Pattern matching Hash pattern supports 'string': key literal
+fails:Pattern matching Hash pattern matches an object with #deconstruct_keys method which returns a Hash with equal keys and each value in Hash matches value in pattern
+fails:Pattern matching Hash pattern calls #deconstruct_keys per pattern
+fails:Pattern matching Hash pattern can match partially
+fails:Pattern matching Hash pattern matches {} with {}
+fails:Pattern matching refinements are used for #deconstruct
