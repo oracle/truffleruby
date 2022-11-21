@@ -272,6 +272,10 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
         throw new DeferredRaiseException(c -> c.getCoreExceptions().argumentError(message, currentNode));
     }
 
+    @Override
+    public void warn(String message) {
+    }
+
     public FormatNode getNode() {
         return sequenceStack.peek().get(0);
     }

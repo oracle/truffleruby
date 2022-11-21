@@ -57,4 +57,6 @@ public interface SimplePackListener {
 
     void error(String message) throws DeferredRaiseException;
 
+    void warn(String message);
+
 }

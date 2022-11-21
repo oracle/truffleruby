@@ -426,7 +426,9 @@ public class SimplePackParser {
                     break;
 
                 default:
-                    throw new UnsupportedOperationException(Character.toString((char) b));
+                    n++;
+                    listener.warn(String.format("unknown pack directive '%c'", (char) b));
+                    break;
             }
         }
     }
