@@ -92,8 +92,9 @@ describe "IO#lineno=" do
     @io.lineno.should == 92233
   end
 
-  it "raises TypeError on nil argument" do
-    -> { @io.lineno = nil }.should raise_error(TypeError)
+  it "raises TypeError if cannot convert argument to Integer implicitly" do
+    -> { @io.lineno = "1" }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+    -> { @io.lineno = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
   end
 
   it "sets the current line number to the given value" do

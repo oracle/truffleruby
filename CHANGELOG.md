@@ -41,6 +41,7 @@ Compatibility:
 * Fix `Process.detach` and cast `pid` argument to `Integer` (#2782, @andrykonchin).
 * `rb_to_id()` should create a static `ID`, used by RMagick (@eregon).
 * Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
+* Fix `IO#lineno=` and convert argument to `Integer` more strictly (#2786, @andrykonchin).
 
 Performance:
 
