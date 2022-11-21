@@ -14,6 +14,7 @@ Bug fixes:
 * Fix `rb_thread_fd_select()` to correctly initialize fdset copies and handle the timeout (@eregon).
 * Fix `TracePoint#inspect` when it's called outside of a callback (@andrykonchin).
 * Fix `Signal.trap` when signal argument is not supported (#2774, @andrykonchin).
+* Fix `Dir.mkdir` and convert permissions argument to `Integer` (#2781, @andrykonchin).
 
 Compatibility:
 
