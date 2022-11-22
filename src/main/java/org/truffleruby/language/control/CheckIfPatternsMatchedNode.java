@@ -22,12 +22,12 @@ public final class CheckIfPatternsMatchedNode extends RubyContextSourceNode {
 
     public CheckIfPatternsMatchedNode(RubyNode inspected) {
         this.inspected = inspected;
+        this.toJavaStringNode = ToJavaStringNode.create();
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        toJavaStringNode = ToJavaStringNode.create(inspected);
-        String message = (String) toJavaStringNode.execute(frame);
+        String message = toJavaStringNode.executeToJavaString(inspected.execute(frame));
         throw new RaiseException(getContext(), coreExceptions().noMatchingPatternError(message, this));
     }
 
