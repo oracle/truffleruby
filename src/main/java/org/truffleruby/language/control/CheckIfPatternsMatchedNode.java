@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -17,6 +18,7 @@ import org.truffleruby.language.RubyNode;
 public final class CheckIfPatternsMatchedNode extends RubyContextSourceNode {
 
     @Child RubyNode inspected;
+    @Child ToJavaStringNode toJavaStringNode;
 
     public CheckIfPatternsMatchedNode(RubyNode inspected) {
         this.inspected = inspected;
@@ -24,7 +26,8 @@ public final class CheckIfPatternsMatchedNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        String message = inspected.execute(frame).toString();
+        toJavaStringNode = ToJavaStringNode.create(inspected);
+        String message = (String) toJavaStringNode.execute(frame);
         throw new RaiseException(getContext(), coreExceptions().noMatchingPatternError(message, this));
     }
 
