@@ -1639,7 +1639,7 @@ class IO
   #  f.pos = 17
   #  f.gets   #=> "This is line two\n"
   def pos=(offset)
-    seek offset, SEEK_SET
+    seek Primitive.rb_num2long(offset), SEEK_SET
   end
 
   ##
@@ -2033,7 +2033,7 @@ class IO
     flush
     reset_buffering
 
-    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Integer(amount), whence)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Primitive.rb_num2long(amount), whence)
     Errno.handle if r == -1
     0
   end

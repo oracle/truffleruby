@@ -60,6 +60,12 @@ describe :io_set_pos, shared: true do
     end
   end
 
+  it "raises TypeError when cannot convert implicitly argument to Integer" do
+    File.open @fname do |io|
+      -> { io.send @method, Object.new }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
+    end
+  end
+
   it "does not accept Integers that don't fit in a C long" do
     File.open @fname do |io|
       -> { io.send @method, 2**128 }.should raise_error(RangeError)
