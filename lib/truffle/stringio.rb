@@ -138,7 +138,7 @@ class StringIO
 
   attr_reader :__data__
 
-  def initialize(string=nil, mode=nil)
+  def initialize(string=nil, mode=nil, **options)
     if string.nil?
       @__data__ = Data.new ''.force_encoding(Encoding.default_external)
       mode = IO::RDWR

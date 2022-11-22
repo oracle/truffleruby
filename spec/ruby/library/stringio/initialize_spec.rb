@@ -163,6 +163,13 @@ describe "StringIO#initialize when passed [Object]" do
   end
 end
 
+describe "StringIO#initialize when passed keyword arguments" do
+  it "accepts keyword arguments" do
+    io = StringIO.allocate
+    -> { io.send(:initialize, mode: "w") }.should_not raise_error
+  end
+end
+
 describe "StringIO#initialize when passed no arguments" do
   before :each do
     @io = StringIO.allocate

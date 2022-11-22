@@ -47,6 +47,7 @@ Compatibility:
 * Fix argument implicit convertion in `IO#pos=` and `IO#seek` methods (#2787, @andrykonchin).
 * Warn about unknown directive passed to `Array#pack` in verbose mode (#2791, @andrykonchin).
 * Added constants `IO::SEEK_DATE` and `IO::SEEK_HOLE` (#2792, @andrykonchin).
+* Fix `StringIO.new` to accept keyword arguments (#2793, @andrykonchin).
 
 Performance:
 
