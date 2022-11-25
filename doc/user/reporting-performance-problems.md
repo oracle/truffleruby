@@ -7,6 +7,8 @@ permalink: /reference-manual/ruby/ReportingPerformanceProblems/
 # Reporting Performance Problems
 
 We are interested in hearing from you if you experience lower performance with TruffleRuby than with other implementations of Ruby.
+Please report any performance issues you might find on [GitHub](https://github.com/oracle/truffleruby/issues).
+
 The [Compatibility](compatibility.md) guide lists some features which we know are slow and are unlikely to get faster.
 
 ## Common Problems and Why

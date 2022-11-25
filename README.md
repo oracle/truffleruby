@@ -56,7 +56,7 @@ Please report any issues you might find on [GitHub](https://github.com/oracle/tr
 TruffleRuby aims to:
 
 * Run idiomatic Ruby code faster.
-  * TruffleRuby is the fastest Ruby implementation for many CPU-intensive benchmarks.
+  * TruffleRuby is the [fastest Ruby implementation](https://eregon.me/blog/2022/01/06/benchmarking-cruby-mjit-yjit-jruby-truffleruby.html) for many CPU-intensive benchmarks.
 * Run Ruby code in parallel.
   * TruffleRuby does not have a global interpreter lock and runs Ruby code in parallel.
 * Support C extensions.
@@ -114,18 +114,17 @@ See the [contributor workflow](doc/contributor/workflow.md) document if you wish
 
 ## Current Status
 
-We recommend that people trying TruffleRuby on their gems and applications [get in touch with us](#contact) for help.
+We recommend that people trying TruffleRuby on their gems and applications [get in touch with us](#contact) for any help they might need.
 
-TruffleRuby can run Rails and is compatible with many gems, including C extensions.
-However, TruffleRuby is not 100% compatible with MRI 3.1 yet. Please report any compatibility issues you might find.
-TruffleRuby [passes around 97% of ruby/spec](https://eregon.me/blog/2020/06/27/ruby-spec-compatibility-report.html),
+TruffleRuby runs Rails and is compatible with many gems, including C extensions.
+TruffleRuby is not 100% compatible with MRI 3.1 yet. Please [report](https://github.com/oracle/truffleruby/issues) any compatibility issues you might find.
+TruffleRuby [passes around 97% of ruby/spec](https://eregon.me/rubyspec-stats/),
 more than any other alternative Ruby implementation.
 
-TruffleRuby might not be fast yet on Rails applications and large programs.
-Notably, large programs currently take a long time to warmup on TruffleRuby and
-this is something the TruffleRuby team is currently working on.
-Large programs often involve more performance-critical code
-so there is a higher chance of hitting an area of TruffleRuby which has not been optimized yet.
+Regarding performance, TruffleRuby is [by far](https://eregon.me/blog/2022/01/06/benchmarking-cruby-mjit-yjit-jruby-truffleruby.html)
+the fastest Ruby implementation on the [yjit-bench](https://github.com/Shopify/yjit-bench) benchmark suite which includes `railsbench`, etc.
+To achieve this performance TruffleRuby needs a fair amount of warmup, as other advanced JIT compilers do.
+If you find any performance issue, please see [this guide](doc/user/reporting-performance-problems.md).
 
 ## Releases
 
