@@ -350,7 +350,7 @@ describe "String#dump" do
     ].should be_computed_by(:dump)
   end
 
-  it "returns a string with multi-byte UTF-8 characters replaced by \\u{} notation with upper-case hex digits" do
+  it "returns a string with multi-byte UTF-8 characters less than or equal 0xFFFF replaced by \\uXXXX notation with upper-case hex digits" do
     [ [0200.chr('utf-8'), '"\u0080"'],
       [0201.chr('utf-8'), '"\u0081"'],
       [0202.chr('utf-8'), '"\u0082"'],
@@ -382,7 +382,13 @@ describe "String#dump" do
       [0235.chr('utf-8'), '"\u009D"'],
       [0236.chr('utf-8'), '"\u009E"'],
       [0237.chr('utf-8'), '"\u009F"'],
+      [0177777.chr('utf-8'), '"\uFFFF"'],
     ].should be_computed_by(:dump)
+  end
+
+  it "returns a string with multi-byte UTF-8 characters greater than 0xFFFF replaced by \\u{XXXXXX} notation with upper-case hex digits" do
+    0x10000.chr('utf-8').dump.should == '"\u{10000}"'
+    0x10FFFF.chr('utf-8').dump.should == '"\u{10FFFF}"'
   end
 
   it "includes .force_encoding(name) if the encoding isn't ASCII compatible" do
