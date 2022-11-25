@@ -1,5 +1,1 @@
-fails:IO#set_encoding when passed nil, nil with 'r' mode sets the encodings to the current Encoding defaults
-fails:IO#set_encoding when passed nil, nil with 'r' mode allows the #external_encoding to change when Encoding.default_external is changed
-fails:IO#set_encoding when passed nil, nil with 'rb' mode returns Encoding.default_external
 fails:IO#set_encoding saves encoding options passed as a hash in the last argument
-fails:IO#set_encoding raises ArgumentError when too many arguments are given
