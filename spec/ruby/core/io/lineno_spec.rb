@@ -97,6 +97,10 @@ describe "IO#lineno=" do
     -> { @io.lineno = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
   end
 
+  it "does not accept Integers that don't fit in a C int" do
+    -> { @io.lineno = 2**32 }.should raise_error(RangeError)
+  end
+
   it "sets the current line number to the given value" do
     @io.lineno = count = 500
 
