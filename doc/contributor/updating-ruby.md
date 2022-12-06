@@ -144,12 +144,14 @@ Update all of these:
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
 * Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
+* Also update version numbers in `src/main/c/Makefile`.
 * Update `TargetRubyVersion` in `.rubocop.yml`
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
+* Build TruffleRuby (`jt build`).
 * Run `jt test gems default-bundled-gems`
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`

@@ -30,12 +30,12 @@ BASIC_EXTCONF_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) 
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
 
-DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.4.0
+DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.6.3
 DEBUG_GEM_EXT := $(DEBUG_GEM)/ext/debug
 DEBUG_GEM_EXT_SO := $(DEBUG_GEM_EXT)/debug.$(DLEXT)
 DEBUG_GEM_LIB_SO := $(DEBUG_GEM)/lib/debug/debug.$(DLEXT)
 
-RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.1.0
+RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.7.0
 RBS_GEM_EXT := $(RBS_GEM)/ext/rbs_extension
 RBS_GEM_EXT_SO := $(RBS_GEM_EXT)/rbs_extension.$(DLEXT)
 RBS_GEM_LIB_SO := $(RBS_GEM)/lib/rbs_extension.$(DLEXT)
@@ -175,6 +175,7 @@ $(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c $(DEBUG_GEM_
 
 $(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)
 	$(Q) cp $< $@
+	$(Q) $(RUBY) $(ROOT)/tool/mark-gem-extension-as-built.rb debug
 
 # rbs bundled gem
 $(RBS_GEM_EXT)/Makefile: $(RBS_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
@@ -185,3 +186,4 @@ $(RBS_GEM_EXT_SO): $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
 
 $(RBS_GEM_LIB_SO): $(RBS_GEM_EXT_SO)
 	$(Q) cp $< $@
+	$(Q) $(RUBY) $(ROOT)/tool/mark-gem-extension-as-built.rb rbs

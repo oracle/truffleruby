@@ -159,6 +159,7 @@ describe "The launcher" do
     check_status_and_empty_stderr
     # see doc/contributor/stdlib.md
     @bundled_gems.each_pair do |gem, version|
+      next if gem == 'typeprof' # not included on TruffleRuby
       gem_list.should =~ /#{Regexp.escape gem}.*#{Regexp.escape version}/
     end
   end
