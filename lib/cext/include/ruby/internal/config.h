@@ -19,8 +19,6 @@
  *             extension libraries.  They could be written in C++98.
  * @brief      Thin wrapper to ruby/config.h
  */
-// Must be first, as it defines feature test macros like _GNU_SOURCE,
-// which influences the definitions exposed by system header files.
 #include "ruby/config.h"
 
 #ifdef RUBY_EXTCONF_H
@@ -151,9 +149,5 @@
 #ifndef USE_RVARGC
 # define USE_RVARGC 0
 #endif
-
-#define TRUFFLERUBY
-// Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
-#include <truffleruby/truffleruby-pre.h>
 
 #endif /* RBIMPL_CONFIG_H */

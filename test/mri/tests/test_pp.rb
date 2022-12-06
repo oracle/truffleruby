@@ -230,6 +230,6 @@ if defined?(RubyVM)
       assert_equal(expected, PP.singleline_pp(ast, ''.dup), ast)
     end
   end
-end unless defined?(TruffleRuby) # uses RubyVM
+end
 
 end

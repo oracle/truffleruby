@@ -97,14 +97,14 @@ class Gem::Dependency
   end
 
   def pretty_print(q) # :nodoc:
-    q.group 1, 'Gem::Dependency.new(', ')' do
+    q.group 1, "Gem::Dependency.new(", ")" do
       q.pp name
-      q.text ','
+      q.text ","
       q.breakable
 
       q.pp requirement
 
-      q.text ','
+      q.text ","
       q.breakable
 
       q.pp type
@@ -115,7 +115,7 @@ class Gem::Dependency
   # What does this dependency require?
 
   def requirement
-    return @requirement if defined?(@requirement) and @requirement
+    return @requirement if defined?(@requirement) && @requirement
 
     # @version_requirements and @version_requirement are legacy ivar
     # names, and supported here because older gems need to keep
@@ -197,7 +197,7 @@ class Gem::Dependency
     reqs = other.requirement.requirements
 
     return false unless reqs.length == 1
-    return false unless reqs.first.first == '='
+    return false unless reqs.first.first == "="
 
     version = reqs.first.last
 
@@ -230,10 +230,10 @@ class Gem::Dependency
 
     version = Gem::Version.new version
 
-    return true if requirement.none? and not version.prerelease?
-    return false if version.prerelease? and
-                    not allow_prerelease and
-                    not prerelease?
+    return true if requirement.none? && !version.prerelease?
+    return false if version.prerelease? &&
+                    !allow_prerelease &&
+                    !prerelease?
 
     requirement.satisfied_by? version
   end

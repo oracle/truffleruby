@@ -374,18 +374,24 @@ rb_zlib_version(VALUE klass)
     return rb_str_new2(zlibVersion());
 }
 
+#if SIZEOF_LONG * CHAR_BIT > 32
+# define mask32(x) ((x) & 0xffffffff)
+#else
+# define mask32(x) (x)
+#endif
+
 #if SIZEOF_LONG > SIZEOF_INT
 static uLong
 checksum_long(uLong (*func)(uLong, const Bytef*, uInt), uLong sum, const Bytef *ptr, long len)
 {
     if (len > UINT_MAX) {
 	do {
-	    sum = func(sum, ptr, UINT_MAX);
+	    sum = func(mask32(sum), ptr, UINT_MAX);
 	    ptr += UINT_MAX;
 	    len -= UINT_MAX;
 	} while (len >= UINT_MAX);
     }
-    if (len > 0) sum = func(sum, ptr, (uInt)len);
+    if (len > 0) sum = func(mask32(sum), ptr, (uInt)len);
     return sum;
 }
 #else
@@ -411,7 +417,7 @@ do_checksum(int argc, VALUE *argv, uLong (*func)(uLong, const Bytef*, uInt))
     }
 
     if (NIL_P(str)) {
-	sum = func(sum, Z_NULL, 0);
+	sum = func(mask32(sum), Z_NULL, 0);
     }
     else if (rb_obj_is_kind_of(str, rb_cIO)) {
         VALUE buf;
@@ -521,11 +527,6 @@ rb_zlib_crc32_combine(VALUE klass, VALUE crc1, VALUE crc2, VALUE len2)
  *
  * Returns the table for calculating CRC checksum as an array.
  */
-#ifdef TRUFFLERUBY
-static VALUE rb_zlib_crc_table(VALUE obj) {
-    return RUBY_CEXT_INVOKE("zlib_get_crc_table");
-}
-#else
 static VALUE
 rb_zlib_crc_table(VALUE obj)
 {
@@ -545,7 +546,6 @@ rb_zlib_crc_table(VALUE obj)
     }
     return dst;
 }
-#endif
 
 
 

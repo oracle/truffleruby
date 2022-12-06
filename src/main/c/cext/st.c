@@ -1,5 +1,3 @@
-#include <truffleruby-impl.h>
-
 /* This is a public domain general purpose hash table package
    originally written by Peter Moore @ UCB.
 
@@ -705,34 +703,39 @@ count_collision(const struct st_hash_type *type)
 static void
 rebuild_table(st_table *tab)
 {
-    st_index_t i, ni, bound;
+    st_index_t i, ni;
     unsigned int size_ind;
     st_table *new_tab;
-    st_table_entry *entries, *new_entries;
+    st_table_entry *new_entries;
     st_table_entry *curr_entry_ptr;
     st_index_t *bins;
     st_index_t bin_ind;
 
-    bound = tab->entries_bound;
-    entries = tab->entries;
     if ((2 * tab->num_entries <= get_allocated_entries(tab)
 	 && REBUILD_THRESHOLD * tab->num_entries > get_allocated_entries(tab))
 	|| tab->num_entries < (1 << MINIMAL_POWER2)) {
         /* Compaction: */
         tab->num_entries = 0;
-	if (tab->bins != NULL)
-	    initialize_bins(tab);
-	new_tab = tab;
-	new_entries = entries;
+        if (tab->bins != NULL)
+            initialize_bins(tab);
+        new_tab = tab;
+        new_entries = tab->entries;
     }
     else {
+        /* This allocation could trigger GC and compaction. If tab is the
+         * gen_iv_tbl, then tab could have changed in size due to objects being
+         * freed and/or moved. Do not store attributes of tab before this line. */
         new_tab = st_init_table_with_size(tab->type,
 					  2 * tab->num_entries - 1);
 	new_entries = new_tab->entries;
     }
+
     ni = 0;
     bins = new_tab->bins;
     size_ind = get_size_ind(new_tab);
+    st_index_t bound = tab->entries_bound;
+    st_table_entry *entries = tab->entries;
+
     for (i = tab->entries_start; i < bound; i++) {
         curr_entry_ptr = &entries[i];
 	PREFETCH(entries + i + 1, 0);
@@ -2225,6 +2228,27 @@ st_insert_generic(st_table *tab, long argc, const VALUE *argv, VALUE hash)
 
     /* reindex */
     st_rehash(tab);
+}
+
+/* Mimics ruby's { foo => bar } syntax. This function is subpart
+   of rb_hash_bulk_insert. */
+void
+rb_hash_bulk_insert_into_st_table(long argc, const VALUE *argv, VALUE hash)
+{
+    st_index_t n, size = argc / 2;
+    st_table *tab = RHASH_ST_TABLE(hash);
+
+    tab = RHASH_TBL_RAW(hash);
+    n = tab->entries_bound + size;
+    st_expand_table(tab, n);
+    if (UNLIKELY(tab->num_entries))
+        st_insert_generic(tab, argc, argv, hash);
+    else if (argc <= 2)
+        st_insert_single(tab, hash, argv[0], argv[1]);
+    else if (tab->bin_power <= MAX_POWER2_FOR_TABLES_WITHOUT_BINS)
+        st_insert_linear(tab, argc, argv, hash);
+    else
+        st_insert_generic(tab, argc, argv, hash);
 }
 
 // to iterate iv_index_tbl

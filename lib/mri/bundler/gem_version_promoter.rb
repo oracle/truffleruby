@@ -55,19 +55,17 @@ module Bundler
       @level = v
     end
 
-    # Given a Dependency and an Array of SpecGroups of available versions for a
-    # gem, this method will return the Array of SpecGroups sorted (and possibly
+    # Given a Dependency and an Array of Specifications of available versions for a
+    # gem, this method will return the Array of Specifications sorted (and possibly
     # truncated if strict is true) in an order to give preference to the current
     # level (:major, :minor or :patch) when resolution is deciding what versions
     # best resolve all dependencies in the bundle.
     # @param dep [Dependency] The Dependency of the gem.
-    # @param spec_groups [SpecGroup] An array of SpecGroups for the same gem
+    # @param spec_groups [Specification] An array of Specifications for the same gem
     #    named in the @dep param.
-    # @return [SpecGroup] A new instance of the SpecGroup Array sorted and
+    # @return [Specification] A new instance of the Specification Array sorted and
     #    possibly filtered.
     def sort_versions(dep, spec_groups)
-      before_result = "before sort_versions: #{debug_format_result(dep, spec_groups).inspect}" if DEBUG
-
       @sort_versions[dep] ||= begin
         gem_name = dep.name
 
@@ -79,13 +77,12 @@ module Bundler
           filter_dep_specs(spec_groups, locked_spec)
         else
           sort_dep_specs(spec_groups, locked_spec)
-        end.tap do |specs|
-          if DEBUG
-            puts before_result
-            puts " after sort_versions: #{debug_format_result(dep, specs).inspect}"
-          end
         end
       end
+    end
+
+    def reset
+      @sort_versions = {}
     end
 
     # @return [bool] Convenience method for testing value of level variable.
@@ -119,15 +116,14 @@ module Bundler
     end
 
     def sort_dep_specs(spec_groups, locked_spec)
-      return spec_groups unless locked_spec
-      @gem_name = locked_spec.name
-      @locked_version = locked_spec.version
+      @locked_version = locked_spec&.version
+      @gem_name = locked_spec&.name
 
       result = spec_groups.sort do |a, b|
         @a_ver = a.version
         @b_ver = b.version
 
-        unless @prerelease_specified[@gem_name]
+        unless @gem_name && @prerelease_specified[@gem_name]
           a_pre = @a_ver.prerelease?
           b_pre = @b_ver.prerelease?
 
@@ -151,7 +147,7 @@ module Bundler
     end
 
     def either_version_older_than_locked
-      @a_ver < @locked_version || @b_ver < @locked_version
+      @locked_version && (@a_ver < @locked_version || @b_ver < @locked_version)
     end
 
     def segments_do_not_match(level)
@@ -160,7 +156,7 @@ module Bundler
     end
 
     def unlocking_gem?
-      unlock_gems.empty? || unlock_gems.include?(@gem_name)
+      unlock_gems.empty? || (@gem_name && unlock_gems.include?(@gem_name))
     end
 
     # Specific version moves can't always reliably be done during sorting
@@ -168,7 +164,7 @@ module Bundler
     def post_sort(result)
       # default :major behavior in Bundler does not do this
       return result if major?
-      if unlocking_gem?
+      if unlocking_gem? || @locked_version.nil?
         result
       else
         move_version_to_end(result, @locked_version)
@@ -178,13 +174,6 @@ module Bundler
     def move_version_to_end(result, version)
       move, keep = result.partition {|s| s.version.to_s == version.to_s }
       keep.concat(move)
-    end
-
-    def debug_format_result(dep, spec_groups)
-      a = [dep.to_s,
-           spec_groups.map {|sg| [sg.version, sg.dependencies_for_activated_platforms.map {|dp| [dp.name, dp.requirement.to_s] }] }]
-      last_map = a.last.map {|sg_data| [sg_data.first.version, sg_data.last.map {|aa| aa.join(" ") }] }
-      [a.first, last_map, level, strict ? :strict : :not_strict]
     end
   end
 end

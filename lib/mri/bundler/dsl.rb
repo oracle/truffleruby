@@ -16,7 +16,7 @@ module Bundler
     VALID_PLATFORMS = Bundler::Dependency::PLATFORM_MAP.keys.freeze
 
     VALID_KEYS = %w[group groups git path glob name branch ref tag require submodules
-                    platform platforms type source install_if gemfile].freeze
+                    platform platforms type source install_if gemfile force_ruby_platform].freeze
 
     GITHUB_PULL_REQUEST_URL = %r{\Ahttps://github\.com/([A-Za-z0-9_\-\.]+/[A-Za-z0-9_\-\.]+)/pull/(\d+)\z}.freeze
 
@@ -46,7 +46,7 @@ module Bundler
       @gemfile = expanded_gemfile_path
       @gemfiles << expanded_gemfile_path
       contents ||= Bundler.read_file(@gemfile.to_s)
-      instance_eval(contents.dup.tap{|x| x.untaint if RUBY_VERSION < "2.7" }, gemfile.to_s, 1)
+      instance_eval(contents.dup.tap {|x| x.untaint if RUBY_VERSION < "2.7" }, gemfile.to_s, 1)
     rescue Exception => e # rubocop:disable Lint/RescueException
       message = "There was an error " \
         "#{e.is_a?(GemfileEvalError) ? "evaluating" : "parsing"} " \
@@ -67,7 +67,6 @@ module Bundler
 
       gemspecs = Gem::Util.glob_files_in_dir("{,*}.gemspec", expanded_path).map {|g| Bundler.load_gemspec(g) }.compact
       gemspecs.reject! {|s| s.name != name } if name
-      Index.sort_specs(gemspecs)
       specs_by_name_and_version = gemspecs.group_by {|s| [s.name, s.version] }
 
       case specs_by_name_and_version.size
@@ -124,18 +123,16 @@ module Bundler
             raise GemfileError, "You cannot specify the same gem twice with different version requirements.\n" \
                             "You specified: #{current.name} (#{current.requirement}) and #{dep.name} (#{dep.requirement})" \
                              "#{update_prompt}"
+          elsif current.source != dep.source
+            return if dep.type == :development
+            raise GemfileError, "You cannot specify the same gem twice coming from different sources.\n" \
+                            "You specified that #{dep.name} (#{dep.requirement}) should come from " \
+                            "#{current.source || "an unspecified source"} and #{dep.source}\n"
           else
             Bundler.ui.warn "Your Gemfile lists the gem #{current.name} (#{current.requirement}) more than once.\n" \
                             "You should probably keep only one of them.\n" \
                             "Remove any duplicate entries and specify the gem only once.\n" \
                             "While it's not a problem now, it could cause errors if you change the version of one of them later."
-          end
-
-          if current.source != dep.source
-            return if dep.type == :development
-            raise GemfileError, "You cannot specify the same gem twice coming from different sources.\n" \
-                            "You specified that #{dep.name} (#{dep.requirement}) should come from " \
-                            "#{current.source || "an unspecified source"} and #{dep.source}\n"
           end
         end
       end
@@ -467,12 +464,12 @@ module Bundler
 
     def multiple_global_source_warning
       if Bundler.feature_flag.bundler_3_mode?
-        msg = "This Gemfile contains multiple primary sources. " \
+        msg = "This Gemfile contains multiple global sources. " \
           "Each source after the first must include a block to indicate which gems " \
           "should come from that source"
         raise GemfileEvalError, msg
       else
-        Bundler::SharedHelpers.major_deprecation 2, "Your Gemfile contains multiple primary sources. " \
+        Bundler::SharedHelpers.major_deprecation 2, "Your Gemfile contains multiple global sources. " \
           "Using `source` more than once without a block is a security risk, and " \
           "may result in installing unexpected gems. To resolve this warning, use " \
           "a block to indicate which gems should come from the secondary source."
@@ -513,9 +510,7 @@ module Bundler
       #         be raised.
       #
       def contents
-        @contents ||= begin
-          dsl_path && File.exist?(dsl_path) && File.read(dsl_path)
-        end
+        @contents ||= dsl_path && File.exist?(dsl_path) && File.read(dsl_path)
       end
 
       # The message of the exception reports the content of podspec for the

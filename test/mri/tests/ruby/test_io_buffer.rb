@@ -3,14 +3,13 @@
 require 'tempfile'
 
 class TestIOBuffer < Test::Unit::TestCase
-  # TruffleRuby: no IO::Buffer yet
-  # experimental = Warning[:experimental]
-  # begin
-  #   Warning[:experimental] = false
-  #   IO::Buffer.new(0)
-  # ensure
-  #   Warning[:experimental] = experimental
-  # end
+  experimental = Warning[:experimental]
+  begin
+    Warning[:experimental] = false
+    IO::Buffer.new(0)
+  ensure
+    Warning[:experimental] = experimental
+  end
 
   def assert_negative(value)
     assert(value < 0, "Expected #{value} to be negative!")
@@ -89,28 +88,32 @@ class TestIOBuffer < Test::Unit::TestCase
   def test_string_mapped
     string = "Hello World"
     buffer = IO::Buffer.for(string)
-    refute buffer.readonly?
-
-    # Cannot modify string as it's locked by the buffer:
-    assert_raise RuntimeError do
-      string[0] = "h"
-    end
-
-    buffer.set_value(:U8, 0, "h".ord)
-
-    # Buffer releases it's ownership of the string:
-    buffer.free
-
-    assert_equal "hello World", string
-    string[0] = "H"
-    assert_equal "Hello World", string
+    assert buffer.readonly?
   end
 
   def test_string_mapped_frozen
     string = "Hello World".freeze
     buffer = IO::Buffer.for(string)
-
     assert buffer.readonly?
+  end
+
+  def test_string_mapped_mutable
+    string = "Hello World"
+    IO::Buffer.for(string) do |buffer|
+      refute buffer.readonly?
+
+      # Cannot modify string as it's locked by the buffer:
+      assert_raise RuntimeError do
+        string[0] = "h"
+      end
+
+      buffer.set_value(:U8, 0, "h".ord)
+
+      # Buffer releases it's ownership of the string:
+      buffer.free
+
+      assert_equal "hello World", string
+    end
   end
 
   def test_non_string

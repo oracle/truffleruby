@@ -1762,14 +1762,18 @@ expr		: command_call
 			p->ctxt.in_kwarg = 1;
 			$<tbl>$ = push_pvtbl(p);
 		    }
+		    {
+			$<tbl>$ = push_pktbl(p);
+		    }
 		  p_top_expr_body
 		    {
+			pop_pktbl(p, $<tbl>4);
 			pop_pvtbl(p, $<tbl>3);
 			p->ctxt.in_kwarg = $<ctxt>2.in_kwarg;
 #if 0
-			$$ = NEW_CASE3($1, NEW_IN($4, 0, 0, &@4), &@$);
+			$$ = NEW_CASE3($1, NEW_IN($5, 0, 0, &@5), &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$4;v2=Qnil;v3=Qnil;v4=dispatch3(in,v1,v2,v3);v5=$1;v6=v4;v7=dispatch2(case,v5,v6);$$=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$5;v2=Qnil;v3=Qnil;v4=dispatch3(in,v1,v2,v3);v5=$1;v6=v4;v7=dispatch2(case,v5,v6);$$=v7;}
 		    }
 		| arg keyword_in
 		    {
@@ -1780,14 +1784,18 @@ expr		: command_call
 			p->ctxt.in_kwarg = 1;
 			$<tbl>$ = push_pvtbl(p);
 		    }
+		    {
+			$<tbl>$ = push_pktbl(p);
+		    }
 		  p_top_expr_body
 		    {
+			pop_pktbl(p, $<tbl>4);
 			pop_pvtbl(p, $<tbl>3);
-			p->ctxt.in_kwarg = $<ctxt>1.in_kwarg;
+			p->ctxt.in_kwarg = $<ctxt>2.in_kwarg;
 #if 0
-			$$ = NEW_CASE3($1, NEW_IN($4, NEW_TRUE(&@4), NEW_FALSE(&@4), &@4), &@$);
+			$$ = NEW_CASE3($1, NEW_IN($5, NEW_TRUE(&@5), NEW_FALSE(&@5), &@5), &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$4;v2=Qnil;v3=Qnil;v4=dispatch3(in,v1,v2,v3);v5=$1;v6=v4;v7=dispatch2(case,v5,v6);$$=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$5;v2=Qnil;v3=Qnil;v4=dispatch3(in,v1,v2,v3);v5=$1;v6=v4;v7=dispatch2(case,v5,v6);$$=v7;}
 		    }
 		| arg %prec tLBRACE_ARG
 		;
@@ -12063,6 +12071,7 @@ new_args_tail(struct parser_params *p, NODE *kw_args, ID kw_rest_arg, ID block, 
 	struct vtable *vtargs = p->lvtbl->args;
 	NODE *kwn = kw_args;
 
+        if (block) block = vtargs->tbl[vtargs->pos-1];
 	vtable_pop(vtargs, !!block + !!kw_rest_arg);
 	required_kw_vars = kw_vars = &vtargs->tbl[vtargs->pos];
 	while (kwn) {

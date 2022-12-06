@@ -7,9 +7,7 @@ require 'tempfile'
 require_relative '../lib/jit_support'
 
 class TestRubyOptions < Test::Unit::TestCase
-  def self.yjit_enabled?
-    defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
-  end
+  def self.yjit_enabled? = defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
 
   NO_JIT_DESCRIPTION =
     if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # checking -DMJIT_FORCE_ENABLE
@@ -762,6 +760,7 @@ class TestRubyOptions < Test::Unit::TestCase
       %r(
         (?:
           --\sC\slevel\sbacktrace\sinformation\s-------------------------------------------\n
+          (?:Un(?:expected|supported|known)\s.*\n)*
           (?:(?:.*\s)?\[0x\h+\].*\n|.*:\d+\n)*\n
         )?
       )x,

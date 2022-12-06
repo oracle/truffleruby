@@ -41,19 +41,11 @@ struct RFile {
     struct rb_io_t *fptr;
 };
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RFile)
-#endif
-
 /**
  * Convenient casting macro.
  *
  * @param   obj  An object, which is in fact an ::RFile.
  * @return  The passed object casted to ::RFile.
  */
-#ifdef TRUFFLERUBY
-#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
-#else
 #define RFILE(obj) RBIMPL_CAST((struct RFile *)(obj))
-#endif
 #endif /* RBIMPL_RFILE_H */

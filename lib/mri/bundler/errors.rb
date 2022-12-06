@@ -41,12 +41,14 @@ module Bundler
   class GemspecError < BundlerError; status_code(14); end
   class InvalidOption < BundlerError; status_code(15); end
   class ProductionError < BundlerError; status_code(16); end
+
   class HTTPError < BundlerError
     status_code(17)
     def filter_uri(uri)
       URICredentialsFilter.credential_filtered_uri(uri)
     end
   end
+
   class RubyVersionMismatch < BundlerError; status_code(18); end
   class SecurityError < BundlerError; status_code(19); end
   class LockfileError < BundlerError; status_code(20); end
@@ -79,10 +81,6 @@ module Bundler
       case @permission_type
       when :create
         "executable permissions for all parent directories and write permissions for `#{parent_folder}`"
-      when :delete
-        permissions = "executable permissions for all parent directories and write permissions for `#{parent_folder}`"
-        permissions += ", and the same thing for all subdirectories inside #{@path}" if File.directory?(@path)
-        permissions
       else
         "#{@permission_type} permissions for that path"
       end
@@ -171,5 +169,17 @@ module Bundler
     end
 
     status_code(32)
+  end
+
+  class DirectoryRemovalError < BundlerError
+    def initialize(orig_exception, msg)
+      full_message = "#{msg}.\n" \
+                     "The underlying error was #{orig_exception.class}: #{orig_exception.message}, with backtrace:\n" \
+                     "  #{orig_exception.backtrace.join("\n  ")}\n\n" \
+                     "Bundler Error Backtrace:"
+      super(full_message)
+    end
+
+    status_code(36)
   end
 end

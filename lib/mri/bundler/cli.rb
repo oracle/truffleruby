@@ -218,6 +218,8 @@ module Bundler
       "Specify the number of jobs to run in parallel"
     method_option "local", :type => :boolean, :banner =>
       "Do not attempt to fetch gems remotely and use the gem cache instead"
+    method_option "prefer-local", :type => :boolean, :banner =>
+      "Only attempt to fetch gems remotely if not present locally, even if newer versions are available remotely"
     method_option "no-cache", :type => :boolean, :banner =>
       "Don't update the existing gem cache."
     method_option "redownload", :type => :boolean, :aliases => "--force", :banner =>
@@ -236,7 +238,7 @@ module Bundler
       "Install to the system location ($BUNDLE_PATH or $GEM_HOME) even if the bundle was previously installed somewhere else for this application"
     method_option "trust-policy", :alias => "P", :type => :string, :banner =>
       "Gem trust policy (like gem install -P). Must be one of " +
-        Bundler.rubygems.security_policy_keys.join("|")
+      Bundler.rubygems.security_policy_keys.join("|")
     method_option "without", :type => :array, :banner =>
       "Exclude gems that are part of the specified named group."
     method_option "with", :type => :array, :banner =>
@@ -370,6 +372,7 @@ module Bundler
     method_option "group", :aliases => "-g", :type => :string
     method_option "source", :aliases => "-s", :type => :string
     method_option "require", :aliases => "-r", :type => :string, :banner => "Adds require path to gem. Provide false, or a path as a string."
+    method_option "path", :type => :string
     method_option "git", :type => :string
     method_option "github", :type => :string
     method_option "branch", :type => :string
@@ -391,7 +394,7 @@ module Bundler
       are up to date, Bundler will exit with a status of 0. Otherwise, it will exit 1.
 
       For more information on patch level options (--major, --minor, --patch,
-      --update-strict) see documentation on the same options on the update command.
+      --strict) see documentation on the same options on the update command.
     D
     method_option "group", :type => :string, :banner => "List gems from a specific group"
     method_option "groups", :type => :boolean, :banner => "List gems organized by groups"
@@ -399,10 +402,9 @@ module Bundler
       "Do not attempt to fetch gems remotely and use the gem cache instead"
     method_option "pre", :type => :boolean, :banner => "Check for newer pre-release gems"
     method_option "source", :type => :array, :banner => "Check against a specific source"
-    strict_is_update = Bundler.feature_flag.forget_cli_options?
-    method_option "filter-strict", :type => :boolean, :aliases => strict_is_update ? [] : %w[--strict], :banner =>
+    method_option "filter-strict", :type => :boolean, :aliases => "--strict", :banner =>
       "Only list newer versions allowed by your Gemfile requirements"
-    method_option "update-strict", :type => :boolean, :aliases => strict_is_update ? %w[--strict] : [], :banner =>
+    method_option "update-strict", :type => :boolean, :banner =>
       "Strict conservative resolution, do not allow any gem to be updated past latest --patch | --minor | --major"
     method_option "minor", :type => :boolean, :banner => "Prefer updating only to next minor version"
     method_option "major", :type => :boolean, :banner => "Prefer updating to next major version (default)"
@@ -515,7 +517,7 @@ module Bundler
       end
     end
 
-    desc "version", "Prints the bundler's version information"
+    desc "version", "Prints Bundler version information"
     def version
       cli_help = current_command.name == "cli_help"
       if cli_help || ARGV.include?("version")
@@ -611,14 +613,14 @@ module Bundler
     private :gem
 
     def self.source_root
-      File.expand_path(File.join(File.dirname(__FILE__), "templates"))
+      File.expand_path("templates", __dir__)
     end
 
     desc "clean [OPTIONS]", "Cleans up unused gems in your bundler directory", :hide => true
     method_option "dry-run", :type => :boolean, :default => false, :banner =>
       "Only print out changes, do not clean gems"
     method_option "force", :type => :boolean, :default => false, :banner =>
-      "Forces clean even if --path is not set"
+      "Forces cleaning up unused gems even if Bundler is configured to use globally installed gems. As a consequence, removes all system gems except for the ones in the current application."
     def clean
       require_relative "cli/clean"
       Clean.new(options.dup).run

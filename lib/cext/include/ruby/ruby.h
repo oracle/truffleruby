@@ -87,11 +87,7 @@ VALUE rb_get_path(VALUE obj);
  * @exception      rb_eEncCompatError  `v` is not path-compatible.
  * @post           `v` is a path.
  */
-#ifdef TRUFFLERUBY
-#define FilePathValue(v) (v = rb_get_path(v))
-#else
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
-#endif
 
 /**
  * @deprecated  This function is an alias  of rb_get_path() now.  The part that
@@ -107,7 +103,6 @@ VALUE rb_get_path_no_checksafe(VALUE);
 #define FilePathStringValue(v) ((v) = rb_get_path(v))
 
 /** @cond INTERNAL_MACRO */
-#ifndef TRUFFLERUBY
 #if defined(HAVE_BUILTIN___BUILTIN_CONSTANT_P) && defined(HAVE_STMT_AND_DECL_IN_EXPR)
 # define rb_varargs_argc_check_runtime(argc, vargc) \
     (((argc) <= (vargc)) ? (argc) : \
@@ -132,7 +127,6 @@ ERRORFUNC((" argument length doesn't match"), int rb_varargs_bad_length(int,int)
 #   define rb_varargs_argc_check(argc, vargc) \
 	rb_varargs_argc_check_runtime(argc, vargc)
 # endif
-#endif
 #endif
 /** @endcond */
 
@@ -311,8 +305,6 @@ __extension__({ \
 #if !defined RUBY_EXPORT && !defined RUBY_NO_OLD_COMPATIBILITY
 # include "ruby/backward.h"
 #endif
-
-#include <truffleruby/truffleruby.h>
 
 RBIMPL_SYMBOL_EXPORT_END()
 

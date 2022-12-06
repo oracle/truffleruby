@@ -75,6 +75,60 @@ class TestSyntax < Test::Unit::TestCase
         a = nil
         b{|c| a = c}
         assert_equal(1, a)
+
+        def inner
+          yield
+        end
+
+        def block_only(&)
+          inner(&)
+        end
+        assert_equal(1, block_only{1})
+
+        def pos(arg1, &)
+          inner(&)
+        end
+        assert_equal(2, pos(nil){2})
+
+        def pos_kwrest(arg1, **kw, &)
+          inner(&)
+        end
+        assert_equal(3, pos_kwrest(nil){3})
+
+        def no_kw(arg1, **nil, &)
+          inner(&)
+        end
+        assert_equal(4, no_kw(nil){4})
+
+        def rest_kw(*a, kwarg: 1, &)
+          inner(&)
+        end
+        assert_equal(5, rest_kw{5})
+
+        def kw(kwarg:1, &)
+          inner(&)
+        end
+        assert_equal(6, kw{6})
+
+        def pos_kw_kwrest(arg1, kwarg:1, **kw, &)
+          inner(&)
+        end
+        assert_equal(7, pos_kw_kwrest(nil){7})
+
+        def pos_rkw(arg1, kwarg1:, &)
+          inner(&)
+        end
+        assert_equal(8, pos_rkw(nil, kwarg1: nil){8})
+
+        def all(arg1, arg2, *rest, post1, post2, kw1: 1, kw2: 2, okw1:, okw2:, &)
+          inner(&)
+        end
+        assert_equal(9, all(nil, nil, nil, nil, okw1: nil, okw2: nil){9})
+
+        def all_kwrest(arg1, arg2, *rest, post1, post2, kw1: 1, kw2: 2, okw1:, okw2:, **kw, &)
+          inner(&)
+        end
+        assert_equal(10, all_kwrest(nil, nil, nil, nil, okw1: nil, okw2: nil){10})
     end;
   end
 
@@ -200,8 +254,7 @@ class TestSyntax < Test::Unit::TestCase
     bug10315 = '[ruby-core:65368] [Bug #10315]'
 
     o = KW2.new
-    r = EnvUtil.suppress_warning { eval "o.kw(**{k1: 22}, **{k1: 23})" } # TruffleRuby: use eval to avoid warning
-    assert_equal([23, 2], r, bug10315)
+    assert_equal([23, 2], o.kw(**{k1: 22}, **{k1: 23}), bug10315)
 
     h = {k3: 31}
     assert_raise(ArgumentError) {o.kw(**h)}
@@ -1550,7 +1603,7 @@ eom
     assert_syntax_error('-> {-> {_1}; _2}', /numbered parameter is already used/)
     assert_syntax_error('proc {_1; _1 = nil}', /Can't assign to numbered parameter _1/)
     assert_syntax_error('proc {_1 = nil}', /_1 is reserved for numbered parameter/)
-    # assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/) # GR-30031
+    assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/)
     assert_syntax_error('proc {|_3|}', /_3 is reserved for numbered parameter/)
     assert_syntax_error('def x(_4) end', /_4 is reserved for numbered parameter/)
     assert_syntax_error('def _5; end', /_5 is reserved for numbered parameter/)

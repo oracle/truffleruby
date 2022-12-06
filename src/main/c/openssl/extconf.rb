@@ -13,15 +13,7 @@
 
 require "mkmf"
 
-if defined?(::TruffleRuby)
-  require 'truffle/openssl-prefix'
-  dir_config("openssl", ENV["OPENSSL_PREFIX"])
-  # Needed with libssl 3.0.0 and -Werror from building core C extensions
-  $warnflags += ' -Wno-deprecated-declarations'
-else
-  dir_config("openssl")
-end
-
+dir_config_given = dir_config("openssl").any?
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
@@ -100,7 +92,7 @@ def find_openssl_library
 end
 
 Logging::message "=== Checking for required stuff... ===\n"
-pkg_config_found = pkg_config("openssl") && have_header("openssl/ssl.h")
+pkg_config_found = !dir_config_given && pkg_config("openssl") && have_header("openssl/ssl.h")
 
 if !pkg_config_found && !find_openssl_library
   Logging::message "=== Checking for required stuff failed. ===\n"
@@ -109,14 +101,6 @@ if !pkg_config_found && !find_openssl_library
     "--with-openssl-dir=<dir> option to specify the prefix where OpenSSL " \
     "is installed."
 end
-
-# TruffleRuby: do not perform all checks again if extconf.h already exists
-extconf_h = "#{__dir__}/extconf.h"
-in_development = ENV.key?('MX_HOME')
-if in_development && File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__)
-  $extconf_h = extconf_h
-else
-### START of checks
 
 version_ok = if have_macro("LIBRESSL_VERSION_NUMBER", "openssl/opensslv.h")
   is_libressl = true
@@ -185,6 +169,7 @@ have_func("SSL_CTX_set_post_handshake_auth")
 
 # added in 1.1.1
 have_func("EVP_PKEY_check")
+have_func("EVP_PKEY_new_raw_private_key")
 
 # added in 3.0.0
 have_func("SSL_set0_tmp_dh_pkey")
@@ -200,9 +185,5 @@ have_func("EVP_PKEY_dup")
 Logging::message "=== Checking done. ===\n"
 
 create_header
-
-### END of checks
-end
-
 create_makefile("openssl")
 Logging::message "Done.\n"

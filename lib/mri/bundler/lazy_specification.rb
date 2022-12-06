@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "match_platform"
-
 module Bundler
   class LazySpecification
     include MatchPlatform
 
     attr_reader :name, :version, :dependencies, :platform
-    attr_accessor :source, :remote
+    attr_accessor :source, :remote, :force_ruby_platform
 
     def initialize(name, version, platform, source = nil)
       @name          = name
@@ -19,7 +17,7 @@ module Bundler
     end
 
     def full_name
-      if platform == Gem::Platform::RUBY || platform.nil?
+      if platform == Gem::Platform::RUBY
         "#{@name}-#{@version}"
       else
         "#{@name}-#{@version}-#{platform}"
@@ -61,7 +59,7 @@ module Bundler
     def to_lock
       out = String.new
 
-      if platform == Gem::Platform::RUBY || platform.nil?
+      if platform == Gem::Platform::RUBY
         out << "    #{name} (#{version})\n"
       else
         out << "    #{name} (#{version}-#{platform})\n"
@@ -75,27 +73,34 @@ module Bundler
       out
     end
 
-    def __materialize__
-      @specification = if source.is_a?(Source::Gemspec) && source.gemspec.name == name
-        source.gemspec.tap {|s| s.source = source }
+    def materialize_for_installation
+      source.local!
+
+      candidates = if source.is_a?(Source::Path) || !ruby_platform_materializes_to_ruby_platform?
+        target_platform = ruby_platform_materializes_to_ruby_platform? ? platform : local_platform
+
+        GemHelpers.select_best_platform_match(source.specs.search(Dependency.new(name, version)), target_platform)
       else
-        search_object = if source.is_a?(Source::Path)
-          Dependency.new(name, version)
-        else
-          ruby_platform_materializes_to_ruby_platform? ? self : Dependency.new(name, version)
-        end
-        platform_object = Gem::Platform.new(platform)
-        candidates = source.specs.search(search_object)
-        same_platform_candidates = candidates.select do |spec|
-          MatchPlatform.platforms_match?(spec.platform, platform_object)
-        end
-        installable_candidates = same_platform_candidates.select do |spec|
+        source.specs.search(self)
+      end
+
+      return self if candidates.empty?
+
+      __materialize__(candidates)
+    end
+
+    def __materialize__(candidates)
+      @specification = begin
+        search = candidates.reverse.find do |spec|
           spec.is_a?(StubSpecification) ||
-            (spec.required_ruby_version.satisfied_by?(Gem.ruby_version) &&
-              spec.required_rubygems_version.satisfied_by?(Gem.rubygems_version))
+            (spec.matches_current_ruby? &&
+              spec.matches_current_rubygems?)
         end
-        search = installable_candidates.last
-        search.dependencies = dependencies if search && (search.is_a?(RemoteSpecification) || search.is_a?(EndpointSpecification))
+        if search.nil? && Bundler.frozen_bundle?
+          search = candidates.last
+        else
+          search.dependencies = dependencies if search && search.full_name == full_name && (search.is_a?(RemoteSpecification) || search.is_a?(EndpointSpecification))
+        end
         search
       end
     end
@@ -105,7 +110,7 @@ module Bundler
     end
 
     def to_s
-      @__to_s ||= if platform == Gem::Platform::RUBY || platform.nil?
+      @__to_s ||= if platform == Gem::Platform::RUBY
         "#{name} (#{version})"
       else
         "#{name} (#{version}-#{platform})"
@@ -113,19 +118,12 @@ module Bundler
     end
 
     def identifier
-      @__identifier ||= [name, version, platform_string]
+      @__identifier ||= [name, version, platform.to_s]
     end
 
     def git_version
       return unless source.is_a?(Bundler::Source::Git)
       " #{source.revision[0..6]}"
-    end
-
-    protected
-
-    def platform_string
-      platform_string = platform.to_s
-      platform_string == Index::RUBY ? Index::NULL : platform_string
     end
 
     private
@@ -144,7 +142,8 @@ module Bundler
 
     #
     # For backwards compatibility with existing lockfiles, if the most specific
-    # locked platform is RUBY, we keep the previous behaviour of resolving the
+    # locked platform is not a specific platform like x86_64-linux or
+    # universal-java-11, then we keep the previous behaviour of resolving the
     # best platform variant at materiliazation time. For previous bundler
     # versions (before 2.2.0) this was always the case (except when the lockfile
     # only included non-ruby platforms), but we're also keeping this behaviour
@@ -152,7 +151,9 @@ module Bundler
     # explicitly add a more specific platform.
     #
     def ruby_platform_materializes_to_ruby_platform?
-      !Bundler.most_specific_locked_platform?(Gem::Platform::RUBY) || Bundler.settings[:force_ruby_platform]
+      generic_platform = generic_local_platform == Gem::Platform::JAVA ? Gem::Platform::JAVA : Gem::Platform::RUBY
+
+      !Bundler.most_specific_locked_platform?(generic_platform) || force_ruby_platform || Bundler.settings[:force_ruby_platform]
     end
   end
 end

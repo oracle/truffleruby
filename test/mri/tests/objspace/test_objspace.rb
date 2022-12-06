@@ -7,8 +7,6 @@ rescue LoadError
 end
 
 class TestObjSpace < Test::Unit::TestCase
-  SOME_BASIC_OBJECT = BasicObject.new
-
   def test_memsize_of
     assert_equal(0, ObjectSpace.memsize_of(true))
     assert_equal(0, ObjectSpace.memsize_of(nil))
@@ -633,5 +631,20 @@ class TestObjSpace < Test::Unit::TestCase
       assert_equal '"bar" @ -:3', out[1]
       assert_equal '42', out[2]
     end
+  end
+
+  def test_utf8_method_names
+    name = "utf8_❨╯°□°❩╯︵┻━┻"
+    obj = ObjectSpace.trace_object_allocations do
+      __send__(name)
+    end
+    dump = ObjectSpace.dump(obj)
+    assert_equal name, JSON.parse(dump)["method"], dump
+  end
+
+  private
+
+  def utf8_❨╯°□°❩╯︵┻━┻
+    "1#{2}"
   end
 end

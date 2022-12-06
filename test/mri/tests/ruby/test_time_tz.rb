@@ -1,6 +1,6 @@
 # frozen_string_literal: false
 require 'test/unit'
-# require '-test-/time'
+require '-test-/time'
 
 class TestTimeTZ < Test::Unit::TestCase
   has_right_tz = true
@@ -610,6 +610,11 @@ module TestTimeTZ::WithTZ
     assert_equal(244, t.yday)
     assert_equal(t, time_class.new(2018, 9, 1, 12, in: tzarg))
     assert_raise(ArgumentError) {time_class.new(2018, 9, 1, 12, 0, 0, tzarg, in: tzarg)}
+  end
+
+  def subtest_hour24(time_class, tz, tzarg, tzname, abbr, utc_offset)
+    t = time_class.new(2000, 1, 1, 24, 0, 0, tzarg)
+    assert_equal([0, 0, 0, 2, 1, 2000], [t.sec, t.min, t.hour, t.mday, t.mon, t.year])
   end
 
   def subtest_now(time_class, tz, tzarg, tzname, abbr, utc_offset)

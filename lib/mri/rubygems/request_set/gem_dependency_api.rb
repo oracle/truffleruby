@@ -50,10 +50,10 @@ class Gem::RequestSet::GemDependencyAPI
     :ruby_21      => %w[ruby rbx maglev truffleruby],
   }.freeze
 
-  mswin     = Gem::Platform.new 'x86-mswin32'
-  mswin64   = Gem::Platform.new 'x64-mswin64'
-  x86_mingw = Gem::Platform.new 'x86-mingw32'
-  x64_mingw = Gem::Platform.new 'x64-mingw32'
+  mswin     = Gem::Platform.new "x86-mswin32"
+  mswin64   = Gem::Platform.new "x64-mswin64"
+  x86_mingw = Gem::Platform.new "x86-mingw32"
+  x64_mingw = Gem::Platform.new "x64-mingw32"
 
   PLATFORM_MAP = { # :nodoc:
     :jruby        => Gem::Platform::RUBY,
@@ -91,11 +91,11 @@ class Gem::RequestSet::GemDependencyAPI
     :x64_mingw_21 => x64_mingw,
   }.freeze
 
-  gt_eq_0        = Gem::Requirement.new '>= 0'
-  tilde_gt_1_8_0 = Gem::Requirement.new '~> 1.8.0'
-  tilde_gt_1_9_0 = Gem::Requirement.new '~> 1.9.0'
-  tilde_gt_2_0_0 = Gem::Requirement.new '~> 2.0.0'
-  tilde_gt_2_1_0 = Gem::Requirement.new '~> 2.1.0'
+  gt_eq_0        = Gem::Requirement.new ">= 0"
+  tilde_gt_1_8_0 = Gem::Requirement.new "~> 1.8.0"
+  tilde_gt_1_9_0 = Gem::Requirement.new "~> 1.9.0"
+  tilde_gt_2_0_0 = Gem::Requirement.new "~> 2.0.0"
+  tilde_gt_2_1_0 = Gem::Requirement.new "~> 2.1.0"
 
   VERSION_MAP = { # :nodoc:
     :jruby        => gt_eq_0,
@@ -214,7 +214,7 @@ class Gem::RequestSet::GemDependencyAPI
     git_source :github do |repo_name|
       repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include? "/"
 
-      "git://github.com/#{repo_name}.git"
+      "https://github.com/#{repo_name}.git"
     end
 
     git_source :bitbucket do |repo_name|
@@ -371,7 +371,7 @@ class Gem::RequestSet::GemDependencyAPI
     duplicate = @dependencies.include? name
 
     @dependencies[name] =
-      if requirements.empty? and not source_set
+      if requirements.empty? && !source_set
         Gem::Requirement.default
       elsif source_set
         Gem::Requirement.source_set
@@ -435,7 +435,7 @@ Gem dependencies file #{@path} requires #{name} more than once.
     reference ||= ref
     reference ||= branch
     reference ||= tag
-    reference ||= 'master'
+    reference ||= "master"
 
     if ref && branch
       warn <<-WARNING
@@ -637,8 +637,8 @@ Gem dependencies file #{@path} includes git reference for both ref/branch and ta
   #   :development.  Only one group may be specified.
 
   def gemspec(options = {})
-    name              = options.delete(:name) || '{,*}'
-    path              = options.delete(:path) || '.'
+    name              = options.delete(:name) || "{,*}"
+    path              = options.delete(:path) || "."
     development_group = options.delete(:development_group) || :development
 
     spec = find_gemspec name, path
@@ -697,11 +697,11 @@ Gem dependencies file #{@path} includes git reference for both ref/branch and ta
   def pin_gem_source(name, type = :default, source = nil)
     source_description =
       case type
-      when :default then '(default)'
+      when :default then "(default)"
       when :path    then "path: #{source}"
       when :git     then "git: #{source}"
       when :source  then "source: #{source}"
-      else               '(unknown)'
+      else               "(unknown)"
       end
 
     raise ArgumentError,
@@ -788,8 +788,8 @@ Gem dependencies file #{@path} includes git reference for both ref/branch and ta
     engine_version = options[:engine_version]
 
     raise ArgumentError,
-          'You must specify engine_version along with the Ruby engine' if
-            engine and not engine_version
+          "You must specify engine_version along with the Ruby engine" if
+            engine && !engine_version
 
     return true if @installing
 
@@ -800,7 +800,7 @@ Gem dependencies file #{@path} includes git reference for both ref/branch and ta
       raise Gem::RubyVersionMismatch, message
     end
 
-    if engine and engine != Gem.ruby_engine
+    if engine && engine != Gem.ruby_engine
       message = "Your Ruby engine is #{Gem.ruby_engine}, " +
                 "but your #{gem_deps_file} requires #{engine}"
 

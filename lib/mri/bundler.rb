@@ -19,7 +19,7 @@ require_relative "bundler/build_metadata"
 #
 # Since Ruby 2.6, Bundler is a part of Ruby's standard library.
 #
-# Bunder is used by creating _gemfiles_ listing all the project dependencies
+# Bundler is used by creating _gemfiles_ listing all the project dependencies
 # and (optionally) their versions and then using
 #
 #   require 'bundler/setup'
@@ -41,7 +41,6 @@ module Bundler
 
   autoload :Definition,             File.expand_path("bundler/definition", __dir__)
   autoload :Dependency,             File.expand_path("bundler/dependency", __dir__)
-  autoload :DepProxy,               File.expand_path("bundler/dep_proxy", __dir__)
   autoload :Deprecate,              File.expand_path("bundler/deprecate", __dir__)
   autoload :Digest,                 File.expand_path("bundler/digest", __dir__)
   autoload :Dsl,                    File.expand_path("bundler/dsl", __dir__)
@@ -58,7 +57,7 @@ module Bundler
   autoload :Installer,              File.expand_path("bundler/installer", __dir__)
   autoload :LazySpecification,      File.expand_path("bundler/lazy_specification", __dir__)
   autoload :LockfileParser,         File.expand_path("bundler/lockfile_parser", __dir__)
-  autoload :MatchPlatform,          File.expand_path("bundler/match_platform", __dir__)
+  autoload :MatchRemoteMetadata,    File.expand_path("bundler/match_remote_metadata", __dir__)
   autoload :ProcessLock,            File.expand_path("bundler/process_lock", __dir__)
   autoload :RemoteSpecification,    File.expand_path("bundler/remote_specification", __dir__)
   autoload :Resolver,               File.expand_path("bundler/resolver", __dir__)
@@ -95,6 +94,17 @@ module Bundler
     # Returns absolute path of where gems are installed on the filesystem.
     def bundle_path
       @bundle_path ||= Pathname.new(configured_bundle_path.path).expand_path(root)
+    end
+
+    def create_bundle_path
+      SharedHelpers.filesystem_access(bundle_path.to_s) do |p|
+        mkdir_p(p)
+      end unless bundle_path.exist?
+
+      @bundle_path = bundle_path.realpath
+    rescue Errno::EEXIST
+      raise PathError, "Could not install to path `#{bundle_path}` " \
+        "because a file already exists at that path. Either remove or rename the file so the directory can be created."
     end
 
     def configured_bundle_path
@@ -320,9 +330,9 @@ module Bundler
       FileUtils.remove_entry_secure(path) if path && File.exist?(path)
     rescue ArgumentError
       message = <<EOF
-It is a security vulnerability to allow your home directory to be world-writable, and bundler can not continue.
+It is a security vulnerability to allow your home directory to be world-writable, and bundler cannot continue.
 You should probably consider fixing this issue by running `chmod o-w ~` on *nix.
-Please refer to https://ruby-doc.org/stdlib-2.1.2/libdoc/fileutils/rdoc/FileUtils.html#method-c-remove_entry_secure for details.
+Please refer to https://ruby-doc.org/stdlib-3.1.2/libdoc/fileutils/rdoc/FileUtils.html#method-c-remove_entry_secure for details.
 EOF
       File.world_writable?(path) ? Bundler.ui.warn(message) : raise
       raise PathError, "Please fix the world-writable issue with your #{path} directory"
@@ -370,7 +380,7 @@ EOF
 
       if env.key?("RUBYLIB")
         rubylib = env["RUBYLIB"].split(File::PATH_SEPARATOR)
-        rubylib.delete(File.expand_path("..", __FILE__))
+        rubylib.delete(__dir__)
         env["RUBYLIB"] = rubylib.join(File::PATH_SEPARATOR)
       end
 
@@ -561,7 +571,7 @@ EOF
 
     def load_marshal(data)
       Marshal.load(data)
-    rescue StandardError => e
+    rescue TypeError => e
       raise MarshalError, "#{e.class}: #{e.message}"
     end
 

@@ -36,9 +36,6 @@
 #include "ruby/internal/stdbool.h"
 #include "ruby/internal/value.h"
 #include "ruby/internal/value_type.h"
-#ifdef TRUFFLERUBY
-#include "ruby/internal/intern/object.h" /* for rb_obj_taint, etc */
-#endif
 #include "ruby/assert.h"
 #include "ruby/defines.h"
 
@@ -467,13 +464,6 @@ void rb_obj_infect(VALUE victim, VALUE carrier);
  * @post        `klass` gets frozen.
  */
 void rb_freeze_singleton_class(VALUE klass);
-#ifdef TRUFFLERUBY
-int rb_tr_flags(VALUE value);
-void rb_tr_add_flags(VALUE value, int flags);
-bool rb_tr_obj_taintable_p(VALUE object);
-bool rb_tr_obj_tainted_p(VALUE object);
-void rb_tr_obj_infect(VALUE a, VALUE b);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -517,11 +507,7 @@ static inline VALUE
 RB_FL_TEST_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    return rb_tr_flags(obj) & flags;
-#else
     return RBASIC(obj)->flags & flags;
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -658,11 +644,7 @@ static inline void
 RB_FL_SET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_add_flags(obj, flags);
-#else
     rbimpl_fl_set_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -797,11 +779,6 @@ RB_FL_REVERSE(VALUE obj, VALUE flags)
     }
 }
 
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_PUSH()
-RBIMPL_WARNING_IGNORED(-Wunused-parameter)
-#endif
-
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
@@ -915,10 +892,6 @@ RB_OBJ_INFECT(VALUE dst, VALUE src)
     return;
 }
 
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_POP()
-#endif
-
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -938,11 +911,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_OBJ_FROZEN_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     return RB_FL_TEST_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -957,16 +926,12 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_FROZEN(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     if (! RB_FL_ABLE(obj)) {
         return true;
     }
     else {
         return RB_OBJ_FROZEN_RAW(obj);
     }
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -979,11 +944,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_FREEZE_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    rb_obj_freeze(obj);
-#else
     RB_FL_SET_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 /**
@@ -995,16 +956,12 @@ RB_OBJ_FREEZE_RAW(VALUE obj)
 static inline void
 rb_obj_freeze_inline(VALUE x)
 {
-#ifdef TRUFFLERUBY
-    rb_obj_freeze(x);
-#else
     if (RB_FL_ABLE(x)) {
         RB_OBJ_FREEZE_RAW(x);
         if (RBASIC_CLASS(x) && !(RBASIC(x)->flags & RUBY_FL_SINGLETON)) {
             rb_freeze_singleton_class(x);
         }
     }
-#endif
 }
 
 #endif /* RBIMPL_FL_TYPE_H */

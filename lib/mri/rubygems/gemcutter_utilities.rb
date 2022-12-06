@@ -1,6 +1,6 @@
 # frozen_string_literal: true
-require_relative 'remote_fetcher'
-require_relative 'text'
+require_relative "remote_fetcher"
+require_relative "text"
 
 ##
 # Utility methods for using the RubyGems API.
@@ -19,8 +19,8 @@ module Gem::GemcutterUtilities
   # Add the --key option
 
   def add_key_option
-    add_option('-k', '--key KEYNAME', Symbol,
-               'Use the given API key',
+    add_option("-k", "--key KEYNAME", Symbol,
+               "Use the given API key",
                "from #{Gem.configuration.credentials_path}") do |value,options|
       options[:key] = value
     end
@@ -30,9 +30,9 @@ module Gem::GemcutterUtilities
   # Add the --otp option
 
   def add_otp_option
-    add_option('--otp CODE',
-               'Digit code for multifactor authentication',
-               'You can also use the environment variable GEM_HOST_OTP_CODE') do |value, options|
+    add_option("--otp CODE",
+               "Digit code for multifactor authentication",
+               "You can also use the environment variable GEM_HOST_OTP_CODE") do |value, options|
       options[:otp] = value
     end
   end
@@ -69,9 +69,9 @@ module Gem::GemcutterUtilities
 
     @host ||=
       begin
-        env_rubygems_host = ENV['RUBYGEMS_HOST']
+        env_rubygems_host = ENV["RUBYGEMS_HOST"]
         env_rubygems_host = nil if
-          env_rubygems_host and env_rubygems_host.empty?
+          env_rubygems_host && env_rubygems_host.empty?
 
         env_rubygems_host || configured_host
       end
@@ -83,7 +83,7 @@ module Gem::GemcutterUtilities
   # If +allowed_push_host+ metadata is present, then it will only allow that host.
 
   def rubygems_api_request(method, path, host = nil, allowed_push_host = nil, scope: nil, &block)
-    require 'net/http'
+    require "net/http"
 
     self.host = host if host
     unless self.host
@@ -118,7 +118,7 @@ module Gem::GemcutterUtilities
   end
 
   def mfa_unauthorized?(response)
-    response.kind_of?(Net::HTTPUnauthorized) && response.body.start_with?('You have enabled multifactor authentication')
+    response.kind_of?(Net::HTTPUnauthorized) && response.body.start_with?("You have enabled multifactor authentication")
   end
 
   def update_scope(scope)
@@ -135,7 +135,7 @@ module Gem::GemcutterUtilities
                                     sign_in_host, scope: scope) do |request|
       request.basic_auth email, password
       request["OTP"] = otp if otp
-      request.body = URI.encode_www_form({:api_key => api_key }.merge(update_scope_params))
+      request.body = URI.encode_www_form({ :api_key => api_key }.merge(update_scope_params))
     end
 
     with_response response do |resp|
@@ -163,12 +163,18 @@ module Gem::GemcutterUtilities
 
     key_name     = get_key_name(scope)
     scope_params = get_scope_params(scope)
+    profile      = get_user_profile(email, password)
+    mfa_params   = get_mfa_params(profile)
+    all_params   = scope_params.merge(mfa_params)
+    warning      = profile["warning"]
+
+    say "#{warning}\n" if warning
 
     response = rubygems_api_request(:post, "api/v1/api_key",
                                     sign_in_host, scope: scope) do |request|
       request.basic_auth email, password
       request["OTP"] = otp if otp
-      request.body = URI.encode_www_form({ name: key_name }.merge(scope_params))
+      request.body = URI.encode_www_form({ name: key_name }.merge(all_params))
     end
 
     with_response response do |resp|
@@ -195,7 +201,8 @@ module Gem::GemcutterUtilities
   # block was given or shows the response body to the user.
   #
   # If the response was not successful, shows an error to the user including
-  # the +error_prefix+ and the response body.
+  # the +error_prefix+ and the response body. If the response was a permanent redirect,
+  # shows an error to the user including the redirect location.
 
   def with_response(response, error_prefix = nil)
     case response
@@ -205,6 +212,12 @@ module Gem::GemcutterUtilities
       else
         say clean_text(response.body)
       end
+    when Net::HTTPPermanentRedirect, Net::HTTPRedirection then
+      message = "The request has redirected permanently to #{response['location']}. Please check your defined push host URL."
+      message = "#{error_prefix}: #{message}" if error_prefix
+
+      say clean_text(message)
+      terminate_interaction(ERROR_CODE)
     else
       message = response.body
       message = "#{error_prefix}: #{message}" if error_prefix
@@ -219,7 +232,7 @@ module Gem::GemcutterUtilities
   # +response+ text and no otp provided by options.
 
   def set_api_key(host, key)
-    if host == Gem::DEFAULT_HOST
+    if default_host?
       Gem.configuration.rubygems_api_key = key
     else
       Gem.configuration.set_api_key host, key
@@ -238,13 +251,13 @@ module Gem::GemcutterUtilities
   end
 
   def ask_otp
-    say 'You have enabled multi-factor authentication. Please enter OTP code.'
-    options[:otp] = ask 'Code: '
+    say "You have enabled multi-factor authentication. Please enter OTP code."
+    options[:otp] = ask "Code: "
   end
 
   def pretty_host(host)
-    if Gem::DEFAULT_HOST == host
-      'RubyGems.org'
+    if default_host?
+      "RubyGems.org"
     else
       host
     end
@@ -258,13 +271,39 @@ module Gem::GemcutterUtilities
     else
       say "Please select scopes you want to enable for the API key (y/n)"
       API_SCOPES.each do |scope|
-        selected = ask "#{scope} [y/N]: "
-        scope_params[scope] = true if selected =~ /^[yY](es)?$/
+        selected = ask_yes_no("#{scope}", false)
+        scope_params[scope] = true if selected
       end
       say "\n"
     end
 
     scope_params
+  end
+
+  def default_host?
+    self.host == Gem::DEFAULT_HOST
+  end
+
+  def get_user_profile(email, password)
+    return {} unless default_host?
+
+    response = rubygems_api_request(:get, "api/v1/profile/me.yaml") do |request|
+      request.basic_auth email, password
+    end
+
+    with_response response do |resp|
+      Gem::SafeYAML.load clean_text(resp.body)
+    end
+  end
+
+  def get_mfa_params(profile)
+    mfa_level = profile["mfa"]
+    params = {}
+    if mfa_level == "ui_only" || mfa_level == "ui_and_gem_signin"
+      selected = ask_yes_no("Would you like to enable MFA for this key? (strongly recommended)")
+      params["mfa"] = true if selected
+    end
+    params
   end
 
   def get_key_name(scope)

@@ -785,11 +785,11 @@ class TestBigDecimal < Test::Unit::TestCase
     assert_raise(FloatDomainError, x) {BigDecimal(x).to_f}
     x = "1e#{Float::MIN_10_EXP - Float::DIG}"
     assert_nothing_raised(FloatDomainError, x) {
-      # assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
+      assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
     }
     x = "-#{x}"
     assert_nothing_raised(FloatDomainError, x) {
-      # assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
+      assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
     }
 
     BigDecimal.mode(BigDecimal::EXCEPTION_UNDERFLOW, false)
@@ -799,11 +799,11 @@ class TestBigDecimal < Test::Unit::TestCase
     assert_equal(-0.0, BigDecimal(x).to_f, x)
     x = "1e#{Float::MIN_10_EXP - Float::DIG}"
     assert_nothing_raised(FloatDomainError, x) {
-      # assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
+      assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
     }
     x = "-#{x}"
     assert_nothing_raised(FloatDomainError, x) {
-      # assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
+      assert_in_delta(0.0, BigDecimal(x).to_f, 10**Float::MIN_10_EXP, bug6944)
     }
 
     assert_equal( 0.0, BigDecimal(  '9e-325').to_f)

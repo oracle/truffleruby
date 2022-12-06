@@ -467,6 +467,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_nil(m[5])
     assert_raise(IndexError) { m[:foo] }
     assert_raise(TypeError) { m[nil] }
+    assert_equal(["baz", nil], m[-2, 3])
   end
 
   def test_match_values_at
@@ -1183,7 +1184,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_no_match(/^\p{age=1.1}$/u, "\u2754")
 
     assert_no_match(/^\p{age=12.0}$/u, "\u32FF")
-    # assert_match(/^\p{age=12.1}$/u, "\u32FF") # TruffleRuby: invalid character property name <age=12.1> (RegexpError)
+    assert_match(/^\p{age=12.1}$/u, "\u32FF")
   end
 
   MatchData_A = eval("class MatchData_\u{3042} < MatchData; self; end")
@@ -1364,7 +1365,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        # require '-test-/regexp'
+        require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'
@@ -1394,6 +1395,21 @@ class TestRegexp < Test::Unit::TestCase
     assert_raise_with_message(SyntaxError, /invalid backref number/) do
       eval(%["".match(/(())(?<X>)((?(90000)))/)])
     end
+  end
+
+  def test_invalid_group
+    assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
+    begin;
+      assert_raise_with_message(RegexpError, /invalid conditional pattern/) do
+        Regexp.new("((?(1)x|x|)x)+")
+      end
+    end;
+  end
+
+  def test_bug18631
+    assert_kind_of MatchData, /(?<x>a)(?<x>aa)\k<x>/.match("aaaaa")
+    assert_kind_of MatchData, /(?<x>a)(?<x>aa)\k<x>/.match("aaaa")
+    assert_kind_of MatchData, /(?<x>a)(?<x>aa)\k<x>/.match("aaaab")
   end
 
   # This assertion is for porting x2() tests in testpy.py of Onigmo.
