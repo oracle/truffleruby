@@ -111,7 +111,11 @@ struct lex_context;
 #include "ruby/st.h"
 #include "ruby/util.h"
 #include "ruby/ractor.h"
+#ifdef TRUFFLERUBY
+#include <truffleruby/internal/symbol.h>
+#else
 #include "symbol.h"
+#endif
 
 enum shareability {
     shareable_none,
@@ -15198,7 +15202,18 @@ tokadd_string(struct parser_params *p,
 static inline rb_strterm_t *
 new_strterm(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
+#ifdef TRUFFLERUBY
+    rb_strterm_t *term = xmalloc(sizeof(rb_strterm_t));
+    VALUE flags = T_IMEMO | (imemo_parser_strterm << FL_USHIFT);
+    term->flags = flags;
+    term->u.literal.u0.dummy = v0;
+    term->u.literal.u1.func = v1;
+    term->u.literal.u2.paren = v2;
+    term->u.literal.u3.term = v3;
+    return term;
+#else
     return (rb_strterm_t*)rb_imemo_new(imemo_parser_strterm, v1, v2, v3, v0);
+#endif
 }
 
 /* imemo_parser_strterm for literal */
@@ -15940,7 +15955,11 @@ formal_argument(struct parser_params *p, VALUE lhs)
 #undef ERR
     }
     shadowing_lvar(p, id);
+#ifdef TRUFFLERUBY
+    return id;
+#else
     return lhs;
+#endif
 }
 
 static int
@@ -18556,8 +18575,12 @@ check_literal_when(struct parser_params *p, NODE *arg, const YYLTYPE *loc)
 static int
 id_is_var(struct parser_params *p, ID id)
 {
+#ifdef TRUFFLERUBY
+	switch (id_type(id)) {
+#else
     if (is_notop_id(id)) {
 	switch (id & ID_SCOPE_MASK) {
+#endif
 	  case ID_GLOBAL: case ID_INSTANCE: case ID_CONST: case ID_CLASS:
 	    return 1;
 	  case ID_LOCAL:
@@ -18568,7 +18591,9 @@ id_is_var(struct parser_params *p, ID id)
 	    /* method call without arguments */
 	    return 0;
 	}
+#ifndef TRUFFLERUBY
     }
+#endif
     compile_error(p, "identifier %"PRIsVALUE" is not valid to get", rb_id2str(id));
     return 0;
 }
@@ -21051,7 +21076,9 @@ parser_mark(void *ptr)
     rb_gc_mark(p->debug_buffer);
     rb_gc_mark(p->debug_output);
 #ifdef YYMALLOC
+#ifndef TRUFFLERUBY
     rb_gc_mark((VALUE)p->heap);
+#endif
 #endif
 }
 
@@ -21060,6 +21087,17 @@ parser_free(void *ptr)
 {
     struct parser_params *p = (struct parser_params*)ptr;
     struct local_vars *local, *prev;
+
+#ifdef TRUFFLERUBY
+    rb_imemo_tmpbuf_t *heap = p->heap;
+
+    while (heap != NULL) {
+        if (heap->ptr != NULL) {
+            xfree(ptr);
+        }
+        heap = heap->next;
+    }
+#endif
 
     if (p->tokenbuf) {
         ruby_sized_xfree(p->tokenbuf, p->toksiz);

@@ -254,7 +254,8 @@ class TestSyntax < Test::Unit::TestCase
     bug10315 = '[ruby-core:65368] [Bug #10315]'
 
     o = KW2.new
-    assert_equal([23, 2], o.kw(**{k1: 22}, **{k1: 23}), bug10315)
+    r = EnvUtil.suppress_warning { eval "o.kw(**{k1: 22}, **{k1: 23})" } # TruffleRuby: use eval to avoid warning
+    assert_equal([23, 2], r, bug10315)
 
     h = {k3: 31}
     assert_raise(ArgumentError) {o.kw(**h)}
@@ -1603,7 +1604,7 @@ eom
     assert_syntax_error('-> {-> {_1}; _2}', /numbered parameter is already used/)
     assert_syntax_error('proc {_1; _1 = nil}', /Can't assign to numbered parameter _1/)
     assert_syntax_error('proc {_1 = nil}', /_1 is reserved for numbered parameter/)
-    assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/)
+    # assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/) # GR-30031
     assert_syntax_error('proc {|_3|}', /_3 is reserved for numbered parameter/)
     assert_syntax_error('def x(_4) end', /_4 is reserved for numbered parameter/)
     assert_syntax_error('def _5; end', /_5 is reserved for numbered parameter/)

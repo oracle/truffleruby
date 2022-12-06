@@ -158,6 +158,8 @@ void rb_singleton_class_attached(VALUE klass, VALUE obj);
 void rb_copy_generic_ivar(VALUE clone, VALUE obj);
 RBIMPL_SYMBOL_EXPORT_END()
 
+#ifndef TRUFFLERUBY
+
 RBIMPL_ATTR_DEPRECATED(("This is no longer how Object#clone works."))
 /**
  * @deprecated  Not sure exactly  when but at some time,  the implementation of
@@ -191,5 +193,7 @@ rb_dup_setup(VALUE dup, VALUE obj)
 {
     return;
 }
+
+#endif // TRUFFLERUBY
 
 #endif /* RBIMPL_NEWOBJ_H */

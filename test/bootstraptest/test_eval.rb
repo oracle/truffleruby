@@ -115,7 +115,7 @@ assert_equal %q{1}, %q{
   1.instance_eval %{
     Const
   }
-}
+}, tagged: true
 assert_equal %q{1}, %q{
   class TrueClass
     Const = 1
@@ -224,7 +224,7 @@ assert_equal %q{[10, main]}, %q{
     rescue SyntaxError => e
       e.message
     end
-  }, '[ruby-dev:31372]'
+  }, '[ruby-dev:31372]', tagged: true
 end
 
 assert_normal_exit %q{
@@ -307,7 +307,7 @@ assert_equal 'ok', %q{
     def defd_using_instance_exec() :ok end
   }
   nil.defd_using_instance_exec
-}, '[ruby-core:28324]'
+}, '[ruby-core:28324]', tagged: true
 
 assert_normal_exit %q{
   eval("", method(:proc).call {}.binding)
@@ -343,7 +343,7 @@ assert_normal_exit %q{
   begin
     eval "class C; @@h = #{hash.inspect}; end"
   end
-}, '[ruby-core:25714]'
+}, '[ruby-core:25714]', tagged: true
 
 assert_normal_exit %q{
   begin
@@ -352,5 +352,4 @@ assert_normal_exit %q{
     p e
     RubyVM::InstructionSequence.compile("p:hello")
   end
-}, 'check escaping the internal value th->base_block'
-
+}, 'check escaping the internal value th->base_block', tagged: true

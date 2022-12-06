@@ -527,6 +527,11 @@ rb_zlib_crc32_combine(VALUE klass, VALUE crc1, VALUE crc2, VALUE len2)
  *
  * Returns the table for calculating CRC checksum as an array.
  */
+#ifdef TRUFFLERUBY
+static VALUE rb_zlib_crc_table(VALUE obj) {
+    return RUBY_CEXT_INVOKE("zlib_get_crc_table");
+}
+#else
 static VALUE
 rb_zlib_crc_table(VALUE obj)
 {
@@ -546,6 +551,7 @@ rb_zlib_crc_table(VALUE obj)
     }
     return dst;
 }
+#endif
 
 
 

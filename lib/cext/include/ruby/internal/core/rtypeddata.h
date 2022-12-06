@@ -91,7 +91,11 @@
  * @param   obj  An object, which is in fact an ::RTypedData.
  * @return  The passed object casted to ::RTypedData.
  */
+#ifdef TRUFFLERUBY
+#define RTYPEDDATA(obj)              (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#else
 #define RTYPEDDATA(obj)              RBIMPL_CAST((struct RTypedData *)(obj))
+#endif
 
 /**
  * Convenient getter macro.
@@ -339,8 +343,12 @@ struct rb_data_type_struct {
  */
 struct RTypedData {
 
+#ifndef TRUFFLERUBY
+    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
+
     /** The part that all ruby objects have in common. */
     struct RBasic basic;
+#endif
 
     /**
      * This field  stores various  information about how  Ruby should  handle a
@@ -361,6 +369,10 @@ struct RTypedData {
     /** Pointer to the actual C level struct that you want to wrap. */
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RTypedData)
+#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 RBIMPL_ATTR_NONNULL((3))
@@ -426,6 +438,9 @@ int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type);
  * @post       Upon successful return `obj`'s type is guaranteed `data_type`.
  */
 void *rb_check_typeddata(VALUE obj, const rb_data_type_t *data_type);
+#ifdef TRUFFLERUBY
+VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
+#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 /**
@@ -523,7 +538,11 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 rbimpl_rtypeddata_p(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rbimpl_rtypeddata_p", rb_tr_unwrap(obj)));
+#else
     return RTYPEDDATA(obj)->typed_flag == 1;
+#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -572,6 +591,7 @@ RTYPEDDATA_TYPE(VALUE obj)
     return RTYPEDDATA(obj)->type;
 }
 
+#ifndef TRUFFLERUBY
 /**
  * While  we don't  stop  you from  using  this  function, it  seems  to be  an
  * implementation  detail of  #TypedData_Make_Struct, which  is preferred  over
@@ -592,6 +612,7 @@ rb_data_typed_object_make(VALUE klass, const rb_data_type_t *type, void **datap,
     TypedData_Make_Struct0(result, klass, void, size, type, *datap);
     return result;
 }
+#endif
 
 RBIMPL_ATTR_DEPRECATED(("by: rb_data_typed_object_wrap"))
 /** @deprecated  This function was renamed to rb_data_typed_object_wrap(). */

@@ -40,7 +40,11 @@
  * represent  is   4,611,686,018,427,387,904,  which   is  not   fixable.   The
  * seemingly-strange "< FIXNUM_MAX + 1" expression below is due to this.
  */
+#ifdef TRUFFLERUBY
+#define RB_POSFIXABLE(f) ((f) <= RUBY_FIXNUM_MAX)
+#else
 #define RB_POSFIXABLE(_) ((_) <  RUBY_FIXNUM_MAX + 1)
+#endif
 
 /**
  * Checks if the passed value is in  range of fixnum, assuming it is a negative
@@ -51,10 +55,15 @@
 /** Checks if the passed value is in  range of fixnum */
 #define RB_FIXABLE(_)    (RB_POSFIXABLE(_) && RB_NEGFIXABLE(_))
 
+#ifdef TRUFFLERUBY
+#define RUBY_FIXNUM_MAX LONG_MAX
+#define RUBY_FIXNUM_MIN LONG_MIN
+#else
 /** Maximum possible value that a fixnum can represent. */
 #define RUBY_FIXNUM_MAX  (LONG_MAX / 2)
 
 /** Minimum possible value that a fixnum can represent. */
 #define RUBY_FIXNUM_MIN  (LONG_MIN / 2)
+#endif /* TRUFFLERUBY */
 
 #endif /* RBIMPL_ARITHMETIC_FIXNUM_H */
