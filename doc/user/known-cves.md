@@ -19,6 +19,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2021-33621 | HTTP response splitting in CGI | [Fix](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | [Test](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | Same
 CVE-2022-28739 | Buffer overrun in String-to-Float conversion | | | Not applicable thanks to Java semantics
 CVE-2022-28738 | Double free in Regexp compilation | | | Not applicable thanks to Java semantics
 CVE-2021-41819 | Cookie Prefix Spoofing in CGI::Cookie.parse | [Fix](https://github.com/ruby/ruby/commit/0f31b3f465) | [Test](https://github.com/ruby/ruby/commit/0f31b3f465) | Same
