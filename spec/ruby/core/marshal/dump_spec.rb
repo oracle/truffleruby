@@ -185,6 +185,20 @@ describe "Marshal.dump" do
         [Marshal, -2**64, "\004\bl-\n\000\000\000\000\000\000\000\000\001\000"],
       ].should be_computed_by(:dump)
     end
+
+    it "increases the object links counter" do
+      obj = Object.new
+      object_1_link = "\x06" # representing of (0-based) index=1 (by adding 5 for small Integers)
+      object_2_link = "\x07" # representing of index=2
+
+      # objects: Array, Object, Object
+      Marshal.dump([obj, obj]).should == "\x04\b[\ao:\vObject\x00@#{object_1_link}"
+
+      # objects: Array, Bignum, Object, Object
+      Marshal.dump([2**64, obj, obj]).should == "\x04\b[\bl+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
+      Marshal.dump([2**48, obj, obj]).should == "\x04\b[\bl+\t\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
+      Marshal.dump([2**32, obj, obj]).should == "\x04\b[\bl+\b\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
+    end
   end
 
   describe "with a String" do
