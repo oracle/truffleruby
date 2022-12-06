@@ -1,9 +1,0 @@
-module RBS
-  class CharScanner < StringScanner
-    def initialize: (String) -> void
-
-    def original_charpos: () -> Integer
-
-    @charpos: Integer
-  end
-end

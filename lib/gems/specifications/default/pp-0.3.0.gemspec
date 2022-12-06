@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Tanaka Akira".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Provides a PrettyPrinter for Ruby objects".freeze
   s.email = ["akr@fsij.org".freeze]
   s.files = ["pp.rb".freeze]
   s.homepage = "https://github.com/ruby/pp".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.7.0".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Provides a PrettyPrinter for Ruby objects".freeze
 
   if s.respond_to? :specification_version then

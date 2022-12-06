@@ -11,14 +11,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Provides an interface for GNU Readline and Edit Line (libedit).".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/readline/extconf.rb".freeze]
   s.files = ["ext/readline/extconf.rb".freeze, "readline.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/readline-ext".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Provides an interface for GNU Readline and Edit Line (libedit).".freeze
 
   if s.respond_to? :specification_version then

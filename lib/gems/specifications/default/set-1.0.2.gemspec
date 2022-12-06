@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.metadata = { "changelog_uri" => "https://github.com/ruby/set/blob/v1.0.2/CHANGELOG.md", "homepage_uri" => "https://github.com/ruby/set", "source_code_uri" => "https://github.com/ruby/set" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Akinori MUSHA".freeze]
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Provides a class to deal with collections of unordered, unique values".freeze
   s.email = ["knu@idaemons.org".freeze]
   s.files = ["lib/set.rb".freeze, "lib/set/sorted_set.rb".freeze]
   s.homepage = "https://github.com/ruby/set".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Provides a class to deal with collections of unordered, unique values".freeze
 end

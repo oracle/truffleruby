@@ -10,13 +10,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Tanaka Akira".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Topological sorting using Tarjan's algorithm".freeze
   s.email = ["akr@fsij.org".freeze]
   s.files = ["tsort.rb".freeze]
   s.homepage = "https://github.com/ruby/tsort".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Topological sorting using Tarjan's algorithm".freeze
 end

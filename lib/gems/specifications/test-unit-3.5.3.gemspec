@@ -14,10 +14,10 @@ Gem::Specification.new do |s|
   s.email = ["kou@cozmixng.org".freeze, "yoshihara@clear-code.com".freeze]
   s.homepage = "http://test-unit.github.io/".freeze
   s.licenses = ["Ruby".freeze, "BSDL".freeze, "PSFL".freeze]
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "An xUnit family unit testing framework for Ruby.".freeze
 
-  s.installed_by_version = "3.3.7" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.3.26" if s.respond_to? :installed_by_version
 
   if s.respond_to? :specification_version then
     s.specification_version = 4

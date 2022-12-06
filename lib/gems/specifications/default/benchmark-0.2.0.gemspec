@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "a performance benchmarking library".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["lib/benchmark.rb".freeze, "lib/benchmark/version.rb".freeze]
   s.homepage = "https://github.com/ruby/benchmark".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "a performance benchmarking library".freeze
 end
