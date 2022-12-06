@@ -21,7 +21,7 @@ rb_encoding* rb_to_encoding(VALUE encoding) {
 }
 
 rb_encoding* rb_encoding_to_native(char* name) {
-  OnigEncodingType* native = calloc(1, sizeof(rb_encoding)); // calloc() to zero-fill
+  OnigEncodingType* native = ruby_xcalloc(1, sizeof(rb_encoding)); // ruby_xcalloc() to zero-fill
   native->name = name;
   return native;
 }

@@ -1,3 +1,9 @@
+# 22.3.1
+
+Bug fixes:
+
+* Fix `rb_thread_fd_select()` to correctly initialize fdset copies and handle the timeout (@eregon).
+
 # 22.3.0
 
 New features:
