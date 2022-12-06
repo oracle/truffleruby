@@ -26,6 +26,7 @@ gems = []
 }
 
 bundled_gems = JSON.load(File.read(File.expand_path('../' * 5 + 'versions.json', __FILE__ )))['gems']['bundled']
+bundled_gems.delete 'typeprof'
 gems += bundled_gems.to_a
 
 File.write 'Gemfile', <<GEMFILE
