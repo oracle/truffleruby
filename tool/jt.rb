@@ -64,6 +64,7 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS =  [17, 19]
+DEFAULT_JDK_VERSION = JDK_VERSIONS.first
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
@@ -171,7 +172,7 @@ module Utilities
   def jvmci_version
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-17\..+-(jvmci-[^"]+)"\s*,/
+      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-#{DEFAULT_JDK_VERSION}\..+-(jvmci-[^"]+)"\s*,/
       raise 'JVMCI version not found in common.json' unless regex =~ ci
       $1
     end
@@ -750,7 +751,7 @@ module Commands
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent|-q               Does not print the command and which Ruby is used
           --verbose|-v              Print more details and commands
-          --jdk                     Specifies which version of the JDK should be used: #{JDK_VERSIONS.join(' or ')}
+          --jdk                     Specifies which version of the JDK should be used: #{JDK_VERSIONS.join(' or ')} (default: #{DEFAULT_JDK_VERSION})
 
       jt build [graalvm|parser|options|core-symbols] ...   by default it builds graalvm
         jt build parser|options|core-symbols
@@ -3080,7 +3081,7 @@ class JT
     needs_rebuild = false
     @silent = false
     @verbose = false
-    @jdk_version = Integer(ENV['JT_JDK'] || 17)
+    @jdk_version = Integer(ENV['JT_JDK'] || DEFAULT_JDK_VERSION)
 
     until args.empty?
       arg = args.shift
