@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix `rb_thread_fd_select()` to correctly initialize fdset copies and handle the timeout (@eregon).
+* Fix `Marshal.dump` when big Integer (that cannot be expressed with 4 bytes) is serialized (#2790, @andrykonchin).
 
 # 22.3.0
 
