@@ -542,7 +542,9 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if Primitive.immediate_value?(obj)
+      # Skip entities that cannot be referenced as objects.
+      # Integers that are bigger than 4 bytes also increase the object links counter.
+      return if Primitive.immediate_value?(obj) && !serialize_as_bignum?(obj)
       add_object(obj)
     end
 
@@ -1060,11 +1062,16 @@ module Marshal
     end
 
     def serialize_integer(n, prefix = nil)
-      if Truffle::Type.fits_into_int?(n)
+      if !serialize_as_bignum?(n)
         Truffle::Type.binary_string(prefix.to_s + serialize_fixnum(n))
       else
         serialize_bignum(n)
       end
+    end
+
+    # Integers bigger than 4 bytes are serialized in a special format
+    def serialize_as_bignum?(obj)
+      Primitive.object_kind_of?(obj, Integer) && !Truffle::Type.fits_into_int?(obj)
     end
 
     def serialize_fixnum(n)

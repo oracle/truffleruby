@@ -16,6 +16,7 @@ Bug fixes:
 * Fix `Signal.trap` when signal argument is not supported (#2774, @andrykonchin).
 * Fix `Dir.mkdir` and convert permissions argument to `Integer` (#2781, @andrykonchin).
 * Fix `String#dump` and use `\u{xxxx}` notation (with curly brackets) for characters that don't fit in `\uxxxx` (#2794, @andrykonchin).
+* Fix `Marshal.dump` when big Integer (that cannot be expressed with 4 bytes) is serialized (#2790, @andrykonchin).
 
 Compatibility:
 
