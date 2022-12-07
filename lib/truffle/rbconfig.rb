@@ -175,6 +175,7 @@ module RbConfig
     'optflags'          => optflags,
     'OUTFLAG'           => '-o ',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR.dup,
+    'PKG_CONFIG'        => 'pkg-config',
     'prefix'            => prefix,
     'RANLIB'            => ranlib,
     'RM'                => 'rm -f',
