@@ -44,6 +44,7 @@ Compatibility:
 * `rb_to_id()` should create a static `ID`, used by RMagick (@eregon).
 * Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
 * Fix `IO#lineno=` and convert argument to `Integer` more strictly (#2786, @andrykonchin).
+* Fix argument implicit convertion in `IO#pos=` and `IO#seek` methods (#2787, @andrykonchin).
 
 Performance:
 

@@ -446,7 +446,7 @@ class IO
     when Integer, nil
       # do nothing
     else
-      limit = Primitive.rb_to_int(limit)
+      limit = Primitive.rb_num2long(limit)
     end
     limit = nil if limit && limit < 0
     chomp = Primitive.as_boolean(options[:chomp])
@@ -1284,7 +1284,7 @@ class IO
     ensure_open_and_readable
 
     if limit
-      limit = Truffle::Type.coerce_to limit, Integer, :to_int
+      limit = Primitive.rb_num2long(limit)
       sep = sep_or_limit ? StringValue(sep_or_limit) : nil
     else
       case sep_or_limit
@@ -1295,7 +1295,7 @@ class IO
       else
         unless sep = Truffle::Type.rb_check_convert_type(sep_or_limit, String, :to_str)
           sep = $/
-          limit = Truffle::Type.coerce_to sep_or_limit, Integer, :to_int
+          limit = Primitive.rb_num2long(sep_or_limit)
         end
       end
     end
@@ -1639,7 +1639,7 @@ class IO
   #  f.pos = 17
   #  f.gets   #=> "This is line two\n"
   def pos=(offset)
-    seek offset, SEEK_SET
+    seek Primitive.rb_num2long(offset), SEEK_SET
   end
 
   ##
@@ -2033,7 +2033,7 @@ class IO
     flush
     reset_buffering
 
-    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Integer(amount), whence)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Primitive.rb_num2long(amount), whence)
     Errno.handle if r == -1
     0
   end
@@ -2251,8 +2251,7 @@ class IO
     ensure_open
     raise IOError unless buffer_empty?
 
-    amount = Integer(amount)
-    r = Truffle::POSIX.lseek(Primitive.io_fd(self), amount, whence)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Primitive.rb_num2long(amount), whence)
     Errno.handle if r == -1
     r
   end
