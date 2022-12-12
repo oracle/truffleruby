@@ -84,6 +84,7 @@ public class Randomizer {
         return seed;
     }
 
+    // MRI: genrand_int32 of mt19937.c
     public int unsynchronizedGenrandInt32() {
         if (--left <= 0) {
             nextState();
@@ -93,8 +94,8 @@ public class Randomizer {
 
         /* Tempering */
         y ^= (y >>> 11);
-        y ^= (int) ((y << 7) & 0x9d2c5680L);
-        y ^= (int) ((y << 15) & 0xefc60000L);
+        y ^= (y << 7) & 0x9d2c5680;
+        y ^= (y << 15) & 0xefc60000;
         y ^= (y >>> 18);
 
         return y;
