@@ -2745,7 +2745,7 @@ public class RubyLexer implements MagicCommentHandler {
             buffer.append(h1);
 
             hexValue <<= 4;
-            hexValue |= Integer.parseInt(String.valueOf((char) h1), 16) & 15;
+            hexValue |= (char) Integer.parseInt(String.valueOf((char) h1), 16) & 15;
         }
 
         // No hex value after the 'x'.
@@ -3307,7 +3307,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             value <<= 3;
-            value |= Integer.parseInt(String.valueOf((char) c), 8);
+            value |= (char) Integer.parseInt(String.valueOf((char) c), 8);
         }
 
         return value;

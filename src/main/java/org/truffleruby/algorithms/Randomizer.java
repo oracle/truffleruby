@@ -93,8 +93,8 @@ public class Randomizer {
 
         /* Tempering */
         y ^= (y >>> 11);
-        y ^= (y << 7) & 0x9d2c5680L;
-        y ^= (y << 15) & 0xefc60000L;
+        y ^= (int) ((y << 7) & 0x9d2c5680L);
+        y ^= (int) ((y << 15) & 0xefc60000L);
         y ^= (y >>> 18);
 
         return y;

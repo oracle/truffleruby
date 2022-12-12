@@ -106,8 +106,8 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int count() {
-            int count = 0;
+        protected long count() {
+            long count = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 count += bean.getCollectionCount();
             }
