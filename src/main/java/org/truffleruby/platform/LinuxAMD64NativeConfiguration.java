@@ -398,6 +398,8 @@ public class LinuxAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.io.SEEK_SET", 0);
         configuration.config("platform.io.SEEK_CUR", 1);
         configuration.config("platform.io.SEEK_END", 2);
+        configuration.config("platform.io.SEEK_DATA", 3);
+        configuration.config("platform.io.SEEK_HOLE", 4);
         configuration.config("platform.fcntl.F_GETFL", 3);
         configuration.config("platform.fcntl.F_SETFL", 4);
         configuration.config("platform.fcntl.F_DUPFD", 0);

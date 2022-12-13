@@ -617,7 +617,8 @@ end
 
 constants 'io' do |cg|
   cg.include 'stdio.h'
-  cg.consts %w[SEEK_SET SEEK_CUR SEEK_END]
+  cg.include 'unistd.h'
+  cg.consts %w[SEEK_SET SEEK_CUR SEEK_END SEEK_DATA SEEK_HOLE]
 end
 
 constants 'fcntl' do |cg|
