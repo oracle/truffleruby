@@ -1,3 +1,5 @@
 fails(immutable regexp):Marshal.dump with a Regexp dumps a Regexp with instance variables
 fails(immutable regexp):Marshal.dump with a Regexp dumps an extended Regexp
 fails(immutable regexp):Marshal.dump with a Regexp dumps a Regexp subclass
+fails:Marshal.dump with an object responding to #_dump indexes instance variables of a String returned by #_dump at first and then indexes the object itself
+fails:Marshal.dump with an object responding to #_dump Core library classes with #_dump returning a String with instance variables indexes instance variables and then a Time object itself

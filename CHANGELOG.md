@@ -45,6 +45,7 @@ Compatibility:
 * Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
 * Fix `IO#lineno=` and convert argument to `Integer` more strictly (#2786, @andrykonchin).
 * Fix argument implicit convertion in `IO#pos=` and `IO#seek` methods (#2787, @andrykonchin).
+* Warn about unknown directive passed to `Array#pack` in verbose mode (#2791, @andrykonchin).
 
 Performance:
 

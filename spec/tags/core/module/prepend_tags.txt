@@ -1,2 +1,3 @@
 fails:Module#prepend reports the class for the owner of a method aliased from the prepended module
 fails:Module#prepend uses only new module when dupping the module
+fails:Module#prepend prepends a module if it is included in a super class
