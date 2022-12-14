@@ -12,7 +12,6 @@ package org.truffleruby.core.module;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,6 +29,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.collections.ConcurrentWeakSet;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -121,7 +120,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * there is no need to be transitive here, include/prepend snapshot the modules to include alongside M, and later
      * M.include/M.prepend have no effect on classes already including M. In other words,
      * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
-    private final Set<RubyModule> includedBy;
+    private final ConcurrentWeakSet<RubyModule> includedBy;
 
     @TruffleBoundary
     public ModuleFields(
@@ -139,9 +138,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.hierarchyUnmodifiedAssumption = new CyclicAssumption("hierarchy is unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
-        this.includedBy = rubyModule instanceof RubyClass
-                ? null
-                : Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+        this.includedBy = rubyModule instanceof RubyClass ? null : new ConcurrentWeakSet<>();
     }
 
     public RubyConstant getAdoptedByLexicalParent(
@@ -470,7 +467,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             previousEntry.invalidate("set", rubyModule, name);
         }
 
-        if (includedBy != null && !includedBy.isEmpty()) {
+        if (includedBy != null) {
             invalidateConstantIncludedBy(name);
         }
 
@@ -524,7 +521,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 previousMethodEntry.invalidate(rubyModule, method.getName());
             }
 
-            if (includedBy != null && !includedBy.isEmpty()) {
+            if (includedBy != null) {
                 invalidateMethodIncludedBy(method.getName());
             }
 
