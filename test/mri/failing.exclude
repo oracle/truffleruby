@@ -27,6 +27,7 @@ win32ole/test_word.rb
 
 # Pattern matching
 ruby/test_pattern_matching.rb #  syntax error, unexpected modifier_if (SyntaxError)
+csv/test_patterns.rb # syntax error, unexpected ':' (SyntaxError)
 
 # MemoryView C API
 ruby/test_memory_view.rb # rb_memory_view_register not found
