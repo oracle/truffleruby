@@ -11,10 +11,8 @@ package org.truffleruby.core.thread;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
@@ -35,6 +33,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.collections.ConcurrentWeakSet;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -83,8 +82,7 @@ public class ThreadManager {
      * (disposeThread is only called on Context#close for those). If a Thread is unreachable we do not need to wait for
      * it in {@link #killAndWaitOtherThreads()}, but otherwise we need to and we can never remove from this Set as
      * otherwise we cannot guarantee we wait until the Thread truly finishes execution. */
-    private final Set<Thread> rubyManagedThreads = Collections
-            .newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+    private final ConcurrentWeakSet<Thread> rubyManagedThreads = new ConcurrentWeakSet<>();
 
     private boolean nativeInterrupt;
     private Timer nativeInterruptTimer;
