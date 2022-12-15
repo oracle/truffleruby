@@ -139,7 +139,11 @@ class StringIO
   attr_reader :__data__
 
   def initialize(string=nil, mode=nil, **options)
-    mode, _binary, external, internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
+    if block_given?
+      warn 'StringIO::new() does not take block; use StringIO::open() instead'
+    end
+
+    mode, _binary, _external, _internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
 
     if string.nil?
       mode ||= IO::RDWR
