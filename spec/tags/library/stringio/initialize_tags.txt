@@ -1,0 +1,1 @@
+fails:StringIO#initialize when passed keyword arguments sets binmode from :binmode option

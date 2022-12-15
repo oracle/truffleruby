@@ -139,9 +139,11 @@ class StringIO
   attr_reader :__data__
 
   def initialize(string=nil, mode=nil, **options)
+    mode, _binary, external, internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
+
     if string.nil?
+      mode ||= IO::RDWR
       @__data__ = Data.new ''.force_encoding(Encoding.default_external)
-      mode = IO::RDWR
     else
       string = Truffle::Type.coerce_to string, String, :to_str
       @__data__ = Data.new string
