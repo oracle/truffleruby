@@ -42,7 +42,8 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 
     @ReportPolymorphism.Exclude
     @Specialization(guards = { "length == 0", "start <= dst.size" })
-    protected void noChange(RubyArray dst, RubyArray src, int start, int length) {
+    protected Object noChange(RubyArray dst, RubyArray src, int start, int length) {
+        return dst.getStore();
     }
 
     @Specialization(
