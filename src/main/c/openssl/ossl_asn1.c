@@ -509,7 +509,7 @@ ossl_asn1_get_asn1type(VALUE obj)
     ASN1_TYPE *ret;
     VALUE value, rflag;
     void *ptr;
-    void (*free_func)();
+    void (*free_func)(void *);
     int tag;
 
     tag = ossl_asn1_default_tag(obj);

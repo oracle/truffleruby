@@ -48,7 +48,7 @@ static VALUE sGroup;
 #endif
 
 #ifndef _WIN32
-char *getenv();
+char *getenv(const char *);
 #endif
 char *getlogin();
 
