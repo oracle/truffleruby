@@ -377,7 +377,11 @@ module Truffle
             open_file_for_child(obj[0], convert_file_mode(obj[1]), obj[2])
           end
         else
-          raise ArgumentError, "wrong exec redirect: #{obj.inspect}"
+          if obj.respond_to?(:to_io)
+            obj.to_io.fileno
+          else
+            raise ArgumentError, "wrong exec redirect: #{obj.inspect}"
+          end
         end
       end
 
