@@ -477,49 +477,13 @@ describe "Process.spawn" do
 
   # redirection
 
-  context "redirects STDOUT to the IO returned by obj.to_io if out: obj" do
-    # When an instance of @wrapped_io_class is passed as a value for Process#spawn
-    # redirection (e.g. as the value for out: or err:), Process#spawn is
-    # expected to call #to_io to get the wrapped IO object.
-    #
-    @wrapped_io_class = Class.new do
-      def initialize(io)
-        @io = io
-        @to_io_called = false
-      end
-
-      def to_io
-        @to_io_called = true
-        @io
-      end
-
-      def to_io_called?
-        @to_io_called
-      end
-    end
-
-    it 'should not raise an error' do
-      out = @wrapped_io_class.new(STDOUT)
-      # Since 'exit' is a shell builtin, the quotes around 0 are necessary to
-      # force spawn to use a shell
-      -> { Process.wait Process.spawn('exit "0"', out: out) }.should_not raise_error
-    end
-
-    it 'should call #to_io to get the wrapped IO object' do
-      out = @wrapped_io_class.new(STDOUT)
-      # Since 'exit' is a shell builtin, the quotes around 0 are necessary to
-      # force spawn to use a shell
-      Process.wait Process.spawn('exit "0"', out: out)
-      out.to_io_called?.should == true
-    end
-
-    it 'should redirect stdout of the subprocess to the wrapped IO object' do
-      File.open(@name, 'w') do |file|
-        -> do
-          out = @wrapped_io_class.new(file)
-          Process.wait Process.spawn('echo "Hello World"', out: out)
-        end.should output_to_fd("Hello World\n", file)
-      end
+  it 'redirects to the wrapped IO using wrapped_io.to_io if out: wrapped_io' do
+    File.open(@name, 'w') do |file|
+      -> do
+        wrapped_io = mock('wrapped IO')
+        wrapped_io.should_receive(:to_io).and_return(file)
+        Process.wait Process.spawn('echo "Hello World"', out: wrapped_io)
+      end.should output_to_fd("Hello World\n", file)
     end
   end
 
