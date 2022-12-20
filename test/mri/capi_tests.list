@@ -16,7 +16,6 @@ cext-ruby/exception/test_ensured.rb
 cext-ruby/exception/test_exception_at_throwing.rb
 cext-ruby/file/test_stat.rb
 cext-ruby/float/test_nextafter.rb
-cext-ruby/funcall/test_funcall.rb
 cext-ruby/funcall/test_passing_block.rb
 cext-ruby/gvl/test_last_thread.rb
 cext-ruby/gvl/test_ubf_async_safe.rb
