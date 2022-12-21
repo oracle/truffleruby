@@ -2,7 +2,7 @@
 
 New features:
 
-* Updated to Ruby 3.1.2 (#2733, @andrykonchin, @eregon).
+* Updated to Ruby 3.1.3 (#2733, @andrykonchin, @eregon).
 
 Bug fixes:
 

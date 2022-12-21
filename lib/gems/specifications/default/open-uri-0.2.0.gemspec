@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/open-uri", "source_code_uri" => "https://github.com/ruby/open-uri" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Tanaka Akira".freeze]
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "An easy-to-use wrapper for Net::HTTP, Net::HTTPS and Net::FTP.".freeze
   s.email = ["akr@fsij.org".freeze]
   s.files = ["open-uri.rb".freeze]
   s.homepage = "https://github.com/ruby/open-uri".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "An easy-to-use wrapper for Net::HTTP, Net::HTTPS and Net::FTP.".freeze
 
   if s.respond_to? :specification_version then

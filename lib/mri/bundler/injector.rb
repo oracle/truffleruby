@@ -70,8 +70,12 @@ module Bundler
 
         show_warning("No gems were removed from the gemfile.") if deps.empty?
 
-        deps.each {|dep| Bundler.ui.confirm "#{SharedHelpers.pretty_dependency(dep, false)} was removed." }
+        deps.each {|dep| Bundler.ui.confirm "#{SharedHelpers.pretty_dependency(dep)} was removed." }
       end
+
+      # Invalidate the cached Bundler.definition.
+      # This prevents e.g. `bundle remove ...` from using outdated information.
+      Bundler.reset_paths!
     end
 
     private
@@ -111,13 +115,14 @@ module Bundler
         end
 
         source = ", :source => \"#{d.source}\"" unless d.source.nil?
+        path = ", :path => \"#{d.path}\"" unless d.path.nil?
         git = ", :git => \"#{d.git}\"" unless d.git.nil?
         github = ", :github => \"#{d.github}\"" unless d.github.nil?
         branch = ", :branch => \"#{d.branch}\"" unless d.branch.nil?
         ref = ", :ref => \"#{d.ref}\"" unless d.ref.nil?
         require_path = ", :require => #{convert_autorequire(d.autorequire)}" unless d.autorequire.nil?
 
-        %(gem #{name}#{requirement}#{group}#{source}#{git}#{github}#{branch}#{ref}#{require_path})
+        %(gem #{name}#{requirement}#{group}#{source}#{path}#{git}#{github}#{branch}#{ref}#{require_path})
       end.join("\n")
     end
 

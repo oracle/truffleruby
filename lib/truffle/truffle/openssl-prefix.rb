@@ -43,8 +43,4 @@ end
 
 if openssl_prefix = ENV['OPENSSL_PREFIX']
   Truffle::Debug.log_config("Found OpenSSL in #{openssl_prefix}")
-
-  # We need to set PKG_CONFIG_PATH too, see https://github.com/oracle/truffleruby/issues/1830
-  # OpenSSL's extconf.rb calls the pkg_config() helper.
-  ENV['PKG_CONFIG_PATH'] = ["#{openssl_prefix}/lib/pkgconfig", *ENV['PKG_CONFIG_PATH']].join(':')
 end

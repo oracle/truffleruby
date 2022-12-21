@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Extends the Dir class to manage the OS temporary file path.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["tmpdir.rb".freeze]
   s.homepage = "https://github.com/ruby/tmpdir".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Extends the Dir class to manage the OS temporary file path.".freeze
 
   if s.respond_to? :specification_version then

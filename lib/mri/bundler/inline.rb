@@ -38,12 +38,7 @@ def gemfile(install = false, options = {}, &gemfile)
   raise ArgumentError, "Unknown options: #{opts.keys.join(", ")}" unless opts.empty?
 
   begin
-    old_root = Bundler.method(:root)
-    bundler_module = class << Bundler; self; end
-    bundler_module.send(:remove_method, :root)
-    def Bundler.root
-      Bundler::SharedHelpers.pwd.expand_path
-    end
+    Bundler.instance_variable_set(:@bundle_path, Pathname.new(Gem.dir))
     old_gemfile = ENV["BUNDLE_GEMFILE"]
     Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", "Gemfile"
 
@@ -59,7 +54,7 @@ def gemfile(install = false, options = {}, &gemfile)
 
       Bundler.ui = install ? ui : Bundler::UI::Silent.new
       if install || definition.missing_specs?
-        Bundler.settings.temporary(:inline => true) do
+        Bundler.settings.temporary(:inline => true, :no_install => false) do
           installer = Bundler::Installer.install(Bundler.root, definition, :system => true)
           installer.post_install_messages.each do |name, message|
             Bundler.ui.info "Post-install message from #{name}:\n#{message}"
@@ -71,11 +66,6 @@ def gemfile(install = false, options = {}, &gemfile)
       runtime.setup.require
     end
   ensure
-    if bundler_module
-      bundler_module.send(:remove_method, :root)
-      bundler_module.send(:define_method, :root, old_root)
-    end
-
     if old_gemfile
       ENV["BUNDLE_GEMFILE"] = old_gemfile
     else

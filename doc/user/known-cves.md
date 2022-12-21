@@ -19,6 +19,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2021-33621 | HTTP response splitting in CGI | [Fix](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | [Test](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | Same
 CVE-2022-28739 | Buffer overrun in String-to-Float conversion | | | Not applicable thanks to Java semantics
 CVE-2022-28738 | Double free in Regexp compilation | | | Not applicable thanks to Java semantics
 CVE-2021-41819 | Cookie Prefix Spoofing in CGI::Cookie.parse | [Fix](https://github.com/ruby/ruby/commit/0f31b3f465) | [Test](https://github.com/ruby/ruby/commit/0f31b3f465) | Same
@@ -48,7 +49,7 @@ CVE-2018-6914 | Unintentional file and directory creation with directory travers
 CVE-2018-8779 | Unintentional socket creation by poisoned NUL byte in `UNIXServer` and `UNIXSocket` | Check for NUL bytes | Tested in `ruby/spec` `:security` | Check for NUL bytes
 CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in `Dir` | Check for NUL bytes | Tested in `ruby/spec` `:security` | Check for NUL bytes
 CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | Applied the same mitigation
-CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in `ruby/spec` `:security` |Applied the same mitigation
+CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in `ruby/spec` `:security` | Applied the same mitigation
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in `ruby/spec` `:security` | A range check
 CVE-2017-17405 | Command injection vulnerability in `Net::FTP` | Treat paths in commands explicitly as paths, not general IO commands | Tested in MRI `test/net/ftp/test_ftp.rb` | Applied the same mitigation
 CVE-2017-10784 | Escape sequence injection vulnerability in the Basic authentication of WEBrick | Proper escaping of logs | Tested in MRI `test/webrick/test_httpauth.rb` | Applied the same mitigation
@@ -78,16 +79,16 @@ CVE-2011-3389 | Security Fix for Ruby OpenSSL module: Allow 0/n splitting as a p
 CVE-2011-4815 | Denial of service attack was found for Ruby's Hash algorithm (cross-reference CVE-2011-4838, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in `ruby/spec` `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/urandom`
 None | Exception methods can bypass `$SAFE` || | Not applicable as we do not support `$SAFE`
 None | FileUtils is vulnerable to symlink race attacks | | |
-CVE-2010-0541 | XSS in WEBrick | | |
+CVE-2010-0541 | XSS in WEBrick | | | WEBrick no longer shipped
 None | Buffer over-run in `ARGF.inplace_mode=` | | |
-None | WEBrick has an Escape Sequence Injection vulnerability | | |
+None | WEBrick has an Escape Sequence Injection vulnerability | | | WEBrick no longer shipped
 CVE-2009-5147 | `DL::dlopen` opens libraries with tainted names | Additional taint checks | The `DL` module does not exist in modern Ruby | Not applicable as we do not support `$SAFE`, and the `DL` module was removed in Ruby 2.2.0
 CVE-2009-4124 | Heap overflow in `String` | | |
 None | DoS vulnerability in `BigDecimal` | | |
 None | DoS vulnerability in `REXML` | | |
 CVE-2008-1447 | Multiple vulnerabilities in Ruby | | |
 CVE-2008-2662, CVE-2008-2663, CVE-2008-2725, CVE-2008-2726, CVE-2008-2664, CVE-2008-1891 | Arbitrary code execution vulnerabilities | | |
-None | File access vulnerability of WEBrick | | |
+None | File access vulnerability of WEBrick | | | WEBrick no longer shipped
 None | `Net::HTTPS` Vulnerability | | |
 JVN#84798830 | Another DoS Vulnerability in CGI Library | | |
 CVE-2006-5467 | DoS Vulnerability in CGI Library | | |

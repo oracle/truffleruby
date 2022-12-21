@@ -20,6 +20,7 @@ module Bundler
     class TooManyRequestsError < HTTPError; end
     # This error is raised if the API returns a 413 (only printed in verbose)
     class FallbackError < HTTPError; end
+
     # This is the error raised if OpenSSL fails the cert verification
     class CertificateFailureError < HTTPError
       def initialize(remote_uri)
@@ -33,6 +34,7 @@ module Bundler
           " sources and change 'https' to 'http'."
       end
     end
+
     # This is the error raised when a source is HTTPS and OpenSSL didn't load
     class SSLError < HTTPError
       def initialize(msg = nil)
@@ -42,6 +44,7 @@ module Bundler
             "using RVM are available at rvm.io/packages/openssl."
       end
     end
+
     # This error is raised if HTTP authentication is required, but not provided.
     class AuthenticationRequiredError < HTTPError
       def initialize(remote_uri)
@@ -52,6 +55,7 @@ module Bundler
           "or by storing the credentials in the `#{Settings.key_for(remote_uri)}` environment variable"
       end
     end
+
     # This error is raised if HTTP authentication is provided, but incorrect.
     class BadAuthenticationError < HTTPError
       def initialize(remote_uri)
@@ -226,6 +230,7 @@ module Bundler
         "GO_SERVER_URL" => "go",
         "SNAP_CI" => "snap",
         "GITLAB_CI" => "gitlab",
+        "GITHUB_ACTIONS" => "github",
         "CI_NAME" => ENV["CI_NAME"],
         "CI" => "ci",
       }
@@ -235,8 +240,8 @@ module Bundler
     def connection
       @connection ||= begin
         needs_ssl = remote_uri.scheme == "https" ||
-          Bundler.settings[:ssl_verify_mode] ||
-          Bundler.settings[:ssl_client_cert]
+                    Bundler.settings[:ssl_verify_mode] ||
+                    Bundler.settings[:ssl_client_cert]
         raise SSLError if needs_ssl && !defined?(OpenSSL::SSL)
 
         con = PersistentHTTP.new :name => "bundler", :proxy => :ENV
@@ -251,8 +256,8 @@ module Bundler
         end
 
         ssl_client_cert = Bundler.settings[:ssl_client_cert] ||
-          (Gem.configuration.ssl_client_cert if
-            Gem.configuration.respond_to?(:ssl_client_cert))
+                          (Gem.configuration.ssl_client_cert if
+                            Gem.configuration.respond_to?(:ssl_client_cert))
         if ssl_client_cert
           pem = File.read(ssl_client_cert)
           con.cert = OpenSSL::X509::Certificate.new(pem)
@@ -283,8 +288,8 @@ module Bundler
     def bundler_cert_store
       store = OpenSSL::X509::Store.new
       ssl_ca_cert = Bundler.settings[:ssl_ca_cert] ||
-        (Gem.configuration.ssl_ca_cert if
-          Gem.configuration.respond_to?(:ssl_ca_cert))
+                    (Gem.configuration.ssl_ca_cert if
+                      Gem.configuration.respond_to?(:ssl_ca_cert))
       if ssl_ca_cert
         if File.directory? ssl_ca_cert
           store.add_path ssl_ca_cert

@@ -15,11 +15,11 @@ require "mkmf"
 
 if defined?(::TruffleRuby)
   require 'truffle/openssl-prefix'
-  dir_config("openssl", ENV["OPENSSL_PREFIX"])
+  dir_config_given = dir_config("openssl", ENV["OPENSSL_PREFIX"]).any?
   # Needed with libssl 3.0.0 and -Werror from building core C extensions
   $warnflags += ' -Wno-deprecated-declarations'
 else
-  dir_config("openssl")
+  dir_config_given = dir_config("openssl").any?
 end
 
 dir_config("kerberos")
@@ -100,7 +100,7 @@ def find_openssl_library
 end
 
 Logging::message "=== Checking for required stuff... ===\n"
-pkg_config_found = pkg_config("openssl") && have_header("openssl/ssl.h")
+pkg_config_found = !dir_config_given && pkg_config("openssl") && have_header("openssl/ssl.h")
 
 if !pkg_config_found && !find_openssl_library
   Logging::message "=== Checking for required stuff failed. ===\n"
@@ -185,6 +185,7 @@ have_func("SSL_CTX_set_post_handshake_auth")
 
 # added in 1.1.1
 have_func("EVP_PKEY_check")
+have_func("EVP_PKEY_new_raw_private_key")
 
 # added in 3.0.0
 have_func("SSL_set0_tmp_dh_pkey")

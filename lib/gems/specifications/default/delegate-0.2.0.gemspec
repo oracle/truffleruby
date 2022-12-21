@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/delegate", "source_code_uri" => "https://github.com/ruby/delegate" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
-  s.date = "2022-10-19"
+  s.date = "2022-12-06"
   s.description = "Provides three abilities to delegate method calls to an object.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["lib/delegate.rb".freeze]
   s.homepage = "https://github.com/ruby/delegate".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.7".freeze)
-  s.rubygems_version = "3.3.7".freeze
+  s.rubygems_version = "3.3.26".freeze
   s.summary = "Provides three abilities to delegate method calls to an object.".freeze
 end
