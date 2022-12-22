@@ -26,6 +26,11 @@ public final class ConcurrentWeakSet<E> extends ConcurrentWeakKeysMap<E, Boolean
     }
 
     @TruffleBoundary
+    public Object[] toArray() {
+        return keys().toArray();
+    }
+
+    @TruffleBoundary
     public WeakSetIterator<E> iterator() {
         return new WeakSetIterator<E>(map.keySet().iterator());
     }

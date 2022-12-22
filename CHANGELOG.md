@@ -49,6 +49,8 @@ Compatibility:
 * Added constants `IO::SEEK_DATE` and `IO::SEEK_HOLE` (#2792, @andrykonchin).
 * Fix `StringIO.new` to accept keyword arguments (#2793, @andrykonchin).
 * `Process#spawn` should call `#to_io` on non-IO file descriptor objects (#2809, @jcouball).
+* Add constants `IO::SEEK_DATE` and `IO::SEEK_HOLE` (#2792, @andrykonchin).
+* Add `Class#subclasses` method (#2733, @andrykonchin).
 
 Performance:
 

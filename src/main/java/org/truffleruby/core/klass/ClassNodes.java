@@ -20,6 +20,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyDynamicObject;
@@ -297,6 +298,14 @@ public abstract class ClassNodes {
         @Specialization
         protected Object inherited(Object subclass) {
             return nil;
+        }
+    }
+
+    @CoreMethod(names = "subclasses")
+    public abstract static class SubclassesNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyArray execute(RubyClass rubyClass) {
+            return createArray(rubyClass.directNonSingletonSubclasses.toArray());
         }
     }
 

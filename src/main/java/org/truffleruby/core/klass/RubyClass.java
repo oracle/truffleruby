@@ -18,6 +18,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.ConcurrentWeakSet;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.debug.SingleElementArray;
 import org.truffleruby.language.RubyDynamicObject;
@@ -40,6 +41,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     /* a RubyClass or nil for BasicObject */
     public final Object superclass;
     public final RubyClass[] ancestorClasses;
+    public final ConcurrentWeakSet<RubyClass> directNonSingletonSubclasses;
     /** Depth from BasicObject (= 0) in the inheritance hierarchy. */
     public final int depth;
 
@@ -67,6 +69,10 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             this.ancestorClasses = computeAncestorClasses((RubyClass) superclass);
             this.depth = ((RubyClass) superclass).depth + 1;
             fields.setSuperClass((RubyClass) superclass);
+
+            if (!isSingleton) {
+                ((RubyClass) superclass).directNonSingletonSubclasses.add(this);
+            }
         } else { // BasicObject (nil superclass)
             assert superclass == nil;
             this.superclass = superclass;
@@ -74,6 +80,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             this.depth = 0;
         }
 
+        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
         this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
     }
 
@@ -93,6 +100,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.superclass = superclass;
         this.ancestorClasses = computeAncestorClasses(superclass);
         this.depth = superclass.depth + 1;
+        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
         fields.setSuperClass(superclass);
     }
 
