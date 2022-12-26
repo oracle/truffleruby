@@ -18,6 +18,10 @@ module Coverage
     result
   end
 
+  def self.running?
+    Truffle::Coverage.enabled?
+  end
+
   def self.peek_result
     Truffle::Coverage.result_array.to_h
   end
