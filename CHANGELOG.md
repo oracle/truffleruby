@@ -17,6 +17,7 @@ Bug fixes:
 * Fix `Dir.mkdir` and convert permissions argument to `Integer` (#2781, @andrykonchin).
 * Fix `String#dump` and use `\u{xxxx}` notation (with curly brackets) for characters that don't fit in `\uxxxx` (#2794, @andrykonchin).
 * Fix `Marshal.dump` when big Integer (that cannot be expressed with 4 bytes) is serialized (#2790, @andrykonchin).
+* Fix `\P{}` matching in regular expressions (#2798, @andrykonchin).
 
 Compatibility:
 
@@ -51,6 +52,7 @@ Compatibility:
 * `Process#spawn` should call `#to_io` on non-IO file descriptor objects (#2809, @jcouball).
 * Add constants `IO::SEEK_DATE` and `IO::SEEK_HOLE` (#2792, @andrykonchin).
 * Add `Class#subclasses` method (#2733, @andrykonchin).
+* Implement `Coverage.running?` method (@andrykonchin).
 
 Performance:
 

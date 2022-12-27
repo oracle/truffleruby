@@ -93,4 +93,13 @@ public abstract class CoverageNodes {
 
     }
 
+    @CoreMethod(names = "enabled?", onSingleton = true)
+    public abstract static class CoverageEnabledNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object execute() {
+            return getLanguage().coverageManager.isEnabled();
+        }
+    }
+
 }
