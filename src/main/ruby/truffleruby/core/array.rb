@@ -1301,11 +1301,16 @@ class Array
 
     out = Array.new(size) unless block_given?
 
-    others = others.map do |other|
-      if other.respond_to?(:to_ary)
-        other.to_ary
+    others.map! do |other|
+      array = Truffle::Type.rb_check_convert_type(other, Array, :to_ary)
+
+      case
+      when array
+        array
+      when Primitive.object_respond_to?(other, :each, false)
+        other.to_enum(:each)
       else
-        other.to_enum :each
+        raise TypeError, "wrong argument type #{other.class} (must respond to :each)"
       end
     end
 
