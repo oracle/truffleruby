@@ -6,7 +6,27 @@ permalink: /reference-manual/ruby/Debugging/
 ---
 # Debugging TruffleRuby
 
-## Printing Exceptions
+TruffleRuby, like other GraalVM languages, supports 2 standard debugging protocols:
+* the [Debug Adapter Protocol (DAP)](https://www.graalvm.org/latest/tools/dap/), best supported
+* the [Chrome DevTools Protocol](https://www.graalvm.org/latest/tools/chrome-debugger/), limited support because the protocol does not handle threads
+
+Also see [Tools](tools.md) for more tools besides just debuggers.
+
+## VSCode
+
+First install [the GraalVM VSCode extension](https://marketplace.visualstudio.com/items?itemName=oracle-labs-graalvm.graalvm).
+
+Then follow [this documentation](https://www.graalvm.org/latest/tools/vscode/graalvm-extension/polyglot-runtime/#debugging-ruby) to debug TruffleRuby with VSCode.
+
+## RubyMine
+
+Unfortunately RubyMine / IntelliJ IDEA do not support the Debug Adapter Protocol yet for Ruby debugging.
+
+Please vote or comment on the [feature request](https://youtrack.jetbrains.com/issue/RUBY-30772) to share your interest.
+
+## Command-line Debugging Options
+
+### Printing Exceptions
 
 There are two ways to print exceptions, which can be useful to find the source of an error:
 
@@ -20,7 +40,7 @@ Java exceptions can be printed with `--exceptions-print-uncaught-java` or
 
 See other `--backtraces-*` and `--exceptions-*` options for more possibilities.
 
-## Printing Stacktraces and Backtraces of a Running Process
+### Printing Stacktraces and Backtraces of a Running Process
 
 One can send the `SIGQUIT` signal to TruffleRuby to make it print the Java stacktraces of all threads.
 `Ctrl + \ ` can be used to send `SIGQUIT` to the current process in a terminal.
@@ -31,7 +51,7 @@ Sending `SIGALRM` to a TruffleRuby process will print the Ruby backtraces of all
 
 Note: Printing the Ruby backtraces of all threads significantly lowers performance, so it should only be used for debugging.
 
-## More Information in Backtraces
+### More Information in Backtraces
 
 TruffleRuby tries to match MRI's backtrace format as closely as possible.
 This sometimes means that extra available information is not displayed.
@@ -41,7 +61,7 @@ An option to show more information is `--backtraces-interleave-java=true`, which
 
 When you are interoperating with other languages, including C extensions, backtraces for Java exceptions may be missing information, as the Java frames are gone by the time Ruby has a chance to format them into a backtrace.
 
-## Printing Subprocesses
+### Printing Subprocesses
 
 You can log subprocesses created by TruffleRuby using the option `--log-subprocess`.
 
@@ -52,7 +72,7 @@ $ ruby --log-subprocess -e '`ls .`'
 
 This is not transitive though, unless you set this option in `TRUFFLERUBYOPT`.
 
-## Printing TruffleRuby Processes and Arguments
+### Printing TruffleRuby Processes and Arguments
 
 You can log TruffleRuby processes created using the `bin/truffleruby` launcher and their arguments with `--log-process-args`.
 

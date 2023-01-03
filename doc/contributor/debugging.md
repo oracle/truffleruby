@@ -1,11 +1,8 @@
 # Debugging TruffleRuby
 
-You've got many options for debugging the implementation of TruffleRuby.
+This document is about debugging TruffleRuby itself at the Java level.
 
-If you want to debug an application running on TruffleRuby, and don't suspect
-any bug in TruffleRuby itself, use GraalVM [tools](../user/tools.md) as usual.
-
-Also see [user debugging docs](../user/debugging.md).
+If you want to debug an application running on TruffleRuby or debug at the Ruby level, see [this documentation](../user/debugging.md) instead.
 
 ## Print Debugging
 

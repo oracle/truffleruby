@@ -221,6 +221,10 @@ Code coverage histogram.
 
 ## Debugging
 
+### Debugging with VSCode
+
+This is the best-supported debugger for TruffleRuby, see [this documentation](debugging.md#vscode).
+
 ### Chrome Inspector
 
 GraalVM lets you debug Ruby programs, and any other language supported by GraalVM, using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) to attach to debuggers such as [Chrome Developer Tools](https://developers.google.com/web/tools/chrome-devtools/).
