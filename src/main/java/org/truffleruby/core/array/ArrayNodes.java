@@ -2237,6 +2237,34 @@ public abstract class ArrayNodes {
 
     }
 
+    @CoreMethod(names = "unshift", rest = true, raiseIfFrozenSelf = true)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class UnshiftNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "rest.length == 0")
+        protected Object execute(RubyArray array, Object[] rest) {
+            return array;
+        }
+
+        @Specialization(guards = "rest.length != 0")
+        protected Object execute(RubyArray array, Object[] rest,
+                @Cached ArrayPrepareForCopyNode resize,
+                @Cached ArrayCopyCompatibleRangeNode shift,
+                @Cached ArrayCopyCompatibleRangeNode copyRange,
+                @Cached ArrayTruncateNode truncate) {
+            final int originalSize = array.size;
+            final RubyArray prepended = createArray(rest);
+            final int prependedSize = prepended.size;
+            final int newSize = originalSize + prependedSize;
+
+            final Object newStore = resize.execute(array, prepended, 0, newSize);
+            shift.execute(newStore, newStore, prependedSize, 0, originalSize);
+            copyRange.execute(newStore, prepended.getStore(), 0, 0, prependedSize);
+            truncate.execute(array, newSize);
+
+            return array;
+        }
+    }
+
     @Primitive(name = "steal_array_storage")
     @ImportStatic(ArrayGuards.class)
     public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
