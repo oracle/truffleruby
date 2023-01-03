@@ -419,7 +419,7 @@ public abstract class ArrayNodes {
                 truncate.execute(array, newSize);
 
             } else {
-                // The array is overwriten from `start` to end, there is no tail to be moved.
+                // The array is overwritten from `start` to end, there is no tail to be moved.
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
                 copyRange.execute(newStore, replacementStore, start, 0, replacementSize);
