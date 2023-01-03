@@ -74,6 +74,11 @@ describe :array_pack_float_be, shared: true do
 
   it "converts an Integer to a Float" do
     [8].pack(pack_format).should == "A\x00\x00\x00"
+    [bignum_value].pack(pack_format).should == "_\x80\x00\x00"
+  end
+
+  it "converts a Rational to a Float" do
+    [Rational(8)].pack(pack_format).should == "A\x00\x00\x00"
   end
 
   it "raises a TypeError if passed a String representation of a floating point number" do
@@ -129,6 +134,11 @@ describe :array_pack_double_le, shared: true do
 
   it "converts an Integer to a Float" do
     [8].pack(pack_format).should == "\x00\x00\x00\x00\x00\x00\x20@"
+    [bignum_value].pack(pack_format).should == "\x00\x00\x00\x00\x00\x00\xF0C"
+  end
+
+  it "converts a Rational to a Float" do
+    [Rational(8)].pack(pack_format).should == "\x00\x00\x00\x00\x00\x00 @"
   end
 
   it "raises a TypeError if passed a String representation of a floating point number" do
