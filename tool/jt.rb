@@ -64,7 +64,7 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS =  [17, 19]
-DEFAULT_JDK_VERSION = JDK_VERSIONS.first
+DEFAULT_JDK_VERSION = JDK_VERSIONS.last
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
@@ -169,11 +169,16 @@ module Utilities
     end
   end
 
-  def jvmci_version
+  def ee?
+    (@mx_env || @ruby_name || '').include?('ee')
+  end
+
+  def jvmci_version(ee = ee?)
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-#{DEFAULT_JDK_VERSION}\..+-(jvmci-[^"]+)"\s*,/
-      raise 'JVMCI version not found in common.json' unless regex =~ ci
+      edition = ee ? 'ee' : 'ce'
+      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"#{edition}-#{@jdk_version}\..+-(jvmci-[^"]+)"\s*,/
+      raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in common.json" unless regex =~ ci
       $1
     end
   end
@@ -598,9 +603,7 @@ module Utilities
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
-        install_jvmci(
-            "$JAVA_HOME is not set, downloading JDK#{@jdk_version} with JVMCI",
-            (@mx_env || @ruby_name || '').include?('ee'))
+        install_jvmci("$JAVA_HOME is not set, downloading JDK#{@jdk_version} with JVMCI")
       end
     end
   end
@@ -2237,7 +2240,7 @@ module Commands
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci("Downloading JDK#{@jdk_version} with JVMCI", (@ruby_name || '').include?('ee'))
+      puts install_jvmci("Downloading JDK#{@jdk_version} with JVMCI")
     when 'eclipse'
       puts install_eclipse
     else
@@ -2245,16 +2248,16 @@ module Commands
     end
   end
 
-  private def install_jvmci(download_message, ee, jdk_version: @jdk_version)
+  private def install_jvmci(download_message, ee: ee?, jdk_version: @jdk_version)
     raise "Unknown JDK version: #{jdk_version}" unless JDK_VERSIONS.include?(jdk_version)
     jdk_name = ee ? "labsjdk-ee-#{jdk_version}" : "labsjdk-ce-#{jdk_version}"
 
-    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
+    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version(ee)}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
         clone_enterprise
-        jdk_binaries = File.expand_path '../graal-enterprise/jdk-binaries.json', TRUFFLERUBY_DIR
+        jdk_binaries = File.expand_path '../graal-enterprise/ci/jdk-binaries.json', TRUFFLERUBY_DIR
       end
       mx '-y', 'fetch-jdk',
          '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
@@ -2436,7 +2439,7 @@ module Commands
     mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
 
     # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
-    ee = env.include?('ee')
+    ee = ee?
     cloned = clone_enterprise if ee
     checkout_enterprise_revision(env) if cloned
 

@@ -230,7 +230,7 @@ local part_definitions = {
 
     v17: with_path {
       downloads+: {
-        JAVA_HOME: common.jdks["labsjdk-ce-17"],
+        JAVA_HOME: common.jdks["labsjdk-ee-17"],
       },
     },
 
