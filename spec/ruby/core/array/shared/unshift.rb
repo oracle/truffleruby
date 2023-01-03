@@ -22,6 +22,11 @@ describe :array_unshift, shared: true do
     a.should == [3, 4]
   end
 
+  it "returns self" do
+    a = [1, 2, 3]
+    a.send(@method, "a").should equal(a)
+  end
+
   it "quietly ignores unshifting nothing" do
     [].send(@method).should == []
   end
