@@ -51,12 +51,7 @@ This is necessary to make the Ruby `openssl` C extension work with your system l
 Please run that script now.
 The path of the script will be:
 ```bash
-# Java 8
-jre/languages/ruby/lib/truffle/post_install_hook.sh
-# Java 11+
 languages/ruby/lib/truffle/post_install_hook.sh
-# Generic
-$(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/post_install_hook.sh
 ```
 
 You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest) (CE)
