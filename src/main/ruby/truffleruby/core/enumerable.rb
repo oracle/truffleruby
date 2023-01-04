@@ -315,12 +315,17 @@ module Enumerable
     h
   end
 
-  def zip(*args)
-    args.map! do |a|
-      if a.respond_to? :to_ary
-        a.to_ary
+  # Synchronize with Enumerator#zip and Array#zip
+  def zip(*enums)
+    enums.map! do |enum|
+      array = Truffle::Type.rb_check_convert_type(enum, Array, :to_ary)
+
+      if array
+        array
+      elsif Primitive.object_respond_to?(enum, :each, false)
+        enum.to_enum(:each)
       else
-        a.to_enum(:each)
+        raise TypeError, "wrong argument type #{enum.class} (must respond to :each)"
       end
     end
 
@@ -328,7 +333,7 @@ module Enumerable
     i = 0
     each do
       o = Primitive.single_block_arg
-      entry = args.inject([o]) do |ary, a|
+      entry = enums.inject([o]) do |ary, a|
         ary << case a
                when Array
                  a[i]

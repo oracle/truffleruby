@@ -54,6 +54,7 @@ Compatibility:
 * Add constants `IO::SEEK_DATE` and `IO::SEEK_HOLE` (#2792, @andrykonchin).
 * Add `Class#subclasses` method (#2733, @andrykonchin).
 * Implement `Coverage.running?` method (@andrykonchin).
+* Fix arguments implicit type conversion for `Enumerable#zip` and `Array#zip` (#2788, @andrykonchin).
 
 Performance:
 

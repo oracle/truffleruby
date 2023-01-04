@@ -1294,6 +1294,7 @@ class Array
     out
   end
 
+  # Synchronize with Enumerator#zip and Enumerable#zip
   def zip(*others)
     if !block_given? and others.size == 1 and Array === others[0]
       return Primitive.array_zip self, others[0]
@@ -1301,11 +1302,15 @@ class Array
 
     out = Array.new(size) unless block_given?
 
-    others = others.map do |other|
-      if other.respond_to?(:to_ary)
-        other.to_ary
+    others.map! do |other|
+      array = Truffle::Type.rb_check_convert_type(other, Array, :to_ary)
+
+      if array
+        array
+      elsif Primitive.object_respond_to?(other, :each, false)
+        other.to_enum(:each)
       else
-        other.to_enum :each
+        raise TypeError, "wrong argument type #{other.class} (must respond to :each)"
       end
     end
 
