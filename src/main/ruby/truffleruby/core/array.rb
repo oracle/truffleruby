@@ -1265,13 +1265,6 @@ class Array
     res
   end
 
-  def unshift(*values)
-    Primitive.check_frozen self
-
-    self[0, 0] = values
-
-    self
-  end
   alias_method :prepend, :unshift
 
   def values_at(*args)

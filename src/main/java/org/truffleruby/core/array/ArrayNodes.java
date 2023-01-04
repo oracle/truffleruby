@@ -419,7 +419,7 @@ public abstract class ArrayNodes {
                 truncate.execute(array, newSize);
 
             } else {
-                // The array is overwriten from `start` to end, there is no tail to be moved.
+                // The array is overwritten from `start` to end, there is no tail to be moved.
 
                 final Object newStore = prepareToCopy.execute(array, replacement, start, replacementSize);
                 copyRange.execute(newStore, replacementStore, start, 0, replacementSize);
@@ -2235,6 +2235,34 @@ public abstract class ArrayNodes {
             return array.size <= getContext().getOptions().ARRAY_SMALL;
         }
 
+    }
+
+    @CoreMethod(names = "unshift", rest = true, raiseIfFrozenSelf = true)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class UnshiftNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "rest.length == 0")
+        protected Object execute(RubyArray array, Object[] rest) {
+            return array;
+        }
+
+        @Specialization(guards = "rest.length != 0")
+        protected Object execute(RubyArray array, Object[] rest,
+                @Cached ArrayPrepareForCopyNode resize,
+                @Cached ArrayCopyCompatibleRangeNode moveElements,
+                @Cached ArrayCopyCompatibleRangeNode copyUnshifted,
+                @Cached ArrayTruncateNode truncate) {
+            final int originalSize = array.size;
+            final RubyArray prepended = createArray(rest);
+            final int prependedSize = prepended.size;
+            final int newSize = originalSize + prependedSize;
+
+            final Object newStore = resize.execute(array, prepended, 0, newSize);
+            moveElements.execute(newStore, newStore, prependedSize, 0, originalSize);
+            copyUnshifted.execute(newStore, prepended.getStore(), 0, 0, prependedSize);
+            truncate.execute(array, newSize);
+
+            return array;
+        }
     }
 
     @Primitive(name = "steal_array_storage")

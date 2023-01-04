@@ -55,6 +55,7 @@ Compatibility:
 * Add `Class#subclasses` method (#2733, @andrykonchin).
 * Implement `Coverage.running?` method (@andrykonchin).
 * Fix arguments implicit type conversion for `Enumerable#zip` and `Array#zip` (#2788, @andrykonchin).
+* Fix `Array#unshift` to not depend on `Array#[]=` and allow overriding `#[]=` in a subclass (#2772, @andrykonchin).
 
 Performance:
 
