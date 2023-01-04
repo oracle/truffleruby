@@ -524,16 +524,16 @@ class Enumerator
       end
     end
 
+    # Synchronize with Enumerable#zip and Array#zip
     def zip(*lists)
       return super(*lists) { |entry| yield entry } if block_given?
 
       lists.map! do |list|
         array = Truffle::Type.rb_check_convert_type list, Array, :to_ary
 
-        case
-        when array
+        if array
           array
-        when Primitive.object_respond_to?(list, :each, false)
+        elsif Primitive.object_respond_to?(list, :each, false)
           list.to_enum :each
         else
           raise TypeError, "wrong argument type #{list.class} (must respond to :each)"

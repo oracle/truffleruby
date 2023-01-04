@@ -315,14 +315,14 @@ module Enumerable
     h
   end
 
+  # Synchronize with Enumerator#zip and Array#zip
   def zip(*enums)
     enums.map! do |enum|
       array = Truffle::Type.rb_check_convert_type(enum, Array, :to_ary)
 
-      case
-      when array
+      if array
         array
-      when Primitive.object_respond_to?(enum, :each, false)
+      elsif Primitive.object_respond_to?(enum, :each, false)
         enum.to_enum(:each)
       else
         raise TypeError, "wrong argument type #{enum.class} (must respond to :each)"
