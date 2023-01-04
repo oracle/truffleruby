@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
+
 public class ReadCallerVariablesIfAvailableNode extends ReadCallerVariablesNode {
 
     public static ReadCallerVariablesIfAvailableNode create() {
@@ -16,7 +18,7 @@ public class ReadCallerVariablesIfAvailableNode extends ReadCallerVariablesNode 
     }
 
     @Override
-    protected Object getCallerData() {
+    protected SpecialVariableStorage getCallerSpecialVariables() {
         return null;
     }
 }

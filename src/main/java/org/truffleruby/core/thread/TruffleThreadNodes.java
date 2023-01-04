@@ -16,8 +16,6 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
-import org.truffleruby.language.arguments.CallerDataReadingNode;
-import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
@@ -28,6 +26,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 @CoreModule("Truffle::ThreadOperations")
 public class TruffleThreadNodes {
@@ -45,8 +44,7 @@ public class TruffleThreadNodes {
 
     @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode
-            implements CallerDataReadingNode {
+    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
@@ -64,15 +62,12 @@ public class TruffleThreadNodes {
             if (data == null) {
                 return nil;
             } else {
-                CallerDataReadingNode.notifyCallerToSendData(getContext(), data.callNode, this);
+                ReadCallerVariablesNode.notifyCallerToSendSpecialVariables(data.callNode);
                 Object variables = storageNode.execute(data.frame.materialize());
                 getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;
             }
         }
 
-        public void startSending(FrameAndVariablesSendingNode node) {
-            node.startSendingOwnVariables();
-        }
     }
 }

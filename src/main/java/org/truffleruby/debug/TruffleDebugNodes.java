@@ -21,7 +21,7 @@ import java.util.Map;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.StopIterationException;
@@ -1223,7 +1223,7 @@ public abstract class TruffleDebugNodes {
             getContext().getCallStack().iterateFrameBindings(5, frameInstance -> {
                 final RootNode rootNode = ((RootCallTarget) frameInstance.getCallTarget()).getRootNode();
                 if (rootNode instanceof RubyRootNode) {
-                    final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE);
+                    final Frame frame = frameInstance.getFrame(FrameAccess.MATERIALIZE);
                     final SourceSection sourceSection;
                     if (frameInstance.getCallNode() != null &&
                             BacktraceFormatter
