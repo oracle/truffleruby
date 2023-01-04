@@ -11,7 +11,7 @@ This file explains the requirements and architecture of the second category of t
 ## Requirements
 
 1.  When TruffleRuby tar (GraalVM) is downloaded and unpacked, all files in `bin` and 
-    `jre/languages/ruby/bin` has to always run the TruffleRuby provided by the tar. 
+    `languages/ruby/bin` has to always run the TruffleRuby provided by the tar.
     -   Therefore `PATH` is not involved (`/usr/bin/env` cannot be used in shebang).
     -   Therefore there are no absolute paths in `bin` executables.
     -   Therefore all scripts in `bin` are always resolved to `truffleruby` in the same dir.
