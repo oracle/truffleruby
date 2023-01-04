@@ -24,7 +24,7 @@ describe :array_unshift, shared: true do
 
   it "returns self" do
     a = [1, 2, 3]
-    a.send(@method, "a").should equal(a)
+    a.send(@method, "a").should.equal?(a)
   end
 
   it "quietly ignores unshifting nothing" do
