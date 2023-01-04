@@ -230,6 +230,7 @@ public class ClassicRegexp implements ReOptions {
                             }
                             break;
                         case 'p': /* \p{Hiragana} */
+                        case 'P': /* \P{Arabic} - negation */
                             if (encp[0] == null) {
                                 hasProperty = true;
                             }
