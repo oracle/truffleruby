@@ -2248,8 +2248,8 @@ public abstract class ArrayNodes {
         @Specialization(guards = "rest.length != 0")
         protected Object execute(RubyArray array, Object[] rest,
                 @Cached ArrayPrepareForCopyNode resize,
-                @Cached ArrayCopyCompatibleRangeNode shift,
-                @Cached ArrayCopyCompatibleRangeNode copyRange,
+                @Cached ArrayCopyCompatibleRangeNode moveElements,
+                @Cached ArrayCopyCompatibleRangeNode copyUnshifted,
                 @Cached ArrayTruncateNode truncate) {
             final int originalSize = array.size;
             final RubyArray prepended = createArray(rest);
@@ -2257,8 +2257,8 @@ public abstract class ArrayNodes {
             final int newSize = originalSize + prependedSize;
 
             final Object newStore = resize.execute(array, prepended, 0, newSize);
-            shift.execute(newStore, newStore, prependedSize, 0, originalSize);
-            copyRange.execute(newStore, prepended.getStore(), 0, 0, prependedSize);
+            moveElements.execute(newStore, newStore, prependedSize, 0, originalSize);
+            copyUnshifted.execute(newStore, prepended.getStore(), 0, 0, prependedSize);
             truncate.execute(array, newSize);
 
             return array;
