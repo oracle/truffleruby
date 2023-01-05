@@ -293,7 +293,8 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
         String className = LogicalClassNode.getUncached().execute(object).fields.getName();
-        return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode, object);
+        return frozenError(StringUtils.format("can't modify frozen %s: %s", className, inspect(object)), currentNode,
+                object);
     }
 
     @TruffleBoundary
