@@ -64,8 +64,10 @@ import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfD
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
@@ -411,7 +413,9 @@ public abstract class BasicObjectNodes {
                 String fileNameString, int line, IndirectCallNode callNode) {
             final RubySource source = EvalLoader
                     .createEvalSource(getContext(), code, encoding, "instance_eval", fileNameString, line, this);
-            final LexicalScope lexicalScope = RubyArguments.getMethod(callerFrame).getLexicalScope();
+            final LexicalScope callerLexicalScope = RubyArguments.getMethod(callerFrame).getLexicalScope();
+
+            LexicalScope lexicalScope = prependReceiverClassToScope(callerLexicalScope, receiver);
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
@@ -434,6 +438,25 @@ public abstract class BasicObjectNodes {
                     lexicalScope);
 
             return deferredCall.call(callNode);
+        }
+
+        private static LexicalScope prependReceiverClassToScope(LexicalScope callerLexicalScope, Object receiver) {
+            final RubyClass receiverLiveClass = LogicalClassNode.getUncached().execute(receiver);
+            RubyClass receiverSingletonClass = null;
+
+            try {
+                receiverSingletonClass = SingletonClassNode.getUncached().executeSingletonClass(receiver);
+            } catch (RaiseException e) {
+            }
+
+            // In case of BasicObject#instance_eval constants lookup shouldn't affect class variables lookup
+            LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, receiverLiveClass, true);
+
+            if (receiverSingletonClass != null) {
+                lexicalScope = new LexicalScope(lexicalScope, receiverSingletonClass, true);
+            }
+
+            return lexicalScope;
         }
 
     }

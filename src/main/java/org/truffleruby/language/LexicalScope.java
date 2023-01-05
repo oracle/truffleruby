@@ -25,11 +25,19 @@ public class LexicalScope {
     public static final LexicalScope IGNORE = new LexicalScope(null, null);
 
     private final LexicalScope parent;
+
+    public final boolean ignoreForClassVariablesLookup;
+
     @CompilationFinal private volatile RubyModule liveModule;
 
     public LexicalScope(LexicalScope parent, RubyModule liveModule) {
+        this(parent, liveModule, false);
+    }
+
+    public LexicalScope(LexicalScope parent, RubyModule liveModule, boolean ignoreForClassVariablesLookup) {
         this.parent = parent;
         this.liveModule = liveModule;
+        this.ignoreForClassVariablesLookup = ignoreForClassVariablesLookup;
     }
 
     public LexicalScope(LexicalScope parent) {

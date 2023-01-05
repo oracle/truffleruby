@@ -119,8 +119,52 @@ describe "BasicObject#instance_eval" do
     obj.singleton_class.const_get(:B).should be_an_instance_of(Class)
   end
 
-  it "gets constants in the receiver if a string given" do
-    BasicObjectSpecs::InstEvalOuter::Inner::X_BY_STR.should == 2
+  describe "constants lookup when a String given" do
+    it "looks in the receiver singleton class first" do
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::CallerScope::Caller.new
+
+      caller.get_constant_with_string(receiver).should == :singleton_class
+    end
+
+    ruby_version_is ""..."3.1" do
+      it "looks in the caller scope next" do
+        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
+        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
+
+        caller.get_constant_with_string(receiver).should == :Caller
+      end
+    end
+
+    ruby_version_is "3.1" do
+      it "looks in the receiver class next" do
+        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
+        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
+
+        caller.get_constant_with_string(receiver).should == :Receiver
+      end
+    end
+
+    it "looks in the caller class next" do
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::CallerScope::Caller.new
+
+      caller.get_constant_with_string(receiver).should == :Caller
+    end
+
+    it "looks in the caller outer scopes next" do
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::CallerScope::Caller.new
+
+      caller.get_constant_with_string(receiver).should == :CallerScope
+    end
+
+    it "looks in the receiver class hierarchy next" do
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::CallerScope::Caller.new
+
+      caller.get_constant_with_string(receiver).should == :ReceiverParent
+    end
   end
 
   it "doesn't get constants in the receiver if a block given" do
