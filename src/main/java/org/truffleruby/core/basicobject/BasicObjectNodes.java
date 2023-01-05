@@ -64,6 +64,7 @@ import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfD
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.CanHaveSingletonClassNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -441,19 +442,18 @@ public abstract class BasicObjectNodes {
         }
 
         private static LexicalScope prependReceiverClassToScope(LexicalScope callerLexicalScope, Object receiver) {
-            final RubyClass receiverLiveClass = LogicalClassNode.getUncached().execute(receiver);
-            RubyClass receiverSingletonClass = null;
+            final RubyClass logicalClass = LogicalClassNode.getUncached().execute(receiver);
+            // For BasicObject#instance_eval, the new scopes SHOULD affect constant lookup but SHOULD NOT affect class variables lookup
+            LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, logicalClass, true);
 
-            try {
-                receiverSingletonClass = SingletonClassNode.getUncached().executeSingletonClass(receiver);
-            } catch (RaiseException e) {
-            }
+            if (CanHaveSingletonClassNode.getUncached().execute(receiver)) {
+                final RubyClass singletonClass = SingletonClassNode.getUncached().executeSingletonClass(receiver);
 
-            // In case of BasicObject#instance_eval constants lookup shouldn't affect class variables lookup
-            LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, receiverLiveClass, true);
-
-            if (receiverSingletonClass != null) {
-                lexicalScope = new LexicalScope(lexicalScope, receiverSingletonClass, true);
+                // For true/false/nil Ruby objects #singleton_class (and SingletonClassNode as well) returns
+                // a logical class (e.g. TrueClass etc). Ignore duplicate in this case.
+                if (singletonClass != logicalClass) {
+                    lexicalScope = new LexicalScope(lexicalScope, singletonClass, true);
+                }
             }
 
             return lexicalScope;
