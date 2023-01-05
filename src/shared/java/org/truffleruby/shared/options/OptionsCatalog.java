@@ -147,7 +147,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> ALWAYS_CLONE_ALL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ALWAYS_SPLIT_HONOR_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> NEVER_SPLIT_HONOR_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> INLINE_NEEDS_CALLER_FRAME_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> YIELD_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
@@ -1182,14 +1181,6 @@ public class OptionsCatalog {
             .usageSyntax("")
             .build();
 
-    public static final OptionDescriptor INLINE_NEEDS_CALLER_FRAME = OptionDescriptor
-            .newBuilder(INLINE_NEEDS_CALLER_FRAME_KEY, "ruby.inline-needs-caller-frame")
-            .help("Inline methods that need their caller frame")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
-            .build();
-
     public static final OptionDescriptor YIELD_ALWAYS_INLINE = OptionDescriptor
             .newBuilder(YIELD_ALWAYS_INLINE_KEY, "ruby.yield-always-inline")
             .help("Always inline yields")
@@ -1582,8 +1573,6 @@ public class OptionsCatalog {
                 return ALWAYS_SPLIT_HONOR;
             case "ruby.never-split-honor":
                 return NEVER_SPLIT_HONOR;
-            case "ruby.inline-needs-caller-frame":
-                return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield-always-inline":
                 return YIELD_ALWAYS_INLINE;
             case "ruby.method-missing-always-clone":
@@ -1752,7 +1741,6 @@ public class OptionsCatalog {
             ALWAYS_CLONE_ALL,
             ALWAYS_SPLIT_HONOR,
             NEVER_SPLIT_HONOR,
-            INLINE_NEEDS_CALLER_FRAME,
             YIELD_ALWAYS_INLINE,
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,

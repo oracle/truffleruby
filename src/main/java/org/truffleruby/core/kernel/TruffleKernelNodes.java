@@ -29,10 +29,8 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.ReadOwnFrameAndVariablesNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
@@ -211,9 +209,8 @@ public abstract class TruffleKernelNodes {
         return count;
     }
 
-    @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
-    public abstract static class GetSpecialVariableStorage extends RubyBaseNode
-            implements FrameOrVariablesReadingNode {
+    @ImportStatic(TruffleKernelNodes.class)
+    public abstract static class GetSpecialVariableStorage extends RubyBaseNode {
 
         public abstract SpecialVariableStorage execute(Frame frame);
 
@@ -281,17 +278,6 @@ public abstract class TruffleKernelNodes {
             return GetSpecialVariableStorageNodeGen.create();
         }
 
-        @Override
-        public void startSending(boolean variables, boolean frame) {
-            if (frame) {
-                replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");
-            }
-        }
-
-        @Override
-        public boolean sendingFrame() {
-            return false;
-        }
     }
 
     @Primitive(name = "caller_special_variables")

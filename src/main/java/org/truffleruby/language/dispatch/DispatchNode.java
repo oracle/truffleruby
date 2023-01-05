@@ -25,7 +25,7 @@ import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.SpecialVariablesSendingNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -43,7 +43,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.options.Options;
 
-public class DispatchNode extends FrameAndVariablesSendingNode {
+public class DispatchNode extends SpecialVariablesSendingNode {
 
     private static final class Missing implements TruffleObject {
     }
@@ -312,7 +312,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
         }
 
         RubyArguments.setMethod(rubyArgs, method);
-        RubyArguments.setCallerData(rubyArgs, getFrameOrStorageIfRequired(frame));
+        RubyArguments.setCallerSpecialVariables(rubyArgs, getSpecialVariablesIfRequired(frame));
 
         assert RubyArguments.assertFrameArguments(rubyArgs);
         return callNode.execute(frame, method, receiver, rubyArgs, literalCallNode);
@@ -405,9 +405,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode {
             callNode.cloneCallTarget();
         }
 
-        if (callNode.isInlinable() &&
-                ((sendingFrames() && options.INLINE_NEEDS_CALLER_FRAME) ||
-                        isMethodMissing && options.METHODMISSING_ALWAYS_INLINE)) {
+        if (callNode.isInlinable() && isMethodMissing && options.METHODMISSING_ALWAYS_INLINE) {
             callNode.forceInlining();
         }
     }

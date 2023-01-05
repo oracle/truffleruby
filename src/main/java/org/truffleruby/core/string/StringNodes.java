@@ -642,7 +642,7 @@ public abstract class StringNodes {
         @Specialization
         protected Object sliceCapture(VirtualFrame frame, Object string, RubyRegexp regexp, Object maybeCapture,
                 @Cached @Exclusive DispatchNode callNode,
-                @Cached ReadCallerVariablesNode readCallerStorageNode,
+                @Cached ReadCallerVariablesNode readCallerVariablesNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile,
                 @Cached ConditionProfile notMatchedProfile,
@@ -655,7 +655,7 @@ public abstract class StringNodes {
                     regexp,
                     capture);
 
-            final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
+            final SpecialVariableStorage variables = readCallerVariablesNode.execute(frame);
             if (notMatchedProfile.profile(matchStrPair == nil)) {
                 variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;

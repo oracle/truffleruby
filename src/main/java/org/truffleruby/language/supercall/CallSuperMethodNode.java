@@ -10,7 +10,7 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.SpecialVariablesSendingNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -21,8 +21,9 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
+public class CallSuperMethodNode extends SpecialVariablesSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
@@ -51,9 +52,9 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             return callMethodMissing(self, block, descriptor, methodMissingArguments, literalCallNode);
         }
 
-        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
+        final SpecialVariableStorage callerSpecialVariables = getSpecialVariablesIfRequired(frame);
         final Object[] rubyArgs = RubyArguments.pack(
-                null, callerFrameOrVariables, superMethod, null, self, block, descriptor, arguments);
+                null, callerSpecialVariables, superMethod, null, self, block, descriptor, arguments);
 
         return getCallMethodNode().execute(frame, superMethod, self, rubyArgs, literalCallNode);
     }
