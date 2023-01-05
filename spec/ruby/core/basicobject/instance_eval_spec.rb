@@ -89,6 +89,18 @@ describe "BasicObject#instance_eval" do
     BasicObjectSpecs::IVars.new.instance_eval("@secret").should == 99
   end
 
+  it "raises TypeError for frozen objects when tries to set receiver's instance variables" do
+    -> { nil.instance_eval { @foo = 42 } }.should raise_error(FrozenError, "can't modify frozen NilClass: nil")
+    -> { true.instance_eval { @foo = 42 } }.should raise_error(FrozenError, "can't modify frozen TrueClass: true")
+    -> { false.instance_eval { @foo = 42 } }.should raise_error(FrozenError, "can't modify frozen FalseClass: false")
+    -> { 1.instance_eval { @foo = 42 } }.should raise_error(FrozenError, "can't modify frozen Integer: 1")
+    -> { :symbol.instance_eval { @foo = 42 } }.should raise_error(FrozenError, "can't modify frozen Symbol: :symbol")
+
+    obj = Object.new
+    obj.freeze
+    -> { obj.instance_eval { @foo = 42 } }.should raise_error(FrozenError)
+  end
+
   it "treats block-local variables as local to the block" do
     prc = instance_eval <<-CODE
       proc do |x, prc|
