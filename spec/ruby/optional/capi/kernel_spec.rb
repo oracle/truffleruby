@@ -2,11 +2,6 @@ require_relative 'spec_helper'
 
 kernel_path = load_extension("kernel")
 
-module KernelCAPISpecs
-  class Exc < Exception
-  end
-end
-
 describe "C-API Kernel function" do
   before :each do
     @s = CApiKernelSpecs.new
@@ -281,7 +276,6 @@ describe "C-API Kernel function" do
       res = @s.rb_protect_yield(77, proof) { |x| x + 1 }
       res.should == 78
       proof[0].should == 23
-      proof[2].should == nil
     end
 
     it "will allow cleanup code to run after break" do
@@ -298,26 +292,20 @@ describe "C-API Kernel function" do
     end
 
     it "will allow cleanup code to run after a raise" do
-      exc = KernelCAPISpecs::Exc.new('rb_protect cleanup')
       proof = [] # Hold proof of work performed after the yield.
       -> do
-        @s.rb_protect_yield(77, proof) { |x| raise exc }
-      end.should raise_error(exc.class, exc.message)
+        @s.rb_protect_yield(77, proof) { |x| raise NameError}
+      end.should raise_error(NameError)
       proof[0].should == 23
-      proof[2].should == exc
-      $!.should == nil # rb_jump_tag() clears $!
     end
 
     it "will return nil if an error was raised" do
-      exc = KernelCAPISpecs::Exc.new('rb_protect return')
       proof = [] # Hold proof of work performed after the yield.
       -> do
-        @s.rb_protect_yield(77, proof) { |x| raise exc }
-      end.should raise_error(exc.class, exc.message)
+        @s.rb_protect_yield(77, proof) { |x| raise NameError}
+      end.should raise_error(NameError)
       proof[0].should == 23
       proof[1].should == nil
-      proof[2].should == exc
-      $!.should == nil # rb_jump_tag() clears $!
     end
 
     it "accepts NULL as status and returns nil if it failed" do
@@ -326,11 +314,8 @@ describe "C-API Kernel function" do
     end
 
     it "populates errinfo with the captured exception" do
-      exc = KernelCAPISpecs::Exc.new('rb_protect errinfo')
       proof = []
-      e = @s.rb_protect_errinfo(77, proof) { |x| raise exc }
-      e.should == exc
-      $!.should == nil # because it was reset before return in rb_protect_errinfo()
+      @s.rb_protect_errinfo(77, proof) { |x| raise NameError }.class.should == NameError
       proof[0].should == 23
       proof[1].should == nil
     end

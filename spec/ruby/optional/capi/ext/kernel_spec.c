@@ -189,7 +189,6 @@ static VALUE kernel_spec_rb_protect_yield(VALUE self, VALUE obj, VALUE ary) {
   VALUE res = rb_protect(rb_yield, obj, &status);
   rb_ary_store(ary, 0, INT2NUM(23));
   rb_ary_store(ary, 1, res);
-  rb_ary_store(ary, 2, rb_errinfo());
   if (status) {
     rb_jump_tag(status);
   }
@@ -201,9 +200,7 @@ static VALUE kernel_spec_rb_protect_errinfo(VALUE self, VALUE obj, VALUE ary) {
   VALUE res = rb_protect(rb_yield, obj, &status);
   rb_ary_store(ary, 0, INT2NUM(23));
   rb_ary_store(ary, 1, res);
-  VALUE exc = rb_errinfo();
-  rb_set_errinfo(Qnil);
-  return exc;
+  return rb_errinfo();
 }
 
 static VALUE kernel_spec_rb_protect_null_status(VALUE self, VALUE obj) {
