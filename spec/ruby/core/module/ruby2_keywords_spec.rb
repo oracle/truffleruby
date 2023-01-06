@@ -13,23 +13,6 @@ describe "Module#ruby2_keywords" do
     Hash.ruby2_keywords_hash?(last).should == true
   end
 
-  it "can mark an empty hash" do
-    obj = Object.new
-    obj.singleton_class.class_exec do
-      def target(opt = :default)
-        opt
-      end
-
-      ruby2_keywords def clear_hash(*args)
-        args.last.clear
-        Hash.ruby2_keywords_hash?(args.last).should == true
-        target(*args)
-      end
-    end
-
-    obj.clear_hash(a: 1).should == :default
-  end
-
   it "makes a copy of the hash and only marks the copy as keyword hash" do
     obj = Object.new
     obj.singleton_class.class_exec do

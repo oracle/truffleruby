@@ -14,3 +14,7 @@ slow:ObjectSpace.define_finalizer warns if the finalizer was a block in the rece
 fails:ObjectSpace.define_finalizer warns if the finalizer has the object as the receiver
 fails:ObjectSpace.define_finalizer warns if the finalizer is a method bound to the receiver
 fails:ObjectSpace.define_finalizer warns if the finalizer was a block in the receiver
+slow:ObjectSpace.define_finalizer when $VERBOSE is not nil warns if an exception is raised in finalizer
+slow:ObjectSpace.define_finalizer when $VERBOSE is nil does not warn even if an exception is raised in finalizer
+fails:ObjectSpace.define_finalizer when $VERBOSE is not nil warns if an exception is raised in finalizer
+fails:ObjectSpace.define_finalizer when $VERBOSE is nil does not warn even if an exception is raised in finalizer

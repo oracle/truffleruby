@@ -396,7 +396,7 @@ describe "String#dump" do
     "\u{876}".encode('utf-16le').dump.should.end_with?(".force_encoding(\"UTF-16LE\")")
   end
 
-  it "keeps origin encoding" do
+  it "returns a String in the same encoding as self" do
     "foo".encode("ISO-8859-1").dump.encoding.should == Encoding::ISO_8859_1
     "foo".encode('windows-1251').dump.encoding.should == Encoding::Windows_1251
     1.chr.dump.encoding.should == Encoding::US_ASCII

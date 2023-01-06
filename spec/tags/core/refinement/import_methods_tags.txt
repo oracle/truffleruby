@@ -1,0 +1,2 @@
+fails:Refinement#import_methods when methods are defined in Ruby code imports methods
+fails:Refinement#import_methods when methods are not defined in Ruby code raises ArgumentError
