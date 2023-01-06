@@ -420,6 +420,11 @@ class Truffle::VersionedArray < Array
     copy.inspect(*args, &block)
   end
 
+  def intersect?(*args, &block)
+    copy = TruffleRuby.synchronized(@lock) { Array.new self }
+    copy.intersect?(*args, &block)
+  end
+
   def intersection(*args, &block)
     copy = TruffleRuby.synchronized(@lock) { Array.new self }
     copy.intersection(*args, &block)
