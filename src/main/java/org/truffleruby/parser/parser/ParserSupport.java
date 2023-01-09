@@ -592,9 +592,17 @@ public class ParserSupport {
         }
     }
 
-    public static boolean value_expr(RubyLexer lexer, ParseNode node) {
-        boolean conditional = false;
 
+    public void checkExpression(ParseNode node) {
+        value_expr(lexer, node);
+    }
+
+    public static void value_expr(RubyLexer lexer, ParseNode node) {
+        value_expr(lexer, node, false);
+    }
+
+    // Returns true if it returns a value and is not considered "void" because it "exits" via control flow
+    private static boolean value_expr(RubyLexer lexer, ParseNode node, boolean conditional) {
         while (node != null) {
             switch (node.getNodeType()) {
                 case RETURNNODE:
@@ -614,15 +622,16 @@ public class ParserSupport {
                     node = ((BeginParseNode) node).getBodyNode();
                     break;
                 case IFNODE:
-                    if (!value_expr(lexer, ((IfParseNode) node).getThenBody())) {
-                        return false;
+                    if (value_expr(lexer, ((IfParseNode) node).getThenBody(), true)) {
+                        // If one branch returns a value it's enough
+                        return true;
                     }
                     node = ((IfParseNode) node).getElseBody();
                     break;
                 case ANDNODE:
                 case ORNODE:
-                    conditional = true;
-                    node = ((BinaryOperatorParseNode) node).getSecondNode();
+                    // If the LHS is void then SyntaxError
+                    node = ((BinaryOperatorParseNode) node).getFirstNode();
                     break;
                 default: // ParseNode
                     return true;
@@ -630,10 +639,6 @@ public class ParserSupport {
         }
 
         return true;
-    }
-
-    public boolean checkExpression(ParseNode node) {
-        return value_expr(lexer, node);
     }
 
     private void handleUselessWarn(ParseNode node, String useless) {
