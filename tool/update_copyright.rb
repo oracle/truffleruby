@@ -1,4 +1,4 @@
-# Copyright (c) 2014, 2021 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -6,15 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require 'rugged'
-
-abort "USAGE: ruby #{$0} YEAR" unless ARGV.first
+abort "USAGE: ruby #{$0} NEW_YEAR" unless ARGV.first
 year = Integer(ARGV.first)
-since = Time.new(year, 1, 1, 0, 0, 0)
-last_day_of_year = Time.new(year+1, 1, 1, 0, 0, 0)
-
-puts "Fixing copyright years for commits between #{since} and #{last_day_of_year}"
-
 new_copyright_year = year
 
 RB_COPYRIGHT = <<-EOS
@@ -71,6 +64,7 @@ truffle_paths = %w[
   lib/truffle
   src
   test/truffle
+  tool/generate
   spec/truffle
 ] + [__FILE__]
 
@@ -106,35 +100,12 @@ excluded_files = %w[
 ]
 
 truffle_paths.each do |path|
-  puts "WARNING: incorrect path #{path}" unless File.exist? path
+  next if %w[tool/generate].include?(path)
+  abort "WARNING: incorrect path #{path}" unless File.exist? path
 end
 
-repo = Rugged::Repository.new('.')
-
-head_commit = repo.head.target
-last_commit = head_commit
-first_commit = nil
-
-walker = Rugged::Walker.new(repo)
-walker.sorting(Rugged::SORT_DATE)
-walker.push(head_commit.oid)
-walker.each { |commit|
-  if commit.time >= last_day_of_year
-    last_commit = commit
-  end
-  break if commit.time < since
-  first_commit = commit
-}
-
-abort "No commit in that range" unless first_commit
-
-puts "First commit: #{first_commit.oid} #{first_commit.time}, last commit #{last_commit.oid} #{last_commit.time}"
-
-diff = first_commit.diff(last_commit)
-
-paths = diff.each_delta.to_a.map { |delta|
-  delta.new_file[:path]
-}.select { |path|
+paths = `git ls-files`.lines(chomp: true)
+paths = paths.select { |path|
   EXTENSIONS.include?(File.extname(path)) &&
     truffle_paths.any? { |prefix| path.start_with? prefix } &&
     excludes.none? { |prefix| path.start_with? prefix } &&

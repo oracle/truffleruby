@@ -1,12 +1,14 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
 # Eclipse Public License version 2.0, or
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
+
+copyright = File.read(__FILE__)[/Copyright \(c\) \d+, \d+ Oracle/]
 
 require 'ostruct'
 require 'yaml'
@@ -134,7 +136,7 @@ file = __FILE__
 
 TEMPLATE = <<'JAVA'
 /*
- * Copyright (c) 2016, 2022 Oracle and/or its affiliates. All rights reserved. This
+ * <%= copyright %> and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -210,12 +212,12 @@ public class <%= class_prefix %>Options {
 // @formatter:on
 JAVA
 
-File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: '', options: context_options, language_keys: language_options_keys))
-File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: 'Language', options: language_options))
+File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(TEMPLATE, trim_mode: '-').result_with_hash(class_prefix: '', options: context_options, language_keys: language_options_keys))
+File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new(TEMPLATE, trim_mode: '-').result_with_hash(class_prefix: 'Language', options: language_options))
 
 File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
 /*
- * Copyright (c) 2016, 2022 Oracle and/or its affiliates. All rights reserved. This
+ * <%= copyright %> and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
