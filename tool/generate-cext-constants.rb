@@ -1,12 +1,14 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
 # Eclipse Public License version 2.0, or
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
+
+copyright = File.read(__FILE__)[/Copyright \(c\) \d+, \d+ Oracle/]
 
 constants = [
     # classes and modules
@@ -121,7 +123,7 @@ end
 File.open("src/main/c/cext/cext_constants.c", "w") do |f|
   f.puts <<COPYRIGHT
 /*
- * Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
+ * #{copyright} and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -150,7 +152,7 @@ end
 
 File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
   f.puts <<COPYRIGHT
-# Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
+# #{copyright} and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #

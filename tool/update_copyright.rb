@@ -64,6 +64,7 @@ truffle_paths = %w[
   lib/truffle
   src
   test/truffle
+  tool/generate
   spec/truffle
 ] + [__FILE__]
 
@@ -99,6 +100,7 @@ excluded_files = %w[
 ]
 
 truffle_paths.each do |path|
+  next if %w[tool/generate].include?(path)
   abort "WARNING: incorrect path #{path}" unless File.exist? path
 end
 
