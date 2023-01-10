@@ -212,8 +212,8 @@ public class <%= class_prefix %>Options {
 // @formatter:on
 JAVA
 
-File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: '', options: context_options, language_keys: language_options_keys))
-File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: 'Language', options: language_options))
+File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(TEMPLATE, trim_mode: '-').result_with_hash(class_prefix: '', options: context_options, language_keys: language_options_keys))
+File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new(TEMPLATE, trim_mode: '-').result_with_hash(class_prefix: 'Language', options: language_options))
 
 File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
 /*
