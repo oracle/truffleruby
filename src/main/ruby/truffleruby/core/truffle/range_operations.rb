@@ -41,7 +41,7 @@ module Truffle
       if arithmetic_range?(from, to)
         Enumerator::ArithmeticSequence.new(range, :step, from, to, step_size, range.exclude_end?)
       else
-        to_enum(:step, step_size) do
+        range.to_enum(:step, step_size) do
           validated_step_args = validate_step_size(from, to, step_size)
           step_iterations_size(range, *validated_step_args)
         end
