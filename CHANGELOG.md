@@ -57,6 +57,7 @@ Compatibility:
 * Fix arguments implicit type conversion for `Enumerable#zip` and `Array#zip` (#2788, @andrykonchin).
 * Fix `Array#unshift` to not depend on `Array#[]=` and allow overriding `#[]=` in a subclass (#2772, @andrykonchin).
 * Fix syntactic check for `void value expression` (#2821, @eregon).
+* Fix `Range#step` with no block and non-`Numeric` values (#2824, @eregon).
 
 Performance:
 
