@@ -39,7 +39,6 @@ import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -527,11 +526,16 @@ public class FeatureLoader {
     }
 
     private Object getEmbeddedABIVersion(String expandedPath, Object library) {
-        if (!InteropLibrary.getFactory().getUncached(library).isMemberReadable(library, "rb_tr_abi_version")) {
-            return Nil.INSTANCE;
+        final Object abiVersionFunction;
+        try {
+            abiVersionFunction = InteropLibrary.getFactory().getUncached(library).readMember(library,
+                    "rb_tr_abi_version");
+        } catch (UnknownIdentifierException e) {
+            return nil;
+        } catch (UnsupportedMessageException e) {
+            throw TranslateInteropExceptionNode.getUncached().execute(e);
         }
 
-        final Object abiVersionFunction = findFunctionInLibrary(library, "rb_tr_abi_version", expandedPath);
         final InteropLibrary abiFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(abiVersionFunction);
         final String abiVersion = (String) InteropNodes.execute(
                 abiVersionFunction,
@@ -549,7 +553,8 @@ public class FeatureLoader {
         } catch (UnknownIdentifierException e) {
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+                    context.getCoreExceptions()
+                            .loadError(String.format("function %s() not found in %s", functionName, path), path, null));
         } catch (UnsupportedMessageException e) {
             throw TranslateInteropExceptionNode.getUncached().execute(e);
         }
@@ -558,7 +563,7 @@ public class FeatureLoader {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().loadError(
-                            String.format("%s() not found (READ returned null)", functionName),
+                            String.format("%s() not found (readMember() returned null)", functionName),
                             path,
                             null));
         }

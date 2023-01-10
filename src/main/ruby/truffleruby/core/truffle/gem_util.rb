@@ -175,15 +175,6 @@ module Truffle::GemUtil
     @abi_version ||= "#{RUBY_VERSION}.#{Truffle::Boot.basic_abi_version}".freeze
   end
 
-  def self.check_abi_version(embedded_abi_version, extension_path)
-    if embedded_abi_version != abi_version
-      message = "The native extension at #{extension_path} has a different ABI version: #{embedded_abi_version.inspect} " \
-        "than the running TruffleRuby: #{abi_version.inspect}"
-      warn message, uplevel: 1
-      raise LoadError, message
-    end
-  end
-
   def self.expand(path)
     if File.directory?(path)
       File.realpath(path)
