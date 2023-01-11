@@ -47,6 +47,10 @@ describe "Array#reject" do
   it_behaves_like :enumeratorized_with_origin_size, :reject, [1,2,3]
 end
 
+describe "Array#reject" do
+  it_behaves_like :array_iterable_and_tolerating_size_increasing, :reject
+end
+
 describe "Array#reject!" do
   it "removes elements for which block is true" do
     a = [3, 4, 5, 6, 7, 8, 9, 10, 11]

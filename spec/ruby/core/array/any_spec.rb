@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require_relative 'shared/iterable_and_tolerating_size_increasing'
 
 describe "Array#any?" do
   describe 'with no block given (a default block of { |x| x } is implicit)' do
@@ -19,6 +20,9 @@ describe "Array#any?" do
   end
 
   describe 'with a block given' do
+    @value_to_return = -> (_) { false }
+    it_behaves_like :array_iterable_and_tolerating_size_increasing, :any?
+
     it 'is false if the array is empty' do
       empty_array = []
       empty_array.any? {|v| 1 == 1 }.should == false
