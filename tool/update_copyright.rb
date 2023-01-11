@@ -40,9 +40,10 @@ NEW_COPYRIGHT = {
   '.h' => JAVA_COPYRIGHT,
 }
 
-EXTENSIONS = %w[.java .rb .c .h]
+EXTENSIONS = %w[.java .rb .c .h .md]
 
-COPYRIGHT = /Copyright \(c\) (?<year1>\d{4})(?:, (?<year2>\d{4}))* Oracle\b/
+COPYRIGHT = /(?<copyright>Copyright) \(c\) (?<year1>\d{4})(?:(?<sep>, )(?<year2>\d{4}))? Oracle\b/
+COPYRIGHT_MARKDOWN = /(?<copyright>copyright) \(c\) (?<year1>\d{4})(?:(?<sep>-)(?<year2>\d{4}))? Oracle\b/
 
 OTHER_COPYRIGHTS = [
   /Copyright \(c\) \d{4}(?:-\d{4})?,? Evan Phoenix/,
@@ -66,6 +67,9 @@ truffle_paths = %w[
   test/truffle
   tool/generate
   spec/truffle
+  LICENCE.md
+  README.md
+  doc/legal/legal.md
 ] + [__FILE__]
 
 excludes = %w[
@@ -115,24 +119,29 @@ paths = paths.select { |path|
 }
 
 paths.each do |file|
-  header = File.read(file, 400)
+  ext = File.extname(file)
+  md = ext == '.md'
+  header = File.read(file, *(400 unless md))
 
-  unless COPYRIGHT =~ header
+  copyright_regexp = md ? COPYRIGHT_MARKDOWN : COPYRIGHT
+
+  unless copyright_regexp =~ header
+    next if md
     if OTHER_COPYRIGHTS.none? { |copyright| copyright =~ header }
       puts "Adding copyright in #{file}"
-      File.write(file, NEW_COPYRIGHT[File.extname(file)]+File.read(file))
+      File.write(file, NEW_COPYRIGHT[ext]+File.read(file))
     end
     next
   end
 
-  year1, year2 = $~[:year1], $~[:year2]
+  copyright, year1, sep, year2 = $~[:copyright], $~[:year1], $~[:sep], $~[:year2]
   year1 = Integer(year1)
   year2 = Integer(year2 || year1)
 
   if year > year2
     contents = File.read(file)
-    years = "#{year1}, #{year}"
-    contents.sub!(COPYRIGHT, "Copyright (c) #{years} Oracle")
+    years = "#{year1}#{sep}#{year}"
+    contents.sub!(copyright_regexp, "#{copyright} (c) #{years} Oracle")
     File.write(file, contents)
 
     puts "Updated year in #{file}"
