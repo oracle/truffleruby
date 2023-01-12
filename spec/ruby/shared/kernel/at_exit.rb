@@ -13,10 +13,10 @@ describe :kernel_at_exit, shared: true do
     ruby_exe(code).should == "643"
   end
 
-  it "gives access to the last raised exception" do
+  it "gives access to the last raised exception - global variables $! and $@" do
     code = <<-EOC
       #{@method} {
-        puts "The exception matches: \#{$! == $exception} (message=\#{$!.message})"
+        puts "The exception matches: \#{$! == $exception && $@ == $exception.backtrace} (message=\#{$!.message})"
       }
 
       begin
@@ -55,5 +55,13 @@ describe :kernel_at_exit, shared: true do
     $?.should_not.success?
     result.should.include?("handler ran\n")
     result.should.include?("syntax error")
+  end
+
+  it "calls the nested handler right after the outer one if a handler is nested into another handler" do
+    ruby_exe(<<~ruby).should == "last\nbefore\nafter\nnested\nfirst\n"
+        #{@method} { puts :first }
+        #{@method} { puts :before; #{@method} { puts :nested }; puts :after };
+        #{@method} { puts :last }
+    ruby
   end
 end
