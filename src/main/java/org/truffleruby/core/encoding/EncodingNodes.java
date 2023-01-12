@@ -217,6 +217,7 @@ public abstract class EncodingNodes {
     }
 
     // MRI: enc_compatible_latter
+    /** Use {@link NegotiateCompatibleStringEncodingNode} instead if both arguments are always Strings, for footprint */
     public abstract static class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
         @Child private TruffleString.GetByteCodeRangeNode codeRangeNode;
