@@ -1,4 +1,12 @@
+slow:The END keyword runs after all other code
+slow:The END keyword runs in reverse order of registration
+slow:The END keyword allows calling exit inside a handler
+slow:The END keyword gives access to the last raised exception - global variables $! and $@
+slow:The END keyword both exceptions in a handler and in the main script are printed
+slow:The END keyword decides the exit status if both at_exit and the main script raise SystemExit
+slow:The END keyword runs all handlers even if some raise exceptions
+slow:The END keyword runs handlers even if the main script fails to parse
+slow:The END keyword calls the nested handler right after the outer one if a handler is nested into another handler
 slow:The END keyword runs only once for multiple calls
-slow:The END keyword runs last in a given code unit
-slow:The END keyword runs multiple ends in LIFO order
-slow:The END keyword END blocks and at_exit callbacks are mixed runs them all in LIFO order
+slow:The END keyword warns when END is used in a method
+slow:The END keyword END blocks and at_exit callbacks are mixed runs them all in reverse order of registration
