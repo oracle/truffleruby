@@ -35,7 +35,7 @@ public class RescueSplatNode extends RescueNode {
                 false,
                 handlingClassesArray);
         this.splatCastNode.doNotCopy();
-        this.stores = ArrayStoreLibrary.createDispatched();
+        this.stores = ArrayStoreLibrary.createDispatched(language);
     }
 
     @Override

@@ -214,7 +214,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     private Object[] splatArgs(Object receiverObject, Object[] rubyArgs) {
         if (splatToArgs == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            splatToArgs = insert(new SplatToArgsNode());
+            splatToArgs = insert(new SplatToArgsNode(getLanguage()));
         }
 
         return splatToArgs.execute(receiverObject, (RubyArray) RubyArguments.getArgument(rubyArgs, 0));

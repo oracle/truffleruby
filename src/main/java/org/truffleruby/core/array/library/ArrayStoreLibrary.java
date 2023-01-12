@@ -19,7 +19,7 @@ import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.RubyLanguage;
 
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */
@@ -39,8 +39,8 @@ public abstract class ArrayStoreLibrary extends Library {
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
 
-    public static ArrayStoreLibrary createDispatched() {
-        return FACTORY.createDispatched(ArrayGuards.storageStrategyLimit());
+    public static ArrayStoreLibrary createDispatched(RubyLanguage language) {
+        return FACTORY.createDispatched(language.options.ARRAY_STRATEGY_CACHE);
     }
 
     public static ArrayStoreLibrary getUncached() {
