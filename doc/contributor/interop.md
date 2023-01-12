@@ -190,8 +190,6 @@ copied from the Ruby array.
 `Truffle::Interop.to_java_map(hash)` gives you a proxied Java `HashMap`
 copied from the Ruby hash.
 
-`Truffle::Interop.deproxy(object)` deproxy a Java object if it has been proxied.
-
 `Truffle::Interop.to_array(object)` converts to a Ruby array by calling
 `GET_SIZE` and sending `READ` for each index from zero to the size.
 
