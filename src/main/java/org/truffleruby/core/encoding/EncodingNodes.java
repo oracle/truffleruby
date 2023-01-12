@@ -417,6 +417,7 @@ public abstract class EncodingNodes {
     }
 
     // encoding_compatible? but only accepting Strings for better footprint
+    // Like Primitive.encoding_ensure_compatible_str but returns nil if incompatible
     @Primitive(name = "strings_compatible?")
     public abstract static class AreStringsCompatibleNode extends PrimitiveArrayArgumentsNode {
         public static AreStringsCompatibleNode create() {
@@ -748,6 +749,7 @@ public abstract class EncodingNodes {
     }
 
     // MRI: rb_enc_check_str / rb_encoding_check (with Ruby String arguments)
+    // Like strings_compatible? but raises if incompatible
     @Primitive(name = "encoding_ensure_compatible_str")
     public abstract static class CheckStringEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)", }, limit = "1")
@@ -760,11 +762,7 @@ public abstract class EncodingNodes {
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
 
             final RubyEncoding negotiatedEncoding = negotiateCompatibleStringEncodingNode
-                    .execute(
-                            libFirst.getTString(first),
-                            firstEncoding,
-                            libSecond.getTString(second),
-                            secondEncoding);
+                    .execute(libFirst.getTString(first), firstEncoding, libSecond.getTString(second), secondEncoding);
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();

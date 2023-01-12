@@ -58,6 +58,7 @@ Compatibility:
 * Fix `Array#unshift` to not depend on `Array#[]=` and allow overriding `#[]=` in a subclass (#2772, @andrykonchin).
 * Fix syntactic check for `void value expression` (#2821, @eregon).
 * Fix `Range#step` with no block and non-`Numeric` values (#2824, @eregon).
+* Fix `String#casecmp?` for empty strings of different encodings (#2826, @eregon).
 
 Performance:
 
