@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.to_java_array" do
 
   it "creates a int[] from Fixnum values" do
-    Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array([1, 2, 3]))).should == "int[]"
+    Truffle::Interop.to_java_array([1, 2, 3]).getClass.name.should == "int[]"
   end
 
   it "copies the correct values" do
@@ -22,9 +22,9 @@ describe "Truffle::Interop.to_java_array" do
   end
 
   it "picks a sensible Java array type" do
-    Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array([1, 2, 3]))).should == "int[]"
-    Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array([1.1, 2.2, 3.3]))).should == "double[]"
-    Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array([:a, :b, :c]))).should == "Object[]"
+    Truffle::Interop.to_java_array([1, 2, 3]).getClass.name.should == "int[]"
+    Truffle::Interop.to_java_array([1.1, 2.2, 3.3]).getClass.name.should == "double[]"
+    Truffle::Interop.to_java_array([:a, :b, :c]).getClass.name.should == "java.lang.Object[]"
   end
 
   it "calls #to_a" do
@@ -34,7 +34,7 @@ describe "Truffle::Interop.to_java_array" do
       [1, 2, 3]
     end
 
-    Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array(mock_array))).should == "int[]"
+    Truffle::Interop.to_java_array(mock_array).getClass.name.should == "int[]"
   end
 
   it "creates a copy" do

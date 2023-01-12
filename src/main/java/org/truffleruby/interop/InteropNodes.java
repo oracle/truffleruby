@@ -1793,25 +1793,6 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "deproxy", onSingleton = true, required = 1)
-    public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isJavaObject(object)")
-        protected Object deproxyJavaObject(Object object) {
-            return getContext().getEnv().asHostObject(object);
-        }
-
-        @Specialization(guards = "!isJavaObject(object)")
-        protected Object deproxyNotJavaObject(Object object) {
-            return object;
-        }
-
-        protected boolean isJavaObject(Object object) {
-            return getContext().getEnv().isHostObject(object);
-        }
-
-    }
-
     @CoreMethod(names = "java_type", onSingleton = true, required = 1)
     public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
 
