@@ -114,6 +114,17 @@ module Enumerable
   Truffle::Graal.always_split instance_method(:map)
   alias_method :collect, :map
 
+  def compact
+    array = []
+
+    each do
+      e = Primitive.single_block_arg
+      array << e unless Primitive.nil?(e)
+    end
+
+    array
+  end
+
   def count(item = undefined)
     seq = 0
     if !Primitive.undefined?(item)

@@ -568,6 +568,12 @@ class Enumerator
       super(&block).lazy
     end
 
+    def compact
+      Lazy.new(self, nil) do |yielder, e|
+        yielder.yield(e) unless Primitive.nil?(e)
+      end
+    end
+
     def slice_after(&block)
       super(&block).lazy
     end
