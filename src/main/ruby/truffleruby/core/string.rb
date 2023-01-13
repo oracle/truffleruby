@@ -1206,7 +1206,7 @@ class String
     other = Truffle::Type.rb_check_convert_type(other , String, :to_str)
     return nil if Primitive.nil? other
 
-    enc = Primitive.encoding_compatible?(encoding, other.encoding)
+    enc = Primitive.strings_compatible?(self, other)
     if Primitive.nil? enc
       return nil
     end

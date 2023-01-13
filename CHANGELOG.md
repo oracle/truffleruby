@@ -59,6 +59,7 @@ Compatibility:
 * Fix syntactic check for `void value expression` (#2821, @eregon).
 * Fix `Range#step` with no block and non-`Numeric` values (#2824, @eregon).
 * Fix execution order of `END` blocks and `at_exit` callbacks (#2818, @andrykonchin).
+* Fix `String#casecmp?` for empty strings of different encodings (#2826, @eregon).
 
 Performance:
 
