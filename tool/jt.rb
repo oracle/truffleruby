@@ -1047,7 +1047,7 @@ module Commands
       when '--igv', '--igv-full'
         truffleruby_compiler!
         if arg == '--igv-full'
-          vm_args << '--vm.Dgraal.Dump=Truffle:2,TruffleHostInlining:0'
+          vm_args << '--vm.Dgraal.Dump=Truffle:2,TruffleHostInlining:0,TruffleInjectImmutableFrameFields:0'
         else
           vm_args << '--vm.Dgraal.Dump=Truffle:1'
         end
