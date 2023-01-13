@@ -2636,7 +2636,7 @@ public class BodyTranslator extends Translator {
                                         position,
                                         new TruffleKernelOperationsModuleLiteralNode()),
                                 "at_exit",
-                                new ArrayParseNode(position, new TrueParseNode(position)),
+                                new ArrayParseNode(position, new FalseParseNode(position)),
                                 new IterParseNode(position, node.getArgsNode(), scope, node.getBodyNode())),
                         false,
                         false,

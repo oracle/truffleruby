@@ -761,6 +761,7 @@ module Kernel
   module_function :caller_locations
 
   def at_exit(&block)
+    raise ArgumentError, 'called without a block' if block.nil?
     Truffle::KernelOperations.at_exit false, &block
   end
   module_function :at_exit
