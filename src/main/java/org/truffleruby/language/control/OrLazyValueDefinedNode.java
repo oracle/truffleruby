@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -17,7 +18,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** OrLazyValueDefinedNode is used as the 'or' node for ||=, because we know from idiomatic Ruby usage that this is
@@ -33,7 +33,7 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
     @Child private BooleanCastNode leftCast = BooleanCastNode.create();
 
     private final RunTwiceBranchProfile rightTwiceProfile = new RunTwiceBranchProfile();
-    private final ConditionProfile countingProfile = ConditionProfile.createCountingProfile();
+    private final CountingConditionProfile countingProfile = CountingConditionProfile.create();
 
     public OrLazyValueDefinedNode(RubyNode left, RubyNode right) {
         this.left = left;

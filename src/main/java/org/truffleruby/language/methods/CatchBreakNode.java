@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
@@ -24,7 +25,7 @@ public class CatchBreakNode extends RubyContextSourceNode {
 
     @Child private RubyNode body;
 
-    private final ConditionProfile matchingBreakProfile = ConditionProfile.createCountingProfile();
+    private final CountingConditionProfile matchingBreakProfile = CountingConditionProfile.create();
     private final ConditionProfile anyBlockProfile;
 
     public CatchBreakNode(BreakID breakID, RubyNode body, boolean isWhile) {

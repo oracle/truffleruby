@@ -1971,7 +1971,7 @@ public abstract class IntegerNodes {
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode downtoInternalCall;
-        private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+        private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
         @Specialization
         protected Object downto(int from, int to, RubyProc block) {
@@ -2047,7 +2047,7 @@ public abstract class IntegerNodes {
     public abstract static class UpToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode uptoInternalCall;
-        private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+        private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
         @Specialization
         protected Object upto(int from, int to, RubyProc block) {

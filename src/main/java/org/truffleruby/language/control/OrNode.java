@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class OrNode extends RubyContextSourceNode {
 
@@ -23,7 +23,7 @@ public class OrNode extends RubyContextSourceNode {
 
     @Child private BooleanCastNode leftCast = BooleanCastNode.create();
 
-    private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
+    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
 
     public OrNode(RubyNode left, RubyNode right) {
         this.left = left;
