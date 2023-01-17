@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
@@ -61,7 +62,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     @Child private DispatchNode dispatch;
     @Child private DefinedNode definedNode;
 
-    private final ConditionProfile nilProfile;
+    private final CountingConditionProfile nilProfile;
 
     @Child private SplatToArgsNode splatToArgs;
 
@@ -102,7 +103,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         this.isAttrAssign = isAttrAssign;
 
         if (isSafeNavigation) {
-            nilProfile = ConditionProfile.createCountingProfile();
+            nilProfile = CountingConditionProfile.create();
         } else {
             nilProfile = null;
         }

@@ -1052,7 +1052,7 @@ public abstract class StringNodes {
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)")
@@ -2009,7 +2009,7 @@ public abstract class StringNodes {
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)")
@@ -2930,7 +2930,7 @@ public abstract class StringNodes {
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)")
@@ -3005,8 +3005,8 @@ public abstract class StringNodes {
         @Child private TruffleString.CopyToByteArrayNode copyToByteArrayNode;
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-        private final ConditionProfile dummyEncodingProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile emptyStringProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
+        private final ConditionProfile emptyStringProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)")

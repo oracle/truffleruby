@@ -369,6 +369,12 @@ local part_definitions = {
       environment+: {
         ECLIPSE_EXE: "$ECLIPSE/eclipse",
       },
+      # We build with Eclipse JDT to ensure it builds fine with that Java compiler since some GraalVM devs use that.
+      # This ensures both JDT itself and the Truffle DSL annotation processor work for truffleruby sources.
+      # As a note, JDT is sometimes useful to get better error messages than with javac.
+      # We use --warning-as-error --force-deprecation-as-warning to notice and address Truffle and Java compilation warnings.
+      # We keep deprecations as warnings and not errors to not prevent updating Truffle when there
+      # are many deprecations that cannot be addressed right away in the graal import update PR.
       mx_build_options:: ["--jdt", "builtin", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==2.4.4",
