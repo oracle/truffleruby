@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -22,7 +23,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "arrayNode", type = RubyNode.class)
 @NodeChild(value = "valueNode", type = RubyNode.class)
@@ -47,7 +47,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     protected RubyArray appendOneSameType(RubyArray array, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @Cached("createCountingProfile()") ConditionProfile extendProfile) {
+            @Cached CountingConditionProfile extendProfile) {
         final int oldSize = array.size;
         final int newSize = oldSize + 1;
         final int length = stores.capacity(store);

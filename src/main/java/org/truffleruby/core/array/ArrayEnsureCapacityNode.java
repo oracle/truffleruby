@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
@@ -32,7 +32,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     protected Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @Cached("createCountingProfile()") ConditionProfile extendProfile) {
+            @Cached CountingConditionProfile extendProfile) {
         final int currentCapacity = stores.capacity(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
@@ -51,7 +51,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     protected Object ensureCapacity(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @Cached("createCountingProfile()") ConditionProfile extendProfile) {
+            @Cached CountingConditionProfile extendProfile) {
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);
