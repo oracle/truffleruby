@@ -19,10 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class ToCallTargetNode extends RubyBaseNode {
 
-    public static ToCallTargetNode create() {
-        return ToCallTargetNodeGen.create();
-    }
-
     public abstract RootCallTarget execute(Object executable);
 
     @Specialization

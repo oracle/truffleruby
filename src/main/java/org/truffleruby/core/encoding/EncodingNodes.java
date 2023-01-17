@@ -12,6 +12,7 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.EncodingDB;
@@ -65,12 +66,13 @@ public abstract class EncodingNodes {
 
         @Child TruffleString.GetByteCodeRangeNode codeRangeNode;
 
-        public abstract RubyEncoding execute(AbstractTruffleString first, RubyEncoding firstEncoding,
-                AbstractTruffleString second, RubyEncoding secondEncoding);
-
+        @NeverDefault
         public static NegotiateCompatibleStringEncodingNode create() {
             return NegotiateCompatibleStringEncodingNodeGen.create();
         }
+
+        public abstract RubyEncoding execute(AbstractTruffleString first, RubyEncoding firstEncoding,
+                AbstractTruffleString second, RubyEncoding secondEncoding);
 
         @Specialization(guards = {
                 "firstEncoding == cachedEncoding",
@@ -535,10 +537,6 @@ public abstract class EncodingNodes {
     // MRI: get_actual_encoding
     public abstract static class GetActualEncodingNode extends RubyBaseNode {
 
-        public static GetActualEncodingNode create() {
-            return EncodingNodesFactory.GetActualEncodingNodeGen.create();
-        }
-
         public abstract RubyEncoding execute(AbstractTruffleString tstring, RubyEncoding encoding);
 
         @Specialization(guards = "!encoding.isDummy")
@@ -778,6 +776,7 @@ public abstract class EncodingNodes {
     // MRI: rb_enc_check_str / rb_encoding_check (with RopeWithEncoding arguments)
     public abstract static class CheckStringEncodingNode extends RubyBaseNode {
 
+        @NeverDefault
         public static CheckStringEncodingNode create() {
             return EncodingNodesFactory.CheckStringEncodingNodeGen.create();
         }
@@ -814,6 +813,7 @@ public abstract class EncodingNodes {
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
         @Child private ToRubyEncodingNode toRubyEncodingNode;
 
+        @NeverDefault
         public static CheckEncodingNode create() {
             return EncodingNodesFactory.CheckEncodingNodeFactory.create(null);
         }

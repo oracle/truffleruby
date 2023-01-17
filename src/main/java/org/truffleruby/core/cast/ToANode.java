@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -22,6 +23,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 @NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToANode extends RubyBaseNodeWithExecute {
 
+    @NeverDefault
     public static ToANode create() {
         return ToANodeGen.create(null);
     }

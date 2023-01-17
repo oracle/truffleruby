@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
@@ -25,6 +26,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class IsANode extends RubyBaseNode {
 
+    @NeverDefault
     public static IsANode create() {
         return IsANodeGen.create();
     }

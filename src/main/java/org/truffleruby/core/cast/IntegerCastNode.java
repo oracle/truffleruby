@@ -20,10 +20,6 @@ import org.truffleruby.utils.Utils;
 @GenerateUncached
 public abstract class IntegerCastNode extends RubyBaseNode {
 
-    public static IntegerCastNode create() {
-        return IntegerCastNodeGen.create();
-    }
-
     public abstract int executeCastInt(Object value);
 
     @Specialization

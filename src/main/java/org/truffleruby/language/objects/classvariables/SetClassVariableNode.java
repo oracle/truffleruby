@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.classvariables;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -23,6 +24,7 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 public abstract class SetClassVariableNode extends RubyBaseNode {
 
+    @NeverDefault
     public static SetClassVariableNode create() {
         return SetClassVariableNodeGen.create();
     }

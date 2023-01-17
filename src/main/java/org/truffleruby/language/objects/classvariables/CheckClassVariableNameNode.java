@@ -21,10 +21,6 @@ import org.truffleruby.parser.Identifiers;
 @ImportStatic(Identifiers.class)
 public abstract class CheckClassVariableNameNode extends RubyBaseNode {
 
-    public static CheckClassVariableNameNode create() {
-        return CheckClassVariableNameNodeGen.create();
-    }
-
     public abstract void execute(RubyDynamicObject object, String name);
 
     @Specialization(guards = { "name == cachedName", "isValidClassVariableName(cachedName)" })

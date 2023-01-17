@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreModule;
@@ -402,6 +403,7 @@ public abstract class TypeNodes {
     @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class CheckFrozenNode extends RubySourceNode {
 
+        @NeverDefault
         public static CheckFrozenNode create() {
             return create(null);
         }

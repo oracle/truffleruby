@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.language.RubyBaseNode;
@@ -34,11 +35,12 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     protected static final int MAX_DEPTH = 3;
 
-    protected abstract int getDepth();
-
+    @NeverDefault
     public static WriteBarrierNode create() {
         return WriteBarrierNodeGen.create(0);
     }
+
+    protected abstract int getDepth();
 
     public abstract void executeWriteBarrier(Object value);
 

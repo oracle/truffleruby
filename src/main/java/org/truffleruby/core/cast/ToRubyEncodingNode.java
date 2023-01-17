@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -24,6 +25,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
 public abstract class ToRubyEncodingNode extends RubyBaseNode {
 
+    @NeverDefault
     public static ToRubyEncodingNode create() {
         return ToRubyEncodingNodeGen.create();
     }

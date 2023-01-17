@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -517,6 +518,7 @@ public abstract class MatchDataNodes {
 
     public abstract static class ValuesNode extends RubyBaseNode {
 
+        @NeverDefault
         public static ValuesNode create() {
             return MatchDataNodesFactory.ValuesNodeGen.create();
         }

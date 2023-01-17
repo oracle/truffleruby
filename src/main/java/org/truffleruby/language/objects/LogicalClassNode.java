@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class LogicalClassNode extends RubyBaseNode {
 
+    @NeverDefault
     public static LogicalClassNode create() {
         return LogicalClassNodeGen.create();
     }

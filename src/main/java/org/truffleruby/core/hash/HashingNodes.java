@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -30,10 +31,6 @@ public abstract class HashingNodes {
 
     @GenerateUncached
     public abstract static class ToHash extends RubyBaseNode {
-
-        public static ToHash create() {
-            return HashingNodesFactory.ToHashNodeGen.create();
-        }
 
         public static ToHash getUncached() {
             return HashingNodesFactory.ToHashNodeGen.getUncached();
@@ -61,6 +58,7 @@ public abstract class HashingNodes {
     @ReportPolymorphism
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
+        @NeverDefault
         public static ToHashByHashCode create() {
             return HashingNodesFactory.ToHashByHashCodeNodeGen.create();
         }
@@ -121,10 +119,6 @@ public abstract class HashingNodes {
     @GenerateUncached
     public abstract static class ToHashByIdentity extends RubyBaseNode {
 
-        public static ToHashByIdentity create() {
-            return HashingNodesFactory.ToHashByIdentityNodeGen.create();
-        }
-
         public static ToHashByIdentity getUncached() {
             return HashingNodesFactory.ToHashByIdentityNodeGen.getUncached();
         }
@@ -143,10 +137,6 @@ public abstract class HashingNodes {
     public abstract static class HashCastResultNode extends RubyBaseNode {
 
         public abstract int execute(Object key);
-
-        public static HashCastResultNode create() {
-            return HashingNodesFactory.HashCastResultNodeGen.create();
-        }
 
         @Specialization
         protected int castInt(int hashed) {

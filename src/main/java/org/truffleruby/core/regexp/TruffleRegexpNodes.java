@@ -56,7 +56,6 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
-import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -105,13 +104,9 @@ public class TruffleRegexpNodes {
     }
 
     // MRI: rb_reg_prepare_enc
-    public abstract static class PrepareRegexpEncodingNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PrepareRegexpEncodingNode extends RubyBaseNode {
 
         @Child WarnNode warnNode;
-
-        public static PrepareRegexpEncodingNode create() {
-            return TruffleRegexpNodesFactory.PrepareRegexpEncodingNodeFactory.create(null);
-        }
 
         public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
 
@@ -1036,10 +1031,6 @@ public class TruffleRegexpNodes {
     public abstract static class MatchNode extends RubyBaseNode {
 
         @Child private DispatchNode dupNode = DispatchNode.create();
-
-        public static MatchNode create() {
-            return MatchNodeGen.create();
-        }
 
         public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart, boolean createMatchData);

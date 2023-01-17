@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -1281,6 +1282,7 @@ public abstract class ModuleNodes {
 
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
+        @NeverDefault
         public static ConstSetUncheckedNode create() {
             return ConstSetUncheckedNodeGen.create(null, null, null);
         }
@@ -2326,6 +2328,7 @@ public abstract class ModuleNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class SetMethodVisibilityNode extends RubyBaseNode {
 
+        @NeverDefault
         public static SetMethodVisibilityNode create() {
             return SetMethodVisibilityNodeGen.create();
         }

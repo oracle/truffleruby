@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.numeric;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 
@@ -26,6 +27,7 @@ import org.truffleruby.language.RubyNode;
 @NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
+    @NeverDefault
     public static FixnumLowerNode create() {
         return FixnumLowerNodeGen.create(null);
     }

@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -19,6 +20,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 public abstract class LookupClassVariableNode extends RubyBaseNode {
 
+    @NeverDefault
     public static LookupClassVariableNode create() {
         return LookupClassVariableNodeGen.create();
     }

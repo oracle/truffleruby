@@ -20,10 +20,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class LongCastNode extends RubyBaseNode {
 
-    public static LongCastNode create() {
-        return LongCastNodeGen.create();
-    }
-
     public abstract long executeCastLong(Object value);
 
     @Specialization

@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -72,6 +74,7 @@ public abstract class ArrayIndexNodes {
     @ReportPolymorphism
     public abstract static class ReadNormalizedNode extends PrimitiveArrayArgumentsNode {
 
+        @NeverDefault
         public static ReadNormalizedNode create() {
             return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(null);
         }
@@ -102,11 +105,7 @@ public abstract class ArrayIndexNodes {
     }
 
     @ImportStatic(ArrayGuards.class)
-    public abstract static class ReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
-
-        public static ReadSliceNormalizedNode create() {
-            return ArrayIndexNodesFactory.ReadSliceNormalizedNodeFactory.create(null);
-        }
+    public abstract static class ReadSliceNormalizedNode extends RubyBaseNode {
 
         public abstract Object executeReadSlice(RubyArray array, int index, int length);
 

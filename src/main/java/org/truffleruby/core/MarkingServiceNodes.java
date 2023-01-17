@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseNode;
@@ -67,16 +68,17 @@ public class MarkingServiceNodes {
 
     public static class QueueForMarkOnExitNode extends RubyBaseNode {
 
+        @NeverDefault
+        public static QueueForMarkOnExitNode create() {
+            return new QueueForMarkOnExitNode();
+        }
+
         public void execute(ValueWrapper object) {
             addToList(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, object);
         }
 
         protected void addToList(ExtensionCallStack stack, ValueWrapper object) {
             stack.markOnExitObject(object);
-        }
-
-        public static QueueForMarkOnExitNode create() {
-            return new QueueForMarkOnExitNode();
         }
     }
 

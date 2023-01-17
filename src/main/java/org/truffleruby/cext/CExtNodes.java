@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
@@ -1309,6 +1310,7 @@ public class CExtNodes {
 
     public abstract static class StringToNativeNode extends RubyBaseNode {
 
+        @NeverDefault
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();
         }

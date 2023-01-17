@@ -23,10 +23,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
-    public static ArrayCopyOnWriteNode create() {
-        return ArrayCopyOnWriteNodeGen.create();
-    }
-
     public abstract Object execute(RubyArray array, int start, int length);
 
     @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")

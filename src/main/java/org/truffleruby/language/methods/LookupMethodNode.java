@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -35,6 +36,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @GenerateUncached
 public abstract class LookupMethodNode extends RubyBaseNode {
 
+    @NeverDefault
     public static LookupMethodNode create() {
         return LookupMethodNodeGen.create();
     }

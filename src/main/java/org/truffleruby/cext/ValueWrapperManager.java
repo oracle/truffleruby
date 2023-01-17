@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
-import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -353,10 +352,6 @@ public class ValueWrapperManager {
 
         protected static boolean isSharedObject(ValueWrapper wrapper) {
             return wrapper.getObject() instanceof ImmutableRubyObject;
-        }
-
-        public static AllocateHandleNode create() {
-            return AllocateHandleNodeGen.create();
         }
     }
 

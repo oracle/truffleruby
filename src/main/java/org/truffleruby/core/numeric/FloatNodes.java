@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -224,6 +225,7 @@ public abstract class FloatNodes {
         private final ConditionProfile lessThanZeroProfile = ConditionProfile.create();
         private final BranchProfile zeroProfile = BranchProfile.create();
 
+        @NeverDefault
         public static ModNode create() {
             return ModNodeFactory.create(null);
         }
@@ -924,6 +926,7 @@ public abstract class FloatNodes {
             return (abs < 0.0001) && (abs != 0.0);
         }
 
+        @NeverDefault
         protected static TruffleString specialValueString(double value) {
             return TStringUtils.fromJavaString(Double.toString(value), Encodings.US_ASCII);
         }

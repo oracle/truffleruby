@@ -76,6 +76,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
@@ -185,6 +186,7 @@ public abstract class StringNodes {
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
+        @NeverDefault
         public static AllocateNode create() {
             return StringNodesFactory.AllocateNodeFactory.create(null);
         }
@@ -1108,6 +1110,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
+        @NeverDefault
         public static EachByteNode create() {
             return StringNodesFactory.EachByteNodeFactory.create(null);
         }
@@ -1170,6 +1173,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "each_char", needsBlock = true, enumeratorSize = "size")
     public abstract static class EachCharNode extends YieldingCoreMethodNode {
 
+        @NeverDefault
         public static EachCharNode create() {
             return StringNodesFactory.EachCharNodeFactory.create(null);
         }
@@ -1238,6 +1242,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class EachCodePointNode extends YieldingCoreMethodNode {
 
+        @NeverDefault
         public static EachCodePointNode create() {
             return StringNodesFactory.EachCodePointNodeFactory.create(null);
         }
@@ -2469,6 +2474,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "sum", optional = 1)
     public abstract static class SumNode extends CoreMethodArrayArgumentsNode {
 
+        @NeverDefault
         public static SumNode create() {
             return SumNodeFactory.create(null);
         }
@@ -3152,6 +3158,7 @@ public abstract class StringNodes {
         @Child private StringHelperNodes.StringAppendNode stringAppendNode = StringHelperNodes.StringAppendNode
                 .create();
 
+        @NeverDefault
         public static StringAppendPrimitiveNode create() {
             return StringAppendPrimitiveNodeFactory.create(null);
         }

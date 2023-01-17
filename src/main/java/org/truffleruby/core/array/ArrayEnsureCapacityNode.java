@@ -22,10 +22,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
 
-    public static ArrayEnsureCapacityNode create() {
-        return ArrayEnsureCapacityNodeGen.create();
-    }
-
     public abstract Object executeEnsureCapacity(RubyArray array, int requiredCapacity);
 
     @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")

@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -29,6 +30,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
+    @NeverDefault
     public static ArrayAppendOneNode create() {
         return ArrayAppendOneNodeGen.create(null, null);
     }

@@ -11,6 +11,7 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
@@ -24,6 +25,7 @@ import org.truffleruby.platform.ErrnoDescriptions;
 
 public abstract class ErrnoErrorNode extends RubyBaseNode {
 
+    @NeverDefault
     public static ErrnoErrorNode create() {
         return ErrnoErrorNodeGen.create();
     }

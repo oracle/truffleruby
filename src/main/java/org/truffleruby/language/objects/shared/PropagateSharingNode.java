@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class PropagateSharingNode extends RubyBaseNode {
 
+    @NeverDefault
     public static PropagateSharingNode create() {
         return PropagateSharingNodeGen.create();
     }

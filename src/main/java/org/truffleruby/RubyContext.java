@@ -27,6 +27,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
@@ -755,6 +756,7 @@ public class RubyContext {
         return errStream;
     }
 
+    @NeverDefault
     public GlobalVariableStorage getGlobalVariableStorage(int index) {
         return globalVariablesArray.get(index);
     }

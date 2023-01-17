@@ -10,6 +10,7 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
@@ -123,6 +124,7 @@ public abstract class BasicObjectNodes {
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReferenceEqualNode extends RubySourceNode {
 
+        @NeverDefault
         public static ReferenceEqualNode create() {
             return ReferenceEqualNodeFactory.create(null);
         }
@@ -212,6 +214,7 @@ public abstract class BasicObjectNodes {
     @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class ObjectIDNode extends RubySourceNode {
 
+        @NeverDefault
         public static ObjectIDNode create() {
             return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
         }

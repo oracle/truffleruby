@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
@@ -76,6 +77,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         SharedObjects.shareInternalFields(object);
     }
 
+    @NeverDefault
     protected WriteBarrierNode createWriteBarrierNode() {
         return WriteBarrierNodeGen.create(depth);
     }

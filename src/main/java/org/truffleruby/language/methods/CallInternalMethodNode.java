@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
@@ -43,6 +44,7 @@ import org.truffleruby.language.dispatch.LiteralCallNode;
 @ImportStatic(RubyArguments.class)
 public abstract class CallInternalMethodNode extends RubyBaseNode {
 
+    @NeverDefault
     public static CallInternalMethodNode create() {
         return CallInternalMethodNodeGen.create();
     }

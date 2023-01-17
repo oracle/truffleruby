@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.control.RaiseException;
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToAryNode extends RubyBaseNodeWithExecute {
 
+    @NeverDefault
     public static ToAryNode create() {
         return ToAryNodeGen.create(null);
     }

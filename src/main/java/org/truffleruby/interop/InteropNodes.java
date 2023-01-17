@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
@@ -1435,6 +1436,7 @@ public abstract class InteropNodes {
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class InvokeMemberNode extends RubySourceNode {
 
+        @NeverDefault
         public static InvokeMemberNode create() {
             return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }

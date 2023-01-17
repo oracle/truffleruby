@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.DenyReplace;
@@ -58,10 +59,12 @@ public class DispatchNode extends SpecialVariablesSendingNode {
     public static final DispatchConfiguration PRIVATE_RETURN_MISSING = DispatchConfiguration.PRIVATE_RETURN_MISSING;
     public static final DispatchConfiguration PUBLIC_RETURN_MISSING = DispatchConfiguration.PUBLIC_RETURN_MISSING;
 
+    @NeverDefault
     public static DispatchNode create(DispatchConfiguration config) {
         return new DispatchNode(config);
     }
 
+    @NeverDefault
     public static DispatchNode create() {
         return new DispatchNode(DispatchConfiguration.PRIVATE);
     }

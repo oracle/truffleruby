@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -59,6 +60,8 @@ public abstract class StringHelperNodes {
     }
 
     public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
+
+        @NeverDefault
         public static SingleByteOptimizableNode create() {
             return StringHelperNodesFactory.SingleByteOptimizableNodeGen.create();
         }
@@ -366,6 +369,7 @@ public abstract class StringHelperNodes {
 
         protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
+        @NeverDefault
         public static HashStringNode create() {
             return StringHelperNodesFactory.HashStringNodeGen.create();
         }
@@ -383,6 +387,7 @@ public abstract class StringHelperNodes {
 
     public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
+        @NeverDefault
         public static StringGetAssociatedNode create() {
             return StringHelperNodesFactory.StringGetAssociatedNodeGen.create();
         }
@@ -434,11 +439,12 @@ public abstract class StringHelperNodes {
 
     public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
-        public abstract int executeNormalize(int index, int length);
-
+        @NeverDefault
         public static NormalizeIndexNode create() {
             return StringHelperNodesFactory.NormalizeIndexNodeGen.create();
         }
+
+        public abstract int executeNormalize(int index, int length);
 
         @Specialization
         protected int normalizeIndex(int index, int length,
@@ -580,6 +586,7 @@ public abstract class StringHelperNodes {
 
     public abstract static class StringAppendNode extends RubyBaseNode {
 
+        @NeverDefault
         public static StringAppendNode create() {
             return StringHelperNodesFactory.StringAppendNodeGen.create();
         }

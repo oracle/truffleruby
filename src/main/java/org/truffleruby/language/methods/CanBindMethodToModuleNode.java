@@ -19,10 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 /** Caches {@link ModuleOperations#canBindMethodTo} for a method. */
 public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
 
-    public static CanBindMethodToModuleNode create() {
-        return CanBindMethodToModuleNodeGen.create();
-    }
-
     public abstract boolean executeCanBindMethodToModule(InternalMethod method, RubyModule module);
 
     @Specialization(

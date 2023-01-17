@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -30,6 +31,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
 public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
+    @NeverDefault
     public static NameToJavaStringNode create() {
         return NameToJavaStringNodeGen.create(null);
     }

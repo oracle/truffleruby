@@ -18,10 +18,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class ForeignToRubyNode extends RubyBaseNode {
 
-    public static ForeignToRubyNode create() {
-        return ForeignToRubyNodeGen.create();
-    }
-
     public abstract Object executeConvert(Object value);
 
     @Specialization

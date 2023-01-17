@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.klass.RubyClass;
@@ -21,6 +22,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 @GenerateUncached
 public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
 
+    @NeverDefault
     public static LookupMethodOnSelfNode create() {
         return LookupMethodOnSelfNodeGen.create();
     }

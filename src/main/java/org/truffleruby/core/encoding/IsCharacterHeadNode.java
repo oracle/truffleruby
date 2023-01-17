@@ -19,10 +19,6 @@ import org.truffleruby.language.RubyBaseNode;
 /** Whether the position at byteOffset is the start of a character and not in the middle of a character */
 public abstract class IsCharacterHeadNode extends RubyBaseNode {
 
-    public static IsCharacterHeadNode create() {
-        return IsCharacterHeadNodeGen.create();
-    }
-
     public abstract boolean execute(RubyEncoding enc, AbstractTruffleString string, int byteOffset);
 
     @Specialization(guards = "enc.isSingleByte")
