@@ -614,6 +614,21 @@ class Array
   end
   alias_method :to_s, :inspect
 
+  def intersect?(other)
+    return false if size == 0 || other.size == 0
+
+    shorter, longer = size > other.size ? [other, self] : [self, other]
+
+    shorter_set = {}
+    shorter.each { |e| shorter_set[e] = true }
+
+    longer.each do |e|
+      return true if shorter_set.include?(e)
+    end
+
+    false
+  end
+
   def intersection(*others)
     return self & others.first if others.size == 1
 
