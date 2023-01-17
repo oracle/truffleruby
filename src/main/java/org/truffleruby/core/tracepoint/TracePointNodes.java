@@ -181,7 +181,7 @@ public abstract class TracePointNodes {
     @Primitive(name = "trace_point_inside_proc?")
     public abstract static class InsideProcNode extends PrimitiveNode {
         @Specialization
-        protected Object execute() {
+        protected Object insideProc() {
             final TracePointState state = getLanguage().getCurrentThread().tracePointState;
             return state.insideProc;
         }

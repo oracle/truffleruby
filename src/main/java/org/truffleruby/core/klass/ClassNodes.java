@@ -304,7 +304,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "subclasses")
     public abstract static class SubclassesNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyArray execute(RubyClass rubyClass) {
+        protected RubyArray subclasses(RubyClass rubyClass) {
             return createArray(rubyClass.directNonSingletonSubclasses.toArray());
         }
     }

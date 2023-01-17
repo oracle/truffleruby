@@ -374,7 +374,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
+        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             variables.setLastMatch(lastMatch, getContext(), unsetProfile, sameThreadProfile);
@@ -386,7 +386,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables,
+        protected Object getRegexpMatch(SpecialVariableStorage variables,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return variables.getLastMatch(unsetProfile, sameThreadProfile);
@@ -397,7 +397,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables, Object lastIO,
+        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastIO,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             variables.setLastLine(lastIO, getContext(), unsetProfile, sameThreadProfile);
@@ -409,7 +409,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage storage,
+        protected Object getLastIO(SpecialVariableStorage storage,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return storage.getLastLine(unsetProfile, sameThreadProfile);

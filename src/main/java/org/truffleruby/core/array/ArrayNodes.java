@@ -2241,12 +2241,12 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class UnshiftNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "rest.length == 0")
-        protected Object execute(RubyArray array, Object[] rest) {
+        protected Object unshiftNothing(RubyArray array, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = "rest.length != 0")
-        protected Object execute(RubyArray array, Object[] rest,
+        protected Object unshift(RubyArray array, Object[] rest,
                 @Cached ArrayPrepareForCopyNode resize,
                 @Cached ArrayCopyCompatibleRangeNode moveElements,
                 @Cached ArrayCopyCompatibleRangeNode copyUnshifted,

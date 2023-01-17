@@ -661,7 +661,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object execute(VirtualFrame frame, Object self,
+        protected Object dupAST(VirtualFrame frame, Object self,
                 @Cached DupNode dupNode) {
             return dupNode.execute(frame, self, ArrayUtils.EMPTY_ARRAY, null);
         }

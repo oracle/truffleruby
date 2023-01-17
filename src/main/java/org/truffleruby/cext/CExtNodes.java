@@ -1455,7 +1455,7 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object executeWithProtect(RubyProc block,
+        protected Object captureException(RubyProc block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
@@ -1494,7 +1494,7 @@ public class CExtNodes {
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object executeThrow(CapturedException captured,
+        protected Object extractRubyException(CapturedException captured,
                 @Cached ConditionProfile rubyExceptionProfile) {
             final Throwable e = captured.getException();
             if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
@@ -1509,7 +1509,7 @@ public class CExtNodes {
     public abstract static class ExtractRubyTag extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int executeThrow(CapturedException captured,
+        protected int extractRubyTag(CapturedException captured,
                 @Cached ExtractRubyTagHelperNode helperNode) {
             return helperNode.execute(captured.getException());
         }
@@ -1570,7 +1570,7 @@ public class CExtNodes {
 
         /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
-        protected Object executeThrow(CapturedException captured,
+        protected Object raiseException(CapturedException captured,
                 @Cached ConditionProfile runtimeExceptionProfile,
                 @Cached ConditionProfile errorProfile) {
             final Throwable e = captured.getException();

@@ -289,15 +289,15 @@ public class TruffleRegexpNodes {
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",
                 limit = "getDefaultCacheLimit()")
-        protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+        protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached BranchProfile errorProfile,
                 @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
-        @Specialization(replaces = "executeFastUnion")
-        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args,
+        @Specialization(replaces = "fastUnion")
+        protected Object slowUnion(RubyString str, Object sep, Object[] args,
                 @Cached BranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
@@ -1056,7 +1056,7 @@ public class TruffleRegexpNodes {
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
         @Specialization
-        protected Object executeMatch(
+        protected Object match(
                 RubyRegexp regexp,
                 Object string,
                 Matcher matcher,
