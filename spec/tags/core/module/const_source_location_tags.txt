@@ -1,3 +1,2 @@
-fails:Module#const_source_location calls #to_str to convert the given name to a String
 fails:Module#const_source_location autoload returns the autoload location while not resolved
 fails:Module#const_source_location returns updated location from const_set

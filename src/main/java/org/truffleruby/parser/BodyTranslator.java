@@ -1095,6 +1095,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode superClass = node.getSuperNode() != null ? node.getSuperNode().accept(this) : null;
         final DefineClassNode defineOrGetClass = new DefineClassNode(name, lexicalParent, superClass);
+        defineOrGetClass.unsafeSetSourceSection(sourceSection);
 
         final RubyNode ret = openModule(
                 sourceSection,
@@ -2199,6 +2200,7 @@ public class BodyTranslator extends Translator {
         RubyNode lexicalParent = translateCPath(sourceSection, node.getCPath());
 
         final DefineModuleNode defineModuleNode = DefineModuleNodeGen.create(name, lexicalParent);
+        defineModuleNode.unsafeSetSourceSection(sourceSection);
 
         final RubyNode ret = openModule(
                 sourceSection,
@@ -2868,6 +2870,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode receiverNode = node.getReceiverNode().accept(this);
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
+        singletonClassNode.unsafeSetSourceSection(sourceSection);
 
         boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
 

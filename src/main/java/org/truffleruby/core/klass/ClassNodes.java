@@ -12,6 +12,7 @@ package org.truffleruby.core.klass;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
@@ -78,13 +79,14 @@ public abstract class ClassNodes {
                 superclass,
                 null,
                 true,
-                attached);
+                attached,
+                null);
         return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
     @TruffleBoundary
     public static RubyClass createInitializedRubyClass(RubyContext context, SourceSection sourceSection,
-            RubyModule lexicalParent, RubyClass superclass, String name) {
+            RubyModule lexicalParent, RubyClass superclass, String name, Node currentNode) {
         assert superclass != null;
         final RubyClass rubyClass = createRubyClass(
                 context,
@@ -94,7 +96,8 @@ public abstract class ClassNodes {
                 superclass,
                 name,
                 false,
-                null);
+                null,
+                currentNode);
         return ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
@@ -106,7 +109,8 @@ public abstract class ClassNodes {
             RubyClass superclass,
             String name,
             boolean isSingleton,
-            RubyDynamicObject attached) {
+            RubyDynamicObject attached,
+            Node currentNode) {
         assert superclass != null;
         final RubyClass rubyClass = new RubyClass(
                 classClass,
@@ -119,7 +123,7 @@ public abstract class ClassNodes {
                 superclass);
 
         if (lexicalParent != null) {
-            rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
+            rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
         }
 
         return rubyClass;
@@ -182,7 +186,8 @@ public abstract class ClassNodes {
                 singletonSuperclass,
                 null,
                 true,
-                rubyClass);
+                rubyClass,
+                null);
         SharedObjects.propagate(context.getLanguageSlow(), rubyClass, metaClass);
         rubyClass.setMetaClass(metaClass);
 

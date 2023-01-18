@@ -73,7 +73,8 @@ public class DefineClassNode extends RubyContextSourceNode {
                     getEncapsulatingSourceSection(),
                     lexicalParentModule,
                     superClass,
-                    name);
+                    name,
+                    this);
             callInherited(frame, superClass, definedClass);
         } else {
             if (!(existing instanceof RubyClass)) {

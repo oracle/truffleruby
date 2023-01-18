@@ -61,6 +61,7 @@ Compatibility:
 * Fix execution order of `END` blocks and `at_exit` callbacks (#2818, @andrykonchin).
 * Fix `String#casecmp?` for empty strings of different encodings (#2826, @eregon).
 * Implement `Enumerable#compact` and `Enumerator::Lazy#compact` (#2733, @andrykonchin).
+* Record the source location in the constant for the `module`/`class` keywords (#2833, @eregon).
 
 Performance:
 
