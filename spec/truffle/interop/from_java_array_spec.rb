@@ -67,15 +67,16 @@ guard -> { !TruffleRuby.native? } do
 
     it "converts an array of objects" do
       big_integer = Truffle::Interop.java_type("java.math.BigInteger")
-      array = Truffle::Interop.java_type("java.math.BigInteger[]").new(3)
-      array[0] = big_integer[:ZERO]
-      array[1] = big_integer[:ONE]
-      array[2] = big_integer[:TEN]
-      array = Truffle::Interop.from_java_array(array)
-      array[0].equal?(big_integer[:ZERO]).should be_true
-      array[1].equal?(big_integer[:ONE]).should be_true
-      array[2].equal?(big_integer[:TEN]).should be_true
-      array.size.should == 3
+      java_array = Truffle::Interop.java_type("java.math.BigInteger[]").new(3)
+      java_array[0] = big_integer[:ZERO]
+      java_array[1] = big_integer[:ONE]
+      java_array[2] = big_integer[:TEN]
+
+      ruby_array = Truffle::Interop.from_java_array(java_array)
+      ruby_array[0].equal?(big_integer[:ZERO]).should be_true
+      ruby_array[1].equal?(big_integer[:ONE]).should be_true
+      ruby_array[2].equal?(big_integer[:TEN]).should be_true
+      ruby_array.size.should == 3
     end
 
     it "converts an array of boxed primitives" do

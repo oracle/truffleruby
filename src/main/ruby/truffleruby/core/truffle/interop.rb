@@ -273,9 +273,10 @@ module Truffle
     end
 
     def self.boxed?(object)
-      boolean?(object) || number?(object)
+      boolean?(object) || fits_in_long?(object) || fits_in_double?(object)
     end
 
+    # Only used by unbox_if_needed
     def self.unbox(object)
       return as_boolean object if boolean? object
 

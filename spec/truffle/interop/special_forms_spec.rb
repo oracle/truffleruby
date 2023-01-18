@@ -470,10 +470,28 @@ describe "Interop special forms" do
         java_hash.is_a?(Hash).should be_false
       end
 
-      it "raises a type error for a non-Java foreign object and a non-Java foreign class" do
+      # This actually tests Kernel#is_a? and not foreign.is_a? but seems good for completeness
+      it "raises a type error for a Ruby object and a Java class" do
+        ruby_object = Object.new
+        big_decimal_class = Truffle::Interop.java_type("java.math.BigDecimal")
+        -> {
+          ruby_object.is_a?(big_decimal_class)
+        }.should raise_error(TypeError, 'class or module required')
+
+        # TODO: This behavior seems better:
+        # ruby_object.is_a?(big_decimal_class).should be_false
+      end
+
+      it "raises a type error for RHS a foreign object which is not a meta object" do
         -> {
           Truffle::Debug.foreign_object.is_a?(Truffle::Debug.foreign_object)
-        }.should raise_error(TypeError, /cannot check if a foreign object is an instance of a foreign class/)
+        }.should raise_error(TypeError, 'class or module or meta object required')
+      end
+
+      it "raises a type error for RHS a Ruby object which is not a Module" do
+        -> {
+          Truffle::Debug.foreign_object.is_a?(42)
+        }.should raise_error(TypeError, 'class or module or meta object required')
       end
 
       it "works with boxed primitives" do
