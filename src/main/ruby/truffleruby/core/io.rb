@@ -613,6 +613,19 @@ class IO
         mode = optmode
       end
 
+      if flags = options[:flags]
+        flags = Truffle::Type.rb_convert_type(flags, Integer, :to_int)
+
+        if Primitive.nil?(mode)
+          mode = flags
+        elsif Primitive.object_kind_of?(mode, Integer)
+          mode |= flags
+        else # it's a String
+          mode = Truffle::IOOperations.parse_mode(mode)
+          mode |= flags
+        end
+      end
+
       if optperm = options[:perm]
         optperm = Truffle::Type.try_convert(optperm, Integer, :to_int)
       end

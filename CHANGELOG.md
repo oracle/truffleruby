@@ -61,6 +61,7 @@ Compatibility:
 * Fix execution order of `END` blocks and `at_exit` callbacks (#2818, @andrykonchin).
 * Fix `String#casecmp?` for empty strings of different encodings (#2826, @eregon).
 * Implement `Enumerable#compact` and `Enumerator::Lazy#compact` (#2733, @andrykonchin).
+* Fix `File.open` and support `flags` option (#2820, @andrykonchin).
 
 Performance:
 

@@ -1,7 +1,5 @@
 fails:File.open with a block propagates StandardErrors produced by close
 slow:File.open on a FIFO opens it as a normal file
-fails:File.open accepts extra flags as a keyword argument and combine with a string mode
-fails:File.open accepts extra flags as a keyword argument and combine with an integer mode
 fails:File.open 'x' flag does nothing if the file doesn't exist
 fails:File.open 'x' flag throws a Errno::EEXIST error if the file exists
 fails:File.open 'x' flag can't be used with 'r' and 'a' flags
