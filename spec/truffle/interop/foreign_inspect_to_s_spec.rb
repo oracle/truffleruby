@@ -79,9 +79,18 @@ describe "#inspect and #to_s on a foreign" do
 
     describe "Java object" do
       it "gives a similar representation to Ruby" do
+        foreign = Truffle::Interop.java_type("java.lang.Object").new
+        foreign.inspect.should =~ /\A#<Polyglot::ForeignObject\[Java\] java\.lang\.Object:0x\h+>\z/
+        foreign.to_s.should =~ /\A#<Polyglot::ForeignObject\[Java\] java\.lang\.Object@\h+>\z/
+      end
+    end
+
+    describe "Java BigInteger" do
+      it "gives a similar representation to Ruby" do
         foreign = Truffle::Interop.java_type("java.math.BigInteger").new('14')
-        foreign.inspect.should =~ /\A#<Polyglot::ForeignObject\[Java\] java\.math\.BigInteger:0x\h+>\z/
-        foreign.to_s.should == "#<Polyglot::ForeignObject[Java] 14>"
+        # TODO: simplify to just ForeignNumber
+        foreign.inspect.should =~ /\A#<Polyglot::Foreign(Number|Object)\[Java\] java\.math\.BigInteger:0x\h+>\z/
+        foreign.to_s.should =~ /\A#<Polyglot::Foreign(Number|Object)\[Java\] 14>\z/
       end
     end
   end

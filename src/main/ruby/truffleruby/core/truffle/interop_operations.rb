@@ -63,8 +63,6 @@ module Truffle
     end
 
     def self.foreign_inspect_nonrecursive(object)
-      object = Truffle::Interop.unbox_if_needed(object)
-
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       klass = ruby_class_and_language(object)
 

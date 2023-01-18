@@ -254,18 +254,36 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
                 .newBuilder(operator, function, returnType)
                 .parameterTypes(lhsType, rhsType)
                 .resultVerifier(snippetRun -> {
-                    /* If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's fine
-                     * even though that value will be marked as an OBJECT. We don't want to make it a NUMBER at the
-                     * moment as we aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I can see
-                     * is to check it doesn't fit into a long. */
-
-                    if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER &&
-                            TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&
-                            !snippetRun.getResult().fitsInLong()) {
-                        Assert.assertTrue(
-                                TypeDescriptor.OBJECT.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
+                    boolean nonPrimitiveNumberParameter = false;
+                    boolean numberParameters = true;
+                    for (Value actualParameter : snippetRun.getParameters()) {
+                        if (!actualParameter.isNumber()) {
+                            numberParameters = false;
+                        }
+                        if (actualParameter.isNumber() && !actualParameter.fitsInLong() &&
+                                !actualParameter.fitsInDouble()) {
+                            nonPrimitiveNumberParameter = true;
+                        }
+                    }
+                    if (numberParameters && nonPrimitiveNumberParameter) {
+                        if (snippetRun.getException() == null) {
+                            throw new AssertionError("TypeError expected but no error has been thrown.");
+                        } // else exception expected => ignore
                     } else {
-                        ResultVerifier.getDefaultResultVerifier().accept(snippetRun);
+                        /* If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's
+                         * fine even though that value will be marked as an OBJECT. We don't want to make it a NUMBER at
+                         * the moment as we aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I
+                         * can see is to check it doesn't fit into a long. */
+
+                        if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER &&
+                                TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&
+                                !snippetRun.getResult().fitsInLong()) {
+                            Assert.assertTrue(
+                                    TypeDescriptor.OBJECT
+                                            .isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
+                        } else {
+                            ResultVerifier.getDefaultResultVerifier().accept(snippetRun);
+                        }
                     }
                 })
                 .build();

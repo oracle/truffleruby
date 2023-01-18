@@ -472,21 +472,15 @@ module Polyglot
     end
 
     def is_a?(klass)
-      receiver = Truffle::Interop.unbox_if_needed(self)
-      if Truffle::Interop.foreign?(receiver)
-        if Truffle::Interop.java_class?(klass)
-          # Checking against a Java class
-          Truffle::Interop.java_instanceof?(receiver, klass)
-        elsif Truffle::Interop.foreign?(klass)
-          # Checking a foreign (not Java) object against a foreign (not Java) class
-          raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
-        else
-          # Checking a foreign or Java object against a Ruby class
-          false
-        end
+      unless Truffle::Interop.meta_object?(klass)
+        raise TypeError, 'class or module or meta object required'
+      end
+
+      if Truffle::Interop.foreign?(klass)
+        Truffle::Interop.meta_instance?(klass, self)
       else
-        # The receiver unboxed to a Ruby object or a primitive
-        receiver.is_a?(klass)
+        receiver = Truffle::Interop.unbox_if_needed(self)
+        Primitive.object_kind_of?(receiver, klass)
       end
     end
     alias_method :kind_of?, :is_a?
