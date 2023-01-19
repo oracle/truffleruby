@@ -173,10 +173,22 @@ module Utilities
     (@mx_env || @ruby_name || '').include?('ee')
   end
 
-  def jvmci_version(ee = ee?)
+  def ee_jdk?
+    if @jdk_version == 17
+      # No labsjdk-ce-17 in common.json
+      true
+    elsif @jdk_version == 20
+      # No labsjdk-ee-20 yet, so use ce if JDK 20
+      false
+    else
+      ee?
+    end
+  end
+
+  def jvmci_version
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      edition = ee ? 'ee' : 'ce'
+      edition = ee_jdk? ? 'ee' : 'ce'
       regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"#{edition}-#{@jdk_version}[^"]+-(jvmci-[^"]+)"\s*,/
       raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in common.json" unless regex =~ ci
       $1
@@ -2248,11 +2260,13 @@ module Commands
     end
   end
 
-  private def install_jvmci(download_message, ee: ee?, jdk_version: @jdk_version)
+  private def install_jvmci(download_message, jdk_version: @jdk_version)
     raise "Unknown JDK version: #{jdk_version}" unless JDK_VERSIONS.include?(jdk_version)
+
+    ee = ee_jdk?
     jdk_name = ee ? "labsjdk-ee-#{jdk_version}" : "labsjdk-ce-#{jdk_version}"
 
-    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version(ee)}"
+    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
