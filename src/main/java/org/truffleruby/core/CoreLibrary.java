@@ -732,11 +732,11 @@ public class CoreLibrary {
     }
 
     private RubyClass defineClass(RubyClass superclass, String name) {
-        return ClassNodes.createInitializedRubyClass(context, null, objectClass, superclass, name);
+        return ClassNodes.createInitializedRubyClass(context, null, objectClass, superclass, name, node);
     }
 
     private RubyClass defineClass(RubyModule lexicalParent, RubyClass superclass, String name) {
-        return ClassNodes.createInitializedRubyClass(context, null, lexicalParent, superclass, name);
+        return ClassNodes.createInitializedRubyClass(context, null, lexicalParent, superclass, name, node);
     }
 
     private RubyModule defineModule(String name) {

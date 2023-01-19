@@ -63,6 +63,7 @@ Compatibility:
 * Fix `String#casecmp?` for empty strings of different encodings (#2826, @eregon).
 * Implement `Enumerable#compact` and `Enumerator::Lazy#compact` (#2733, @andrykonchin).
 * Implement `Array#intersect?` (#2831, @nirvdrum).
+* Record the source location in the constant for the `module`/`class` keywords (#2833, @eregon).
 
 Performance:
 
