@@ -614,6 +614,22 @@ class Array
   end
   alias_method :to_s, :inspect
 
+  def intersect?(other)
+    other = Truffle::Type.coerce_to other, Array, :to_ary
+
+    shorter, longer = size > other.size ? [other, self] : [self, other]
+    return false if shorter.empty?
+
+    shorter_set = {}
+    shorter.each { |e| shorter_set[e] = true }
+
+    longer.each do |e|
+      return true if shorter_set.include?(e)
+    end
+
+    false
+  end
+
   def intersection(*others)
     return self & others.first if others.size == 1
 
