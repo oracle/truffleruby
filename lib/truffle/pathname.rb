@@ -812,14 +812,14 @@ class Pathname    # * IO *
 
   # See <tt>IO.read</tt>.  Returns all data from the file, or the first +N+ bytes
   # if specified.
-  def read(*args) IO.read(@path, *args) end
+  def read(*args, **kw) IO.read(@path, *args, **kw) end
 
   # See <tt>IO.binread</tt>.  Returns all the bytes from the file, or the first +N+
   # if specified.
   def binread(*args) IO.binread(@path, *args) end
 
   # See <tt>IO.write</tt>.  Returns the number of bytes written to the file.
-  def write(*args) IO.write(@path, *args) end
+  def write(*args, **kw) IO.write(@path, *args, **kw) end
 
   # See <tt>IO.binwrite</tt>.  Returns the number of bytes written to the file.
   def binwrite(*args) IO.binwrite(@path, *args) end
@@ -870,8 +870,8 @@ class Pathname    # * File *
   def make_link(old) File.link(old, @path) end
 
   # See <tt>File.open</tt>.  Opens the file for reading or writing.
-  def open(*args, &block) # :yield: file
-    File.open(@path, *args, &block)
+  def open(*args, **kw, &block) # :yield: file
+    File.open(@path, *args, **kw, &block)
   end
 
   # See <tt>File.readlink</tt>.  Read symbolic link.
