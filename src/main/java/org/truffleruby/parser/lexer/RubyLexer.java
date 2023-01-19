@@ -2730,9 +2730,9 @@ public class RubyLexer implements MagicCommentHandler {
     /** Read up to count hexadecimal digits and store those digits in a token numberBuffer. If strict is provided then
      * count number of hex digits must be present. If no digits can be read a syntax exception will be thrown. This will
      * also return the codepoint as a value so codepoint ranges can be checked. */
-    private char scanHexLiteral(TStringBuilder buffer, int count, boolean strict, String errorMessage) {
+    private int scanHexLiteral(TStringBuilder buffer, int count, boolean strict, String errorMessage) {
         int i = 0;
-        char hexValue = '\0';
+        int hexValue = 0;
 
         for (; i < count; i++) {
             int h1 = nextc();
@@ -2745,7 +2745,7 @@ public class RubyLexer implements MagicCommentHandler {
             buffer.append(h1);
 
             hexValue <<= 4;
-            hexValue |= (char) Integer.parseInt(String.valueOf((char) h1), 16) & 15;
+            hexValue |= Integer.parseInt(String.valueOf((char) h1), 16) & 15;
         }
 
         // No hex value after the 'x'.
@@ -2760,7 +2760,7 @@ public class RubyLexer implements MagicCommentHandler {
      * no digits can be read a syntax exception will be thrown. */
     private int scanHex(int count, boolean strict, String errorMessage) {
         int i = 0;
-        int hexValue = '\0';
+        int hexValue = 0;
 
         for (; i < count; i++) {
             int h1 = nextc();
@@ -3295,8 +3295,8 @@ public class RubyLexer implements MagicCommentHandler {
         cmdArgumentState.reset();
     }
 
-    protected char scanOct(int count) {
-        char value = '\0';
+    protected int scanOct(int count) {
+        int value = 0;
 
         for (int i = 0; i < count; i++) {
             int c = nextc();
@@ -3307,7 +3307,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             value <<= 3;
-            value |= (char) Integer.parseInt(String.valueOf((char) c), 8);
+            value |= Integer.parseInt(String.valueOf((char) c), 8);
         }
 
         return value;
