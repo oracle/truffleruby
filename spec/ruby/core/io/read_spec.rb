@@ -63,6 +63,19 @@ describe "IO.read" do
     IO.read(@fname, mode: "a+").should == @contents
   end
 
+  it "uses an :open_args option" do
+    string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
+    string.encoding.should == Encoding::US_ASCII
+
+    string = IO.read(@fname, nil, 0, open_args: ["r", nil, {}])
+    string.encoding.should == Encoding::UTF_8
+  end
+
+  it "disregards other options if :open_args is given" do
+    string = IO.read(@fname,mode: "w", encoding: Encoding::UTF_32LE, open_args: ["r", encoding: Encoding::UTF_8])
+    string.encoding.should == Encoding::UTF_8
+  end
+
   it "treats second nil argument as no length limit" do
     IO.read(@fname, nil).should == @contents
     IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)

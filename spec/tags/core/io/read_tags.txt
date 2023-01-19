@@ -1,3 +1,5 @@
 fails:IO.read from a pipe opens a pipe to a fork if the rest is -
 fails(hangs):IO#read raises IOError when stream is closed by another thread
 fails:IO#read raises ArgumentError when length is less than 0
+fails:IO.read uses an :open_args option
+fails:IO.read disregards other options if :open_args is given
