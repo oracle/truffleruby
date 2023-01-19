@@ -323,7 +323,7 @@ class IO
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !Primitive.nil?(length) && length < 0
 
-    File.open(file, 'r', :encoding => 'ascii-8bit:-') do |f|
+    File.open(file, 'r', encoding: 'ascii-8bit:-') do |f|
       f.seek(offset)
       f.read(length)
     end
@@ -341,7 +341,7 @@ class IO
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
     end
-    File.open(file, mode, :encoding => (external || 'ASCII-8BIT'), :perm => perm) do |f|
+    File.open(file, mode, encoding: (external || 'ASCII-8BIT'), perm: perm) do |f|
       f.seek(offset || 0)
       f.write(string)
     end
@@ -464,7 +464,7 @@ class IO
       return nil unless io
     else
       options[:mode] = 'r' unless options.key? :mode
-      io = File.open(name, options)
+      io = File.open(name, **options)
     end
 
     each_reader = io.__send__ :create_each_reader, separator, limit, chomp, true
@@ -499,62 +499,42 @@ class IO
     end
   end
 
-  def self.write(file, string, *args)
-    if args.size > 2
-      raise ArgumentError, "wrong number of arguments (#{args.size + 2} for 2..3)"
+  def self.write(file, string, offset=nil, **options)
+    if Primitive.nil?(options[:open_args])
+      mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options)
+      unless mode
+        mode = File::CREAT | File::WRONLY
+        mode |= File::TRUNC unless offset
+      end
+
+      open_args = [mode]
+      open_kw = { encoding: (external || 'ASCII-8BIT'), perm: perm }
+    else
+      open_args = options[:open_args]
+      open_kw = Primitive.object_kind_of?(open_args.last, Hash) ? open_args.pop : {}
     end
 
-    offset, opts = args
-    opts ||= {}
-    if Primitive.object_kind_of?(offset, Hash)
-      offset, opts = nil, offset
-    end
-
-    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts)
-    unless mode
-      mode = File::CREAT | File::WRONLY
-      mode |= File::TRUNC unless offset
-    end
-
-    open_args = opts[:open_args] || [mode, :encoding => (external || 'ASCII-8BIT'), :perm => perm]
-    File.open(file, *open_args) do |f|
+    File.open(file, *open_args, **open_kw) do |f|
       f.seek(offset) if offset
       f.write(string)
     end
   end
 
-  def self.for_fd(fd, mode=nil, options=undefined)
-    new fd, mode, options
+  def self.for_fd(fd, mode=nil, **options)
+    new fd, mode, **options
   end
 
-  def self.read(name, length_or_options=undefined, offset=0, options=nil)
+  def self.read(name, length=nil, offset=0, **options)
     offset = 0 if Primitive.nil? offset
     name = Truffle::Type.coerce_to_path name
-    mode = 'r'
+    mode = options.delete(:mode) || 'r'
 
-    if Primitive.undefined? length_or_options
-      length = undefined
-    elsif Primitive.object_kind_of? length_or_options, Hash
-      length = undefined
-      offset = 0
-      options = length_or_options
-    elsif length_or_options
-      if Primitive.object_kind_of? offset, Hash
-        options = offset
-        offset = 0
-      else
-        offset = Primitive.rb_to_int(offset || 0)
-        raise Errno::EINVAL, 'offset must not be negative' if offset < 0
-      end
+    offset = Primitive.rb_to_int(offset || 0)
+    raise Errno::EINVAL, 'offset must not be negative' if offset < 0
 
-      length = Primitive.rb_to_int(length_or_options)
+    unless Primitive.nil?(length)
+      length = Primitive.rb_to_int(length)
       raise ArgumentError, 'length must not be negative' if length < 0
-    else
-      length = undefined
-    end
-
-    if options
-      mode = options.delete(:mode) || 'r'
     end
 
     # Detect pipe mode
@@ -562,14 +542,14 @@ class IO
       io = IO.popen(name[1..-1], 'r')
       return nil unless io # child process
     else
-      io = File.new(name, mode, options)
+      io = File.new(name, mode, **options)
     end
 
     str = nil
     begin
       io.seek(offset) unless offset == 0
 
-      if Primitive.undefined?(length)
+      if Primitive.nil?(length)
         str = io.read
       else
         str = io.read length
@@ -588,14 +568,6 @@ class IO
   def self.normalize_options(mode, perm, options)
     autoclose = true
 
-    if Primitive.undefined?(options)
-      options = Truffle::Type.try_convert(mode, Hash, :to_hash)
-      mode = nil if options
-    elsif !Primitive.nil?(options)
-      options = Truffle::Type.try_convert(options, Hash, :to_hash)
-      raise ArgumentError, 'wrong number of arguments (3 for 1..2)' unless options
-    end
-
     if mode
       mode = (Truffle::Type.try_convert(mode, Integer, :to_int) or
               Truffle::Type.coerce_to(mode, String, :to_str))
@@ -607,11 +579,11 @@ class IO
                    Truffle::Type.coerce_to(optmode, String, :to_str))
       end
 
-      if mode
-        raise ArgumentError, 'mode specified twice' if optmode
-      else
-        mode = optmode
+      if mode && optmode
+        raise ArgumentError, 'mode specified twice'
       end
+
+      mode ||= optmode
 
       if flags = options[:flags]
         flags = Truffle::Type.rb_convert_type(flags, Integer, :to_int)
@@ -683,8 +655,8 @@ class IO
     [mode, binary, external, internal, autoclose, perm]
   end
 
-  def self.open(*args)
-    io = new(*args)
+  def self.open(*args, **options)
+    io = new(*args, **options)
 
     return io unless block_given?
 
@@ -953,7 +925,7 @@ class IO
   #
   # Create a new IO associated with the given fd.
   #
-  def initialize(fd, mode=nil, options=undefined)
+  def initialize(fd, mode=nil, **options)
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead', uplevel: 1
     end

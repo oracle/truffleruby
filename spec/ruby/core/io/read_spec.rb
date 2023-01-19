@@ -23,6 +23,14 @@ describe "IO.read" do
     IO.read(p)
   end
 
+  it "accepts options as keyword arguments" do
+    IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
+
+    -> {
+      IO.read(@fname, 3, 0, {mode: "r+"})
+    }.should raise_error(ArgumentError, /wrong number of arguments/)
+  end
+
   it "accepts an empty options Hash" do
     IO.read(@fname, **{}).should == @contents
   end

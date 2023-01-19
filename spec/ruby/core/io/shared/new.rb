@@ -64,6 +64,15 @@ describe :io_new, shared: true do
     @io.should be_an_instance_of(IO)
   end
 
+  it "accepts options as keyword arguments" do
+    @io = IO.send(@method, @fd, "w", flags: File::CREAT)
+    @io.write("foo").should == 3
+
+    -> {
+      IO.send(@method, @fd, "w", {flags: File::CREAT})
+    }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 1..2)")
+  end
+
   it "accepts a :mode option" do
     @io = IO.send(@method, @fd, mode: "w")
     @io.write("foo").should == 3

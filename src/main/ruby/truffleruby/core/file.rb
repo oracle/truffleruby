@@ -1183,40 +1183,17 @@ class File < IO
     alias_method :fnmatch?, :fnmatch
   end
 
-  def initialize(path_or_fd, mode=nil, perm=undefined, options=undefined)
+  def initialize(path_or_fd, mode=nil, perm=nil, **options)
     if Primitive.object_kind_of?(path_or_fd, Integer)
-      super(path_or_fd, mode, options)
+      super(path_or_fd, mode, **options)
       @path = nil
     else
       path = Truffle::Type.coerce_to_path path_or_fd
-
-      # TODO: fix normalize_options
-      case mode
-      when String, Integer
-        # do nothing
-      when nil
-        mode = 'r'
-      when Hash
-        options = mode
-        mode = nil
-      else
-        options = Truffle::Type.coerce_to mode, Hash, :to_hash
-        mode = nil
-      end
-
-      if Primitive.undefined?(options) and !Primitive.undefined?(perm)
-        options = Truffle::Type.try_convert(perm, Hash, :to_hash)
-        perm = undefined if options
-      end
-
-      perm = nil if Primitive.undefined? perm
       nmode, _binary, _external, _internal, _autoclose, perm = IO.normalize_options(mode, perm, options)
-      nmode ||= 'r'
-
       fd = IO.sysopen(path, nmode, perm)
 
       @path = path
-      super(fd, mode, options)
+      super(fd, mode, **options)
     end
   end
 

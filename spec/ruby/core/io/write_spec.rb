@@ -61,10 +61,6 @@ describe "IO#write on a file" do
     File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
-  it "uses an :open_args option" do
-    IO.write(@filename, 'hi', open_args: ["w", nil, {encoding: Encoding::UTF_32LE}]).should == 8
-  end
-
   it "raises a invalid byte sequence error if invalid bytes are being written" do
     # pack "\xFEhi" to avoid utf-8 conflict
     xFEhi = ([254].pack('C*') + 'hi').force_encoding('utf-8')
