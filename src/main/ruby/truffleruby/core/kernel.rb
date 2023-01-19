@@ -417,9 +417,9 @@ module Kernel
   end
   module_function :loop
 
-  def open(obj, *rest, &block)
+  def open(obj, *rest, **options, &block)
     if obj.respond_to?(:to_open)
-      obj = obj.to_open(*rest)
+      obj = obj.to_open(*rest, **options)
 
       if block_given?
         return yield(obj)
@@ -431,10 +431,10 @@ module Kernel
     path = Truffle::Type.coerce_to_path obj
 
     if Primitive.object_kind_of?(path, String) and path.start_with? '|'
-      return IO.popen(path[1..-1], *rest, &block)
+      return IO.popen(path[1..-1], *(rest + [options]), &block)
     end
 
-    File.open(path, *rest, &block)
+    File.open(path, *rest, **options, &block)
   end
   module_function :open
 
