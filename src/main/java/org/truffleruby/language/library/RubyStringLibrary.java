@@ -43,10 +43,13 @@ public abstract class RubyStringLibrary {
 
     public abstract boolean isRubyString(Object object);
 
+    @NeverDefault
     public abstract AbstractTruffleString getTString(Object object);
 
+    @NeverDefault
     public abstract RubyEncoding getEncoding(Object object);
 
+    @NeverDefault
     public final TruffleString.Encoding getTEncoding(Object object) {
         return getEncoding(object).tencoding;
     }

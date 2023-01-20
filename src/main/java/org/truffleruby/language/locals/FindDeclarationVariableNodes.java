@@ -81,7 +81,8 @@ public class FindDeclarationVariableNodes {
         public abstract Object execute(Frame frame, String name, Object defaultValue);
 
         @Specialization(
-                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor" })
+                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor" },
+                limit = "getDefaultCacheLimit()")
         protected Object getVariable(Frame frame, String name, Object defaultValue,
                 @Cached("name") String cachedName,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,

@@ -104,7 +104,7 @@ public abstract class EncodingNodes {
                 "firstEncoding == cachedEncoding",
                 "isStandardEncoding(cachedEncoding)",
                 "getCodeRange(second, secondEncoding) == ASCII"
-        })
+        }, limit = "NUMBER_OF_STANDARD_ENCODINGS")
         protected RubyEncoding negotiateStandardEncodingAndCr7Bit(
                 AbstractTruffleString first,
                 RubyEncoding firstEncoding,
@@ -207,6 +207,8 @@ public abstract class EncodingNodes {
 
             return codeRangeNode;
         }
+
+        protected static final int NUMBER_OF_STANDARD_ENCODINGS = 3;
 
         /** Indicates whether the encoding is one of the runtime-default encodings. Many (most?) applications do not
          * override the default encodings and as such, this set of encodings is used very frequently in real-world Ruby

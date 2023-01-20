@@ -112,7 +112,7 @@ public abstract class RegexpNodes {
 
         public abstract RubyString execute(RubyRegexp regexp);
 
-        @Specialization(guards = "regexp.regex == cachedRegexp.regex")
+        @Specialization(guards = "regexp.regex == cachedRegexp.regex", limit = "getDefaultCacheLimit()")
         protected RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
                 @Cached("createTString(cachedRegexp)") TStringWithEncoding string) {

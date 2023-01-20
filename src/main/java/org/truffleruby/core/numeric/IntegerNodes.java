@@ -508,7 +508,8 @@ public abstract class IntegerNodes {
 
         public abstract Object executeMod(Object a, Object b);
 
-        @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" })
+        @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" },
+                limit = "getDefaultCacheLimit()")
         protected int modPowerOfTwo(int a, int b,
                 @Cached("b") int cachedB) {
             return a & (cachedB - 1);

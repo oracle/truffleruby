@@ -171,7 +171,7 @@ public abstract class StringHelperNodes {
 
         public abstract int executeCount(Object string, TStringWithEncoding[] ropesWithEncs);
 
-        @Specialization(guards = "isEmpty(strings.getTString(string))")
+        @Specialization(guards = "strings.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, Object[] args,
                 @Cached RubyStringLibrary strings) {
             return 0;
@@ -180,10 +180,11 @@ public abstract class StringHelperNodes {
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
-                        "!isEmpty(tstring)",
+                        "!tstring.isEmpty()",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
-                        "encoding == cachedEncoding" })
+                        "encoding == cachedEncoding" },
+                limit = "getDefaultCacheLimit()")
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached RubyStringLibrary libString,
@@ -200,7 +201,7 @@ public abstract class StringHelperNodes {
             return StringSupport.strCount(byteArray, codeRange, squeeze, tables, compatEncoding.jcoding, this);
         }
 
-        @Specialization(guards = "!isEmpty(libString.getTString(string))")
+        @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, TStringWithEncoding[] ropesWithEncs,
                 @Cached BranchProfile errorProfile,
                 @Cached RubyStringLibrary libString,
@@ -295,7 +296,7 @@ public abstract class StringHelperNodes {
 
         public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] ropesWithEncs);
 
-        @Specialization(guards = "isEmpty(string.tstring)")
+        @Specialization(guards = "string.tstring.isEmpty()")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
             return nil;
         }
@@ -303,10 +304,11 @@ public abstract class StringHelperNodes {
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
-                        "!isEmpty(string.tstring)",
+                        "!string.tstring.isEmpty()",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
-                        "libString.getEncoding(string) == cachedEncoding" })
+                        "libString.getEncoding(string) == cachedEncoding" },
+                limit = "getDefaultCacheLimit()")
         protected Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached RubyStringLibrary libString,
@@ -325,7 +327,7 @@ public abstract class StringHelperNodes {
             return string;
         }
 
-        @Specialization(guards = "!isEmpty(string.tstring)", replaces = "deleteBangFast")
+        @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
         protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
                 @Cached RubyStringLibrary libString,
                 @Cached BranchProfile errorProfile) {
@@ -463,14 +465,17 @@ public abstract class StringHelperNodes {
         private final boolean lowerToUpper;
         private final boolean upperToLower;
 
+        @NeverDefault
         public static InvertAsciiCaseHelperNode createLowerToUpper() {
             return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(true, false);
         }
 
+        @NeverDefault
         public static InvertAsciiCaseHelperNode createUpperToLower() {
             return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(false, true);
         }
 
+        @NeverDefault
         public static InvertAsciiCaseHelperNode createSwapCase() {
             return StringHelperNodesFactory.InvertAsciiCaseHelperNodeGen.create(true, true);
         }
@@ -518,16 +523,19 @@ public abstract class StringHelperNodes {
 
         @Child private InvertAsciiCaseHelperNode invertNode;
 
+        @NeverDefault
         public static InvertAsciiCaseNode createLowerToUpper() {
             return StringHelperNodesFactory.InvertAsciiCaseNodeGen
                     .create(InvertAsciiCaseHelperNode.createLowerToUpper());
         }
 
+        @NeverDefault
         public static InvertAsciiCaseNode createUpperToLower() {
             return StringHelperNodesFactory.InvertAsciiCaseNodeGen
                     .create(InvertAsciiCaseHelperNode.createUpperToLower());
         }
 
+        @NeverDefault
         public static InvertAsciiCaseNode createSwapCase() {
             return StringHelperNodesFactory.InvertAsciiCaseNodeGen.create(InvertAsciiCaseHelperNode.createSwapCase());
         }
@@ -561,10 +569,6 @@ public abstract class StringHelperNodes {
 
     @ImportStatic(StringGuards.class)
     public abstract static class GetCodePointNode extends RubyBaseNode {
-
-        public static GetCodePointNode create() {
-            return StringHelperNodesFactory.GetCodePointNodeGen.create();
-        }
 
         public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
 

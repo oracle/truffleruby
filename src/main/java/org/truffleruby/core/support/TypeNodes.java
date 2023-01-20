@@ -326,6 +326,7 @@ public abstract class TypeNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
 
+        @NeverDefault
         public static CanContainObjectNode create() {
             return TypeNodesFactory.CanContainObjectNodeFactory.create(null);
         }

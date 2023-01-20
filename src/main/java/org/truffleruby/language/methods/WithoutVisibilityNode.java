@@ -18,7 +18,8 @@ public abstract class WithoutVisibilityNode extends RubyBaseNode {
 
     public abstract DeclarationContext executeWithoutVisibility(DeclarationContext declarationContext);
 
-    @Specialization(guards = { "isSingleContext()", "declarationContext == cachedContext" })
+    @Specialization(guards = { "isSingleContext()", "declarationContext == cachedContext" },
+            limit = "getDefaultCacheLimit()")
     protected DeclarationContext cached(DeclarationContext declarationContext,
             @Cached("declarationContext") DeclarationContext cachedContext,
             @Cached("uncached(cachedContext)") DeclarationContext without) {
