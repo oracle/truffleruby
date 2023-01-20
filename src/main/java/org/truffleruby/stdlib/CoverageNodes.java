@@ -97,7 +97,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageEnabledNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object execute() {
+        protected boolean coverageEnabled() {
             return getLanguage().coverageManager.isEnabled();
         }
     }

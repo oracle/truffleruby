@@ -29,10 +29,6 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
 
     public abstract RubySymbol execute(Object value);
 
-    public static IDToSymbolNode create() {
-        return IDToSymbolNodeGen.create();
-    }
-
     @Specialization(guards = "isStaticSymbol(value)")
     protected RubySymbol unwrapStaticSymbol(long value,
             @Cached BranchProfile errorProfile) {

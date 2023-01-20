@@ -88,14 +88,14 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         public abstract Object execute(TStringWithEncoding[] parts);
 
         @Specialization(guards = "ropesWithEncodingsMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
-        protected Object executeFast(TStringWithEncoding[] parts,
+        protected Object fast(TStringWithEncoding[] parts,
                 @Cached(value = "parts", dimensions = 1) TStringWithEncoding[] cachedParts,
                 @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
             return regexp;
         }
 
-        @Specialization(replaces = "executeFast")
-        protected Object executeSlow(TStringWithEncoding[] parts,
+        @Specialization(replaces = "fast")
+        protected Object slow(TStringWithEncoding[] parts,
                 @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
             notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
             return createRegexp(parts);

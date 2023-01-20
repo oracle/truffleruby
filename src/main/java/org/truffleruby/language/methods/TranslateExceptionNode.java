@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
@@ -35,6 +36,7 @@ import com.oracle.truffle.api.nodes.Node;
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
 
+    @NeverDefault
     public static TranslateExceptionNode create() {
         return TranslateExceptionNodeGen.create();
     }

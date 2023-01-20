@@ -27,10 +27,6 @@ public abstract class IsSharedNode extends RubyBaseNode {
 
     public abstract boolean executeIsShared(RubyDynamicObject object);
 
-    public static IsSharedNode create() {
-        return IsSharedNodeGen.create();
-    }
-
     @Specialization(
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",

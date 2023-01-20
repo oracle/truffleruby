@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.core.string.StringUtils;
@@ -25,6 +26,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     public final String name;
     @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;
 
+    @NeverDefault
     public static ReadSimpleGlobalVariableNode create(String name) {
         return ReadSimpleGlobalVariableNodeGen.create(name);
     }
@@ -41,11 +43,11 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object readConstant(
-            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value,
             @Cached("new()") WarningNode warningNode,
-            @Cached("storage.isDefined()") boolean isDefined) {
+            @Cached(value = "storage.isDefined()", neverDefault = false) boolean isDefined) {
         if (!isDefined && warningNode.shouldWarn()) {
             SourceSection sourceSection = getEncapsulatingSourceSection();
             String message = globalVariableNotInitializedMessageFor(name);

@@ -16,6 +16,7 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -1871,6 +1872,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
+        @NeverDefault
         public static ReplaceNode create() {
             return ReplaceNodeFactory.create(null, null);
         }
@@ -2241,12 +2243,12 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class UnshiftNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "rest.length == 0")
-        protected Object execute(RubyArray array, Object[] rest) {
+        protected Object unshiftNothing(RubyArray array, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = "rest.length != 0")
-        protected Object execute(RubyArray array, Object[] rest,
+        protected Object unshift(RubyArray array, Object[] rest,
                 @Cached ArrayPrepareForCopyNode resize,
                 @Cached ArrayCopyCompatibleRangeNode moveElements,
                 @Cached ArrayCopyCompatibleRangeNode copyUnshifted,

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
@@ -138,7 +139,7 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_execute")
     public abstract static class InteropExecuteNode extends PrimitiveArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object executeWithoutConversion(Object receiver, RubyArray argsArray,
+        protected Object interopExecuteWithoutConversion(Object receiver, RubyArray argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -500,7 +501,7 @@ public abstract class InteropNodes {
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object executeForeignCached(Object receiver, Object[] args,
+        protected Object interopExecute(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -513,7 +514,7 @@ public abstract class InteropNodes {
     public abstract static class ExecuteWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object executeWithoutConversionForeignCached(Object receiver, Object[] args,
+        protected Object interopExecuteWithoutConversion(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             return InteropNodes.execute(receiver, args, receivers, translateInteropException);
@@ -1435,6 +1436,7 @@ public abstract class InteropNodes {
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class InvokeMemberNode extends RubySourceNode {
 
+        @NeverDefault
         public static InvokeMemberNode create() {
             return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }

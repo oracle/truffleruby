@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
@@ -42,6 +43,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
+    @NeverDefault
     public static ArrayBuilderNode create() {
         return new ArrayBuilderProxyNode();
     }

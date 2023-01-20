@@ -74,14 +74,14 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 guards = { "name == cachedName", "!isOperatorMethod(cachedName)", "!isAssignmentMethod(cachedName)" },
                 limit = "1")
         protected Object invokeOrRead(Object receiver, String name, Object[] args,
-                @Cached("name") String cachedName,
+                @Cached(value = "name", neverDefault = true) String cachedName,
                 @Cached InvokeOrReadMemberNode invokeOrReadMemberNode) {
             return invokeOrReadMemberNode.execute(receiver, name, args);
         }
 
         @Specialization(guards = { "name == cachedName", "isOperatorMethod(cachedName)" }, limit = "1")
         protected Object operatorMethod(Object receiver, String name, Object[] args,
-                @Cached("name") String cachedName,
+                @Cached(value = "name", neverDefault = true) String cachedName,
                 @Cached ConvertForOperatorAndReDispatchNode operatorNode) {
             return operatorNode.execute(receiver, name, args);
         }

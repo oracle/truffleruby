@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.yield;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
@@ -32,6 +33,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 @GenerateUncached
 public abstract class CallBlockNode extends RubyBaseNode {
 
+    @NeverDefault
     public static CallBlockNode create() {
         return CallBlockNodeGen.create();
     }

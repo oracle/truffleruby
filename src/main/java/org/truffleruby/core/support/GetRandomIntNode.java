@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.memory.ByteArraySupport;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -21,6 +22,7 @@ import java.nio.ByteOrder;
 
 public abstract class GetRandomIntNode extends RubyBaseNode {
 
+    @NeverDefault
     public static GetRandomIntNode create() {
         return GetRandomIntNodeGen.create();
     }

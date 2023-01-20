@@ -639,6 +639,7 @@ public abstract class ThreadNodes {
     @Primitive(name = "call_with_unblocking_function")
     public abstract static class CallWithUnblockingFunctionNode extends PrimitiveArrayArgumentsNode {
 
+        @SuppressWarnings("truffle-neverdefault") // GR-43642
         @Specialization(limit = "getCacheLimit()")
         protected Object call(RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
                 @CachedLibrary("function") InteropLibrary receivers,

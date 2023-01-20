@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -64,6 +65,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
         return constant.getConstant();
     }
 
+    @NeverDefault
     @TruffleBoundary
     protected ConstantLookupResult doLookup() {
         return ModuleOperations.lookupConstantWithLexicalScope(getContext(), lexicalScope, name);

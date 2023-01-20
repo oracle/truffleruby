@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
@@ -164,6 +165,7 @@ public abstract class HashNodes {
     /** Like {@link KernelNodes.DupNode} but allocating the hash directly with the right value for ruby2_keywords. */
     public abstract static class CopyHashAndSetRuby2KeywordsNode extends RubyBaseNode {
 
+        @NeverDefault
         public static CopyHashAndSetRuby2KeywordsNode create() {
             return CopyHashAndSetRuby2KeywordsNodeGen.create();
         }
@@ -409,6 +411,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
+        @NeverDefault
         public static InitializeCopyNode create() {
             return InitializeCopyNodeFactory.create(null);
         }

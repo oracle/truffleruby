@@ -20,10 +20,6 @@ import org.truffleruby.language.RubyBaseNode;
 
 public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
 
-    public static LookupClassVariableStorageNode create() {
-        return LookupClassVariableStorageNodeGen.create();
-    }
-
     public abstract ClassVariableStorage execute(RubyModule module, String name);
 
     @Specialization(guards = "objectLibrary.containsKey(classVariableStorage, name)")

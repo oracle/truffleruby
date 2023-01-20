@@ -30,7 +30,7 @@ public abstract class ReadDoubleNode extends FormatNode {
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources,
             @Cached ToDoubleNode toDoubleNode) {
-        return toDoubleNode.executeToDouble(frame, sources.read(source, advanceSourcePosition(frame)));
+        return toDoubleNode.executeToDouble(sources.read(source, advanceSourcePosition(frame)));
     }
 
 }

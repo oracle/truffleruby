@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -27,6 +28,7 @@ import org.truffleruby.language.RubyGuards;
  * {@link org.truffleruby.core.string.ImmutableRubyString} */
 public abstract class RubyStringLibrary {
 
+    @NeverDefault
     public static RubyStringLibrary create() {
         return new Cached();
     }

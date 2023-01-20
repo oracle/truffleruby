@@ -12,6 +12,7 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.Encodings;
@@ -34,6 +35,7 @@ import java.lang.invoke.VarHandle;
 @GenerateUncached
 public abstract class WrapNode extends RubyBaseNode {
 
+    @NeverDefault
     public static WrapNode create() {
         return WrapNodeGen.create();
     }

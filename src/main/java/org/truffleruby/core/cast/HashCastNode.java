@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -25,6 +26,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild(value = "childNode", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 
+    @NeverDefault
     public static HashCastNode create() {
         return HashCastNodeGen.create(null);
     }

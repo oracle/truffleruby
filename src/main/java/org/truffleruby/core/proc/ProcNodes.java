@@ -11,6 +11,7 @@ package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -62,6 +63,8 @@ public abstract class ProcNodes {
 
     @CoreMethod(names = "new", constructor = true, needsBlock = true, rest = true)
     public abstract static class ProcNewNode extends CoreMethodArrayArgumentsNode {
+
+        @NeverDefault
         public static ProcNewNode create() {
             return ProcNodesFactory.ProcNewNodeFactory.create(null);
         }

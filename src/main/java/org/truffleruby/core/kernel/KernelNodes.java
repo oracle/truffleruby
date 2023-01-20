@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -226,6 +227,7 @@ public abstract class KernelNodes {
     @GenerateUncached
     public abstract static class SameOrEqlNode extends RubyBaseNode {
 
+        @NeverDefault
         public static SameOrEqlNode create() {
             return KernelNodesFactory.SameOrEqlNodeGen.create();
         }
@@ -356,7 +358,7 @@ public abstract class KernelNodes {
         protected RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
-                        allowUncached = true) SourceSection sourceSection) {
+                        allowUncached = true, neverDefault = false) SourceSection sourceSection) {
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
         }
@@ -661,7 +663,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object execute(VirtualFrame frame, Object self,
+        protected Object dupAST(VirtualFrame frame, Object self,
                 @Cached DupNode dupNode) {
             return dupNode.execute(frame, self, ArrayUtils.EMPTY_ARRAY, null);
         }
@@ -1572,6 +1574,7 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
 
+        @NeverDefault
         public static SingletonMethodsNode create() {
             return SingletonMethodsNodeFactory.create(null, null);
         }
@@ -1846,6 +1849,7 @@ public abstract class KernelNodes {
     @Primitive(name = "kernel_to_hex")
     public abstract static class ToHexStringNode extends RubySourceNode {
 
+        @NeverDefault
         public static ToHexStringNode create() {
             return KernelNodesFactory.ToHexStringNodeFactory.create(null);
         }
@@ -1891,6 +1895,7 @@ public abstract class KernelNodes {
     @NodeChild(value = "selfNode", type = RubyNode.class)
     public abstract static class ToSNode extends RubySourceNode {
 
+        @NeverDefault
         public static ToSNode create() {
             return KernelNodesFactory.ToSNodeFactory.create(null);
         }

@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -35,13 +36,13 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected boolean cacheBoolean(boolean value,
-            @Cached("value") boolean cachedValue) {
+            @Cached(value = "value", neverDefault = false) boolean cachedValue) {
         return cachedValue;
     }
 
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected int cacheInt(int value,
-            @Cached("value") int cachedValue) {
+            @Cached(value = "value", neverDefault = false) int cachedValue) {
         return cachedValue;
     }
 
@@ -81,6 +82,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
     }
 
+    @NeverDefault
     protected static Class<?> getClassOrObject(Object value) {
         return value == null ? Objects.class : value.getClass();
     }

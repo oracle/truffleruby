@@ -56,7 +56,6 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
-import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -105,13 +104,9 @@ public class TruffleRegexpNodes {
     }
 
     // MRI: rb_reg_prepare_enc
-    public abstract static class PrepareRegexpEncodingNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PrepareRegexpEncodingNode extends RubyBaseNode {
 
         @Child WarnNode warnNode;
-
-        public static PrepareRegexpEncodingNode create() {
-            return TruffleRegexpNodesFactory.PrepareRegexpEncodingNodeFactory.create(null);
-        }
 
         public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
 
@@ -289,15 +284,15 @@ public class TruffleRegexpNodes {
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",
                 limit = "getDefaultCacheLimit()")
-        protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+        protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached BranchProfile errorProfile,
                 @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
-        @Specialization(replaces = "executeFastUnion")
-        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args,
+        @Specialization(replaces = "fastUnion")
+        protected Object slowUnion(RubyString str, Object sep, Object[] args,
                 @Cached BranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
@@ -1037,10 +1032,6 @@ public class TruffleRegexpNodes {
 
         @Child private DispatchNode dupNode = DispatchNode.create();
 
-        public static MatchNode create() {
-            return MatchNodeGen.create();
-        }
-
         public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart, boolean createMatchData);
 
@@ -1056,7 +1047,7 @@ public class TruffleRegexpNodes {
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
         @Specialization
-        protected Object executeMatch(
+        protected Object match(
                 RubyRegexp regexp,
                 Object string,
                 Matcher matcher,

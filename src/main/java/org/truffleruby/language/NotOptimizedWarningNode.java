@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @GenerateUncached
 public abstract class NotOptimizedWarningNode extends RubyBaseNode {
 
+    @NeverDefault
     public static NotOptimizedWarningNode create() {
         return NotOptimizedWarningNodeGen.create();
     }

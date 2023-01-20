@@ -12,6 +12,7 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -50,6 +51,7 @@ import org.truffleruby.utils.Utils;
 @NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToIntNode extends RubyBaseNodeWithExecute {
 
+    @NeverDefault
     public static ToIntNode create() {
         return ToIntNodeGen.create(null);
     }

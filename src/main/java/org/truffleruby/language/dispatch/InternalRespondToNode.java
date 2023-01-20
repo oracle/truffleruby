@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
@@ -34,10 +35,12 @@ public class InternalRespondToNode extends RubyBaseNode {
     // NOTE(norswap): cf. comment above static fields in DispatchNode to see why we need this field
     public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
 
+    @NeverDefault
     public static InternalRespondToNode create(DispatchConfiguration config) {
         return new InternalRespondToNode(config);
     }
 
+    @NeverDefault
     public static InternalRespondToNode create() {
         return new InternalRespondToNode(DispatchConfiguration.PRIVATE);
     }

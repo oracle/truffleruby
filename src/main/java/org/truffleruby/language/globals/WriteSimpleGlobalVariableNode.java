@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -22,6 +23,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     @Child protected ReferenceEqualNode referenceEqualNode = ReferenceEqualNode.create();
     @Child protected WriteBarrierNode writeBarrierNode = WriteBarrierNode.create();
 
+    @NeverDefault
     public static WriteSimpleGlobalVariableNode create(String name) {
         return WriteSimpleGlobalVariableNodeGen.create(name);
     }
@@ -55,7 +57,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object writeAssumeConstant(Object value,
-            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);

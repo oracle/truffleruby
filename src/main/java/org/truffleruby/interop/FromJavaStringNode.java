@@ -21,10 +21,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class FromJavaStringNode extends RubyBaseNode {
 
-    public static FromJavaStringNode create() {
-        return FromJavaStringNodeGen.create();
-    }
-
     public abstract RubyString executeFromJavaString(String value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")

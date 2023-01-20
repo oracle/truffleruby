@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
@@ -41,6 +42,7 @@ public final class GlobalVariableStorage {
 
     GlobalVariableStorage(Object value, RubyProc getter, RubyProc setter, RubyProc isDefined) {
         assert ((getter == null) == (setter == null)) && ((getter == null) == (isDefined == null));
+        assert value != null;
 
         this.value = value;
         this.getter = getter;
@@ -48,11 +50,13 @@ public final class GlobalVariableStorage {
         this.isDefined = isDefined;
     }
 
+    @NeverDefault
     public Object getValue() {
         Object currentValue = value;
         return currentValue == UNSET_VALUE ? Nil.INSTANCE : currentValue;
     }
 
+    @NeverDefault
     public Object getRawValue() {
         return value;
     }
@@ -90,6 +94,7 @@ public final class GlobalVariableStorage {
     }
 
     public void setValueInternal(Object value) {
+        assert value != null;
         this.value = value;
     }
 

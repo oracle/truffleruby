@@ -12,6 +12,7 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -212,12 +213,17 @@ public abstract class TruffleKernelNodes {
     @ImportStatic(TruffleKernelNodes.class)
     public abstract static class GetSpecialVariableStorage extends RubyBaseNode {
 
+        @NeverDefault
+        public static GetSpecialVariableStorage create() {
+            return GetSpecialVariableStorageNodeGen.create();
+        }
+
         public abstract SpecialVariableStorage execute(Frame frame);
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
         protected SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
-                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("declarationDepth(frame)") int declarationFrameDepth) {
+                @Cached(value = "frame.getFrameDescriptor()", neverDefault = true) FrameDescriptor descriptor,
+                @Cached(value = "declarationDepth(frame)", neverDefault = false) int declarationFrameDepth) {
             Object variables;
             if (declarationFrameDepth == 0) {
                 variables = SpecialVariableStorage.get(frame);
@@ -272,10 +278,6 @@ public abstract class TruffleKernelNodes {
                 SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
             }
             return (SpecialVariableStorage) variables;
-        }
-
-        public static GetSpecialVariableStorage create() {
-            return GetSpecialVariableStorageNodeGen.create();
         }
 
     }
@@ -345,8 +347,8 @@ public abstract class TruffleKernelNodes {
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
         protected Object shareSpecialVariable(VirtualFrame frame, SpecialVariableStorage storage,
-                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("declarationDepth(frame)") int declarationFrameDepth) {
+                @Cached(value = "frame.getFrameDescriptor()", neverDefault = true) FrameDescriptor descriptor,
+                @Cached(value = "declarationDepth(frame)", neverDefault = false) int declarationFrameDepth) {
             final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
             SpecialVariableStorage.set(storageFrame, storage);
             return nil;
@@ -374,7 +376,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
+        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             variables.setLastMatch(lastMatch, getContext(), unsetProfile, sameThreadProfile);
@@ -386,7 +388,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables,
+        protected Object getRegexpMatch(SpecialVariableStorage variables,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return variables.getLastMatch(unsetProfile, sameThreadProfile);
@@ -397,7 +399,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage variables, Object lastIO,
+        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastIO,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             variables.setLastLine(lastIO, getContext(), unsetProfile, sameThreadProfile);
@@ -409,7 +411,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object executeSetRegexpMatch(SpecialVariableStorage storage,
+        protected Object getLastIO(SpecialVariableStorage storage,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return storage.getLastLine(unsetProfile, sameThreadProfile);

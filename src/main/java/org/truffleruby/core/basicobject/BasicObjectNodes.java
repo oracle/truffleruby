@@ -10,10 +10,12 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
@@ -85,7 +87,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BasicObject", isClass = true)
 public abstract class BasicObjectNodes {
@@ -123,6 +124,7 @@ public abstract class BasicObjectNodes {
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReferenceEqualNode extends RubySourceNode {
 
+        @NeverDefault
         public static ReferenceEqualNode create() {
             return ReferenceEqualNodeFactory.create(null);
         }
@@ -212,6 +214,7 @@ public abstract class BasicObjectNodes {
     @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class ObjectIDNode extends RubySourceNode {
 
+        @NeverDefault
         public static ObjectIDNode create() {
             return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
         }
@@ -257,7 +260,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(replaces = "objectIDSmallFixnumOverflow")
         protected Object objectIDLong(long value,
-                @Cached("createCountingProfile()") ConditionProfile smallProfile) {
+                @Cached CountingConditionProfile smallProfile) {
             if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
             } else {

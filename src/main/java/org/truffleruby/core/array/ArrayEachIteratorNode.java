@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.proc.RubyProc;
@@ -35,6 +36,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     @Child private ArrayEachIteratorNode recurseNode;
 
+    @NeverDefault
     public static ArrayEachIteratorNode create() {
         return ArrayEachIteratorNodeGen.create();
     }

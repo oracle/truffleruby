@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -28,6 +29,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
 public abstract class ToStringOrSymbolNode extends RubyBaseNodeWithExecute {
 
+    @NeverDefault
     public static ToStringOrSymbolNode create() {
         return ToStringOrSymbolNodeGen.create(null);
     }

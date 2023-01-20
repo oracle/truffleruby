@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
@@ -21,6 +22,7 @@ import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NeverDefault;
 
 /** An append-only map of names or identifiers to indices. The map is stored in {@link org.truffleruby.RubyLanguage} and
  * each {@link org.truffleruby.RubyContext} have separate {@link ContextArray}s. This enables looking up names and
@@ -58,6 +60,7 @@ public final class SharedIndicesMap {
             this.data = newArray.apply(sharedIndicesMap.size());
         }
 
+        @NeverDefault
         public T get(int index) {
             CompilerAsserts.partialEvaluationConstant(index);
             assert index <= sharedIndicesMap.size();
@@ -82,8 +85,7 @@ public final class SharedIndicesMap {
                 if (prev == null) {
                     // Must always be synchronized to prevent other accesses to grow the array concurrently
                     T value = createWhenAbsent.get();
-                    assert value != null;
-                    data[index] = value;
+                    data[index] = Objects.requireNonNull(value);
                     return value;
                 } else {
                     return prev;

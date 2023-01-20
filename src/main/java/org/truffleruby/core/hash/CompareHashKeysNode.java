@@ -19,10 +19,6 @@ import org.truffleruby.language.RubyBaseNode;
 @GenerateUncached
 public abstract class CompareHashKeysNode extends RubyBaseNode {
 
-    public static CompareHashKeysNode create() {
-        return CompareHashKeysNodeGen.create();
-    }
-
     public static CompareHashKeysNode getUncached() {
         return CompareHashKeysNodeGen.getUncached();
     }

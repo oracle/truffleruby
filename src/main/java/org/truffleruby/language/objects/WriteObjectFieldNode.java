@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -26,6 +27,7 @@ import java.lang.invoke.VarHandle;
 @GenerateUncached
 public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
+    @NeverDefault
     public static WriteObjectFieldNode create() {
         return WriteObjectFieldNodeGen.create();
     }

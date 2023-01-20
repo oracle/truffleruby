@@ -17,6 +17,7 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
@@ -179,6 +180,7 @@ public abstract class BindingNodes {
     @GenerateUncached
     public abstract static class HasLocalVariableNode extends RubyBaseNode {
 
+        @NeverDefault
         public static HasLocalVariableNode create() {
             return BindingNodesFactory.HasLocalVariableNodeGen.create();
         }
@@ -284,6 +286,7 @@ public abstract class BindingNodes {
     @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariableGetNode extends RubySourceNode {
 
+        @NeverDefault
         public static LocalVariableGetNode create() {
             return BindingNodesFactory.LocalVariableGetNodeFactory.create(null, null);
         }
@@ -351,6 +354,7 @@ public abstract class BindingNodes {
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     public abstract static class LocalVariableSetNode extends RubySourceNode {
 
+        @NeverDefault
         public static LocalVariableSetNode create() {
             return BindingNodesFactory.LocalVariableSetNodeFactory.create(null, null, null);
         }

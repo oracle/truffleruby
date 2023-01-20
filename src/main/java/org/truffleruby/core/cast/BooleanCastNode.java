@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class BooleanCastNode extends RubyBaseNode {
 
+    @NeverDefault
     public static BooleanCastNode create() {
         return BooleanCastNodeGen.create(null);
     }

@@ -23,10 +23,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 @ImportStatic(Identifiers.class)
 public abstract class CheckIVarNameNode extends RubyBaseNode {
 
-    public static CheckIVarNameNode create() {
-        return CheckIVarNameNodeGen.create();
-    }
-
     /** Pass both the j.l.String name and the original name, the original name can be faster to check and the j.l.String
      * name is needed by all callers so it is better for footprint that callers convert to j.l.String */
     public abstract void execute(Object object, String name, Object originalName);

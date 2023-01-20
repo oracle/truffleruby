@@ -19,10 +19,6 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 @GenerateUncached
 public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
 
-    public static ForeignToRubyArgumentsNode create() {
-        return ForeignToRubyArgumentsNodeGen.create();
-    }
-
     public abstract Object[] executeConvert(Object[] args);
 
     @ExplodeLoop
@@ -56,7 +52,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     protected static ForeignToRubyNode[] foreignToRubyNodes(int size) {
         ForeignToRubyNode[] foreignToRubyNodes = new ForeignToRubyNode[size];
         for (int i = 0; i < foreignToRubyNodes.length; i++) {
-            foreignToRubyNodes[i] = ForeignToRubyNode.create();
+            foreignToRubyNodes[i] = ForeignToRubyNodeGen.create();
         }
         return foreignToRubyNodes;
     }

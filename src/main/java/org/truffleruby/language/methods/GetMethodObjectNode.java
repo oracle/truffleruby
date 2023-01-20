@@ -42,9 +42,6 @@ import org.truffleruby.language.objects.MetaClassNode;
 
 @GenerateUncached
 public abstract class GetMethodObjectNode extends RubyBaseNode {
-    public static GetMethodObjectNode create() {
-        return GetMethodObjectNodeGen.create();
-    }
 
     public abstract RubyMethod execute(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig);
 

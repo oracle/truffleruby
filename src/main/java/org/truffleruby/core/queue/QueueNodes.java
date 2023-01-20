@@ -201,12 +201,12 @@ public abstract class QueueNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue execute(RubyQueue self, NotProvided enumerable) {
+        protected RubyQueue initialize(RubyQueue self, NotProvided enumerable) {
             return self;
         }
 
         @Specialization(guards = "wasProvided(enumerable)")
-        protected RubyQueue execute(RubyQueue self, Object enumerable,
+        protected RubyQueue initialize(RubyQueue self, Object enumerable,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores,
                 @Cached ToANode toANode) {
             final RubyArray rubyArray = toANode.executeToA(enumerable);

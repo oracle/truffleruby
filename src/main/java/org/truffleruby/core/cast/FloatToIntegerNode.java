@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -19,6 +20,7 @@ import org.truffleruby.language.control.RaiseException;
 
 public class FloatToIntegerNode extends RubyBaseNode {
 
+    @NeverDefault
     public static FloatToIntegerNode create() {
         return new FloatToIntegerNode();
     }

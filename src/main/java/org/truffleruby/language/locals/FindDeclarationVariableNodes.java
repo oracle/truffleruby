@@ -15,7 +15,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.locals.FindDeclarationVariableNodesFactory.FindAndReadDeclarationVariableNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -80,10 +79,6 @@ public class FindDeclarationVariableNodes {
     public abstract static class FindAndReadDeclarationVariableNode extends RubyBaseNode {
 
         public abstract Object execute(Frame frame, String name, Object defaultValue);
-
-        public static FindAndReadDeclarationVariableNode create() {
-            return FindAndReadDeclarationVariableNodeGen.create();
-        }
 
         @Specialization(
                 guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor" })

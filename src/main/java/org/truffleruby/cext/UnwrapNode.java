@@ -19,9 +19,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
-import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
-import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
@@ -97,10 +94,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
         private void raiseError(long handle) {
             throw CompilerDirectives.shouldNotReachHere("dead handle 0x" + Long.toHexString(handle));
         }
-
-        public static UnwrapNativeNode create() {
-            return UnwrapNativeNodeGen.create();
-        }
     }
 
     @GenerateUncached
@@ -145,10 +138,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
             // handle.
             return null;
         }
-
-        public static NativeToWrapperNode create() {
-            return NativeToWrapperNodeGen.create();
-        }
     }
 
     @ImportStatic(ValueWrapperManager.class)
@@ -180,10 +169,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
             return nativeToWrapperNode.execute(handle);
-        }
-
-        public static ToWrapperNode create() {
-            return ToWrapperNodeGen.create();
         }
 
         protected int getCacheLimit() {
@@ -248,10 +233,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
         }
-    }
-
-    public static UnwrapNode create() {
-        return UnwrapNodeGen.create();
     }
 
     public abstract Object execute(Object value);

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -25,6 +26,7 @@ import org.truffleruby.language.control.RaiseException;
 @NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class ToJavaStringNode extends RubySourceNode {
 
+    @NeverDefault
     public static ToJavaStringNode create() {
         return ToJavaStringNodeGen.create(null);
     }

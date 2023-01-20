@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
@@ -1309,6 +1310,7 @@ public class CExtNodes {
 
     public abstract static class StringToNativeNode extends RubyBaseNode {
 
+        @NeverDefault
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();
         }
@@ -1455,7 +1457,7 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object executeWithProtect(RubyProc block,
+        protected Object captureException(RubyProc block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
@@ -1494,7 +1496,7 @@ public class CExtNodes {
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object executeThrow(CapturedException captured,
+        protected Object extractRubyException(CapturedException captured,
                 @Cached ConditionProfile rubyExceptionProfile) {
             final Throwable e = captured.getException();
             if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
@@ -1509,7 +1511,7 @@ public class CExtNodes {
     public abstract static class ExtractRubyTag extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int executeThrow(CapturedException captured,
+        protected int extractRubyTag(CapturedException captured,
                 @Cached ExtractRubyTagHelperNode helperNode) {
             return helperNode.execute(captured.getException());
         }
@@ -1570,7 +1572,7 @@ public class CExtNodes {
 
         /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
-        protected Object executeThrow(CapturedException captured,
+        protected Object raiseException(CapturedException captured,
                 @Cached ConditionProfile runtimeExceptionProfile,
                 @Cached ConditionProfile errorProfile) {
             final Throwable e = captured.getException();

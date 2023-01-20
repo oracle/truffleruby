@@ -12,6 +12,7 @@ package org.truffleruby.core.range;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -465,6 +466,7 @@ public abstract class RangeNodes {
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class AllocateNode extends RubySourceNode {
 
+        @NeverDefault
         public static AllocateNode create() {
             return RangeNodesFactory.AllocateNodeFactory.create(null);
         }
@@ -542,6 +544,7 @@ public abstract class RangeNodes {
     /** @see NormalizedStartLengthPrimitiveNode */
     public abstract static class NormalizedStartLengthNode extends RubyBaseNode {
 
+        @NeverDefault
         public static NormalizedStartLengthNode create() {
             return RangeNodesFactory.NormalizedStartLengthNodeGen.create();
         }

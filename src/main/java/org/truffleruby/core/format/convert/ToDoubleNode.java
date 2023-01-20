@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.cast.ToFNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -19,17 +20,17 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.objects.IsANode;
 
 @NodeChild("value")
 public abstract class ToDoubleNode extends FormatNode {
 
-    public abstract double executeToDouble(VirtualFrame frame, Object object);
-
+    @NeverDefault
     public static ToDoubleNode create() {
         return ToDoubleNodeGen.create(null);
     }
+
+    public abstract double executeToDouble(Object object);
 
     @Specialization
     protected double toDouble(int value) {

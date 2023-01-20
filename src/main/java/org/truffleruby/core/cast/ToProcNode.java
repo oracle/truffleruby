@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.RootCallTarget;
@@ -108,6 +109,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
         return SymbolNodes.ToProcNode.getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
     }
 
+    @NeverDefault
     protected RubyProc getProcForSymbol(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
         final RootCallTarget callTarget = getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
         return SymbolNodes.ToProcNode.createProc(getContext(), getLanguage(), refinements, callTarget);

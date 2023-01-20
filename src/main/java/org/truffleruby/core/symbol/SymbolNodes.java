@@ -82,10 +82,6 @@ public abstract class SymbolNodes {
     @GenerateUncached
     public abstract static class HashSymbolNode extends RubyBaseNode {
 
-        public static HashSymbolNode create() {
-            return SymbolNodesFactory.HashSymbolNodeGen.create();
-        }
-
         public abstract long execute(RubySymbol rubySymbol);
 
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
