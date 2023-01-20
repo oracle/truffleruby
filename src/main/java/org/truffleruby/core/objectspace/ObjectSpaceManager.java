@@ -131,7 +131,7 @@ public class ObjectSpaceManager {
     public static int getCollectionCount() {
         int count = 0;
         for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
-            count += bean.getCollectionCount();
+            count += Math.toIntExact(bean.getCollectionCount());
         }
         return count;
     }
