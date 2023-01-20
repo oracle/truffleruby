@@ -69,7 +69,7 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(replaces = "isAClassCached")
     protected boolean isAClassUncached(Object self, RubyClass klass,
-            @Cached @Shared("metaClassNode") MetaClassNode metaClassNode,
+            @Cached @Shared MetaClassNode metaClassNode,
             @Cached ConditionProfile isMetaClass) {
         final RubyClass metaclass = metaClassNode.execute(self);
 
@@ -89,7 +89,7 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(guards = "!isRubyClass(module)", replaces = "isAMetaClassCached")
     protected boolean isAUncached(Object self, RubyModule module,
-            @Cached @Shared("metaClassNode") MetaClassNode metaClassNode) {
+            @Cached @Shared MetaClassNode metaClassNode) {
         return isA(metaClassNode.execute(self), module);
     }
 

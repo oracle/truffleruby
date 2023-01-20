@@ -217,7 +217,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
-            @Cached @Shared("lookup") LookupEntryNode lookup,
+            @Cached @Shared LookupEntryNode lookup,
             @Cached @Exclusive ConditionProfile found) {
 
         final Entry[] entries = this.entries;
@@ -235,7 +235,7 @@ public class BucketsHashStore {
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
-            @Cached @Shared("lookup") LookupEntryNode lookup,
+            @Cached @Shared LookupEntryNode lookup,
             @Cached @Exclusive ConditionProfile missing,
             @Cached @Exclusive ConditionProfile bucketCollision,
             @Cached @Exclusive ConditionProfile appending,
@@ -286,7 +286,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected Object delete(RubyHash hash, Object key,
-            @Cached @Shared("lookup") LookupEntryNode lookup,
+            @Cached @Shared LookupEntryNode lookup,
             @Cached @Exclusive ConditionProfile missing) {
         assert verify(hash);
 

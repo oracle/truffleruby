@@ -123,7 +123,7 @@ public final class RubyString extends RubyDynamicObject {
 
     @ExportMessage
     protected TruffleString asTruffleString(
-            @Cached @Shared("libString") RubyStringLibrary libString,
+            @Cached @Shared RubyStringLibrary libString,
             @Cached TruffleString.AsTruffleStringNode asTruffleStringNode) {
         return asTruffleStringNode.execute(tstring, libString.getTEncoding(this));
     }
@@ -145,7 +145,7 @@ public final class RubyString extends RubyDynamicObject {
 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(RubyString string,
-                @Cached @Shared("libString") RubyStringLibrary libString,
+                @Cached @Shared RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached ConditionProfile binaryNonAsciiProfile) {

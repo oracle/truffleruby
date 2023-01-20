@@ -89,7 +89,7 @@ public final class TopScopeObject implements TruffleObject {
     @ExportMessage
     @TruffleBoundary
     Object getMembers(boolean includeInternal,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnsupportedMessageException {
         int length = NAMES.length;
         Object[] keys = new Object[length - scopeIndex];
@@ -101,7 +101,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean isMemberReadable(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             if (interop.isMemberReadable(objects[i], member)) {
@@ -113,7 +113,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     Object readMember(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnknownIdentifierException, UnsupportedMessageException {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
@@ -127,7 +127,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean isMemberModifiable(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
@@ -140,7 +140,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean isMemberInsertable(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
@@ -155,7 +155,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean hasMemberReadSideEffects(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
@@ -168,7 +168,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean hasMemberWriteSideEffects(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
@@ -181,7 +181,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     void writeMember(String member, Object value,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnknownIdentifierException, UnsupportedMessageException, UnsupportedTypeException {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
@@ -200,7 +200,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     boolean isMemberRemovable(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
@@ -215,7 +215,7 @@ public final class TopScopeObject implements TruffleObject {
 
     @ExportMessage
     void removeMember(String member,
-            @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
+            @Shared @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnsupportedMessageException, UnknownIdentifierException {
         int length = NAMES.length;
         for (int i = scopeIndex; i < length; i++) {
@@ -259,7 +259,7 @@ public final class TopScopeObject implements TruffleObject {
 
         @ExportMessage
         boolean isArrayElementReadable(long index,
-                @Shared("interop") @CachedLibrary(limit = "5") InteropLibrary interop) {
+                @Shared @CachedLibrary(limit = "5") InteropLibrary interop) {
             if (index >= 0) {
                 for (int i = 0; i < keys.length; i++) {
                     if (index < size[i]) {
@@ -273,7 +273,7 @@ public final class TopScopeObject implements TruffleObject {
 
         @ExportMessage
         Object readArrayElement(long index,
-                @Shared("interop") @CachedLibrary(limit = "5") InteropLibrary interop)
+                @Shared @CachedLibrary(limit = "5") InteropLibrary interop)
                 throws InvalidArrayIndexException, UnsupportedMessageException {
             if (index >= 0) {
                 for (int i = 0; i < keys.length; i++) {

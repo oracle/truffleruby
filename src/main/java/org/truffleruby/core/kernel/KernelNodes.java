@@ -957,7 +957,7 @@ public abstract class KernelNodes {
                 @Cached BranchProfile errorProfile) {
             Object from = RubyArguments.getArgument(rubyArgs, 0);
 
-            // GR-36575: should be separate specialization but Truffle does not support @Shared("equalNode") for this node
+            // GR-36575: should be separate specialization but Truffle does not support @Shared for equalNode in this node
             if (sameProfile.profile(equalNode.executeReferenceEqual(self, from))) {
                 return self;
             }

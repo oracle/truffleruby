@@ -169,7 +169,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public void writeHashEntry(Object key, Object value,
             @Cached @Exclusive DispatchNode set,
             @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby)
+            @Cached @Shared ForeignToRubyNode toRuby)
             throws UnsupportedMessageException {
         if (rubyLibrary.isFrozen(this)) {
             throw UnsupportedMessageException.create();
@@ -182,7 +182,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
             @Cached @Exclusive DispatchNode delete,
             @CachedLibrary("this") RubyLibrary rubyLibrary,
             @CachedLibrary("this") InteropLibrary interop,
-            @Cached @Shared("toRuby") ForeignToRubyNode toRuby)
+            @Cached @Shared ForeignToRubyNode toRuby)
             throws UnsupportedMessageException, UnknownKeyException {
         if (rubyLibrary.isFrozen(this)) {
             throw UnsupportedMessageException.create();
@@ -195,19 +195,19 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public Object getHashEntriesIterator(
-            @Cached @Shared("enumerator") DispatchNode eachPair) {
+            @Cached @Exclusive DispatchNode eachPair) {
         return eachPair.call(this, "each_pair");
     }
 
     @ExportMessage
     public Object getHashKeysIterator(
-            @Cached @Shared("enumerator") DispatchNode eachKey) {
+            @Cached @Exclusive DispatchNode eachKey) {
         return eachKey.call(this, "each_key");
     }
 
     @ExportMessage
     public Object getHashValuesIterator(
-            @Cached @Shared("enumerator") DispatchNode eachValue) {
+            @Cached @Exclusive DispatchNode eachValue) {
         return eachValue.call(this, "each_value");
     }
 

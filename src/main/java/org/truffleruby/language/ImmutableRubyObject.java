@@ -127,15 +127,15 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberReadable(String name,
-            @Cached @Shared("definedNode") InternalRespondToNode definedNode) {
+            @Cached @Shared InternalRespondToNode definedNode) {
         return definedNode.execute(null, this, name);
     }
 
     @ExportMessage
     public Object readMember(String name,
-            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
+            @Cached @Shared InternalRespondToNode definedNode,
             @Cached GetMethodObjectNode getMethodObjectNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            @Shared @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
             return getMethodObjectNode.execute(null, this, name, DispatchConfiguration.PRIVATE);
@@ -147,7 +147,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInvocable(String name,
-            @Cached @Shared("definedNode") InternalRespondToNode definedNode) {
+            @Cached @Shared InternalRespondToNode definedNode) {
         return definedNode.execute(null, this, name);
     }
 
@@ -155,7 +155,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public Object invokeMember(String name, Object[] arguments,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            @Shared @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object result = dispatchMember.call(this, name, convertedArguments);
@@ -168,7 +168,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInternal(String name,
-            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
+            @Cached @Shared InternalRespondToNode definedNode,
             @Exclusive @Cached(parameters = "PUBLIC") InternalRespondToNode definedPublicNode) {
         // defined but not publicly
         return definedNode.execute(null, this, name) &&

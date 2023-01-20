@@ -104,7 +104,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             limit = "1")
     protected AssertionError unsupportedMessageExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedMessageException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws UnsupportedMessageException {
         throw UnsupportedMessageException.create(exception);
     }
 
@@ -113,7 +113,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             limit = "1")
     protected AssertionError invalidArrayIndexExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws InvalidArrayIndexException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws InvalidArrayIndexException {
         throw InvalidArrayIndexException.create(index, exception);
     }
 
@@ -122,7 +122,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             limit = "1")
     protected AssertionError unknownIdentifierExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnknownIdentifierException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(identifier, exception);
     }
 
@@ -131,7 +131,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             limit = "1")
     protected AssertionError unsupportedTypeExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
         throw UnsupportedTypeException.create(arguments, null, exception);
     }
 
@@ -142,7 +142,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached DispatchNode dispatch,
             @Cached IntegerCastNode intCastNode,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws ArityException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws ArityException {
         int minExpected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "min_expected"));
         int maxExpected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "max_expected"));
         throw ArityException.create(minExpected, maxExpected, arguments.length, exception);
@@ -153,7 +153,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             limit = "1")
     protected AssertionError unknownKeyExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
-            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnknownKeyException {
+            @Cached @Shared LogicalClassNode logicalClassNode) throws UnknownKeyException {
         throw UnknownKeyException.create(arguments[0]); // the key can be any object, not just a string
     }
 

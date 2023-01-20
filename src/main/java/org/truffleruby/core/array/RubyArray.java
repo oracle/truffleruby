@@ -76,7 +76,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @ExportMessage
     public Object readArrayElement(long index,
-            @Cached @Shared("error") BranchProfile errorProfile,
+            @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive DispatchNode dispatch) throws InvalidArrayIndexException {
         if (inBounds(index)) {
             // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
@@ -91,7 +91,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @ExportMessage
     public void writeArrayElement(long index, Object value,
-            @Cached @Shared("error") BranchProfile errorProfile,
+            @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive DispatchNode dispatch) throws InvalidArrayIndexException {
         if (index >= 0 && RubyGuards.fitsInInteger(index)) {
             // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
@@ -107,7 +107,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     @ExportMessage
     public void removeArrayElement(long index,
             @Cached @Exclusive DispatchNode dispatch,
-            @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
+            @Cached @Shared BranchProfile errorProfile) throws InvalidArrayIndexException {
         if (inBounds(index)) {
             // FIXME (pitr 11-Feb-2020): use delete-at node directly
             // @Cached ArrayNodes.DeleteAtNode deleteAtNode
