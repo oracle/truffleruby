@@ -103,6 +103,7 @@ doc/user/README.md
 
 # Ignore graphs and Seafoam generated illustrations
 /*.bgv
+/*.cfg
 /*.pdf
 /*.svg
 
