@@ -192,12 +192,29 @@ public abstract class TypeNodes {
 
         public abstract RubyArray executeGetIVars(Object self);
 
-        @TruffleBoundary
-        @Specialization
-        protected RubyArray instanceVariables(RubyDynamicObject object) {
-            final List<String> names = new ArrayList<>(object.getShape().getPropertyCount());
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected RubyArray instanceVariables(RubyDynamicObject object,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
+                @Cached ConditionProfile noPropertiesProfile) {
+            var shape = objectLibrary.getShape(object);
 
-            for (Object name : DynamicObjectLibrary.getUncached().getKeyArray(object)) {
+            if (noPropertiesProfile.profile(shape.getPropertyCount() == 0)) {
+                return createEmptyArray();
+            }
+
+            return createIVarNameArray(objectLibrary.getKeyArray(object));
+        }
+
+        @Specialization(guards = "!isRubyDynamicObject(object)")
+        protected RubyArray instanceVariablesNotDynamic(Object object) {
+            return createEmptyArray();
+        }
+
+        @TruffleBoundary
+        private RubyArray createIVarNameArray(Object[] keys) {
+            final List<String> names = new ArrayList<>(keys.length);
+
+            for (Object name : keys) {
                 if (name instanceof String) {
                     names.add((String) name);
                 }
@@ -210,11 +227,6 @@ public abstract class TypeNodes {
             }
 
             return createArray(nameSymbols);
-        }
-
-        @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected RubyArray instanceVariablesNotDynamic(Object object) {
-            return createEmptyArray();
         }
 
     }

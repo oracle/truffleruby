@@ -1129,7 +1129,14 @@ public abstract class KernelNodes {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected boolean any(RubyDynamicObject self,
-                @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
+                @CachedLibrary("self") DynamicObjectLibrary objectLibrary,
+                @Cached ConditionProfile noPropertiesProfile) {
+            var shape = objectLibrary.getShape(self);
+
+            if (noPropertiesProfile.profile(shape.getPropertyCount() == 0)) {
+                return false;
+            }
+
             Object[] keys = objectLibrary.getKeyArray(self);
 
             for (Object key : keys) {
