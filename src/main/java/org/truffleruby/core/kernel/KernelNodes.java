@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
@@ -238,7 +240,7 @@ public abstract class KernelNodes {
 
         public abstract boolean execute(Object a, Object b);
 
-        @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)")
+        @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)", limit = "1")
         protected boolean refEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqual) {
             return true;
@@ -947,21 +949,22 @@ public abstract class KernelNodes {
     @GenerateUncached
     @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
-        @Specialization
+
+        @Specialization(guards = "equalNode.executeReferenceEqual(self, from)", limit = "1")
+        protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Bind("getArgument(rubyArgs, 0)") Object from,
+                @Cached @Shared ReferenceEqualNode equalNode) {
+            return self;
+        }
+
+        @Specialization(guards = "!equalNode.executeReferenceEqual(self, from)", limit = "1")
         protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached ReferenceEqualNode equalNode,
-                @Cached ConditionProfile sameProfile,
+                @Bind("getArgument(rubyArgs, 0)") Object from,
+                @Cached @Shared ReferenceEqualNode equalNode,
                 @Cached CheckFrozenNode checkFrozenNode,
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
                 @Cached BranchProfile errorProfile) {
-            Object from = RubyArguments.getArgument(rubyArgs, 0);
-
-            // GR-36575: should be separate specialization but Truffle does not support @Shared for equalNode in this node
-            if (sameProfile.profile(equalNode.executeReferenceEqual(self, from))) {
-                return self;
-            }
-
             checkFrozenNode.execute(self);
 
             if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
