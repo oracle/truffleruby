@@ -91,7 +91,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Object read(int index,
-            @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
+            @Shared @Cached UnwrapNode unwrapNode) {
         return unwrapNode.execute(readElement(index));
     }
 
@@ -137,7 +137,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Object[] boxedCopyOfRange(int start, int length,
-            @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
+            @Shared @Cached UnwrapNode unwrapNode) {
         Object[] newStore = new Object[length];
         for (int i = 0; i < length; i++) {
             newStore[i] = unwrapNode.execute(readElement(start + i));
@@ -202,7 +202,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Object[] toJavaArrayCopy(int size,
-            @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
+            @Shared @Cached UnwrapNode unwrapNode) {
         Object[] newStore = new Object[size];
         assert size >= length;
         for (int i = 0; i < length; i++) {

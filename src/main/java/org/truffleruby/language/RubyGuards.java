@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
@@ -233,6 +234,7 @@ public abstract class RubyGuards {
     // String uncached methods
 
     /** Use to initialize {@link Cached} values */
+    @NeverDefault
     public static TruffleString asTruffleStringUncached(Object rubyString) {
         CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
         if (rubyString instanceof RubyString) {

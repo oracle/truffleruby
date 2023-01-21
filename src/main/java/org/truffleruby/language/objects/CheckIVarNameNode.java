@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -29,7 +30,7 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     @Specialization
     protected void checkSymbol(Object object, String name, RubySymbol originalName,
-            @Cached BranchProfile errorProfile) {
+            @Cached @Shared BranchProfile errorProfile) {
         if (originalName.getType() != IdentifierType.INSTANCE) {
             errorProfile.enter();
             throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorInstanceNameNotAllowable(
@@ -48,7 +49,7 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     @Specialization(replaces = "cached", guards = "!isRubySymbol(originalName)")
     protected void uncached(Object object, String name, Object originalName,
-            @Cached BranchProfile errorProfile) {
+            @Cached @Shared BranchProfile errorProfile) {
         if (!Identifiers.isValidInstanceVariableName(name)) {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceNameNotAllowable(

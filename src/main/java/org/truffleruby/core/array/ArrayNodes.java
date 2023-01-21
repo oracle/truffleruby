@@ -280,7 +280,7 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = { "isArithmeticSequence(index, isANode)" })
+        @Specialization(guards = "isArithmeticSequence(index, isANode)", limit = "1")
         protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
                 @Cached IsANode isANode,
                 @Cached DispatchNode callSliceArithmeticSequence) {
@@ -291,7 +291,8 @@ public abstract class ArrayNodes {
                 guards = {
                         "!isInteger(index)",
                         "!isRubyRange(index)",
-                        "!isArithmeticSequence(index, isANode)" })
+                        "!isArithmeticSequence(index, isANode)" },
+                limit = "1")
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached IsANode isANode,
                 @Cached AtNode accessWithIndexConversion) {
@@ -603,7 +604,8 @@ public abstract class ArrayNodes {
                         "wasProvided(first)",
                         "rest.length > 0",
                         "rest.length == cachedLength",
-                        "cachedLength <= MAX_EXPLODE_SIZE" })
+                        "cachedLength <= MAX_EXPLODE_SIZE" },
+                limit = "getDefaultCacheLimit()")
         protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached ToAryNode toAryNode,
@@ -2427,7 +2429,7 @@ public abstract class ArrayNodes {
             }
         }
 
-        @Specialization(guards = "!canContainObject.execute(array)")
+        @Specialization(guards = "!canContainObject.execute(array)", limit = "1")
         protected boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
                 @Cached ArrayAppendManyNode concat,
                 @Cached TypeNodes.CanContainObjectNode canContainObject) {

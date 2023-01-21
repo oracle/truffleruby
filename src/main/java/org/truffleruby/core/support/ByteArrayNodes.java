@@ -155,7 +155,7 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = { "isSingleBytePattern(patternTString, patternEncoding)" })
+                guards = "isSingleBytePattern(patternTString, patternEncoding)", limit = "1")
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached BranchProfile tooSmallStartProfile,
@@ -183,7 +183,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(
-                guards = { "!isSingleBytePattern(patternTString, patternEncoding)" })
+                guards = "!isSingleBytePattern(patternTString, patternEncoding)", limit = "1")
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,

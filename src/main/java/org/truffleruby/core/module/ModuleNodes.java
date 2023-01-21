@@ -2338,7 +2338,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "!isRubyArray(name)")
         protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
-                @Cached @Shared("nameToJavaStringNode") NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String methodName = nameToJavaStringNode.execute(name);
 
             final InternalMethod method = module.fields.deepMethodSearch(getContext(), methodName);
@@ -2362,7 +2362,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected void setMethodVisibilityArray(RubyModule module, RubyArray array, Visibility visibility,
-                @Cached @Shared("nameToJavaStringNode") NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : ArrayOperations.toIterable(array)) {
                 setMethodVisibility(
                         module,

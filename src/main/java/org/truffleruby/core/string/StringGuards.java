@@ -64,10 +64,6 @@ public class StringGuards {
         return encoding.isFixedWidth;
     }
 
-    public static boolean isEmpty(AbstractTruffleString string) {
-        return string.isEmpty();
-    }
-
     /** The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc. */
     private static boolean isAsciiCompatMapping(int caseMappingOptions) {
         return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;

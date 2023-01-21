@@ -366,7 +366,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divIntFallback(int a, int b,
-                @Cached @Shared("zeroProfile") ConditionProfile zeroProfile) {
+                @Cached @Shared ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -407,7 +407,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divLongFallback(long a, long b,
-                @Cached @Shared("zeroProfile") ConditionProfile zeroProfile) {
+                @Cached @Shared ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -508,7 +508,8 @@ public abstract class IntegerNodes {
 
         public abstract Object executeMod(Object a, Object b);
 
-        @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" })
+        @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" },
+                limit = "getDefaultCacheLimit()")
         protected int modPowerOfTwo(int a, int b,
                 @Cached("b") int cachedB) {
             return a & (cachedB - 1);
@@ -520,7 +521,7 @@ public abstract class IntegerNodes {
 
         @Specialization(replaces = "modPowerOfTwo")
         protected int mod(int a, int b,
-                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
+                @Cached @Shared BranchProfile errorProfile) {
             if (b == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
@@ -538,7 +539,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected double mod(long a, double b,
-                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
+                @Cached @Shared BranchProfile errorProfile) {
             if (b == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
@@ -556,7 +557,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected long mod(long a, long b,
-                @Cached @Shared("errorProfile") BranchProfile errorProfile) {
+                @Cached @Shared BranchProfile errorProfile) {
             if (b == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));

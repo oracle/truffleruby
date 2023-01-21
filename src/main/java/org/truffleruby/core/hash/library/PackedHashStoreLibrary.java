@@ -159,7 +159,7 @@ public class PackedHashStoreLibrary {
     protected static Object lookupOrDefault(
             Object[] store, Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached LookupPackedEntryNode lookupPackedEntryNode,
-            @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
+            @Cached @Shared HashingNodes.ToHash hashNode) {
 
         int hashed = hashNode.execute(key, hash.compareByIdentity);
         return lookupPackedEntryNode.execute(frame, hash, key, hashed, defaultNode);
@@ -170,10 +170,10 @@ public class PackedHashStoreLibrary {
     protected static class Set {
         @Specialization(guards = "hash.size == 0")
         protected static boolean setFirst(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
-                @Cached @Shared("freeze") FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
-                @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-                @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
-                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue) {
+                @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
+                @Cached @Shared HashingNodes.ToHash hashNode,
+                @Cached @Shared PropagateSharingNode propagateSharingKey,
+                @Cached @Shared PropagateSharingNode propagateSharingValue) {
 
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
             propagateSharingKey.executePropagate(hash, key2);
@@ -186,11 +186,11 @@ public class PackedHashStoreLibrary {
 
         @Specialization(guards = "hash.size > 0")
         protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
-                @Cached @Shared("freeze") FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
-                @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-                @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
-                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
-                @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+                @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
+                @Cached @Shared HashingNodes.ToHash hashNode,
+                @Cached @Shared PropagateSharingNode propagateSharingKey,
+                @Cached @Shared PropagateSharingNode propagateSharingValue,
+                @Cached @Shared CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
                 @Cached ConditionProfile withinCapacity) {
 
@@ -227,8 +227,8 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static Object delete(Object[] store, RubyHash hash, Object key,
-            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys) {
+            @Cached @Shared HashingNodes.ToHash hashNode,
+            @Cached @Shared CompareHashKeysNode compareHashKeys) {
 
         assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
@@ -338,8 +338,8 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static void rehash(Object[] store, RubyHash hash,
-            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
+            @Cached @Shared CompareHashKeysNode compareHashKeys,
+            @Cached @Shared HashingNodes.ToHash hashNode) {
 
         assert verify(store, hash);
         int size = hash.size;

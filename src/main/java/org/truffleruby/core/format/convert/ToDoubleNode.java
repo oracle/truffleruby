@@ -53,14 +53,14 @@ public abstract class ToDoubleNode extends FormatNode {
         return bignum.value.doubleValue();
     }
 
-    @Specialization(guards = { "!isRubyNumber(object)", "isNumeric(object, isANode)" })
+    @Specialization(guards = { "!isRubyNumber(object)", "isNumeric(object, isANode)" }, limit = "1")
     protected double toDouble(RubyDynamicObject object,
             @Cached IsANode isANode,
             @Cached ToFNode toFNode) {
         return toFNode.executeToDouble(object);
     }
 
-    @Specialization(guards = { "!isRubyNumber(object)", "!isNumeric(object, isANode)" })
+    @Specialization(guards = { "!isRubyNumber(object)", "!isNumeric(object, isANode)" }, limit = "1")
     protected double toDouble(Object object,
             @Cached IsANode isANode) {
         throw new RaiseException(

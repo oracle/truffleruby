@@ -300,7 +300,8 @@ public abstract class MatchDataNodes {
                 guards = {
                         "nameEntry != null",
                         "getRegexp(matchData) == cachedRegexp",
-                        "symbol == cachedSymbol" })
+                        "symbol == cachedSymbol" },
+                limit = "getDefaultCacheLimit()")
         protected Object getIndexSymbolKnownRegexp(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRegexp(matchData)") RubyRegexp cachedRegexp,
