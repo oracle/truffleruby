@@ -64,6 +64,7 @@ Compatibility:
 * Implement `Enumerable#compact` and `Enumerator::Lazy#compact` (#2733, @andrykonchin).
 * Implement `Array#intersect?` (#2831, @nirvdrum).
 * Record the source location in the constant for the `module`/`class` keywords (#2833, @eregon).
+* Fix `File.open` and support `flags` option (#2820, @andrykonchin).
 
 Performance:
 

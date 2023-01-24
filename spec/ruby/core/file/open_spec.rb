@@ -565,6 +565,15 @@ describe "File.open" do
     File.open(@file, 'wb+') {|f| f.external_encoding.should == Encoding::BINARY}
   end
 
+  it "accepts options as a keyword argument" do
+    @fh = File.open(@file, 'w', 0755, flags: File::CREAT)
+    @fh.should be_an_instance_of(File)
+
+    -> {
+      File.open(@file, 'w', 0755, {flags: File::CREAT})
+    }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 1..3)")
+  end
+
   it "uses the second argument as an options Hash" do
     @fh = File.open(@file, mode: "r")
     @fh.should be_an_instance_of(File)

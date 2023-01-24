@@ -23,6 +23,14 @@ describe "IO.read" do
     IO.read(p)
   end
 
+  it "accepts options as keyword arguments" do
+    IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
+
+    -> {
+      IO.read(@fname, 3, 0, {mode: "r+"})
+    }.should raise_error(ArgumentError, /wrong number of arguments/)
+  end
+
   it "accepts an empty options Hash" do
     IO.read(@fname, **{}).should == @contents
   end
@@ -53,6 +61,19 @@ describe "IO.read" do
 
   it "reads the file if the options Hash includes read/write append mode" do
     IO.read(@fname, mode: "a+").should == @contents
+  end
+
+  it "uses an :open_args option" do
+    string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
+    string.encoding.should == Encoding::US_ASCII
+
+    string = IO.read(@fname, nil, 0, open_args: ["r", nil, {}])
+    string.encoding.should == Encoding::UTF_8
+  end
+
+  it "disregards other options if :open_args is given" do
+    string = IO.read(@fname,mode: "w", encoding: Encoding::UTF_32LE, open_args: ["r", encoding: Encoding::UTF_8])
+    string.encoding.should == Encoding::UTF_8
   end
 
   it "treats second nil argument as no length limit" do
