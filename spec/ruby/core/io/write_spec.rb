@@ -24,10 +24,6 @@ describe "IO#write on a file" do
     -> { @readonly_file.write("") }.should_not raise_error
   end
 
-  it "returns a length of 0 when writing a blank string" do
-    @file.write('').should == 0
-  end
-
   before :each do
     @external = Encoding.default_external
     @internal = Encoding.default_internal
@@ -38,6 +34,18 @@ describe "IO#write on a file" do
   after :each do
     Encoding.default_external = @external
     Encoding.default_internal = @internal
+  end
+
+  it "returns a length of 0 when writing a blank string" do
+    @file.write('').should == 0
+  end
+
+  it "returns a length of 0 when writing blank strings" do
+    @file.write('', '', '').should == 0
+  end
+
+  it "returns a length of 0 when passed no arguments" do
+    @file.write().should == 0
   end
 
   it "returns the number of bytes written" do
@@ -54,9 +62,28 @@ describe "IO#write on a file" do
     File.binread(@filename).bytes.should == [159]
   end
 
+  it "does not modify arguments when passed multiple arguments and external encoding not set" do
+    a, b = "a".freeze, "b".freeze
+
+    File.open(@filename, "w") do |f|
+      f.write(a, b)
+    end
+
+    File.binread(@filename).bytes.should == [97, 98]
+    a.encoding.should == Encoding::UTF_8
+    b.encoding.should == Encoding::UTF_8
+  end
+
   it "uses the encoding from the given option for non-ascii encoding" do
     File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
       file.write("hi").should == 8
+    end
+    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+  end
+
+  it "uses the encoding from the given option for non-ascii encoding when multiple arguments passes" do
+    File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
+      file.write("h", "i").should == 8
     end
     File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
@@ -77,6 +104,18 @@ describe "IO#write on a file" do
     ö = ([246].pack('U')).encode('ISO-8859-1')
     res = "H#{ë}ll#{ö}"
     File.binread(@filename).should == res.force_encoding(Encoding::BINARY)
+  end
+
+  it "writes binary data if no encoding is given and multiple arguments passed" do
+    File.open(@filename, "w") do |file|
+      file.write("\x87".b, "ą") # 0x87 isn't a valid UTF-8 binary representation of a character
+    end
+    File.binread(@filename).bytes.should == [0x87, 0xC4, 0x85]
+
+    File.open(@filename, "w") do |file|
+      file.write("\x61".encode("utf-32le"), "ą")
+    end
+    File.binread(@filename).bytes.should == [0x61, 0x00, 0x00, 0x00, 0xC4, 0x85]
   end
 end
 
