@@ -70,6 +70,8 @@ class Enumerator
   end
 
   def inspect
+    return "#<#{self.class}: uninitialized>" if @object.nil? && @iter.nil?
+
     args = @kwargs.empty? ? @args : [*@args, @kwargs]
     args = args.empty? ? '' : "(#{args.map(&:inspect).join(', ')})"
     "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
@@ -794,7 +796,7 @@ class Enumerator::Chain < Enumerator
 
   def inspect
     return "#<#{self.class.name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
-      return "#<#{self.class.name}: #{@enums}>"
+      return "#<#{self.class.name}: #{@enums || "uninitialized"}>"
     end
   end
 end

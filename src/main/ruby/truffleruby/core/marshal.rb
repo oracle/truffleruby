@@ -505,12 +505,7 @@ module Marshal
         @stream = nil
       end
 
-      if stream
-        @consumed = 2
-      else
-        @consumed = 0
-      end
-
+      @consumed = 0
       @modules = nil
       @has_ivar = []
       @proc = proc
@@ -1327,12 +1322,10 @@ module Marshal
   def self.load(obj, prc = nil)
     if Primitive.object_respond_to? obj, :to_str, false
       data = obj.to_s
-
-      major = data.getbyte 0
-      minor = data.getbyte 1
-
       ms = StringState.new data, nil, prc
 
+      major = ms.consume_byte
+      minor = ms.consume_byte
     elsif Primitive.object_respond_to? obj, :read, false and
           Primitive.object_respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc

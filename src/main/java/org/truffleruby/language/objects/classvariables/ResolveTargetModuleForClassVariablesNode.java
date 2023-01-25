@@ -37,7 +37,7 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyBaseN
         LexicalScope scope = lexicalScope;
 
         // MRI logic: ignore lexical scopes (cref) referring to singleton classes
-        while (RubyGuards.isSingletonClass(scope.getLiveModule())) {
+        while (RubyGuards.isSingletonClass(scope.getLiveModule()) || scope.ignoreForClassVariablesLookup) {
             scope = scope.getParent();
         }
 
