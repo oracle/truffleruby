@@ -1817,12 +1817,12 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep_or_limit=$/, limit=nil, chomp: false)
-    ret = []
-
+  def readlines(sep_or_limit=$/, limit=nil, **options)
+    chomp = options.fetch(:chomp, false)
     each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
-    each_reader&.each { |line| ret << line }
 
+    ret = []
+    each_reader&.each { |line| ret << line }
     ret
   end
 
