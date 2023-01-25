@@ -83,6 +83,7 @@ describe "File.new" do
 
     -> { @fh.puts("test") }.should raise_error(IOError)
     @fh.read.should == ""
+    File.should.exist?(@file)
   end
 
   it "returns a new read-only File when mode is not specified but flags option is present" do
@@ -90,6 +91,7 @@ describe "File.new" do
 
     -> { @fh.puts("test") }.should raise_error(IOError)
     @fh.read.should == ""
+    File.should.exist?(@file)
   end
 
   it "creates a new file when use File::EXCL mode" do
@@ -130,6 +132,26 @@ describe "File.new" do
     @fh = File.new(@file, File::WRONLY|File::TRUNC)
     @fh.should be_kind_of(File)
     File.should.exist?(@file)
+  end
+
+  it "returns a new read-only File when use File::RDONLY|File::CREAT mode" do
+    @fh = File.new(@file, File::RDONLY|File::CREAT)
+    @fh.should be_kind_of(File)
+    File.should.exist?(@file)
+
+    # it's read-only
+    -> { @fh.puts("test") }.should raise_error(IOError)
+    @fh.read.should == ""
+  end
+
+  it "returns a new read-only File when use File::CREAT mode" do
+    @fh = File.new(@file, File::CREAT)
+    @fh.should be_kind_of(File)
+    File.should.exist?(@file)
+
+    # it's read-only
+    -> { @fh.puts("test") }.should raise_error(IOError)
+    @fh.read.should == ""
   end
 
   it "coerces filename using to_str" do
