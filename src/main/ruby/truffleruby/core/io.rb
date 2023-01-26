@@ -329,20 +329,14 @@ class IO
     end
   end
 
-  def self.binwrite(file, string, *args)
-    offset, opts = args
-    opts ||= {}
-    if Primitive.object_kind_of?(offset, Hash)
-      offset, opts = nil, offset
-    end
-
+  def self.binwrite(file, string, offset=nil, **options)
     default_mode = File::CREAT | File::RDWR | File::BINARY
     default_mode |= File::TRUNC unless offset
 
-    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts, default_mode)
+    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options, default_mode)
 
     File.open(file, mode, encoding: (external || 'ASCII-8BIT'), perm: perm) do |f|
-      f.seek(offset || 0)
+      f.seek(offset) if offset
       f.write(string)
     end
   end
