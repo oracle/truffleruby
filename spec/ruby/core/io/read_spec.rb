@@ -79,6 +79,16 @@ describe "IO.read" do
     string.encoding.should == Encoding::UTF_8
   end
 
+  it "doesn't require mode to be specified in :open_args" do
+    string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII}])
+    string.encoding.should == Encoding::US_ASCII
+  end
+
+  it "doesn't require mode to be specified in :open_args even if flags option passed" do
+    string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII, flags: File::CREAT}])
+    string.encoding.should == Encoding::US_ASCII
+  end
+
   it "treats second nil argument as no length limit" do
     IO.read(@fname, nil).should == @contents
     IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)

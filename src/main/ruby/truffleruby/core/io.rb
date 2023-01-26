@@ -527,7 +527,6 @@ class IO
   def self.read(name, length=nil, offset=0, **options)
     offset = 0 if Primitive.nil? offset
     name = Truffle::Type.coerce_to_path name
-    mode = options.delete(:mode) || 'r'
 
     offset = Primitive.rb_to_int(offset || 0)
     raise Errno::EINVAL, 'offset must not be negative' if offset < 0
@@ -537,12 +536,20 @@ class IO
       raise ArgumentError, 'length must not be negative' if length < 0
     end
 
+    if Primitive.nil?(options[:open_args])
+      file_new_args = [name]
+      file_new_options = options
+    else
+      file_new_args = [name] + options[:open_args]
+      file_new_options = Primitive.object_kind_of?(file_new_args.last, Hash) ? file_new_args.pop : {}
+    end
+
     # Detect pipe mode
     if name[0] == ?|
       io = IO.popen(name[1..-1], 'r')
       return nil unless io # child process
     else
-      io = File.new(name, mode, **options)
+      io = File.new(*file_new_args, **file_new_options)
     end
 
     str = nil
