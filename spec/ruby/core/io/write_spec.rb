@@ -81,6 +81,20 @@ describe "IO#write on a file" do
     File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
+  it "uses the encoding from the given option for non-ascii encoding even if in binary mode" do
+    File.open(@filename, "w", encoding: Encoding::UTF_32LE, binmode: true) do |file|
+      file.should.binmode?
+      file.write("hi").should == 8
+    end
+    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+
+    File.open(@filename, "wb", encoding: Encoding::UTF_32LE) do |file|
+      file.should.binmode?
+      file.write("hi").should == 8
+    end
+    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+  end
+
   it "uses the encoding from the given option for non-ascii encoding when multiple arguments passes" do
     File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
       file.write("h", "i").should == 8

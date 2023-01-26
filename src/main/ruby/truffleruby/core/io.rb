@@ -2319,7 +2319,7 @@ class IO
 
       ensure_open_and_writable
 
-      if !binmode? && external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
+      if external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
         unless string.ascii_only? && external_encoding.ascii_compatible?
           string = string.encode(external_encoding)
         end
