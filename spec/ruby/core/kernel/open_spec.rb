@@ -72,13 +72,15 @@ describe "Kernel#open" do
     -> { open }.should raise_error(ArgumentError)
   end
 
-  it "accepts options as keyword arguments" do
-    @file = open(@name, "r", 0666, flags: File::CREAT)
-    @file.should be_kind_of(File)
+  ruby_version_is "3.0" do
+    it "accepts options as keyword arguments" do
+      @file = open(@name, "r", 0666, flags: File::CREAT)
+      @file.should be_kind_of(File)
 
-    -> {
-      open(@name, "r", 0666, {flags: File::CREAT})
-    }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 1..3)")
+      -> {
+        open(@name, "r", 0666, {flags: File::CREAT})
+      }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 1..3)")
+    end
   end
 
   describe "when given an object that responds to to_open" do

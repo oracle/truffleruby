@@ -806,26 +806,26 @@ class Pathname    # * IO *
   #
   # This method has existed since 1.8.1.
   #
-  def each_line(*args, **kw, &block) # :yield: line
-    IO.foreach(@path, *args, **kw, &block)
+  def each_line(...) # :yield: line
+    IO.foreach(@path, ...)
   end
 
   # See <tt>IO.read</tt>.  Returns all data from the file, or the first +N+ bytes
   # if specified.
-  def read(*args, **kw) IO.read(@path, *args, **kw) end
+  def read(...) IO.read(@path, ...) end
 
   # See <tt>IO.binread</tt>.  Returns all the bytes from the file, or the first +N+
   # if specified.
   def binread(*args) IO.binread(@path, *args) end
 
   # See <tt>IO.write</tt>.  Returns the number of bytes written to the file.
-  def write(*args, **kw) IO.write(@path, *args, **kw) end
+  def write(...) IO.write(@path, ...) end
 
   # See <tt>IO.binwrite</tt>.  Returns the number of bytes written to the file.
   def binwrite(*args) IO.binwrite(@path, *args) end
 
   # See <tt>IO.readlines</tt>.  Returns all the lines from the file.
-  def readlines(*args, **kw) IO.readlines(@path, *args, **kw) end
+  def readlines(...) IO.readlines(@path, ...) end
 
   # See <tt>IO.sysopen</tt>.
   def sysopen(*args) IO.sysopen(@path, *args) end
@@ -870,8 +870,8 @@ class Pathname    # * File *
   def make_link(old) File.link(old, @path) end
 
   # See <tt>File.open</tt>.  Opens the file for reading or writing.
-  def open(*args, **kw, &block) # :yield: file
-    File.open(@path, *args, **kw, &block)
+  def open(...) # :yield: file
+    File.open(@path, ...)
   end
 
   # See <tt>File.readlink</tt>.  Read symbolic link.
