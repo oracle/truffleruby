@@ -2116,8 +2116,17 @@ public class CExtNodes {
     @Primitive(name = "data_holder_get_free")
     public abstract static class DataHolderGetFree extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object getMarker(DataHolder data) {
+        protected Object getFree(DataHolder data) {
             return data.getFree();
+        }
+    }
+
+    @Primitive(name = "data_holder_set_free")
+    public abstract static class DataHolderSetFree extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object setFree(DataHolder data, Object dfree) {
+            data.setFree(dfree);
+            return dfree;
         }
     }
 

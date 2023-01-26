@@ -260,8 +260,7 @@ public abstract class ObjectSpaceNodes {
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object defineFinalizer(
-                VirtualFrame frame, RubyDynamicObject object, Object finalizer, DataHolder dataHolder,
+        protected Object defineFinalizer(RubyDynamicObject object, DataHolder dataHolder,
                 @Cached WriteBarrierNode writeBarrierNode,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
             if (!getContext().getReferenceProcessor().processOnMainThread()) {
@@ -269,13 +268,12 @@ public abstract class ObjectSpaceNodes {
                 if (!getContext().getSharedObjects().isSharing()) {
                     startSharing();
                 }
-                writeBarrierNode.executeWriteBarrier(finalizer);
                 writeBarrierNode.executeWriteBarrier(dataHolder);
             }
 
             DataObjectFinalizerReference newRef = getContext()
                     .getDataObjectFinalizationService()
-                    .addFinalizer(getContext(), object, finalizer, dataHolder);
+                    .addFinalizer(getContext(), object, dataHolder);
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 

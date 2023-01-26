@@ -87,8 +87,15 @@ class Truffle::CExt::RData
   end
 
   def polyglot_write_member(name, value)
-    raise Truffle::Interop::UnknownIdentifierException unless name == 'data'
-    Primitive.data_holder_set_data(@data_holder, value)
+    case name
+    when 'data'
+      Primitive.data_holder_set_data(@data_holder, value)
+    when 'dfree'
+      Primitive.data_holder_set_free(@data_holder, value)
+    else
+      raise Truffle::Interop::UnknownIdentifierException
+    end
+
   end
 
   def polyglot_remove_member(name)
@@ -104,7 +111,7 @@ class Truffle::CExt::RData
   end
 
   def polyglot_member_modifiable?(name)
-    name == 'data'
+    name == 'data' or name == 'dfree'
   end
 
   def polyglot_member_removable?(name)

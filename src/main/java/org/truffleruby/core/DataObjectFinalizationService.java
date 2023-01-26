@@ -38,7 +38,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
     // We need a base node here, it should extend ruby base root node and implement internal root node.
     public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-        @Child private InteropLibrary nullNode;
+        @Child private InteropLibrary nullDataPointerNode;
+        @Child private InteropLibrary nullDataFreeNode;
         @Child private InteropLibrary callNode;
         private final ConditionProfile ownedProfile = ConditionProfile.create();
 
@@ -46,7 +47,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
                 RubyLanguage language) {
             super(language, RubyLanguage.EMPTY_FRAME_DESCRIPTOR, null);
 
-            nullNode = InteropLibrary.getFactory().createDispatched(1);
+            nullDataPointerNode = InteropLibrary.getFactory().createDispatched(1);
+            nullDataFreeNode = InteropLibrary.getFactory().createDispatched(1);
             callNode = InteropLibrary.getFactory().createDispatched(1);
         }
 
@@ -80,11 +82,12 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
             try {
                 if (!getContext().isFinalizing()) {
                     Object data = ref.dataHolder.getPointer();
-                    if (!nullNode.isNull(data)) {
+                    Object callable = ref.dataHolder.getFree();
+                    if (!nullDataPointerNode.isNull(data) && !nullDataFreeNode.isNull(callable)) {
                         final ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
                         stack.push(false, stack.getSpecialVariables(), stack.getBlock());
                         try {
-                            callNode.execute(ref.callable, data);
+                            callNode.execute(callable, data);
                         } finally {
                             stack.pop();
                         }
@@ -107,9 +110,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         this(language, referenceProcessor.processingQueue);
     }
 
-    public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object callable,
-            DataHolder dataHolder) {
-        final DataObjectFinalizerReference newRef = createRef(object, callable, dataHolder);
+    public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, DataHolder dataHolder) {
+        final DataObjectFinalizerReference newRef = createRef(object, dataHolder);
 
         add(newRef);
         context.getReferenceProcessor().processReferenceQueue(this);
@@ -117,8 +119,8 @@ public class DataObjectFinalizationService extends ReferenceProcessingService<Da
         return newRef;
     }
 
-    public DataObjectFinalizerReference createRef(Object object, Object callable, DataHolder dataHolder) {
-        return new DataObjectFinalizerReference(object, processingQueue, this, callable, dataHolder);
+    public DataObjectFinalizerReference createRef(Object object, DataHolder dataHolder) {
+        return new DataObjectFinalizerReference(object, processingQueue, this, dataHolder);
     }
 
     public final void drainFinalizationQueue(RubyContext context) {
