@@ -67,6 +67,11 @@ describe :io_binwrite, shared: true do
     File.read(@filename).should == "\0\0foo"
   end
 
+  it "accepts a :flags option without :mode one" do
+    IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
+    File.read(@filename).should == "hello, world!"
+  end
+
   it "raises an error if readonly mode is specified" do
     -> { IO.send(@method, @filename, "abcde", mode: "r") }.should raise_error(IOError)
   end

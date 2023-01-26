@@ -336,11 +336,11 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts)
-    unless mode
-      mode = File::CREAT | File::RDWR | File::BINARY
-      mode |= File::TRUNC unless offset
-    end
+    default_mode = File::CREAT | File::RDWR | File::BINARY
+    default_mode |= File::TRUNC unless offset
+
+    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts, default_mode)
+
     File.open(file, mode, encoding: (external || 'ASCII-8BIT'), perm: perm) do |f|
       f.seek(offset || 0)
       f.write(string)
@@ -501,11 +501,10 @@ class IO
 
   def self.write(file, string, offset=nil, **options)
     if Primitive.nil?(options[:open_args])
-      mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options)
-      unless mode
-        mode = File::CREAT | File::WRONLY
-        mode |= File::TRUNC unless offset
-      end
+      default_mode = File::CREAT | File::WRONLY
+      default_mode |= File::TRUNC unless offset
+
+      mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options, default_mode)
 
       open_args = [mode]
       open_kw = { encoding: (external || 'ASCII-8BIT'), perm: perm }
@@ -572,7 +571,7 @@ class IO
     Truffle::Type.rb_check_convert_type obj, IO, :to_io
   end
 
-  def self.normalize_options(mode, perm, options)
+  def self.normalize_options(mode, perm, options, default_mode=nil)
     autoclose = true
 
     if mode
@@ -591,6 +590,7 @@ class IO
       end
 
       mode ||= optmode
+      mode ||= default_mode
 
       if flags = options[:flags]
         flags = Truffle::Type.rb_convert_type(flags, Integer, :to_int)
@@ -617,6 +617,8 @@ class IO
 
       autoclose = Primitive.as_boolean(options[:autoclose]) if options.key?(:autoclose)
     end
+
+    mode ||= default_mode
 
     if Primitive.object_kind_of?(mode, String)
       mode, external, internal = mode.split(':', 3)
