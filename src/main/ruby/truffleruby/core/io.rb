@@ -1711,6 +1711,8 @@ class IO
       return nil
     end
 
+    raise ArgumentError, 'length must not be negative' if length < 0
+
     str = +''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
