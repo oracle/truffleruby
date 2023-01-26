@@ -66,6 +66,7 @@ Compatibility:
 * Implement `Array#intersect?` (#2831, @nirvdrum).
 * Record the source location in the constant for the `module`/`class` keywords (#2833, @eregon).
 * Fix `File.open` and support `flags` option (#2820, @andrykonchin).
+* Support writing to `RData.dfree` for native extensions (#2830, #2732, #2165, @eregon).
 
 Performance:
 

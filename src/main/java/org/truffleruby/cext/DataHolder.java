@@ -18,6 +18,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.language.RubyGuards;
 
 /** This object represents a struct pointer in C held by a Ruby object. */
 @ExportLibrary(InteropLibrary.class)
@@ -25,9 +26,13 @@ public final class DataHolder implements TruffleObject {
 
     private Object pointer;
     private final Object marker;
-    private final Object free;
+    private Object free;
 
     public DataHolder(Object pointer, Object marker, Object free) {
+        // All foreign objects, so we don't need to share them for SharedObjects
+        assert RubyGuards.isForeignObject(pointer);
+        assert RubyGuards.isForeignObject(marker);
+        assert RubyGuards.isForeignObject(free);
         this.pointer = pointer;
         this.marker = marker;
         this.free = free;
@@ -38,6 +43,7 @@ public final class DataHolder implements TruffleObject {
     }
 
     public void setPointer(Object pointer) {
+        assert RubyGuards.isForeignObject(pointer);
         this.pointer = pointer;
     }
 
@@ -47,6 +53,11 @@ public final class DataHolder implements TruffleObject {
 
     public Object getFree() {
         return free;
+    }
+
+    public void setFree(Object free) {
+        assert RubyGuards.isForeignObject(free);
+        this.free = free;
     }
 
     @ExportMessage

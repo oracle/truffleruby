@@ -17,17 +17,14 @@ public class DataObjectFinalizerReference
         extends
         ReferenceProcessingService.PhantomProcessingReference<DataObjectFinalizerReference, Object> {
 
-    public final Object callable;
     public final DataHolder dataHolder;
 
     DataObjectFinalizerReference(
             Object object,
             ReferenceQueue<? super Object> queue,
             DataObjectFinalizationService service,
-            Object callable,
             DataHolder dataHolder) {
         super(object, queue, service);
-        this.callable = callable;
         this.dataHolder = dataHolder;
     }
 }
