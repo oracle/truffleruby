@@ -2310,25 +2310,26 @@ class IO
     nil
   end
 
-  def write(*data)
-    data = if data.size > 1
-             data.map { |d| Truffle::Type.rb_obj_as_string(d) }.join
-           else
-             Truffle::Type.rb_obj_as_string(data[0])
-           end
-    return 0 if data.empty?
+  def write(*objects)
+    bytes_written = 0
 
-    ensure_open_and_writable
+    objects.each do |object|
+      string = Truffle::Type.rb_obj_as_string(object)
+      next if string.empty?
 
-    if !binmode? && external_encoding &&
-       external_encoding != data.encoding &&
-       external_encoding != Encoding::BINARY
-      unless data.ascii_only? && external_encoding.ascii_compatible?
-        data = data.encode(external_encoding)
+      ensure_open_and_writable
+
+      if !binmode? && external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
+        unless string.ascii_only? && external_encoding.ascii_compatible?
+          string = string.encode(external_encoding)
+        end
       end
+
+      count = Truffle::POSIX.write_string self, string, true
+      bytes_written += count
     end
 
-    Truffle::POSIX.write_string self, data, true
+    bytes_written
   end
 
   def write_nonblock(data, exception: true)
