@@ -57,6 +57,11 @@ describe :keep_if, shared: true do
         -> { @frozen.send(@method) { false } }.should raise_error(FrozenError)
       end
     end
+
+    it "raises a FrozenError on a frozen array only during iteration if called without a block" do
+      enum = @frozen.send(@method)
+      -> { enum.each {} }.should raise_error(FrozenError)
+    end
   end
 
   it "does not truncate the array is the block raises an exception" do

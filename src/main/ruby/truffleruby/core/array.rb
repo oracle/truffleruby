@@ -1259,9 +1259,9 @@ class Array
   end
 
   def sort_by!(&block)
-    Primitive.check_frozen self
-
     return to_enum(:sort_by!) { size } unless block_given?
+
+    Primitive.check_frozen self
 
     Primitive.steal_array_storage(self, sort_by(&block))
   end

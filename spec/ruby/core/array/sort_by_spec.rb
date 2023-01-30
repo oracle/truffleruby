@@ -32,6 +32,11 @@ describe "Array#sort_by!" do
     -> { ArraySpecs.empty_frozen_array.sort_by! {}}.should raise_error(FrozenError)
   end
 
+  it "raises a FrozenError on a frozen array only during iteration if called without a block" do
+    enum = ArraySpecs.frozen_array.sort_by!
+    -> { enum.each {} }.should raise_error(FrozenError)
+  end
+
   it "returns the specified value when it would break in the given block" do
     [1, 2, 3].sort_by!{ break :a }.should == :a
   end
