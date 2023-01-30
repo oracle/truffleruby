@@ -1,4 +1,5 @@
 require_relative '../../enumerable/shared/enumeratorized'
+require_relative '../shared/iterable_and_tolerating_size_increasing'
 
 describe :array_collect, shared: true do
   it "returns a copy of array with each element replaced by the value returned by block" do
@@ -108,4 +109,6 @@ describe :array_collect_b, shared: true do
     @object = [1, 2, 3, 4]
   end
   it_should_behave_like :enumeratorized_with_origin_size
+
+  it_should_behave_like :array_iterable_and_tolerating_size_increasing
 end

@@ -72,6 +72,21 @@ describe "Array#fill" do
     -> { [].fill(1, 2) {|i|} }.should_not raise_error(ArgumentError)
     -> { [].fill(1, 2, true) {|i|} }.should raise_error(ArgumentError)
   end
+
+  it "tolerates increasing an array size during iteration" do
+    array = [:a, :b, :c]
+    ScratchPad.record []
+    i = 0
+
+    array.fill do |index|
+      ScratchPad << index
+      array << i if i < 100
+      i++
+      index
+    end
+
+    ScratchPad.recorded.should == [0, 1, 2]
+  end
 end
 
 describe "Array#fill with (filler, index, length)" do

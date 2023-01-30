@@ -1,4 +1,5 @@
 require_relative '../../enumerable/shared/enumeratorized'
+require_relative '../shared/iterable_and_tolerating_size_increasing'
 
 describe :keep_if, shared: true do
   it "deletes elements for which the block returns a false value" do
@@ -57,4 +58,7 @@ describe :keep_if, shared: true do
       end
     end
   end
+
+  @value_to_return = -> (_) { true }
+  it_should_behave_like :array_iterable_and_tolerating_size_increasing
 end
