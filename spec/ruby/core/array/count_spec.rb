@@ -14,6 +14,12 @@ describe "Array#count" do
     [:a, :b, :c].count { |s| s != :b }.should == 2
   end
 
+  it "ignores the block if there is an argument" do
+    -> {
+      [:a, :b, :b, :c].count(:b) { |e| e.size > 10 }.should == 2
+    }.should complain(/given block not used/)
+  end
+
   context "when a block argument given" do
     it_behaves_like :array_iterable_and_tolerating_size_increasing, :count
   end

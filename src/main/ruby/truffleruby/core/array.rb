@@ -304,6 +304,7 @@ class Array
   def count(item = undefined)
     seq = 0
     if !Primitive.undefined?(item)
+      warn 'given block not used', uplevel: 1 if block_given?
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }

@@ -19,8 +19,13 @@ describe :enumerable_inject, shared: true do
   end
 
   it "ignores the block if two arguments" do
-    EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-) { raise "we never get here"}.should == 4
-    [].send(@method, 3, :+) { raise "we never get here"}.should == 3
+    -> {
+      EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-) { raise "we never get here"}.should == 4
+    }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
+
+    -> {
+      [1, 2, 3].send(@method, 10, :-) { raise "we never get here"}.should == 4
+    }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
   end
 
   it "can take a symbol argument" do
@@ -33,10 +38,10 @@ describe :enumerable_inject, shared: true do
     a.should == [[2, 5], [5, 3], [3, 6], [6, 1], [1, 4]]
   end
 
-   it "gathers whole arrays as elements when each yields multiple" do
-     multi = EnumerableSpecs::YieldsMulti.new
-     multi.send(@method, []) {|acc, e| acc << e }.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
-   end
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.send(@method, []) {|acc, e| acc << e }.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
+  end
 
   it "with inject arguments(legacy rubycon)" do
     # with inject argument

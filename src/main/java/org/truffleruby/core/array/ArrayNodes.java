@@ -19,6 +19,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -75,6 +76,7 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -1144,7 +1146,13 @@ public abstract class ArrayNodes {
         protected RubyArray initializeOnlyBlock(
                 RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
                 @Cached IsSharedNode isShared,
-                @Cached ConditionProfile sharedProfile) {
+                @Cached ConditionProfile sharedProfile,
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+                warningNode.warningMessage(sourceSection, "given block not used");
+            }
+
             setStoreAndSize(array,
                     ArrayStoreLibrary.initialStorage(sharedProfile.profile(isShared.executeIsShared(array))), 0);
             return array;
@@ -1439,7 +1447,12 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
-                @Cached ToJavaStringNode toJavaString) {
+                @Cached ToJavaStringNode toJavaString,
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+                warningNode.warningMessage(sourceSection, "given block not used");
+            }
             return injectSymbolHelper(
                     frame,
                     array,
