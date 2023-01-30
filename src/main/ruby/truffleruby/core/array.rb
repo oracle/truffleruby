@@ -364,9 +364,8 @@ class Array
     return to_enum(:each_index) { size } unless block_given?
 
     i = 0
-    total = size
 
-    while i < total
+    while i < size
       yield i
       i += 1
     end
