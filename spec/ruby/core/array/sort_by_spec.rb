@@ -49,6 +49,29 @@ describe "Array#sort_by!" do
     [1].sort_by!(&:to_s).should == [1]
   end
 
+  it "does not truncate the array is the block raises an exception" do
+    a = [1, 2, 3]
+    begin
+      a.sort_by! { raise StandardError, 'Oops' }
+    rescue
+    end
+
+    a.should == [1, 2, 3]
+  end
+
+  it "doesn't change array if error is raised" do
+    a = [4, 3, 2, 1]
+    begin
+      a.sort_by! do |e|
+        raise StandardError, 'Oops' if e == 1
+        e
+      end
+    rescue StandardError
+    end
+
+    a.should == [4, 3, 2, 1]
+  end
+
   it_behaves_like :enumeratorized_with_origin_size, :sort_by!, [1,2,3]
 end
 

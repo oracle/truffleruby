@@ -105,6 +105,33 @@ describe :array_collect_b, shared: true do
     end
   end
 
+  it "does not truncate the array is the block raises an exception" do
+    a = [1, 2, 3]
+    begin
+      a.send(@method) { raise StandardError, 'Oops' }
+    rescue
+    end
+
+    a.should == [1, 2, 3]
+  end
+
+  it "only changes elements before error is raised, keeping the element which raised an error." do
+    a = [1, 2, 3, 4]
+    begin
+      a.send(@method) do |e|
+        case e
+        when 1 then -1
+        when 2 then -2
+        when 3 then raise StandardError, 'Oops'
+        else 0
+        end
+      end
+    rescue StandardError
+    end
+
+    a.should == [-1, -2, 3, 4]
+  end
+
   before :all do
     @object = [1, 2, 3, 4]
   end

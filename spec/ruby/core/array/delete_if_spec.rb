@@ -48,6 +48,32 @@ describe "Array#delete_if" do
     -> { ArraySpecs.empty_frozen_array.delete_if {} }.should raise_error(FrozenError)
   end
 
+  it "does not truncate the array is the block raises an exception" do
+    a = [1, 2, 3]
+    begin
+      a.delete_if { raise StandardError, 'Oops' }
+    rescue
+    end
+
+    a.should == [1, 2, 3]
+  end
+
+  it "only removes elements for which the block returns true, keeping the element which raised an error." do
+    a = [1, 2, 3, 4]
+    begin
+      a.delete_if do |e|
+        case e
+        when 2 then true
+        when 3 then raise StandardError, 'Oops'
+        else false
+        end
+      end
+    rescue StandardError
+    end
+
+    a.should == [1, 3, 4]
+  end
+
   it_behaves_like :enumeratorized_with_origin_size, :delete_if, [1,2,3]
   it_behaves_like :delete_if, :delete_if
 
