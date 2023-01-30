@@ -329,20 +329,14 @@ class IO
     end
   end
 
-  def self.binwrite(file, string, *args)
-    offset, opts = args
-    opts ||= {}
-    if Primitive.object_kind_of?(offset, Hash)
-      offset, opts = nil, offset
-    end
+  def self.binwrite(file, string, offset=nil, **options)
+    default_mode = File::CREAT | File::RDWR | File::BINARY
+    default_mode |= File::TRUNC unless offset
 
-    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts)
-    unless mode
-      mode = File::CREAT | File::RDWR | File::BINARY
-      mode |= File::TRUNC unless offset
-    end
+    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options, default_mode)
+
     File.open(file, mode, encoding: (external || 'ASCII-8BIT'), perm: perm) do |f|
-      f.seek(offset || 0)
+      f.seek(offset) if offset
       f.write(string)
     end
   end
@@ -501,11 +495,10 @@ class IO
 
   def self.write(file, string, offset=nil, **options)
     if Primitive.nil?(options[:open_args])
-      mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options)
-      unless mode
-        mode = File::CREAT | File::WRONLY
-        mode |= File::TRUNC unless offset
-      end
+      default_mode = File::CREAT | File::WRONLY
+      default_mode |= File::TRUNC unless offset
+
+      mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, options, default_mode)
 
       open_args = [mode]
       open_kw = { encoding: (external || 'ASCII-8BIT'), perm: perm }
@@ -527,7 +520,6 @@ class IO
   def self.read(name, length=nil, offset=0, **options)
     offset = 0 if Primitive.nil? offset
     name = Truffle::Type.coerce_to_path name
-    mode = options.delete(:mode) || 'r'
 
     offset = Primitive.rb_to_int(offset || 0)
     raise Errno::EINVAL, 'offset must not be negative' if offset < 0
@@ -537,12 +529,20 @@ class IO
       raise ArgumentError, 'length must not be negative' if length < 0
     end
 
+    if Primitive.nil?(options[:open_args])
+      file_new_args = [name]
+      file_new_options = options
+    else
+      file_new_args = [name] + options[:open_args]
+      file_new_options = Primitive.object_kind_of?(file_new_args.last, Hash) ? file_new_args.pop : {}
+    end
+
     # Detect pipe mode
     if name[0] == ?|
       io = IO.popen(name[1..-1], 'r')
       return nil unless io # child process
     else
-      io = File.new(name, mode, **options)
+      io = File.new(*file_new_args, **file_new_options)
     end
 
     str = nil
@@ -565,7 +565,7 @@ class IO
     Truffle::Type.rb_check_convert_type obj, IO, :to_io
   end
 
-  def self.normalize_options(mode, perm, options)
+  def self.normalize_options(mode, perm, options, default_mode=nil)
     autoclose = true
 
     if mode
@@ -584,6 +584,7 @@ class IO
       end
 
       mode ||= optmode
+      mode ||= default_mode
 
       if flags = options[:flags]
         flags = Truffle::Type.rb_convert_type(flags, Integer, :to_int)
@@ -610,6 +611,8 @@ class IO
 
       autoclose = Primitive.as_boolean(options[:autoclose]) if options.key?(:autoclose)
     end
+
+    mode ||= default_mode
 
     if Primitive.object_kind_of?(mode, String)
       mode, external, internal = mode.split(':', 3)
@@ -1704,6 +1707,8 @@ class IO
       return nil
     end
 
+    raise ArgumentError, 'length must not be negative' if length < 0
+
     str = +''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
@@ -1817,12 +1822,12 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep_or_limit=$/, limit=nil, chomp: false)
-    ret = []
-
+  def readlines(sep_or_limit=$/, limit=nil, **options)
+    chomp = options.fetch(:chomp, false)
     each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
-    each_reader&.each { |line| ret << line }
 
+    ret = []
+    each_reader&.each { |line| ret << line }
     ret
   end
 
@@ -2319,7 +2324,7 @@ class IO
 
       ensure_open_and_writable
 
-      if !binmode? && external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
+      if external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
         unless string.ascii_only? && external_encoding.ascii_compatible?
           string = string.encode(external_encoding)
         end

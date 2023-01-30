@@ -81,6 +81,20 @@ describe "IO#write on a file" do
     File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
+  it "uses the encoding from the given option for non-ascii encoding even if in binary mode" do
+    File.open(@filename, "w", encoding: Encoding::UTF_32LE, binmode: true) do |file|
+      file.should.binmode?
+      file.write("hi").should == 8
+    end
+    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+
+    File.open(@filename, "wb", encoding: Encoding::UTF_32LE) do |file|
+      file.should.binmode?
+      file.write("hi").should == 8
+    end
+    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+  end
+
   it "uses the encoding from the given option for non-ascii encoding when multiple arguments passes" do
     File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
       file.write("h", "i").should == 8
@@ -131,8 +145,36 @@ describe "IO.write" do
     File.read(@filename).should == "\0\0hi"
   end
 
+  it "requires mode to be specified in :open_args" do
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
+    }.should raise_error(IOError, "not opened for writing")
+
+    IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true}]).should == 8
+    IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, mode: "w"}]).should == 8
+  end
+
+  it "requires mode to be specified in :open_args even if flags option passed" do
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
+    }.should raise_error(IOError, "not opened for writing")
+
+    IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}]).should == 8
+    IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT, mode: "w"}]).should == 8
+  end
+
   it "uses the given encoding and returns the number of bytes written" do
     IO.write(@filename, 'hi', mode: "w", encoding: Encoding::UTF_32LE).should == 8
+  end
+
+  it "raises ArgumentError if encoding is specified in mode parameter and is given as :encoding option" do
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
+
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
   end
 
   it "writes the file with the permissions in the :perm parameter" do

@@ -822,7 +822,7 @@ class Pathname    # * IO *
   def write(...) IO.write(@path, ...) end
 
   # See <tt>IO.binwrite</tt>.  Returns the number of bytes written to the file.
-  def binwrite(*args) IO.binwrite(@path, *args) end
+  def binwrite(...) IO.binwrite(@path, ...) end
 
   # See <tt>IO.readlines</tt>.  Returns all the lines from the file.
   def readlines(...) IO.readlines(@path, ...) end
