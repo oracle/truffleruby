@@ -19,6 +19,7 @@ import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -143,6 +144,19 @@ public abstract class UnboundMethodNodes {
         @Specialization
         protected RubyModule origin(RubyUnboundMethod unboundMethod) {
             return unboundMethod.origin;
+        }
+
+    }
+
+    @CoreMethod(names = "original_name")
+    public abstract static class OriginalNameNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubySymbol originalName(RubyUnboundMethod unboundMethod,
+                @Cached ToSymbolNode toSymbolNode) {
+            String originalName = unboundMethod.method.getSharedMethodInfo().getBacktraceName();
+
+            return toSymbolNode.execute(originalName);
         }
 
     }
