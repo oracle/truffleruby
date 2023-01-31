@@ -68,7 +68,8 @@ Compatibility:
 * Fix `File.open` and support `flags` option (#2820, @andrykonchin).
 * Support writing to `RData.dfree` for native extensions (#2830, #2732, #2165, @eregon).
 * Fix `IO#write` and support multiple arguments with different encodings (#2829, @andrykonchin).
-* Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, andrykonchin, @eregon).
+* Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, @andrykonchin, @eregon).
+* Fix `Array` methods `select!` and `keep_if` and handle a case when exception is raised in a passed block properly (@andrykonchin).
 
 Performance:
 

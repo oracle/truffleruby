@@ -697,10 +697,8 @@ class Array
 
   def keep_if(&block)
     return to_enum(:keep_if) { size } unless block_given?
-
-    Primitive.check_frozen self
-
-    Primitive.steal_array_storage(self, select(&block))
+    select!(&block)
+    self
   end
 
   def last(n=undefined)
@@ -1205,8 +1203,24 @@ class Array
 
     Primitive.check_frozen self
 
-    ary = select(&block)
-    Primitive.steal_array_storage(self, ary) unless size == ary.size
+    original_size = size
+    selected_size = 0
+
+    each_with_index do |e, i|
+      abnormal_termination = true
+      to_select = yield e
+      abnormal_termination = false
+
+      if to_select
+        self[selected_size] = e
+        selected_size += 1
+      end
+    ensure
+      self[selected_size..-1] = self[i..-1] if abnormal_termination
+    end
+
+    self[selected_size..-1] = []
+    self unless selected_size == original_size
   end
   alias_method :filter!, :select!
 
