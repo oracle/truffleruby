@@ -13,7 +13,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -31,7 +30,7 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     public interface ArrayElementConsumerNode extends NodeInterface {
-        void accept(RubyArray array, RubyProc block, Object element, int index);
+        void accept(RubyArray array, Object state, Object element, int index);
     }
 
     @Child private ArrayEachIteratorNode recurseNode;
@@ -41,11 +40,11 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
         return ArrayEachIteratorNodeGen.create();
     }
 
-    public abstract RubyArray execute(RubyArray array, RubyProc block, int startAt,
+    public abstract RubyArray execute(RubyArray array, Object state, int startAt,
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
+    protected RubyArray iterateMany(RubyArray array, Object state, int startAt, ArrayElementConsumerNode consumerNode,
             // Checkstyle: stop -- Verified @Bind is not necessary here due to using `Library#accepts()`.
             @CachedLibrary("array.getStore()") ArrayStoreLibrary stores,
             // Checkstyle: resume
@@ -57,9 +56,9 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             for (; loopProfile.inject(i < arraySizeProfile.profile(array.size)); i++) {
                 Object store = array.getStore();
                 if (strategyMatchProfile.profile(stores.accepts(store))) {
-                    consumerNode.accept(array, block, stores.read(store, i), i);
+                    consumerNode.accept(array, state, stores.read(store, i), i);
                 } else {
-                    return getRecurseNode().execute(array, block, i, consumerNode);
+                    return getRecurseNode().execute(array, state, i, consumerNode);
                 }
                 TruffleSafepoint.poll(this);
             }

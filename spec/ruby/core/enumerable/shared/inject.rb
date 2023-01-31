@@ -1,3 +1,5 @@
+require_relative '../../array/shared/iterable_and_tolerating_size_increasing'
+
 describe :enumerable_inject, shared: true do
   it "with argument takes a block with an accumulator (with argument as initial value) and the current element. Value of block becomes new accumulator" do
     a = []
@@ -66,6 +68,22 @@ describe :enumerable_inject, shared: true do
 
   it "returns nil when fails(legacy rubycon)" do
     EnumerableSpecs::EachDefiner.new().send(@method) {|acc,x| 999 }.should == nil
+  end
+
+  it "tolerates increasing a collection size during iterating Array" do
+    array = [:a, :b, :c]
+    ScratchPad.record []
+    i = 0
+
+    array.send(@method, nil) do |_, e|
+      ScratchPad << e
+      array << i if i < 100
+      i += 1
+    end
+
+    actual = ScratchPad.recorded
+    expected = [:a, :b, :c] + (0..99).to_a
+    actual.sort_by(&:to_s).should == expected.sort_by(&:to_s)
   end
 
   ruby_bug '#18635', ''...'3.2' do

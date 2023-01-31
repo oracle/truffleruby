@@ -1,5 +1,6 @@
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
+require_relative 'shared/iterable_and_tolerating_size_increasing'
 require_relative '../enumerable/shared/enumeratorized'
 
 describe "Array#sort_by!" do
@@ -49,4 +50,8 @@ describe "Array#sort_by!" do
   end
 
   it_behaves_like :enumeratorized_with_origin_size, :sort_by!, [1,2,3]
+end
+
+describe "Array#sort_by!" do
+  it_behaves_like :array_iterable_and_tolerating_size_increasing, :sort_by!
 end

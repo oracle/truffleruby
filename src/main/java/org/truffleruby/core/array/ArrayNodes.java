@@ -827,7 +827,8 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, RubyProc block, Object element, int index) {
+        public void accept(RubyArray array, Object state, Object element, int index) {
+            RubyProc block = (RubyProc) state;
             callBlock(block, element);
         }
 
@@ -847,7 +848,8 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, RubyProc block, Object element, int index) {
+        public void accept(RubyArray array, Object state, Object element, int index) {
+            RubyProc block = (RubyProc) state;
             yieldNode.yield(block, element, index);
         }
 
@@ -1325,7 +1327,17 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_inject")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class InjectNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class InjectNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
+
+        private static class State {
+            Object accumulator;
+            final RubyProc block;
+
+            State(Object accumulator, RubyProc block) {
+                this.accumulator = accumulator;
+                this.block = block;
+            }
+        }
 
         @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
@@ -1343,17 +1355,10 @@ public abstract class ArrayNodes {
             return nil;
         }
 
-        @Specialization(
-                guards = {
-                        "!isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)" },
-                limit = "storageStrategyLimit()")
+        @Specialization(guards = { "!isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
         protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
-            return injectBlockHelper(stores, array, block, store, initialOrSymbol, 0, arraySizeProfile, loopProfile);
+                @Cached ArrayEachIteratorNode iteratorNode) {
+            return injectBlockHelper(array, block, initialOrSymbol, 0, iteratorNode);
         }
 
         @Specialization(
@@ -1363,26 +1368,25 @@ public abstract class ArrayNodes {
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
-            return injectBlockHelper(stores, array, block, store, stores.read(store, 0), 1, arraySizeProfile,
-                    loopProfile);
+                @Cached ArrayEachIteratorNode iteratorNode) {
+            return injectBlockHelper(array, block, stores.read(store, 0), 1, iteratorNode);
         }
 
-        public Object injectBlockHelper(ArrayStoreLibrary stores, RubyArray array,
-                RubyProc block, Object store, Object initial, int start,
-                IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
+        public Object injectBlockHelper(RubyArray array,
+                RubyProc block, Object initial, int start, ArrayEachIteratorNode iteratorNode) {
             Object accumulator = initial;
-            int n = start;
-            try {
-                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    accumulator = yieldNode.yield(block, accumulator, stores.read(store, n));
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, n - start);
-            }
+            State iterationState = new State(accumulator, block);
 
-            return accumulator;
+            iteratorNode.execute(array, iterationState, start, this);
+
+            return iterationState.accumulator;
+        }
+
+        @Override
+        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+            final State state = (State) stateObject;
+            final Object accumulator = yieldNode.yield(state.block, state.accumulator, element);
+            state.accumulator = accumulator;
         }
 
         // Uses Symbol
@@ -1476,28 +1480,39 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapNode extends YieldingCoreMethodNode {
+    public abstract static class MapNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Specialization(limit = "storageStrategyLimit()")
-        protected Object map(RubyArray array, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached ArrayBuilderNode arrayBuilder,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
-            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
+        private static class State {
+            final BuilderState builderState;
+            final RubyProc block;
 
-            int n = 0;
-            try {
-                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    final Object mappedValue = callBlock(block, stores.read(store, n));
-                    arrayBuilder.appendValue(state, n, mappedValue);
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, n);
+            State(BuilderState builderState, RubyProc block) {
+                this.builderState = builderState;
+                this.block = block;
             }
+        }
 
-            return createArray(arrayBuilder.finish(state, n), n);
+        @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
+
+        @Specialization
+        protected Object map(RubyArray array, RubyProc block,
+                @Cached ArrayEachIteratorNode iteratorNode,
+                @Cached IntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+            State iterationState = new State(builderState, block);
+
+            iteratorNode.execute(array, iterationState, 0, this);
+
+            final int size = array.size;
+            return createArray(arrayBuilder.finish(iterationState.builderState, size), size);
+        }
+
+        @Override
+        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+            final State state = (State) stateObject;
+
+            Object value = callBlock(state.block, element);
+            arrayBuilder.appendValue(state.builderState, index, value);
         }
 
     }
@@ -1515,7 +1530,8 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, RubyProc block, Object element, int index) {
+        public void accept(RubyArray array, Object state, Object element, int index) {
+            RubyProc block = (RubyProc) state;
             writeNode.executeWrite(array, index, callBlock(block, element));
         }
 
@@ -1748,123 +1764,46 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class RejectNode extends YieldingCoreMethodNode {
+    public abstract static class RejectNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Specialization(limit = "storageStrategyLimit()")
-        protected Object reject(RubyArray array, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached ArrayBuilderNode arrayBuilder,
-                @Cached BooleanCastNode booleanCastNode,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
-            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
-            int selectedSize = 0;
+        private static class State {
+            final BuilderState builderState;
+            int newArraySize;
+            final RubyProc block;
 
-            int n = 0;
-            try {
-                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    final Object value = stores.read(store, n);
-
-                    if (!booleanCastNode.execute(callBlock(block, value))) {
-                        arrayBuilder.appendValue(state, selectedSize, value);
-                        selectedSize++;
-                    }
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, n);
+            State(BuilderState builderState, int newArraySize, RubyProc block) {
+                this.builderState = builderState;
+                this.newArraySize = newArraySize;
+                this.block = block;
             }
-
-            return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
         }
 
-    }
-
-    @CoreMethod(names = "reject!", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
-
+        @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
-        @Specialization(guards = "array.size == 0")
-        protected Object rejectEmpty(RubyArray array, RubyProc block) {
-            return nil;
+        @Specialization
+        protected Object reject(RubyArray array, RubyProc block,
+                @Cached ArrayEachIteratorNode iteratorNode,
+                @Cached IntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+            State iterationState = new State(builderState, 0, block);
+
+            iteratorNode.execute(array, iterationState, 0, this);
+
+            int actualSize = iterationState.newArraySize;
+            return createArray(arrayBuilder.finish(builderState, actualSize), actualSize);
         }
 
-        @Specialization(
-                guards = { "array.size > 0", "stores.isMutable(store)" },
-                limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceMutableStore(RubyArray array, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loop1Profile,
-                @Cached LoopConditionProfile loop2Profile) {
-            return rejectInPlaceInternal(array, block, mutablestores, store, arraySizeProfile, loop1Profile,
-                    loop2Profile);
-        }
+        @Override
+        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+            final State state = (State) stateObject;
 
-        @Specialization(
-                guards = { "array.size > 0", "!stores.isMutable(store)" },
-                limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceImmutableStore(RubyArray array, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loop1Profile,
-                @Cached LoopConditionProfile loop2Profile) {
-            final int size = arraySizeProfile.profile(array.size);
-            final Object mutableStore = stores.allocator(store).allocate(size);
-            stores.copyContents(store, 0, mutableStore, 0, size);
-            array.setStore(mutableStore);
-            return rejectInPlaceInternal(array, block, mutablestores, mutableStore, arraySizeProfile, loop1Profile,
-                    loop2Profile);
-        }
-
-        private Object rejectInPlaceInternal(RubyArray array, RubyProc block, ArrayStoreLibrary stores, Object store,
-                IntValueProfile arraySizeProfile, LoopConditionProfile loop1Profile,
-                LoopConditionProfile loop2Profile) {
-            int i = 0;
-            int n = 0;
-            try {
-                for (; loop1Profile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    final Object value = stores.read(store, n);
-                    if (booleanCastNode.execute(callBlock(block, value))) {
-                        continue;
-                    }
-
-                    if (i != n) {
-                        stores.write(store, i, stores.read(store, n));
-                    }
-
-                    i++;
-                }
-            } finally {
-                profileAndReportLoopCount(loop1Profile, n);
-
-                // Ensure we've iterated to the end of the array.
-                final int size = arraySizeProfile.profile(array.size);
-                for (; loop2Profile.inject(n < size); n++) {
-                    if (i != n) {
-                        stores.write(store, i, stores.read(store, n));
-                    }
-                    i++;
-                }
-                profileAndReportLoopCount(loop2Profile, size - n);
-
-                // Null out the elements behind the size
-                stores.clear(store, i, n - i);
-                setSize(array, i);
-            }
-
-            if (i != n) {
-                return array;
-            } else {
-                return nil;
+            if (!booleanCastNode.execute(callBlock(state.block, element))) {
+                arrayBuilder.appendValue(state.builderState, state.newArraySize, element);
+                state.newArraySize++;
             }
         }
+
     }
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
@@ -2038,34 +1977,44 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "select", "filter" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class SelectNode extends YieldingCoreMethodNode {
+    public abstract static class SelectNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Specialization(limit = "storageStrategyLimit()")
-        protected Object select(RubyArray array, RubyProc block,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached ArrayBuilderNode arrayBuilder,
-                @Cached BooleanCastNode booleanCastNode) {
-            BuilderState state = arrayBuilder.start(arraySizeProfile.profile(array.size));
-            int selectedSize = 0;
+        private static class State {
+            final BuilderState builderState;
+            int selectedSize;
+            final RubyProc block;
 
-            int n = 0;
-            try {
-                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    final Object value = stores.read(store, n);
-
-                    if (booleanCastNode.execute(callBlock(block, value))) {
-                        arrayBuilder.appendValue(state, selectedSize, value);
-                        selectedSize++;
-                    }
-                }
-            } finally {
-                profileAndReportLoopCount(loopProfile, n);
+            State(BuilderState builderState, int selectedSize, RubyProc block) {
+                this.builderState = builderState;
+                this.selectedSize = selectedSize;
+                this.block = block;
             }
+        }
 
-            return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
+        @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
+
+        @Specialization
+        protected Object select(RubyArray array, RubyProc block,
+                @Cached ArrayEachIteratorNode iteratorNode,
+                @Cached IntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+            State iterationState = new State(builderState, 0, block);
+
+            iteratorNode.execute(array, iterationState, 0, this);
+
+            int selectedSize = iterationState.selectedSize;
+            return createArray(arrayBuilder.finish(builderState, selectedSize), selectedSize);
+        }
+
+        @Override
+        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+            final State state = (State) stateObject;
+
+            if (booleanCastNode.execute(callBlock(state.block, element))) {
+                arrayBuilder.appendValue(state.builderState, state.selectedSize, element);
+                state.selectedSize++;
+            }
         }
 
     }

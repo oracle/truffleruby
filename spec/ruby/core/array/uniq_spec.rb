@@ -1,5 +1,6 @@
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
+require_relative 'shared/iterable_and_tolerating_size_increasing'
 
 describe "Array#uniq" do
   it "returns an array with no duplicates" do
@@ -131,6 +132,11 @@ describe "Array#uniq" do
   end
 end
 
+describe "Array#uniq" do
+  @value_to_return = -> (e) { e }
+  it_behaves_like :array_iterable_and_tolerating_size_increasing, :uniq
+end
+
 describe "Array#uniq!" do
   it "modifies the array in place" do
     a = [ "a", "a", "b", "b", "c" ]
@@ -214,4 +220,9 @@ describe "Array#uniq!" do
     a.uniq!
     a.should == [x]
   end
+end
+
+describe "Array#uniq!" do
+  @value_to_return = -> (e) { e }
+  it_behaves_like :array_iterable_and_tolerating_size_increasing, :uniq!
 end

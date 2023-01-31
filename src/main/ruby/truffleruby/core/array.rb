@@ -364,9 +364,8 @@ class Array
     return to_enum(:each_index) { size } unless block_given?
 
     i = 0
-    total = size
 
-    while i < total
+    while i < size
       yield i
       i += 1
     end
@@ -869,6 +868,35 @@ class Array
     end
 
     nil
+  end
+
+  def reject!
+    return to_enum(:reject!) { size } unless block_given?
+
+    Primitive.check_frozen self
+
+    original_size = size
+    kept = 0
+    each_with_index do |e, i|
+      begin
+        exception = true
+        remove = yield e
+        exception = false
+      ensure
+        if exception
+          self[kept..-1] = self[i..-1]
+        end
+      end
+
+      unless remove
+        self[kept] = e
+        kept += 1
+      end
+    end
+
+    self[kept..-1] = []
+
+    self unless kept == original_size
   end
 
   def repeated_combination(combination_size, &block)
