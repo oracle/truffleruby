@@ -418,6 +418,38 @@ describe :marshal_load, shared: true do
       unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
       unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
     end
+
+    ruby_version_is "3.1" do
+      it "preserves compare_by_identity behaviour" do
+        h = { a: 1 }
+        h.compare_by_identity
+        unmarshalled = Marshal.send(@method, Marshal.dump(h))
+        unmarshalled.should.compare_by_identity?
+
+        h = { a: 1 }
+        unmarshalled = Marshal.send(@method, Marshal.dump(h))
+        unmarshalled.should_not.compare_by_identity?
+      end
+
+      it "preserves compare_by_identity behaviour for a Hash subclass" do
+        h = UserHash.new(a: 1)
+        h.compare_by_identity
+        unmarshalled = Marshal.send(@method, Marshal.dump(h))
+        unmarshalled.should.compare_by_identity?
+
+        h = UserHash.new(a: 1)
+        unmarshalled = Marshal.send(@method, Marshal.dump(h))
+        unmarshalled.should_not.compare_by_identity?
+      end
+    end
+
+    it "allocates an instance of the proper class when Hash subclass with compare_by_identity behaviour" do
+      h = UserHash.new(a: 1)
+      h.compare_by_identity
+
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled.should.kind_of?(UserHash)
+    end
   end
 
   describe "for a Symbol" do

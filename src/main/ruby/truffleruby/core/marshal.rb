@@ -229,8 +229,10 @@ module Marshal
     def construct_string
       bytes = get_byte_sequence.force_encoding(Encoding::BINARY)
 
-      if @user_class
-        cls = get_user_class
+      if user_class?
+        cls = user_class
+        clear_user_class
+
         if cls < String
           obj = STRING_ALLOCATE.bind_call(cls)
         else
@@ -391,6 +393,10 @@ class Hash
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
+
+    # A boolean property of Hash - whether it has compare_by_identity behaviour - is serialized as user class marker
+    out << ms.serialize_user_class!(Hash) if compare_by_identity?
+
     out << (self.default ? '}' : '{')
     out << ms.serialize_integer(length)
     unless empty?
@@ -510,7 +516,7 @@ module Marshal
       @has_ivar = []
       @proc = proc
       @call = true
-      @user_class = nil
+      @user_classes = nil
     end
 
     def const_lookup(name, type = nil)
@@ -639,7 +645,10 @@ module Marshal
               obj
             when 67   # ?C
               name = get_symbol
-              @user_class = name
+
+              # store user class names in Array to support a Hash subclass with compare_by_identity behaviour
+              @user_classes ||= []
+              @user_classes << name
 
               construct nil, false
 
@@ -683,8 +692,10 @@ module Marshal
     ARRAY_APPEND = Array.instance_method(:<<)
 
     def construct_array
-      if @user_class
-        cls = get_user_class()
+      if user_class?
+        cls = user_class
+        clear_user_class
+
         if cls < Array
           obj = ARRAY_ALLOCATE.bind_call(cls)
         else
@@ -762,7 +773,10 @@ module Marshal
     end
 
     def construct_hash
-      obj = @user_class ? get_user_class.allocate : {}
+      obj = user_class? ? user_class.allocate : {}
+      obj.compare_by_identity if hash_compare_by_identity?
+      clear_user_class
+
       store_unique_object obj
 
       construct_integer.times do
@@ -780,7 +794,10 @@ module Marshal
     end
 
     def construct_hash_def
-      obj = @user_class ? get_user_class.allocate : {}
+      obj = user_class? ? user_class.allocate : {}
+      obj.compare_by_identity if hash_compare_by_identity?
+      clear_user_class
+
       store_unique_object obj
 
       construct_integer.times do
@@ -845,8 +862,9 @@ module Marshal
 
     def construct_regexp
       s = get_byte_sequence
-      if @user_class
-        obj = get_user_class.new s, consume_byte
+      if user_class?
+        obj = user_class.new s, consume_byte
+        clear_user_class
       else
         obj = Regexp.new s, consume_byte
       end
@@ -958,12 +976,6 @@ module Marshal
       consume size
     end
 
-    def get_user_class
-      cls = const_lookup @user_class, Class
-      @user_class = nil
-      cls
-    end
-
     def get_symbol
       @call = false
       begin
@@ -977,6 +989,22 @@ module Marshal
       end
 
       sym
+    end
+
+    def user_class?
+      @user_classes
+    end
+
+    def user_class
+      const_lookup @user_classes.first, Class
+    end
+
+    def hash_compare_by_identity?
+      @user_classes && @user_classes.last == :Hash
+    end
+
+    def clear_user_class
+      @user_classes = nil
     end
 
     def prepare_ivar(ivar)
@@ -1130,6 +1158,10 @@ module Marshal
       else
         ''.b
       end
+    end
+
+    def serialize_user_class!(klass)
+      Truffle::Type.binary_string("C#{serialize(klass.name.to_sym)}")
     end
 
     def serialize_user_defined(obj)

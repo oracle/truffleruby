@@ -356,12 +356,32 @@ describe "Marshal.dump" do
       Marshal.dump({}).should == "\004\b{\000"
     end
 
+    it "dumps a non-empty Hash" do
+      Marshal.dump({a: 1}).should == "\x04\b{\x06:\x06ai\x06"
+    end
+
     it "dumps a Hash subclass" do
       Marshal.dump(UserHash.new).should == "\004\bC:\rUserHash{\000"
     end
 
     it "dumps a Hash with a default value" do
       Marshal.dump(Hash.new(1)).should == "\004\b}\000i\006"
+    end
+
+    ruby_version_is "3.1" do
+      it "dumps a Hash with compare_by_identity" do
+        h = {}
+        h.compare_by_identity
+
+        Marshal.dump(h).should == "\004\bC:\tHash{\x00"
+      end
+
+      it "dumps a Hash subclass with compare_by_identity" do
+        h = UserHash.new
+        h.compare_by_identity
+
+        Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
+      end
     end
 
     it "raises a TypeError with hash having default proc" do
