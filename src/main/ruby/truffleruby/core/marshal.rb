@@ -39,6 +39,11 @@ class BasicObject
     out = ms.serialize_extended_object self
     out << 'o'
     cls = Primitive.object_class self
+
+    if Primitive.module_anonymous?(cls)
+      raise ::TypeError, "can't dump anonymous class #{cls}"
+    end
+
     name = Primitive.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true)
@@ -49,8 +54,8 @@ class Class
   private def __marshal__(ms)
     if singleton_class?
       raise TypeError, "singleton class can't be dumped"
-    elsif Primitive.nil?(name) || name.empty?
-      raise TypeError, "can't dump anonymous module #{self}"
+    elsif Primitive.module_anonymous?(self)
+      raise TypeError, "can't dump anonymous class #{self}"
     end
 
     "c#{ms.serialize_integer(name.length)}#{name}"
@@ -106,6 +111,11 @@ class Exception
     out = ms.serialize_extended_object self
     out << 'o'
     cls = Primitive.object_class self
+
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+
     name = Primitive.module_name cls
     out << ms.serialize(name.to_sym)
 
@@ -1041,7 +1051,12 @@ module Marshal
       raise TypeError, "singleton can't be dumped" if Primitive.singleton_methods?(obj)
       str = +''
       Primitive.vm_extended_modules obj, -> mod do
-        str << "e#{serialize(mod.name.to_sym)}"
+        if Primitive.module_anonymous?(mod)
+          raise TypeError, "can't dump anonymous class #{mod}"
+        end
+
+        name = Primitive.module_name(mod)
+        str << "e#{serialize(name.to_sym)}"
       end
       Truffle::Type.binary_string(str)
     end
@@ -1189,6 +1204,11 @@ module Marshal
       add_non_immediate_object val
 
       cls = Primitive.object_class obj
+
+      if Primitive.module_anonymous?(cls)
+        raise TypeError, "can't dump anonymous class #{cls}"
+      end
+
       name = Primitive.module_name cls
       name = serialize(name.to_sym)
       marshaled = val.__send__ :__marshal__, self

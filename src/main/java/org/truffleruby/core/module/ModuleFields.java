@@ -775,6 +775,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return hasFullName() || givenBaseName != null;
     }
 
+    public boolean isAnonymous() {
+        return !this.hasFullName;
+    }
+
     public boolean isRefinement() {
         return isRefinement;
     }

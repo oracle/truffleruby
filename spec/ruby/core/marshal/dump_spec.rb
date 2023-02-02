@@ -104,6 +104,13 @@ describe "Marshal.dump" do
       UserMarshal.should_not_receive(:name)
       Marshal.dump(UserMarshal.new)
     end
+
+   it "raises TypeError if an Object is an instance of an anonymous class" do
+      anonymous_class = Class.new(UserMarshal)
+      obj = anonymous_class.new
+
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
+    end
   end
 
   describe "with an object responding to #_dump" do
@@ -167,7 +174,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Class" do
-      -> { Marshal.dump(Class.new) }.should raise_error(TypeError)
+      -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "raises TypeError with a singleton Class" do
@@ -385,7 +392,7 @@ describe "Marshal.dump" do
     end
 
     it "raises a TypeError with hash having default proc" do
-      -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError)
+      -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError, "can't dump hash with default proc")
     end
 
     it "dumps a Hash with instance variables" do
@@ -466,12 +473,27 @@ describe "Marshal.dump" do
       Marshal.dump(obj).should == "\004\bo:\x0BObject\x00"
     end
 
-    it "raises if an Object has a singleton class and singleton methods" do
+    it "raises TypeError if an Object has a singleton class and singleton methods" do
       obj = Object.new
       def obj.foo; end
       -> {
         Marshal.dump(obj)
       }.should raise_error(TypeError, "singleton can't be dumped")
+    end
+
+    it "raises TypeError if an Object is an instance of an anonymous class" do
+      anonymous_class = Class.new
+      obj = anonymous_class.new
+
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
+    end
+
+    it "raises TypeError if an Object extends an anonymous module" do
+      anonymous_module = Module.new
+      obj = Object.new
+      obj.extend(anonymous_module)
+
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
@@ -589,6 +611,13 @@ describe "Marshal.dump" do
       end
 
       Marshal.dump(e).should.include? "undefined method `foo' for \"\":String"
+    end
+
+    it "raises TypeError if an Object is an instance of an anonymous class" do
+      anonymous_class = Class.new(Exception)
+      obj = anonymous_class.new
+
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
   end
 
