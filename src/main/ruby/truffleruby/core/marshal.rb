@@ -555,7 +555,7 @@ module Marshal
 
   class State
 
-    def initialize(stream, depth, proc)
+    def initialize(stream, depth, proc, freeze)
       # shared
       @links = {}
       @symlinks = {}
@@ -576,6 +576,7 @@ module Marshal
       @modules = nil
       @has_ivar = []
       @proc = proc
+      @freeze = freeze
       @call = true
       @user_classes = nil
     end
@@ -633,7 +634,7 @@ module Marshal
       @symlinks[obj.__id__] = sz
     end
 
-    def construct(ivar_index = nil, call_proc = true)
+    def construct(ivar_index = nil, call_proc = true, postpone_freezing = false)
       type = consume_byte()
       obj = case type
             when 48   # ?0
@@ -699,7 +700,7 @@ module Marshal
               name = get_symbol
               @modules << const_lookup(name, Module)
 
-              obj = construct nil, false
+              obj = construct nil, false, true
 
               extend_object obj
 
@@ -711,13 +712,13 @@ module Marshal
               @user_classes ||= []
               @user_classes << name
 
-              construct nil, false
+              construct nil, false, postpone_freezing
 
             when 73   # ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 
-              obj = construct ivar_index, false
+              obj = construct ivar_index, false, true
 
               set_instance_variables obj if @has_ivar.pop
 
@@ -726,7 +727,12 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      @proc.call(obj) if call_proc and @proc and @call
+      if @freeze && !postpone_freezing && !(Primitive.object_kind_of?(obj, Class) || Primitive.object_kind_of?(obj, Module))
+        obj = -obj if Primitive.class_of(obj) == String
+        Primitive.object_freeze_with_singleton_class(obj)
+      end
+
+      return @proc.call(obj) if call_proc and @proc and @call
 
       obj
     end
@@ -1388,8 +1394,8 @@ module Marshal
   end
 
   class StringState < State
-    def initialize(stream, depth, prc)
-      super stream, depth, prc
+    def initialize(stream, depth, prc, freeze)
+      super stream, depth, prc, freeze
 
       if @stream
         @byte_array = stream.bytes
@@ -1426,7 +1432,7 @@ module Marshal
     end
 
     depth = Primitive.rb_to_int limit
-    ms = State.new nil, depth, nil
+    ms = State.new nil, depth, nil, nil
 
     if an_io
       unless Primitive.object_respond_to? an_io, :write, false
@@ -1447,16 +1453,16 @@ module Marshal
     end
   end
 
-  def self.load(obj, prc = nil)
+  def self.load(obj, prc = nil, freeze: false)
     if Primitive.object_respond_to? obj, :to_str, false
       data = obj.to_s
-      ms = StringState.new data, nil, prc
+      ms = StringState.new data, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte
     elsif Primitive.object_respond_to? obj, :read, false and
           Primitive.object_respond_to? obj, :getc, false
-      ms = IOState.new obj, nil, prc
+      ms = IOState.new obj, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte

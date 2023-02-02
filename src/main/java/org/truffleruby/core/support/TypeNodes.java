@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -28,7 +27,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -39,6 +37,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
@@ -120,6 +119,33 @@ public abstract class TypeNodes {
             rubyLibrary.freeze(self);
             return self;
         }
+    }
+
+    @Primitive(name = "object_freeze_with_singleton_class")
+    public abstract static class ObjectFreezeWithSingletonClassNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isRubyDynamicObject(self)")
+        protected Object freeze(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            rubyLibrary.freeze(self);
+            return self;
+        }
+
+        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "isRubyDynamicObject(self)")
+        protected Object freezeDynamicObject(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
+                @Cached ConditionProfile singletonClassUnfrozenProfile,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass metaClass = metaClassNode.execute(self);
+            if (singletonClassUnfrozenProfile.profile(metaClass.isSingleton &&
+                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton) &&
+                    !rubyLibraryMetaClass.isFrozen(metaClass))) {
+                rubyLibraryMetaClass.freeze(metaClass);
+            }
+            rubyLibrary.freeze(self);
+            return self;
+        }
+
     }
 
     @Primitive(name = "immediate_value?")

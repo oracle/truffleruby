@@ -183,10 +183,15 @@ module MarshalSpec
     end
   end
 
+  StructToDump = Struct.new(:a, :b)
+
   class BasicObjectSubWithRespondToFalse < BasicObject
     def respond_to?(method_name, include_all=false)
       false
     end
+  end
+
+  module ModuleToExtendBy
   end
 
   def self.random_data
@@ -272,6 +277,16 @@ module MarshalSpec
     class MultibyteぁあぃいTime < Time
     end
   ruby
+
+  class ObjectWithFreezeRaisingException < Object
+    def freeze
+      raise
+    end
+  end
+
+  class ObjectWithoutFreeze < Object
+    undef freeze
+  end
 
   DATA = {
     "nil" => [nil, "\004\b0"],

@@ -1,5 +1,4 @@
 fails:Marshal.load loads a Random
-fails:Marshal.load when called with a proc returns the value of the proc
 fails:Marshal.load when called with a proc loads an Array with proc
 fails:Marshal.load for an Array loads an array containing the same objects
 fails:Marshal.load for an Object raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class
@@ -8,13 +7,6 @@ fails:Marshal.load for a wrapped C pointer raises ArgumentError when the local c
 fails:Marshal.load when a class does not exist in the namespace raises an ArgumentError
 fails(immutable regexp):Marshal.load for a Regexp loads an extended Regexp
 fails(immutable regexp):Marshal.load for a Regexp loads a extended_user_regexp having ivar
-fails:Marshal.load when called with freeze: true returns frozen strings
-fails:Marshal.load when called with freeze: true returns frozen arrays
-fails:Marshal.load when called with freeze: true returns frozen hashes
-fails:Marshal.load when called with freeze: true returns frozen regexps
-fails:Marshal.load when called with freeze: true returns frozen objects
-fails:Marshal.load when called with freeze: true does not freeze modules
-fails:Marshal.load when called with freeze: true does not freeze classes
 fails:Marshal.load when called with freeze: true when called with a proc call the proc with frozen objects
 fails:Marshal.load when called with freeze: true when called with a proc does not freeze the object returned by the proc
 fails:Marshal.load when called with freeze: true does freeze extended objects
