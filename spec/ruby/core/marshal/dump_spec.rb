@@ -580,6 +580,16 @@ describe "Marshal.dump" do
       reloaded.cause.should be_an_instance_of(StandardError)
       reloaded.cause.message.should == "the cause"
     end
+
+    # NoMethodError uses an exception formatter on TruffleRuby and computes a message lazily
+    it "dumps the message for the raised NoMethodError exception" do
+      begin
+        "".foo
+      rescue => e
+      end
+
+      Marshal.dump(e).should.include? "undefined method `foo' for \"\":String"
+    end
   end
 
   it "dumps subsequent appearances of a symbol as a link" do

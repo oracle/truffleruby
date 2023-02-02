@@ -46,19 +46,9 @@ class Exception
   end
 
   def to_s
-    msg = Primitive.exception_message self
-    if Primitive.nil?(msg)
-      formatter = Primitive.exception_formatter(self)
-      if Primitive.nil?(formatter)
-        self.class.to_s
-      else
-        msg = formatter.call(self).to_s
-        Primitive.exception_set_message(self, msg)
-        msg
-      end
-    else
-      msg.to_s
-    end
+    msg = Truffle::ExceptionOperations.compute_message(self)
+    return self.class.to_s if Primitive.nil?(msg)
+    msg
   end
 
   def set_backtrace(bt)

@@ -114,7 +114,7 @@ class Exception
     cause = self.cause
     out << ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
     out << ms.serialize(:mesg)
-    out << ms.serialize(Primitive.exception_message(self))
+    out << ms.serialize(Truffle::ExceptionOperations.compute_message(self))
     out << ms.serialize(:bt)
     out << ms.serialize(self.backtrace)
     if cause
