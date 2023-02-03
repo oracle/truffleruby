@@ -349,7 +349,7 @@ class Regexp
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Regexp)
     out << '/'
-    out << ms.serialize_integer(str.length) + str
+    out << ms.serialize_integer(str.bytesize) + str.b
     out << (options & Regexp::OPTION_MASK).chr
     out << ms.serialize_instance_variables_suffix(self)
 

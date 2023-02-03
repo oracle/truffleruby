@@ -317,14 +317,37 @@ describe "Marshal.dump" do
       Marshal.dump(o).should == "\x04\b/\x00\x10"
     end
 
+    it "dumps an ascii-compatible Regexp" do
+      o = Regexp.new("a".encode("us-ascii"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06EF"
+
+      o = Regexp.new("a".encode("us-ascii"))
+      Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
+
+      o = Regexp.new("a".encode("windows-1251"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\rencoding\"\x11Windows-1251"
+
+      o = Regexp.new("a".encode("windows-1251"))
+      Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
+    end
+
     it "dumps a UTF-8 Regexp" do
       o = Regexp.new("".force_encoding("utf-8"), Regexp::FIXEDENCODING)
       Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\x06ET"
+
+      o = Regexp.new("a".force_encoding("utf-8"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06ET"
+
+      o = Regexp.new("\u3042".force_encoding("utf-8"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\b\xE3\x81\x82\x10\x06:\x06ET"
     end
 
     it "dumps a Regexp in another encoding" do
       o = Regexp.new("".force_encoding("utf-16le"), Regexp::FIXEDENCODING)
       Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\rencoding\"\rUTF-16LE"
+
+      o = Regexp.new("a".encode("utf-16le"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\aa\x00\x10\x06:\rencoding\"\rUTF-16LE"
     end
   end
 
