@@ -931,6 +931,12 @@ describe :marshal_load, shared: true do
       t = Time.now
       Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
     end
+
+    it "does not add any additional instance variable" do
+      t = Time.now
+      t2 = Marshal.send(@method, Marshal.dump(t))
+      t2.instance_variables.should.empty?
+    end
   end
 
   describe "for nil" do

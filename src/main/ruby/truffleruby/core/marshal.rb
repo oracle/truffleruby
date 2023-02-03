@@ -234,6 +234,30 @@ module Marshal
       end
     end
 
+    def set_time_variables(time)
+      nano_num = nano_den = nil
+
+      construct_integer.times do
+        ivar = get_symbol
+        value = construct
+
+        case
+        when ivar == :nano_num
+          nano_num = value
+        when ivar == :nano_den
+          nano_den = value
+        when ivar.start_with?("@")
+          Primitive.object_ivar_set time, ivar, value
+        else
+          # ignore not regular instance variables (without @ prefix), e.g. :offset, :zone
+        end
+      end
+
+      if nano_num && nano_den
+        Primitive.time_set_nseconds(time, Rational(nano_num, nano_den).to_i)
+      end
+    end
+
     STRING_ALLOCATE = String.method(:__allocate__).unbind
 
     def construct_string
@@ -428,15 +452,8 @@ class Time
     ms.store_unique_object obj
 
     if ivar_index and has_ivar[ivar_index]
-      ms.set_instance_variables obj
+      ms.set_time_variables obj
       has_ivar[ivar_index] = false
-    end
-
-    nano_num = obj.instance_variable_get(:@nano_num)
-    nano_den = obj.instance_variable_get(:@nano_den)
-    if nano_num && nano_den
-      Primitive.time_set_nseconds(obj,
-        Rational(nano_num, nano_den).to_i)
     end
 
     obj
