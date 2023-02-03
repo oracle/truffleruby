@@ -114,8 +114,18 @@ describe "Marshal.dump" do
   end
 
   describe "with an object responding to #_dump" do
-    it "dumps the object returned by #_dump" do
+    it "dumps the String returned by #_dump" do
       Marshal.dump(UserDefined.new).should == "\004\bu:\020UserDefined\022\004\b[\a:\nstuff;\000"
+    end
+
+    it "dumps the String in non US-ASCII and non UTF-8 encoding" do
+      object = UserDefinedString.new("a".encode("windows-1251"))
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\x06a\x06:\rencoding\"\x11Windows-1251"
+    end
+
+    it "dumps the String in multibyte encoding" do
+      object = UserDefinedString.new("a".encode("utf-32le"))
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
     end
 
     it "raises a TypeError if _dump returns a non-string" do

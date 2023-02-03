@@ -1209,7 +1209,7 @@ module Marshal
 
       out = serialize_instance_variables_prefix(str)
       out << Truffle::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
-      out << serialize_integer(str.length) + str
+      out << serialize_integer(str.bytesize) + str.b
       out << serialize_instance_variables_suffix(str)
 
       out

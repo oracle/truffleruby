@@ -78,6 +78,22 @@ class UserDefinedImmediate
   end
 end
 
+class UserDefinedString
+  attr_reader :string
+
+  def initialize(string)
+    @string = string
+  end
+
+  def _dump(depth)
+    @string
+  end
+
+  def self._load(data)
+    new(data)
+  end
+end
+
 class UserPreviouslyDefinedWithInitializedIvar
   attr_accessor :field1, :field2
 end

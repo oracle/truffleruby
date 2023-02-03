@@ -219,7 +219,19 @@ describe :marshal_load, shared: true do
       marshaled_obj.field2.should be_nil
     end
 
-    describe "that return an immediate value" do
+    it "loads the String in non US-ASCII and non UTF-8 encoding" do
+      source_object = UserDefinedString.new("a".encode("windows-1251"))
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("windows-1251")
+    end
+
+    it "loads the String in multibyte encoding" do
+      source_object = UserDefinedString.new("a".encode("utf-32le"))
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("utf-32le")
+    end
+
+    describe "that returns an immediate value" do
       it "loads an array containing an instance of the object, followed by multiple instances of another object" do
         str = "string"
 
