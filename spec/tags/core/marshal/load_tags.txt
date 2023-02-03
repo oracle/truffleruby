@@ -1,8 +1,5 @@
-fails:Marshal.load loads an array containing objects having _dump method, and with proc
-fails:Marshal.load loads an array containing objects having marshal_dump method, and with proc
 fails:Marshal.load loads a Random
 fails:Marshal.load when called with a proc returns the value of the proc
-fails:Marshal.load when called with a proc calls the proc for recursively visited data
 fails:Marshal.load when called with a proc loads an Array with proc
 fails:Marshal.load for an Array loads an array containing the same objects
 fails:Marshal.load for an Object raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class
@@ -23,3 +20,4 @@ fails:Marshal.load when called with freeze: true when called with a proc does no
 fails:Marshal.load when called with freeze: true does freeze extended objects
 fails:Marshal.load when called with freeze: true does freeze extended objects with instance variables
 fails:Marshal.load for a Regexp restore the regexp instance variables
+fails:Marshal.load for a Regexp loads a Regexp subclass instance variables when it is extended with a module

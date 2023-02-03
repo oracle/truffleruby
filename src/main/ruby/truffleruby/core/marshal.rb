@@ -641,7 +641,7 @@ module Marshal
             when 34   # ?"
               construct_string
             when 47   # ?/
-              construct_regexp
+              construct_regexp(ivar_index)
             when 91   # ?[
               construct_array
             when 123  # ?{
@@ -903,13 +903,23 @@ module Marshal
       end
     end
 
-    def construct_regexp
-      s = get_byte_sequence
+    def construct_regexp(ivar_index)
+      source = get_byte_sequence
+      options = consume_byte
+
+      # A Regexp instance variables are ignored by CRuby,
+      # but we need to know the encoding before building the Regexp
+      if ivar_index and @has_ivar[ivar_index]
+        # This sets the encoding of the String
+        set_instance_variables source
+        @has_ivar[ivar_index] = false
+      end
+
       if user_class?
-        obj = user_class.new s, consume_byte
+        obj = user_class.new source, options
         clear_user_class
       else
-        obj = Regexp.new s, consume_byte
+        obj = Regexp.new source, options
       end
 
       store_unique_object obj

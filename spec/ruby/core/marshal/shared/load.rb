@@ -776,7 +776,7 @@ describe :marshal_load, shared: true do
         [Meths, MethsMore, Regexp]
     end
 
-    it "loads a extended_user_regexp having ivar" do
+    it "loads a Regexp subclass instance variables when it is extended with a module" do
       obj = UserRegexp.new('').extend(Meths)
       obj.instance_variable_set(:@noise, 'much')
 
@@ -798,6 +798,14 @@ describe :marshal_load, shared: true do
         new_obj.instance_variables.should == [:@regexp_ivar]
         new_obj.instance_variable_get(:@regexp_ivar).should == [42]
       end
+    end
+
+    it "preserves Regexp encoding" do
+      source_object = Regexp.new("a".encode("utf-32le"))
+      regexp = Marshal.send(@method, Marshal.dump(source_object))
+
+      regexp.encoding.should == Encoding::UTF_32LE
+      regexp.source.should == "a".encode("utf-32le")
     end
   end
 
