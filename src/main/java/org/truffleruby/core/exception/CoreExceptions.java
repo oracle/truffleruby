@@ -1119,6 +1119,15 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException encodingError(Object string, RubyEncoding encoding, Node currentNode) {
+        RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
+        String message = StringUtils.format("invalid symbol in encoding %s :%s", encoding, inspect(string));
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
+
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
     public RubyException encodingCompatibilityErrorIncompatible(RubyEncoding a, RubyEncoding b, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible character encodings: %s and %s", a, b),
