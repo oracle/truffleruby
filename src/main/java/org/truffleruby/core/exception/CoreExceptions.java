@@ -1111,14 +1111,6 @@ public class CoreExceptions {
     // Encoding conversion errors.
 
     @TruffleBoundary
-    public RubyException encodingError(String message, Node currentNode) {
-        RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
-        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
-
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
-    }
-
-    @TruffleBoundary
     public RubyException encodingError(Object string, RubyEncoding encoding, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
         String message = StringUtils.format("invalid symbol in encoding %s :%s", encoding, inspect(string));
