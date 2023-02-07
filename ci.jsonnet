@@ -248,7 +248,7 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_amd64_deps = common.sulong.deps.linux + {
+    local linux_amd64_deps = common.sulong.deps.common + {
       packages+: {
         git: ">=1.8.3",
         binutils: ">=2.30",
@@ -256,19 +256,19 @@ local part_definitions = {
       },
     },
 
-    local linux_aarch64_deps = common.sulong.deps.linux + {
+    local linux_aarch64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_amd64_deps = common.sulong.deps.darwin_amd64 + {
+    local darwin_amd64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_aarch64_deps = common.sulong.deps.darwin_aarch64 + {
+    local darwin_aarch64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },
