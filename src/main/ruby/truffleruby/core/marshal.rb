@@ -1065,7 +1065,12 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
-      raise TypeError, "singleton can't be dumped" if Primitive.singleton_methods?(obj)
+      metaclass = Primitive.class_of(obj)
+      if metaclass.singleton_class? &&
+        (Primitive.singleton_methods?(obj) || Primitive.any_instance_variable?(metaclass))
+        raise TypeError, "singleton can't be dumped"
+      end
+
       str = +''
       Primitive.vm_extended_modules obj, -> mod do
         if Primitive.module_anonymous?(mod)

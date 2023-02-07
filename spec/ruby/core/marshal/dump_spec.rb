@@ -500,7 +500,7 @@ describe "Marshal.dump" do
       Marshal.dump(obj).should == "\004\bo:\x0BObject\x00"
     end
 
-    it "dumps an Object if it has a singleton class but no singleton methods" do
+    it "dumps an Object if it has a singleton class but no singleton methods and no singleton instance variables" do
       obj = Object.new
       obj.singleton_class
       Marshal.dump(obj).should == "\004\bo:\x0BObject\x00"
@@ -509,6 +509,17 @@ describe "Marshal.dump" do
     it "raises TypeError if an Object has a singleton class and singleton methods" do
       obj = Object.new
       def obj.foo; end
+      -> {
+        Marshal.dump(obj)
+      }.should raise_error(TypeError, "singleton can't be dumped")
+    end
+
+    it "raises TypeError if an Object has a singleton class and singleton instance variables" do
+      obj = Object.new
+      class << obj
+        @v = 1
+      end
+
       -> {
         Marshal.dump(obj)
       }.should raise_error(TypeError, "singleton can't be dumped")
