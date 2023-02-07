@@ -449,6 +449,7 @@ class Struct
     # not a Struct subclass.
 
     return unless superclass.equal? Struct
+    return unless attrs.map(&:to_s).all? { |a| a.ascii_only? || (a.encoding == Encoding::UTF_8 && a.valid_encoding?) }
 
     args, assigns, hashes, vars = [], [], [], []
 
