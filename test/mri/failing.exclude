@@ -77,6 +77,5 @@ dtrace/test_string.rb
 misc/test_ruby_mode.rb
 ruby/enc/test_windows_1251.rb
 ruby/test_iseq.rb # RubyVM
-ruby/test_marshal.rb # invalid encoding symbol (EncodingError), including this causes error in test_objectspace.rb
 ruby/test_rubyvm.rb
 ruby/test_bignum.rb # relies on Bignums on Fixnum range
