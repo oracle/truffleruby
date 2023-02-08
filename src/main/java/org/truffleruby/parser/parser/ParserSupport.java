@@ -1259,7 +1259,10 @@ public class ParserSupport {
         if (!symbolParseNode.getTString().isValidUncached(symbolParseNode.getRubyEncoding().tencoding)) {
             throw new RaiseException(
                     RubyLanguage.getCurrentContext(),
-                    getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
+                    getConfiguration().getContext().getCoreExceptions().encodingError(
+                            symbolParseNode.getTString(),
+                            symbolParseNode.getRubyEncoding(),
+                            null));
         }
     }
 

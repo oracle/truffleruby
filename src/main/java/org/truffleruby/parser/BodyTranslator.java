@@ -1307,11 +1307,36 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDSymbolNode(DSymbolParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
+        // A special case for a symbol in Hash literal {"key": value}
+        if (node.size() == 1 && node.getLast() instanceof StrParseNode) {
+            final StrParseNode strParseNode = (StrParseNode) node.getLast();
+            final SymbolParseNode symbolParseNode = asSymbol(sourceSection, strParseNode);
+            return visitSymbolNode(symbolParseNode);
+        }
+
         final RubyNode stringNode = translateInterpolatedString(sourceSection, node.getEncoding(), node.children());
 
         final RubyNode ret = StringToSymbolNodeGen.create(stringNode);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
+    }
+
+    /** Same as {@link ParserSupport#asSymbol(SourceIndexLength position, ParseNode value)} but without needing a
+     * ParserSupport instance and only for StrParseNode argument. */
+    private SymbolParseNode asSymbol(SourceIndexLength position, StrParseNode value) {
+        final SymbolParseNode symbolParseNode = new SymbolParseNode(position, value.getValue(),
+                value.encoding);
+
+        if (!symbolParseNode.getTString().isValidUncached(symbolParseNode.getRubyEncoding().tencoding)) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    RubyLanguage.getCurrentContext(),
+                    context.getCoreExceptions().encodingError(
+                            symbolParseNode.getTString(),
+                            symbolParseNode.getRubyEncoding(),
+                            null));
+        }
+        return symbolParseNode;
     }
 
     private RubyNode translateInterpolatedString(SourceIndexLength sourceSection,

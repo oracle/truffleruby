@@ -2618,7 +2618,7 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary strings,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            throw new RaiseException(getContext(), coreExceptions().encodingError("invalid encoding symbol", this));
+            throw new RaiseException(getContext(), coreExceptions().encodingError(string, encoding, this));
         }
     }
 
