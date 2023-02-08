@@ -32,6 +32,11 @@ describe "Array#sort_by!" do
     -> { ArraySpecs.empty_frozen_array.sort_by! {}}.should raise_error(FrozenError)
   end
 
+  it "raises a FrozenError on a frozen array only during iteration if called without a block" do
+    enum = ArraySpecs.frozen_array.sort_by!
+    -> { enum.each {} }.should raise_error(FrozenError)
+  end
+
   it "returns the specified value when it would break in the given block" do
     [1, 2, 3].sort_by!{ break :a }.should == :a
   end
@@ -47,6 +52,29 @@ describe "Array#sort_by!" do
 
   it "changes nothing when called on a single element array" do
     [1].sort_by!(&:to_s).should == [1]
+  end
+
+  it "does not truncate the array is the block raises an exception" do
+    a = [1, 2, 3]
+    begin
+      a.sort_by! { raise StandardError, 'Oops' }
+    rescue
+    end
+
+    a.should == [1, 2, 3]
+  end
+
+  it "doesn't change array if error is raised" do
+    a = [4, 3, 2, 1]
+    begin
+      a.sort_by! do |e|
+        raise StandardError, 'Oops' if e == 1
+        e
+      end
+    rescue StandardError
+    end
+
+    a.should == [4, 3, 2, 1]
   end
 
   it_behaves_like :enumeratorized_with_origin_size, :sort_by!, [1,2,3]

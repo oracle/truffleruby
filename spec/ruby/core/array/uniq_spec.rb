@@ -220,6 +220,29 @@ describe "Array#uniq!" do
     a.uniq!
     a.should == [x]
   end
+
+  it "does not truncate the array is the block raises an exception" do
+    a = [1, 2, 3]
+    begin
+      a.send(@method) { raise StandardError, 'Oops' }
+    rescue
+    end
+
+    a.should == [1, 2, 3]
+  end
+
+  it "doesn't change array if error is raised" do
+    a = [1, 1, 2, 2, 3, 3, 4, 4]
+    begin
+      a.send(@method) do |e|
+        raise StandardError, 'Oops' if e == 3
+        e
+      end
+    rescue StandardError
+    end
+
+    a.should == [1, 1, 2, 2, 3, 3, 4, 4]
+  end
 end
 
 describe "Array#uniq!" do

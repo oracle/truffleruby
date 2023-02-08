@@ -515,6 +515,8 @@ module Enumerable
         raise ArgumentError, 'no block or symbol given' if Primitive.undefined?(initial)
         sym = initial
         initial = undefined
+      else
+        warn 'given block not used', uplevel: 1
       end
 
       # Do the sym version
@@ -549,6 +551,7 @@ module Enumerable
 
   def all?(pattern = undefined)
     if !Primitive.undefined?(pattern)
+      warn 'given block not used', uplevel: 1 if block_given?
       each { return false unless pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*e| return false unless yield(*e) }
@@ -560,6 +563,7 @@ module Enumerable
 
   def any?(pattern = undefined)
     if !Primitive.undefined?(pattern)
+      warn 'given block not used', uplevel: 1 if block_given?
       each { return true if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return true if yield(*o) }
@@ -910,6 +914,7 @@ module Enumerable
 
   def none?(pattern = undefined)
     if !Primitive.undefined?(pattern)
+      warn 'given block not used', uplevel: 1 if block_given?
       each { return false if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return false if yield(*o) }
@@ -924,6 +929,7 @@ module Enumerable
     found_one = false
 
     if !Primitive.undefined?(pattern)
+      warn 'given block not used', uplevel: 1 if block_given?
       each do
         if pattern === Primitive.single_block_arg
           return false if found_one

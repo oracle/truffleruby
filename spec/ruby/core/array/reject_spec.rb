@@ -116,6 +116,11 @@ describe "Array#reject!" do
     -> { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(FrozenError)
   end
 
+  it "raises a FrozenError on a frozen array only during iteration if called without a block" do
+    enum = ArraySpecs.frozen_array.reject!
+    -> { enum.each {} }.should raise_error(FrozenError)
+  end
+
   it "does not truncate the array is the block raises an exception" do
     a = [1, 2, 3]
     begin

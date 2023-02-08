@@ -38,4 +38,12 @@ describe "Array#any?" do
       array_with_members.any? {|v| v == 42 }.should == false
     end
   end
+
+  describe 'when given a pattern argument' do
+    it "ignores the block if there is an argument" do
+      -> {
+        ['bar', 'foobar'].any?(/bar/) { false }.should == true
+      }.should complain(/given block not used/)
+    end
+  end
 end

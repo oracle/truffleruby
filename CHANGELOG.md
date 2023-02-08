@@ -71,6 +71,8 @@ Compatibility:
 * Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, andrykonchin, @eregon).
 * Fix `EncodingError` exception message when Symbol has invalid encoding (#2850, @andrykonchin).
 * Raise `EncodingError` at parse time when Hash literal contains a Symbol key with invalid encoding (#2848, @andrykonchin).
+* Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, @andrykonchin, @eregon).
+* Fix `Array` methods `select!` and `keep_if` and handle a case when exception is raised in a passed block properly (@andrykonchin).
 
 Performance:
 
