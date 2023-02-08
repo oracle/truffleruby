@@ -70,6 +70,7 @@ Compatibility:
 * Fix `IO#write` and support multiple arguments with different encodings (#2829, @andrykonchin).
 * Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, andrykonchin, @eregon).
 * Fix `EncodingError` exception message when Symbol has invalid encoding (#2850, @andrykonchin).
+* Raise `EncodingError` at parse time when Hash literal contains a Symbol key with invalid encoding (#2848, @andrykonchin).
 
 Performance:
 
