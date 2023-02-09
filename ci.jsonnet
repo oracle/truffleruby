@@ -239,7 +239,8 @@ local part_definitions = {
 
     v20: with_path {
       downloads+: {
-        JAVA_HOME: common.jdks["labsjdk-ce-20"],
+        # labsjdk-ee-20, to workaround GR-44177 / https://bugs.openjdk.org/browse/JDK-8302160
+        JAVA_HOME: { name: "labsjdk", version: "ee-20.0.1+2-jvmci-23.0-b06", platformspecific: true },
       },
       environment+: {
         JT_JDK: "20",
@@ -248,7 +249,7 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_amd64_deps = common.sulong.deps.linux + {
+    local linux_amd64_deps = common.sulong.deps.common + {
       packages+: {
         git: ">=1.8.3",
         binutils: ">=2.30",
@@ -256,19 +257,19 @@ local part_definitions = {
       },
     },
 
-    local linux_aarch64_deps = common.sulong.deps.linux + {
+    local linux_aarch64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_amd64_deps = common.sulong.deps.darwin_amd64 + {
+    local darwin_amd64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_aarch64_deps = common.sulong.deps.darwin_aarch64 + {
+    local darwin_aarch64_deps = common.sulong.deps.common + {
       packages+: {
         ruby: "==3.0.2",
       },

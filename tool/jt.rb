@@ -178,9 +178,6 @@ module Utilities
     if @jdk_version == 17
       # No labsjdk-ce-17 in common.json
       true
-    elsif @jdk_version == 20
-      # No labsjdk-ee-20 yet, so use ce if JDK 20
-      false
     else
       ee?
     end

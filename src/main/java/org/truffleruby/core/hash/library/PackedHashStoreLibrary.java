@@ -406,9 +406,8 @@ public class PackedHashStoreLibrary {
         protected Object getConstantIndexPackedArray(
                 RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached ReferenceEqualNode refEqual,
-                @Cached(value = "isCompareByIdentity(hash)", neverDefault = false) boolean cachedByIdentity,
-                @Cached(value = "index(refEqual, hash, key, hashed, cachedByIdentity)",
-                        neverDefault = false) int cachedIndex) {
+                @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
+                @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
 
             final Object[] store = (Object[]) hash.store;
             return getValue(store, cachedIndex);
