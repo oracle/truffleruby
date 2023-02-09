@@ -243,27 +243,45 @@ module Marshal
     end
 
     def set_time_variables(time)
-      nano_num = nano_den = nil
+      nano_num = nano_den = offset = zone = nil
 
       construct_integer.times do
-        ivar = get_symbol
+        name = get_symbol
         value = construct
 
         case
-        when ivar == :nano_num
+        when name == :nano_num
           nano_num = value
-        when ivar == :nano_den
+        when name == :nano_den
           nano_den = value
-        when ivar.start_with?("@")
-          Primitive.object_ivar_set time, ivar, value
-        else
-          # ignore not regular instance variables (without @ prefix), e.g. :offset, :zone
+        when name == :offset
+          offset = value
+        when name == :zone
+          zone = value
+        when name.start_with?('@')
+          Primitive.object_ivar_set time, name, value
         end
       end
 
-      if nano_num && nano_den
+      unless Primitive.nil?(offset)
+        begin
+          offset = Truffle::Type.coerce_to_exact_num(offset)
+        rescue TypeError
+          offset = nil
+        end
+      end
+
+      unless Primitive.nil?(zone)
+        zone = Truffle::Type.rb_check_convert_type(zone, String, :to_str)
+        zone = nil if !Primitive.nil?(zone) && zone.include?("\0")
+      end
+
+      unless Primitive.nil?(nano_num) || Primitive.nil?(nano_den)
         Primitive.time_set_nseconds(time, Rational(nano_num, nano_den).to_i)
       end
+
+      time.localtime offset unless Primitive.nil?(offset)
+      Primitive.time_set_zone(time, zone) unless Primitive.nil?(zone)
     end
 
     STRING_ALLOCATE = String.method(:__allocate__).unbind

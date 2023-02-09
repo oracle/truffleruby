@@ -940,14 +940,38 @@ describe :marshal_load, shared: true do
       t1.should equal t2
     end
 
-    it "loads the zone" do
+    it "keeps the local zone" do
       with_timezone 'AST', 3 do
         t = Time.local(2012, 1, 1)
         Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
       end
     end
 
-    it "loads nanoseconds" do
+    it "keeps UTC zone" do
+      t = Time.now.utc
+      t2 = Marshal.send(@method, Marshal.dump(t))
+      t2.should.utc?
+    end
+
+    it "keeps the zone" do
+      t = nil
+
+      with_timezone 'AST', 4 do
+        t = Time.local(2012, 1, 1)
+      end
+
+      with_timezone 'EET', -2 do
+        Marshal.send(@method, Marshal.dump(t)).zone.should == 'AST'
+      end
+    end
+
+    it "keeps utc offset" do
+      t = Time.new(2007,11,1,15,25,0, "+09:00")
+      t2 = Marshal.send(@method, Marshal.dump(t))
+      t2.utc_offset.should == 32400
+    end
+
+    it "keeps nanoseconds" do
       t = Time.now
       Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
     end

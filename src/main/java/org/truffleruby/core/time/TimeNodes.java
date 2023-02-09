@@ -403,6 +403,17 @@ public abstract class TimeNodes {
         }
     }
 
+    @Primitive(name = "time_set_zone")
+    public abstract static class TimeSetZoneNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(guards = "strings.isRubyString(zone)", limit = "1")
+        protected Object timeSetZone(RubyTime time, Object zone,
+                @Cached RubyStringLibrary strings) {
+            time.zone = zone;
+            return zone;
+        }
+
+    }
+
     @Primitive(name = "time_strftime")
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
