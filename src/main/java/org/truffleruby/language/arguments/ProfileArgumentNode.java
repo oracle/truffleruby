@@ -36,13 +36,13 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected boolean cacheBoolean(boolean value,
-            @Cached(value = "value", neverDefault = false) boolean cachedValue) {
+            @Cached("value") boolean cachedValue) {
         return cachedValue;
     }
 
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected int cacheInt(int value,
-            @Cached(value = "value", neverDefault = false) int cachedValue) {
+            @Cached("value") int cachedValue) {
         return cachedValue;
     }
 

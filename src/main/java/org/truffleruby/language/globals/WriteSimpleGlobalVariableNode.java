@@ -43,7 +43,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" },
             limit = "1")
     protected Object writeTryToKeepConstant(Object value,
-            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
+            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {
         // NOTE: we still do the volatile write to get the proper memory barrier,
