@@ -71,7 +71,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
     @NeverDefault
     protected Object getTZ() {
-        if (getContext().getEnv().isNativeAccessAllowed()) {
+        if (getContext().getOptions().NATIVE_PLATFORM) {
             return lookupEnvNode.call(coreLibrary().getENV(), "[]", FrozenStrings.TZ);
         } else {
             return nil;

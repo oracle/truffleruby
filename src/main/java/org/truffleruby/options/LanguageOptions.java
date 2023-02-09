@@ -20,6 +20,7 @@ import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
+// Checkstyle: stop
 public class LanguageOptions {
 
     /** --no-home-provided=false */
@@ -732,4 +733,5 @@ public class LanguageOptions {
         return true;
     }
 }
+// Checkstyle: resume
 // @formatter:on

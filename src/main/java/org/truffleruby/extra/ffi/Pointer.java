@@ -39,7 +39,7 @@ public final class Pointer implements AutoCloseable, TruffleObject {
     public static final Pointer[] EMPTY_ARRAY = new Pointer[0];
 
     public static void checkNativeAccess(RubyContext context) {
-        if (!context.getEnv().isNativeAccessAllowed()) {
+        if (!context.getOptions().NATIVE_PLATFORM) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new RaiseException(
                     context,

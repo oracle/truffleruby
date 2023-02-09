@@ -163,6 +163,7 @@ import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
+// Checkstyle: stop
 public class <%= class_prefix %>Options {
 <% options.each do |o| %>
     /** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
@@ -209,6 +210,7 @@ public class <%= class_prefix %>Options {
     }
 <% end -%>
 }
+// Checkstyle: resume
 // @formatter:on
 JAVA
 

@@ -22,6 +22,7 @@ import org.truffleruby.shared.options.OutputFormat;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
+// Checkstyle: stop
 public class Options {
 
     /** --load-paths=StringArrayOptionType.EMPTY_STRING_ARRAY */
@@ -491,4 +492,5 @@ public class Options {
     }
 
 }
+// Checkstyle: resume
 // @formatter:on
