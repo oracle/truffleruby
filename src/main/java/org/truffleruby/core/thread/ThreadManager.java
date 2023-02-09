@@ -408,7 +408,7 @@ public class ThreadManager {
 
     public void start(RubyThread thread, Thread javaThread) {
         thread.thread = javaThread;
-        thread.ioBuffer = context.getEnv().isNativeAccessAllowed() ? Pointer.getNullBuffer(context) : null;
+        thread.ioBuffer = context.getOptions().NATIVE_PLATFORM ? Pointer.getNullBuffer(context) : null;
         registerThread(thread);
 
         final RubyFiber rootFiber = thread.getRootFiber();
