@@ -128,6 +128,11 @@ describe "Marshal.dump" do
       Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
     end
 
+    it "ignores overridden name method" do
+      obj = MarshalSpec::UserDefinedWithOverriddenName.new
+      Marshal.dump(obj).should == "\x04\bu:/MarshalSpec::UserDefinedWithOverriddenName\x12\x04\b[\a:\nstuff;\x00"
+    end
+
     it "raises a TypeError if _dump returns a non-string" do
       m = mock("marshaled")
       m.should_receive(:_dump).and_return(0)
@@ -183,6 +188,10 @@ describe "Marshal.dump" do
       Marshal.dump(UserDefined::Nested).should == "\004\bc\030UserDefined::Nested"
     end
 
+    it "ignores overridden name method" do
+      Marshal.dump(MarshalSpec::ClassWithOverriddenName).should == "\x04\bc)MarshalSpec::ClassWithOverriddenName"
+    end
+
     it "raises TypeError with an anonymous Class" do
       -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
@@ -195,6 +204,10 @@ describe "Marshal.dump" do
   describe "with a Module" do
     it "dumps a builtin Module" do
       Marshal.dump(Marshal).should == "\004\bm\fMarshal"
+    end
+
+    it "ignores overridden name method" do
+      Marshal.dump(MarshalSpec::ModuleWithOverriddenName).should == "\x04\bc*MarshalSpec::ModuleWithOverriddenName"
     end
 
     it "raises TypeError with an anonymous Module" do
@@ -270,6 +283,11 @@ describe "Marshal.dump" do
 
     it "dumps a String subclass extended with a Module" do
       Marshal.dump(UserString.new.extend(Meths).force_encoding("binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
+    end
+
+    it "ignores overridden name method when dumps a String subclass" do
+      obj = MarshalSpec::StringWithOverriddenName.new
+      Marshal.dump(obj).should == "\x04\bC:*MarshalSpec::StringWithOverriddenName\"\x00"
     end
 
     it "dumps a String with instance variables" do
@@ -359,6 +377,11 @@ describe "Marshal.dump" do
       o = Regexp.new("a".encode("utf-16le"), Regexp::FIXEDENCODING)
       Marshal.dump(o).should == "\x04\bI/\aa\x00\x10\x06:\rencoding\"\rUTF-16LE"
     end
+
+    it "ignores overridden name method when dumps a Regexp subclass" do
+      obj = MarshalSpec::RegexpWithOverriddenName.new("")
+      Marshal.dump(obj).should == "\x04\bIC:*MarshalSpec::RegexpWithOverriddenName/\x00\x00\x06:\x06EF"
+    end
   end
 
   describe "with an Array" do
@@ -388,6 +411,11 @@ describe "Marshal.dump" do
 
     it "dumps an extended Array" do
       Marshal.dump([].extend(Meths)).should == "\004\be:\nMeths[\000"
+    end
+
+    it "ignores overridden name method when dumps an Array subclass" do
+      obj = MarshalSpec::ArrayWithOverriddenName.new
+      Marshal.dump(obj).should == "\x04\bC:)MarshalSpec::ArrayWithOverriddenName[\x00"
     end
   end
 
@@ -441,6 +469,11 @@ describe "Marshal.dump" do
     it "dumps an Hash subclass with a parameter to initialize" do
       Marshal.dump(UserHashInitParams.new(1)).should == "\004\bIC:\027UserHashInitParams{\000\006:\a@ai\006"
     end
+
+    it "ignores overridden name method when dumps a Hash subclass" do
+      obj = MarshalSpec::HashWithOverriddenName.new
+      Marshal.dump(obj).should == "\x04\bC:(MarshalSpec::HashWithOverriddenName{\x00"
+    end
   end
 
   describe "with a Struct" do
@@ -468,6 +501,11 @@ describe "Marshal.dump" do
       obj.b = [:Meths, s]
       Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
       Struct.send(:remove_const, :Extended)
+    end
+
+    it "ignores overridden name method" do
+      obj = MarshalSpec::StructWithOverriddenName.new("member")
+      Marshal.dump(obj).should == "\x04\bS:*MarshalSpec::StructWithOverriddenName\x06:\x06a\"\vmember"
     end
   end
 
@@ -504,6 +542,11 @@ describe "Marshal.dump" do
       obj = Object.new
       obj.singleton_class
       Marshal.dump(obj).should == "\004\bo:\x0BObject\x00"
+    end
+
+    it "ignores overridden name method" do
+      obj = MarshalSpec::ClassWithOverriddenName.new
+      Marshal.dump(obj).should == "\x04\bo:)MarshalSpec::ClassWithOverriddenName\x00"
     end
 
     it "raises TypeError if an Object has a singleton class and singleton methods" do
@@ -605,6 +648,11 @@ describe "Marshal.dump" do
       dump = Marshal.dump(@utc)
       zone = ":\tzoneI\"\bUTC\x06:\x06EF" # Last is 'F' (US-ASCII)
       dump.should == "\x04\bIu:\tTime\r#{@utc_dump}\x06#{zone}"
+    end
+
+    it "ignores overridden name method" do
+      obj = MarshalSpec::TimeWithOverriddenName.new
+      Marshal.dump(obj).should include("MarshalSpec::TimeWithOverriddenName")
     end
   end
 

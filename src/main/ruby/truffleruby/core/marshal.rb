@@ -58,6 +58,7 @@ class Class
       raise TypeError, "can't dump anonymous class #{self}"
     end
 
+    name = Primitive.module_name self
     "c#{ms.serialize_integer(name.length)}#{name}"
   end
 end
@@ -65,6 +66,7 @@ end
 class Module
   private def __marshal__(ms)
     raise TypeError, "can't dump anonymous module #{self}" if Primitive.nil?(name) || name.empty?
+    name = Primitive.module_name self
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
@@ -157,7 +159,10 @@ class Time
 
     ivars = Primitive.object_ivars(self)
     out << 'I'.b
-    out << Truffle::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
+
+    cls = Primitive.object_class self
+    name = Primitive.module_name cls
+    out << Truffle::Type.binary_string("u#{ms.serialize(name.to_sym)}")
 
     str = _dump
     out << ms.serialize_integer(str.length) + str
@@ -388,7 +393,9 @@ class Struct
 
     out << 'S'
 
-    out << ms.serialize(self.class.name.to_sym)
+    cls = Primitive.object_class self
+    class_name = Primitive.module_name cls
+    out << ms.serialize(class_name.to_sym)
     out << ms.serialize_integer(self.length)
 
     self.each_pair do |name, value|
@@ -1190,15 +1197,19 @@ module Marshal
     end
 
     def serialize_user_class(obj, cls)
-      if obj.class != cls
-        Truffle::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
+      obj_class = Primitive.object_class obj
+
+      if obj_class != cls
+        name = Primitive.module_name obj_class
+        Truffle::Type.binary_string("C#{serialize(name.to_sym)}")
       else
         ''.b
       end
     end
 
     def serialize_user_class!(klass)
-      Truffle::Type.binary_string("C#{serialize(klass.name.to_sym)}")
+      name = Primitive.module_name klass
+      Truffle::Type.binary_string("C#{serialize(name.to_sym)}")
     end
 
     def serialize_user_defined(obj)
@@ -1212,8 +1223,11 @@ module Marshal
         raise TypeError, '_dump() must return string'
       end
 
+      cls = Primitive.object_class obj
+      name = Primitive.module_name cls
+
       out = serialize_instance_variables_prefix(str)
-      out << Truffle::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
+      out << Truffle::Type.binary_string("u#{serialize(name.to_sym)}")
       out << serialize_integer(str.bytesize) + str.b
       out << serialize_instance_variables_suffix(str)
 

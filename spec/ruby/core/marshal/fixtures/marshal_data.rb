@@ -208,6 +208,60 @@ module MarshalSpec
     set_swapped_class(nil)
   end
 
+  class ClassWithOverriddenName
+    def self.name
+      "Foo"
+    end
+  end
+
+  class ModuleWithOverriddenName
+    def self.name
+      "Foo"
+    end
+  end
+
+  class TimeWithOverriddenName < Time
+    def self.name
+      "Foo"
+    end
+  end
+
+  class StructWithOverriddenName < Struct.new(:a)
+    def self.name
+      "Foo"
+    end
+  end
+
+  class UserDefinedWithOverriddenName < UserDefined
+    def self.name
+      "Foo"
+    end
+  end
+
+  class StringWithOverriddenName < String
+    def self.name
+      "Foo"
+    end
+  end
+
+  class ArrayWithOverriddenName < Array
+    def self.name
+      "Foo"
+    end
+  end
+
+  class HashWithOverriddenName < Hash
+    def self.name
+      "Foo"
+    end
+  end
+
+  class RegexpWithOverriddenName < Regexp
+    def self.name
+      "Foo"
+    end
+  end
+
   DATA = {
     "nil" => [nil, "\004\b0"],
     "1..2" => [(1..2),
