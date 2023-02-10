@@ -9,31 +9,17 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.exception.AbstractTruffleException;
-import com.oracle.truffle.api.interop.ExceptionType;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 
 @SuppressWarnings("serial")
-@ExportLibrary(InteropLibrary.class)
-public abstract class TerminationException extends AbstractTruffleException {
+public abstract class TerminationException extends RuntimeException {
 
-    @TruffleBoundary
-    private static RuntimeException javaStacktrace() {
-        return new RuntimeException();
-    }
+    // To help debugging
+    public final Node location;
 
     public TerminationException(String message, Node location) {
-        // javaStacktrace() to help debugging if it happens in unexpected places
-        super(message, javaStacktrace(), UNLIMITED_STACK_TRACE, location);
-    }
-
-    @ExportMessage
-    protected ExceptionType getExceptionType() {
-        return ExceptionType.INTERRUPT;
+        super(message);
+        this.location = location;
     }
 
 }

@@ -75,6 +75,7 @@ Compatibility:
 * Fix `Array` methods `select!` and `keep_if` and handle a case when exception is raised in a passed block properly (@andrykonchin).
 * Fix `Enumerable` methods `each_cons` and `each_slice` to return receiver (#2733, @horakivo)
 * `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
+* `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
 
 Performance:
 

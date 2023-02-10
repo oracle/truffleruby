@@ -10,24 +10,26 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.TerminationException;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 public class EnsureNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
 
-    private final BranchProfile terminationProfile = BranchProfile.create();
+    private final BranchProfile killExceptionProfile = BranchProfile.create();
     private final BranchProfile guestExceptionProfile = BranchProfile.create();
-    private final BranchProfile javaExceptionProfile = BranchProfile.create();
+    private final BranchProfile controlFlowExceptionProfile = BranchProfile.create();
     private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public EnsureNode(RubyNode tryPart, RubyNode ensurePart) {
@@ -45,12 +47,12 @@ public class EnsureNode extends RubyContextSourceNode {
         executeCommon(frame, true);
     }
 
-    /** The reason this is so complicated is to avoid duplication of the ensurePart so it is PE'd only once, no matter
-     * which execution paths are taken (GR-25608). */
+    /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode}. It only runs code in ensure for
+     * guest exceptions (AbstractTruffleException), ControlFlowException or no exception. */
     public Object executeCommon(VirtualFrame frame, boolean executeVoid) {
         Object value = nil;
+        RuntimeException rethrowException = null;
         AbstractTruffleException guestException = null;
-        Throwable javaException = null;
 
         try {
             if (executeVoid) {
@@ -58,24 +60,26 @@ public class EnsureNode extends RubyContextSourceNode {
             } else {
                 value = tryPart.execute(frame);
             }
-        } catch (TerminationException e) {
-            terminationProfile.enter();
-            javaException = e;
+        } catch (KillException e) { // an AbstractTruffleException but must not set $!
+            killExceptionProfile.enter();
+            rethrowException = e;
         } catch (AbstractTruffleException e) {
             guestExceptionProfile.enter();
             guestException = e;
-        } catch (Throwable throwable) {
-            javaExceptionProfile.enter();
-            javaException = throwable;
+            rethrowException = e;
+        } catch (ControlFlowException e) {
+            controlFlowExceptionProfile.enter();
+            rethrowException = e;
         }
 
         ThreadLocalGlobals threadLocalGlobals = null;
         Object previousException = null;
+
         if (guestException != null) {
+            var exceptionObject = ExceptionOperations.getExceptionObject(guestException, raiseExceptionProfile);
             threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
             previousException = threadLocalGlobals.getLastException();
-            threadLocalGlobals.setLastException(ExceptionOperations.getExceptionObject(guestException,
-                    raiseExceptionProfile));
+            threadLocalGlobals.setLastException(exceptionObject);
         }
         try {
             ensurePart.doExecuteVoid(frame);
@@ -85,10 +89,8 @@ public class EnsureNode extends RubyContextSourceNode {
             }
         }
 
-        if (guestException != null) {
-            throw guestException;
-        } else if (javaException != null) {
-            throw ExceptionOperations.rethrow(javaException);
+        if (rethrowException != null) {
+            throw rethrowException;
         } else {
             return value;
         }

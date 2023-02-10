@@ -12,7 +12,6 @@ package org.truffleruby.language.control;
 import com.oracle.truffle.api.nodes.Node;
 
 /** Exception sent by the hard Kernel#exit! */
-// TODO: should not be an AbstractTruffleException and not run ensure, like in CRuby
 @SuppressWarnings("serial")
 public final class ExitException extends TerminationException {
 

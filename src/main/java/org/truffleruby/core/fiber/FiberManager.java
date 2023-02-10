@@ -478,9 +478,8 @@ public class FiberManager {
     }
 
     /** Used to cleanup and terminate Fibers when the parent Thread dies. */
-    // TODO: should not be an AbstractTruffleException and not run ensure, like in CRuby
     @SuppressWarnings("serial")
-    private static final class FiberShutdownException extends TerminationException {
+    public static final class FiberShutdownException extends TerminationException {
         public FiberShutdownException(Node location) {
             super("terminate Fiber", location);
         }

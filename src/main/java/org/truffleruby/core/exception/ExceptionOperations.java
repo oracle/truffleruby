@@ -28,6 +28,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -75,6 +76,8 @@ public abstract class ExceptionOperations {
     }
 
     public static Object getExceptionObject(AbstractTruffleException exception) {
+        assert !(exception instanceof KillException)
+                : "KillException should not be used as an exception object: " + exception;
         if (exception instanceof RaiseException) {
             return ((RaiseException) exception).getException();
         } else {
@@ -84,6 +87,8 @@ public abstract class ExceptionOperations {
 
     public static Object getExceptionObject(AbstractTruffleException exception,
             ConditionProfile raiseExceptionProfile) {
+        assert !(exception instanceof KillException)
+                : "KillException should not be used as an exception object: " + exception;
         if (raiseExceptionProfile.profile(exception instanceof RaiseException)) {
             return ((RaiseException) exception).getException();
         } else {

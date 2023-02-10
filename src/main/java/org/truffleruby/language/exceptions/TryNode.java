@@ -10,20 +10,20 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RetryException;
-import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -38,10 +38,10 @@ public class TryNode extends RubyContextSourceNode {
     @Child private TranslateExceptionNode translateExceptionNode;
     private final boolean canOmitBacktrace;
 
-    private final BranchProfile terminationProfile = BranchProfile.create();
+    private final BranchProfile noExceptionProfile = BranchProfile.create();
+    private final BranchProfile killExceptionProfile = BranchProfile.create();
     private final BranchProfile guestExceptionProfile = BranchProfile.create();
-    private final BranchProfile controlFlowProfile = BranchProfile.create();
-    private final BranchProfile elseProfile;
+    private final BranchProfile retryProfile = BranchProfile.create();
     private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public TryNode(
@@ -53,9 +53,9 @@ public class TryNode extends RubyContextSourceNode {
         this.rescueParts = rescueParts;
         this.elsePart = elsePart;
         this.canOmitBacktrace = canOmitBacktrace;
-        this.elseProfile = elsePart != null ? BranchProfile.create() : null;
     }
 
+    /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode} */
     @Override
     public Object execute(VirtualFrame frame) {
         while (true) {
@@ -63,20 +63,19 @@ public class TryNode extends RubyContextSourceNode {
 
             try {
                 result = tryPart.execute(frame);
-            } catch (TerminationException exception) {
-                terminationProfile.enter();
-                throw exception;
+                noExceptionProfile.enter();
+            } catch (KillException e) { // an AbstractTruffleException but must not set $! and cannot be rescue'd
+                killExceptionProfile.enter();
+                throw e;
             } catch (AbstractTruffleException exception) {
                 guestExceptionProfile.enter();
                 try {
                     return handleException(frame, exception);
                 } catch (RetryException e) {
+                    retryProfile.enter();
                     TruffleSafepoint.poll(this);
                     continue;
                 }
-            } catch (ControlFlowException exception) {
-                controlFlowProfile.enter();
-                throw exception;
             } catch (Throwable t) {
                 if (translateExceptionNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -86,7 +85,6 @@ public class TryNode extends RubyContextSourceNode {
             }
 
             if (elsePart != null) {
-                elseProfile.enter();
                 result = elsePart.execute(frame);
             }
 

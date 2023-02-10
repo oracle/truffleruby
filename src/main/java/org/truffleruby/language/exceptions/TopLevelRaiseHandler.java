@@ -17,12 +17,13 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.fiber.FiberManager.FiberShutdownException;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TerminationException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.IsANode;
 
@@ -41,8 +42,7 @@ public class TopLevelRaiseHandler extends RubyBaseNode {
             return e.getCode();
         } catch (AbstractTruffleException e) {
             // No KillException, it's a SystemExit instead for the main thread
-            // No FiberShutdownException, it's only for Fibers
-            assert !(e instanceof TerminationException) : e;
+            assert !(e instanceof KillException) : e;
 
             caughtException = e;
             exitCode = statusFromException(caughtException);
@@ -53,6 +53,9 @@ public class TopLevelRaiseHandler extends RubyBaseNode {
         } catch (ThreadDeath e) { // Context#close(true)
             throw e;
         } catch (RuntimeException | Error e) {
+            // No FiberShutdownException, it's only for Fibers
+            assert !(e instanceof FiberShutdownException) : e;
+
             BacktraceFormatter.printInternalError(
                     getContext(),
                     e,

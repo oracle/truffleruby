@@ -8,3 +8,5 @@ slow:Kernel#exit! overrides the original exception and exit status when called f
 slow:Kernel.exit! overrides the original exception and exit status when called from #at_exit
 slow:Kernel#exit! skips at_exit handlers
 slow:Kernel.exit! skips at_exit handlers
+slow:Kernel#exit! skips ensure clauses
+slow:Kernel.exit! skips ensure clauses
