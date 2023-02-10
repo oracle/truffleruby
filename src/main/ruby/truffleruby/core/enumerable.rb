@@ -516,7 +516,7 @@ module Enumerable
         sym = initial
         initial = undefined
       else
-        warn 'given block not used', uplevel: 1
+        warn 'given block not used', uplevel: 1 if block_given?
       end
 
       # Do the sym version
