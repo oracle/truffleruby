@@ -85,9 +85,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private final PrependMarker start;
 
     private final RubyModule lexicalParent;
+    /** Module (or class) own explicitly specified name */
     public final String givenBaseName;
 
+    /** Means whether a fully qualified name (with parent lexical scope names) is already set */
     private boolean hasFullName = false;
+    /** Either fully qualified name or lazily evaluated anonymous name */
     private String name = null;
     private ImmutableRubyString rubyStringName;
 

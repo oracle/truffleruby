@@ -369,13 +369,9 @@ public abstract class TypeNodes {
 
     @Primitive(name = "module_name")
     public abstract static class ModuleNameNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
         @Specialization
-        protected RubyString moduleName(RubyModule module) {
-            final String name = module.fields.getName();
-            return createString(fromJavaStringNode, name, Encodings.UTF_8);
+        protected Object moduleName(RubyModule module) {
+            return module.fields.getRubyStringName();
         }
 
     }
