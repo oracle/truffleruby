@@ -231,6 +231,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @CompilationFinal public boolean singleContext = true;
     @CompilationFinal public Optional<RubyContext> contextIfSingleContext;
+    private int numberOfContexts = 0;
 
     public final CyclicAssumption traceFuncUnusedAssumption = new CyclicAssumption("set_trace_func is not used");
 
@@ -248,7 +249,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     // GR-44025: We store the cleanerThread explicitly here to make it a clear image building failure if it would still be set.
     public Thread cleanerThread = null;
-    @CompilationFinal public Cleaner cleaner = newCleaner();
+    @CompilationFinal public Cleaner cleaner = null;
 
     public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
@@ -424,6 +425,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         Metrics.initializeOption();
 
         synchronized (this) {
+            numberOfContexts++;
+            setupCleaner();
+
             if (this.options == null) { // First context
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
@@ -465,9 +469,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             context.initialize();
 
             if (context.isPreInitializing()) {
-                setRubyHome(context.getEnv(), null);
-                this.cleanerThread = null;
-                this.cleaner = null;
+                synchronized (this) {
+                    setRubyHome(context.getEnv(), null);
+                    resetCleaner();
+                }
             }
             Metrics.printTime("after-initialize-context");
         } catch (Throwable e) {
@@ -498,8 +503,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return false;
         }
 
-        setRubyHome(newEnv, findRubyHome());
-        this.cleaner = newCleaner();
+        synchronized (this) {
+            setRubyHome(newEnv, findRubyHome());
+            setupCleaner();
+        }
 
         boolean patched = context.patchContext(newEnv);
         Metrics.printTime("after-patch-context");
@@ -519,6 +526,14 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(this, System.out);
+        }
+
+        synchronized (this) {
+            // GR-28354: Workaround for no "before CacheStore hook"
+            numberOfContexts--;
+            if (numberOfContexts == 0 && !singleContext) {
+                resetCleaner();
+            }
         }
     }
 
@@ -659,8 +674,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return context.getTopScopeObject();
     }
 
-    private Cleaner newCleaner() {
-        return Cleaner.create(runnable -> this.cleanerThread = new Thread(runnable, "Ruby-Cleaner"));
+    private void setupCleaner() {
+        assert Thread.holdsLock(this);
+        if (cleaner == null) {
+            cleaner = Cleaner.create(runnable -> this.cleanerThread = new Thread(runnable, "Ruby-Cleaner"));
+        }
+    }
+
+    private void resetCleaner() {
+        assert Thread.holdsLock(this);
+        cleanerThread = null;
+        cleaner = null;
     }
 
     public String getRubyHome() {
@@ -681,6 +705,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     private void setRubyHome(Env env, String home) {
+        assert Thread.holdsLock(this);
         rubyHome = home;
         setRubyHomeTruffleFile(env, home);
     }
