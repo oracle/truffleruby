@@ -36,6 +36,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -1051,6 +1052,15 @@ public abstract class InteropNodes {
         }
     }
 
+    @CoreMethod(names = "fits_in_big_integer?", onSingleton = true, required = 1)
+    public abstract static class FitsInBigIntegerNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected boolean fits(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInBigInteger(receiver);
+        }
+    }
+
     @CoreMethod(names = "fits_in_float?", onSingleton = true, required = 1)
     public abstract static class FitsInFloatNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1119,6 +1129,21 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 return receivers.asLong(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "as_big_integer", onSingleton = true, required = 1)
+    public abstract static class AsBigIntegerNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected Object as(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return fixnumOrBignumNode.fixnumOrBignum(receivers.asBigInteger(receiver));
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
