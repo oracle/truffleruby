@@ -658,7 +658,7 @@ module Enumerable
       array.shift if array.size > n
       yield array.dup if array.size == n
     end
-    nil
+    self
   end
 
   def each_slice(slice_size)
@@ -683,7 +683,7 @@ module Enumerable
     end
 
     yield a unless a.empty?
-    nil
+    self
   end
 
   def find(ifnone=nil)
