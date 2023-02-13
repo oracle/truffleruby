@@ -39,3 +39,19 @@ echo "Test loading many standard libraries"
 
 $RUBY_BIN -w --experimental-options --lazy-default=false test/truffle/integration/no_extra_output/all_stdlibs.rb 1>temp.txt 2>&1
 check $?
+
+echo "Test of the unexpected output to stderr."
+echo "To ensure there are no unexpected warnings for instance."
+
+jt --silent test specs fast --error-output error_output.txt 2>stderr.txt
+echo Error output:
+cat error_output.txt
+
+if [ -s stderr.txt ]; then
+  echo Extra output:
+  cat stderr.txt
+  exit 1
+else
+  echo No extra output
+  rm -f stderr.txt
+fi
