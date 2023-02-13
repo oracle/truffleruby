@@ -65,7 +65,7 @@ end
 
 class Module
   private def __marshal__(ms)
-    raise TypeError, "can't dump anonymous module #{self}" if Primitive.nil?(name) || name.empty?
+    raise TypeError, "can't dump anonymous module #{self}" if Primitive.module_anonymous?(self)
     name = Primitive.module_name self
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
@@ -161,6 +161,9 @@ class Time
     out << 'I'.b
 
     cls = Primitive.object_class self
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
     name = Primitive.module_name cls
     out << Truffle::Type.binary_string("u#{ms.serialize(name.to_sym)}")
 
@@ -306,6 +309,9 @@ class Range
     out << 'o'
     cls = Primitive.object_class self
     name = Primitive.module_name cls
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
     out << ms.serialize(name.to_sym)
 
     ivars = self.instance_variables
@@ -394,6 +400,9 @@ class Struct
     out << 'S'
 
     cls = Primitive.object_class self
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
     class_name = Primitive.module_name cls
     out << ms.serialize(class_name.to_sym)
     out << ms.serialize_integer(self.length)
@@ -1224,6 +1233,9 @@ module Marshal
       end
 
       cls = Primitive.object_class obj
+      if Primitive.module_anonymous?(cls)
+        raise TypeError, "can't dump anonymous class #{cls}"
+      end
       name = Primitive.module_name cls
 
       out = serialize_instance_variables_prefix(str)

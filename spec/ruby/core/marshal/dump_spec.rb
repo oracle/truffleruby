@@ -105,11 +105,8 @@ describe "Marshal.dump" do
       Marshal.dump(UserMarshal.new)
     end
 
-   it "raises TypeError if an Object is an instance of an anonymous class" do
-      anonymous_class = Class.new(UserMarshal)
-      obj = anonymous_class.new
-
-      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
+    it "raises TypeError if an Object is an instance of an anonymous class" do
+      -> { Marshal.dump(Class.new(UserMarshal).new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
   end
 
@@ -137,6 +134,10 @@ describe "Marshal.dump" do
       m = mock("marshaled")
       m.should_receive(:_dump).and_return(0)
       -> { Marshal.dump(m) }.should raise_error(TypeError)
+    end
+
+    it "raises TypeError if an Object is an instance of an anonymous class" do
+      -> { Marshal.dump(Class.new(UserDefined).new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "favors marshal_dump over _dump" do
@@ -507,6 +508,10 @@ describe "Marshal.dump" do
       obj = MarshalSpec::StructWithOverriddenName.new("member")
       Marshal.dump(obj).should == "\x04\bS:*MarshalSpec::StructWithOverriddenName\x06:\x06a\"\vmember"
     end
+
+    it "raises TypeError with an anonymous Struct" do
+      -> { Marshal.dump(Struct.new(:a).new(1)) }.should raise_error(TypeError, /can't dump anonymous class/)
+    end
   end
 
   describe "with an Object" do
@@ -612,6 +617,10 @@ describe "Marshal.dump" do
         load.instance_variable_get(:@foo).should == 42
       end
     end
+
+    it "raises TypeError with an anonymous Range subclass" do
+      -> { Marshal.dump(Class.new(Range).new(1, 2)) }.should raise_error(TypeError, /can't dump anonymous class/)
+    end
   end
 
   describe "with a Time" do
@@ -653,6 +662,10 @@ describe "Marshal.dump" do
     it "ignores overridden name method" do
       obj = MarshalSpec::TimeWithOverriddenName.new
       Marshal.dump(obj).should include("MarshalSpec::TimeWithOverriddenName")
+    end
+
+    it "raises TypeError with an anonymous Time subclass" do
+      -> { Marshal.dump(Class.new(Time).now) }.should raise_error(TypeError)
     end
   end
 
