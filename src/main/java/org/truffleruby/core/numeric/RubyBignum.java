@@ -23,9 +23,14 @@ import java.math.BigInteger;
 @ExportLibrary(InteropLibrary.class)
 public final class RubyBignum extends ImmutableRubyObjectNotCopyable {
 
+    private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
+    private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
+
     public final BigInteger value;
 
     public RubyBignum(BigInteger value) {
+        assert value.compareTo(LONG_MIN_BIGINT) < 0 ||
+                value.compareTo(LONG_MAX_BIGINT) > 0 : "Bignum in long range : " + value;
         this.value = value;
     }
 

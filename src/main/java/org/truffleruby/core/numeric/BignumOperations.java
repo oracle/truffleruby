@@ -13,15 +13,9 @@ import java.math.BigInteger;
 
 public class BignumOperations {
 
-    private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
-    private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
-
     public static RubyBignum createBignum(BigInteger value) {
-        assert value.compareTo(LONG_MIN_BIGINT) < 0 ||
-                value.compareTo(LONG_MAX_BIGINT) > 0 : "Bignum in long range : " + value;
-        final RubyBignum instance = new RubyBignum(value);
         // TODO BJF Jul-30-2020 Add allocation tracing
-        return instance;
+        return new RubyBignum(value);
     }
 
 }
