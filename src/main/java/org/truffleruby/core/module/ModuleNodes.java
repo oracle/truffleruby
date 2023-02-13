@@ -47,6 +47,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
@@ -1682,21 +1683,22 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
                 @Cached BranchProfile errorProfile) {
             checkNotClass(module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
-            return module;
+            return nil;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached BranchProfile errorProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile,
+                @Cached SingleValueCastNode singleValueCastNode) {
             checkNotClass(module, errorProfile);
             int i = 0;
             try {
@@ -1707,7 +1709,7 @@ public abstract class ModuleNodes {
             } finally {
                 profileAndReportLoopCount(loopProfile, i);
             }
-            return module;
+            return singleValueCastNode.executeSingleValue(names);
         }
 
         private void checkNotClass(RubyModule module, BranchProfile errorProfile) {
@@ -1769,21 +1771,22 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
             needCallerFrame(callerFrame, "Module#public with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
-            return module;
+            return nil;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
+                @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PUBLIC);
             }
-            return module;
+            return singleValueCastNode.executeSingleValue(names);
         }
     }
 
@@ -1810,21 +1813,22 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
             needCallerFrame(callerFrame, "Module#private with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
-            return module;
+            return nil;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
+                @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PRIVATE);
             }
-            return module;
+            return singleValueCastNode.executeSingleValue(names);
         }
     }
 
@@ -2114,21 +2118,22 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
             needCallerFrame(callerFrame, "Module#protected with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
-            return module;
+            return nil;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
+                @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PROTECTED);
             }
-            return module;
+            return singleValueCastNode.executeSingleValue(names);
         }
     }
 
