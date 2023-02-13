@@ -245,8 +245,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
     public final KeywordArgumentsDescriptorManager keywordArgumentsDescriptorManager = new KeywordArgumentsDescriptorManager();
     public final FrozenStringLiterals frozenStringLiterals;
-    public final Cleaner cleaner = Cleaner.create();
 
+    // GR-44025: We store the cleanerThread explicitly here to make it a clear image building failure if it would still be set.
+    public Thread cleanerThread = null;
+    @CompilationFinal public Cleaner cleaner = newCleaner();
 
     public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
@@ -461,8 +463,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         try {
             Metrics.printTime("before-initialize-context");
             context.initialize();
+
             if (context.isPreInitializing()) {
                 setRubyHome(context.getEnv(), null);
+                this.cleanerThread = null;
+                this.cleaner = null;
             }
             Metrics.printTime("after-initialize-context");
         } catch (Throwable e) {
@@ -494,6 +499,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         setRubyHome(newEnv, findRubyHome());
+        this.cleaner = newCleaner();
 
         boolean patched = context.patchContext(newEnv);
         Metrics.printTime("after-patch-context");
@@ -651,6 +657,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected Object getScope(RubyContext context) {
         return context.getTopScopeObject();
+    }
+
+    private Cleaner newCleaner() {
+        return Cleaner.create(runnable -> this.cleanerThread = new Thread(runnable, "Ruby-Cleaner"));
     }
 
     public String getRubyHome() {
