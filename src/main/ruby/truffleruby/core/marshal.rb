@@ -59,7 +59,7 @@ class Class
     end
 
     name = Primitive.module_name self
-    "c#{ms.serialize_integer(name.length)}#{name}"
+    "c#{ms.serialize_integer(name.bytesize)}#{name.b}"
   end
 end
 
@@ -67,7 +67,7 @@ class Module
   private def __marshal__(ms)
     raise TypeError, "can't dump anonymous module #{self}" if Primitive.module_anonymous?(self)
     name = Primitive.module_name self
-    "m#{ms.serialize_integer(name.length)}#{name}"
+    "m#{ms.serialize_integer(name.bytesize)}#{name.b}"
   end
 end
 
@@ -95,7 +95,7 @@ class Float
       end
     end
 
-    sl = str.length
+    sl = str.bytesize
     if sign == 1
       ss = '-'
       sl += 1
@@ -168,7 +168,7 @@ class Time
     out << Truffle::Type.binary_string("u#{ms.serialize(name.to_sym)}")
 
     str = _dump
-    out << ms.serialize_integer(str.length) + str
+    out << ms.serialize_integer(str.bytesize) + str.b
 
     count = ivars.size + extra_values.size
     out << ms.serialize_integer(count)

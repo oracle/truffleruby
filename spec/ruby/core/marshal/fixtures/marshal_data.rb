@@ -262,6 +262,17 @@ module MarshalSpec
     end
   end
 
+  module_eval(<<~ruby.force_encoding(Encoding::UTF_8))
+    class MultibyteぁあぃいClass
+    end
+
+    module MultibyteけげこごModule
+    end
+
+    class MultibyteぁあぃいTime < Time
+    end
+  ruby
+
   DATA = {
     "nil" => [nil, "\004\b0"],
     "1..2" => [(1..2),
