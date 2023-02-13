@@ -510,13 +510,15 @@ module Enumerable
       return Primitive.array_inject(self, initial, sym, block)
     end
 
+    if !Primitive.undefined?(sym) && block_given?
+      warn 'given block not used', uplevel: 1
+    end
+
     if !block_given? or !Primitive.undefined?(sym)
       if Primitive.undefined?(sym)
         raise ArgumentError, 'no block or symbol given' if Primitive.undefined?(initial)
         sym = initial
         initial = undefined
-      else
-        warn 'given block not used', uplevel: 1 if block_given?
       end
 
       # Do the sym version
