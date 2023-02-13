@@ -73,6 +73,7 @@ Compatibility:
 * Raise `EncodingError` at parse time when Hash literal contains a Symbol key with invalid encoding (#2848, @andrykonchin).
 * Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, @andrykonchin, @eregon).
 * Fix `Array` methods `select!` and `keep_if` and handle a case when exception is raised in a passed block properly (@andrykonchin).
+* `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
 
 Performance:
 

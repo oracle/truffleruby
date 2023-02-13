@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -16,6 +17,7 @@ import org.truffleruby.language.RubyGuards;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateUncached
 @ImportStatic(value = { RubyGuards.class })
 public abstract class SingleValueCastNode extends RubyBaseNode {
 
