@@ -19,9 +19,9 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.control.TerminationException;
 
 public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.PhantomProcessingReference<R, T>, T> {
 
@@ -195,10 +195,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             ReferenceRunner<R> action, R reference) {
         try {
             action.accept(context, language, reference);
-        } catch (TerminationException e) {
-            throw e;
         } catch (RaiseException e) {
             context.getCoreExceptions().showExceptionIfDebug(e.getException());
+        } catch (TerminationException e) {
+            throw e;
         } catch (Exception e) {
             // Do nothing, the finalizer thread must continue to process objects.
             if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {

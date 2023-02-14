@@ -32,6 +32,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.control.TerminationException;
 
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
@@ -70,6 +71,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException translate(AbstractTruffleException e) {
+        throw e;
+    }
+
+    @Specialization
+    protected RuntimeException translate(TerminationException e) {
         throw e;
     }
 

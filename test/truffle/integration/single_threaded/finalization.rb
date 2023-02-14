@@ -8,18 +8,20 @@
 
 x = Object.new
 
-ObjectSpace.define_finalizer x, -> { exit! 0 }
+ObjectSpace.define_finalizer x, proc { p :x; exit! 0 }
 
 x = nil
 
 GC.start
 
 sleep 1
+p :after_sleep
 
 y = Object.new
 
 # Defining a new finalizer should cause the old finalizer to run in this thread
 
-ObjectSpace.define_finalizer y, -> { exit! 1 }
+ObjectSpace.define_finalizer y, proc { p :y; exit! 1 }
 
-exit! 1
+# should not be reached
+exit! 2

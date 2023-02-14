@@ -11,8 +11,8 @@ package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TerminationException;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
 
@@ -31,9 +31,10 @@ public class ThreadLocalGlobals {
     }
 
     public void setLastException(Object exception) {
-        assert !(exception instanceof TerminationException) : "$? should never be a TerminationException: " + exception;
+        assert !(exception instanceof KillException) : "$? should never be a KillException: " + exception;
         assert !(exception instanceof RaiseException) : "$? should never be a RaiseException: " + exception;
-        assert exception == nil || exception instanceof RubyException || exception instanceof AbstractTruffleException;
+        assert exception == nil || exception instanceof RubyException || exception instanceof AbstractTruffleException
+                : "Unexpected exception object for $!: " + exception;
         this.lastException = exception;
     }
 }
