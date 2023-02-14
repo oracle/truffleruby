@@ -44,6 +44,9 @@ describe "The launcher" do
     ENV['GEM_HOME'] = nil
     @stderr = tmp("stderr")
     @redirect = "2>#{@stderr}"
+
+    # GR-23507, GR-44103: prevent thread warnings on stdout to break specs/tests
+    @ignore_jvm_thread_warnings = '--vm.Xlog:os+thread=off'
   end
 
   after :each do
@@ -433,7 +436,7 @@ describe "The launcher" do
 
       ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
         it "should recognize ruby --vm options in #{var} when switching to JVM" do
-          env = { var => "--jvm --vm.Dfoo=bar" } # ignoring the original value of RUBYOPT/TRUFFLERUBYOPT on purpose here
+          env = { var => "--jvm #{@ignore_jvm_thread_warnings} --vm.Dfoo=bar" } # ignoring the original value of RUBYOPT/TRUFFLERUBYOPT on purpose here
           out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: env, args: @redirect)
           check_status_and_empty_stderr
           out = out.lines.map(&:chomp)
@@ -449,7 +452,7 @@ describe "The launcher" do
       end
 
       it "switches to JVM with --jvm as a Ruby argument" do
-        out = ruby_exe(nil, options: "--jvm --version", args: @redirect)
+        out = ruby_exe(nil, options: "--jvm #{@ignore_jvm_thread_warnings} --version", args: @redirect)
         check_status_and_empty_stderr
         out.should =~ /GraalVM (CE|EE) JVM/
       end
