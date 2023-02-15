@@ -12,6 +12,7 @@ package org.truffleruby.core.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -36,6 +37,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -109,43 +111,49 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_freeze")
-    public abstract static class ObjectFreezeNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected Object freeze(Object self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            assert !(self instanceof RubyDynamicObject && ((RubyDynamicObject) self).getMetaClass().isSingleton)
-                    : "Primitive.object_freeze does not handle instances of singleton classes, see KernelFreezeNode";
-            rubyLibrary.freeze(self);
-            return self;
-        }
-    }
+    public abstract static class ObjectFreezeNode extends RubyBaseNode {
 
-    @Primitive(name = "object_freeze_with_singleton_class")
-    public abstract static class ObjectFreezeWithSingletonClassNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isRubyDynamicObject(self)")
+        public abstract Object execute(Object self);
+
+        @Specialization(guards = "!isRubyDynamicObject(self)", limit = "getRubyLibraryCacheLimit()")
         protected Object freeze(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
             rubyLibrary.freeze(self);
             return self;
         }
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "isRubyDynamicObject(self)")
-        protected Object freezeDynamicObject(Object self,
+        @Specialization(guards = "!metaClass.isSingleton", limit = "getRubyLibraryCacheLimit()")
+        protected Object freezeNormalObject(RubyDynamicObject self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @Cached MetaClassNode metaClassNode,
+                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+            rubyLibrary.freeze(self);
+            return self;
+        }
+
+        @Specialization(guards = "metaClass.isSingleton", limit = "getRubyLibraryCacheLimit()")
+        protected Object freezeSingletonObject(RubyDynamicObject self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
                 @Cached ConditionProfile singletonClassUnfrozenProfile,
-                @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(self);
-            if (singletonClassUnfrozenProfile.profile(metaClass.isSingleton &&
-                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton) &&
-                    !rubyLibraryMetaClass.isFrozen(metaClass))) {
+                @Cached MetaClassNode metaClassNode,
+                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+            if (singletonClassUnfrozenProfile.profile(
+                    !RubyGuards.isSingletonClass(self) && !rubyLibraryMetaClass.isFrozen(metaClass))) {
                 rubyLibraryMetaClass.freeze(metaClass);
             }
             rubyLibrary.freeze(self);
             return self;
         }
+    }
 
+    @Primitive(name = "object_freeze")
+    public abstract static class ObjectFreezePrimitive extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object freeze(Object self,
+                @Cached ObjectFreezeNode objectFreezeNode) {
+            return objectFreezeNode.execute(self);
+        }
     }
 
     @Primitive(name = "immediate_value?")

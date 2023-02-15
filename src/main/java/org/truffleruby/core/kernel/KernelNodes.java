@@ -829,30 +829,11 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isRubyDynamicObject(self)")
+        @Specialization
         protected Object freeze(Object self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            rubyLibrary.freeze(self);
-            return self;
+                @Cached TypeNodes.ObjectFreezeNode objectFreezeNode) {
+            return objectFreezeNode.execute(self);
         }
-
-        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "isRubyDynamicObject(self)")
-        protected Object freezeDynamicObject(Object self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
-                @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
-                @Cached ConditionProfile singletonClassUnfrozenProfile,
-                @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(self);
-            if (singletonClassUnfrozenProfile.profile(metaClass.isSingleton &&
-                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton) &&
-                    !rubyLibraryMetaClass.isFrozen(metaClass))) {
-                rubyLibraryMetaClass.freeze(metaClass);
-            }
-            rubyLibrary.freeze(self);
-            return self;
-        }
-
     }
 
     @GenerateUncached

@@ -729,7 +729,7 @@ module Marshal
 
       if @freeze && !postpone_freezing && !(Primitive.object_kind_of?(obj, Class) || Primitive.object_kind_of?(obj, Module))
         obj = -obj if Primitive.class_of(obj) == String
-        Primitive.object_freeze_with_singleton_class(obj)
+        Primitive.object_freeze(obj)
       end
 
       return @proc.call(obj) if call_proc and @proc and @call
