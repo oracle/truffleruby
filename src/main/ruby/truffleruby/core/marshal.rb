@@ -158,30 +158,31 @@ class Time
     end
 
     ivars = Primitive.object_ivars(self)
-    out << 'I'.b
+    Primitive.string_binary_append out, 'I'
 
     cls = Primitive.object_class self
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
     end
     name = Primitive.module_name cls
-    out << Truffle::Type.binary_string("u#{ms.serialize(name.to_sym)}")
+    Primitive.string_binary_append out, "u#{ms.serialize(name.to_sym)}"
 
     str = _dump
-    out << ms.serialize_integer(str.bytesize) + str.b
+    Primitive.string_binary_append out, ms.serialize_integer(str.bytesize)
+    Primitive.string_binary_append out, str
 
     count = ivars.size + extra_values.size
-    out << ms.serialize_integer(count)
+    Primitive.string_binary_append out, ms.serialize_integer(count)
 
     ivars.each do |ivar|
       val = Primitive.object_ivar_get self, ivar
-      out << ms.serialize(ivar)
-      out << ms.serialize(val)
+      Primitive.string_binary_append out, ms.serialize(ivar)
+      Primitive.string_binary_append out, ms.serialize(val)
     end
 
     extra_values.each_pair do |key, value|
-      out << ms.serialize(key)
-      out << ms.serialize(value)
+      Primitive.string_binary_append out, ms.serialize(key)
+      Primitive.string_binary_append out, ms.serialize(value)
     end
 
     out
