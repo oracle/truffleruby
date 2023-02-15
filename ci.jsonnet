@@ -157,16 +157,15 @@ local part_definitions = {
     
     sqlite331: { packages+: { sqlite: "==3.31.0" } },
 
-    no_multi_tier: {
+    no_multi_tier: { # Only used by warmup benchmarks
       environment+: {
         TRUFFLERUBYOPT+: " --experimental-options --engine.MultiTier=false",
       },
     },
 
-    multi_tier: {
+    multi_tier: { # Only used by warmup benchmarks to explicit mark multi-tier
       environment+: {
         GUEST_VM_CONFIG+: "-multi-tier",
-        TRUFFLERUBYOPT+: " --experimental-options --engine.MultiTier=true",
       },
     },
 
@@ -614,10 +613,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local shared = $.platform.linux + $.jdk.v17 + $.use.common +
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "01:15:00" },
 
-      "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-metrics-compiler-graal-core-multi-tier": shared + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-metrics-compiler-graal-enterprise": shared + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-metrics-compiler-graal-enterprise-multi-tier": shared + graal_configurations["graal-enterprise"] + $.use.multi_tier,
+      "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"],
+      "ruby-metrics-compiler-graal-enterprise": shared + graal_configurations["graal-enterprise"],
     } +
 
     {
@@ -634,10 +631,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local shared = $.platform.linux + $.jdk.v17 + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:45:00" },
 
-      "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-metrics-svm-graal-core-multi-tier": shared + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-metrics-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-metrics-svm-graal-enterprise-multi-tier": shared + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"],
+      "ruby-metrics-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"],
     } +
 
     {
@@ -646,14 +641,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:55:00" },
       "ruby-benchmarks-classic-jruby": shared + other_rubies.jruby + { timelimit: "00:55:00" },
-      "ruby-benchmarks-classic-graal-core": shared + graal_configurations["graal-core"] + { timelimit: "00:55:00" } + $.use.no_multi_tier,
-      "ruby-benchmarks-classic-graal-core-multi-tier": shared + graal_configurations["graal-core"] + { timelimit: "00:55:00" } + $.use.multi_tier,
-      "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:55:00" } + $.use.no_multi_tier,
-      "ruby-benchmarks-classic-graal-enterprise-multi-tier": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:55:00" } + $.use.multi_tier,
-      "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:45:00" } + $.use.no_multi_tier,
-      "ruby-benchmarks-classic-svm-graal-core-multi-tier": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:45:00" } + $.use.multi_tier,
-      "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:45:00" } + $.use.no_multi_tier,
-      "ruby-benchmarks-classic-svm-graal-enterprise-multi-tier": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:45:00" } + $.use.multi_tier,
+      "ruby-benchmarks-classic-graal-core": shared + graal_configurations["graal-core"] + { timelimit: "00:55:00" },
+      "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:55:00" },
+      "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:45:00" },
+      "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:45:00" },
     } +
 
     {
@@ -662,36 +653,27 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:30:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
       "ruby-benchmarks-chunky-jruby": shared + chunky + other_rubies.jruby,
-      "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-chunky-graal-core-multi-tier": shared + chunky + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-chunky-graal-enterprise-multi-tier": shared + chunky + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-      "ruby-benchmarks-chunky-svm-graal-core": shared + chunky + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-chunky-svm-graal-core-multi-tier": shared + chunky + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-chunky-svm-graal-enterprise": shared + chunky + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-chunky-svm-graal-enterprise-multi-tier": shared + chunky + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"],
+      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-chunky-svm-graal-core": shared + chunky + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-chunky-svm-graal-enterprise": shared + chunky + svm_configurations["svm-graal-enterprise"],
+
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "01:15:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
-      "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-psd-graal-core-multi-tier": shared + psd + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-psd-graal-enterprise-multi-tier": shared + psd + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-      "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-psd-svm-graal-core-multi-tier": shared + psd + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-psd-svm-graal-enterprise-multi-tier": shared + psd + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"],
+      "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"],
+
       local asciidoctor = $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "01:25:00" },
       "ruby-benchmarks-asciidoctor-mri": shared + asciidoctor + other_rubies.mri,
       "ruby-benchmarks-asciidoctor-jruby": shared + asciidoctor + other_rubies.jruby,
-      "ruby-benchmarks-asciidoctor-graal-core": shared + asciidoctor + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-asciidoctor-graal-core-multi-tier": shared + asciidoctor + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-asciidoctor-graal-enterprise-multi-tier": shared + asciidoctor + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-      "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-asciidoctor-svm-graal-core-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-asciidoctor-svm-graal-enterprise-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-asciidoctor-graal-core": shared + asciidoctor + graal_configurations["graal-core"],
+      "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
+
       local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "01:05:00" },
       "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri + { timelimit: "01:20:00" },
       "ruby-benchmarks-warmup-jruby": shared + warmup + other_rubies.jruby,
@@ -715,27 +697,19 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local micro = $.benchmark.runner + $.benchmark.micro + { timelimit: "01:30:00" },
       "ruby-benchmarks-micro-mri": shared + micro + other_rubies.mri,
       "ruby-benchmarks-micro-jruby": shared + micro + other_rubies.jruby,
-      "ruby-benchmarks-micro-graal-core": shared + micro + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-micro-graal-core-multi-tier": shared + micro + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-micro-graal-enterprise": shared + micro + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-micro-graal-enterprise-multi-tier": shared + micro + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-      "ruby-benchmarks-micro-svm-graal-core": shared + micro + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-micro-svm-graal-core-multi-tier": shared + micro + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-micro-svm-graal-enterprise": shared + micro + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-micro-svm-graal-enterprise-multi-tier": shared + micro + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-micro-graal-core": shared + micro + graal_configurations["graal-core"],
+      "ruby-benchmarks-micro-graal-enterprise": shared + micro + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-micro-svm-graal-core": shared + micro + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-micro-svm-graal-enterprise": shared + micro + svm_configurations["svm-graal-enterprise"],
 
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "01:00:00" },
       local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:30:00" },
       "ruby-benchmarks-other-mri": shared + other + other_rubies.mri,
       "ruby-benchmarks-other-jruby": shared + other + other_rubies.jruby,
-      "ruby-benchmarks-other-graal-core": shared + other + graal_configurations["graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-other-graal-core-multi-tier": shared + other + graal_configurations["graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-other-graal-enterprise-multi-tier": shared + other + graal_configurations["graal-enterprise"] + $.use.multi_tier,
-      "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
-      "ruby-benchmarks-other-svm-graal-core-multi-tier": shared + svm_other + svm_configurations["svm-graal-core"] + $.use.multi_tier,
-      "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
-      "ruby-benchmarks-other-svm-graal-enterprise-multi-tier": shared + svm_other + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-other-graal-core": shared + other + graal_configurations["graal-core"],
+      "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"],
     } +
 
     {
