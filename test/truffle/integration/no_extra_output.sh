@@ -43,10 +43,7 @@ check $?
 echo "Test of the unexpected output to stderr."
 echo "To ensure there are no unexpected warnings for instance."
 
-jt --silent test specs fast --error-output error_output.txt 2>stderr.txt
-echo Error output:
-cat error_output.txt
-
+jt --silent test specs fast --error-output stderr 2>stderr.txt
 if [ -s stderr.txt ]; then
   echo Extra output:
   cat stderr.txt
