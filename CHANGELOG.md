@@ -76,6 +76,7 @@ Compatibility:
 * Fix `Enumerable` methods `each_cons` and `each_slice` to return receiver (#2733, @horakivo)
 * `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
 * `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
+* Implement `Thread#native_thread_id` method (#2733, @horakivo).
 
 Performance:
 

@@ -85,6 +85,7 @@ public class ThreadManager {
     private final ConcurrentWeakSet<Thread> rubyManagedThreads = new ConcurrentWeakSet<>();
 
     private boolean nativeInterrupt;
+    private boolean useLibRubySignal;
     private Timer nativeInterruptTimer;
     private ThreadLocal<Interrupter> nativeCallInterrupter;
 
@@ -95,9 +96,13 @@ public class ThreadManager {
     }
 
     public void initialize() {
-        nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && language.getRubyHome() != null;
-        if (nativeInterrupt) {
+        useLibRubySignal = context.getOptions().NATIVE_PLATFORM && !context.getOptions().BUILDING_CORE_CEXTS &&
+                language.getRubyHome() != null;
+        nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && useLibRubySignal;
+        if (useLibRubySignal) {
             LibRubySignal.loadLibrary(language.getRubyHome());
+        }
+        if (nativeInterrupt) {
             LibRubySignal.setupSIGVTALRMEmptySignalHandler();
 
             nativeInterruptTimer = new Timer("Ruby-NativeCallInterrupt-Timer", true);
@@ -407,6 +412,11 @@ public class ThreadManager {
     }
 
     public void start(RubyThread thread, Thread javaThread) {
+        final var isSameThread = javaThread == Thread.currentThread();
+        if (isSameThread && useLibRubySignal) {
+            thread.nativeThreadId = LibRubySignal.getNativeThreadID();
+        }
+
         thread.thread = javaThread;
         thread.ioBuffer = context.getOptions().NATIVE_PLATFORM ? Pointer.getNullBuffer(context) : null;
         registerThread(thread);
@@ -424,6 +434,7 @@ public class ThreadManager {
 
     /** We cannot call this from {@link RubyLanguage#disposeThread} because that's called under a context lock. */
     private void cleanupKillOtherFibers(RubyThread thread) {
+        thread.nativeThreadId = Nil.INSTANCE;
         thread.status = ThreadStatus.DEAD;
         context.fiberManager.killOtherFibers(thread);
     }

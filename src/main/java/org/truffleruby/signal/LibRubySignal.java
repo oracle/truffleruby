@@ -24,4 +24,6 @@ public abstract class LibRubySignal {
 
     public static native int sendSIGVTALRMToThread(long thread);
 
+    public static native long getNativeThreadID();
+
 }
