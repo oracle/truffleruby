@@ -808,23 +808,30 @@ module Commands
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
-      jt cextc directory                             compile the C extension in directory
-      jt test                                        run all mri tests, specs and integration tests
-      jt test basictest                              run MRI's basictest suite
-      jt test bootstraptest                          run MRI's bootstraptest suite
-      jt test mri                                    run mri tests
+      ---
+      ruby/spec commands:
+      jt test specs [fast] [mspec arguments] [-- ruby options]
+      jt test specs                                  run all specs
+      jt test fast                                   run all specs except sub-processes, GC, sleep, ...
+      jt test spec/ruby/language                     run specs in this directory
+      jt test spec/ruby/language/while_spec.rb       run specs in this file
+      jt test ... -- --jdebug                        run specs with the Java debugger
+      jt tag PATH                                    tag failing specs
+      jt tag all FILE                                tag all specs in this file, without running them
+      jt untag ...                                   untag passing specs
+      jt purge ...                                   remove tags without specs
+      jt mspec ...                                   run MSpec with the TruffleRuby configuration and custom arguments
+      ---
+      MRI tests commands:
+      jt test mri                                    run MRI tests
       #{MRI_TEST_MODULES.map { |k, h| format ' ' * 4 + '%-16s%s', k, h[:help] }.join("\n")}
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
-      jt lint                                        run all lints, used in CI
-      jt lint fast                                   run fast lints, recommended as a git hook (see tool/hooks/lint-check.sh)
-      jt test specs [fast] [mspec arguments] [-- ruby options]
-      jt test specs                                  run all specs
-      jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
-      jt test spec/ruby/language                     run specs in this directory
-      jt test spec/ruby/language/while_spec.rb       run specs in this file
-      jt test ... -- --jdebug                        run specs with the Java debugger
+      jt retag FILE                                  Remove MRI excludes and re-add as necessary for MRI tests
+      ---
+      jt test basictest                              run MRI's basictest suite
+      jt test bootstraptest                          run MRI's bootstraptest suite
       jt test compiler                               run compiler tests
       jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
@@ -834,14 +841,12 @@ module Commands
                                                      run C extension tests (set GEM_HOME)
       jt test unit [unittest flags] [-- mx options]  run Java unittests
       jt test tck                                    run tck tests
-      jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
+      ---
+      jt lint                                        run all lints, used in CI
+      jt lint fast                                   run fast lints, recommended as a git hook (see tool/hooks/lint-check.sh)
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
-      jt tag spec/ruby/language                      tag failing specs in this directory
-      jt tag spec/ruby/language/while_spec.rb        tag failing specs in this file
-      jt tag all spec/ruby/language                  tag all specs in this file, without running them
-      jt untag ...                                   untag passing specs
-      jt purge ...                                   remove tags without specs
-      jt mspec ...                                   run MSpec with the TruffleRuby configuration and custom arguments
+      ---
+      jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt metrics alloc [--json] ...                  how much memory is allocated running a program
       jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
