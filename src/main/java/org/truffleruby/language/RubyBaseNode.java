@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
@@ -50,6 +51,7 @@ public abstract class RubyBaseNode extends Node {
 
     public static final int MAX_EXPLODE_SIZE = 16;
 
+    @Idempotent
     public boolean isSingleContext() {
         return getLanguage().singleContext;
     }

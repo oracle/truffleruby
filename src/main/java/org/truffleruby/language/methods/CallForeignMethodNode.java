@@ -12,6 +12,7 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -100,11 +101,13 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             }
         }
 
+        @Idempotent
         @TruffleBoundary
         protected static boolean isOperatorMethod(String name) {
             return !name.isEmpty() && !Character.isLetter(name.charAt(0));
         }
 
+        @Idempotent
         @TruffleBoundary
         protected static boolean isAssignmentMethod(String name) {
             return !name.isEmpty() && Character.isLetter(name.charAt(0)) && name.charAt(name.length() - 1) == '=';

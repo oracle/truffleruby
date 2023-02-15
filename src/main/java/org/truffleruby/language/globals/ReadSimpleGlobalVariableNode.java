@@ -38,7 +38,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     public abstract Object execute();
 
     @Specialization(
-            guards = "getLanguage().singleContext",
+            guards = "isSingleContext()",
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })

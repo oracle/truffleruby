@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
@@ -40,6 +41,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
         return WriteBarrierNodeGen.create(0);
     }
 
+    @Idempotent
     protected abstract int getDepth();
 
     public abstract void executeWriteBarrier(Object value);

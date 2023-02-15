@@ -11,6 +11,7 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
@@ -213,6 +214,7 @@ public abstract class EncodingNodes {
         /** Indicates whether the encoding is one of the runtime-default encodings. Many (most?) applications do not
          * override the default encodings and as such, this set of encodings is used very frequently in real-world Ruby
          * applications. */
+        @Idempotent
         protected boolean isStandardEncoding(RubyEncoding encoding) {
             return encoding == Encodings.UTF_8 || encoding == Encodings.US_ASCII || encoding == Encodings.BINARY;
         }
