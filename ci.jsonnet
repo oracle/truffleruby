@@ -20,7 +20,7 @@ local restrict_builds_to = [];
 # and it would still work.
 local utils = import "utils.libsonnet";
 
-local common = import "common.json";
+local common = import "ci/common.jsonnet";
 
 # All builds are composed **directly** from **independent disjunct composable**
 # jsonnet objects defined in here. Use `+:` to make the objects or arrays
@@ -33,20 +33,11 @@ local part_definitions = {
 
   use: {
     common: {
-      python_version: "3", # To use the correct virtualenv
-
       environment+: {
         path+:: [],
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
-        MX_PYTHON: "python3.8",
         PATH: std.join(":", self.path + ["$PATH"]),
-      },
-
-      packages+: {
-        mx: common.mx_version,
-        python3: "==3.8.10", # For mx
-        "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
 
       setup+: [
@@ -74,16 +65,7 @@ local part_definitions = {
         "*.log",
       ],
 
-      catch_files+: [
-        "Graal diagnostic output saved in (?P<filename>.+\\.zip)",
-      ],
-
       mx_build_options:: [],
-    },
-
-    maven: {
-      downloads+: { MAVEN_HOME: { name: "maven", version: "3.3.9" } },
-      environment+: { path+:: ["$MAVEN_HOME/bin"] },
     },
 
     build: {
@@ -227,19 +209,13 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    v17: with_path {
-      downloads+: {
-        JAVA_HOME: common.jdks["labsjdk-ce-17"],
-      },
+    v17: with_path + common.jdks.labsjdk17ce + {
       environment+: {
         JT_JDK: "17",
       },
     },
 
-    v20: with_path {
-      downloads+: {
-        JAVA_HOME: common.jdks["labsjdk-ce-20"],
-      },
+    v20: with_path + common.jdks.labsjdk20ce + {
       environment+: {
         JT_JDK: "20",
       },
@@ -247,38 +223,35 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_amd64_deps = common.sulong.deps.common + {
+    local linux_amd64_deps = common.deps.sulong + {
       packages+: {
-        git: ">=1.8.3",
         binutils: ">=2.30",
         ruby: "==" + mri_version,
       },
     },
 
-    local linux_aarch64_deps = common.sulong.deps.common + {
+    local linux_aarch64_deps = common.deps.sulong + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_amd64_deps = common.sulong.deps.common + {
+    local darwin_amd64_deps = common.deps.sulong + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    local darwin_aarch64_deps = common.sulong.deps.common + {
+    local darwin_aarch64_deps = common.deps.sulong + {
       packages+: {
         ruby: "==3.0.2",
       },
     },
 
-    linux: linux_amd64_deps + {
+    linux: common.linux_amd64 + linux_amd64_deps + {
       platform_name:: "LinuxAMD64",
-      platform: "linux",
-      arch:: "amd64",
       "$.cap":: {
-        normal_machine: ["linux", "amd64"],
+        normal_machine: [],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
       docker: {
@@ -286,31 +259,25 @@ local part_definitions = {
         mount_modules: true,
       },
     },
-    linux_aarch64: linux_aarch64_deps + {
+    linux_aarch64: common.linux_aarch64 + linux_aarch64_deps + {
       platform_name:: "LinuxAArch64",
-      platform: "linux",
-      arch:: "aarch64",
       "$.cap":: {
-        normal_machine: ["linux", "aarch64"],
+        normal_machine: [],
       },
     },
-    darwin_amd64: darwin_amd64_deps + {
+    darwin_amd64: common.darwin_amd64 + darwin_amd64_deps + {
       platform_name:: "DarwinAMD64",
-      platform: "darwin",
-      arch:: "amd64",
       "$.cap":: {
-        normal_machine: ["darwin_mojave", "amd64"],
+        normal_machine: ["darwin_mojave"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
       },
     },
-    darwin_aarch64: darwin_aarch64_deps + {
+    darwin_aarch64: common.darwin_aarch64 + darwin_aarch64_deps + {
       platform_name:: "DarwinAArch64",
-      platform: "darwin",
-      arch:: "aarch64",
       "$.cap":: {
-        normal_machine: ["darwin", "aarch64"],
+        normal_machine: [],
       },
       environment+: {
         LANG: "en_US.UTF-8",
@@ -420,14 +387,14 @@ local part_definitions = {
       ],
       run+: [
         ["env",
-          "LD_LIBRARY_PATH=$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH", # for finding libc++
+          "LD_LIBRARY_PATH=$BUILD_DIR/graal/sulong/mxbuild/" + self.os + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH", # for finding libc++
           "PATH=$TOOLCHAIN_PATH:$PATH",
           "ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
 
         # Uses the system compiler as using the toolchain for this does not work on macOS
         ["tool/generate-config-header.sh"],
-        ["cat", "lib/cext/include/truffleruby/config_" + self.platform + "_" + self.arch + ".h"],
+        ["cat", "lib/cext/include/truffleruby/config_" + self.os + "_" + self.arch + ".h"],
       ],
     },
 
@@ -535,7 +502,7 @@ local part_definitions = {
 };
 
 # composition_environment inherits from part_definitions all building blocks
-# (parts) can be addressed using jsonnet root syntax e.g. $.use.maven
+# (parts) can be addressed using jsonnet root syntax e.g. $.use.build
 local composition_environment = utils.add_inclusion_tracking(part_definitions, "$", false) {
 
   test_builds:
@@ -779,7 +746,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     $.<group_name>.<part_name>
 - Each part is included in a build at most once. A helper function is
   checking it and will raise an error otherwise with a message
-  `Parts ["$.use.maven", "$.use.maven"] are used more than once in build: ruby-metrics-svm-graal-core. ...`
+  `Parts ["$.use.build", "$.use.build"] are used more than once in build: ruby-metrics-svm-graal-core. ...`
 - All parts have to be disjoint and distinct.
 - All parts have to be compose-able with each other. Therefore all fields
   like setup or run should end with '+' to avoid overriding.
