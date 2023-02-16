@@ -37,6 +37,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -2020,6 +2021,22 @@ public abstract class KernelNodes {
                 existingValue.set(newValue);
             }
             return newValue;
+        }
+
+    }
+
+    @Primitive(name = "warn_given_block_not_used")
+    public abstract static class WarnGivenBlockNotUsedNode extends PrimitiveNode {
+        @Specialization
+        protected Object warn(
+                @Cached("new()") WarnNode warnNode) {
+            if (warnNode.shouldWarn()) {
+                warnNode.warningMessage(
+                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        "given block not used");
+            }
+
+            return Nil.INSTANCE;
         }
 
     }
