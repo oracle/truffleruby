@@ -525,7 +525,20 @@ module Enumerable
       warn 'given block not used', uplevel: 1
     end
 
-    unless Primitive.undefined?(sym) && block_given?
+    if Primitive.undefined?(sym) && block_given?
+      # Do the block version:
+      #   inject {|memo, operand| ... } -> object
+      #   inject(initial_operand) {|memo, operand| ... } -> object
+
+      each do
+        o = Primitive.single_block_arg
+        if Primitive.undefined? initial
+          initial = o
+        else
+          initial = yield(initial, o)
+        end
+      end
+    else
       # Do the sym version:
       #   inject(symbol) -> object
       #   inject(initial_operand, symbol) -> object
@@ -539,19 +552,6 @@ module Enumerable
           initial = o
         else
           initial = initial.__send__(sym, o)
-        end
-      end
-
-      # Do the block version:
-      #   inject {|memo, operand| ... } -> object
-      #   inject(initial_operand) {|memo, operand| ... } -> object
-    else
-      each do
-        o = Primitive.single_block_arg
-        if Primitive.undefined? initial
-          initial = o
-        else
-          initial = yield(initial, o)
         end
       end
     end
