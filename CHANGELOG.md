@@ -76,6 +76,7 @@ Compatibility:
 * Fix `Enumerable` methods `each_cons` and `each_slice` to return receiver (#2733, @horakivo)
 * `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
 * `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
+* Modify `Struct#{inspect,to_s}` to match MRI when the struct is nested inside of an anonymous class or module (@st0012, @nirvdrum).
 
 Performance:
 

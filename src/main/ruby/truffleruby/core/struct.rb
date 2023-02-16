@@ -147,7 +147,7 @@ class Struct
 
       name = self.class.name
 
-      if Primitive.nil?(name) || name.empty?
+      if Primitive.nil?(name) || name.empty? || name[0] == '#'
         return "#<struct #{values.join(', ')}>"
       else
         return "#<struct #{self.class.name} #{values.join(', ')}>"
