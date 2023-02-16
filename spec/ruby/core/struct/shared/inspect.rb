@@ -1,4 +1,9 @@
 describe :struct_inspect, shared: true do
+  it "returns a string representation showing members and values" do
+    car = StructClasses::Car.new('Ford', 'Ranger')
+    car.send(@method).should == '#<struct StructClasses::Car make="Ford", model="Ranger", year=nil>'
+  end
+
   it "returns a string representation without the class name for anonymous structs" do
     Struct.new(:a).new("").send(@method).should == '#<struct a="">'
   end
