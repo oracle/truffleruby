@@ -223,7 +223,7 @@ class Thread
   end
 
   def fetch(name, default = undefined)
-    warn 'block supersedes default value argument' if !Primitive.undefined?(default) && block_given?
+    Primitive.warn_block_supersedes_default_value_argument if !Primitive.undefined?(default) && block_given?
 
     key = convert_to_local_name(name)
     locals = Primitive.thread_get_fiber_locals self

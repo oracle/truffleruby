@@ -231,7 +231,7 @@ class Hash
     end
 
     if block_given?
-      warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
+      Primitive.warn_block_supersedes_default_value_argument unless Primitive.undefined?(default)
 
       return yield(key)
     end

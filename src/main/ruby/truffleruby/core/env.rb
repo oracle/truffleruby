@@ -143,7 +143,7 @@ class << ENV
 
   def fetch(key, absent=undefined)
     if block_given? and !Primitive.undefined?(absent)
-      warn 'block supersedes default value argument', uplevel: 1
+      Primitive.warn_block_supersedes_default_value_argument
     end
 
     if value = lookup(key)

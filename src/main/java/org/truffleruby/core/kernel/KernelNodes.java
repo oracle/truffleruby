@@ -2041,4 +2041,20 @@ public abstract class KernelNodes {
 
     }
 
+    @Primitive(name = "warn_block_supersedes_default_value_argument")
+    public abstract static class WarnBlockSupersedesDefaultValueArgumentNode extends PrimitiveNode {
+        @Specialization
+        protected Object warn(
+                @Cached("new()") WarnNode warnNode) {
+            if (warnNode.shouldWarn()) {
+                warnNode.warningMessage(
+                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        "block supersedes default value argument");
+            }
+
+            return Nil.INSTANCE;
+        }
+
+    }
+
 }
