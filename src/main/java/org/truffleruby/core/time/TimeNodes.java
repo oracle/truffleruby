@@ -458,7 +458,7 @@ public abstract class TimeNodes {
         }
 
         protected boolean yearIsFast(RubyTime time) {
-            // See formatToRopeBuilderCanBeFast
+            // See formatCanBeFast
             final int year = time.dateTime.getYear();
             return year >= 1000 && year <= 9999;
         }
