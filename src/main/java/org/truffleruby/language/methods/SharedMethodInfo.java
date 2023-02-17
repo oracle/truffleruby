@@ -34,7 +34,7 @@ public final class SharedMethodInfo {
     private final Arity arity;
     /** The original name of the method. Does not change when aliased. Looks like "block in foo" or "block (2 levels) in
      * foo" for blocks. This is the name shown in backtraces: "from FILE:LINE:in `NAME'". */
-    private final String backtraceName;
+    private final String originalName;
     /** The "static" name of this method at parse time, such as "M::C#foo", "M::C.foo", "<module:Inner>", "block (2
      * levels) in M::C.foo" or "block (2 levels) in <module:Inner>". This name is used for tools. */
     private final String parseName;
@@ -48,16 +48,16 @@ public final class SharedMethodInfo {
             SourceSection sourceSection,
             LexicalScope staticLexicalScope,
             Arity arity,
-            String backtraceName,
+            String originalName,
             int blockDepth,
             String parseName,
             String notes,
             ArgumentDescriptor[] argumentDescriptors) {
-        assert blockDepth == 0 || backtraceName.startsWith("block ") : backtraceName;
+        assert blockDepth == 0 || originalName.startsWith("block ") : originalName;
         this.sourceSection = sourceSection;
         this.staticLexicalScope = staticLexicalScope;
         this.arity = arity;
-        this.backtraceName = backtraceName;
+        this.originalName = originalName;
         this.blockDepth = blockDepth;
         this.parseName = parseName;
         this.notes = notes;
@@ -93,7 +93,7 @@ public final class SharedMethodInfo {
                 sourceSection,
                 staticLexicalScope,
                 newArity,
-                backtraceName,
+                originalName,
                 blockDepth,
                 parseName,
                 notes,
@@ -131,7 +131,7 @@ public final class SharedMethodInfo {
 
     @TruffleBoundary
     public boolean isModuleBody() {
-        boolean isModuleBody = isModuleBody(getBacktraceName());
+        boolean isModuleBody = isModuleBody(getOriginalName());
         assert !(isModuleBody && isBlock()) : this;
         return isModuleBody;
     }
@@ -150,19 +150,19 @@ public final class SharedMethodInfo {
         }
     }
 
-    public String getBacktraceName() {
-        return backtraceName;
+    public String getOriginalName() {
+        return originalName;
     }
 
     /** Returns the method name on its own. Can start with "<" like "<module:Inner>" for module bodies. */
     public String getMethodName() {
-        return blockDepth == 0 ? backtraceName : notes;
+        return blockDepth == 0 ? originalName : notes;
     }
 
     /** More efficient than {@link #getMethodName()} when we know blockDepth == 0 */
     public String getMethodNameForNotBlock() {
         assert blockDepth == 0;
-        return backtraceName;
+        return originalName;
     }
 
     public String getParseName() {
