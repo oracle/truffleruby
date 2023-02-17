@@ -17,6 +17,7 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -155,7 +156,8 @@ public abstract class BindingNodes {
         }
     }
 
-    private static boolean isHiddenVariable(String name) {
+    @Idempotent
+    static boolean isHiddenVariable(String name) {
         assert !name.isEmpty();
         final char first = name.charAt(0);
         return first == '$' || // Frame-local global variable

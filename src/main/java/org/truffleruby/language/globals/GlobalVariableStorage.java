@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.RubyProc;
@@ -89,6 +90,7 @@ public final class GlobalVariableStorage {
         return unchangedAssumption.getAssumption();
     }
 
+    @Idempotent
     public boolean isAssumeConstant() {
         return assumeConstant;
     }

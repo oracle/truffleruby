@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.CoreLibrary;
@@ -94,6 +95,7 @@ public abstract class RubyGuards {
         return value instanceof Boolean || value instanceof Integer || value instanceof Long || value instanceof Double;
     }
 
+    @Idempotent
     public static boolean isPrimitiveClass(Class<?> clazz) {
         return clazz == Boolean.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class;
     }
@@ -113,6 +115,7 @@ public abstract class RubyGuards {
         return value instanceof RubyArray;
     }
 
+    @Idempotent
     public static boolean isRubyClass(Object value) {
         return value instanceof RubyClass;
     }

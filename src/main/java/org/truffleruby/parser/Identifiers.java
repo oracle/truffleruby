@@ -30,6 +30,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Idempotent;
 
 // No charAt() in this class or hardcoded char offsets, we want to treat surrogate characters properly
 public final class Identifiers {
@@ -48,11 +49,13 @@ public final class Identifiers {
         return isValidIdentifier(id, 0);
     }
 
+    @Idempotent
     @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
         return id.startsWith("@@") && isValidIdentifier(id, 2); // OK due to startsWith
     }
 
+    @Idempotent
     @TruffleBoundary
     public static boolean isValidInstanceVariableName(String id) {
         return id.startsWith("@") && isValidIdentifier(id, 1); // OK due to startsWith

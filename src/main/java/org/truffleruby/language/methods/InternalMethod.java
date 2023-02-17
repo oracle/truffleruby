@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
@@ -218,6 +219,7 @@ public final class InternalMethod implements ObjectGraphNode {
         return builtIn;
     }
 
+    @Idempotent
     public boolean alwaysInlined() {
         return alwaysInlinedNodeFactory != null;
     }

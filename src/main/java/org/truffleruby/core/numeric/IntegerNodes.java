@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -515,6 +516,7 @@ public abstract class IntegerNodes {
             return a & (cachedB - 1);
         }
 
+        @Idempotent
         protected static boolean isPowerOfTwo(int n) {
             return n > 0 && (n & (n - 1)) == 0;
         }

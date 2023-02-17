@@ -42,7 +42,7 @@ public abstract class LookupGlobalVariableStorageNode extends RubyBaseNode {
     protected abstract GlobalVariableStorage executeInternal();
 
     @Specialization(
-            guards = "getLanguage().singleContext",
+            guards = "isSingleContext()",
             assumptions = "getLanguage().getGlobalVariableNeverAliasedAssumption(index)")
     protected GlobalVariableStorage singleContext(
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {

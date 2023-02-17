@@ -229,7 +229,7 @@ local part_definitions = {
 
     v17: with_path {
       downloads+: {
-        JAVA_HOME: common.jdks["labsjdk-ee-17"],
+        JAVA_HOME: common.jdks["labsjdk-ce-17"],
       },
       environment+: {
         JT_JDK: "17",
@@ -238,8 +238,7 @@ local part_definitions = {
 
     v20: with_path {
       downloads+: {
-        # labsjdk-ee-20, to workaround GR-44177 / https://bugs.openjdk.org/browse/JDK-8302160
-        JAVA_HOME: { name: "labsjdk", version: "ee-20.0.1+2-jvmci-23.0-b06", platformspecific: true },
+        JAVA_HOME: common.jdks["labsjdk-ce-20"],
       },
       environment+: {
         JT_JDK: "20",

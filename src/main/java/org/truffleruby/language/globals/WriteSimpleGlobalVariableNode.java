@@ -36,7 +36,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     @Specialization(
             guards = {
-                    "getLanguage().singleContext",
+                    "isSingleContext()",
                     "referenceEqualNode.executeReferenceEqual(value, previousValue)" },
             assumptions = {
                     "storage.getUnchangedAssumption()",
@@ -53,7 +53,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "getLanguage().singleContext", "storage.isAssumeConstant()" },
+            guards = { "isSingleContext()", "storage.isAssumeConstant()" },
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
