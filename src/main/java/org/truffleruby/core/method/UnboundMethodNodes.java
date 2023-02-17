@@ -137,9 +137,8 @@ public abstract class UnboundMethodNodes {
 
     }
 
-    // TODO: We should have an additional method for this but we need to access it for #inspect.
-    @CoreMethod(names = "origin", visibility = Visibility.PRIVATE)
-    public abstract static class OriginNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "unbound_method_origin")
+    public abstract static class OriginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyModule origin(RubyUnboundMethod unboundMethod) {
