@@ -63,11 +63,11 @@ public class CodeLoader {
              * the live modules of static LexicalScopes and we cannot/do not want to invalidate static LexicalScopes, so
              * there the static lexical scope and its module are constants and need no checks in single context (e.g.,
              * in LookupConstantWithLexicalScopeNode). */
-            final RubySource rubySource = new RubySource(source, path, rope);
+            final RubySource rubySource = new RubySource(source, path, tstringWithEncoding);
             return parse(rubySource, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), currentNode);
         }
 
-        language.parsingRequestParams.set(new ParsingParameters(currentNode, rope, source));
+        language.parsingRequestParams.set(new ParsingParameters(currentNode, tstringWithEncoding, source));
         try {
             return (RootCallTarget) context.getEnv().parseInternal(source);
         } finally {

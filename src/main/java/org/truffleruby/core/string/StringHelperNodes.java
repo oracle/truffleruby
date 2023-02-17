@@ -169,7 +169,7 @@ public abstract class StringHelperNodes {
             return StringHelperNodesFactory.CountRopesNodeFactory.create(null);
         }
 
-        public abstract int executeCount(Object string, TStringWithEncoding[] ropesWithEncs);
+        public abstract int executeCount(Object string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(guards = "strings.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, Object[] args,
@@ -202,12 +202,12 @@ public abstract class StringHelperNodes {
         }
 
         @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
-        protected int count(Object string, TStringWithEncoding[] ropesWithEncs,
+        protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
                 @Cached BranchProfile errorProfile,
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
-            if (ropesWithEncs.length == 0) {
+            if (tstringsWithEncs.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
@@ -217,15 +217,15 @@ public abstract class StringHelperNodes {
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
             var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
 
-            RubyEncoding enc = findEncoding(tstring, encoding, ropesWithEncs);
-            return countSlow(byteArray, codeRange, ropesWithEncs, enc);
+            RubyEncoding enc = findEncoding(tstring, encoding, tstringsWithEncs);
+            return countSlow(byteArray, codeRange, tstringsWithEncs, enc);
         }
 
         @TruffleBoundary
         private int countSlow(InternalByteArray byteArray, TruffleString.CodeRange codeRange,
-                TStringWithEncoding[] ropesWithEncs, RubyEncoding enc) {
+                TStringWithEncoding[] tstringsWithEncs, RubyEncoding enc) {
             final boolean[] table = squeeze();
-            final StringSupport.TrTables tables = makeTables(ropesWithEncs, table, enc);
+            final StringSupport.TrTables tables = makeTables(tstringsWithEncs, table, enc);
             return StringSupport.strCount(byteArray, codeRange, table, tables, enc.jcoding, this);
         }
     }
@@ -240,16 +240,17 @@ public abstract class StringHelperNodes {
         }
 
         protected RubyEncoding findEncoding(AbstractTruffleString tstring, RubyEncoding encoding,
-                TStringWithEncoding[] ropes) {
-            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(tstring, encoding, ropes[0].tstring,
-                    ropes[0].encoding);
-            for (int i = 1; i < ropes.length; i++) {
-                enc = checkEncodingNode.executeCheckEncoding(tstring, encoding, ropes[i].tstring, ropes[i].encoding);
+                TStringWithEncoding[] tstringsWithEncs) {
+            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(tstring, encoding, tstringsWithEncs[0].tstring,
+                    tstringsWithEncs[0].encoding);
+            for (int i = 1; i < tstringsWithEncs.length; i++) {
+                enc = checkEncodingNode.executeCheckEncoding(tstring, encoding, tstringsWithEncs[i].tstring,
+                        tstringsWithEncs[i].encoding);
             }
             return enc;
         }
 
-        protected StringSupport.TrTables makeTables(TStringWithEncoding[] ropesWithEncs, boolean[] squeeze,
+        protected StringSupport.TrTables makeTables(TStringWithEncoding[] tstringsWithEncs, boolean[] squeeze,
                 RubyEncoding enc) {
             // The trSetupTable method will consume the bytes from the rope one encoded character at a time and
             // build a TrTable from this. Previously we started with the encoding of rope zero, and at each
@@ -257,29 +258,30 @@ public abstract class StringHelperNodes {
             // encoding with which to build the tables it must be compatible with all ropes, so will not
             // affect the consumption of characters from those ropes.
             StringSupport.TrTables tables = StringSupport.trSetupTable(
-                    ropesWithEncs[0].tstring,
-                    ropesWithEncs[0].encoding,
+                    tstringsWithEncs[0].tstring,
+                    tstringsWithEncs[0].encoding,
                     squeeze,
                     null,
                     true,
                     enc.jcoding,
                     this);
 
-            for (int i = 1; i < ropesWithEncs.length; i++) {
+            for (int i = 1; i < tstringsWithEncs.length; i++) {
                 tables = StringSupport
-                        .trSetupTable(ropesWithEncs[i].tstring, ropesWithEncs[i].encoding, squeeze, tables, false,
+                        .trSetupTable(tstringsWithEncs[i].tstring, tstringsWithEncs[i].encoding, squeeze, tables, false,
                                 enc.jcoding, this);
             }
             return tables;
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(TStringWithEncoding[] cachedRopes, TStringWithEncoding[] ropes) {
-            for (int i = 0; i < cachedRopes.length; i++) {
-                if (cachedRopes[i].encoding != ropes[i].encoding) {
+        protected boolean argsMatch(TStringWithEncoding[] cachedStrings, TStringWithEncoding[] strings) {
+            for (int i = 0; i < cachedStrings.length; i++) {
+                if (cachedStrings[i].encoding != strings[i].encoding) {
                     return false;
                 }
-                if (!equalNode.execute(cachedRopes[i].tstring, ropes[i].tstring, cachedRopes[i].encoding.tencoding)) {
+                if (!equalNode.execute(cachedStrings[i].tstring, strings[i].tstring,
+                        cachedStrings[i].encoding.tencoding)) {
                     return false;
                 }
             }
@@ -294,7 +296,7 @@ public abstract class StringHelperNodes {
             return StringHelperNodesFactory.DeleteBangRopesNodeFactory.create(null);
         }
 
-        public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] ropesWithEncs);
+        public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(guards = "string.tstring.isEmpty()")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
@@ -342,10 +344,10 @@ public abstract class StringHelperNodes {
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(RubyString string, TStringWithEncoding[] ropesWithEncs, RubyEncoding enc) {
+        private Object deleteBangSlow(RubyString string, TStringWithEncoding[] tstringsWithEncs, RubyEncoding enc) {
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
 
-            final StringSupport.TrTables tables = makeTables(ropesWithEncs, squeeze, enc);
+            final StringSupport.TrTables tables = makeTables(tstringsWithEncs, squeeze, enc);
 
             var processedRope = processStr(string, squeeze, enc, tables);
             if (processedRope == null) {

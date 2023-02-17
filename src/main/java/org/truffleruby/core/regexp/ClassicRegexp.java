@@ -542,10 +542,10 @@ public class ClassicRegexp implements ReOptions {
         } // while
     }
 
-    public static void preprocessCheck(TStringWithEncoding ropeWithEncoding) throws DeferredRaiseException {
+    public static void preprocessCheck(TStringWithEncoding tstringWithEncoding) throws DeferredRaiseException {
         preprocess(
-                ropeWithEncoding,
-                ropeWithEncoding.getEncoding(),
+                tstringWithEncoding,
+                tstringWithEncoding.getEncoding(),
                 new RubyEncoding[]{ null },
                 RegexpSupport.ErrorMode.RAISE);
     }
