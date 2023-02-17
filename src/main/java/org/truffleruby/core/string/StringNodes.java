@@ -131,7 +131,7 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.string.StringHelperNodes.DeleteBangRopesNode;
+import org.truffleruby.core.string.StringHelperNodes.DeleteBangStringsNode;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.string.StringNodesFactory.DeleteBangNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
@@ -379,11 +379,11 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libB,
                 @Bind("libA.getTString(a)") AbstractTruffleString first,
                 @Bind("libB.getTString(b)") AbstractTruffleString second,
-                @Cached ConditionProfile sameRopeProfile,
+                @Cached ConditionProfile sameStringProfile,
                 @Cached TruffleString.CompareBytesNode compareBytesNode,
                 @Cached ConditionProfile equalProfile,
                 @Cached ConditionProfile positiveProfile) {
-            if (sameRopeProfile.profile(first == second)) {
+            if (sameStringProfile.profile(first == second)) {
                 return 0;
             }
 
@@ -399,7 +399,7 @@ public abstract class StringNodes {
         protected int notCompatible(Object a, Object b, Nil compatibleEncoding,
                 @Cached RubyStringLibrary libA,
                 @Cached RubyStringLibrary libB,
-                @Cached ConditionProfile sameRopeProfile,
+                @Cached ConditionProfile sameStringProfile,
                 @Cached TruffleString.CompareBytesNode compareBytesNode,
                 @Cached TruffleString.ForceEncodingNode forceEncoding1Node,
                 @Cached TruffleString.ForceEncodingNode forceEncoding2Node,
@@ -411,7 +411,7 @@ public abstract class StringNodes {
             var second = libB.getTString(b);
             var secondEncoding = libB.getEncoding(b);
 
-            if (sameRopeProfile.profile(first == second)) {
+            if (sameStringProfile.profile(first == second)) {
                 return 0;
             }
 
@@ -951,7 +951,8 @@ public abstract class StringNodes {
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToStrNode toStr = ToStrNode.create();
-        @Child private StringHelperNodes.CountRopesNode countRopesNode = StringHelperNodes.CountRopesNode.create();
+        @Child private StringHelperNodes.CountStringsNode countStringsNode = StringHelperNodes.CountStringsNode
+                .create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
@@ -1001,7 +1002,7 @@ public abstract class StringNodes {
     public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToStrNode toStr = ToStrNode.create();
-        @Child private DeleteBangRopesNode deleteBangRopesNode = DeleteBangRopesNode.create();
+        @Child private DeleteBangStringsNode deleteBangStringsNode = DeleteBangStringsNode.create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 

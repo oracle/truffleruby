@@ -163,10 +163,10 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class CountRopesNode extends TrTableNode {
+    public abstract static class CountStringsNode extends TrTableNode {
 
-        public static CountRopesNode create() {
-            return StringHelperNodesFactory.CountRopesNodeFactory.create(null);
+        public static CountStringsNode create() {
+            return StringHelperNodesFactory.CountStringsNodeFactory.create(null);
         }
 
         public abstract int executeCount(Object string, TStringWithEncoding[] tstringsWithEncs);
@@ -290,10 +290,10 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class DeleteBangRopesNode extends TrTableNode {
+    public abstract static class DeleteBangStringsNode extends TrTableNode {
 
-        public static DeleteBangRopesNode create() {
-            return StringHelperNodesFactory.DeleteBangRopesNodeFactory.create(null);
+        public static DeleteBangStringsNode create() {
+            return StringHelperNodesFactory.DeleteBangStringsNodeFactory.create(null);
         }
 
         public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] tstringsWithEncs);

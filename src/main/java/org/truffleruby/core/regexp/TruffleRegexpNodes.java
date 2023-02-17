@@ -320,9 +320,9 @@ public class TruffleRegexpNodes {
 
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
-                final TStringWithEncoding quotedRopeResult = ClassicRegexp
+                final TStringWithEncoding quotedString = ClassicRegexp
                         .quote19(new ATStringWithEncoding(rubyStringLibrary, obj));
-                return createString(quotedRopeResult);
+                return createString(quotedString);
             } else {
                 return toSNode.execute((RubyRegexp) obj);
             }

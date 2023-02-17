@@ -45,7 +45,7 @@ public abstract class EvalLoader {
             sourceString = sourceTString.toJavaStringOrThrow();
         } catch (CannotConvertBinaryRubyStringToJavaString e) {
             // In such a case, we have no way to build a Java String for the Truffle Source that
-            // could accurately represent the source Rope, so we throw an error.
+            // could accurately represent the source string, so we throw an error.
             final String message = file + ":" + line + ": cannot " + method +
                     "() a String with binary encoding, with no magic encoding comment and containing a non-US-ASCII character: \\x" +
                     String.format("%02X", e.getNonAsciiCharacter());
