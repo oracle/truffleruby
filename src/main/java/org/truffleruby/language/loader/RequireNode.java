@@ -219,15 +219,16 @@ public abstract class RequireNode extends RubyBaseNode {
             requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
-            final Pair<Source, TStringWithEncoding> sourceRopePair;
+            final Pair<Source, TStringWithEncoding> sourceTStringPair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                sourceRopePair = fileLoader.loadFile(expandedPath);
+                sourceTStringPair = fileLoader.loadFile(expandedPath);
             } catch (IOException e) {
                 return false;
             }
 
-            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceTStringPair,
+                    this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,

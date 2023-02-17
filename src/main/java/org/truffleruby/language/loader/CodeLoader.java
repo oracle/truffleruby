@@ -52,9 +52,10 @@ public class CodeLoader {
     }
 
     @TruffleBoundary
-    public RootCallTarget parseTopLevelWithCache(Pair<Source, TStringWithEncoding> sourceRopePair, Node currentNode) {
-        final Source source = sourceRopePair.getLeft();
-        final TStringWithEncoding rope = sourceRopePair.getRight();
+    public RootCallTarget parseTopLevelWithCache(Pair<Source, TStringWithEncoding> sourceTStringPair,
+            Node currentNode) {
+        final Source source = sourceTStringPair.getLeft();
+        final TStringWithEncoding tstringWithEncoding = sourceTStringPair.getRight();
 
         final String path = RubyLanguage.getPath(source);
         if (language.singleContext && !alreadyLoadedInContext.add(language.getPathRelativeToHome(path))) {

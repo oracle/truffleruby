@@ -762,9 +762,10 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                var sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
-                final Source source = sourceRopePair.getLeft();
-                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceRopePair, node);
+                var sourceTStringPair = loadCoreFileSource(language.coreLoadPath + file);
+                final Source source = sourceTStringPair.getLeft();
+                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceTStringPair,
+                        node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                         callTarget,
