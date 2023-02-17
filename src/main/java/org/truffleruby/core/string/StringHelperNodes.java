@@ -319,13 +319,13 @@ public abstract class StringHelperNodes {
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached BranchProfile nullProfile) {
-            var processedRope = processStr(string, squeeze, compatEncoding, tables);
-            if (processedRope == null) {
+            var processedTString = processStr(string, squeeze, compatEncoding, tables);
+            if (processedTString == null) {
                 nullProfile.enter();
                 return nil;
             }
 
-            string.setTString(processedRope);
+            string.setTString(processedTString);
             return string;
         }
 
@@ -349,12 +349,12 @@ public abstract class StringHelperNodes {
 
             final StringSupport.TrTables tables = makeTables(tstringsWithEncs, squeeze, enc);
 
-            var processedRope = processStr(string, squeeze, enc, tables);
-            if (processedRope == null) {
+            var processedTString = processStr(string, squeeze, enc, tables);
+            if (processedTString == null) {
                 return nil;
             }
 
-            string.setTString(processedRope);
+            string.setTString(processedTString);
             // REVIEW encoding set
 
             return string;

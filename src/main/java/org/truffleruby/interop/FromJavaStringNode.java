@@ -27,8 +27,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
             @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode,
-            @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedRope) {
-        var rubyString = createString(cachedRope, Encodings.UTF_8);
+            @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedTString) {
+        var rubyString = createString(cachedTString, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }

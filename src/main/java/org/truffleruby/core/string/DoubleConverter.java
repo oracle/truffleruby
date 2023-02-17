@@ -59,8 +59,8 @@ public class DoubleConverter {
     public DoubleConverter() {
     }
 
-    public void init(AbstractTruffleString rope, RubyEncoding encoding, boolean isStrict) {
-        var byteArray = rope.getInternalByteArrayUncached(encoding.tencoding);
+    public void init(AbstractTruffleString tstring, RubyEncoding encoding, boolean isStrict) {
+        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
         bytes = byteArray.getArray();
         index = byteArray.getOffset();
         endIndex = byteArray.getEnd();
@@ -176,8 +176,8 @@ public class DoubleConverter {
 
     /** Everything runs in 1.9+ mode now, so the `is19` parameter is vestigial. However, in order to maintain binary
      * compatibility with extensions we can't just change the signature either. */
-    public double parse(AbstractTruffleString rope, RubyEncoding encoding, boolean strict, boolean is19) {
-        init(rope, encoding, strict);
+    public double parse(AbstractTruffleString tstring, RubyEncoding encoding, boolean strict, boolean is19) {
+        init(tstring, encoding, strict);
 
         if (skipWhitespace()) {
             return completeCalculation();

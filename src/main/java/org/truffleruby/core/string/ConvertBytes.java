@@ -31,7 +31,7 @@ public class ConvertBytes {
     private final RubyContext context;
     private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final AbstractTruffleString rope;
+    private final AbstractTruffleString tstring;
     private int p;
     private int end;
     private byte[] data;
@@ -42,18 +42,18 @@ public class ConvertBytes {
             RubyContext context,
             Node caller,
             FixnumOrBignumNode fixnumOrBignumNode,
-            AbstractTruffleString rope,
+            AbstractTruffleString tstring,
             RubyEncoding encoding,
             int base,
             boolean badcheck) {
-        assert rope != null;
+        assert tstring != null;
 
-        var byteArray = rope.getInternalByteArrayUncached(encoding.tencoding);
+        var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
 
         this.context = context;
         this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
-        this.rope = rope;
+        this.tstring = tstring;
         this.p = byteArray.getOffset();
         this.data = byteArray.getArray();
         this.end = byteArray.getEnd();
@@ -71,8 +71,8 @@ public class ConvertBytes {
 
     /** rb_cstr_to_inum */
     public static Object bytesToInum(RubyContext context, Node caller, FixnumOrBignumNode fixnumOrBignumNode,
-            AbstractTruffleString rope, RubyEncoding encoding, int base, boolean badcheck) {
-        return new ConvertBytes(context, caller, fixnumOrBignumNode, rope, encoding, base, badcheck).bytesToInum();
+            AbstractTruffleString tstring, RubyEncoding encoding, int base, boolean badcheck) {
+        return new ConvertBytes(context, caller, fixnumOrBignumNode, tstring, encoding, base, badcheck).bytesToInum();
     }
 
     /** conv_digit */
@@ -534,7 +534,8 @@ public class ConvertBytes {
     private void invalidString() {
         throw new RaiseException(
                 context,
-                context.getCoreExceptions().argumentErrorInvalidStringToInteger(rope.toJavaStringUncached(), caller));
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(tstring.toJavaStringUncached(),
+                        caller));
     }
 
     public static final byte[] intToBinaryBytes(int i) {

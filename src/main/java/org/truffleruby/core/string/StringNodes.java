@@ -960,18 +960,18 @@ public abstract class StringNodes {
                 limit = "getDefaultCacheLimit()")
         protected int count(Object string, Object[] args,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] ropesWithEncs = argRopesWithEncs(args, size);
-            return countRopesNode.executeCount(string, ropesWithEncs);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size);
+            return countStringsNode.executeCount(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "count")
         protected int countSlow(Object string, Object[] args) {
-            final TStringWithEncoding[] ropesWithEncs = argRopesSlow(args);
-            return countRopesNode.executeCount(string, ropesWithEncs);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsSlow(args);
+            return countStringsNode.executeCount(string, tstringsWithEncs);
         }
 
         @ExplodeLoop
-        protected TStringWithEncoding[] argRopesWithEncs(Object[] args, int size) {
+        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -983,7 +983,7 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected TStringWithEncoding[] argRopesSlow(Object[] args) {
+        protected TStringWithEncoding[] argTStringsSlow(Object[] args) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1014,18 +1014,18 @@ public abstract class StringNodes {
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         protected Object deleteBang(RubyString string, Object[] args,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] ropesWithEncs = argRopesWithEncs(args, size);
-            return deleteBangRopesNode.executeDeleteBang(string, ropesWithEncs);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size);
+            return deleteBangStringsNode.executeDeleteBang(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
         protected Object deleteBangSlow(RubyString string, Object[] args) {
-            final TStringWithEncoding[] ropes = argRopesWithEncsSlow(args);
-            return deleteBangRopesNode.executeDeleteBang(string, ropes);
+            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args);
+            return deleteBangStringsNode.executeDeleteBang(string, tstrings);
         }
 
         @ExplodeLoop
-        protected TStringWithEncoding[] argRopesWithEncs(Object[] args, int size) {
+        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[size];
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1037,7 +1037,7 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected TStringWithEncoding[] argRopesWithEncsSlow(Object[] args) {
+        protected TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -2408,16 +2408,16 @@ public abstract class StringNodes {
             final TStringBuilder buffer = TStringBuilder.create(string);
 
             Object otherStr = otherStrings[0];
-            var otherRope = RubyStringLibrary.getUncached().getTString(otherStr);
+            var otherTString = RubyStringLibrary.getUncached().getTString(otherStr);
             var otherEncoding = RubyStringLibrary.getUncached().getEncoding(otherStr);
             RubyEncoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
 
             boolean singlebyte = TStringUtils.isSingleByteOptimizable(string.tstring, string.getEncodingUncached()) &&
-                    TStringUtils.isSingleByteOptimizable(otherRope, otherEncoding);
+                    TStringUtils.isSingleByteOptimizable(otherTString, otherEncoding);
 
-            if (singlebyte && otherRope.byteLength(otherEncoding.tencoding) == 1 && otherStrings.length == 1) {
-                squeeze[otherRope.readByteUncached(0, otherEncoding.tencoding)] = true;
+            if (singlebyte && otherTString.byteLength(otherEncoding.tencoding) == 1 && otherStrings.length == 1) {
+                squeeze[otherTString.readByteUncached(0, otherEncoding.tencoding)] = true;
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
@@ -2427,15 +2427,15 @@ public abstract class StringNodes {
             }
 
             StringSupport.TrTables tables = StringSupport
-                    .trSetupTable(otherRope, otherEncoding, squeeze, null, true, enc.jcoding, this);
+                    .trSetupTable(otherTString, otherEncoding, squeeze, null, true, enc.jcoding, this);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
-                otherRope = RubyStringLibrary.getUncached().getTString(otherStr);
+                otherTString = RubyStringLibrary.getUncached().getTString(otherStr);
                 otherEncoding = RubyStringLibrary.getUncached().getEncoding(otherStr);
                 enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
-                singlebyte = singlebyte && TStringUtils.isSingleByteOptimizable(otherRope, otherEncoding);
-                tables = StringSupport.trSetupTable(otherRope, otherEncoding, squeeze, tables, false, enc.jcoding,
+                singlebyte = singlebyte && TStringUtils.isSingleByteOptimizable(otherTString, otherEncoding);
+                tables = StringSupport.trSetupTable(otherTString, otherEncoding, squeeze, tables, false, enc.jcoding,
                         this);
             }
 
@@ -2550,8 +2550,8 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private double convertToDouble(AbstractTruffleString rope, RubyEncoding encoding) {
-            return new DoubleConverter().parse(rope, encoding, false, true);
+        private double convertToDouble(AbstractTruffleString tstring, RubyEncoding encoding) {
+            return new DoubleConverter().parse(tstring, encoding, false, true);
         }
     }
 
@@ -3750,9 +3750,9 @@ public abstract class StringNodes {
         protected Object stringToF(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode) {
-            var rope = strings.getTString(string);
+            var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
-            if (rope.isEmpty()) {
+            if (tstring.isEmpty()) {
                 return nil;
             }
 
@@ -3767,7 +3767,7 @@ public abstract class StringNodes {
                                     getContext(),
                                     this,
                                     fixnumOrBignumNode,
-                                    rope,
+                                    tstring,
                                     encoding,
                                     16,
                                     true);
@@ -3783,7 +3783,7 @@ public abstract class StringNodes {
                 }
             }
             try {
-                return new DoubleConverter().parse(rope, encoding, true, true);
+                return new DoubleConverter().parse(tstring, encoding, true, true);
             } catch (NumberFormatException e) {
                 return nil;
             }
@@ -4177,9 +4177,8 @@ public abstract class StringNodes {
                 return parseLongNode.execute(tstring, 10);
             } catch (TruffleString.NumberFormatException e) {
                 notLazyLongProfile.enter();
-                var rope = libString.getTString(string);
                 var encoding = libString.getEncoding(string);
-                return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
+                return bytesToInum(tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
             }
         }
 
@@ -4211,9 +4210,8 @@ public abstract class StringNodes {
                 }
             }
 
-            var rope = libString.getTString(string);
             var encoding = libString.getEncoding(string);
-            return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
+            return bytesToInum(tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
         }
 
         @Specialization(guards = { "base != 10", "base != 0" })
@@ -4221,12 +4219,12 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BranchProfile exceptionProfile) {
-            var rope = libString.getTString(string);
+            var tstring = libString.getTString(string);
             var encoding = libString.getEncoding(string);
-            return bytesToInum(rope, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
+            return bytesToInum(tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode, exceptionProfile);
         }
 
-        private Object bytesToInum(AbstractTruffleString rope, RubyEncoding encoding, int base, boolean strict,
+        private Object bytesToInum(AbstractTruffleString tstring, RubyEncoding encoding, int base, boolean strict,
                 boolean raiseOnError, FixnumOrBignumNode fixnumOrBignumNode,
                 BranchProfile exceptionProfile) {
             try {
@@ -4234,7 +4232,7 @@ public abstract class StringNodes {
                         getContext(),
                         this,
                         fixnumOrBignumNode,
-                        rope,
+                        tstring,
                         encoding,
                         base,
                         strict);

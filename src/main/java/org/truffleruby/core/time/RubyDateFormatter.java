@@ -366,7 +366,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static TStringBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
+    public static TStringBuilder formatToTStringBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             boolean isUtc,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
@@ -614,7 +614,7 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static TruffleString formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
+    public static TruffleString formatToTStringFast(Token[] compiledPattern, ZonedDateTime dt,
             TruffleString.ConcatNode concatNode,
             TruffleString.FromLongNode fromLongNode,
             TruffleString.CodePointLengthNode codePointLengthNode) {

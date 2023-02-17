@@ -190,8 +190,8 @@ public abstract class DigestNodes {
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected RubyString bubblebabble(Object message,
                 @Cached RubyStringLibrary strings) {
-            var rope = strings.getTString(message);
-            var byteArray = rope.getInternalByteArrayUncached(strings.getTEncoding(message));
+            var tstring = strings.getTString(message);
+            var byteArray = tstring.getInternalByteArrayUncached(strings.getTEncoding(message));
             final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),
                     byteArray.getLength()).getBytes(); // CR_7BIT
 

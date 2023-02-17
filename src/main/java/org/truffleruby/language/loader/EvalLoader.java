@@ -32,7 +32,7 @@ public abstract class EvalLoader {
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
 
-        var sourceTString = createEvalRope(code);
+        var sourceTString = createEvalTString(code);
         var sourceEncoding = sourceTString.encoding;
 
         if (!sourceEncoding.isAsciiCompatible) {
@@ -65,7 +65,7 @@ public abstract class EvalLoader {
         return rubySource;
     }
 
-    private static TStringWithEncoding createEvalRope(TStringWithEncoding source) {
+    private static TStringWithEncoding createEvalTString(TStringWithEncoding source) {
         final RubyEncoding[] encoding = { source.getEncoding() };
 
         RubyLexer.parseMagicComment(source, (name, value) -> {

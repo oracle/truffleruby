@@ -727,7 +727,7 @@ public class TruffleRegexpNodes {
                     hashStoreLibrary,
                     ret,
                     "rope_types",
-                    stats.ropeClassFrequencies,
+                    stats.tstringClassFrequencies,
                     Optional.of(className -> StringOperations.createUTF8String(getContext(), getLanguage(), className)),
                     Optional.of(count -> count.get()));
 
@@ -1164,7 +1164,7 @@ public class TruffleRegexpNodes {
         private final ConcurrentHashMap<Integer, AtomicLong> characterLengthFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<TruffleString.CodeRange, AtomicLong> codeRangeFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<RubyEncoding, AtomicLong> encodingFrequencies = new ConcurrentHashMap<>();
-        private final ConcurrentHashMap<String, AtomicLong> ropeClassFrequencies = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, AtomicLong> tstringClassFrequencies = new ConcurrentHashMap<>();
 
         private void record(ATStringWithEncoding string) {
             ConcurrentOperations
@@ -1179,7 +1179,7 @@ public class TruffleRegexpNodes {
             ConcurrentOperations.getOrCompute(encodingFrequencies, string.encoding, x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(ropeClassFrequencies, string.getClass().getSimpleName(), x -> new AtomicLong())
+                    .getOrCompute(tstringClassFrequencies, string.getClass().getSimpleName(), x -> new AtomicLong())
                     .incrementAndGet();
         }
 

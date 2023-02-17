@@ -293,8 +293,8 @@ public class ParserSupport {
         }
     }
 
-    public ParseNode declareIdentifier(TruffleString rope) {
-        return declareIdentifier(rope.toJavaStringUncached());
+    public ParseNode declareIdentifier(TruffleString tstring) {
+        return declareIdentifier(tstring.toJavaStringUncached());
     }
 
     // Despite the confusing name, called for every identifier use in expressions.
@@ -1570,8 +1570,8 @@ public class ParserSupport {
 
     // 1.9
     @SuppressFBWarnings("ES")
-    public ArgumentParseNode arg_var(TruffleString rope) {
-        return arg_var(rope.toJavaStringUncached());
+    public ArgumentParseNode arg_var(TruffleString tstring) {
+        return arg_var(tstring.toJavaStringUncached());
     }
 
     // Called with parameter names

@@ -21,8 +21,8 @@ public class ParserRopeOperations {
         tencoding = encoding.tencoding;
     }
 
-    public TruffleString makeShared(AbstractTruffleString rope, int sharedStart, int sharedLength) {
-        return rope.substringByteIndexUncached(sharedStart, sharedLength, tencoding, true);
+    public TruffleString makeShared(AbstractTruffleString tstring, int sharedStart, int sharedLength) {
+        return tstring.substringByteIndexUncached(sharedStart, sharedLength, tencoding, true);
     }
 
 }

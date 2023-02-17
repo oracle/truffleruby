@@ -1562,10 +1562,10 @@ public final class StringSupport {
     private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
 
     @TruffleBoundary
-    public static Pair<TStringBuilder, RubyEncoding> undump(ATStringWithEncoding rope, RubyEncoding encoding,
+    public static Pair<TStringBuilder, RubyEncoding> undump(ATStringWithEncoding tstring, RubyEncoding encoding,
             RubyContext context,
             Node currentNode) {
-        var byteArray = rope.getInternalByteArray();
+        var byteArray = tstring.getInternalByteArray();
         byte[] bytes = byteArray.getArray();
         int start = byteArray.getOffset();
         final int end = byteArray.getEnd();
@@ -1576,7 +1576,7 @@ public final class StringSupport {
         TStringBuilder undumped = new TStringBuilder();
         undumped.setEncoding(encoding);
 
-        var cr = rope.getCodeRange();
+        var cr = tstring.getCodeRange();
         if (cr != ASCII) {
             throw new RaiseException(
                     context,

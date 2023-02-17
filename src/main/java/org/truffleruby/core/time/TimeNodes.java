@@ -424,7 +424,7 @@ public abstract class TimeNodes {
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
+                var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
@@ -444,7 +444,7 @@ public abstract class TimeNodes {
             final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
-                var tstring = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode, fromLongNode,
+                var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
@@ -470,7 +470,7 @@ public abstract class TimeNodes {
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
 
         private TStringBuilder formatTime(RubyTime time, Token[] pattern) {
-            return RubyDateFormatter.formatToRopeBuilder(
+            return RubyDateFormatter.formatToTStringBuilder(
                     pattern,
                     time.dateTime,
                     time.zone,
