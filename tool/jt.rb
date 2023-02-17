@@ -65,7 +65,7 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS =  [17, 20]
-DEFAULT_JDK_VERSION = JDK_VERSIONS.last
+DEFAULT_JDK_VERSION = JDK_VERSIONS.first
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
@@ -175,12 +175,7 @@ module Utilities
   end
 
   def ee_jdk?
-    if @jdk_version == 17
-      # No labsjdk-ce-17 in common.json
-      true
-    else
-      ee?
-    end
+    ee?
   end
 
   def jvmci_version
