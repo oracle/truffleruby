@@ -21,6 +21,7 @@ Bug fixes:
 * Fix `Array#pack` and accept `Numeric` values when `Float` is expected (#2815, @andrykonchin).
 * Fix `\P{}` matching in regular expressions (#2798, @andrykonchin).
 * Fix constants lookup when `BasicObject#instance_eval` method is called with a String (#2810, @andrykonchin).
+* Don't trigger the `method_added` event when changing a method's visibility or calling `module_function` (@paracycle, @nirvdrum).
 
 Compatibility:
 
