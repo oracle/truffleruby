@@ -3053,6 +3053,7 @@ module Commands
   ABI_CHECK_FILE = 'lib/cext/ABI_check.txt'
 
   def check_abi(fail: true)
+    puts bold 'ABI check'
     # Check since the last commit at which ABI_CHECK_FILE or ABI_VERSION_FILE were modified
     base_commit = `git log -n 1 --format=%H #{ABI_VERSION_FILE} #{ABI_CHECK_FILE}`.chomp
 
