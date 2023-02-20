@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Clone TruffleRuby
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Necessary for jt check_abi
     - name: Setup system Ruby
       uses: ruby/setup-ruby@v1
     - name: Setup jt
