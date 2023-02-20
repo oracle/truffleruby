@@ -24,8 +24,10 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.OpenModule;
 import org.truffleruby.parser.ParserContext;
 
-/** {@link InternalMethod} objects are copied as properties such as visibility are changed. {@link SharedMethodInfo}
- * stores the state that does not change, such as where the method was defined. */
+/** SharedMethodInfo represents static information from the parser for either a method definition or a block like its
+ * name, SourceSection, etc. Such information is always "original" since it comes from the source as opposed to
+ * "aliased" (e.g. the aliased name of a method). In contrast, {@link InternalMethod} are runtime objects containing
+ * properties that change for a method. */
 public final class SharedMethodInfo {
 
     private final SourceSection sourceSection;
@@ -150,6 +152,7 @@ public final class SharedMethodInfo {
         }
     }
 
+    /** See {@link #originalName} */
     public String getOriginalName() {
         return originalName;
     }

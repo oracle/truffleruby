@@ -73,7 +73,7 @@ public abstract class MainNodes {
 
         @TruffleBoundary
         private boolean isCalledFromTopLevel(InternalMethod callerMethod) {
-            final String name = callerMethod.getSharedMethodInfo().getOriginalName();
+            final String name = callerMethod.getOriginalName();
             return name.equals("<main>") || name.startsWith("<top ");
         }
     }

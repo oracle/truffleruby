@@ -153,11 +153,9 @@ public abstract class UnboundMethodNodes {
         @Specialization
         protected RubySymbol originalName(RubyUnboundMethod unboundMethod,
                 @Cached ToSymbolNode toSymbolNode) {
-            String originalName = unboundMethod.method.getSharedMethodInfo().getOriginalName();
-
+            String originalName = unboundMethod.method.getOriginalName();
             return toSymbolNode.execute(originalName);
         }
-
     }
 
     @CoreMethod(names = "owner")
