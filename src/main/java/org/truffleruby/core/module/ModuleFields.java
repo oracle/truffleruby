@@ -533,12 +533,19 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
-            final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(method.getName());
-            if (RubyGuards.isSingletonClass(rubyModule)) {
-                RubyDynamicObject receiver = ((RubyClass) rubyModule).attached;
-                RubyContext.send(currentNode, receiver, "singleton_method_added", methodSymbol);
-            } else {
-                RubyContext.send(currentNode, rubyModule, "method_added", methodSymbol);
+            /* method_added/singleton_method_added should only be called if there wasn't already the same method
+             * definition for the given name on this rubyModule. Otherwise, it's just a change of visibility or so, not
+             * "a new method", and that should not call method_added/singleton_method_added. */
+            if (previousMethodEntry == null || previousMethodEntry.getMethod() == null ||
+                    previousMethodEntry.getMethod().getSharedMethodInfo() != method.getSharedMethodInfo()) {
+
+                final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(method.getName());
+                if (RubyGuards.isSingletonClass(rubyModule)) {
+                    RubyDynamicObject receiver = ((RubyClass) rubyModule).attached;
+                    RubyContext.send(currentNode, receiver, "singleton_method_added", methodSymbol);
+                } else {
+                    RubyContext.send(currentNode, rubyModule, "method_added", methodSymbol);
+                }
             }
         }
     }
