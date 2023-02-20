@@ -726,7 +726,7 @@ public class TruffleRegexpNodes {
             buildAndSetDistributionHash(
                     hashStoreLibrary,
                     ret,
-                    "rope_types",
+                    "string_types",
                     stats.tstringClassFrequencies,
                     Optional.of(className -> StringOperations.createUTF8String(getContext(), getLanguage(), className)),
                     Optional.of(count -> count.get()));
