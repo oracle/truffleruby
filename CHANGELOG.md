@@ -78,6 +78,7 @@ Compatibility:
 * `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
 * `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
 * Implement `UnboundMethod#original_name` (@paracycle, @nirvdrum).
+* Implement `Thread#native_thread_id` method (#2733, @horakivo).
 
 Performance:
 

@@ -114,7 +114,6 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         ruby_options = [
             '--experimental-options',
             '--building-core-cexts',
-            '--platform-native-interrupt=false', # no librubysignal in the ruby home yet
             '--launcher=' + result,
             '--disable-gems',
             '--disable-rubyopt',

@@ -10,6 +10,8 @@
 #include "org_truffleruby_signal_LibRubySignal.h"
 #include <pthread.h>
 #include <signal.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 _Static_assert(sizeof(pthread_t) == sizeof(jlong), "Expected sizeof(pthread_t) == sizeof(jlong)");
 
@@ -32,4 +34,14 @@ JNIEXPORT jlong JNICALL Java_org_truffleruby_signal_LibRubySignal_threadID(JNIEn
 JNIEXPORT jint JNICALL Java_org_truffleruby_signal_LibRubySignal_sendSIGVTALRMToThread(JNIEnv *env, jclass clazz, jlong threadID) {
   pthread_t pthread_id = (pthread_t) threadID;
   return pthread_kill(pthread_id, SIGVTALRM);
+}
+
+JNIEXPORT jlong JNICALL Java_org_truffleruby_signal_LibRubySignal_getNativeThreadID(JNIEnv *env, jclass clazz) {
+  #ifdef __APPLE__
+      uint64_t native_id;
+      pthread_threadid_np(NULL, &native_id);
+  #elif defined(__linux__)
+      pid_t native_id = (pid_t) syscall(SYS_gettid);
+  #endif
+      return (jlong) native_id;
 }

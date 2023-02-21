@@ -580,6 +580,15 @@ public abstract class ThreadNodes {
 
     }
 
+    @CoreMethod(names = "native_thread_id")
+    public abstract static class NativeThreadIdNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object nativeThreadId(RubyThread self) {
+            return self.nativeThreadId;
+        }
+    }
+
     @CoreMethod(names = "stop?")
     public abstract static class StopNode extends CoreMethodArrayArgumentsNode {
 

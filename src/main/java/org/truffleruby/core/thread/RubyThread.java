@@ -59,6 +59,8 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     boolean reportOnException;
     boolean abortOnException;
     public volatile Thread thread = null;
+    /** Either nil or long */
+    public volatile Object nativeThreadId = Nil.INSTANCE;
     volatile RubyException exception = null;
     volatile Object value = null;
     public final AtomicBoolean wakeUp = new AtomicBoolean(false);
