@@ -421,7 +421,10 @@ public class BacktraceFormatter {
                     printJavaStackTrace(stream, t);
 
                     if (TruffleStackTrace.getStackTrace(t) != null) {
-                        stream.println(formatter.formatBacktrace(null, new Backtrace(t)));
+                        var formatted = formatter.formatBacktrace(null, new Backtrace(t));
+                        if (!formatted.isEmpty()) {
+                            stream.println(formatted);
+                        }
                     }
                 }
             }
