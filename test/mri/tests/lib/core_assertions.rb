@@ -31,7 +31,7 @@ module Test
     end
 
     module CoreAssertions
-      ALLOW_SUBPROCESSES = true # !defined?(::TruffleRuby)
+      ALLOW_SUBPROCESSES = ENV['MRI_TEST_SUBPROCESSES'] != 'false' # !defined?(::TruffleRuby)
 
       require_relative 'envutil'
       require 'pp'
