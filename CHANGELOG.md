@@ -242,6 +242,7 @@ Bug fixes:
 * Fix `rb_id2name` to ensure the native string will have the same lifetime as the id (#2630, @aardvark179).
 * Fix `Integer#fdiv` and `Rational#to_f` for large `Integer` values (#2631, @bjfish).
 * Remove the `RB_NEWOBJ/NEWOBJ` and `OBJSETUP` macros since we cannot support them in TruffleRuby and native extensions may use `#ifdef` to detect features (#2869, @nirvdrum).
+* Fix memory leak in `--native` mode for native extension handles and native pointers (@eregon).
 
 Compatibility:
 

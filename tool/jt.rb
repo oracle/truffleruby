@@ -823,6 +823,7 @@ module Commands
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
+        MRI_TEST_SUBPROCESSES=false                  skip MRI tests using subprocesses
       jt retag FILE                                  Remove MRI excludes and re-add as necessary for MRI tests
       ---
       jt test basictest                              run MRI's basictest suite
