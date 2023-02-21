@@ -87,7 +87,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
         public abstract Object execute(TStringWithEncoding[] parts);
 
-        @Specialization(guards = "ropesWithEncodingsMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
+        @Specialization(guards = "tstringsWithEncodingsMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
         protected Object fast(TStringWithEncoding[] parts,
                 @Cached(value = "parts", dimensions = 1) TStringWithEncoding[] cachedParts,
                 @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
@@ -102,7 +102,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         }
 
         @ExplodeLoop
-        protected boolean ropesWithEncodingsMatch(TStringWithEncoding[] a, TStringWithEncoding[] b) {
+        protected boolean tstringsWithEncodingsMatch(TStringWithEncoding[] a, TStringWithEncoding[] b) {
             for (int i = 0; i < a.length; i++) {
                 var aEncoding = a[i].encoding;
                 if (aEncoding != b[i].encoding) {

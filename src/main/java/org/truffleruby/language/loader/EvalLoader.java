@@ -32,7 +32,7 @@ public abstract class EvalLoader {
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
 
-        var sourceTString = createEvalRope(code);
+        var sourceTString = createEvalTString(code);
         var sourceEncoding = sourceTString.encoding;
 
         if (!sourceEncoding.isAsciiCompatible) {
@@ -45,7 +45,7 @@ public abstract class EvalLoader {
             sourceString = sourceTString.toJavaStringOrThrow();
         } catch (CannotConvertBinaryRubyStringToJavaString e) {
             // In such a case, we have no way to build a Java String for the Truffle Source that
-            // could accurately represent the source Rope, so we throw an error.
+            // could accurately represent the source string, so we throw an error.
             final String message = file + ":" + line + ": cannot " + method +
                     "() a String with binary encoding, with no magic encoding comment and containing a non-US-ASCII character: \\x" +
                     String.format("%02X", e.getNonAsciiCharacter());
@@ -65,7 +65,7 @@ public abstract class EvalLoader {
         return rubySource;
     }
 
-    private static TStringWithEncoding createEvalRope(TStringWithEncoding source) {
+    private static TStringWithEncoding createEvalTString(TStringWithEncoding source) {
         final RubyEncoding[] encoding = { source.getEncoding() };
 
         RubyLexer.parseMagicComment(source, (name, value) -> {

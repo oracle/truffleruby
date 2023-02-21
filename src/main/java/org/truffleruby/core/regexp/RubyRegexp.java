@@ -79,9 +79,9 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements 
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
         this.regex = regex;
-        final TStringWithEncoding ropeWithEncoding = (TStringWithEncoding) regex.getUserObject();
-        this.source = ropeWithEncoding.tstring;
-        this.encoding = ropeWithEncoding.getEncoding();
+        final TStringWithEncoding tstringWithEncoding = (TStringWithEncoding) regex.getUserObject();
+        this.source = tstringWithEncoding.tstring;
+        this.encoding = tstringWithEncoding.getEncoding();
         this.options = options;
         this.cachedEncodings = new EncodingCache();
         this.tregexCache = new TRegexCache();

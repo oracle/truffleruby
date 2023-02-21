@@ -48,13 +48,13 @@ public class MainLoader {
 
     public RubySource loadFromStandardIn(Node currentNode, String path) throws IOException {
         byte[] sourceBytes = readAllOfStandardIn();
-        var sourceRope = transformScript(currentNode, path, sourceBytes);
+        var sourceTString = transformScript(currentNode, path, sourceBytes);
 
         final Source source = Source
-                .newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path)
+                .newBuilder(TruffleRuby.LANGUAGE_ID, sourceTString.toString(), path)
                 .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
                 .build();
-        return new RubySource(source, path, sourceRope);
+        return new RubySource(source, path, sourceTString);
     }
 
     private TStringWithEncoding transformScript(Node currentNode, String path, byte[] sourceBytes) {

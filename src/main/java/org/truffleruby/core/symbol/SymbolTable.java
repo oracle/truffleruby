@@ -47,10 +47,10 @@ public class SymbolTable {
 
     private void addCoreSymbols(CoreSymbols coreSymbols) {
         for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
-            var rope = symbol.tstring;
-            var lookup = normalizeForLookup(rope, symbol.encoding);
-            assert rope == lookup.tstring;
-            assert rope == tstringCache.getTString(symbol.tstring, symbol.encoding);
+            var tstring = symbol.tstring;
+            var lookup = normalizeForLookup(tstring, symbol.encoding);
+            assert tstring == lookup.tstring;
+            assert tstring == tstringCache.getTString(symbol.tstring, symbol.encoding);
 
             final RubySymbol existing = symbolMap.put(lookup, symbol);
             if (existing != null) {
@@ -123,8 +123,8 @@ public class SymbolTable {
         return symbolMap.get(key);
     }
 
-    private TStringWithEncoding normalizeForLookup(AbstractTruffleString rope, RubyEncoding encoding) {
-        TruffleString string = rope.asManagedTruffleStringUncached(encoding.tencoding);
+    private TStringWithEncoding normalizeForLookup(AbstractTruffleString tstring, RubyEncoding encoding) {
+        TruffleString string = tstring.asManagedTruffleStringUncached(encoding.tencoding);
         var strEnc = new TStringWithEncoding(string, encoding);
 
         if (strEnc.isAsciiOnly() && encoding != Encodings.US_ASCII) {

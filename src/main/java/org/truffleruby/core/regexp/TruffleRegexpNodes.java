@@ -320,9 +320,9 @@ public class TruffleRegexpNodes {
 
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
-                final TStringWithEncoding quotedRopeResult = ClassicRegexp
+                final TStringWithEncoding quotedString = ClassicRegexp
                         .quote19(new ATStringWithEncoding(rubyStringLibrary, obj));
-                return createString(quotedRopeResult);
+                return createString(quotedString);
             } else {
                 return toSNode.execute((RubyRegexp) obj);
             }
@@ -726,8 +726,8 @@ public class TruffleRegexpNodes {
             buildAndSetDistributionHash(
                     hashStoreLibrary,
                     ret,
-                    "rope_types",
-                    stats.ropeClassFrequencies,
+                    "string_types",
+                    stats.tstringClassFrequencies,
                     Optional.of(className -> StringOperations.createUTF8String(getContext(), getLanguage(), className)),
                     Optional.of(count -> count.get()));
 
@@ -1164,7 +1164,7 @@ public class TruffleRegexpNodes {
         private final ConcurrentHashMap<Integer, AtomicLong> characterLengthFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<TruffleString.CodeRange, AtomicLong> codeRangeFrequencies = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<RubyEncoding, AtomicLong> encodingFrequencies = new ConcurrentHashMap<>();
-        private final ConcurrentHashMap<String, AtomicLong> ropeClassFrequencies = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, AtomicLong> tstringClassFrequencies = new ConcurrentHashMap<>();
 
         private void record(ATStringWithEncoding string) {
             ConcurrentOperations
@@ -1179,7 +1179,7 @@ public class TruffleRegexpNodes {
             ConcurrentOperations.getOrCompute(encodingFrequencies, string.encoding, x -> new AtomicLong())
                     .incrementAndGet();
             ConcurrentOperations
-                    .getOrCompute(ropeClassFrequencies, string.getClass().getSimpleName(), x -> new AtomicLong())
+                    .getOrCompute(tstringClassFrequencies, string.getClass().getSimpleName(), x -> new AtomicLong())
                     .incrementAndGet();
         }
 

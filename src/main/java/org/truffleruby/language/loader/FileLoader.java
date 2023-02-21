@@ -120,7 +120,7 @@ public class FileLoader {
         return relativePathFromHome.startsWith("lib");
     }
 
-    Source buildSource(TruffleFile file, String path, TStringWithEncoding sourceRope, boolean internal,
+    Source buildSource(TruffleFile file, String path, TStringWithEncoding sourceTStringWithEncoding, boolean internal,
             boolean mainSource) {
         /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
@@ -147,7 +147,7 @@ public class FileLoader {
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
                 .canonicalizePath(false)
                 .mimeType(mimeType)
-                .content(sourceRope.tstring.toString())
+                .content(sourceTStringWithEncoding.tstring.toString())
                 .internal(internal)
                 .cached(!coverageEnabled)
                 .build();

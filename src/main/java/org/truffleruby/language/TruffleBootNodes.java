@@ -132,10 +132,10 @@ public abstract class TruffleBootNodes {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
                     var tstringWithEncoding = source.hasTruffleString() ? source.getTStringWithEncoding() : null;
-                    var sourceRopePair = Pair.create(source.getSource(), tstringWithEncoding);
+                    var sourceTStringPair = Pair.create(source.getSource(), tstringWithEncoding);
                     final RootCallTarget callTarget = getContext()
                             .getCodeLoader()
-                            .parseTopLevelWithCache(sourceRopePair, null);
+                            .parseTopLevelWithCache(sourceTStringPair, null);
 
                     final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                             callTarget,

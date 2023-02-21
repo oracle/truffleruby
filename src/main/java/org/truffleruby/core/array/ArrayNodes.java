@@ -1596,12 +1596,12 @@ public abstract class ArrayNodes {
                 @Cached RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final String formatRope = toJavaStringNode.executeToJavaString(format);
+            final String formatString = toJavaStringNode.executeToJavaString(format);
 
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(formatRope),
+                        compileFormat(formatString),
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();

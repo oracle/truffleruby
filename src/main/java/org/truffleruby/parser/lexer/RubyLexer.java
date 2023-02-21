@@ -221,8 +221,8 @@ public class RubyLexer implements MagicCommentHandler {
         return Keyword.Maps.FROM_STRING.get(str);
     }
 
-    public static Keyword getKeyword(TruffleString rope, RubyEncoding encoding) {
-        return Keyword.Maps.FROM_BYTES.get(new BytesKey(TStringUtils.getBytesOrCopy(rope, encoding), null));
+    public static Keyword getKeyword(TruffleString tstring, RubyEncoding encoding) {
+        return Keyword.Maps.FROM_BYTES.get(new BytesKey(TStringUtils.getBytesOrCopy(tstring, encoding), null));
     }
 
     // Used for tiny smidgen of grammar in lexer (see setParserSupport())
@@ -3718,14 +3718,14 @@ public class RubyLexer implements MagicCommentHandler {
 
     /** Encoding-aware (including multi-byte encodings) check of first codepoint of a given rope, usually to determine
      * if it is a constant */
-    private boolean isFirstCodepointUppercase(TruffleString rope) {
+    private boolean isFirstCodepointUppercase(TruffleString tstring) {
         Encoding ropeEncoding = encoding.jcoding;
-        int firstByte = rope.readByteUncached(0, tencoding);
+        int firstByte = tstring.readByteUncached(0, tencoding);
 
         if (ropeEncoding.isAsciiCompatible() && isASCII(firstByte)) {
             return StringSupport.isAsciiUppercase((byte) firstByte);
         } else {
-            int firstCharacter = rope.codePointAtByteIndexUncached(0, tencoding, ErrorHandling.BEST_EFFORT);
+            int firstCharacter = tstring.codePointAtByteIndexUncached(0, tencoding, ErrorHandling.BEST_EFFORT);
             return ropeEncoding.isUpper(firstCharacter);
         }
     }
