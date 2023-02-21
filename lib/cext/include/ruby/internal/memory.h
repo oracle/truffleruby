@@ -158,12 +158,10 @@ typedef uint128_t DSIZE_T;
  * @post   `v` is still alive.
  */
 #ifdef TRUFFLERUBY
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({ \
-       polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
-       volatile VALUE *rb_gc_guarded_ptr = &v; \
-       rb_gc_guarded_ptr; \
-    }))
+RBIMPL_SYMBOL_EXPORT_BEGIN()
+VALUE rb_tr_gc_guard(VALUE value);
+RBIMPL_SYMBOL_EXPORT_END()
+#define RB_GC_GUARD(v) rb_tr_gc_guard(v)
 #else
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
