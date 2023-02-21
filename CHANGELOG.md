@@ -79,6 +79,7 @@ Compatibility:
 * `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
 * Implement `UnboundMethod#original_name` (@paracycle, @nirvdrum).
 * Implement `Thread#native_thread_id` method (#2733, @horakivo).
+* Modify `Struct#{inspect,to_s}` to match MRI when the struct is nested inside of an anonymous class or module (@st0012, @nirvdrum).
 
 Performance:
 
