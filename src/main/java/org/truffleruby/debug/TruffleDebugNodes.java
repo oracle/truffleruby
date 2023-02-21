@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.Frame;
@@ -489,9 +490,11 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
         protected Object throwJavaExceptionWithCause(Object message,
                 @Cached RubyStringLibrary strings) {
-            throw new RuntimeException(
-                    RubyGuards.getJavaString(message),
-                    new RuntimeException("cause 1", new RuntimeException("cause 2")));
+            var cause2 = new RuntimeException("cause 2");
+            var cause1 = new RuntimeException("cause 1", cause2);
+            TruffleStackTrace.fillIn(cause2);
+            TruffleStackTrace.fillIn(cause1);
+            throw new RuntimeException(RubyGuards.getJavaString(message), cause1);
         }
 
     }
