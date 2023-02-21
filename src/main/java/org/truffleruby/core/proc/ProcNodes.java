@@ -286,7 +286,7 @@ public abstract class ProcNodes {
         @Specialization
         protected Object symbolToProcSymbol(RubyProc proc) {
             if (proc.arity == SymbolNodes.ToProcNode.ARITY) {
-                return getSymbol(proc.getSharedMethodInfo().getBacktraceName());
+                return getSymbol(proc.getSharedMethodInfo().getOriginalName());
             } else {
                 return nil;
             }

@@ -195,6 +195,10 @@ public final class InternalMethod implements ObjectGraphNode {
         return name;
     }
 
+    public String getOriginalName() {
+        return sharedMethodInfo.getOriginalName();
+    }
+
     public Visibility getVisibility() {
         return visibility;
     }

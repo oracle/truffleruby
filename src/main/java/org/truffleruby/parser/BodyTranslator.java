@@ -1079,7 +1079,7 @@ public class BodyTranslator extends Translator {
                 environment.getReturnID());
 
         return new ModuleBodyDefinition(
-                environment.getSharedMethodInfo().getBacktraceName(),
+                environment.getSharedMethodInfo().getOriginalName(),
                 environment.getSharedMethodInfo(),
                 rootNode.getCallTarget(),
                 environment.getStaticLexicalScopeOrNull());
@@ -2006,14 +2006,14 @@ public class BodyTranslator extends Translator {
         final int blockDepth = environment.getBlockDepth() + 1;
 
         // "block in foo"
-        String backtraceName = SharedMethodInfo.getBlockName(blockDepth, methodName);
+        String originalName = SharedMethodInfo.getBlockName(blockDepth, methodName);
         // "block (2 levels) in M::C.foo"
         String parseName = SharedMethodInfo.getBlockName(blockDepth, methodParent.getSharedMethodInfo().getParseName());
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getStaticLexicalScopeOrNull(),
                 argsNode.getArity(),
-                backtraceName,
+                originalName,
                 blockDepth,
                 parseName,
                 methodName,

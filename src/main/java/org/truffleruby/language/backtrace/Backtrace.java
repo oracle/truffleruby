@@ -151,7 +151,7 @@ public class Backtrace {
         RootNode root = e.getTarget().getRootNode();
         String label = root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
-                ? ((RubyRootNode) root).getSharedMethodInfo().getBacktraceName()
+                ? ((RubyRootNode) root).getSharedMethodInfo().getOriginalName()
                 : root.getName();
         return label == null ? "<unknown>" : label;
     }
