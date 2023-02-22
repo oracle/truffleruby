@@ -208,7 +208,7 @@ def ruby_spotbugs(args):
 
 def verify_ci(args):
     """Verify CI configuration"""
-    mx.verify_ci(args, mx.suite('truffle'), _suite, 'common.json')
+    mx.verify_ci(args, mx.suite('truffle'), _suite, ['common.json', 'ci/common.jsonnet'])
 
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
