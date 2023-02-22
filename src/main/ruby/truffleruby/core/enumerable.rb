@@ -505,24 +505,45 @@ module Enumerable
     sort_values.map! { |ary| ary.value }
   end
 
+  # Enumerable#inject
+  #   inject(symbol) -> object
+  #   inject(initial_operand, symbol) -> object
+  #   inject {|memo, operand| ... } -> object
+  #   inject(initial_operand) {|memo, operand| ... } -> object
   def inject(initial=undefined, sym=undefined, &block)
     if Array === self
       return Primitive.array_inject(self, initial, sym, block)
     end
 
-    if !Primitive.undefined?(sym) && block_given?
+    # inject()
+    if !block_given? && Primitive.undefined?(initial)
+      raise ArgumentError, 'no block or symbol given'
+    end
+
+    # inject(initial_operand, symbol) { ... }
+    if block_given? && !Primitive.undefined?(sym)
       warn 'given block not used', uplevel: 1
     end
 
-    if !block_given? or !Primitive.undefined?(sym)
-      if Primitive.undefined?(sym)
-        raise ArgumentError, 'no block or symbol given' if Primitive.undefined?(initial)
-        sym = initial
-        initial = undefined
+    if Primitive.undefined?(sym) && block_given?
+      # Do the block version:
+      #   inject {|memo, operand| ... } -> object
+      #   inject(initial_operand) {|memo, operand| ... } -> object
+
+      each do
+        o = Primitive.single_block_arg
+        if Primitive.undefined? initial
+          initial = o
+        else
+          initial = yield(initial, o)
+        end
       end
+    else
+      # Do the sym version:
+      #   inject(symbol) -> object
+      #   inject(initial_operand, symbol) -> object
 
-      # Do the sym version
-
+      sym, initial = initial, undefined if Primitive.undefined?(sym)
       sym = sym.to_sym
 
       each do
@@ -531,17 +552,6 @@ module Enumerable
           initial = o
         else
           initial = initial.__send__(sym, o)
-        end
-      end
-
-      # Block version
-    else
-      each do
-        o = Primitive.single_block_arg
-        if Primitive.undefined? initial
-          initial = o
-        else
-          initial = yield(initial, o)
         end
       end
     end
