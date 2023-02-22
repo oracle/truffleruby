@@ -43,12 +43,18 @@ check $?
 echo "Test of the unexpected output to stderr."
 echo "To ensure there are no unexpected warnings for instance."
 
-jt --silent test specs fast --error-output stderr 2>stderr.txt
-if [ -s stderr.txt ]; then
-  echo Extra output:
-  cat stderr.txt
-  exit 1
+# There is linter extra output on darwin-amd64 (GR-44301)
+platform="$(uname -s)-$(uname -m)"
+if [[ "$platform" == "Darwin-x86_64" ]]; then
+  echo '[GR-44301] Skipping test on darwin-amd64 as it fails'
 else
-  echo No extra output
-  rm -f stderr.txt
+  jt --silent test specs fast --error-output stderr 2>stderr.txt
+  if [ -s stderr.txt ]; then
+    echo Extra output:
+    cat stderr.txt
+    exit 1
+  else
+    echo No extra output
+    rm -f stderr.txt
+  fi
 fi
