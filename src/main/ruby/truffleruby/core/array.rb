@@ -304,7 +304,7 @@ class Array
   def count(item = undefined)
     seq = 0
     if !Primitive.undefined?(item)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
@@ -407,7 +407,7 @@ class Array
 
     if idx < 0 or idx >= size
       if block_given?
-        warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
+        Primitive.warn_block_supersedes_default_value_argument unless Primitive.undefined?(default)
 
         return yield(orig)
       end
@@ -1012,7 +1012,7 @@ class Array
         i -= 1
       end
     else
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
 
       i = size - 1
       while i >= 0

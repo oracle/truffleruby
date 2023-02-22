@@ -128,7 +128,7 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !Primitive.undefined?(item)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each do
         o = Primitive.single_block_arg
         seq += 1 if item == o
@@ -522,7 +522,7 @@ module Enumerable
 
     # inject(initial_operand, symbol) { ... }
     if block_given? && !Primitive.undefined?(sym)
-      warn 'given block not used', uplevel: 1
+      Primitive.warn_given_block_not_used
     end
 
     if Primitive.undefined?(sym) && block_given?
@@ -563,7 +563,7 @@ module Enumerable
 
   def all?(pattern = undefined)
     if !Primitive.undefined?(pattern)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each { return false unless pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*e| return false unless yield(*e) }
@@ -575,7 +575,7 @@ module Enumerable
 
   def any?(pattern = undefined)
     if !Primitive.undefined?(pattern)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each { return true if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return true if yield(*o) }
@@ -735,7 +735,7 @@ module Enumerable
         i += 1
       end
     else
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
 
       i = 0
       each do
@@ -926,7 +926,7 @@ module Enumerable
 
   def none?(pattern = undefined)
     if !Primitive.undefined?(pattern)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each { return false if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return false if yield(*o) }
@@ -941,7 +941,7 @@ module Enumerable
     found_one = false
 
     if !Primitive.undefined?(pattern)
-      warn 'given block not used', uplevel: 1 if block_given?
+      Primitive.warn_given_block_not_used if block_given?
       each do
         if pattern === Primitive.single_block_arg
           return false if found_one
