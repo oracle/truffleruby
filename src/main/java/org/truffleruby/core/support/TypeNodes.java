@@ -111,29 +111,30 @@ public abstract class TypeNodes {
         }
     }
 
+    // GR-44289: Using only dispatched libraries in this node as a workaround for that issue
     public abstract static class ObjectFreezeNode extends RubyBaseNode {
 
         public abstract Object execute(Object self);
 
-        @Specialization(guards = "!isRubyDynamicObject(self)", limit = "getRubyLibraryCacheLimit()")
+        @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             rubyLibrary.freeze(self);
             return self;
         }
 
-        @Specialization(guards = "!metaClass.isSingleton", limit = "getRubyLibraryCacheLimit()")
+        @Specialization(guards = "!metaClass.isSingleton", limit = "1")
         protected Object freezeNormalObject(RubyDynamicObject self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @Cached MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
             rubyLibrary.freeze(self);
             return self;
         }
 
-        @Specialization(guards = "metaClass.isSingleton", limit = "getRubyLibraryCacheLimit()")
+        @Specialization(guards = "metaClass.isSingleton", limit = "1")
         protected Object freezeSingletonObject(RubyDynamicObject self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
                 @Cached ConditionProfile singletonClassUnfrozenProfile,
                 @Cached MetaClassNode metaClassNode,
