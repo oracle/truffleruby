@@ -270,7 +270,7 @@ describe "Interop special forms" do
     -> { pfo.to_a }.should raise_error(NameError)
   end
 
-  it doc['.to_f', 'tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `NameError`'] do
+  it doc['.to_f', 'tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` and `asBigInteger().doubleValue()` or raises `NameError`'] do
     pfo, _, l = proxy[42]
     pfo.to_f.should.eql?(42.0)
     l.log.should include(["fitsInDouble"])
@@ -282,12 +282,18 @@ describe "Interop special forms" do
     l.log.should include(["fitsInDouble"])
     l.log.should include(["asLong"])
 
+    does_not_fit_perfectly_in_double = (1 << 84) + 1
+    pfo, _, l = proxy[does_not_fit_perfectly_in_double]
+    pfo.to_f.should.eql?(does_not_fit_perfectly_in_double.to_f)
+    l.log.should include(["fitsInDouble"])
+    l.log.should include(["asBigInteger"])
+
     pfo, _, l = proxy[Object.new]
     -> { pfo.to_f }.should raise_error(NameError, /to_f/)
     l.log.should include(["isNumber"])
   end
 
-  it doc['.to_i', 'tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `NameError`'] do
+  it doc['.to_i', 'tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` and `asBigInteger()` or raises `NameError`'] do
     pfo, _, l = proxy[42]
     pfo.to_i.should.eql?(42)
     l.log.should include(["fitsInInt"])
@@ -297,6 +303,11 @@ describe "Interop special forms" do
     pfo.to_i.should.eql?(1 << 42)
     l.log.should include(["fitsInLong"])
     l.log.should include(["asLong"])
+
+    pfo, _, l = proxy[1 << 84]
+    pfo.to_i.should.eql?(1 << 84)
+    l.log.should include(["fitsInBigInteger"])
+    l.log.should include(["asBigInteger"])
 
     pfo, _, l = proxy[Object.new]
     -> { pfo.to_i }.should raise_error(NameError, /to_i/)
@@ -403,10 +414,10 @@ describe "Interop special forms" do
     l.log.should include(["fitsInDouble"])
   end
 
-  it doc['.respond_to?(:to_i)', 'sends `fitsInLong()`'] do
+  it doc['.respond_to?(:to_i)', 'sends `fitsInBigInteger()`'] do
     pfo, _, l = proxy[42]
     pfo.should.respond_to?(:to_i)
-    l.log.should include(["fitsInLong"])
+    l.log.should include(["fitsInBigInteger"])
   end
 
   it description['.respond_to?(:size)', :hasArrayElements] do

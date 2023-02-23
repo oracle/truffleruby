@@ -4,6 +4,7 @@ New features:
 
 * Updated to Ruby 3.1.3 (#2733, @andrykonchin, @eregon).
 * `foreign_object.is_a?(foreign_meta_object)` is now supported (@eregon).
+* Foreign big integers are now supported and work with all `Numeric` operators (@eregon).
 
 Bug fixes:
 

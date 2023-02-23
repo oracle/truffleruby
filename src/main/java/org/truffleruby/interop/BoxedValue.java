@@ -10,7 +10,9 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.library.Message;
@@ -18,6 +20,9 @@ import com.oracle.truffle.api.library.ReflectionLibrary;
 
 @ExportLibrary(ReflectionLibrary.class)
 public class BoxedValue implements TruffleObject {
+
+    private static final Message READ_MEMBER = Message.resolve(InteropLibrary.class, "readMember");
+    private static final Message INVOKE_MEMBER = Message.resolve(InteropLibrary.class, "invokeMember");
 
     private final Object value;
 
@@ -28,6 +33,11 @@ public class BoxedValue implements TruffleObject {
     @TruffleBoundary
     @ExportMessage
     protected Object send(Message message, Object[] args) throws Exception {
+        if (message == READ_MEMBER) {
+            throw UnsupportedMessageException.create();
+        } else if (message == INVOKE_MEMBER) {
+            throw UnsupportedMessageException.create();
+        }
         ReflectionLibrary reflection = ReflectionLibrary.getFactory().getUncached();
         return reflection.send(value, message, args);
     }

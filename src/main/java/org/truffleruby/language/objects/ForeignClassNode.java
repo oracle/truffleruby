@@ -33,6 +33,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     // spec/truffle/interop/polyglot/class_spec.rb
     // spec/truffle/interop/special_forms_spec.rb
     // spec/truffle/interop/polyglot/foreign_*_spec.rb
+    // spec/truffle/interop/foreign_inspect_to_s_spec.rb
     /** Based on the types and traits of {@link InteropLibrary} */
     public enum Trait {
         // First in the ancestors
