@@ -6,3 +6,4 @@ fails:Kernel#require (non-extensioned path) loads a .rb extensioned file when a 
 fails:Kernel#require (non-extensioned path) does not load a feature twice when $LOAD_PATH has been modified
 slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread, ruby2_keywords are already required
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread, ruby2_keywords are already required
+slow:Kernel#require complex, enumerator, rational, thread, ruby2_keywords, fiber are already required

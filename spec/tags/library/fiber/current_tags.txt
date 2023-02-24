@@ -1,0 +1,1 @@
+slow:Fiber.current is available without an extra require
