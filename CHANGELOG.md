@@ -80,6 +80,7 @@ Compatibility:
 * Implement `UnboundMethod#original_name` (@paracycle, @nirvdrum).
 * Implement `Thread#native_thread_id` method (#2733, @horakivo).
 * Modify `Struct#{inspect,to_s}` to match MRI when the struct is nested inside of an anonymous class or module (@st0012, @nirvdrum).
+* `Fiber.current` and `Fiber#transfer` are available without `require 'fiber'` like in CRuby 3.1 (#2733, @eregon).
 
 Performance:
 

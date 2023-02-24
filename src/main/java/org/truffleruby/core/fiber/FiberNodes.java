@@ -16,7 +16,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
@@ -321,8 +320,8 @@ public abstract class FiberNodes {
 
     }
 
-    @Primitive(name = "fiber_current")
-    public abstract static class CurrentNode extends PrimitiveNode {
+    @CoreMethod(names = "current", onSingleton = true)
+    public abstract static class CurrentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyFiber current() {
