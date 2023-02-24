@@ -39,3 +39,22 @@ echo "Test loading many standard libraries"
 
 $RUBY_BIN -w --experimental-options --lazy-default=false test/truffle/integration/no_extra_output/all_stdlibs.rb 1>temp.txt 2>&1
 check $?
+
+echo "Test of the unexpected output to stderr."
+echo "To ensure there are no unexpected warnings for instance."
+
+# There is linter extra output on darwin-amd64 (GR-44301)
+platform="$(uname -s)-$(uname -m)"
+if [[ "$platform" == "Darwin-x86_64" ]]; then
+  echo '[GR-44301] Skipping test on darwin-amd64 as it fails'
+else
+  jt --silent test specs fast --error-output stderr 2>stderr.txt
+  if [ -s stderr.txt ]; then
+    echo Extra output:
+    cat stderr.txt
+    exit 1
+  else
+    echo No extra output
+    rm -f stderr.txt
+  fi
+fi
