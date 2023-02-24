@@ -5,7 +5,7 @@ $!: Exception | nil
 $": Array[String]
 
 # The process number of the Ruby running this script. Same as Process.pid.
-$$: Integer
+$$: Integer | nil
 
 # The string matched by the last successful match.
 $&: String | nil

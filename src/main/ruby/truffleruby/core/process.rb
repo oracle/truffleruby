@@ -343,7 +343,7 @@ module Process
   end
 
   def pid
-    Truffle::POSIX.getpid
+    $$ or raise SecurityError, 'native access is not allowed'
   end
 
   def ppid

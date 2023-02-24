@@ -86,7 +86,7 @@ module Kernel
 end
 
 Truffle::Boot.delay do
-  $$ = Process.pid if Truffle::POSIX::NATIVE
+  $$ = Truffle::POSIX::NATIVE ? Truffle::POSIX.getpid : nil
 
   ARGV.concat(Truffle::Boot.original_argv)
 end

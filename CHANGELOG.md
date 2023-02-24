@@ -85,6 +85,7 @@ Performance:
 
 * Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
 * Splitting (copying) of call targets has been optimized by implementing `cloneUninitialized()` (@andrykonchin, @eregon).
+* `Process.pid` is now cached per process like `$$` (#2882, @horakivo)
 
 Changes:
 
