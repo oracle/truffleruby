@@ -289,18 +289,6 @@ module Truffle
       raise ArgumentError, "not boxed: #{object}"
     end
 
-    def self.unbox_without_conversion(object)
-      return as_boolean object if boolean? object
-
-      if number?(object)
-        return as_int object if fits_in_int? object
-        return as_long object if fits_in_long? object
-        return as_double object if fits_in_double? object
-      end
-
-      raise ArgumentError, "not boxed: #{object.inspect}"
-    end
-
     def self.to_java_map(hash)
       map = ::Java.type('java.util.HashMap').new
       hash.each do |key, value|

@@ -89,6 +89,7 @@ Performance:
 Changes:
 
 * Remove `Truffle::Interop.deproxy` as it is unsafe and not useful (@eregon).
+* Removed `Truffle::Interop.unbox_without_conversion` (should not be needed by user code) (@eregon).
 
 # 22.3.0
 
