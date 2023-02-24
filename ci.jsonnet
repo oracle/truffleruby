@@ -59,6 +59,7 @@ local part_definitions = {
         ["set", "-o", "pipefail"],
         ["ruby", "--version"],
         ["openssl", "version"],
+        ["locale"],
       ],
 
       logs+: [
