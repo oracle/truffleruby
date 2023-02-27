@@ -14,6 +14,7 @@ if Truffle::Boot.ruby_home
   begin
     require 'enumerator'
     require 'thread'
+    require 'fiber'
     require 'rational'
     require 'complex'
   rescue LoadError => e
