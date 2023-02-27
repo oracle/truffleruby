@@ -26,7 +26,7 @@ module BasicObjectSpecs
           @@cvar = :value_defined_in_block_definition_scope
 
           def block
-            ->(*) { @@cvar }
+            -> * { @@cvar }
           end
         end
 
@@ -63,7 +63,7 @@ module BasicObjectSpecs
           end
 
           def block_to_assign(value)
-            ->(*) { @@cvar = value }
+            -> * { @@cvar = value }
           end
         end
 

@@ -90,6 +90,6 @@ describe :keep_if, shared: true do
     a.should == [1, 3, 4]
   end
 
-  @value_to_return = -> (_) { true }
+  @value_to_return = -> _ { true }
   it_should_behave_like :array_iterable_and_tolerating_size_increasing
 end

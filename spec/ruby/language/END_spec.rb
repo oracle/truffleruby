@@ -8,6 +8,10 @@ describe "The END keyword" do
     ruby_exe("10.times { END { puts 'foo' }; } ").should == "foo\n"
   end
 
+  it "is affected by the toplevel assignment" do
+    ruby_exe("foo = 'foo'; END { puts foo }").should == "foo\n"
+  end
+
   it "warns when END is used in a method" do
     ruby_exe(<<~ruby, args: "2>&1").should =~ /warning: END in method; use at_exit/
       def foo

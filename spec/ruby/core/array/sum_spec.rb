@@ -11,7 +11,7 @@ describe "Array#sum" do
   end
 
   # https://bugs.ruby-lang.org/issues/12217
-  # https://github.com/ruby/ruby/blob/master/doc/ChangeLog-2.4.0#L6208-L6214
+  # https://github.com/ruby/ruby/blob/master/doc/ChangeLog/ChangeLog-2.4.0#L6208-L6214
   it "uses Kahan's compensated summation algorithm for precise sum of float numbers" do
     floats = [2.7800000000000002, 5.0, 2.5, 4.44, 3.89, 3.89, 4.44, 7.78, 5.0, 2.7800000000000002, 5.0, 2.5]
     naive_sum = floats.reduce { |sum, e| sum + e }
@@ -72,6 +72,6 @@ describe "Array#sum" do
 end
 
 describe "Array#sum" do
-  @value_to_return = -> (_) { 1 }
+  @value_to_return = -> _ { 1 }
   it_behaves_like :array_iterable_and_tolerating_size_increasing, :sum
 end
