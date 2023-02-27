@@ -1206,14 +1206,14 @@ public abstract class IntegerNodes {
             if (zeroProfile.profile(a == 0L)) {
                 return 0;
             } else {
-                throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+                throw shiftWidthTooBig();
             }
         }
 
         @Specialization(guards = "b > MAX_INT")
         protected int leftShift(RubyBignum a, long b) {
             // We raise a NoMemoryError like MRI; JRuby would raise a coercion error.
-            throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+            throw shiftWidthTooBig();
         }
 
         @Specialization(guards = "isPositive(b)")
@@ -1222,14 +1222,18 @@ public abstract class IntegerNodes {
             if (zeroProfile.profile(a == 0L)) {
                 return 0;
             } else {
-                throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+                throw shiftWidthTooBig();
             }
         }
 
         @Specialization(guards = "isPositive(b)")
         protected int leftShift(RubyBignum a, RubyBignum b) {
             // We raise a NoMemoryError like MRI; JRuby would raise a coercion error.
-            throw new RaiseException(getContext(), coreExceptions().noMemoryError(this, null));
+            throw shiftWidthTooBig();
+        }
+
+        private RaiseException shiftWidthTooBig() {
+            return new RaiseException(getContext(), coreExceptions().rangeError("shift width too big", this));
         }
 
         // b < 0, delegate to a >> -b
