@@ -1350,7 +1350,7 @@ public abstract class ArrayNodes {
         @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
-        // Uses block
+        // Uses block and no Symbol
 
         @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
         protected Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
@@ -1380,7 +1380,7 @@ public abstract class ArrayNodes {
             return injectBlockHelper(array, block, stores.read(store, 0), 1, iteratorNode);
         }
 
-        public Object injectBlockHelper(RubyArray array,
+        private Object injectBlockHelper(RubyArray array,
                 RubyProc block, Object initial, int start, ArrayEachIteratorNode iteratorNode) {
             Object accumulator = initial;
             State iterationState = new State(accumulator, block);
@@ -1397,7 +1397,7 @@ public abstract class ArrayNodes {
             state.accumulator = accumulator;
         }
 
-        // Uses Symbol
+        // Uses Symbol and no block
 
         @Specialization(guards = { "isEmptyArray(array)" })
         protected Object injectSymbolEmptyArrayNoInitial(
@@ -1409,8 +1409,7 @@ public abstract class ArrayNodes {
                 guards = {
                         "isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)" })
-        protected Object injectSymbolEmptyArray(
-                RubyArray array, Object initialOrSymbol, RubySymbol symbol, Object maybeBlock) {
+        protected Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
             return initialOrSymbol;
         }
 
@@ -1442,17 +1441,12 @@ public abstract class ArrayNodes {
                         "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolWithInitial(
-                VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Object block,
+                VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
                 @Cached LoopConditionProfile loopProfile,
-                @Cached ToJavaStringNode toJavaString,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-                warningNode.warningMessage(sourceSection, "given block not used");
-            }
+                @Cached ToJavaStringNode toJavaString) {
             return injectSymbolHelper(
                     frame,
                     array,
@@ -1465,15 +1459,7 @@ public abstract class ArrayNodes {
                     loopProfile);
         }
 
-        // No Symbol or Block
-
-        @Specialization
-        protected Object injectNoSymbolNonEmptyArrayNoInitial(
-                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, Nil block) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("no block or symbol given", this));
-        }
-
-        public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
+        private Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
                 IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
             Object accumulator = initial;

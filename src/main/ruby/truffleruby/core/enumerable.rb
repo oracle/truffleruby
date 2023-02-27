@@ -510,22 +510,23 @@ module Enumerable
   #   inject(initial_operand, symbol) -> object
   #   inject {|memo, operand| ... } -> object
   #   inject(initial_operand) {|memo, operand| ... } -> object
-  def inject(initial=undefined, sym=undefined, &block)
-    if Array === self
-      return Primitive.array_inject(self, initial, sym, block)
-    end
-
+  def inject(initial = undefined, sym = undefined, &block)
     # inject()
-    if !block_given? && Primitive.undefined?(initial)
+    if !block && Primitive.undefined?(initial)
       raise ArgumentError, 'no block or symbol given'
     end
 
     # inject(initial_operand, symbol) { ... }
-    if block_given? && !Primitive.undefined?(sym)
+    if block && !Primitive.undefined?(sym)
       Primitive.warn_given_block_not_used
+      block = nil
     end
 
-    if Primitive.undefined?(sym) && block_given?
+    if Primitive.object_kind_of?(self, ::Array)
+      return Primitive.array_inject(self, initial, sym, block)
+    end
+
+    if Primitive.undefined?(sym) && block
       # Do the block version:
       #   inject {|memo, operand| ... } -> object
       #   inject(initial_operand) {|memo, operand| ... } -> object
