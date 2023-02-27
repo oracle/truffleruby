@@ -1,0 +1,1 @@
+fails:UnboundMethod#bind allows calling super for module methods bound to hierarchies that do not already have that module

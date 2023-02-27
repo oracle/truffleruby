@@ -20,3 +20,6 @@ fails:Marshal.load when called with freeze: true does not freeze modules
 fails:Marshal.load when called with freeze: true does not freeze classes
 fails:Marshal.load when called with freeze: true when called with a proc call the proc with frozen objects
 fails:Marshal.load when called with freeze: true when called with a proc does not freeze the object returned by the proc
+fails:Marshal.load when called with freeze: true does freeze extended objects
+fails:Marshal.load when called with freeze: true does freeze extended objects with instance variables
+fails:Marshal.load for a Regexp restore the regexp instance variables
