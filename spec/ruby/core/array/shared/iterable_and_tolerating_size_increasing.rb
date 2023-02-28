@@ -1,6 +1,6 @@
 describe :array_iterable_and_tolerating_size_increasing, shared: true do
   before do
-    @value_to_return ||= -> (_) { nil }
+    @value_to_return ||= -> _ { nil }
   end
 
   it "tolerates increasing an array size during iteration" do

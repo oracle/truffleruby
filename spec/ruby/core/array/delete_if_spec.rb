@@ -77,6 +77,6 @@ describe "Array#delete_if" do
   it_behaves_like :enumeratorized_with_origin_size, :delete_if, [1,2,3]
   it_behaves_like :delete_if, :delete_if
 
-  @value_to_return = -> (_) { false }
+  @value_to_return = -> _ { false }
   it_behaves_like :array_iterable_and_tolerating_size_increasing, :delete_if
 end

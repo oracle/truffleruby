@@ -10,3 +10,4 @@ slow:The END keyword calls the nested handler right after the outer one if a han
 slow:The END keyword runs only once for multiple calls
 slow:The END keyword warns when END is used in a method
 slow:The END keyword END blocks and at_exit callbacks are mixed runs them all in reverse order of registration
+slow:The END keyword is affected by the toplevel assignment

@@ -120,16 +120,18 @@ describe "IO#write on a file" do
     File.binread(@filename).should == res.force_encoding(Encoding::BINARY)
   end
 
-  it "writes binary data if no encoding is given and multiple arguments passed" do
-    File.open(@filename, "w") do |file|
-      file.write("\x87".b, "ą") # 0x87 isn't a valid UTF-8 binary representation of a character
-    end
-    File.binread(@filename).bytes.should == [0x87, 0xC4, 0x85]
+  platform_is_not :windows do
+    it "writes binary data if no encoding is given and multiple arguments passed" do
+      File.open(@filename, "w") do |file|
+        file.write("\x87".b, "ą") # 0x87 isn't a valid UTF-8 binary representation of a character
+      end
+      File.binread(@filename).bytes.should == [0x87, 0xC4, 0x85]
 
-    File.open(@filename, "w") do |file|
-      file.write("\x61".encode("utf-32le"), "ą")
+      File.open(@filename, "w") do |file|
+        file.write("\x61".encode("utf-32le"), "ą")
+      end
+      File.binread(@filename).bytes.should == [0x61, 0x00, 0x00, 0x00, 0xC4, 0x85]
     end
-    File.binread(@filename).bytes.should == [0x61, 0x00, 0x00, 0x00, 0xC4, 0x85]
   end
 end
 

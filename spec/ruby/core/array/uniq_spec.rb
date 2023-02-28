@@ -133,7 +133,7 @@ describe "Array#uniq" do
 end
 
 describe "Array#uniq" do
-  @value_to_return = -> (e) { e }
+  @value_to_return = -> e { e }
   it_behaves_like :array_iterable_and_tolerating_size_increasing, :uniq
 end
 
@@ -246,6 +246,6 @@ describe "Array#uniq!" do
 end
 
 describe "Array#uniq!" do
-  @value_to_return = -> (e) { e }
+  @value_to_return = -> e { e }
   it_behaves_like :array_iterable_and_tolerating_size_increasing, :uniq!
 end

@@ -153,6 +153,6 @@ describe "Array#reject!" do
 end
 
 describe "Array#reject!" do
-  @value_to_return = -> (_) { false }
+  @value_to_return = -> _ { false }
   it_behaves_like :array_iterable_and_tolerating_size_increasing, :reject!
 end
