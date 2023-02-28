@@ -8,8 +8,5 @@ fails:Marshal.load when a class does not exist in the namespace raises an Argume
 fails(immutable regexp):Marshal.load for a Regexp loads an extended Regexp
 fails(immutable regexp):Marshal.load for a Regexp loads a extended_user_regexp having ivar
 fails:Marshal.load when called with freeze: true when called with a proc call the proc with frozen objects
-fails:Marshal.load when called with freeze: true when called with a proc does not freeze the object returned by the proc
-fails:Marshal.load when called with freeze: true does freeze extended objects
-fails:Marshal.load when called with freeze: true does freeze extended objects with instance variables
 fails:Marshal.load for a Regexp restore the regexp instance variables
 fails:Marshal.load for a Regexp loads a Regexp subclass instance variables when it is extended with a module
