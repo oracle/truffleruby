@@ -273,32 +273,21 @@ module Truffle
     end
 
     def self.boxed?(object)
-      boolean?(object) || fits_in_long?(object) || fits_in_double?(object)
+      boolean?(object) || fits_in_big_integer?(object) || fits_in_double?(object)
     end
 
-    # Only used by unbox_if_needed
+    # Only used by unbox_if_needed and NumberTrait
     def self.unbox(object)
       return as_boolean object if boolean? object
 
       if number?(object)
         return as_int object if fits_in_int? object
         return as_long object if fits_in_long? object
+        return as_big_integer object if fits_in_big_integer? object
         return as_double object if fits_in_double? object
       end
 
       raise ArgumentError, "not boxed: #{object}"
-    end
-
-    def self.unbox_without_conversion(object)
-      return as_boolean object if boolean? object
-
-      if number?(object)
-        return as_int object if fits_in_int? object
-        return as_long object if fits_in_long? object
-        return as_double object if fits_in_double? object
-      end
-
-      raise ArgumentError, "not boxed: #{object.inspect}"
     end
 
     def self.to_java_map(hash)

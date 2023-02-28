@@ -21,6 +21,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.InteropNodes.InvokeMemberNode;
 import org.truffleruby.interop.InteropNodes.ReadMemberNode;
@@ -197,6 +198,23 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 guards = {
                         "receivers.isNumber(receiver)",
                         "!receivers.fitsInLong(receiver)",
+                        "receivers.fitsInBigInteger(receiver)" },
+                limit = "getInteropCacheLimit()")
+        protected Object callBigInteger(Object receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Cached DispatchNode dispatch) {
+            try {
+                return dispatch.call(new RubyBignum(receivers.asBigInteger(receiver)), name, args);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+        @Specialization(
+                guards = {
+                        "receivers.isNumber(receiver)",
+                        "!receivers.fitsInBigInteger(receiver)",
                         "receivers.fitsInDouble(receiver)" },
                 limit = "getInteropCacheLimit()")
         protected Object callDouble(Object receiver, String name, Object[] args,

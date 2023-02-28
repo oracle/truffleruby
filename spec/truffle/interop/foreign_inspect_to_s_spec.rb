@@ -88,9 +88,8 @@ describe "#inspect and #to_s on a foreign" do
     describe "Java BigInteger" do
       it "gives a similar representation to Ruby" do
         foreign = Truffle::Interop.java_type("java.math.BigInteger").new('14')
-        # TODO: simplify to just ForeignNumber
-        foreign.inspect.should =~ /\A#<Polyglot::Foreign(Number|Object)\[Java\] java\.math\.BigInteger:0x\h+>\z/
-        foreign.to_s.should =~ /\A#<Polyglot::Foreign(Number|Object)\[Java\] 14>\z/
+        foreign.inspect.should =~ /\A#<Polyglot::ForeignNumber\[Java\] java\.math\.BigInteger 14>\z/
+        foreign.to_s.should =~ /\A#<Polyglot::ForeignNumber\[Java\] 14>\z/
       end
     end
   end
@@ -109,6 +108,22 @@ describe "#inspect and #to_s on a foreign" do
       foreign = Truffle::Debug.foreign_null
       foreign.inspect.should == "#<Polyglot::ForeignNull null>"
       foreign.to_s.should == "#<Polyglot::ForeignNull [foreign null]>"
+    end
+  end
+
+  describe "number" do
+    it "gives a similar representation to Ruby" do
+      foreign = Truffle::Debug.foreign_boxed_value(42)
+      foreign.inspect.should == "#<Polyglot::ForeignNumber 42>"
+      foreign.to_s.should == "#<Polyglot::ForeignNumber 42>"
+
+      foreign = Truffle::Debug.foreign_boxed_value(1 << 84)
+      foreign.inspect.should == "#<Polyglot::ForeignNumber[Ruby] Integer 19342813113834066795298816>"
+      foreign.to_s.should == "#<Polyglot::ForeignNumber[Ruby] 19342813113834066795298816>"
+
+      foreign = Truffle::Debug.foreign_boxed_value(3.14)
+      foreign.inspect.should == "#<Polyglot::ForeignNumber 3.14>"
+      foreign.to_s.should == "#<Polyglot::ForeignNumber 3.14>"
     end
   end
 

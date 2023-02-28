@@ -399,11 +399,17 @@ module Polyglot
   end
 
   module NumberTrait
+    def ==(other)
+      Truffle::Interop.unbox(self) == other
+    end
+
     def to_i
       if Truffle::Interop.fits_in_int?(self)
         Truffle::Interop.as_int(self)
       elsif Truffle::Interop.fits_in_long?(self)
         Truffle::Interop.as_long(self)
+      elsif Truffle::Interop.fits_in_big_integer?(self)
+        Truffle::Interop.as_big_integer(self)
       else
         Truffle::Interop.as_double(self).to_i
       end
@@ -412,17 +418,19 @@ module Polyglot
     def to_f
       if Truffle::Interop.fits_in_double?(self)
         Truffle::Interop.as_double(self)
-      else
+      elsif Truffle::Interop.fits_in_long?(self)
         Truffle::Interop.as_long(self).to_f
+      else
+        Truffle::Interop.as_big_integer(self).to_f
       end
     end
 
     def respond_to?(name, include_all = false)
       case symbol = name.to_sym
       when :to_f
-        Truffle::Interop.fits_in_double?(self) || Truffle::Interop.fits_in_long?(self)
+        Truffle::Interop.fits_in_double?(self) || Truffle::Interop.fits_in_big_integer?(self)
       when :to_i
-        Truffle::Interop.fits_in_long?(self)
+        Truffle::Interop.fits_in_big_integer?(self)
       else
         super(symbol, include_all)
       end

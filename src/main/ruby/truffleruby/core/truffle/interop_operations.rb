@@ -76,7 +76,9 @@ module Truffle
           string << " #{Truffle::Interop.meta_qualified_name meta_object}"
         end
 
-        if Truffle::Interop.pointer?(object)
+        if Truffle::Interop.number?(object)
+          string << " #{Truffle::Interop.unbox(object)}"
+        elsif Truffle::Interop.pointer?(object)
           string << " 0x#{Truffle::Interop.as_pointer(object).to_s(16)}"
         else
           string << ":#{hash_code}"

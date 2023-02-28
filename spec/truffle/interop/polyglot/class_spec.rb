@@ -21,6 +21,7 @@ describe "Polyglot" do
     Truffle::Debug.foreign_iterator.class.should == Polyglot::ForeignIterator
     Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
     Truffle::Debug.foreign_boxed_value(42).class.should == Polyglot::ForeignNumber
+    Truffle::Debug.foreign_boxed_value(1 << 84).class.should == Polyglot::ForeignNumber
     Truffle::Debug.foreign_boxed_value(3.14).class.should == Polyglot::ForeignNumber
     Truffle::Debug.foreign_pointer(0x1234).class.should == Polyglot::ForeignPointer
     Truffle::Debug.foreign_string("foo").class.should == Polyglot::ForeignString
@@ -39,6 +40,7 @@ describe "Polyglot" do
     Truffle::Interop.proxy_foreign_object((1..3).each).class.should == Polyglot::ForeignIterableIterator
     Truffle::Interop.proxy_foreign_object(nil).class.should == Polyglot::ForeignNull
     Truffle::Interop.proxy_foreign_object(42).class.should == Polyglot::ForeignNumber
+    Truffle::Interop.proxy_foreign_object(1 << 84).class.should == Polyglot::ForeignNumber
     Truffle::Interop.proxy_foreign_object(3.14).class.should == Polyglot::ForeignNumber
     Truffle::Interop.proxy_foreign_object(Truffle::FFI::Pointer::NULL).class.should == Polyglot::ForeignPointer
     Truffle::Interop.proxy_foreign_object("foo").class.should == Polyglot::ForeignString
@@ -59,7 +61,7 @@ describe "Polyglot" do
       Java.type('java.util.ArrayDeque').new.class.should == Polyglot::ForeignIterable
       Truffle::Interop.to_java_list([1, 2, 3]).iterator.class.should == Polyglot::ForeignIterator
       Truffle::Debug.java_null.class.should == Polyglot::ForeignNull
-      # ForeignNumber
+      Java.type('java.math.BigInteger').valueOf(42).class.should == Polyglot::ForeignNumber
       # ForeignPointer
       Java.type('java.lang.String').new("foo").class.should == Polyglot::ForeignString
       Truffle::Interop.to_java_string("foo").class.should == Polyglot::ForeignString
