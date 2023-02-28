@@ -72,7 +72,6 @@ cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -R ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
 cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
 cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
-cp -R ../ruby/ext/psych/yaml src/main/c/psych
 cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
