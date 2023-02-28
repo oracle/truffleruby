@@ -70,4 +70,10 @@ describe "Polyglot::ForeignNumber" do
       (foreign ** 2).should == (ruby ** 2)
     end
   end
+
+  it "does not support odd? yet" do
+    @numbers.each do |foreign, _ruby|
+      -> { foreign.odd? }.should raise_error(Polyglot::UnsupportedMessageError)
+    end
+  end
 end
