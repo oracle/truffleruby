@@ -17,7 +17,7 @@ To compile TruffleRuby against a non-system `libssl`, set `OPENSSL_PREFIX` while
 export OPENSSL_PREFIX=/path/to/my/openssl-1.1.0
 ```
 
-### RedHat-based: Fedora, Oracle Linux, etc
+### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
 sudo dnf install openssl-devel

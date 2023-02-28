@@ -18,7 +18,7 @@ locale
 shows no `="C"` and no warning.
 Instead, all values should be `"en_US.UTF-8"` or other regions but still `.UTF-8`.
 
-### RedHat-based: Fedora, Oracle Linux, etc
+### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
 export LANG=en_US.UTF-8

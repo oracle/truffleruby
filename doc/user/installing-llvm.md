@@ -12,19 +12,19 @@ If you are using an older version, see [the documentation for that version](http
 
 The `make` utility as well as the dependencies of the toolchain still need to be available to build C and C++ extensions.
 
-## RedHat-based: Fedora, Oracle Linux, etc.
+### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
 sudo dnf install make gcc
 ```
 
-## Debian-based: Ubuntu, etc.
+### Debian-based: Ubuntu, etc
 
 ```bash
 sudo apt-get install make gcc
 ```
 
-## Mandriva-based and other Linux distributions
+### Mandriva-based and other Linux distributions
 
 Note: Such distributions are not tested and not [supported](../../README.md#system-compatibility).
 
@@ -40,7 +40,7 @@ cd /usr/lib/gcc
 sudo ln -s x86_64-mandriva-linux-gnu x86_64-linux-gnu
 ```
 
-## macOS
+### macOS
 
 On macOS, make sure you have installed the command line developer tools from Xcode:
 
