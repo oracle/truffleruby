@@ -654,6 +654,16 @@ public abstract class ModuleNodes {
         }
     }
 
+    @Primitive(name = "module_anonymous?")
+    public abstract static class IsAnonymousNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isAnonymous(RubyModule module) {
+            return module.fields.isAnonymous();
+        }
+
+    }
+
     @CoreMethod(names = "autoload?", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)

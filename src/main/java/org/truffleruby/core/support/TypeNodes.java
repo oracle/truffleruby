@@ -12,11 +12,11 @@ package org.truffleruby.core.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -28,7 +28,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -38,7 +37,9 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
@@ -110,15 +111,49 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_freeze")
-    public abstract static class ObjectFreezeNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+    // GR-44289: Using only dispatched libraries in this node as a workaround for that issue
+    public abstract static class ObjectFreezeNode extends RubyBaseNode {
+
+        public abstract Object execute(Object self);
+
+        @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
-                @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            assert !(self instanceof RubyDynamicObject && ((RubyDynamicObject) self).getMetaClass().isSingleton)
-                    : "Primitive.object_freeze does not handle instances of singleton classes, see KernelFreezeNode";
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             rubyLibrary.freeze(self);
             return self;
+        }
+
+        @Specialization(guards = "!metaClass.isSingleton", limit = "1")
+        protected Object freezeNormalObject(RubyDynamicObject self,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @Cached MetaClassNode metaClassNode,
+                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+            rubyLibrary.freeze(self);
+            return self;
+        }
+
+        @Specialization(guards = "metaClass.isSingleton", limit = "1")
+        protected Object freezeSingletonObject(RubyDynamicObject self,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
+                @Cached ConditionProfile singletonClassUnfrozenProfile,
+                @Cached MetaClassNode metaClassNode,
+                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+            if (singletonClassUnfrozenProfile.profile(
+                    !RubyGuards.isSingletonClass(self) && !rubyLibraryMetaClass.isFrozen(metaClass))) {
+                rubyLibraryMetaClass.freeze(metaClass);
+            }
+            rubyLibrary.freeze(self);
+            return self;
+        }
+    }
+
+    @Primitive(name = "object_freeze")
+    public abstract static class ObjectFreezePrimitive extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object freeze(Object self,
+                @Cached ObjectFreezeNode objectFreezeNode) {
+            return objectFreezeNode.execute(self);
         }
     }
 
@@ -369,13 +404,9 @@ public abstract class TypeNodes {
 
     @Primitive(name = "module_name")
     public abstract static class ModuleNameNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
         @Specialization
-        protected RubyString moduleName(RubyModule module) {
-            final String name = module.fields.getName();
-            return createString(fromJavaStringNode, name, Encodings.UTF_8);
+        protected Object moduleName(RubyModule module) {
+            return module.fields.getRubyStringName();
         }
 
     }

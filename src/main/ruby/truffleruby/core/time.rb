@@ -261,7 +261,6 @@ class Time
   end
 
   def self._load(data)
-    # TODO: doesn't load ivars
     raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
 
     major, minor = data.unpack 'VV'
@@ -290,7 +289,6 @@ class Time
   private_class_method :_load
 
   def _dump(limit = nil)
-    # TODO: doesn't dump ivars
     tm = getgm.to_a
 
     if (year & 0xffff) != year || year < 1900 then

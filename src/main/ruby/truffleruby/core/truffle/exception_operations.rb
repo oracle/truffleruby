@@ -216,6 +216,19 @@ module Truffle
       end
     end
 
+    def self.compute_message(exception)
+      message = Primitive.exception_message(exception)
+      # mimic CRuby behaviour and explicitly convert a user provided message to String
+      return message.to_s unless Primitive.nil?(message)
+
+      formatter = Primitive.exception_formatter(exception)
+      return nil if Primitive.nil?(formatter)
+
+      message = formatter.call(exception)
+      Primitive.exception_set_message(exception, message)
+      message
+    end
+
     IMPLICIT_CONVERSION_METHODS = [:to_int, :to_ary, :to_str, :to_sym, :to_hash, :to_proc, :to_io]
 
     def self.conversion_error_message(meth, obj, cls)

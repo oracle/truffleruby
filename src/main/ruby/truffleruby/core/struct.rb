@@ -145,12 +145,11 @@ class Struct
         values << "#{var}=#{val.inspect}"
       end
 
-      name = self.class.name
-
-      if Primitive.nil?(name) || name.empty? || name[0] == '#'
+      if Primitive.module_anonymous?(self.class)
         return "#<struct #{values.join(', ')}>"
       else
-        return "#<struct #{self.class.name} #{values.join(', ')}>"
+        name = Primitive.module_name self.class
+        return "#<struct #{name} #{values.join(', ')}>"
       end
     end
 
@@ -449,6 +448,7 @@ class Struct
     # not a Struct subclass.
 
     return unless superclass.equal? Struct
+    return unless attrs.map(&:to_s).all? { |a| a.ascii_only? || (a.encoding == Encoding::UTF_8 && a.valid_encoding?) }
 
     args, assigns, hashes, vars = [], [], [], []
 

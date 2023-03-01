@@ -37,11 +37,16 @@
 class BasicObject
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
-    out << 'o'
+    Primitive.string_binary_append out, 'o'
     cls = Primitive.object_class self
+
+    if Primitive.module_anonymous?(cls)
+      raise ::TypeError, "can't dump anonymous class #{cls}"
+    end
+
     name = Primitive.module_name cls
-    out << ms.serialize(name.to_sym)
-    out << ms.serialize_instance_variables_suffix(self, true)
+    Primitive.string_binary_append out, ms.serialize(name.to_sym)
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self, true)
   end
 end
 
@@ -49,18 +54,20 @@ class Class
   private def __marshal__(ms)
     if singleton_class?
       raise TypeError, "singleton class can't be dumped"
-    elsif Primitive.nil?(name) || name.empty?
-      raise TypeError, "can't dump anonymous module #{self}"
+    elsif Primitive.module_anonymous?(self)
+      raise TypeError, "can't dump anonymous class #{self}"
     end
 
-    "c#{ms.serialize_integer(name.length)}#{name}"
+    name = Primitive.module_name self
+    Truffle::Type.binary_string("c#{ms.serialize_integer(name.bytesize)}#{name.b}")
   end
 end
 
 class Module
   private def __marshal__(ms)
-    raise TypeError, "can't dump anonymous module #{self}" if Primitive.nil?(name) || name.empty?
-    "m#{ms.serialize_integer(name.length)}#{name}"
+    raise TypeError, "can't dump anonymous module #{self}" if Primitive.module_anonymous?(self)
+    name = Primitive.module_name self
+    Truffle::Type.binary_string("m#{ms.serialize_integer(name.bytesize)}#{name.b}")
   end
 end
 
@@ -88,7 +95,7 @@ class Float
       end
     end
 
-    sl = str.length
+    sl = str.bytesize
     if sign == 1
       ss = '-'
       sl += 1
@@ -104,24 +111,29 @@ class Exception
   # identical.
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
-    out << 'o'
+    Primitive.string_binary_append out, 'o'
     cls = Primitive.object_class self
+
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+
     name = Primitive.module_name cls
-    out << ms.serialize(name.to_sym)
+    Primitive.string_binary_append out, ms.serialize(name.to_sym)
 
     ivars = Primitive.object_ivars(self)
     number_of_ivars = ivars.size + 2
     cause = self.cause
-    out << ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
-    out << ms.serialize(:mesg)
-    out << ms.serialize(Primitive.exception_message(self))
-    out << ms.serialize(:bt)
-    out << ms.serialize(self.backtrace)
+    Primitive.string_binary_append out, ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
+    Primitive.string_binary_append out, ms.serialize(:mesg)
+    Primitive.string_binary_append out, ms.serialize(Truffle::ExceptionOperations.compute_message(self))
+    Primitive.string_binary_append out, ms.serialize(:bt)
+    Primitive.string_binary_append out, ms.serialize(self.backtrace)
     if cause
-      out << ms.serialize(:cause)
-      out << ms.serialize(cause)
+      Primitive.string_binary_append out, ms.serialize(:cause)
+      Primitive.string_binary_append out, ms.serialize(cause)
     end
-    out << Truffle::Type.binary_string(ms.serialize_instance_variables(self, ivars))
+    Primitive.string_binary_append out, Truffle::Type.binary_string(ms.serialize_instance_variables(self, ivars))
 
     out
   end
@@ -146,24 +158,31 @@ class Time
     end
 
     ivars = Primitive.object_ivars(self)
-    out << 'I'.b
-    out << Truffle::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
+    Primitive.string_binary_append out, 'I'
+
+    cls = Primitive.object_class self
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+    name = Primitive.module_name cls
+    Primitive.string_binary_append out, "u#{ms.serialize(name.to_sym)}"
 
     str = _dump
-    out << ms.serialize_integer(str.length) + str
+    Primitive.string_binary_append out, ms.serialize_integer(str.bytesize)
+    Primitive.string_binary_append out, str
 
     count = ivars.size + extra_values.size
-    out << ms.serialize_integer(count)
+    Primitive.string_binary_append out, ms.serialize_integer(count)
 
     ivars.each do |ivar|
       val = Primitive.object_ivar_get self, ivar
-      out << ms.serialize(ivar)
-      out << ms.serialize(val)
+      Primitive.string_binary_append out, ms.serialize(ivar)
+      Primitive.string_binary_append out, ms.serialize(val)
     end
 
     extra_values.each_pair do |key, value|
-      out << ms.serialize(key)
-      out << ms.serialize(value)
+      Primitive.string_binary_append out, ms.serialize(key)
+      Primitive.string_binary_append out, ms.serialize(value)
     end
 
     out
@@ -224,13 +243,57 @@ module Marshal
       end
     end
 
+    def set_time_variables(time)
+      nano_num = nano_den = offset = zone = nil
+
+      construct_integer.times do
+        name = get_symbol
+        value = construct
+
+        case
+        when name == :nano_num
+          nano_num = value
+        when name == :nano_den
+          nano_den = value
+        when name == :offset
+          offset = value
+        when name == :zone
+          zone = value
+        when name.start_with?('@')
+          Primitive.object_ivar_set time, name, value
+        end
+      end
+
+      unless Primitive.nil?(offset)
+        begin
+          offset = Truffle::Type.coerce_to_exact_num(offset)
+        rescue TypeError
+          offset = nil
+        end
+      end
+
+      unless Primitive.nil?(zone)
+        zone = Truffle::Type.rb_check_convert_type(zone, String, :to_str)
+        zone = nil if !Primitive.nil?(zone) && zone.include?("\0")
+      end
+
+      unless Primitive.nil?(nano_num) || Primitive.nil?(nano_den)
+        Primitive.time_set_nseconds(time, Rational(nano_num, nano_den).to_i)
+      end
+
+      time.localtime offset unless Primitive.nil?(offset)
+      Primitive.time_set_zone(time, zone) unless Primitive.nil?(zone)
+    end
+
     STRING_ALLOCATE = String.method(:__allocate__).unbind
 
     def construct_string
       bytes = get_byte_sequence.force_encoding(Encoding::BINARY)
 
-      if @user_class
-        cls = get_user_class
+      if user_class?
+        cls = user_class
+        clear_user_class
+
         if cls < String
           obj = STRING_ALLOCATE.bind_call(cls)
         else
@@ -262,23 +325,26 @@ class Range
   # values so we generate the correct dump data.
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
-    out << 'o'
+    Primitive.string_binary_append out, 'o'
     cls = Primitive.object_class self
     name = Primitive.module_name cls
-    out << ms.serialize(name.to_sym)
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+    Primitive.string_binary_append out, ms.serialize(name.to_sym)
 
     ivars = self.instance_variables
-    out << ms.serialize_integer(3 + ivars.size)
-    out << ms.serialize(:begin)
-    out << ms.serialize(self.begin)
-    out << ms.serialize(:end)
-    out << ms.serialize(self.end)
-    out << ms.serialize(:excl)
-    out << ms.serialize(self.exclude_end?)
+    Primitive.string_binary_append out, ms.serialize_integer(3 + ivars.size)
+    Primitive.string_binary_append out, ms.serialize(:begin)
+    Primitive.string_binary_append out, ms.serialize(self.begin)
+    Primitive.string_binary_append out, ms.serialize(:end)
+    Primitive.string_binary_append out, ms.serialize(self.end)
+    Primitive.string_binary_append out, ms.serialize(:excl)
+    Primitive.string_binary_append out, ms.serialize(self.exclude_end?)
     ivars.each do |ivar|
       val = Primitive.object_ivar_get self, ivar
-      out << ms.serialize(ivar)
-      out << ms.serialize(val)
+      Primitive.string_binary_append out, ms.serialize(ivar)
+      Primitive.string_binary_append out, ms.serialize(val)
     end
     out
   end
@@ -316,10 +382,10 @@ end
 class String
   private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
-    out << ms.serialize_extended_object(self)
-    out << ms.serialize_user_class(self, String)
-    out << ms.serialize_string(self)
-    out << ms.serialize_instance_variables_suffix(self)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
+    Primitive.string_binary_append out, ms.serialize_user_class(self, String)
+    Primitive.string_binary_append out, ms.serialize_string(self)
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
     out
   end
 end
@@ -334,12 +400,12 @@ class Regexp
   private def __marshal__(ms)
     str = self.source
     out =  ms.serialize_instance_variables_prefix(self)
-    out << ms.serialize_extended_object(self)
-    out << ms.serialize_user_class(self, Regexp)
-    out << '/'
-    out << ms.serialize_integer(str.length) + str
-    out << (options & Regexp::OPTION_MASK).chr
-    out << ms.serialize_instance_variables_suffix(self)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
+    Primitive.string_binary_append out, ms.serialize_user_class(self, Regexp)
+    Primitive.string_binary_append out, '/'
+    Primitive.string_binary_append out, ms.serialize_integer(str.bytesize) + str.b
+    Primitive.string_binary_append out, (options & Regexp::OPTION_MASK).chr
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
 
     out
   end
@@ -348,19 +414,24 @@ end
 class Struct
   private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
-    out << ms.serialize_extended_object(self)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
 
-    out << 'S'
+    Primitive.string_binary_append out, 'S'
 
-    out << ms.serialize(self.class.name.to_sym)
-    out << ms.serialize_integer(self.length)
+    cls = Primitive.object_class self
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+    class_name = Primitive.module_name cls
+    Primitive.string_binary_append out, ms.serialize(class_name.to_sym)
+    Primitive.string_binary_append out, ms.serialize_integer(self.length)
 
     self.each_pair do |name, value|
-      out << ms.serialize(name)
-      out << ms.serialize(value)
+      Primitive.string_binary_append out, ms.serialize(name)
+      Primitive.string_binary_append out, ms.serialize(value)
     end
 
-    out << ms.serialize_instance_variables_suffix(self)
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
 
     out
   end
@@ -369,16 +440,16 @@ end
 class Array
   private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
-    out << ms.serialize_extended_object(self)
-    out << ms.serialize_user_class(self, Array)
-    out << '['
-    out << ms.serialize_integer(self.length)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
+    Primitive.string_binary_append out, ms.serialize_user_class(self, Array)
+    Primitive.string_binary_append out, '['
+    Primitive.string_binary_append out, ms.serialize_integer(self.length)
     unless empty?
       each do |element|
-        out << ms.serialize(element)
+        Primitive.string_binary_append out, ms.serialize(element)
       end
     end
-    out << ms.serialize_instance_variables_suffix(self)
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
 
     out
   end
@@ -389,18 +460,24 @@ class Hash
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     out =  ms.serialize_instance_variables_prefix(self)
-    out << ms.serialize_extended_object(self)
-    out << ms.serialize_user_class(self, Hash)
-    out << (self.default ? '}' : '{')
-    out << ms.serialize_integer(length)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
+    Primitive.string_binary_append out, ms.serialize_user_class(self, Hash)
+
+    # A boolean property of Hash - whether it has compare_by_identity behaviour - is serialized as user class marker
+    if compare_by_identity?
+      Primitive.string_binary_append out, ms.serialize_user_class!(Hash)
+    end
+
+    Primitive.string_binary_append out, (self.default ? '}' : '{')
+    Primitive.string_binary_append out, ms.serialize_integer(length)
     unless empty?
       each_pair do |key, val|
-        out << ms.serialize(key)
-        out << ms.serialize(val)
+        Primitive.string_binary_append out, ms.serialize(key)
+        Primitive.string_binary_append out, ms.serialize(val)
       end
     end
-    out << (self.default ? ms.serialize(self.default) : '')
-    out << ms.serialize_instance_variables_suffix(self)
+    Primitive.string_binary_append out, (self.default ? ms.serialize(self.default) : '')
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
 
     out
   end
@@ -412,15 +489,8 @@ class Time
     ms.store_unique_object obj
 
     if ivar_index and has_ivar[ivar_index]
-      ms.set_instance_variables obj
+      ms.set_time_variables obj
       has_ivar[ivar_index] = false
-    end
-
-    nano_num = obj.instance_variable_get(:@nano_num)
-    nano_den = obj.instance_variable_get(:@nano_den)
-    if nano_num && nano_den
-      Primitive.time_set_nseconds(obj,
-        Rational(nano_num, nano_den).to_i)
     end
 
     obj
@@ -488,7 +558,7 @@ module Marshal
 
   class State
 
-    def initialize(stream, depth, proc)
+    def initialize(stream, depth, proc, freeze)
       # shared
       @links = {}
       @symlinks = {}
@@ -509,8 +579,9 @@ module Marshal
       @modules = nil
       @has_ivar = []
       @proc = proc
+      @freeze = freeze
       @call = true
-      @user_class = nil
+      @user_classes = nil
     end
 
     def const_lookup(name, type = nil)
@@ -566,7 +637,7 @@ module Marshal
       @symlinks[obj.__id__] = sz
     end
 
-    def construct(ivar_index = nil, call_proc = true)
+    def construct(ivar_index = nil, call_proc = true, postpone_freezing = false)
       type = consume_byte()
       obj = case type
             when 48   # ?0
@@ -592,7 +663,7 @@ module Marshal
             when 34   # ?"
               construct_string
             when 47   # ?/
-              construct_regexp
+              construct_regexp(ivar_index)
             when 91   # ?[
               construct_array
             when 123  # ?{
@@ -632,22 +703,25 @@ module Marshal
               name = get_symbol
               @modules << const_lookup(name, Module)
 
-              obj = construct nil, false
+              obj = construct nil, false, true
 
               extend_object obj
 
               obj
             when 67   # ?C
               name = get_symbol
-              @user_class = name
 
-              construct nil, false
+              # store user class names in Array to support a Hash subclass with compare_by_identity behaviour
+              @user_classes ||= []
+              @user_classes << name
+
+              construct nil, false, postpone_freezing
 
             when 73   # ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 
-              obj = construct ivar_index, false
+              obj = construct ivar_index, false, true
 
               set_instance_variables obj if @has_ivar.pop
 
@@ -656,7 +730,12 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      @proc.call(obj) if call_proc and @proc and @call
+      if @freeze && !postpone_freezing && !(Primitive.object_kind_of?(obj, Class) || Primitive.object_kind_of?(obj, Module))
+        obj = -obj if Primitive.class_of(obj) == String
+        Primitive.object_freeze(obj)
+      end
+
+      return @proc.call(obj) if call_proc and @proc and @call
 
       obj
     end
@@ -683,8 +762,10 @@ module Marshal
     ARRAY_APPEND = Array.instance_method(:<<)
 
     def construct_array
-      if @user_class
-        cls = get_user_class()
+      if user_class?
+        cls = user_class
+        clear_user_class
+
         if cls < Array
           obj = ARRAY_ALLOCATE.bind_call(cls)
         else
@@ -762,7 +843,10 @@ module Marshal
     end
 
     def construct_hash
-      obj = @user_class ? get_user_class.allocate : {}
+      obj = user_class? ? user_class.allocate : {}
+      obj.compare_by_identity if hash_compare_by_identity?
+      clear_user_class
+
       store_unique_object obj
 
       construct_integer.times do
@@ -780,7 +864,10 @@ module Marshal
     end
 
     def construct_hash_def
-      obj = @user_class ? get_user_class.allocate : {}
+      obj = user_class? ? user_class.allocate : {}
+      obj.compare_by_identity if hash_compare_by_identity?
+      clear_user_class
+
       store_unique_object obj
 
       construct_integer.times do
@@ -843,12 +930,23 @@ module Marshal
       end
     end
 
-    def construct_regexp
-      s = get_byte_sequence
-      if @user_class
-        obj = get_user_class.new s, consume_byte
+    def construct_regexp(ivar_index)
+      source = get_byte_sequence
+      options = consume_byte
+
+      # A Regexp instance variables are ignored by CRuby,
+      # but we need to know the encoding before building the Regexp
+      if ivar_index and @has_ivar[ivar_index]
+        # This sets the encoding of the String
+        set_instance_variables source
+        @has_ivar[ivar_index] = false
+      end
+
+      if user_class?
+        obj = user_class.new source, options
+        clear_user_class
       else
-        obj = Regexp.new s, consume_byte
+        obj = Regexp.new source, options
       end
 
       store_unique_object obj
@@ -958,12 +1056,6 @@ module Marshal
       consume size
     end
 
-    def get_user_class
-      cls = const_lookup @user_class, Class
-      @user_class = nil
-      cls
-    end
-
     def get_symbol
       @call = false
       begin
@@ -977,6 +1069,22 @@ module Marshal
       end
 
       sym
+    end
+
+    def user_class?
+      @user_classes
+    end
+
+    def user_class
+      const_lookup @user_classes.first, Class
+    end
+
+    def hash_compare_by_identity?
+      @user_classes && @user_classes.last == :Hash
+    end
+
+    def clear_user_class
+      @user_classes = nil
     end
 
     def prepare_ivar(ivar)
@@ -1010,12 +1118,22 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
-      raise TypeError, "singleton can't be dumped" if Primitive.singleton_methods?(obj)
-      str = +''
-      Primitive.vm_extended_modules obj, -> mod do
-        str << "e#{serialize(mod.name.to_sym)}"
+      metaclass = Primitive.class_of(obj)
+      if metaclass.singleton_class? &&
+        (Primitive.singleton_methods?(obj) || Primitive.any_instance_variable?(metaclass))
+        raise TypeError, "singleton can't be dumped"
       end
-      Truffle::Type.binary_string(str)
+
+      str = ''.b
+      Primitive.vm_extended_modules obj, -> mod do
+        if Primitive.module_anonymous?(mod)
+          raise TypeError, "can't dump anonymous class #{mod}"
+        end
+
+        name = Primitive.module_name(mod)
+        Primitive.string_binary_append str, "e#{serialize(name.to_sym)}"
+      end
+      str
     end
 
     def serialize_instance_variables_prefix(obj)
@@ -1034,26 +1152,26 @@ module Marshal
 
       if serialize_encoding?(obj)
         str = serialize_integer(count + 1)
-        str << serialize_encoding(obj)
+        Primitive.string_binary_append str, serialize_encoding(obj)
       else
         str = serialize_integer(count)
       end
 
-      str << serialize_instance_variables(obj, ivars)
+      Primitive.string_binary_append str, serialize_instance_variables(obj, ivars)
 
-      Truffle::Type.binary_string(str)
+      str
     end
 
     def serialize_instance_variables(obj, ivars)
-      str = ''.b
+      out = ''.b
 
       ivars.each do |ivar|
         val = Primitive.object_ivar_get obj, ivar
-        str << serialize(ivar)
-        str << serialize(val)
+        Primitive.string_binary_append out, serialize(ivar)
+        Primitive.string_binary_append out, serialize(val)
       end
 
-      str
+      out
     end
 
     def serialize_integer(n, prefix = nil)
@@ -1125,11 +1243,19 @@ module Marshal
     end
 
     def serialize_user_class(obj, cls)
-      if obj.class != cls
-        Truffle::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
+      obj_class = Primitive.object_class obj
+
+      if obj_class != cls
+        name = Primitive.module_name obj_class
+        Truffle::Type.binary_string("C#{serialize(name.to_sym)}")
       else
         ''.b
       end
+    end
+
+    def serialize_user_class!(klass)
+      name = Primitive.module_name klass
+      Truffle::Type.binary_string("C#{serialize(name.to_sym)}")
     end
 
     def serialize_user_defined(obj)
@@ -1143,10 +1269,18 @@ module Marshal
         raise TypeError, '_dump() must return string'
       end
 
+      cls = Primitive.object_class obj
+      if Primitive.module_anonymous?(cls)
+        raise TypeError, "can't dump anonymous class #{cls}"
+      end
+      name = Primitive.module_name cls
+
       out = serialize_instance_variables_prefix(str)
-      out << Truffle::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
-      out << serialize_integer(str.length) + str
-      out << serialize_instance_variables_suffix(str)
+      Primitive.string_binary_append out, 'u'
+      Primitive.string_binary_append out, serialize(name.to_sym)
+      Primitive.string_binary_append out, serialize_integer(str.bytesize)
+      Primitive.string_binary_append out, str
+      Primitive.string_binary_append out, serialize_instance_variables_suffix(str)
 
       out
     end
@@ -1157,6 +1291,11 @@ module Marshal
       add_non_immediate_object val
 
       cls = Primitive.object_class obj
+
+      if Primitive.module_anonymous?(cls)
+        raise TypeError, "can't dump anonymous class #{cls}"
+      end
+
       name = Primitive.module_name cls
       name = serialize(name.to_sym)
       marshaled = val.__send__ :__marshal__, self
@@ -1260,8 +1399,8 @@ module Marshal
   end
 
   class StringState < State
-    def initialize(stream, depth, prc)
-      super stream, depth, prc
+    def initialize(stream, depth, prc, freeze)
+      super stream, depth, prc, freeze
 
       if @stream
         @byte_array = stream.bytes
@@ -1298,7 +1437,7 @@ module Marshal
     end
 
     depth = Primitive.rb_to_int limit
-    ms = State.new nil, depth, nil
+    ms = State.new nil, depth, nil, nil
 
     if an_io
       unless Primitive.object_respond_to? an_io, :write, false
@@ -1319,16 +1458,16 @@ module Marshal
     end
   end
 
-  def self.load(obj, prc = nil)
+  def self.load(obj, prc = nil, freeze: false)
     if Primitive.object_respond_to? obj, :to_str, false
       data = obj.to_s
-      ms = StringState.new data, nil, prc
+      ms = StringState.new data, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte
     elsif Primitive.object_respond_to? obj, :read, false and
           Primitive.object_respond_to? obj, :getc, false
-      ms = IOState.new obj, nil, prc
+      ms = IOState.new obj, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte

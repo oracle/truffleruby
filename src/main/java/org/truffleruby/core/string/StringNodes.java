@@ -4247,6 +4247,8 @@ public abstract class StringNodes {
         }
     }
 
+    /** The semantics of this primitive are such that the original string's byte[] should be extended without
+     * negotiating the encoding. */
     @Primitive(name = "string_byte_append")
     public abstract static class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
@@ -4255,13 +4257,34 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libOther,
                 @Cached TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode) {
-            // The semantics of this primitive are such that the original string's byte[] should be extended without
-            // negotiating the encoding.
+
             var leftEncoding = libString.getEncoding(string);
             var left = string.tstring;
             var right = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
                     leftEncoding.tencoding);
             string.setTString(concatNode.execute(left, right, leftEncoding.tencoding, true), leftEncoding);
+            return string;
+        }
+    }
+
+    /** The semantics of this primitive are such that the LHS string must be BINARY and then the result is BINARY as
+     * well, and the RHS bytes are just appended to the LHS bytes, without encoding negotiation (which could cause the
+     * LHS encoding to change). */
+    @Primitive(name = "string_binary_append")
+    public abstract static class StringBinaryAppendNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
+        protected RubyString stringBinaryAppend(RubyString string, Object other,
+                @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary libOther,
+                @Cached TruffleString.ConcatNode concatNode,
+                @Cached TruffleString.ForceEncodingNode forceEncodingNode) {
+            if (libString.getEncoding(string) != Encodings.BINARY) {
+                throw CompilerDirectives.shouldNotReachHere("LHS String must be BINARY");
+            }
+            var left = string.tstring;
+            var right = forceEncodingNode.execute(libOther.getTString(other), libOther.getTEncoding(other),
+                    Encodings.BINARY.tencoding);
+            string.setTString(concatNode.execute(left, right, Encodings.BINARY.tencoding, true), Encodings.BINARY);
             return string;
         }
     }
