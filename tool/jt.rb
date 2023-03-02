@@ -820,10 +820,10 @@ module Commands
       MRI tests commands:
       jt test mri                                    run MRI tests
       #{MRI_TEST_MODULES.map { |k, h| format ' ' * 4 + '%-16s%s', k, h[:help] }.join("\n")}
-      jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
+      jt test mri [--fast] test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
-        MRI_TEST_SUBPROCESSES=false                  skip MRI tests using subprocesses
+          --fast                                     skip MRI tests using subprocesses
       jt retag FILE                                  Remove MRI excludes and re-add as necessary for MRI tests
       ---
       jt test basictest                              run MRI's basictest suite
@@ -1278,6 +1278,10 @@ module Commands
       # MRI C-ext tests expect to be built with $extmk = true.
       'MKMF_SET_EXTMK_TO_TRUE' => 'true',
     }
+
+    if extra_args.delete '--fast'
+      env_vars['MRI_TEST_SUBPROCESSES'] = 'false'
+    end
 
     cext_tests = test_files.select do |f|
       f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)

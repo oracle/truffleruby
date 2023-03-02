@@ -10,6 +10,7 @@ cext-ruby/bug_reporter/test_bug_reporter.rb
 cext-ruby/class/test_class2name.rb
 cext-ruby/debug/test_debug.rb
 cext-ruby/debug/test_profile_frames.rb
+cext-ruby/econv/test_append.rb
 cext-ruby/exception/test_data_error.rb
 cext-ruby/exception/test_enc_raise.rb
 cext-ruby/exception/test_ensured.rb
