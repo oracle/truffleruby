@@ -357,6 +357,7 @@ local part_definitions = {
     },
 
     test_mri: { run+: jt(["test", "mri", "--no-sulong"]) },
+    test_mri_fast: { run+: jt(["test", "mri", "--fast", "--no-sulong"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
@@ -528,6 +529,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-specs-darwin-aarch64-20": $.platform.darwin_aarch64 + $.jdk.v20 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
       "ruby-test-fast-linux":           $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
+      "ruby-test-mri-asserts":          $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.run.test_mri_fast + { timelimit: "01:20:00" },
       "ruby-test-mri-linux":            $.platform.linux  + $.jdk.v17 + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
       "ruby-test-mri-linux-aarch64":    $.platform.linux_aarch64 + $.jdk.v17 + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
       "ruby-test-mri-darwin-amd64":     $.platform.darwin_amd64 + $.jdk.v17 + $.env.native + gate + $.run.test_mri + { timelimit: "01:30:00" },
