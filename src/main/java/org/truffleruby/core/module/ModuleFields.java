@@ -78,7 +78,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public final RubyModule rubyModule;
 
-    // The context is stored here - objects can obtain it via their class (which is a module)
+    /** The language is stored here so that we don't need to pass the language to the many callers of getName() (some of
+     * which we can't like toString()). It shouldn't be used for anything else than {@link #setName(String)} (instead
+     * pass the RubyLanguage as an argument). */
     private final RubyLanguage language;
     private final SourceSection sourceSection;
 

@@ -16,6 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
@@ -383,6 +384,30 @@ public final class InternalMethod implements ObjectGraphNode {
         }
     }
 
+    public InternalMethod withCallTargetAndDeclarationContext(RootCallTarget rootCallTarget,
+            DeclarationContext newDeclarationContext) {
+        if (rootCallTarget == this.callTarget && newDeclarationContext == declarationContext) {
+            return this;
+        } else {
+            return new InternalMethod(
+                    sharedMethodInfo,
+                    lexicalScope,
+                    newDeclarationContext,
+                    name,
+                    declaringModule,
+                    owner,
+                    visibility,
+                    undefined,
+                    unimplemented,
+                    builtIn,
+                    alwaysInlinedNodeFactory,
+                    activeRefinements,
+                    proc,
+                    rootCallTarget,
+                    callTargetSupplier);
+        }
+    }
+
     public InternalMethod undefined() {
         return new InternalMethod(
                 sharedMethodInfo,
@@ -472,5 +497,16 @@ public final class InternalMethod implements ObjectGraphNode {
 
     public DeclarationContext getActiveRefinements() {
         return activeRefinements;
+    }
+
+    public boolean isDefinedInRuby(RubyLanguage language) {
+        var sourceSection = sharedMethodInfo.getSourceSection();
+        if (!sourceSection.isAvailable()) {
+            return false;
+        }
+
+        var path = sourceSection.getSource().getPath();
+        var isCExtension = path != null && path.equals(language.cextPath);
+        return !isCExtension;
     }
 }

@@ -74,7 +74,7 @@ describe "Warning.warn" do
       end
     end
 
-    it "should print message when category is :deprecated and Warning[:deprecated] is true" do
+    it "warns when category is :deprecated and Warning[:deprecated] is true" do
       warn_deprecated = Warning[:deprecated]
       Warning[:deprecated] = true
       begin
@@ -86,7 +86,7 @@ describe "Warning.warn" do
       end
     end
 
-    it "should print message when category is :experimental and Warning[:experimental] is true" do
+    it "warns when category is :experimental and Warning[:experimental] is true" do
       warn_experimental = Warning[:experimental]
       Warning[:experimental] = true
       begin
@@ -98,7 +98,7 @@ describe "Warning.warn" do
       end
     end
 
-    it "should not print message when category is :deprecated but Warning[:deprecated] is false" do
+    it "doesn't print message when category is :deprecated but Warning[:deprecated] is false" do
       warn_deprecated = Warning[:deprecated]
       Warning[:deprecated] = false
       begin
@@ -110,7 +110,7 @@ describe "Warning.warn" do
       end
     end
 
-    it "should not print message when category is :experimental but Warning[:experimental] is false" do
+    it "doesn't print message when category is :experimental but Warning[:experimental] is false" do
       warn_experimental = Warning[:experimental]
       Warning[:experimental] = false
       begin
@@ -120,6 +120,18 @@ describe "Warning.warn" do
       ensure
         Warning[:experimental] = warn_experimental
       end
+    end
+
+    it "prints the message when VERBOSE is false" do
+      -> { Warning.warn("foo") }.should complain("foo")
+    end
+
+    it "prints the message when VERBOSE is nil" do
+      -> { Warning.warn("foo") }.should complain("foo", verbose: nil)
+    end
+
+    it "prints the message when VERBOSE is true" do
+      -> { Warning.warn("foo") }.should complain("foo", verbose: true)
     end
   end
 

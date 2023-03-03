@@ -974,6 +974,7 @@ public class CoreLibrary {
             "/core/true.rb",
             "/core/type.rb",
             "/core/module.rb",
+            "/core/refinement.rb",
             "/core/truffle/ffi/pointer.rb",
             "/core/truffle/ffi/pointer_access.rb",
             "/core/truffle/ffi/pointer_extra.rb",
