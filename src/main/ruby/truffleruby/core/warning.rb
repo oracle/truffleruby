@@ -16,9 +16,18 @@ module Warning
     unless message.encoding.ascii_compatible?
       raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
     end
+
     unless Primitive.nil?(category)
       Truffle::Type.rb_check_type(category, Symbol)
       Truffle::WarningOperations.check_category(category)
+
+      if category == :deprecated && !Warning[:deprecated]
+        return nil
+      end
+
+      if category == :experimental && !Warning[:experimental]
+        return nil
+      end
     end
 
     $stderr.write message

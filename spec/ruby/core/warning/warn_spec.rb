@@ -73,6 +73,54 @@ describe "Warning.warn" do
         $VERBOSE = verbose
       end
     end
+
+    it "should print message when category is :deprecated and Warning[:deprecated] is true" do
+      warn_deprecated = Warning[:deprecated]
+      Warning[:deprecated] = true
+      begin
+        -> {
+          warn("foo", category: :deprecated)
+        }.should complain("foo\n")
+      ensure
+        Warning[:deprecated] = warn_deprecated
+      end
+    end
+
+    it "should print message when category is :experimental and Warning[:experimental] is true" do
+      warn_experimental = Warning[:experimental]
+      Warning[:experimental] = true
+      begin
+        -> {
+          warn("foo", category: :experimental)
+        }.should complain("foo\n")
+      ensure
+        Warning[:experimental] = warn_experimental
+      end
+    end
+
+    it "should not print message when category is :deprecated but Warning[:deprecated] is false" do
+      warn_deprecated = Warning[:deprecated]
+      Warning[:deprecated] = false
+      begin
+        -> {
+          warn("foo", category: :deprecated)
+        }.should_not complain
+      ensure
+        Warning[:deprecated] = warn_deprecated
+      end
+    end
+
+    it "should not print message when category is :experimental but Warning[:experimental] is false" do
+      warn_experimental = Warning[:experimental]
+      Warning[:experimental] = false
+      begin
+        -> {
+          warn("foo", category: :experimental)
+        }.should_not complain
+      ensure
+        Warning[:experimental] = warn_experimental
+      end
+    end
   end
 
   ruby_version_is ''...'3.0' do

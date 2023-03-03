@@ -1048,6 +1048,7 @@ public class CoreLibrary {
             "/core/truffle/method_operations.rb",
             "/core/method.rb",
             "/core/unbound_method.rb",
+            "/core/truffle/warning_operations.rb",
             "/core/warning.rb",
             "/core/weakmap.rb",
             "/core/tracepoint.rb",
