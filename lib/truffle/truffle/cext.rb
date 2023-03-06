@@ -112,6 +112,8 @@ module Truffle::CExt
     LIBTRUFFLERUBY = libtruffleruby
   end
 
+  ORIGINAL_TIME_AT = Time.method(:at)
+
   def self.register_libtruffleruby(libtruffleruby)
     SET_LIBTRUFFLERUBY.call(libtruffleruby)
   end
@@ -1673,21 +1675,21 @@ module Truffle::CExt
   end
 
   def rb_time_nano_new(sec, nsec)
-    Time.at sec, nsec, :nanosecond
+    ORIGINAL_TIME_AT.call(sec, nsec, :nanosecond)
   end
 
   def rb_time_timespec_new(sec, nsec, offset, is_utc, is_local)
     if is_local
-      Time.at(sec, nsec, :nanosecond)
+      ORIGINAL_TIME_AT.call(sec, nsec, :nanosecond)
     elsif is_utc
-      Time.at(sec, nsec, :nanosecond, in: 0).getgm
+      ORIGINAL_TIME_AT.call(sec, nsec, :nanosecond, in: 0).getgm
     else
-      Time.at(sec, nsec, :nanosecond, in: offset)
+      ORIGINAL_TIME_AT.call(sec, nsec, :nanosecond, in: offset)
     end
   end
 
   def rb_time_num_new(timev, off)
-    Time.at(timev).getlocal(off)
+    ORIGINAL_TIME_AT.call(timev).getlocal(off)
   end
 
   def rb_time_interval_acceptable(time_val)
