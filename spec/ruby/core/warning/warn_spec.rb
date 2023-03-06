@@ -79,8 +79,8 @@ describe "Warning.warn" do
       Warning[:deprecated] = true
       begin
         -> {
-          warn("foo", category: :deprecated)
-        }.should complain("foo\n")
+          Warning.warn("foo", category: :deprecated)
+        }.should complain("foo")
       ensure
         Warning[:deprecated] = warn_deprecated
       end
@@ -91,8 +91,8 @@ describe "Warning.warn" do
       Warning[:experimental] = true
       begin
         -> {
-          warn("foo", category: :experimental)
-        }.should complain("foo\n")
+          Warning.warn("foo", category: :experimental)
+        }.should complain("foo")
       ensure
         Warning[:experimental] = warn_experimental
       end
@@ -103,7 +103,7 @@ describe "Warning.warn" do
       Warning[:deprecated] = false
       begin
         -> {
-          warn("foo", category: :deprecated)
+          Warning.warn("foo", category: :deprecated)
         }.should_not complain
       ensure
         Warning[:deprecated] = warn_deprecated
@@ -115,7 +115,7 @@ describe "Warning.warn" do
       Warning[:experimental] = false
       begin
         -> {
-          warn("foo", category: :experimental)
+          Warning.warn("foo", category: :experimental)
         }.should_not complain
       ensure
         Warning[:experimental] = warn_experimental
