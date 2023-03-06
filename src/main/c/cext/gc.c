@@ -53,8 +53,7 @@ void rb_gc(void) {
 }
 
 void rb_gc_force_recycle(VALUE obj) {
-  // Comments in MRI imply rb_gc_force_recycle functions as a GC guard
-  RB_GC_GUARD(obj);
+  /* no-op */
 }
 
 VALUE rb_gc_latest_gc_info(VALUE key) {
