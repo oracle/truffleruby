@@ -406,6 +406,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         tracingAssumption = tracingCyclicAssumption.getAssumption();
     }
 
+    private boolean multiThreading = false;
+
+    public boolean isMultiThreaded() {
+        return multiThreading;
+    }
+
+    @Override
+    protected void initializeMultiThreading(RubyContext context) {
+        this.multiThreading = true;
+    }
+
     @Override
     protected void initializeMultipleContexts() {
         LOGGER.fine("initializeMultipleContexts()");

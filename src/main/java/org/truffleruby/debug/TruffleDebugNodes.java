@@ -1382,6 +1382,7 @@ public abstract class TruffleDebugNodes {
     /** Creates a Truffle thread which is not {@link ThreadManager#isRubyManagedThread(java.lang.Thread)}}. */
     @CoreMethod(names = "create_polyglot_thread", onSingleton = true, required = 1)
     public abstract static class CreatePolyglotThread extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object parseName(Object hostRunnable) {
             Runnable runnable = (Runnable) getContext().getEnv().asHostObject(hostRunnable);
@@ -1408,6 +1409,15 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected long handleCount() {
             return getContext().getValueWrapperManager().totalHandleAllocations();
+        }
+    }
+
+    @CoreMethod(names = "multithreaded?", onSingleton = true)
+    public abstract static class IsMultiThreadedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isMultiThreaded() {
+            return getLanguage().isMultiThreaded();
         }
     }
 

@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleOptions;
@@ -164,16 +165,29 @@ public class ThreadManager {
 
     @CompilationFinal static ThreadFactory VIRTUAL_THREAD_FACTORY = getVirtualThreadFactory();
 
-    private Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable runnable) {
+    public Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable beforeEnter,
+            Runnable body, Runnable afterLeave, Node node) {
         if (context.isPreInitializing()) {
-            throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
+            throw CompilerDirectives
+                    .shouldNotReachHere("fibers should not be created while pre-initializing the context");
         }
 
         final Thread thread;
         if (context.getOptions().VIRTUAL_THREAD_FIBERS) {
-            thread = VIRTUAL_THREAD_FACTORY.newThread(runnable);
+            thread = VIRTUAL_THREAD_FACTORY.newThread(() -> {
+                var truffleContext = context.getEnv().getContext();
+                beforeEnter.run();
+                Object prev = truffleContext.enter(node);
+                try {
+                    body.run();
+                } finally {
+                    truffleContext.leave(node, prev);
+                    afterLeave.run();
+                }
+            });
         } else {
-            thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+            thread = context.getEnv().newTruffleThreadBuilder(body).beforeEnter(beforeEnter).afterLeave(afterLeave)
+                    .build();
         }
 
         language.rubyThreadInitMap.put(thread, fiber.rubyThread);
@@ -186,15 +200,16 @@ public class ThreadManager {
         return thread;
     }
 
-    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread, String info) {
+    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread, String info, Node node) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
+                    context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", node));
         }
 
         if (context.isPreInitializing()) {
-            throw new UnsupportedOperationException("threads should not be created while pre-initializing the context");
+            throw CompilerDirectives
+                    .shouldNotReachHere("threads should not be created while pre-initializing the context");
         }
 
         final Thread thread = context.getEnv().newTruffleThreadBuilder(runnable).build();
@@ -233,10 +248,6 @@ public class ThreadManager {
                 printInternalError(t);
             }
         };
-    }
-
-    public void spawnFiber(RubyFiber fiber, SourceSection sourceSection, Runnable task) {
-        createFiberJavaThread(fiber, sourceSection, task).start();
     }
 
     /** Whether the thread was created by TruffleRuby. */
@@ -303,7 +314,8 @@ public class ThreadManager {
         rubyThread.sourceLocation = info;
         final RubyFiber rootFiber = rubyThread.getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread, info);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread, info,
+                currentNode);
         rubyThread.thread = thread;
 
         thread.start();

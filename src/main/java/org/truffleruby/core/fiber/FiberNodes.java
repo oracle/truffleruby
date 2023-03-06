@@ -121,6 +121,13 @@ public abstract class FiberNodes {
         @TruffleBoundary
         @Specialization
         protected Object initialize(RubyFiber fiber, boolean blocking, RubyProc block) {
+            if (!getContext().getEnv().isCreateThreadAllowed()) {
+                // Because TruffleThreadBuilder#build denies it already, before the thread is even started.
+                // The permission is called allowCreateThread, so it kind of makes sense.
+                throw new RaiseException(getContext(),
+                        coreExceptions().securityError("fibers not allowed with allowCreateThread(false)", this));
+            }
+
             getContext().fiberManager.initialize(fiber, blocking, block, this);
             return nil;
         }

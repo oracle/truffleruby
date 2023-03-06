@@ -92,6 +92,11 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     boolean blocking = true;
     public RubyArray cGlobalVariablesDuringInitFunction;
 
+    // To pass state between beforeEnter(), fiberMain() and afterLeave()
+    FiberManager.FiberMessage firstMessage;
+    RubyFiber returnFiber;
+    FiberManager.FiberMessage lastMessage;
+
     public RubyFiber(
             RubyClass rubyClass,
             Shape shape,

@@ -65,8 +65,12 @@ public class FiberManager {
         final TruffleContext truffleContext = context.getEnv().getContext();
 
         context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
-            context.getThreadManager().spawnFiber(fiber, sourceSection,
-                    () -> fiberMain(context, fiber, block, currentNode));
+            ThreadManager threadManager = context.getThreadManager();
+            Thread thread = threadManager.createFiberJavaThread(fiber, sourceSection,
+                    () -> beforeEnter(fiber, currentNode),
+                    () -> fiberMain(context, fiber, block, currentNode),
+                    () -> afterLeave(fiber), currentNode);
+            thread.start();
             waitForInitialization(context, fiber, currentNode);
             return BlockingAction.SUCCESS;
         });
@@ -90,23 +94,25 @@ public class FiberManager {
 
     private static final BranchProfile UNPROFILED = BranchProfile.getUncached();
 
-    private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
+    private void beforeEnter(RubyFiber fiber, Node currentNode) {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
         assertNotEntered("Fibers should start unentered to avoid triggering multithreading");
 
         final Thread thread = Thread.currentThread();
-        final TruffleContext truffleContext = context.getEnv().getContext();
-
         start(fiber, thread);
 
         // fully initialized
         fiber.initializedLatch.countDown();
 
-        final FiberMessage message = waitMessage(fiber, currentNode);
-        fiber.rubyThread.setCurrentFiber(fiber);
+        fiber.firstMessage = waitMessage(fiber, currentNode);
 
         // enter() polls so we need the current Fiber to be set before enter()
-        final Object prev = truffleContext.enter(currentNode);
+        fiber.rubyThread.setCurrentFiber(fiber);
+    }
+
+    private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
+        final FiberMessage message = fiber.firstMessage;
+        fiber.firstMessage = null;
 
         FiberMessage lastMessage = null;
         try {
@@ -134,18 +140,24 @@ public class FiberManager {
             final RuntimeException exception = ThreadManager.printInternalError(e);
             lastMessage = new FiberExceptionMessage(exception);
         } finally {
-            final RubyFiber returnFiber = lastMessage == null ? null : getReturnFiber(fiber, currentNode, UNPROFILED);
+            fiber.lastMessage = lastMessage;
+            fiber.returnFiber = lastMessage == null ? null : getReturnFiber(fiber, currentNode, UNPROFILED);
 
             // Perform all cleanup before resuming the parent Fiber
             // Make sure that other fibers notice we are dead before they gain control back
             fiber.status = FiberStatus.TERMINATED;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
-            truffleContext.leave(currentNode, prev);
-            cleanup(fiber, thread);
+        }
+    }
 
-            if (lastMessage != null) {
-                addToMessageQueue(returnFiber, lastMessage);
-            }
+    private void afterLeave(RubyFiber fiber) {
+        final Thread thread = Thread.currentThread();
+        cleanup(fiber, thread);
+
+        if (fiber.lastMessage != null) {
+            addToMessageQueue(fiber.returnFiber, fiber.lastMessage);
+            fiber.returnFiber = null;
+            fiber.lastMessage = null;
         }
     }
 
@@ -161,7 +173,7 @@ public class FiberManager {
             return previousFiber;
         } else {
 
-            if (currentFiber == rootFiber) {
+            if (currentFiber == rootFiber) { // Note: this is always false for the fiberMain() caller
                 errorProfile.enter();
                 throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
             }

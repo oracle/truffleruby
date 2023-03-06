@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ContextPermissionsTest {
@@ -88,6 +89,7 @@ public class ContextPermissionsTest {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
             Assert.assertEquals(7, context.eval("ruby", "Thread.new { 3 + 4 }.value").asInt());
+            assertTrue(context.eval("ruby", "Truffle::Debug.multithreaded?").asBoolean());
 
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "File.stat('.')"),
@@ -118,8 +120,29 @@ public class ContextPermissionsTest {
     }
 
     @Test
-    public void testFiberDoesNotTriggerMultiThreading() {
+    public void testNoThreads() {
         try (Context context = Context.newBuilder("ruby").allowCreateThread(false).build()) {
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Thread.new {}.join"),
+                    e -> {
+                        assertEquals("threads not allowed in single-threaded mode", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
+
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "Fiber.new {}.resume"),
+                    e -> {
+                        assertEquals("fibers not allowed with allowCreateThread(false)", e.getMessage());
+                        assertEquals("SecurityError", e.getGuestObject().getMetaObject().getMetaQualifiedName());
+                    });
+
+            assertFalse(context.eval("ruby", "Truffle::Debug.multithreaded?").asBoolean());
+        }
+    }
+
+    @Test
+    public void testFiberDoesNotTriggerMultiThreading() {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
             final Value array = context.eval(
                     "ruby",
                     "a = [1]; f = Fiber.new { a << 3; Fiber.yield; a << 5 }; a << 2; f.resume; a << 4; f.resume");
@@ -128,12 +151,14 @@ public class ContextPermissionsTest {
             for (int i = 0; i < 5; i++) {
                 assertEquals(i + 1, array.getArrayElement(i).asInt());
             }
+
+            assertFalse(context.eval("ruby", "Truffle::Debug.multithreaded?").asBoolean());
         }
     }
 
     @Test
     public void testNestedFiberAndTerminateFiber() {
-        try (Context context = Context.newBuilder("ruby").allowCreateThread(false).build()) {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
             final Value array = context.eval(
                     "ruby",
                     "a = []; Fiber.new { a << 1; Fiber.new { a << 2; Fiber.yield; unreachable }.resume; a << 3 }.resume");
@@ -142,6 +167,8 @@ public class ContextPermissionsTest {
             for (int i = 0; i < 3; i++) {
                 assertEquals(i + 1, array.getArrayElement(i).asInt());
             }
+
+            assertFalse(context.eval("ruby", "Truffle::Debug.multithreaded?").asBoolean());
         }
     }
 
