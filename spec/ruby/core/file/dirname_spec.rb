@@ -25,6 +25,26 @@ describe "File.dirname" do
     it "raises ArgumentError if the level is negative" do
       -> {File.dirname('/home/jason', -1)}.should raise_error(ArgumentError)
     end
+
+    it "returns the exact same object when passed 0 as the level" do
+      obj = "path"
+      File.dirname(obj,0).should .equal?(obj)
+
+      obj = mock("to_path")
+      def obj.to_path
+        "path"
+      end
+      File.dirname(obj,0).should .equal?(obj)
+
+      obj = Object.new
+      File.dirname(obj,0).should .equal?(obj)
+    end
+
+    it "returns / when passed number of levels exceeds the number of segments in the path" do
+      (3..100).each { |level|
+        File.dirname("/home/jason", level).should == '/'
+      }
+    end
   end
 
   it "returns a String" do

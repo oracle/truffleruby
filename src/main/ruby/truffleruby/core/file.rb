@@ -415,37 +415,26 @@ class File < IO
   # the separator used on the local file system.
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
-  def self.dirname(path)
-    path = Truffle::Type.coerce_to_path(path)
-
-    # edge case
-    return +'.' if path.empty?
-
-    slash = '/'
-
-    # pull off any /'s at the end to ignore
-    chunk_size = last_nonslash(path)
-    return +'/' unless chunk_size
-
-    if pos = Primitive.find_string_reverse(path, slash, chunk_size)
-      return +'/' if pos == 0
-
-      path = path.byteslice(0, pos)
-
-      return +'/' if path == '/'
-
-      return path unless path.end_with? slash
-
-      # prune any trailing /'s
-      idx = last_nonslash(path, pos)
-
-      # edge case, only /'s, return /
-      return +'/' unless idx
-
-      return path.byteslice(0, idx - 1)
+  def self.dirname(path,num_levels=1)
+    if num_levels < 0
+      raise ArgumentError, "level can't be negative"
+    end
+    #This must happen before the type coercion to string below, because File.dirname accepts any objects which can respond to a :to_path message
+    #If path was such an object, File.dirname(obj,0) returns it as-is without conversion to string
+    #Tricky, but that's how Matz ruby behave
+    if num_levels == 0
+      return path
     end
 
-    +'.'
+    path = Truffle::Type.coerce_to_path(path)
+
+    num_levels.times do
+      # edge case
+      return +'.' if path.empty?
+
+      path = Truffle::FileOperations.remove_last_segment_from_path(path)
+    end
+    path
   end
 
   ##
