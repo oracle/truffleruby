@@ -187,12 +187,6 @@ module Truffle
       raise TypeError, "can't convert #{oc} to #{cls} (#{oc}##{meth} gives #{Primitive.object_class(res)})"
     end
 
-    # Same as conversion mismatch, with a tiny difference in error message ("into" instead of "to")
-    def self.conversion_mismatch_into(obj, cls, meth, res)
-      oc = Primitive.object_class(obj)
-      raise TypeError, "can't convert #{oc} into #{cls} (#{oc}##{meth} gives #{Primitive.object_class(res)})"
-    end
-
     def self.fits_into_int?(val)
       Integer === val && Primitive.integer_fits_into_int(val)
     end
@@ -373,7 +367,7 @@ module Truffle
       if Primitive.nil?(ret) || Primitive.object_kind_of?(ret, cls)
         ret
       else
-        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{Primitive.object_class(ret)})"
+        conversion_mismatch(obj, cls, meth, ret)
       end
     end
 

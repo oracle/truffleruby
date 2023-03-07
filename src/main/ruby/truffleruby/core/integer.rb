@@ -333,16 +333,7 @@ class Integer < Numeric
   end
 
   def self.try_convert(obj)
-    unless obj.respond_to?(:to_int)
-      return nil
-    end
-
-    result = obj.to_int
-    if Primitive.nil?(result) or Primitive.object_kind_of?(result, Integer)
-      return result
-    end
-
-    Truffle::Type.conversion_mismatch_into(obj, Integer, :to_int, result)
+    Truffle::Type.try_convert(obj, Integer, :to_int)
   end
 
   def self.sqrt(n)
