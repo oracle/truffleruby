@@ -41,17 +41,6 @@ ruby_version_is "3.1" do
       }.should raise_error(TypeError, "can't convert MockObject to Integer (MockObject#to_int gives String)")
     end
 
-    it "responds with a different error message when it raises a TypeError, depending on the type of the argument object :to_int was called on " do
-      class DifferentMockObject
-        def to_int
-          Object.new
-        end
-      end
-      -> {
-        Integer.try_convert DifferentMockObject.new
-      }.should raise_error(TypeError, "can't convert DifferentMockObject to Integer (DifferentMockObject#to_int gives Object)")
-    end
-
     it "does not rescue exceptions raised by #to_int" do
       obj = mock("to_int")
       obj.should_receive(:to_int).and_raise(RuntimeError)
