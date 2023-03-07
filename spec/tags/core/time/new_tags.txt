@@ -19,5 +19,4 @@ fails:Time.new with a timezone argument #name method cannot marshal Time if #nam
 fails:Time.new with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object at loading marshaled data
 fails:Time.new with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object if passed zone name as a timezone argument
 fails:Time.new with a timezone argument subject's class implements .find_timezone method does not call .find_timezone if passed any not string/numeric/timezone timezone argument
-fails:Time.new has at least microsecond precision
 fails:Time.new with a timezone argument :in keyword argument could be a timezone object
