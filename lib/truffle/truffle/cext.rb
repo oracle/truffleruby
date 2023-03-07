@@ -112,6 +112,10 @@ module Truffle::CExt
     LIBTRUFFLERUBY = libtruffleruby
   end
 
+  # Rails 6 overrides `Time.at` in a way that doesn't delegate keyword arguments to the original `Time.at` method.
+  # The issue was fixed in Rails 6.1 but wasn't backported.
+  # It causes ArgumentError exception when `rb_time_timespec_new` function is called in the `pg` gem.
+  # See https://github.com/rails/rails/issues/47586.
   ORIGINAL_TIME_AT = Time.method(:at)
 
   def self.register_libtruffleruby(libtruffleruby)
