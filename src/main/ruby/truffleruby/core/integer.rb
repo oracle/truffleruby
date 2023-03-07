@@ -332,6 +332,10 @@ class Integer < Numeric
     self == 0
   end
 
+  def self.try_convert(obj)
+    Truffle::Type.try_convert(obj, Integer, :to_int)
+  end
+
   def self.sqrt(n)
     n = Primitive.rb_to_int(n)
     raise Math::DomainError if n.negative?

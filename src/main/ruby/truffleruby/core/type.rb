@@ -367,7 +367,7 @@ module Truffle
       if Primitive.nil?(ret) || Primitive.object_kind_of?(ret, cls)
         ret
       else
-        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{Primitive.object_class(ret)})"
+        conversion_mismatch(obj, cls, meth, ret)
       end
     end
 
