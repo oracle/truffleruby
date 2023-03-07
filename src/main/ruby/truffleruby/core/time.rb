@@ -475,10 +475,6 @@ class Time
         utc_offset ? self.now.getlocal(utc_offset) : self.now
       elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
-      elsif utc_offset.instance_of?(String) && !utc_offset.encoding.ascii_compatible?
-        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset.inspect
-      elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
-        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + utc_offset
       elsif utc_offset == :std
         compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst
@@ -493,18 +489,23 @@ class Time
       end
     end
 
-    def valid_utc_offset_string?(utc_offset)
-      utc_offset == 'UTC' \
-        || (utc_offset.size == 1 && ('A'..'Z') === utc_offset && utc_offset != 'J') \
-        || (utc_offset =~ /\A[+-](\d{2})(?::(\d{2})(?::(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) \
-        || (utc_offset =~ /\A[+-](\d{2})(?:(\d{2})(?:(\d{2}))?)?\z/ && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60) # without ":" separators
-    end
-    private :valid_utc_offset_string?
-
     def utc_offset_in_utc?(utc_offset)
       utc_offset == 'UTC' || utc_offset == 'Z' || utc_offset == '-00:00'
     end
     private :utc_offset_in_utc?
+
+    def now(**options)
+      time_now = Primitive.time_now(self)
+      in_timezone = options[:in]
+
+      if in_timezone
+        utc_offset = Truffle::Type.coerce_to_utc_offset(in_timezone)
+        is_utc = utc_offset_in_utc?(in_timezone)
+        is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
+      else
+        time_now
+      end
+    end
 
     def local(*args)
       compose(:local, *args)

@@ -30,6 +30,10 @@ describe "Time.now" do
         time.zone.should == nil
       end
 
+      it "returns a Time with UTC offset specified as a single letter military timezone" do
+        Time.now(in: "W").utc_offset.should == 3600 * -10
+      end
+
       it "could be a timezone object" do
         zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
         time = Time.now(in: zone)
