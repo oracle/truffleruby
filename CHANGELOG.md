@@ -83,6 +83,7 @@ Compatibility:
 * Modify `Struct#{inspect,to_s}` to match MRI when the struct is nested inside of an anonymous class or module (@st0012, @nirvdrum).
 * `Fiber.current` and `Fiber#transfer` are available without `require 'fiber'` like in CRuby 3.1 (#2733, @eregon).
 * Add `freeze` keyword argument to `Marshal.load` (#2733, @andrykonchin).
+* Support optional `:in` keyword argument for `Time.now` and `Time.new` (#2733, @andrykonchin).
 
 Performance:
 
