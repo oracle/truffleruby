@@ -464,9 +464,15 @@ class Time
     end
     private :compose
 
-    def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
+    def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil, **options)
+      if utc_offset && options[:in]
+        raise ArgumentError, 'timezone argument given as positional and keyword arguments'
+      end
+
+      utc_offset ||= options[:in]
+
       if Primitive.undefined?(year)
-        self.now
+        utc_offset ? self.now.getlocal(utc_offset) : self.now
       elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
       elsif utc_offset.instance_of?(String) && !utc_offset.encoding.ascii_compatible?
