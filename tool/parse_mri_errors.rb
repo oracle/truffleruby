@@ -55,7 +55,9 @@ contents.scan(t) do |class_name, test_method, error|
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
-  if i = lines.index { |line| line.start_with?(prefix) }
+
+  # we need the ',' to handle a case when one test name is a substring of another test name
+  if i = lines.index { |line| line.start_with?(prefix + ",") }
     puts "already excluded: #{class_name}##{test_method}"
     lines[i] = new_line
   else
