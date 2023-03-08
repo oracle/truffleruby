@@ -197,8 +197,8 @@ public abstract class TimeNodes {
 
     }
 
-    @CoreMethod(names = "now", constructor = true)
-    public abstract static class TimeNowNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "time_now")
+    public abstract static class TimeNowNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();

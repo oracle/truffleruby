@@ -495,10 +495,10 @@ module Truffle
         else
           offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
         end
-      elsif offset.match(/\A(\+|-)(\d\d)(?::(\d\d)(?::(\d\d))?)?\z/) # with ":" separators
+      elsif offset.match(/\A(\+|-)(\d\d)(?::(\d\d)(?::(\d\d))?)?\z/) && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # with ":" separators
         offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
         offset = -offset if $1.ord == 45
-      elsif offset.match(/\A(\+|-)(\d\d)(?:(\d\d)(?:(\d\d))?)?\z/) # without ":" separators
+      elsif offset.match(/\A(\+|-)(\d\d)(?:(\d\d)(?:(\d\d))?)?\z/) && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # without ":" separators
         offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
         offset = -offset if $1.ord == 45
       else
