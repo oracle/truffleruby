@@ -170,7 +170,7 @@ module Truffle
       Primitive.string_append(string, other)
     end
 
-    def self.case_mapping_option_to_int(option, downcasing=false)
+    def self.case_mapping_option_to_int(option, downcasing = false)
       case option
       when :ascii
         1 << 22 # CASE_ASCII_ONLY

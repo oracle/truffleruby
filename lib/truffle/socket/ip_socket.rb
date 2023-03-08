@@ -35,7 +35,7 @@ class IPSocket < BasicSocket
     Truffle::Socket.address_info(:getsockname, self, reverse_lookup)
   end
 
-  def peeraddr(reverse_lookup=nil)
+  def peeraddr(reverse_lookup = nil)
     Truffle::Socket.address_info(:getpeername, self, reverse_lookup)
   end
 

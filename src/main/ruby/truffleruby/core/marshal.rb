@@ -1426,7 +1426,7 @@ module Marshal
     end
   end
 
-  def self.dump(obj, an_io=nil, limit=nil)
+  def self.dump(obj, an_io = nil, limit = nil)
     unless limit
       if Primitive.object_kind_of? an_io, Integer
         limit = an_io

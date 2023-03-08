@@ -66,7 +66,7 @@ class Encoding
     private :readagain_bytes=
     private :incomplete_input=
 
-    def initialize(message='')
+    def initialize(message = '')
       super(message)
 
       @incomplete_input = nil
@@ -102,11 +102,11 @@ class Encoding
       enc if enc.ascii_compatible?
     end
 
-    def self.search_convpath(from, to, options=0)
+    def self.search_convpath(from, to, options = 0)
       new(from, to, options).convpath
     end
 
-    def initialize(from, to, options=0)
+    def initialize(from, to, options = 0)
       @source_encoding = Truffle::Type.coerce_to_encoding from
       @destination_encoding = Truffle::Type.coerce_to_encoding to
 
@@ -181,7 +181,7 @@ class Encoding
       dest
     end
 
-    def primitive_convert(source, target, offset=nil, size=nil, options=0)
+    def primitive_convert(source, target, offset = nil, size = nil, options = 0)
       source = source ? StringValue(source) : +''
       target = StringValue(target)
 

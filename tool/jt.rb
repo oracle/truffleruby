@@ -341,7 +341,7 @@ module Utilities
     @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
   end
 
-  def find_or_clone_repo(url, commit=nil)
+  def find_or_clone_repo(url, commit = nil)
     name = File.basename url, '.git'
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
     unless Dir.exist? path

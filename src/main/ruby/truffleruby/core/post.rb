@@ -61,7 +61,7 @@ STDERR.sync = true
 
 module Truffle
   module Type
-    def self.const_get(mod, name, inherit=true, resolve=true)
+    def self.const_get(mod, name, inherit = true, resolve = true)
       raise 'unsupported' unless resolve
       mod.const_get name, inherit
     end

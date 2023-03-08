@@ -41,7 +41,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
     readchar.getbyte(0)
   end
 
-  def readline(sep=$/, limit=::Undefined, chomp: false)
+  def readline(sep = $/, limit = ::Undefined, chomp: false)
     check_readable
     raise EOFError, 'end of file reached' if eof?
 
@@ -138,7 +138,7 @@ class StringIO
 
   attr_reader :__data__
 
-  def initialize(string=nil, mode=nil, **options)
+  def initialize(string = nil, mode = nil, **options)
     if block_given?
       warn 'StringIO::new() does not take block; use StringIO::open() instead'
     end
@@ -190,7 +190,7 @@ class StringIO
     raise IOError, 'unable to modify data' if @__data__.string.frozen?
   end
 
-  def set_encoding(external, internal=nil, options=nil)
+  def set_encoding(external, internal = nil, options = nil)
     encoding = external || Encoding.default_external
     d = @__data__
     TruffleRuby.synchronized(d) do
@@ -257,7 +257,7 @@ class StringIO
     self
   end
 
-  def each(sep=$/, limit=Undefined, chomp: false)
+  def each(sep = $/, limit = Undefined, chomp: false)
     return to_enum :each, sep, limit, chomp: chomp unless block_given?
     check_readable
 
@@ -385,7 +385,7 @@ class StringIO
     end
   end
 
-  def gets(sep=$/, limit=Undefined, chomp: false)
+  def gets(sep = $/, limit = Undefined, chomp: false)
     check_readable
 
     # Truffle: $_ is thread and frame local, so we use a primitive to
@@ -474,7 +474,7 @@ class StringIO
     end
   end
 
-  def readlines(sep=$/, limit=Undefined, chomp: false)
+  def readlines(sep = $/, limit = Undefined, chomp: false)
     check_readable
 
     ary = []
@@ -485,7 +485,7 @@ class StringIO
     ary
   end
 
-  def reopen(string=nil, mode=Undefined)
+  def reopen(string = nil, mode = Undefined)
     if string and not string.kind_of? String and mode.equal? Undefined
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
@@ -699,7 +699,7 @@ class StringIO
     d.string.replace('') if (mode & IO::TRUNC) != 0
   end
 
-  private def getline(arg_error, sep, limit, chomp=false)
+  private def getline(arg_error, sep, limit, chomp = false)
     if limit != Undefined
       limit = Primitive.rb_to_int limit if limit
       sep = Truffle::Type.coerce_to sep, String, :to_str if sep

@@ -100,7 +100,7 @@ module Kernel
   end
   module_function :Hash
 
-  def Integer(obj, base=0, exception: true)
+  def Integer(obj, base = 0, exception: true)
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
@@ -196,7 +196,7 @@ module Kernel
     self
   end
 
-  def abort(msg=nil)
+  def abort(msg = nil)
     Process.abort msg
   end
   module_function :abort
@@ -302,7 +302,7 @@ module Kernel
     singleton_class.define_method(*args, &block)
   end
 
-  def display(port=$>)
+  def display(port = $>)
     port.write self
   end
 
@@ -311,12 +311,12 @@ module Kernel
   end
   module_function :exec
 
-  def exit(code=0)
+  def exit(code = 0)
     Process.exit(code)
   end
   module_function :exit
 
-  def exit!(code=1)
+  def exit!(code = 1)
     Process.exit!(code)
   end
   module_function :exit!
@@ -486,12 +486,12 @@ module Kernel
   end
   module_function :rand
 
-  def readline(sep=$/)
+  def readline(sep = $/)
     ARGF.readline(sep)
   end
   module_function :readline
 
-  def readlines(sep=$/)
+  def readlines(sep = $/)
     ARGF.readlines(sep)
   end
   module_function :readlines
@@ -501,7 +501,7 @@ module Kernel
   end
   module_function :select
 
-  def srand(seed=undefined)
+  def srand(seed = undefined)
     if Primitive.undefined? seed
       seed = Primitive.thread_randomizer.generate_seed
     end
@@ -526,7 +526,7 @@ module Kernel
 
   alias_method :then, :yield_self
 
-  def test(cmd, file1, file2=nil)
+  def test(cmd, file1, file2 = nil)
     case cmd
     when ?d
       File.directory? file1
@@ -556,7 +556,7 @@ module Kernel
   end
   module_function :test
 
-  def to_enum(method=:each, *args, **kwargs, &block)
+  def to_enum(method = :each, *args, **kwargs, &block)
     Enumerator.new(self, method, *args, **kwargs).tap do |enum|
       enum.__send__ :size=, block if block_given?
     end
@@ -564,7 +564,7 @@ module Kernel
   alias_method :enum_for, :to_enum
 
 
-  def trap(sig, prc=nil, &block)
+  def trap(sig, prc = nil, &block)
     Signal.trap(sig, prc, &block)
   end
   module_function :trap
@@ -617,7 +617,7 @@ module Kernel
   end
   module_function :trace_var
 
-  def untrace_var(name, cmd=undefined)
+  def untrace_var(name, cmd = undefined)
     # Truffle: not yet implemented
   end
   module_function :untrace_var
@@ -787,7 +787,7 @@ module Kernel
 
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
-      def chomp(separator=$/)
+      def chomp(separator = $/)
         last_line = Primitive.io_last_line_get(Primitive.caller_special_variables)
         result = Truffle::KernelOperations.check_last_line(last_line).chomp(separator)
         Primitive.io_last_line_set(Primitive.caller_special_variables, result)

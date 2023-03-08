@@ -141,7 +141,7 @@ class << ENV
   alias_method :key?, :include?
   alias_method :member?, :include?
 
-  def fetch(key, absent=undefined)
+  def fetch(key, absent = undefined)
     if block_given? and !Primitive.undefined?(absent)
       Primitive.warn_block_supersedes_default_value_argument
     end

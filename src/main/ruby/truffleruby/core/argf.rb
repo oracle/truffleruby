@@ -125,7 +125,7 @@ module Truffle
     #
     # @see  #gets.
     #
-    def each_line(sep=$/)
+    def each_line(sep = $/)
       return to_enum :each_line, sep unless block_given?
       return nil unless advance!
 
@@ -283,7 +283,7 @@ module Truffle
     # The mechanism does track the line numbers,
     # and updates $. accordingly.
     #
-    def gets(sep=$/)
+    def gets(sep = $/)
       while advance!
         line = @stream.gets(sep)
 
@@ -375,7 +375,7 @@ module Truffle
     # is provided, as by default, a String with the data is
     # returned instead.
     #
-    def read(bytes=nil, output=nil)
+    def read(bytes = nil, output = nil)
       # The user might try to pass in nil, so we have to check here
       if Primitive.nil? output
         output = default_value
@@ -454,11 +454,11 @@ module Truffle
     end
     private :getpartial
 
-    def readpartial(bytes, output=nil)
+    def readpartial(bytes, output = nil)
       getpartial(bytes, output, true)
     end
 
-    def read_nonblock(bytes, output=nil, exception: true)
+    def read_nonblock(bytes, output = nil, exception: true)
       getpartial(bytes, output, false, exception: exception)
     end
 
@@ -470,7 +470,7 @@ module Truffle
     #
     # @see  #gets
     #
-    def readline(sep=$/)
+    def readline(sep = $/)
       raise EOFError, 'ARGF at end' unless advance!
 
       if line = gets(sep)
@@ -488,7 +488,7 @@ module Truffle
     #
     # @see  #gets
     #
-    def readlines(sep=$/)
+    def readlines(sep = $/)
       return [] unless advance!
 
       lines = []

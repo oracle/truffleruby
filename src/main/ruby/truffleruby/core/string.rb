@@ -41,7 +41,7 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
-  def byteslice(index_or_range, length=undefined)
+  def byteslice(index_or_range, length = undefined)
     # Handles the (int index) and (int index, int length) forms.
     str = Primitive.string_byte_substring self, index_or_range, length
     return str unless Primitive.undefined?(str)
@@ -91,7 +91,7 @@ class String
     bytesize == 0
   end
 
-  def chomp(separator=$/)
+  def chomp(separator = $/)
     str = Primitive.dup_as_string_instance(self)
     str.chomp!(separator) || str
   end
@@ -185,7 +185,7 @@ class String
     Primitive.dup_as_string_instance(self).reverse!
   end
 
-  def partition(pattern=nil)
+  def partition(pattern = nil)
     return super() if Primitive.nil?(pattern) && block_given?
 
     if Primitive.object_kind_of?(pattern, Regexp)
@@ -273,7 +273,7 @@ class String
     ret
   end
 
-  def split(pattern=nil, limit=undefined, &block)
+  def split(pattern = nil, limit = undefined, &block)
     Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
   end
 
@@ -307,7 +307,7 @@ class String
     str.swapcase!(*options) || str
   end
 
-  def to_i(base=10)
+  def to_i(base = 10)
     base = Truffle::Type.coerce_to base, Integer, :to_int
 
     if base < 0 || base == 1 || base > 36
@@ -337,7 +337,7 @@ class String
     self
   end
 
-  def encode!(to=undefined, from=undefined, **options)
+  def encode!(to = undefined, from = undefined, **options)
     Primitive.check_mutable_string self
 
     if !Primitive.undefined?(to)
@@ -413,7 +413,7 @@ class String
     dup.force_encoding(Encoding::BINARY)
   end
 
-  def encode(to=undefined, from=undefined, **options)
+  def encode(to = undefined, from = undefined, **options)
     dup.encode! to, from, **options
   end
 
@@ -558,7 +558,7 @@ class String
     end
   end
 
-  def upto(stop, exclusive=false)
+  def upto(stop, exclusive = false)
     return to_enum :upto, stop, exclusive unless block_given?
     stop = StringValue(stop)
 
@@ -596,7 +596,7 @@ class String
     self
   end
 
-  def sub(pattern, replacement=undefined, &block)
+  def sub(pattern, replacement = undefined, &block)
     s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       raise ArgumentError, "method '#{__method__}': given 1, expected 2"
@@ -609,7 +609,7 @@ class String
     s
   end
 
-  def sub!(pattern, replacement=undefined, &block)
+  def sub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
       raise ArgumentError, "method '#{__method__}': given 1, expected 2"
     end
@@ -627,7 +627,7 @@ class String
     end
   end
 
-  def slice!(one, two=undefined)
+  def slice!(one, two = undefined)
     Primitive.check_mutable_string self
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
@@ -688,7 +688,7 @@ class String
     self
   end
 
-  def chomp!(sep=undefined)
+  def chomp!(sep = undefined)
     Primitive.check_mutable_string self
 
     if Primitive.undefined?(sep)
@@ -754,7 +754,7 @@ class String
     Primitive.string_substring(self, 0, 1)
   end
 
-  def each_line(sep=$/, chomp: false)
+  def each_line(sep = $/, chomp: false)
     unless block_given?
       return to_enum(:each_line, sep, chomp: chomp)
     end
@@ -832,7 +832,7 @@ class String
     self
   end
 
-  def lines(sep=$/, chomp: false, &block)
+  def lines(sep = $/, chomp: false, &block)
     if block_given?
       each_line(sep, chomp: chomp, &block)
     else
@@ -841,7 +841,7 @@ class String
   end
 
 
-  def gsub(pattern, replacement=undefined, &block)
+  def gsub(pattern, replacement = undefined, &block)
     s = Primitive.dup_as_string_instance(self)
     if Primitive.undefined?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
@@ -854,7 +854,7 @@ class String
     s
   end
 
-  def gsub!(pattern, replacement=undefined, &block)
+  def gsub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
       return to_enum(:gsub!, pattern, replacement)
     end
@@ -872,7 +872,7 @@ class String
     end
   end
 
-  def match(pattern, pos=0)
+  def match(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
 
     result = if block_given?
@@ -886,7 +886,7 @@ class String
     result
   end
 
-  def match?(pattern, pos=0)
+  def match?(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
     pattern.match? self, pos
   end
@@ -934,7 +934,7 @@ class String
     self
   end
 
-  def []=(index, count_or_replacement, replacement=undefined)
+  def []=(index, count_or_replacement, replacement = undefined)
     Primitive.check_mutable_string self
 
     if Primitive.undefined?(replacement)
@@ -1014,7 +1014,7 @@ class String
     result
   end
 
-  def index(str, start=undefined)
+  def index(str, start = undefined)
     if Primitive.undefined?(start)
       start = 0
     else
@@ -1059,7 +1059,7 @@ class String
     self
   end
 
-  def rindex(sub, finish=undefined)
+  def rindex(sub, finish = undefined)
     if Primitive.undefined?(finish)
       finish = size
     else

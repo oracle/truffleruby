@@ -22,7 +22,7 @@ module Digest
       digest.bubblebabble
     end
 
-    def bubblebabble(message=NO_MESSAGE)
+    def bubblebabble(message = NO_MESSAGE)
       Digest.bubblebabble(digest(message))
     end
 

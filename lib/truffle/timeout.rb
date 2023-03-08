@@ -180,7 +180,7 @@ end
 # Defined for backwards compatibility with earlier versions of timeout.rb, see
 # Timeout#timeout.
 
-def timeout(n, e=Timeout::Error, &block) # :nodoc:
+def timeout(n, e = Timeout::Error, &block) # :nodoc:
   Timeout.timeout(n, e, &block)
 end
 

@@ -399,7 +399,7 @@ class Array
     size == 0
   end
 
-  def fetch(idx, default=undefined)
+  def fetch(idx, default = undefined)
     orig = idx
     idx = Primitive.rb_num2int idx
 
@@ -420,7 +420,7 @@ class Array
     at(idx)
   end
 
-  private def fill_internal(a=undefined, b=undefined, c=undefined)
+  private def fill_internal(a = undefined, b = undefined, c = undefined)
     Primitive.check_frozen self
 
     if block_given?
@@ -492,7 +492,7 @@ class Array
     Array.new self[0, n]
   end
 
-  def flatten(level=-1)
+  def flatten(level = -1)
     level = Primitive.rb_num2int level
     return Array.new(self) if level == 0
 
@@ -501,7 +501,7 @@ class Array
     out
   end
 
-  def flatten!(level=-1)
+  def flatten!(level = -1)
     Primitive.check_frozen self
 
     level = Primitive.rb_num2int level
@@ -572,7 +572,7 @@ class Array
   end
   Truffle::Graal.always_split instance_method(:hash)
 
-  def find_index(obj=undefined)
+  def find_index(obj = undefined)
     super
   end
   alias_method :index, :find_index
@@ -650,7 +650,7 @@ class Array
     common.keys
   end
 
-  def join(sep=nil)
+  def join(sep = nil)
     return ''.encode(Encoding::US_ASCII) if size == 0
 
     out = +''
@@ -702,7 +702,7 @@ class Array
     self
   end
 
-  def last(n=undefined)
+  def last(n = undefined)
     if Primitive.undefined?(n)
       return at(-1)
     elsif size < 1
@@ -718,7 +718,7 @@ class Array
     Array.new self[-n..-1]
   end
 
-  def permutation(num=undefined, &block)
+  def permutation(num = undefined, &block)
     unless block_given?
       return to_enum(:permutation, num) do
         permutation_size(num)
@@ -756,11 +756,11 @@ class Array
     self
   end
 
-  def max(n=undefined)
+  def max(n = undefined)
     super(n)
   end
 
-  def min(n=undefined)
+  def min(n = undefined)
     super(n)
   end
 
@@ -998,7 +998,7 @@ class Array
     self
   end
 
-  def rindex(obj=undefined)
+  def rindex(obj = undefined)
     if Primitive.undefined?(obj)
       return to_enum(:rindex, obj) unless block_given?
 
@@ -1023,7 +1023,7 @@ class Array
     nil
   end
 
-  def rotate(n=1)
+  def rotate(n = 1)
     n = Primitive.rb_num2int n
 
     len = self.length
@@ -1034,7 +1034,7 @@ class Array
     Primitive.array_rotate self, n
   end
 
-  def rotate!(n=1)
+  def rotate!(n = 1)
     n = Primitive.rb_num2int n
     Primitive.check_frozen self
 
@@ -1612,7 +1612,7 @@ class Array
     self
   end
 
-  def slice!(start, length=undefined)
+  def slice!(start, length = undefined)
     Primitive.check_frozen self
 
     if Primitive.undefined? length

@@ -73,7 +73,7 @@ class Regexp
     end
   end
 
-  def self.last_match(index=nil)
+  def self.last_match(index = nil)
     match = Primitive.regexp_last_match_get(Primitive.caller_special_variables)
     if index
       if match
@@ -130,7 +130,7 @@ class Regexp
   end
   Truffle::Graal.always_split(method(:union))
 
-  def self.new(pattern, opts=undefined, encoding=nil)
+  def self.new(pattern, opts = undefined, encoding = nil)
     if Primitive.object_kind_of?(pattern, Regexp)
       warn 'flags ignored' unless Primitive.undefined?(opts)
       opts = pattern.options
@@ -171,7 +171,7 @@ class Regexp
     result.begin(0) if result
   end
 
-  def match(str, pos=0)
+  def match(str, pos = 0)
     result = Truffle::RegexpOperations.match(self, str, pos)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, result)
 

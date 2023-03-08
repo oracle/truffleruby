@@ -339,7 +339,7 @@ end
 
 class ConditionVariable
 
-  def wait(mutex, timeout=nil)
+  def wait(mutex, timeout = nil)
     if timeout
       raise ArgumentError, 'Timeout must be positive' if timeout < 0
       timeout = timeout * 1_000_000_000
