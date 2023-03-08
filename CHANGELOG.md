@@ -92,6 +92,7 @@ Compatibility:
 * Add `Process._fork` (#2733, @horakivo).
 * Update to JCodings 1.0.58 and Joni 2.1.44 (@eregon).
 * Add `MatchData#match` and `MatchData#match_length` (#2733, @horakivo).
+* Add `Thread::Backtrace.limit` method (#2733, @andrykonchin).
 
 Performance:
 

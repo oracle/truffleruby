@@ -331,6 +331,12 @@ end
 
 Primitive.thread_set_group Thread.current, ThreadGroup::Default
 
+class Thread::Backtrace
+  def self.limit
+    Primitive.exception_backtrace_limit
+  end
+end
+
 class Thread::Backtrace::Location
   def inspect
     to_s.inspect
