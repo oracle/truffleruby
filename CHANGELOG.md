@@ -84,6 +84,7 @@ Compatibility:
 * `Fiber.current` and `Fiber#transfer` are available without `require 'fiber'` like in CRuby 3.1 (#2733, @eregon).
 * Add `freeze` keyword argument to `Marshal.load` (#2733, @andrykonchin).
 * Add `Integer.try_convert` (#2733, @moste00, @eregon).
+* Update `$LOAD_PATH.resolve_feature_path` to return `nil` instead of raising `LoadError` when feature isn't found (#2733, @andrykonchin).
 
 Performance:
 

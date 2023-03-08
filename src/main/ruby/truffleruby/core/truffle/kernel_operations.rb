@@ -55,12 +55,10 @@ module Truffle
 
     def $LOAD_PATH.resolve_feature_path(file_name)
       path = Truffle::Type.coerce_to_path(file_name)
-      _status, path, ext = Truffle::FeatureLoader.find_feature_or_file(path, false)
-      if Primitive.nil?(ext)
-        raise Truffle::KernelOperations.load_error(file_name)
-      else
-        [ext, path]
-      end
+      status, path, ext = Truffle::FeatureLoader.find_feature_or_file(path, false)
+
+      return nil if status == :not_found
+      [ext, path]
     end
 
     # The runtime needs to access these values, so we want them to be set in the variable storage.
