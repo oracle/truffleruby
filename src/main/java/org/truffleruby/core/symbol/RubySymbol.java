@@ -50,7 +50,7 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     RubySymbol(String string, TruffleString tstring, RubyEncoding encoding, long id) {
         assert tstring.isManaged();
-        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isCompatibleToUncached(encoding.tencoding);
         this.encoding = encoding;
         this.string = string;
         this.tstring = tstring;

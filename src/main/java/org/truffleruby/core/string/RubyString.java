@@ -51,19 +51,19 @@ public final class RubyString extends RubyDynamicObject {
             AbstractTruffleString tstring,
             RubyEncoding rubyEncoding) {
         super(rubyClass, shape);
-        assert tstring.isCompatibleTo(rubyEncoding.tencoding);
+        assert tstring.isCompatibleToUncached(rubyEncoding.tencoding);
         this.frozen = frozen;
         this.tstring = tstring;
         this.encoding = rubyEncoding;
     }
 
     public void setTString(AbstractTruffleString tstring) {
-        assert tstring.isCompatibleTo(getEncodingUncached().tencoding);
+        assert tstring.isCompatibleToUncached(getEncodingUncached().tencoding);
         this.tstring = tstring;
     }
 
     public void setTString(AbstractTruffleString tstring, RubyEncoding encoding) {
-        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isCompatibleToUncached(encoding.tencoding);
         this.tstring = tstring;
         this.encoding = encoding;
     }

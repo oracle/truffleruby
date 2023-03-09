@@ -85,7 +85,8 @@ public abstract class EncodingNodes {
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding,
                 @Cached("firstEncoding") RubyEncoding cachedEncoding) {
-            assert first.isCompatibleTo(firstEncoding.tencoding) && second.isCompatibleTo(secondEncoding.tencoding);
+            assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
+                    second.isCompatibleToUncached(secondEncoding.tencoding);
             return cachedEncoding;
         }
 
@@ -96,7 +97,8 @@ public abstract class EncodingNodes {
                 RubyEncoding firstEncoding,
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding) {
-            assert first.isCompatibleTo(firstEncoding.tencoding) && second.isCompatibleTo(secondEncoding.tencoding);
+            assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
+                    second.isCompatibleToUncached(secondEncoding.tencoding);
             return firstEncoding;
         }
 
@@ -142,7 +144,8 @@ public abstract class EncodingNodes {
                 @Cached("firstEncoding") RubyEncoding cachedFirstEncoding,
                 @Cached("secondEncoding") RubyEncoding cachedSecondEncoding,
                 @Cached("compatibleEncodingForStrings(first, firstEncoding, second, secondEncoding)") RubyEncoding negotiatedEncoding) {
-            assert first.isCompatibleTo(firstEncoding.tencoding) && second.isCompatibleTo(secondEncoding.tencoding);
+            assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
+                    second.isCompatibleToUncached(secondEncoding.tencoding);
             return negotiatedEncoding;
         }
 
@@ -152,7 +155,8 @@ public abstract class EncodingNodes {
                 RubyEncoding firstEncoding,
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding) {
-            assert first.isCompatibleTo(firstEncoding.tencoding) && second.isCompatibleTo(secondEncoding.tencoding);
+            assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
+                    second.isCompatibleToUncached(secondEncoding.tencoding);
             return compatibleEncodingForStrings(first, firstEncoding, second, secondEncoding);
         }
 

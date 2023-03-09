@@ -28,7 +28,7 @@ abstract class TStringWithEncodingBase {
     public final RubyEncoding encoding;
 
     protected TStringWithEncodingBase(AbstractTruffleString tstring, RubyEncoding encoding) {
-        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isCompatibleToUncached(encoding.tencoding);
         this.tstring = tstring;
         this.encoding = encoding;
     }

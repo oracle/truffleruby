@@ -45,7 +45,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     private Pointer nativeString = null;
 
     ImmutableRubyString(TruffleString tstring, RubyEncoding encoding) {
-        assert tstring.isCompatibleTo(encoding.tencoding);
+        assert tstring.isCompatibleToUncached(encoding.tencoding);
         assert tstring.isManaged();
         this.tstring = tstring;
         this.encoding = encoding;

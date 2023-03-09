@@ -110,7 +110,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     }
 
     public void setValue(TruffleString value) {
-        assert value.isCompatibleTo(encoding.tencoding);
+        assert value.isCompatibleToUncached(encoding.tencoding);
         this.value = value;
     }
 }
