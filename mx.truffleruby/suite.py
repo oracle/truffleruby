@@ -60,10 +60,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
-                "version": "2.1.41"
+                "version": "2.1.44"
             },
-            "digest": "sha512:88728bb3b6cf8b385e3a4639981ab8a54e977291cbb1d8b60fddd3a3381d9d5f356faa46b6b15b9ccf6ed4a2a42552152a254bfeab60f8b2ddac4959300212ac",
-            "sourceDigest": "sha512:8502efcc9ab4d31aa92eb9c279f02b9cb1ab2d9c65660635a84d9ef6e773b05ebae026043ed7749a41dc0ee8b5f822d2e88ba44b3f6e244b145d61f2095e8d77",
+            "digest": "sha512:59b901333d93b8eaf0c28a2d269d159e6806701902505113148c4df6b2ade973e97f9b888b8b5b4dff4d3c667b4594eeee8133f4260e7f1f3d9af1a031b9cab4",
+            "sourceDigest": "sha512:773051c47893799ecc0b916b80c4dedac0efe2988743d455ce8529460aed2d7664d4b12cd51e449a8b20ac0c37e32ead89d72f6acf4f6a780268b55fdd67e3cf",
             "license": ["MIT"],
         },
 
@@ -71,10 +71,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.jcodings",
                 "artifactId": "jcodings",
-                "version": "1.0.55"
+                "version": "1.0.58"
             },
-            "digest": "sha512:791c1442ca0aad9132f5d2d641f9bacf5b461e11fa2f8d2010af0de77ee2629a330c739004699bb987e331798e1eea06b5b6b15b7e7dd6d41f3322edce805d6b",
-            "sourceDigest": "sha512:8935def3d670972d1d82a981fe3fbd999abffac07350c46419f1e542c4529f00c949e3eef442321fce23941b648cb09de157114ec751c0ef85c7ccfa6b719445",
+            "digest": "sha512:625210aa07d1e08bf2f5fdc9da6c491a4e5a56e7db297cba1aa73636670ac1d62f3fd763716ef6ede862456b17169272ed9c8461d07100f95262163dc9c18ef8",
+            "sourceDigest": "sha512:d0f883f658310f7ad091aea08df28f1f5fe12080d6cb266cd91aec7e34cda1d57736d32618e8632b329854367d6e4d5fc91b5eb8ac9b823b26113fae3f75f50c",
             "license": ["MIT"],
         },
 
