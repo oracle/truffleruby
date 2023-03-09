@@ -49,8 +49,6 @@ This works on both TruffleRuby Native and JVM.
 
 Sending `SIGALRM` to a TruffleRuby process will print the Ruby backtraces of all threads.
 
-Note: Printing the Ruby backtraces of all threads significantly lowers performance, so it should only be used for debugging.
-
 ### More Information in Backtraces
 
 TruffleRuby tries to match MRI's backtrace format as closely as possible.
