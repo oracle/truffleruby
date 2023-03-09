@@ -88,6 +88,7 @@ Compatibility:
 * Support optional `:in` keyword argument for `Time.now` and `Time.new` (#2733, @andrykonchin).
 * Add optional `Hash` argument to `Enumerable#tally` (#2733, @andrykonchin).
 * Update `$LOAD_PATH.resolve_feature_path` to return `nil` instead of raising `LoadError` when feature isn't found (#2733, @andrykonchin).
+* Add `objspace/trace` file (#2733, @andrykonchin).
 
 Performance:
 
