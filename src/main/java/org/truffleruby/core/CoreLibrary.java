@@ -1013,6 +1013,7 @@ public class CoreLibrary {
             "/core/truffle/ctype.rb",
             "/core/truffle/integer_operations.rb",
             "/core/integer.rb",
+            "/core/match_data.rb",
             "/core/regexp.rb",
             "/core/transcoding.rb",
             "/core/encoding.rb",
@@ -1058,7 +1059,6 @@ public class CoreLibrary {
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb",
-            "/core/match_data.rb",
             POST_BOOT_FILE
     };
 

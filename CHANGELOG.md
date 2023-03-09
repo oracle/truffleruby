@@ -89,6 +89,7 @@ Compatibility:
 * Add optional `Hash` argument to `Enumerable#tally` (#2733, @andrykonchin).
 * Update `$LOAD_PATH.resolve_feature_path` to return `nil` instead of raising `LoadError` when feature isn't found (#2733, @andrykonchin).
 * Add `objspace/trace` file (#2733, @andrykonchin).
+* Add `MatchData#match` and `MatchData#match_length` (#2733, @horakivo).
 
 Performance:
 
