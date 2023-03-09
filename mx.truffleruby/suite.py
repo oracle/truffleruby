@@ -56,17 +56,6 @@ suite = {
 
         # ------------- Libraries -------------
 
-        "JONI": {
-            "maven": {
-                "groupId": "org.jruby.joni",
-                "artifactId": "joni",
-                "version": "2.1.44"
-            },
-            "digest": "sha512:59b901333d93b8eaf0c28a2d269d159e6806701902505113148c4df6b2ade973e97f9b888b8b5b4dff4d3c667b4594eeee8133f4260e7f1f3d9af1a031b9cab4",
-            "sourceDigest": "sha512:773051c47893799ecc0b916b80c4dedac0efe2988743d455ce8529460aed2d7664d4b12cd51e449a8b20ac0c37e32ead89d72f6acf4f6a780268b55fdd67e3cf",
-            "license": ["MIT"],
-        },
-
         "JCODINGS": {
             "maven": {
                 "groupId": "org.jruby.jcodings",
@@ -75,6 +64,17 @@ suite = {
             },
             "digest": "sha512:625210aa07d1e08bf2f5fdc9da6c491a4e5a56e7db297cba1aa73636670ac1d62f3fd763716ef6ede862456b17169272ed9c8461d07100f95262163dc9c18ef8",
             "sourceDigest": "sha512:d0f883f658310f7ad091aea08df28f1f5fe12080d6cb266cd91aec7e34cda1d57736d32618e8632b329854367d6e4d5fc91b5eb8ac9b823b26113fae3f75f50c",
+            "license": ["MIT"],
+        },
+
+        "JONI": {
+            "maven": {
+                "groupId": "org.jruby.joni",
+                "artifactId": "joni",
+                "version": "2.1.44"
+            },
+            "digest": "sha512:59b901333d93b8eaf0c28a2d269d159e6806701902505113148c4df6b2ade973e97f9b888b8b5b4dff4d3c667b4594eeee8133f4260e7f1f3d9af1a031b9cab4",
+            "sourceDigest": "sha512:773051c47893799ecc0b916b80c4dedac0efe2988743d455ce8529460aed2d7664d4b12cd51e449a8b20ac0c37e32ead89d72f6acf4f6a780268b55fdd67e3cf",
             "license": ["MIT"],
         },
 
