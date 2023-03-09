@@ -12,7 +12,9 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
@@ -72,8 +74,11 @@ public class Encodings {
             if (encoding == USASCIIEncoding.INSTANCE) {
                 rubyEncoding = US_ASCII;
             } else {
-                final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(
-                        TStringConstants.TSTRING_CONSTANTS.get(encoding.toString()), US_ASCII);
+                TruffleString tstring = TStringConstants.TSTRING_CONSTANTS.get(encoding.toString());
+                if (tstring == null) {
+                    throw CompilerDirectives.shouldNotReachHere("no TStringConstants for " + encoding);
+                }
+                final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(tstring, US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
             }
             encodings[encoding.getIndex()] = rubyEncoding;
