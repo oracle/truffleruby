@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.jcodings.Config;
 import org.jcodings.EncodingDB;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -863,4 +864,21 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "encoding_unicode_version")
+    public abstract static class UnicodeVersionNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyString getUnicodeVersion(
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, Config.UNICODE_VERSION_STRING, Encodings.UTF_8);
+        }
+    }
+
+    @Primitive(name = "encoding_unicode_emoji_version")
+    public abstract static class UnicodeEmojiVersionNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyString getUnicodeEmojiVersion(
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            return createString(fromJavaStringNode, Config.UNICODE_EMOJI_VERSION_STRING, Encodings.UTF_8);
+        }
+    }
 }
