@@ -1058,6 +1058,7 @@ public class CoreLibrary {
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb",
+            "/core/match_data.rb",
             POST_BOOT_FILE
     };
 
