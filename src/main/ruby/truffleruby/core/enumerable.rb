@@ -284,17 +284,23 @@ module Enumerable
     end
   end
 
-  def tally
-    h = {}
+  def tally(hash = undefined)
+    if Primitive.undefined?(hash)
+      hash = {}
+    else
+      hash = Truffle::Type.rb_convert_type(hash, Hash, :to_hash)
+      Primitive.check_frozen(hash)
+    end
+
     each do
       e = Primitive.single_block_arg
-      if h.key?(e)
-        h[e] += 1
+      if hash.key?(e)
+        hash[e] += 1
       else
-        h[e] = 1
+        hash[e] = 1
       end
     end
-    h
+    hash
   end
 
   def to_a(*args, **kwargs)

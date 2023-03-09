@@ -86,6 +86,7 @@ Compatibility:
 * Add `freeze` keyword argument to `Marshal.load` (#2733, @andrykonchin).
 * Add `Integer.try_convert` (#2733, @moste00, @eregon).
 * Support optional `:in` keyword argument for `Time.now` and `Time.new` (#2733, @andrykonchin).
+* Add optional `Hash` argument to `Enumerable#tally` (#2733, @andrykonchin).
 
 Performance:
 
