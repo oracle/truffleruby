@@ -767,7 +767,7 @@ module Kernel
   module_function :at_exit
 
   def fork
-    raise NotImplementedError, 'fork is not available'
+    Process._fork
   end
   module_function :fork
   Primitive.method_unimplement method(:fork)
