@@ -374,7 +374,7 @@ class Pathname
   # entries than absolutely necessary, but without accessing the filesystem,
   # this can't be avoided.  See #realpath.
   #
-  def cleanpath(consider_symlink=false)
+  def cleanpath(consider_symlink = false)
     if consider_symlink
       cleanpath_conservative
     else
@@ -478,7 +478,7 @@ class Pathname
   # All components of the pathname must exist when this method is
   # called.
   #
-  def realpath(basedir=nil)
+  def realpath(basedir = nil)
     self.class.new(File.realpath(@path, basedir))
   end
 
@@ -488,7 +488,7 @@ class Pathname
   #
   # The last component of the real pathname can be nonexistent.
   #
-  def realdirpath(basedir=nil)
+  def realdirpath(basedir = nil)
     self.class.new(File.realdirpath(@path, basedir))
   end
 
@@ -707,7 +707,7 @@ class Pathname
   #
   # This method has existed since 1.8.1.
   #
-  def children(with_directory=true)
+  def children(with_directory = true)
     with_directory = false if @path == '.'
     result = []
     Dir.foreach(@path) do |e|
@@ -747,7 +747,7 @@ class Pathname
   #   #   #<Pathname:src>
   #   #   #<Pathname:man>
   #
-  def each_child(with_directory=true, &b)
+  def each_child(with_directory = true, &b)
     children(with_directory).each(&b)
   end
 

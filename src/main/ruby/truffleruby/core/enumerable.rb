@@ -592,7 +592,7 @@ module Enumerable
     false
   end
 
-  def cycle(many=nil)
+  def cycle(many = nil)
     unless block_given?
       return to_enum(:cycle, many) do
         Truffle::EnumerableOperations.cycle_size(enumerator_size, many)
@@ -705,7 +705,7 @@ module Enumerable
     self
   end
 
-  def find(ifnone=nil)
+  def find(ifnone = nil)
     return to_enum(:find, ifnone) unless block_given?
 
     each do
@@ -732,7 +732,7 @@ module Enumerable
   alias_method :select, :find_all
   alias_method :filter, :find_all
 
-  def find_index(value=undefined)
+  def find_index(value = undefined)
     if Primitive.undefined? value
       return to_enum(:find_index) unless block_given?
 
@@ -754,7 +754,7 @@ module Enumerable
     nil
   end
 
-  def first(n=undefined)
+  def first(n = undefined)
     return __take__(n) unless Primitive.undefined?(n)
     each do
       o = Primitive.single_block_arg

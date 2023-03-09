@@ -45,7 +45,7 @@ class Enumerator
     self
   end
 
-  private def initialize(receiver_or_size=undefined, method_name=:each, *method_args, **method_kwargs, &block)
+  private def initialize(receiver_or_size = undefined, method_name = :each, *method_args, **method_kwargs, &block)
     size = nil
 
     if block_given?
@@ -191,7 +191,7 @@ class Enumerator
     @size.respond_to?(:call) ? @size.call(*@args, **@kwargs) : @size
   end
 
-  def with_index(offset=0)
+  def with_index(offset = 0)
     if offset
       offset = Truffle::Type.coerce_to offset, Integer, :to_int
     else
@@ -293,7 +293,7 @@ class Enumerator
     class StopLazyError < Exception # rubocop:disable Lint/InheritException
     end
 
-    def initialize(receiver, size=nil)
+    def initialize(receiver, size = nil)
       raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
       Primitive.check_frozen self
 
@@ -311,7 +311,7 @@ class Enumerator
     end
     private :initialize
 
-    def to_enum(method_name=:each, *method_args, **method_kwargs, &block)
+    def to_enum(method_name = :each, *method_args, **method_kwargs, &block)
       size = block_given? ? block : nil
       ret = Lazy.allocate
       method_name = Truffle::EnumeratorOperations.lazy_method(method_name)
@@ -508,7 +508,7 @@ class Enumerator
     end
     alias_method :collect_concat, :flat_map
 
-    def with_index(offset=0, &block)
+    def with_index(offset = 0, &block)
       offset = if Primitive.nil?(offset)
                  0
                else
@@ -668,7 +668,7 @@ class Enumerator::ArithmeticSequence < Enumerator
     @exclude_end
   end
 
-  def last(n=undefined)
+  def last(n = undefined)
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
 
     raise RangeError, 'cannot get the last element of endless arithmetic sequence' if Primitive.nil? to

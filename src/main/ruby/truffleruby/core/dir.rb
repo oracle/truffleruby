@@ -150,7 +150,7 @@ class Dir
     # screwing with ::File later (ie, fakefs)
     PrivateFile = ::File
 
-    def open(path, options=undefined)
+    def open(path, options = undefined)
       dir = new path, options
       if block_given?
         begin
@@ -167,7 +167,7 @@ class Dir
       each_child(*args).to_a
     end
 
-    def each_child(path, options=undefined)
+    def each_child(path, options = undefined)
       return to_enum(:each_child, path, options) unless block_given?
 
       open(path, options) do |dir|
@@ -177,7 +177,7 @@ class Dir
       end
     end
 
-    def entries(path, options=undefined)
+    def entries(path, options = undefined)
       ret = []
 
       open(path, options) do |dir|
@@ -253,7 +253,7 @@ class Dir
       glob patterns, base: base, sort: sort
     end
 
-    def glob(pattern, flags=0, base: nil, sort: true, &block)
+    def glob(pattern, flags = 0, base: nil, sort: true, &block)
       if Primitive.object_kind_of?(pattern, Array)
         patterns = pattern
       else

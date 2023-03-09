@@ -42,7 +42,7 @@ module Process
       new(*args)
     end
 
-    def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil)
+    def initialize(utime = nil, stime = nil, cutime = nil, cstime = nil)
       @utime = utime
       @stime = stime
       @cutime = cutime

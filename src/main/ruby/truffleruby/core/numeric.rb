@@ -177,7 +177,7 @@ class Numeric
   #
   # See also Integer#coerce
 
-  def math_coerce(other, error=:coerce_error)
+  def math_coerce(other, error = :coerce_error)
     other = Truffle::Interop.unbox_if_needed(other)
     return math_coerce_error(other, error) unless other.respond_to? :coerce
 

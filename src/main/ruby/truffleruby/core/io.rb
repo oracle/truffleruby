@@ -216,7 +216,7 @@ class IO
 
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count=nil, encoding=Encoding::BINARY)
+    def shift(count = nil, encoding = Encoding::BINARY)
       TruffleRuby.synchronized(self) do
         total = size
         total = count if count and count < total
@@ -320,7 +320,7 @@ class IO
     @mode = (@mode | FMODE_WRITABLE) & ~FMODE_READABLE
   end
 
-  def self.binread(file, length=nil, offset=0)
+  def self.binread(file, length = nil, offset = 0)
     raise ArgumentError, "Negative length #{length} given" if !Primitive.nil?(length) && length < 0
 
     File.open(file, 'r', encoding: 'ascii-8bit:-') do |f|
@@ -329,7 +329,7 @@ class IO
     end
   end
 
-  def self.binwrite(file, string, offset=nil, **options)
+  def self.binwrite(file, string, offset = nil, **options)
     default_mode = File::CREAT | File::RDWR | File::BINARY
     default_mode |= File::TRUNC unless offset
 
@@ -423,11 +423,11 @@ class IO
     end
   end
 
-  def self.copy_stream(from, to, max_length=nil, offset=nil)
+  def self.copy_stream(from, to, max_length = nil, offset = nil)
     StreamCopier.new(from, to, max_length, offset).run
   end
 
-  def self.foreach(name, separator=undefined, limit=undefined, **options, &block)
+  def self.foreach(name, separator = undefined, limit = undefined, **options, &block)
     return to_enum(:foreach, name, separator, limit, **options) unless block
 
     name = Truffle::Type.coerce_to_path name
@@ -472,7 +472,7 @@ class IO
     nil
   end
 
-  def self.readlines(name, separator=undefined, limit=undefined, **options)
+  def self.readlines(name, separator = undefined, limit = undefined, **options)
     lines = []
     foreach(name, separator, limit, **options) { |l| lines << l }
 
@@ -493,7 +493,7 @@ class IO
     end
   end
 
-  def self.write(file, string, offset=nil, **options)
+  def self.write(file, string, offset = nil, **options)
     if Primitive.nil?(options[:open_args])
       default_mode = File::CREAT | File::WRONLY
       default_mode |= File::TRUNC unless offset
@@ -513,11 +513,11 @@ class IO
     end
   end
 
-  def self.for_fd(fd, mode=nil, **options)
+  def self.for_fd(fd, mode = nil, **options)
     new fd, mode, **options
   end
 
-  def self.read(name, length=nil, offset=0, **options)
+  def self.read(name, length = nil, offset = 0, **options)
     offset = 0 if Primitive.nil? offset
     name = Truffle::Type.coerce_to_path name
 
@@ -565,7 +565,7 @@ class IO
     Truffle::Type.rb_check_convert_type obj, IO, :to_io
   end
 
-  def self.normalize_options(mode, perm, options, default_mode=nil)
+  def self.normalize_options(mode, perm, options, default_mode = nil)
     autoclose = true
 
     if mode
@@ -928,7 +928,7 @@ class IO
   #
   # Create a new IO associated with the given fd.
   #
-  def initialize(fd, mode=nil, **options)
+  def initialize(fd, mode = nil, **options)
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead', uplevel: 1
     end
@@ -1276,7 +1276,7 @@ class IO
     end
   end
 
-  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false, raise_error)
+  private def create_each_reader(sep_or_limit = $/, limit = nil, chomp = false, raise_error)
     ensure_open_and_readable
 
     if limit
@@ -1305,7 +1305,7 @@ class IO
     EachReader.new(self, @ibuffer, sep, limit, chomp)
   end
 
-  def each(sep_or_limit=$/, limit=nil, chomp: false, &block)
+  def each(sep_or_limit = $/, limit = nil, chomp: false, &block)
     return to_enum(:each, sep_or_limit, limit, chomp: chomp) unless block_given?
 
     each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
@@ -1406,7 +1406,7 @@ class IO
   # interpreted as a binary sequence of bytes (Array#pack
   # might be a useful way to build this string). On Unix
   # platforms, see fcntl(2) for details. Not implemented on all platforms.
-  def fcntl(command, arg=0)
+  def fcntl(command, arg = 0)
     ensure_open
 
     if !arg
@@ -1521,7 +1521,7 @@ class IO
     @ibuffer.getchar(self)
   end
 
-  def gets(sep_or_limit=$/, limit=nil, chomp: false)
+  def gets(sep_or_limit = $/, limit = nil, chomp: false)
     line = nil
     each_reader = create_each_reader(sep_or_limit, limit, chomp, false)
     return line if Primitive.nil? each_reader
@@ -1577,7 +1577,7 @@ class IO
   end
 
   # Normally only provided by io/nonblock
-  def nonblock(nonblock=true)
+  def nonblock(nonblock = true)
     prev_nonblock = self.nonblock?
     self.nonblock = nonblock
     begin
@@ -1691,7 +1691,7 @@ class IO
     write sprintf(fmt, *args)
   end
 
-  def read(length=nil, buffer=nil)
+  def read(length = nil, buffer = nil)
     ensure_open_and_readable
     buffer = StringValue(buffer) if buffer
 
@@ -1808,7 +1808,7 @@ class IO
 
   ##
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
-  def readline(sep_or_limit=$/, limit=nil, chomp: false)
+  def readline(sep_or_limit = $/, limit = nil, chomp: false)
     out = gets(sep_or_limit, limit, chomp: chomp)
     raise EOFError, 'end of file' unless out
     out
@@ -1822,7 +1822,7 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep_or_limit=$/, limit=nil, **options)
+  def readlines(sep_or_limit = $/, limit = nil, **options)
     chomp = options.fetch(:chomp, false)
     each_reader = create_each_reader(sep_or_limit, limit, chomp, true)
 
@@ -1879,7 +1879,7 @@ class IO
   # meets EAGAIN and EINTR by read system call, readpartial retry the system call.
   # The later means that readpartial is nonblocking-flag insensitive. It
   # blocks on the situation IO#sysread causes Errno::EAGAIN as if the fd is blocking mode.
-  def readpartial(size, buffer=nil)
+  def readpartial(size, buffer = nil)
     raise ArgumentError, 'negative string size' unless size >= 0
     ensure_open_and_readable
 
@@ -1922,7 +1922,7 @@ class IO
   #  f2.readlines[0]   #=> "This is line one\n"
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
-  def reopen(other, mode=undefined)
+  def reopen(other, mode = undefined)
     if other.respond_to?(:to_io) # reopen(IO)
       flush
 
@@ -2027,7 +2027,7 @@ class IO
   #  f = File.new("testfile")
   #  f.seek(-13, IO::SEEK_END)   #=> 0
   #  f.readline                  #=> "And so on...\n"
-  def seek(amount, whence=SEEK_SET)
+  def seek(amount, whence = SEEK_SET)
     flush
     reset_buffering
 
@@ -2222,7 +2222,7 @@ class IO
   #
   #  @todo  Improve reading into provided buffer.
   #
-  def sysread(number_of_bytes, buffer=undefined)
+  def sysread(number_of_bytes, buffer = undefined)
     ensure_open_and_readable
     flush
     raise IOError unless @ibuffer.empty?
@@ -2245,7 +2245,7 @@ class IO
   #  f = File.new("testfile")
   #  f.sysseek(-13, IO::SEEK_END)   #=> 53
   #  f.sysread(10)                  #=> "And so on."
-  def sysseek(amount, whence=SEEK_SET)
+  def sysseek(amount, whence = SEEK_SET)
     ensure_open
     raise IOError unless buffer_empty?
 

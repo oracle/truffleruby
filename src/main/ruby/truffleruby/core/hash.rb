@@ -181,7 +181,7 @@ class Hash
     reject! { |_k, v| Primitive.nil? v }
   end
 
-  def default(key=undefined)
+  def default(key = undefined)
     if default_proc and !Primitive.undefined?(key)
       default_proc.call(self, key)
     else
@@ -224,7 +224,7 @@ class Hash
     new_hash
   end
 
-  def fetch(key, default=undefined)
+  def fetch(key, default = undefined)
     value = Primitive.hash_get_or_undefined(self, key)
     unless Primitive.undefined?(value)
       return value
@@ -246,7 +246,7 @@ class Hash
     end
   end
 
-  def flatten(level=1)
+  def flatten(level = 1)
     to_a.flatten(level)
   end
 

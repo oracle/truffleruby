@@ -41,7 +41,7 @@ module Kernel
   Truffle::Graal.always_split instance_method(:catch)
   module_function :catch
 
-  def throw(tag, value=nil)
+  def throw(tag, value = nil)
     tags = Primitive.fiber_get_catch_tags
 
     tags.each do |c|

@@ -129,7 +129,7 @@ class Float < Numeric
   alias_method :angle, :arg
   alias_method :phase, :arg
 
-  def rationalize(eps=undefined)
+  def rationalize(eps = undefined)
     if Primitive.undefined?(eps)
       f, n = Math.frexp self
       f = Math.ldexp(f, Float::MANT_DIG).to_i
@@ -141,7 +141,7 @@ class Float < Numeric
     end
   end
 
-  def ceil(ndigits=undefined)
+  def ceil(ndigits = undefined)
     if Primitive.undefined?(ndigits)
       Primitive.float_ceil(self)
     else
@@ -167,7 +167,7 @@ class Float < Numeric
     end
   end
 
-  def floor(ndigits=undefined)
+  def floor(ndigits = undefined)
     if Primitive.undefined?(ndigits)
       Primitive.float_floor(self)
     else
@@ -193,7 +193,7 @@ class Float < Numeric
     end
   end
 
-  def round(ndigits=undefined, half: nil)
+  def round(ndigits = undefined, half: nil)
     ndigits = if Primitive.undefined?(ndigits)
                 nil
               else

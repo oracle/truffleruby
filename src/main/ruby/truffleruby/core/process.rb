@@ -69,7 +69,7 @@ module Process
 
   FFI = Truffle::FFI
 
-  def self.exit(code=0)
+  def self.exit(code = 0)
     case code
     when true
       code = 0
@@ -82,7 +82,7 @@ module Process
     raise SystemExit.new(code, 'exit')
   end
 
-  def self.exit!(code=1)
+  def self.exit!(code = 1)
     case code
     when true
       code = 0
@@ -102,7 +102,7 @@ module Process
 
   module_function
 
-  def clock_getres(id, unit=:float_second)
+  def clock_getres(id, unit = :float_second)
     res = case id
           when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
                CLOCK_MONOTONIC
@@ -137,7 +137,7 @@ module Process
     end
   end
 
-  def clock_gettime(id, unit=:float_second)
+  def clock_gettime(id, unit = :float_second)
     if Primitive.object_kind_of?(id, Symbol)
       id = case id
            when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
@@ -197,7 +197,7 @@ module Process
     title
   end
 
-  def setrlimit(resource, cur_limit, max_limit=undefined)
+  def setrlimit(resource, cur_limit, max_limit = undefined)
     resource =  Truffle::ProcessOperations.coerce_rlimit_resource(resource)
     cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
@@ -299,7 +299,7 @@ module Process
     pids.length
   end
 
-  def self.abort(msg=nil)
+  def self.abort(msg = nil)
     if msg
       msg = StringValue(msg)
       $stderr.puts(msg)
@@ -552,7 +552,7 @@ module Process
   #
   # TODO: Support other options such as WUNTRACED? --rue
   #
-  def wait2(input_pid=-1, flags=nil)
+  def wait2(input_pid = -1, flags = nil)
     status = Truffle::ProcessOperations.wait(input_pid, flags, true, true)
     if status
       [status.pid, status]
@@ -587,7 +587,7 @@ module Process
     statuses
   end
 
-  def wait(pid=-1, flags=nil)
+  def wait(pid = -1, flags = nil)
     Truffle::ProcessOperations.wait(pid, flags, true, true)&.pid
   end
 
@@ -643,7 +643,7 @@ module Process
 
     attr_reader :exitstatus, :termsig, :stopsig
 
-    def initialize(pid=nil, exitstatus=nil, termsig=nil, stopsig=nil, raw_status=nil)
+    def initialize(pid = nil, exitstatus = nil, termsig = nil, stopsig = nil, raw_status = nil)
       @pid = pid
       @exitstatus = exitstatus
       @termsig = termsig
@@ -704,7 +704,7 @@ module Process
       "#<Process::Status: #{self}>"
     end
 
-    def self.wait(pid=-1, flags=nil)
+    def self.wait(pid = -1, flags = nil)
       Truffle::ProcessOperations.wait(pid, flags, false, false)
     end
   end

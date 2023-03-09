@@ -104,7 +104,7 @@ class Symbol
     end
   end
 
-  def match?(pattern, pos=0)
+  def match?(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
     pattern.match? to_s, pos
   end

@@ -105,7 +105,7 @@ class Time
     (tv_sec + subsec).to_r
   end
 
-  def getlocal(offset=nil)
+  def getlocal(offset = nil)
     dup.localtime(offset)
   end
 
@@ -312,7 +312,7 @@ class Time
   private :_dump
 
   class << self
-    def at(sec, sub_sec=undefined, unit=undefined, **kwargs)
+    def at(sec, sub_sec = undefined, unit = undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
       timezone = kwargs[:in]
       offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone) : nil
@@ -400,8 +400,8 @@ class Time
     end
     private :from_array
 
-    def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
-                yday=undefined, is_dst=undefined, tz=undefined)
+    def compose(offset, p1, p2 = nil, p3 = nil, p4 = nil, p5 = nil, p6 = nil, p7 = nil,
+                yday = undefined, is_dst = undefined, tz = undefined)
       if Primitive.undefined?(tz)
         unless Primitive.undefined?(is_dst)
           raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
@@ -464,7 +464,7 @@ class Time
     end
     private :compose
 
-    def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil, **options)
+    def new(year = undefined, month = nil, day = nil, hour = nil, minute = nil, second = nil, utc_offset = nil, **options)
       if utc_offset && options[:in]
         raise ArgumentError, 'timezone argument given as positional and keyword arguments'
       end

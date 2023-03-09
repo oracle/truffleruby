@@ -397,7 +397,7 @@ module Truffle
       end
     end
 
-    def self.coerce_to_regexp(pattern, quote=false)
+    def self.coerce_to_regexp(pattern, quote = false)
       if Regexp === pattern
         pattern
       else

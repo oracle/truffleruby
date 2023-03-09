@@ -55,13 +55,13 @@ class Complex < Numeric
     (defined?(Rational) and Primitive.object_kind_of?(other, Rational))
   end
 
-  def Complex.rect(real, imag=0)
+  def Complex.rect(real, imag = 0)
     raise TypeError, 'not a real' unless Primitive.check_real?(real) && Primitive.check_real?(imag)
     new(real, imag)
   end
   class << self; alias_method :rectangular, :rect end
 
-  def Complex.polar(r, theta=0)
+  def Complex.polar(r, theta = 0)
     raise TypeError, 'not a real' unless Primitive.check_real?(r) && Primitive.check_real?(theta)
 
     Complex(r*Math.cos(theta), r*Math.sin(theta))

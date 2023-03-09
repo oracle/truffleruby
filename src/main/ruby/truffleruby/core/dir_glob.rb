@@ -388,7 +388,7 @@ class Dir
       ret
     end
 
-    def self.single_compile(glob, flags=0)
+    def self.single_compile(glob, flags = 0)
       escape = (flags & File::FNM_NOESCAPE) == 0
       if escape && glob.getbyte(-1) != 47 && NO_GLOB_META_CHARS_UNESCAPED.match?(glob) # byte value 47 = ?/
         return ConstantEntry.new nil, flags, unescape(glob)
@@ -525,7 +525,7 @@ class Dir
       end
     end
 
-    def self.compile(pattern, left_brace_index, flags, patterns=[])
+    def self.compile(pattern, left_brace_index, flags, patterns = [])
       escape = (flags & File::FNM_NOESCAPE) == 0
 
       lbrace = left_brace_index

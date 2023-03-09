@@ -150,7 +150,7 @@ describe "Arguments descriptors" do
   end
 
   it "contain the name of present optional keyword arguments without the optional positional" do
-    def opt_and_kws(a, b=2, c: nil)
+    def opt_and_kws(a, b = 2, c: nil)
       info([a, b, c], Primitive.arguments_descriptor, Primitive.arguments)
     end
 

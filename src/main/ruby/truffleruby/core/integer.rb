@@ -128,7 +128,7 @@ class Integer < Numeric
     (self & mask) == 0
   end
 
-  def pow(e, m=undefined)
+  def pow(e, m = undefined)
     if Primitive.undefined?(m)
       self ** e
     else
@@ -160,7 +160,7 @@ class Integer < Numeric
     end
   end
 
-  def chr(enc=undefined)
+  def chr(enc = undefined)
     if self < 0 || (self & 0xffff_ffff) != self
       raise RangeError, "#{self} is outside of the valid character range"
     end
@@ -183,7 +183,7 @@ class Integer < Numeric
     Primitive.string_from_codepoint self, enc
   end
 
-  def round(ndigits=undefined, half: :up)
+  def round(ndigits = undefined, half: :up)
     return self if Primitive.undefined? ndigits
 
     if Float === ndigits && ndigits.infinite?

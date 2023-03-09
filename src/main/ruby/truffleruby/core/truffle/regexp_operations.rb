@@ -30,7 +30,7 @@ module Truffle
     end
 
     # MRI: rb_reg_match_m/reg_match_pos
-    def self.match(re, str, pos=0)
+    def self.match(re, str, pos = 0)
       return nil unless str
 
       str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
@@ -43,7 +43,7 @@ module Truffle
     end
 
     # MRI: rb_reg_match_p
-    def self.match?(re, str, pos=0)
+    def self.match?(re, str, pos = 0)
       return false unless str
 
       str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
@@ -73,7 +73,7 @@ module Truffle
       end
     end
 
-    def self.match_in_region(re, str, from, to, at_start, start, create_match_data=true)
+    def self.match_in_region(re, str, from, to, at_start, start, create_match_data = true)
       if COMPARE_ENGINES
         match_in_region_compare_engines(re, str, from, to, at_start, start, create_match_data)
       elsif USE_TRUFFLE_REGEX

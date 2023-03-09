@@ -332,7 +332,7 @@ class Range
     end
   end
 
-  def first(n=undefined)
+  def first(n = undefined)
     raise RangeError, 'cannot get the first element of beginless range' if Primitive.nil?(self.begin)
     return self.begin if Primitive.undefined? n
 
@@ -383,7 +383,7 @@ class Range
     end
   end
 
-  def last(n=undefined)
+  def last(n = undefined)
     raise RangeError, 'cannot get the last element of endless range' if Primitive.nil? self.end
     return self.end if Primitive.undefined? n
 
@@ -440,7 +440,7 @@ class Range
     Truffle::RangeOperations.step_no_block(self, n)
   end
 
-  private def step_internal(step_size=1, &block) # :yields: object
+  private def step_internal(step_size = 1, &block) # :yields: object
     return Truffle::RangeOperations.step_no_block(self, step_size) unless block
 
     values = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)

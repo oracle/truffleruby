@@ -161,7 +161,7 @@ class File < IO
   #
   #  File.basename("/home/gumby/work/ruby.rb")          #=> "ruby.rb"
   #  File.basename("/home/gumby/work/ruby.rb", ".rb")   #=> "ruby"
-  def self.basename(path, ext=undefined)
+  def self.basename(path, ext = undefined)
     path = Truffle::Type.coerce_to_path(path)
 
     slash = '/'
@@ -395,7 +395,7 @@ class File < IO
     Truffle::StatOperations.directory?(mode)
   end
 
-  def self.last_nonslash(path, start=nil)
+  def self.last_nonslash(path, start = nil)
     # Find the first non-/ from the right
     data = path.bytes
     start ||= (path.size - 1)
@@ -483,7 +483,7 @@ class File < IO
   #
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
-  def self.expand_path(path, dir=nil)
+  def self.expand_path(path, dir = nil)
     Truffle::FileOperations.expand_path(path, dir, true)
   end
 
@@ -535,7 +535,7 @@ class File < IO
     Truffle::StatOperations.file?(query_stat_mode(path))
   end
 
-  def self.braces(pattern, flags=0, patterns=[])
+  def self.braces(pattern, flags = 0, patterns = [])
     escape = (flags & FNM_NOESCAPE) == 0
 
     rbrace = nil
@@ -666,7 +666,7 @@ class File < IO
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME)    #=> false
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
 
-  def self.fnmatch(pattern, path, flags=0)
+  def self.fnmatch(pattern, path, flags = 0)
     pattern = StringValue(pattern)
     Truffle::Type.check_null_safe(pattern)
     path    = Truffle::Type.coerce_to_path(path)
@@ -1183,7 +1183,7 @@ class File < IO
     alias_method :fnmatch?, :fnmatch
   end
 
-  def initialize(path_or_fd, mode=nil, perm=nil, **options)
+  def initialize(path_or_fd, mode = nil, perm = nil, **options)
     if Primitive.object_kind_of?(path_or_fd, Integer)
       super(path_or_fd, mode, **options)
       @path = nil
