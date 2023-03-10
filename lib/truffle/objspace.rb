@@ -76,9 +76,9 @@ module ObjectSpace
     hash
   end
 
-  def dump(object, output: :string)
-    case output
-    when :string
+  # Helper method for ObjectSpace.dump
+  def _dump(object, output)
+    if Primitive.object_kind_of?(output, String)
       require 'json'
       json = {
         address: '0x' + object.object_id.to_s(16),
@@ -111,38 +111,25 @@ module ObjectSpace
         })
       end
       JSON.generate(json)
-    when :file
-      require 'tempfile'
-      f = Tempfile.new(['rubyobj', '.json'])
-      f.write dump(object, output: :string)
-      f.close
-      f.path
-    when :stdout
-      puts dump(object, output: :string)
-      nil
+    else
+      # IO
+      output.write _dump(object, '')
+      output
     end
   end
 
-  def dump_all(output: :file)
-    case output
-    when :string
+  # Helper method for ObjectSpace.dump_all
+  def _dump_all(output, full, since)
+    if Primitive.object_kind_of?(output, String)
       objects = []
       ObjectSpace.each_object do |object|
         objects.push dump(object)
       end
       objects.join("\n")
-    when :file
-      require 'tempfile'
-      f = Tempfile.new(['ruby', '.json'])
-      f.write dump_all(output: :string)
-      f.close
-      f.path
-    when :stdout
-      puts dump_all(output: :string)
-      nil
-    when IO
-      output.write dump_all(output: :string)
-      nil
+    else
+      # IO
+      output.write _dump_all('', full, since)
+      output
     end
   end
 
@@ -219,3 +206,7 @@ module ObjectSpace
     Primitive.allocation_sourceline(object)
   end
 end
+
+# Reuse MRI objspace.rb (that implements dump and dump_all methods)
+# Relies on the order in $LOAD_PATH - lib/truffle is before lib/mri
+require_relative '../mri/objspace'

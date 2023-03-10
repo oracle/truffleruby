@@ -1,0 +1,1 @@
+slow:ObjectSpace.dump dumps to stdout when passed output: :stdout

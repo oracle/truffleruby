@@ -49,7 +49,8 @@ cp -R ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
 cp ../ruby/ext/monitor/lib/*.rb lib/mri
 mkdir lib/mri/objspace
-cp -R ../ruby/ext/objspace/lib/objspace/* lib/mri/objspace
+cp -R ../ruby/ext/objspace/lib/objspace lib/mri
+cp ../ruby/ext/objspace/lib/objspace.rb lib/mri
 cp -R ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri
 cp ../ruby/ext/psych/lib/psych.rb lib/mri
