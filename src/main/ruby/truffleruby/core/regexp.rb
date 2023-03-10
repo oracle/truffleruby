@@ -287,36 +287,3 @@ class Regexp
   end
 
 end
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$~,
-  -> s { Primitive.regexp_last_match_get(s) },
-  Truffle::RegexpOperations::LAST_MATCH_SET)
-
-Truffle::KernelOperations.define_hooked_variable(
-  :'$`',
-  -> s { match = Primitive.regexp_last_match_get(s)
-         match.pre_match if match },
-  -> { raise SyntaxError, "Can't set variable $`" },
-  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
-
-Truffle::KernelOperations.define_hooked_variable(
-  :"$'",
-  -> s { match = Primitive.regexp_last_match_get(s)
-         match.post_match if match },
-  -> { raise SyntaxError, "Can't set variable $'" },
-  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
-
-Truffle::KernelOperations.define_hooked_variable(
-  :'$&',
-  -> s { match = Primitive.regexp_last_match_get(s)
-         match[0] if match },
-  -> { raise SyntaxError, "Can't set variable $&" },
-  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
-
-Truffle::KernelOperations.define_hooked_variable(
-  :'$+',
-  -> s { match = Primitive.regexp_last_match_get(s)
-         match.captures.reverse.find { |m| !Primitive.nil?(m) } if match },
-  -> { raise SyntaxError, "Can't set variable $+" },
-  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
