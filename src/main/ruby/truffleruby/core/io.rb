@@ -753,7 +753,7 @@ class IO
     pipe.set_encoding(external, internal)
 
     if cmd == '-'
-      Kernel.fork # will throw an error
+      Process._fork # will throw an error
       raise 'unreachable'
     else
       options = {}

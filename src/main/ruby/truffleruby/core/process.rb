@@ -241,9 +241,19 @@ module Process
   end
 
   def self.fork
-    raise NotImplementedError, 'fork is not available'
+    _fork
   end
   Primitive.method_unimplement method(:fork)
+
+  # An internal API for fork. Do not call this method directly.
+  # Currently, this is called via Kernel.#fork, Process.fork, and IO.popen("-").
+  # This method is not for casual code but for application monitoring
+  # libraries. You can add custom code before and after fork events
+  # by overriding this method.
+  def self._fork
+    raise NotImplementedError, 'fork is not available'
+  end
+  Primitive.method_unimplement method(:_fork)
 
   def times
     Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
