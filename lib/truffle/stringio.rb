@@ -280,6 +280,13 @@ class StringIO
     str = String(str)
     return 0 if str.empty?
 
+    if external_encoding &&
+       external_encoding != str.encoding &&
+       external_encoding != Encoding::BINARY &&
+       str.encoding != Encoding::BINARY
+      str = str.encode(external_encoding)
+    end
+
     d = @__data__
     TruffleRuby.synchronized(d) do
       pos = d.pos
