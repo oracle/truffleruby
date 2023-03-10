@@ -31,6 +31,8 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.IdentifierType;
 import org.truffleruby.parser.Identifiers;
 
+import java.util.Objects;
+
 @ExportLibrary(InteropLibrary.class)
 public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements TruffleObject {
 
@@ -51,9 +53,9 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
     RubySymbol(String string, TruffleString tstring, RubyEncoding encoding, long id) {
         assert tstring.isManaged();
         assert tstring.isCompatibleToUncached(encoding.tencoding);
-        this.encoding = encoding;
-        this.string = string;
-        this.tstring = tstring;
+        this.encoding = Objects.requireNonNull(encoding);
+        this.string = Objects.requireNonNull(string);
+        this.tstring = Objects.requireNonNull(tstring);
         this.javaStringHashCode = string.hashCode();
         this.id = id;
         this.type = Identifiers.stringToType(string);

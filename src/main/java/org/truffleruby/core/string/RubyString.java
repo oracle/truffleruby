@@ -34,6 +34,8 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.library.RubyStringLibrary;
 
+import java.util.Objects;
+
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 @ImportStatic(RubyBaseNode.class)
@@ -53,19 +55,19 @@ public final class RubyString extends RubyDynamicObject {
         super(rubyClass, shape);
         assert tstring.isCompatibleToUncached(rubyEncoding.tencoding);
         this.frozen = frozen;
-        this.tstring = tstring;
-        this.encoding = rubyEncoding;
+        this.tstring = Objects.requireNonNull(tstring);
+        this.encoding = Objects.requireNonNull(rubyEncoding);
     }
 
     public void setTString(AbstractTruffleString tstring) {
         assert tstring.isCompatibleToUncached(getEncodingUncached().tencoding);
-        this.tstring = tstring;
+        this.tstring = Objects.requireNonNull(tstring);
     }
 
     public void setTString(AbstractTruffleString tstring, RubyEncoding encoding) {
         assert tstring.isCompatibleToUncached(encoding.tencoding);
-        this.tstring = tstring;
-        this.encoding = encoding;
+        this.tstring = Objects.requireNonNull(tstring);
+        this.encoding = Objects.requireNonNull(encoding);
     }
 
     public void clearCodeRange() {
