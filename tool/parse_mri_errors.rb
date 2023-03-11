@@ -75,8 +75,8 @@ contents.scan(t) do |class_name, test_method, error|
   end
 
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
-  prefix = "exclude #{test_method.strip.to_sym.inspect}"
-  new_line = "#{prefix}, #{(REASON || error_display || "needs investigation").inspect}\n"
+  prefix = "exclude #{test_method.strip.to_sym.inspect},"
+  new_line = "#{prefix} #{(REASON || error_display || "needs investigation").inspect}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
