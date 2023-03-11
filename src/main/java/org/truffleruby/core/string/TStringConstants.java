@@ -203,6 +203,8 @@ public class TStringConstants {
     public static final TruffleString STATELESS_ISO_2022_JP_KDDI = ascii("stateless-ISO-2022-JP-KDDI");
     public static final TruffleString UTF8_SOFTBANK = ascii("UTF8-SoftBank");
     public static final TruffleString SJIS_SOFTBANK = ascii("SJIS-SoftBank");
+    public static final TruffleString IBM720 = ascii("IBM720");
+    public static final TruffleString CESU_8 = ascii("CESU-8");
 
     private static TruffleString ascii(String string) {
         if (string.length() == 1) {

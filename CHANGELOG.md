@@ -90,6 +90,7 @@ Compatibility:
 * Update `$LOAD_PATH.resolve_feature_path` to return `nil` instead of raising `LoadError` when feature isn't found (#2733, @andrykonchin).
 * Add `objspace/trace` file (#2733, @andrykonchin).
 * Add `Process._fork` (#2733, @horakivo).
+* Update to JCodings 1.0.58 and Joni 2.1.44 (@eregon).
 
 Performance:
 

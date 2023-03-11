@@ -35,6 +35,8 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
+import java.util.Objects;
+
 /** All ImmutableRubyString are interned and must be created through
  * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
@@ -47,8 +49,8 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     ImmutableRubyString(TruffleString tstring, RubyEncoding encoding) {
         assert tstring.isCompatibleToUncached(encoding.tencoding);
         assert tstring.isManaged();
-        this.tstring = tstring;
-        this.encoding = encoding;
+        this.tstring = Objects.requireNonNull(tstring);
+        this.encoding = Objects.requireNonNull(encoding);
     }
 
     /** should only be used for debugging */
