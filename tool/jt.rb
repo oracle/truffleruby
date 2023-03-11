@@ -1372,7 +1372,14 @@ module Commands
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
         ["#{prefix}.rb", prefix].each do |file|
           if File.exist?(file)
+            lines = File.readlines(file)
             FileUtils::Verbose.rm_r file
+
+            # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
+            # tests as excluded and manually inspect them later.
+            retain = lines.select { |line| line =~ /hangs/i || line =~ /java\.lang\./ }
+            File.write(file, retain.sort.join)
+
             found_excludes = true
           end
         end
