@@ -89,5 +89,5 @@ contents.scan(t) do |class_name, test_method, error|
     puts "adding exclude: #{class_name}##{test_method}"
     lines << new_line
   end
-  File.write(file, lines.join)
+  File.write(file, lines.sort.join)
 end
