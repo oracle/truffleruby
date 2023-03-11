@@ -47,11 +47,36 @@ require 'fileutils'
 repo_root = File.expand_path("../..", __FILE__)
 excludes = "#{repo_root}/test/mri/excludes"
 
-t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*)$/
+# Usually the first line in the error message gives us enough context to quickly identify what caused the failure.
+# Sometimes, the first line isn't helpful and we need to look further down. This filter helps us discard unhelpful data.
+def should_skip_error?(message)
+  Regexp.union(
+    /\[ruby-\w+:\d+\]/i,   # MRI bug IDs.
+    /\[Bug #?\d+\]/i,      # MRI bug IDs.
+    /pid \d+ exit \d/i,    # PID and exit status upon failure.
+    /^Exception raised:$/i # Heading for exception trace.
+  ).match(message)
+end
+
+t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*?)\n$/m
 contents.scan(t) do |class_name, test_method, error|
+  error_lines = error.split("\n")
+  index = 0
+
+  while should_skip_error?(error_lines[index])
+    index += 1
+  end
+
+  error_display = error_lines[index]
+
+  # Mismatched expectations span two lines. It's much more useful if they're combined into one message.
+  if error_display =~ /expected but was/ || error_display =~ /expected:/
+    error_display << ' ' + error_lines[index + 1]
+  end
+
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
   prefix = "exclude #{test_method.strip.to_sym.inspect}"
-  new_line = "#{prefix}, #{(REASON || error).inspect}\n"
+  new_line = "#{prefix}, #{(REASON || error_display || "needs investigation").inspect}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
