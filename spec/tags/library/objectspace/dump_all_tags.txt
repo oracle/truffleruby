@@ -1,0 +1,6 @@
+slow:ObjectSpace.dump_all dumps Ruby heap to string when passed output: :string
+slow:ObjectSpace.dump_all dumps Ruby heap to a temporary file when passed output: :file
+slow:ObjectSpace.dump_all dumps Ruby heap to a temporary file when :output not specified
+slow:ObjectSpace.dump_all dumps Ruby heap to a temporary file when passed output: :nil
+slow:ObjectSpace.dump_all dumps Ruby heap to stdout when passed output: :stdout
+slow:ObjectSpace.dump_all dumps Ruby heap to provided IO when passed output: IO
