@@ -97,3 +97,55 @@ describe :io_write, shared: true do
     end
   end
 end
+
+describe :io_write_transcode, shared: true do
+  before :each do
+    @transcode_filename = tmp("io_write_transcode")
+  end
+
+  after :each do
+    rm_r @transcode_filename
+  end
+
+  describe "transcoding when UTF-16 encoding is set" do
+    it "accepts a UTF-8-encoded string and transcodes it" do
+      utf8_str = "hello"
+
+      File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
+        file.external_encoding.should == Encoding::UTF_16BE
+        file.send(@method, utf8_str)
+      end
+
+      result = File.binread(@transcode_filename)
+      expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # double-width "hello"
+
+      result.bytes.should == expected
+    end
+  end
+end
+
+describe :io_write_no_transcode, shared: true do
+  before :each do
+    @transcode_filename = tmp("io_write_no_transcode")
+  end
+
+  after :each do
+    rm_r @transcode_filename
+  end
+
+  describe "transcoding when UTF-16 encoding is set" do
+    it "accepts a UTF-8-encoded string and transcodes it" do
+      utf8_str = "hello"
+
+      File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
+        file.external_encoding.should == Encoding::UTF_16BE
+        file.send(@method, utf8_str)
+      end
+
+      result = File.binread(@transcode_filename)
+      expected = [104, 101, 108, 108, 111] # not transcoded to UTF-16BE
+
+      result.bytes.should == expected
+    end
+  end
+end
