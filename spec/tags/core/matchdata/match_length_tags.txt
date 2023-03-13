@@ -1,3 +1,0 @@
-fails:MatchData#match_length returns the length of the corresponding match when given an Integer
-fails:MatchData#match_length returns nil on non-matching index matches
-fails:MatchData#match_length returns the length of the corresponding named match when given a Symbol
