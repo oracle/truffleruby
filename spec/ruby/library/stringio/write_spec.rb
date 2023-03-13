@@ -21,18 +21,17 @@ end
 describe "StringIO#write transcoding" do
   describe "when UTF-16 encoding is set" do
     it "accepts a UTF-8-encoded string and transcodes it" do
-      io = StringIO.new.set_encoding(Encoding::UTF_16)
+      io = StringIO.new.set_encoding(Encoding::UTF_16BE)
       utf8_str = "hello"
 
       io.write(utf8_str)
 
       result = io.string
       expected = [
-        254, 255, # BOM
         0, 104, 0, 101, 0, 108, 0, 108, 0, 111, # double-width "hello"
       ]
 
-      io.external_encoding.should == Encoding::UTF_16
+      io.external_encoding.should == Encoding::UTF_16BE
       result.bytes.should == expected
     end
   end
