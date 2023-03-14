@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Hook run after extraction in the installation directory by a Ruby installer.
 # Useful to perform tasks that depend on the user machine and
-# cannot be generally done in advance before building the release tarball.
+# cannot be generally done in advance on another machine.
 
 set -e
 
@@ -15,24 +15,38 @@ export TRUFFLERUBYOPT="--disable-gems $TRUFFLERUBYOPT"
 
 cd "$root"
 
-function recompile_openssl() {
-  cd src/main/c/openssl
+function recompile() {
+  ext="$1"
+  cd "src/main/c/$ext"
   truffleruby -w extconf.rb
   if [ -z "$CORES" ]; then
     CORES=$(getconf _NPROCESSORS_ONLN || echo 1)
   fi
   make "--jobs=$CORES"
-  cp "openssl.$(truffleruby -rrbconfig -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
+  cp "$ext.$(truffleruby -rrbconfig -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
+  cd "$root"
+  echo
 }
 
 if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "false" ]; then
-  echo "Skipping recompilation of the OpenSSL extension (TRUFFLERUBY_RECOMPILE_OPENSSL=false)"
+  echo "Skipping recompilation of the OpenSSL C extension (TRUFFLERUBY_RECOMPILE_OPENSSL=false)"
 elif [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "true" ]; then
   echo "Recompiling the OpenSSL C extension (TRUFFLERUBY_RECOMPILE_OPENSSL=true)"
-  recompile_openssl
+  recompile openssl
 else
   echo "Recompiling the OpenSSL C extension (against the installed libssl)"
-  recompile_openssl
+  recompile openssl
+fi
+
+# Recompiling psych is needed on macOS if a non-default Homebrew prefix or not using Homebrew (e.g. MacPorts)
+if [ "$TRUFFLERUBY_RECOMPILE_PSYCH" == "false" ]; then
+  echo "Skipping recompilation of the Psych C extension (TRUFFLERUBY_RECOMPILE_PSYCH=false)"
+elif [ "$TRUFFLERUBY_RECOMPILE_PSYCH" == "true" ]; then
+  echo "Recompiling the Psych C extension (TRUFFLERUBY_RECOMPILE_PSYCH=true)"
+  recompile psych
+else
+  echo "Recompiling the Psych C extension (against the installed libyaml)"
+  recompile psych
 fi
 
 echo "TruffleRuby was successfully installed in $root"

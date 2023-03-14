@@ -228,12 +228,14 @@ local part_definitions = {
       packages+: {
         binutils: ">=2.30",
         ruby: "==" + mri_version,
+        libyaml: "==0.2.5",
       },
     },
 
     local linux_aarch64_deps = common.deps.sulong + {
       packages+: {
         ruby: "==3.0.2",
+        libyaml: "==0.2.5",
       },
     },
 

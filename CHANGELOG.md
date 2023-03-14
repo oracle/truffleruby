@@ -99,6 +99,7 @@ Performance:
 * Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
 * Splitting (copying) of call targets has been optimized by implementing `cloneUninitialized()` (@andrykonchin, @eregon).
 * `Process.pid` is now cached per process like `$$` (#2882, @horakivo)
+* Use the system `libyaml` for `psych` to improve warmup when parsing YAML (#2089, @eregon).
 
 Changes:
 

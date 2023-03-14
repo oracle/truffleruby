@@ -103,6 +103,7 @@ environment, for example, by unmounting system filesystems such as `/dev/shm`.
 
 * [make and gcc](doc/user/installing-llvm.md) for building C and C++ extensions
 * [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
+* [libyaml](doc/user/installing-libyaml.md) for the `psych` C extension
 * [zlib](doc/user/installing-zlib.md) for the `zlib` C extension
 
 Without these dependencies, many libraries including RubyGems will not work.

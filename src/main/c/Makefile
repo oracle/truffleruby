@@ -159,11 +159,10 @@ rbconfig-sizeof/sizeof.$(DLEXT): rbconfig-sizeof/Makefile rbconfig-sizeof/sizes.
 	$(Q) cd rbconfig-sizeof && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # psych
-# Always use the bundled libyaml, as we want it as bitcode and avoid extra handles
 psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
-	$(Q) cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml || $(IF_EXTCONF_FAIL)
+	$(Q) cd psych && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
+psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h
 	$(Q) cd psych && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # debug bundled gem

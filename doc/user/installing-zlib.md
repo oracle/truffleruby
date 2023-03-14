@@ -8,7 +8,7 @@ permalink: /reference-manual/ruby/Installingzlib/
 
 TruffleRuby provides the `zlib` module but not the native `zlib` system library that the module uses.
 
-### RedHat-based: Fedora, Oracle Linux, etc
+### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
 sudo dnf install zlib-devel
