@@ -120,6 +120,15 @@ describe :io_write_transcode, shared: true do
 
     result.bytes.should == expected
   end
+
+  it "transcodes the given string when the external encoding is set and the string encoding is BINARY" do
+    str = "été".b
+
+    File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
+      file.external_encoding.should == Encoding::UTF_16BE
+      -> { file.send(@method, str) }.should raise_error(Encoding::UndefinedConversionError)
+    end
+  end
 end
 
 describe :io_write_no_transcode, shared: true do

@@ -90,16 +90,24 @@ describe :stringio_write_string, shared: true do
   end
 
   it "transcodes the given string when the external encoding is set and neither is BINARY" do
-    io = StringIO.new.set_encoding(Encoding::UTF_16BE)
     utf8_str = "hello"
+    io = StringIO.new.set_encoding(Encoding::UTF_16BE)
+    io.external_encoding.should == Encoding::UTF_16BE
 
     io.send(@method, utf8_str)
 
-    result = io.string
     expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # UTF-16BE bytes for "hello"
+    io.string.bytes.should == expected
+  end
 
+  it "does not transcode the given string when the external encoding is set and the string encoding is BINARY" do
+    str = "été".b
+    io = StringIO.new.set_encoding(Encoding::UTF_16BE)
     io.external_encoding.should == Encoding::UTF_16BE
-    result.bytes.should == expected
+
+    io.send(@method, str)
+
+    io.string.bytes.should == str.bytes
   end
 end
 
