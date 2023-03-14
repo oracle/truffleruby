@@ -530,6 +530,11 @@ suite = {
                     "file:src/main/c/openssl/ossl*.h",
                     "file:src/main/c/openssl/openssl_missing.h",
                 ],
+                "src/main/c/psych/": [
+                    "file:src/main/c/psych/extconf.rb",
+                    "file:src/main/c/psych/*.c",
+                    "file:src/main/c/psych/psych*.h",
+                ],
             },
         },
 
