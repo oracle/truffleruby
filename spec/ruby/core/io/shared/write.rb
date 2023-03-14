@@ -149,8 +149,6 @@ describe :io_write_no_transcode, shared: true do
     end
 
     result = File.binread(@transcode_filename)
-    expected = [104, 101, 108, 108, 111] # UTF-8 bytes for "hello", not transcoded to UTF-16BE
-
-    result.bytes.should == expected
+    result.bytes.should == utf8_str.bytes
   end
 end
