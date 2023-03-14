@@ -280,7 +280,9 @@ class StringIO
     str = String(str)
     return 0 if str.empty?
 
-    str = Truffle::IOOperations.write_transcoding(str, external_encoding)
+    unless str.encoding == Encoding::BINARY # difference to IO
+      str = Truffle::IOOperations.write_transcoding(str, external_encoding)
+    end
 
     d = @__data__
     TruffleRuby.synchronized(d) do
