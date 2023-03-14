@@ -89,23 +89,17 @@ describe :stringio_write_string, shared: true do
     @io.string.should == "12fghi"
   end
 
-  describe "transcoding" do
-    describe "when UTF-16 encoding is set" do
-      it "accepts a UTF-8-encoded string and transcodes it" do
-        io = StringIO.new.set_encoding(Encoding::UTF_16BE)
-        utf8_str = "hello"
+  it "transcodes the given string when the external encoding is set and neither is BINARY" do
+    io = StringIO.new.set_encoding(Encoding::UTF_16BE)
+    utf8_str = "hello"
 
-        io.send(@method, utf8_str)
+    io.send(@method, utf8_str)
 
-        result = io.string
-        expected = [
-          0, 104, 0, 101, 0, 108, 0, 108, 0, 111, # double-width "hello"
-        ]
+    result = io.string
+    expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # UTF-16BE bytes for "hello"
 
-        io.external_encoding.should == Encoding::UTF_16BE
-        result.bytes.should == expected
-      end
-    end
+    io.external_encoding.should == Encoding::UTF_16BE
+    result.bytes.should == expected
   end
 end
 

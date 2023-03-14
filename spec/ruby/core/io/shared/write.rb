@@ -107,20 +107,18 @@ describe :io_write_transcode, shared: true do
     rm_r @transcode_filename
   end
 
-  describe "transcoding when UTF-16 encoding is set" do
-    it "accepts a UTF-8-encoded string and transcodes it" do
-      utf8_str = "hello"
+  it "transcodes the given string when the external encoding is set and neither is BINARY" do
+    utf8_str = "hello"
 
-      File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
-        file.external_encoding.should == Encoding::UTF_16BE
-        file.send(@method, utf8_str)
-      end
-
-      result = File.binread(@transcode_filename)
-      expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # double-width "hello"
-
-      result.bytes.should == expected
+    File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
+      file.external_encoding.should == Encoding::UTF_16BE
+      file.send(@method, utf8_str)
     end
+
+    result = File.binread(@transcode_filename)
+    expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # UTF-16BE bytes for "hello"
+
+    result.bytes.should == expected
   end
 end
 
@@ -133,19 +131,17 @@ describe :io_write_no_transcode, shared: true do
     rm_r @transcode_filename
   end
 
-  describe "transcoding when UTF-16 encoding is set" do
-    it "accepts a UTF-8-encoded string and transcodes it" do
-      utf8_str = "hello"
+  it "does not transcode the given string even when the external encoding is set" do
+    utf8_str = "hello"
 
-      File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
-        file.external_encoding.should == Encoding::UTF_16BE
-        file.send(@method, utf8_str)
-      end
-
-      result = File.binread(@transcode_filename)
-      expected = [104, 101, 108, 108, 111] # not transcoded to UTF-16BE
-
-      result.bytes.should == expected
+    File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
+      file.external_encoding.should == Encoding::UTF_16BE
+      file.send(@method, utf8_str)
     end
+
+    result = File.binread(@transcode_filename)
+    expected = [104, 101, 108, 108, 111] # UTF-8 bytes for "hello", not transcoded to UTF-16BE
+
+    result.bytes.should == expected
   end
 end
