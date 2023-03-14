@@ -395,19 +395,6 @@ class File < IO
     Truffle::StatOperations.directory?(mode)
   end
 
-  def self.last_nonslash(path, start = nil)
-    # Find the first non-/ from the right
-    data = path.bytes
-    start ||= (path.size - 1)
-
-    start.downto(0) do |i|
-      if data[i] != 47  # ?/
-        return i
-      end
-    end
-    nil
-  end
-
   ##
   # Returns all components of the filename given in
   # file_name except the last one. The filename must be
@@ -415,25 +402,24 @@ class File < IO
   # the separator used on the local file system.
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
-  def self.dirname(path,num_levels=1)
-    if num_levels < 0
-      raise ArgumentError, "level can't be negative"
-    end
-    #This must happen before the type coercion to string below, because File.dirname accepts any objects which can respond to a :to_path message
-    #If path was such an object, File.dirname(obj,0) returns it as-is without conversion to string
-    #Tricky, but that's how Matz ruby behave
-    if num_levels == 0
-      return path
-    end
-
+  def self.dirname(path, level = 1)
     path = Truffle::Type.coerce_to_path(path)
+    level = Primitive.rb_num2int(level)
 
-    num_levels.times do
-      # edge case
+    raise ArgumentError, "negative level: #{level}" if level < 0
+    return path if level == 0
+
+    # fast path
+    if level == 1
       return +'.' if path.empty?
-
-      path = Truffle::FileOperations.remove_last_segment_from_path(path)
+      return Truffle::FileOperations.dirname(path)
     end
+
+    level.times do
+      return +'.' if path.empty?
+      path = Truffle::FileOperations.dirname(path)
+    end
+
     path
   end
 

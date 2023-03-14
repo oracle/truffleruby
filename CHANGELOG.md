@@ -93,6 +93,7 @@ Compatibility:
 * Update to JCodings 1.0.58 and Joni 2.1.44 (@eregon).
 * Add `MatchData#match` and `MatchData#match_length` (#2733, @horakivo).
 * Add `StructClass#keyword_init?` method (#2377, @moste00).
+* Support optional `level` argument for `File.dirname` method (#2733, @moste00).
 
 Performance:
 

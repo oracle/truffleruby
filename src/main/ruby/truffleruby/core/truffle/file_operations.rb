@@ -79,12 +79,11 @@ module Truffle
       Truffle::POSIX.truffleposix_stat_mode(path) > 0
     end
 
-    #Helper to File.dirname, extracts the directory of a path (doesn't need to handle the empty string)
-    #This was the original File.dirname, but ruby 3.1 made File.dirname take an optional number of times to do its logic
-    def self.remove_last_segment_from_path(path)
+    def self.dirname(path)
       slash = '/'
+
       # pull off any /'s at the end to ignore
-      chunk_size = File.last_nonslash(path)
+      chunk_size = last_nonslash(path)
       return +'/' unless chunk_size
 
       if pos = Primitive.find_string_reverse(path, slash, chunk_size)
@@ -97,7 +96,7 @@ module Truffle
         return path unless path.end_with? slash
 
         # prune any trailing /'s
-        idx = File.last_nonslash(path, pos)
+        idx = last_nonslash(path, pos)
 
         # edge case, only /'s, return /
         return +'/' unless idx
@@ -106,6 +105,20 @@ module Truffle
       end
 
       +'.'
+    end
+
+    def self.last_nonslash(path, start = nil)
+      # Find the first non-/ from the right
+      data = path.bytes
+      start ||= (path.size - 1)
+
+      start.downto(0) do |i|
+        if data[i] != 47  # ?/
+          return i
+        end
+      end
+
+      nil
     end
   end
 end
