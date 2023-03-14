@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, keyword_init: false, &block)
+  def self.new(klass_name, *attrs, keyword_init: nil, &block)
     if klass_name
       if Primitive.object_kind_of?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
@@ -92,6 +92,11 @@ class Struct
 
       const_set :STRUCT_ATTRS, attrs
       const_set :KEYWORD_INIT, keyword_init
+
+      def self.keyword_init?
+        return nil if Primitive.nil?(self::KEYWORD_INIT)
+        Primitive.as_boolean(self::KEYWORD_INIT)
+      end
     end
 
     const_set klass_name, klass if klass_name
