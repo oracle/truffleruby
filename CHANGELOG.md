@@ -95,6 +95,7 @@ Compatibility:
 * Add `StructClass#keyword_init?` method (#2377, @moste00).
 * Support optional `level` argument for `File.dirname` method (#2733, @moste00).
 * Add `Thread::Backtrace.limit` method (#2733, @andrykonchin).
+* Deprecate `rb_gc_force_recycle` and make it a no-op function (#2733, @moste00).
 
 Performance:
 
