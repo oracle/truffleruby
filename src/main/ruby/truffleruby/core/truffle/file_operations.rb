@@ -78,5 +78,47 @@ module Truffle
     def self.exist?(path)
       Truffle::POSIX.truffleposix_stat_mode(path) > 0
     end
+
+    def self.dirname(path)
+      slash = '/'
+
+      # pull off any /'s at the end to ignore
+      chunk_size = last_nonslash(path)
+      return +'/' unless chunk_size
+
+      if pos = Primitive.find_string_reverse(path, slash, chunk_size)
+        return +'/' if pos == 0
+
+        path = path.byteslice(0, pos)
+
+        return +'/' if path == '/'
+
+        return path unless path.end_with? slash
+
+        # prune any trailing /'s
+        idx = last_nonslash(path, pos)
+
+        # edge case, only /'s, return /
+        return +'/' unless idx
+
+        return path.byteslice(0, idx - 1)
+      end
+
+      +'.'
+    end
+
+    def self.last_nonslash(path, start = nil)
+      # Find the first non-/ from the right
+      data = path.bytes
+      start ||= (path.size - 1)
+
+      start.downto(0) do |i|
+        if data[i] != 47  # ?/
+          return i
+        end
+      end
+
+      nil
+    end
   end
 end

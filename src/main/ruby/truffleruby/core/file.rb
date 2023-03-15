@@ -395,19 +395,6 @@ class File < IO
     Truffle::StatOperations.directory?(mode)
   end
 
-  def self.last_nonslash(path, start = nil)
-    # Find the first non-/ from the right
-    data = path.bytes
-    start ||= (path.size - 1)
-
-    start.downto(0) do |i|
-      if data[i] != 47  # ?/
-        return i
-      end
-    end
-    nil
-  end
-
   ##
   # Returns all components of the filename given in
   # file_name except the last one. The filename must be
@@ -415,37 +402,25 @@ class File < IO
   # the separator used on the local file system.
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
-  def self.dirname(path)
+  def self.dirname(path, level = 1)
     path = Truffle::Type.coerce_to_path(path)
+    level = Primitive.rb_num2int(level)
 
-    # edge case
-    return +'.' if path.empty?
+    raise ArgumentError, "negative level: #{level}" if level < 0
+    return path if level == 0
 
-    slash = '/'
-
-    # pull off any /'s at the end to ignore
-    chunk_size = last_nonslash(path)
-    return +'/' unless chunk_size
-
-    if pos = Primitive.find_string_reverse(path, slash, chunk_size)
-      return +'/' if pos == 0
-
-      path = path.byteslice(0, pos)
-
-      return +'/' if path == '/'
-
-      return path unless path.end_with? slash
-
-      # prune any trailing /'s
-      idx = last_nonslash(path, pos)
-
-      # edge case, only /'s, return /
-      return +'/' unless idx
-
-      return path.byteslice(0, idx - 1)
+    # fast path
+    if level == 1
+      return +'.' if path.empty?
+      return Truffle::FileOperations.dirname(path)
     end
 
-    +'.'
+    level.times do
+      return +'.' if path.empty?
+      path = Truffle::FileOperations.dirname(path)
+    end
+
+    path
   end
 
   ##
