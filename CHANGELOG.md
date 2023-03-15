@@ -94,6 +94,7 @@ Compatibility:
 * Add `MatchData#match` and `MatchData#match_length` (#2733, @horakivo).
 * Add `StructClass#keyword_init?` method (#2377, @moste00).
 * Support optional `level` argument for `File.dirname` method (#2733, @moste00).
+* Add `Thread::Backtrace.limit` method (#2733, @andrykonchin).
 
 Performance:
 
