@@ -259,7 +259,7 @@ describe "C-API IO function" do
   ruby_version_is "3.1" do
     describe "rb_io_maybe_wait_writable" do
       it "returns mask for events if operation was interrupted" do
-        @o.rb_io_maybe_wait_writable(Errno::EINTR::Errno, @w_io, nil).should == 4 # IO::WRITABLE = 4
+        @o.rb_io_maybe_wait_writable(Errno::EINTR::Errno, @w_io, nil).should == IO::WRITABLE
       end
 
       it "returns 0 if there is no error condition" do
@@ -330,7 +330,7 @@ describe "C-API IO function" do
     ruby_version_is "3.1" do
       describe "rb_io_maybe_wait_readable" do
         it "returns mask for events if operation was interrupted" do
-          @o.rb_io_maybe_wait_readable(Errno::EINTR::Errno, @r_io, nil, false).should == 1 # IO::READABLE = 1
+          @o.rb_io_maybe_wait_readable(Errno::EINTR::Errno, @r_io, nil, false).should == IO::READABLE
         end
 
         it "returns 0 if there is no error condition" do
@@ -344,7 +344,7 @@ describe "C-API IO function" do
             @w_io.write "rb_io_wait_readable"
           end
 
-          @o.rb_io_maybe_wait_readable(Errno::EAGAIN::Errno, @r_io, 1, true).should == 1 # IO::READABLE = 1
+          @o.rb_io_maybe_wait_readable(Errno::EAGAIN::Errno, @r_io, IO::READABLE, true).should == IO::READABLE
           @o.instance_variable_get(:@read_data).should == "rb_io_wait_re"
 
           thr.join
@@ -412,26 +412,26 @@ describe "C-API IO function" do
 
         Thread.pass until start
 
-        @o.rb_io_maybe_wait(Errno::EAGAIN::Errno, @r_io, 1, nil).should == 1 # IO::READABLE = 1
+        @o.rb_io_maybe_wait(Errno::EAGAIN::Errno, @r_io, IO::READABLE, nil).should == IO::READABLE
 
         thr.join
       end
 
       it "returns mask for events if operation was interrupted" do
-        @o.rb_io_maybe_wait(Errno::EINTR::Errno, @w_io, 4, nil).should == 4 # IO::WRITABLE = 4
+        @o.rb_io_maybe_wait(Errno::EINTR::Errno, @w_io, IO::WRITABLE, nil).should == IO::WRITABLE
       end
 
       it "returns false if there is no error condition" do
-        @o.rb_io_maybe_wait(0, @w_io, 4, nil).should == false # IO::WRITABLE = 4
+        @o.rb_io_maybe_wait(0, @w_io, IO::WRITABLE, nil).should == false
       end
 
       it "raises an IOError if the IO is closed" do
         @w_io.close
-        -> { @o.rb_io_maybe_wait(0, @w_io, 4, nil) }.should raise_error(IOError, "closed stream") # IO::WRITABLE = 4
+        -> { @o.rb_io_maybe_wait(0, @w_io, IO::WRITABLE, nil) }.should raise_error(IOError, "closed stream")
       end
 
       it "raises an IOError if the IO is not initialized" do
-        -> { @o.rb_io_maybe_wait(0, IO.allocate, 4, nil) }.should raise_error(IOError, "uninitialized stream") # IO::WRITABLE = 4
+        -> { @o.rb_io_maybe_wait(0, IO.allocate, IO::WRITABLE, nil) }.should raise_error(IOError, "uninitialized stream")
       end
     end
   end

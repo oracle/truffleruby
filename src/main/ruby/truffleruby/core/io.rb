@@ -75,6 +75,10 @@ class IO
     end
   end
 
+  READABLE = Truffle::Config['platform.poll.POLLIN']
+  WRITABLE = Truffle::Config['platform.poll.POLLOUT']
+  PRIORITY = Truffle::Config['platform.poll.POLLPRI']
+
   # InternalBuffer provides a sliding window into a region of bytes.
   # The buffer is filled to the +used+ indicator, which is
   # always less than or equal to +total+. As bytes are taken
