@@ -83,6 +83,98 @@ int rb_wait_for_single_fd(int fd, int events, struct timeval *tv) {
   return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_wait_for_single_fd", fd, events, tv_sec, tv_usec));
 }
 
+// The only difference between this implementation and CRuby's one
+// is that a fiber scheduler isn't supported here
+VALUE rb_io_wait(VALUE io, VALUE events, VALUE timeout) {
+  rb_io_t * fptr = NULL;
+  RB_IO_POINTER(io, fptr);
+
+  struct timeval tv_storage;
+  struct timeval *tv = NULL;
+
+  if (timeout != Qnil) {
+    tv_storage = rb_time_interval(timeout);
+    tv = &tv_storage;
+  }
+
+  int ready = rb_wait_for_single_fd(fptr->fd, RB_NUM2INT(events), tv);
+
+  if (ready < 0) {
+    rb_sys_fail(0);
+  }
+
+  // Not sure if this is necessary:
+  rb_io_check_closed(fptr);
+
+  if (ready) {
+    return RB_INT2NUM(ready);
+  }
+  else {
+    return Qfalse;
+  }
+}
+
+VALUE rb_io_maybe_wait(int error, VALUE io, VALUE events, VALUE timeout) {
+  // fptr->fd can be set to -1 at any time by another thread when the GVL is
+  // released. Many code, e.g. `io_bufread` didn't check this correctly and
+  // instead relies on `read(-1) -> -1` which causes this code path. We then
+  // check here whether the IO was in fact closed. Probably it's better to
+  // check that `fptr->fd != -1` before using it in syscall.
+  rb_io_check_closed(RFILE(io)->fptr);
+
+  switch (error) {
+  // In old Linux, several special files under /proc and /sys don't handle
+  // select properly. Thus we need avoid to call if don't use O_NONBLOCK.
+  // Otherwise, we face nasty hang up. Sigh.
+  // e.g. http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=31b07093c44a7a442394d44423e21d783f5523b8
+  // http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=31b07093c44a7a442394d44423e21d783f5523b8
+  // In EINTR case, we only need to call RUBY_VM_CHECK_INTS_BLOCKING().
+  // Then rb_thread_check_ints() is enough.
+  case EINTR:
+#if defined(ERESTART)
+    case ERESTART:
+#endif
+      // We might have pending interrupts since the previous syscall was interrupted:
+      rb_thread_check_ints();
+
+      // The operation was interrupted, so retry it immediately:
+      return events;
+
+  case EAGAIN:
+#if EWOULDBLOCK != EAGAIN
+  case EWOULDBLOCK:
+#endif
+    // The operation would block, so wait for the specified events:
+    return rb_io_wait(io, events, timeout);
+
+  default:
+    // Non-specific error, no event is ready:
+    return Qfalse;
+  }
+}
+
+int rb_io_maybe_wait_readable(int error, VALUE io, VALUE timeout) {
+  VALUE result = rb_io_maybe_wait(error, io, RB_INT2NUM(RUBY_IO_READABLE), timeout);
+
+  if (RTEST(result)) {
+    return RB_NUM2INT(result);
+  }
+  else {
+    return 0;
+  }
+}
+
+int rb_io_maybe_wait_writable(int error, VALUE io, VALUE timeout) {
+  VALUE result = rb_io_maybe_wait(error, io, RB_INT2NUM(RUBY_IO_WRITABLE), timeout);
+
+  if (RTEST(result)) {
+    return RB_NUM2INT(result);
+  }
+  else {
+    return 0;
+  }
+}
+
 VALUE rb_io_addstr(VALUE io, VALUE str) {
   // use write instead of just #<<, it's closer to what MRI does
   // and avoids stack-overflow in zlib where #<< is defined with this method
