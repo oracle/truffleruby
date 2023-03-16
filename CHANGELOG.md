@@ -97,6 +97,7 @@ Compatibility:
 * Add `Thread::Backtrace.limit` method (#2733, @andrykonchin).
 * Deprecate `rb_gc_force_recycle` and make it a no-op function (#2733, @moste00).
 * Add `Refinement#import_methods` method and add deprecation warning for `Refinement#include` and `Refinement#prepend` (#2733, @horakivo).
+* Upgrading `UNICODE` version to 13.0.0 and `EMOJI` version to 13.1 (#2733, @horakivo).
 
 Performance:
 

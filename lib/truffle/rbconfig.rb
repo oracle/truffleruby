@@ -1,3 +1,4 @@
+# truffleruby_primitives: true
 # frozen-string-literal: false
 #
 # Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
@@ -196,8 +197,8 @@ module RbConfig
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
     'toolchain_path'    => toolchain_path,
-    'UNICODE_VERSION'   => '12.0.0',
-    'UNICODE_EMOJI_VERSION' => '12.1',
+    'UNICODE_VERSION'   => Primitive.encoding_unicode_version,
+    'UNICODE_EMOJI_VERSION' => Primitive.encoding_unicode_emoji_version,
     'warnflags'         => warnflags,
     'WERRORFLAG'        => '-Werror',
   }
