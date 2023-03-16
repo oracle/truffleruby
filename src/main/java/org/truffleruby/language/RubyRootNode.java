@@ -146,7 +146,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     @Override
-    protected final RootNode cloneUninitialized() {
+    public final RootNode cloneUninitialized() {
         RubyRootNode clone = cloneUninitializedRootNode();
 
         if (getLanguage().options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {

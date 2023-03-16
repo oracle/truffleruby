@@ -256,6 +256,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @CompilationFinal public LanguageOptions options;
     @CompilationFinal private String rubyHome;
+    @CompilationFinal public String cextPath;
+
     private TruffleFile rubyHomeTruffleFile;
 
     @CompilationFinal private AllocationReporter allocationReporter;
@@ -708,6 +710,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         assert Thread.holdsLock(this);
         rubyHome = home;
         setRubyHomeTruffleFile(env, home);
+        cextPath = home == null ? null : home + "/lib/truffle/truffle/cext_ruby.rb";
     }
 
     private void setRubyHomeTruffleFile(Env env, String home) {

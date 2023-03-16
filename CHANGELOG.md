@@ -96,6 +96,7 @@ Compatibility:
 * Support optional `level` argument for `File.dirname` method (#2733, @moste00).
 * Add `Thread::Backtrace.limit` method (#2733, @andrykonchin).
 * Deprecate `rb_gc_force_recycle` and make it a no-op function (#2733, @moste00).
+* Add `Refinement#import_methods` method and add deprecation warning for `Refinement#include` and `Refinement#prepend` (#2733, @horakivo).
 
 Performance:
 
