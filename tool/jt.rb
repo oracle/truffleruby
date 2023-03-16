@@ -43,6 +43,21 @@ JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=flamegraph]
 
+MRI_TEST_RETAG_RETAIN_PATTERNS = [
+  /hangs/i,
+  /slow/i,
+  /java\.lang\./,
+  /retain-on-retag/,
+  /OOM/,
+  /RubyVM/,
+  /ShouldNotReachHere/,
+  /LLVMLinkerException/,
+  /flaky/,
+  /spurious/,
+  /transient/,
+  /if RUBY_PLATFORM/
+]
+
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
@@ -1377,7 +1392,10 @@ module Commands
 
             # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
             # tests as excluded and manually inspect them later.
-            retain = lines.select { |line| line =~ /hangs/i || line =~ /slow/i || line =~ /java\.lang\./ || line =~ /retain-on-retag/ || line =~ /OOM/ || line =~ /RubyVM/ }
+            retain = lines.select { |line| MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| line =~ pattern } }
+
+            puts 'Retaining:'
+            puts retain
             File.write(file, retain.sort.join)
 
             found_excludes = true
