@@ -280,8 +280,12 @@ class StringIO
     str = String(str)
     return 0 if str.empty?
 
-    unless str.encoding == Encoding::BINARY # difference to IO
-      str = Truffle::IOOperations.write_transcoding(str, external_encoding)
+    # difference to IO, see https://github.com/ruby/stringio/blob/009896b973/ext/stringio/stringio.c#L1498-L1506
+    enc = external_encoding
+    unless enc == Encoding::BINARY or enc == Encoding::US_ASCII
+      unless !str.ascii_only? && (str.encoding == Encoding::BINARY || str.encoding == Encoding::US_ASCII)
+        str = Truffle::IOOperations.write_transcoding(str, enc)
+      end
     end
 
     d = @__data__
