@@ -72,6 +72,15 @@ module Truffle
       nil
     end
 
+    def self.write_transcoding(string, external_encoding)
+      if external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY &&
+          !(string.ascii_only? && external_encoding.ascii_compatible?)
+        string.encode(external_encoding)
+      else
+        string
+      end
+    end
+
     def self.dup2_with_cloexec(old_fd, new_fd)
       if new_fd < 3
         # STDIO should not be made close-on-exec. `dup2` clears the close-on-exec bit for the destination FD.

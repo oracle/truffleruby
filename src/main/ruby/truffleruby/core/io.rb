@@ -2324,11 +2324,7 @@ class IO
 
       ensure_open_and_writable
 
-      if external_encoding && external_encoding != string.encoding && external_encoding != Encoding::BINARY
-        unless string.ascii_only? && external_encoding.ascii_compatible?
-          string = string.encode(external_encoding)
-        end
-      end
+      string = Truffle::IOOperations.write_transcoding(string, external_encoding)
 
       count = Truffle::POSIX.write_string self, string, true
       bytes_written += count
