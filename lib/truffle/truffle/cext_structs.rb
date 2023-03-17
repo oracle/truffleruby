@@ -407,11 +407,11 @@ class Truffle::CExt::RbIO
   end
 
   def polyglot_member_readable?(name)
-    name == 'self' || name == 'fd' || name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
+    name == 'self' || name == 'fd' || name == 'mode' || name == 'pathv' || name == 'tied_io_for_writing'
   end
 
   def polyglot_member_modifiable?(name)
-    name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
+    name == 'mode' || name == 'pathv' || name == 'tied_io_for_writing'
   end
 
   def polyglot_member_removable?(name)
