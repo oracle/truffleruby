@@ -1135,6 +1135,8 @@ class IO
     # method A, D
     def read_to_separator
       str = +''
+      last_scan_end = 0
+      separator_byte_size = @separator.bytesize
 
       until @buffer.exhausted?
         available = @buffer.fill_from @io, @skip
@@ -1143,20 +1145,83 @@ class IO
         if count = @buffer.find(@separator)
           s = @buffer.shift(count)
 
-          unless str.empty?
-            s.prepend(str)
-            str.clear
+          # We need to be careful matching against multi-byte separators since the
+          # `str` value is being built up progressively.
+          #
+          # If the separator is only a single byte wide and we found it in the buffer
+          # then `count` must be the correct position because there's no way for a single
+          # byte read to be split up; it doesn't matter what `str` contains.
+          #
+          # If the separator is multiple bytes, then we look at `str`. If it's empty,
+          # then the buffer trivially must contain the separator. If not, however, we
+          # must scan the entire `str` after appending the buffer to see if the separator
+          # pattern appears earlier than the position detected by `count`.
+          if str.empty? || separator_byte_size == 1
+            unless str.empty?
+              s.prepend(str)
+              str.clear
+            end
+
+            s = IO.read_encode(@io, s)
+
+            s.chomp!(@separator) if @chomp
+            $. = @io.__send__(:increment_lineno)
+            @buffer.discard @skip if @skip
+
+            yield s
+
+            next
+          else
+            str << s
           end
-
-          s = IO.read_encode(@io, s)
-
-          s.chomp!(@separator) if @chomp
-          $. = @io.__send__(:increment_lineno)
-          @buffer.discard @skip if @skip
-
-          yield s
         else
           str << @buffer.shift
+        end
+
+        if separator_byte_size > 1 && last_scan_end < str.bytesize
+          # Since the separator could be split over multiple passes of this loop,
+          # it's possible for the separator to never appear completely in `@buffer`,
+          # but may appear in `str` after successive passes. If we found an unambiguous
+          # match in the buffer, we wouldn't be in this branch. Since we are, we need
+          # to check if the separator appears in the total read string.
+          #
+          # Rather than scan the entirety of `str` every time, we track how far we've
+          # previously scanned. Since the separator bytes can span reads, we need to
+          # step back `@separator.bytesize - 1` bytes to ensure we don't skip over the
+          # separator bytes. It's `@separator.bytesize - 1` because if the entire
+          # separator was already in `str` we would have found it on a previous pass of
+          # the loop. Since we also need to subtract one to account for zero-based offsets,
+          # we can include that in our offset and just substract the separator byte size.
+          # On the very first scan we don't need to account for any partial scans of the
+          # separator.
+
+          search_offset = last_scan_end - separator_byte_size
+          search_offset = 0 if search_offset < 0
+
+          found_byte_index = Primitive.string_byte_index(str, @separator.b, Encoding::BINARY, search_offset)
+
+          if found_byte_index
+            offset = found_byte_index + @separator.bytesize
+
+            # If we've read more bytes than we need to satisfy the current request, we
+            # need to put the remainder back into the buffer so that subsequent reads
+            # will have the correct bytes.
+            if offset < str.bytesize
+              @buffer.put_back(str.byteslice(offset, str.bytesize - offset))
+            end
+
+            res = IO.read_encode(@io, str.byteslice(0, offset))
+            res.chomp!(@separator) if @chomp
+            $. = @io.__send__(:increment_lineno)
+            @buffer.discard @skip if @skip
+
+            str.clear
+            last_scan_end = 0
+
+            yield res
+          else
+            last_scan_end = str.bytesize
+          end
         end
       end
 
