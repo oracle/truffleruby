@@ -456,7 +456,7 @@ describe "Time.new with a timezone argument" do
         Time.new(2000, 1, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
         Time.new(2000, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
         Time.new(2000, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
-        Time.new(in: "+05:00").round(0).should == Time.now.getlocal("+05:00").round(0)
+        Time.new(in: "+05:00").tap { |time| time.should == time.getlocal("+05:00") }
       end
 
       it "converts to a provided timezone if all the positional arguments are omitted" do
