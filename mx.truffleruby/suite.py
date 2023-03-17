@@ -204,16 +204,18 @@ suite = {
                 "jdk.management",
                 "jdk.unsupported", # sun.misc.Signal
             ],
-            "dependencies": [
+            "dependencies": [ # Keep in sync with TRUFFLERUBY distDependencies and exclude
+                # Distributions
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
-                "sdk:JLINE3",
                 "regex:TREGEX",
                 "sulong:SULONG_API",
-                "JONI",
-                "JCODINGS",
+                # Libraries
+                "sdk:JLINE3",
+                "truffleruby:JCODINGS",
+                "truffleruby:JONI",
             ],
             "annotationProcessors": [
                 "truffle:TRUFFLE_DSL_PROCESSOR",
@@ -275,7 +277,7 @@ suite = {
                 "org.truffleruby",
                 "org.truffleruby.services",
                 "mx:JUNIT",
-                "NETBEANS-LIB-PROFILER",
+                "truffleruby:NETBEANS-LIB-PROFILER",
                 "sdk:LAUNCHER_COMMON"
             ],
             "javaCompliance": "17+",
@@ -398,13 +400,18 @@ suite = {
                 "org.truffleruby",
                 "org.truffleruby.ruby",
             ],
-            "distDependencies": [
-                "regex:TREGEX",
-                "truffle:TRUFFLE_API",
-                "truffle:TRUFFLE_NFI",
-                "sulong:SULONG_API",
+            "distDependencies": [ # Keep in sync with org.truffleruby dependencies
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
+                "truffle:TRUFFLE_API",
+                "truffle:TRUFFLE_NFI",
+                "regex:TREGEX",
+                "sulong:SULONG_API",
+            ],
+            "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
+                "sdk:JLINE3",
+                "truffleruby:JCODINGS",
+                "truffleruby:JONI",
             ],
             "description": "TruffleRuby",
             "license": [
@@ -555,10 +562,10 @@ suite = {
             ],
             "exclude": [
                 "mx:HAMCREST",
-                "mx:JUNIT"
+                "mx:JUNIT",
+                "truffleruby:NETBEANS-LIB-PROFILER",
             ],
             "distDependencies": [
-                "NETBEANS-LIB-PROFILER",
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
