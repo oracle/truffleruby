@@ -365,11 +365,13 @@ class Truffle::CExt::RbIO
   end
 
   def polyglot_members(internal)
-    ['stdio_file', 'fd', 'mode', 'pathv', 'pid', 'lineno', 'tied_io_for_writing']
+    ['self', 'stdio_file', 'fd', 'mode', 'pathv', 'pid', 'lineno', 'tied_io_for_writing']
   end
 
   def polyglot_read_member(name)
     case name
+    when 'self'
+      Primitive.cext_wrap(@io)
     when 'fd'
       Primitive.io_fd(@io)
     when 'mode'
@@ -405,7 +407,7 @@ class Truffle::CExt::RbIO
   end
 
   def polyglot_member_readable?(name)
-    name == 'fd' || name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
+    name == 'self' || name == 'fd' || name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
   end
 
   def polyglot_member_modifiable?(name)
