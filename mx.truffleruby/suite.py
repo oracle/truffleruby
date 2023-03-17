@@ -394,7 +394,6 @@ suite = {
         },
 
         "TRUFFLERUBY": {
-            "mainClass": "org.truffleruby.launcher.RubyLauncher",
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.ruby",
