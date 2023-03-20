@@ -14,22 +14,22 @@ class IO
 
   def ready?
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0) > 0
+    Truffle::IOOperations.poll(self, IO::READABLE, 0) > 0
   end
 
   def wait_readable(timeout = nil)
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) > 0 ? self : nil
+    Truffle::IOOperations.poll(self, IO::READABLE, timeout) > 0 ? self : nil
   end
 
   def wait_writable(timeout = nil)
     ensure_open_and_writable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) > 0 ? self : nil
+    Truffle::IOOperations.poll(self, IO::WRITABLE, timeout) > 0 ? self : nil
   end
 
   def wait_priority(timeout = nil)
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLPRI, timeout) > 0 ? self : nil
+    Truffle::IOOperations.poll(self, IO::PRIORITY, timeout) > 0 ? self : nil
   end
 
 
