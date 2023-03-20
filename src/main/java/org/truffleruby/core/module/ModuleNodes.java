@@ -102,7 +102,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.loader.EvalLoader;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.Arity;
@@ -114,6 +113,7 @@ import org.truffleruby.annotations.Split;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
@@ -447,9 +447,9 @@ public abstract class ModuleNodes {
     @GenerateUncached
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "!rubyLibrary.isFrozen(self)")
+        @Specialization(guards = "!isFrozenNode.execute(self)", limit = "1")
         protected Object writer(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @Cached IsFrozenNode isFrozenNode,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
@@ -459,9 +459,9 @@ public abstract class ModuleNodes {
             return value;
         }
 
-        @Specialization(guards = "rubyLibrary.isFrozen(self)")
+        @Specialization(guards = "isFrozenNode.execute(self)", limit = "1")
         protected Object frozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+                @Cached IsFrozenNode isFrozenNode) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
         }
     }

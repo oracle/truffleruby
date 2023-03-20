@@ -20,7 +20,6 @@ import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
-import org.truffleruby.language.library.RubyLibrary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -38,7 +37,6 @@ import org.truffleruby.language.methods.GetMethodObjectNode;
  * <p>
  * Should not be subclassed directly, instead subclass {@link ImmutableRubyObjectCopyable} and
  * {@link ImmutableRubyObjectNotCopyable}. */
-@ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 public abstract class ImmutableRubyObject implements TruffleObject {
 
@@ -60,17 +58,6 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public void setValueWrapper(ValueWrapper valueWrapper) {
         this.valueWrapper = valueWrapper;
     }
-
-    // region RubyLibrary messages
-    @ExportMessage
-    public void freeze() {
-    }
-
-    @ExportMessage
-    public boolean isFrozen() {
-        return true;
-    }
-    // endregion
 
     // region InteropLibrary messages
     // Specs for these messages are in spec/truffle/interop/matrix_spec.rb

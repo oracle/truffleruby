@@ -44,8 +44,9 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -118,32 +119,33 @@ public abstract class TypeNodes {
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
-            rubyLibrary.freeze(self);
+                @Cached FreezeNode freezeNode) {
+            freezeNode.execute(self);
             return self;
         }
 
         @Specialization(guards = "!metaClass.isSingleton", limit = "1")
         protected Object freezeNormalObject(RubyDynamicObject self,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @Cached FreezeNode freezeNode,
                 @Cached MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
-            rubyLibrary.freeze(self);
+            freezeNode.execute(self);
             return self;
         }
 
         @Specialization(guards = "metaClass.isSingleton", limit = "1")
         protected Object freezeSingletonObject(RubyDynamicObject self,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
-                @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
+                @Cached FreezeNode freezeNode,
+                @Cached FreezeNode freezeMetaClasNode,
+                @Cached IsFrozenNode isFrozenMetaClassNode,
                 @Cached ConditionProfile singletonClassUnfrozenProfile,
                 @Cached MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
             if (singletonClassUnfrozenProfile.profile(
-                    !RubyGuards.isSingletonClass(self) && !rubyLibraryMetaClass.isFrozen(metaClass))) {
-                rubyLibraryMetaClass.freeze(metaClass);
+                    !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
+                freezeMetaClasNode.execute(metaClass);
             }
-            rubyLibrary.freeze(self);
+            freezeNode.execute(self);
             return self;
         }
     }
@@ -460,12 +462,12 @@ public abstract class TypeNodes {
 
         abstract RubyNode getValueNode();
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected Object check(Object value,
-                @CachedLibrary("value") RubyLibrary rubyLibrary,
+                @Cached IsFrozenNode isFrozenNode,
                 @Cached BranchProfile errorProfile) {
 
-            if (rubyLibrary.isFrozen(value)) {
+            if (isFrozenNode.execute(value)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
             }

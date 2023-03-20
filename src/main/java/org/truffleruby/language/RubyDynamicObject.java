@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.truffleruby.RubyContext;
@@ -21,8 +20,6 @@ import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.range.RubyObjectRange;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.TranslateInteropRubyExceptionNode;
@@ -30,10 +27,10 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -59,7 +56,6 @@ import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** All Ruby DynamicObjects extend this. */
-@ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
@@ -97,32 +93,6 @@ public abstract class RubyDynamicObject extends DynamicObject {
         final String className = getLogicalClass().fields.getName();
         return StringUtils.format("%s@%x<%s>", getClass().getSimpleName(), System.identityHashCode(this), className);
     }
-
-    // region RubyLibrary messages
-    @ExportMessage
-    public void freeze(
-            @CachedLibrary("this") DynamicObjectLibrary objLib) {
-        if (objLib.isShared(this)) {
-            synchronized (this) {
-                objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
-            }
-        } else {
-            objLib.setShapeFlags(this, objLib.getShapeFlags(this) | FROZEN);
-        }
-    }
-
-    @ExportMessage
-    public boolean isFrozen(
-            @CachedLibrary("this") DynamicObjectLibrary objLib) {
-        return (objLib.getShapeFlags(this) & FROZEN) != 0;
-    }
-
-    public boolean isFrozenUncached() {
-        CompilerAsserts.neverPartOfCompilation("Use RubyLibrary instead in PE code");
-        assert !(this instanceof RubyString) && !(this instanceof RubyObjectRange);
-        return (getShape().getFlags() & FROZEN) != 0;
-    }
-    // endregion
 
     // region InteropLibrary messages
     // Specs for these messages are in spec/truffle/interop/matrix_spec.rb
@@ -615,7 +585,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public void writeMember(String name, Object value,
             @Cached WriteObjectFieldNode writeObjectFieldNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @Shared @Cached ConditionProfile dynamicProfile,
             @Shared @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared @Cached BranchProfile errorProfile)
@@ -628,7 +598,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
         }
 
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (rubyLibrary.isFrozen(this)) {
+            if (isFrozenNode.execute(this)) {
                 errorProfile.enter();
                 throw UnsupportedMessageException.create();
             }
@@ -723,7 +693,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberModifiable(String name,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -732,7 +702,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
         return isMemberModifiableRemovable(
                 dynamic,
                 name,
-                rubyLibrary,
+                isFrozenNode,
                 objectLibrary,
                 booleanCastNode,
                 dynamicProfile);
@@ -740,7 +710,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberRemovable(String name,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -749,7 +719,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
         return isMemberModifiableRemovable(
                 dynamic,
                 name,
-                rubyLibrary,
+                isFrozenNode,
                 objectLibrary,
                 booleanCastNode,
                 dynamicProfile);
@@ -757,12 +727,12 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     private boolean isMemberModifiableRemovable(Object dynamic,
             String name,
-            RubyLibrary rubyLibrary,
+            IsFrozenNode isFrozenNode,
             DynamicObjectLibrary objectLibrary,
             BooleanCastNode booleanCastNode,
             ConditionProfile dynamicProfile) {
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (rubyLibrary.isFrozen(this)) {
+            if (isFrozenNode.execute(this)) {
                 return false;
             } else {
                 return objectLibrary.containsKey(this, name);
@@ -774,14 +744,14 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberInsertable(String name,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
             @Shared @Cached ConditionProfile dynamicProfile) {
         Object dynamic = dispatchNode.call(this, "polyglot_member_insertable?", name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (rubyLibrary.isFrozen(this) || !isIVar(name)) {
+            if (isFrozenNode.execute(this) || !isIVar(name)) {
                 return false;
             } else {
                 return !objectLibrary.containsKey(this, name);

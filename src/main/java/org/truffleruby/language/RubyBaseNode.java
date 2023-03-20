@@ -262,7 +262,4 @@ public abstract class RubyBaseNode extends Node {
         return getLanguage().options.METHOD_LOOKUP_CACHE;
     }
 
-    protected final int getRubyLibraryCacheLimit() {
-        return getLanguage().options.RUBY_LIBRARY_CACHE;
-    }
 }

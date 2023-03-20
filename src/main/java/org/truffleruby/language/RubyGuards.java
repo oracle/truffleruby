@@ -111,6 +111,10 @@ public abstract class RubyGuards {
                 value instanceof RubyLongRange;
     }
 
+    public static boolean isRubyObjectRange(Object value) {
+        return value instanceof RubyObjectRange;
+    }
+
     public static boolean isRubyArray(Object value) {
         return value instanceof RubyArray;
     }

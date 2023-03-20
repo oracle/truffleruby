@@ -21,7 +21,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -126,20 +126,20 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @ExportMessage
     public boolean isArrayElementModifiable(long index,
-            @CachedLibrary("this") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(this) && inBounds(index);
+            @Cached IsFrozenNode isFrozenNode) {
+        return !isFrozenNode.execute(this) && inBounds(index);
     }
 
     @ExportMessage
     public boolean isArrayElementRemovable(long index,
-            @CachedLibrary("this") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(this) && inBounds(index);
+            @Cached IsFrozenNode isFrozenNode) {
+        return !isFrozenNode.execute(this) && inBounds(index);
     }
 
     @ExportMessage
     public boolean isArrayElementInsertable(long index,
-            @CachedLibrary("this") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(this) && RubyGuards.fitsInInteger(index) && index >= size;
+            @Cached IsFrozenNode isFrozenNode) {
+        return !isFrozenNode.execute(this) && RubyGuards.fitsInInteger(index) && index >= size;
     }
     // endregion
 

@@ -13,6 +13,8 @@ import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
+    public static final int FROZEN_FLAG = 1;
+
     // Special variables
 
     public static final String TEMP_PREFIX = "%";

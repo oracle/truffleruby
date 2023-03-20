@@ -95,8 +95,6 @@ public class LanguageOptions {
     public final int TIME_FORMAT_CACHE;
     /** --integer-pow-cache=DEFAULT_CACHE */
     public final int POW_CACHE;
-    /** --ruby-library-cache=DEFAULT_CACHE */
-    public final int RUBY_LIBRARY_CACHE;
     /** --identity-cache=1 */
     public final int IDENTITY_CACHE;
     /** --context-identity-cache=!singleContext ? 0 : IDENTITY_CACHE */
@@ -167,7 +165,6 @@ public class LanguageOptions {
         INTEROP_CONVERT_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) : DEFAULT_CACHE;
         TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
-        RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
         IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         CONTEXT_SPECIFIC_IDENTITY_CACHE = !singleContext ? 0 : (options.hasBeenSet(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY) ? options.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY) : IDENTITY_CACHE);
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
@@ -260,8 +257,6 @@ public class LanguageOptions {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
                 return POW_CACHE;
-            case "ruby.ruby-library-cache":
-                return RUBY_LIBRARY_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.context-identity-cache":
@@ -336,7 +331,6 @@ public class LanguageOptions {
                one.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY).equals(two.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY)) &&
                one.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY).equals(two.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY)) &&
                one.get(OptionsCatalog.POW_CACHE_KEY).equals(two.get(OptionsCatalog.POW_CACHE_KEY)) &&
-               one.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY).equals(two.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY)) &&
                one.get(OptionsCatalog.IDENTITY_CACHE_KEY).equals(two.get(OptionsCatalog.IDENTITY_CACHE_KEY)) &&
                one.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY).equals(two.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY)) &&
                one.get(OptionsCatalog.CLASS_CACHE_KEY).equals(two.get(OptionsCatalog.CLASS_CACHE_KEY)) &&
@@ -608,13 +602,6 @@ public class LanguageOptions {
         newValue = newOptions.POW_CACHE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --integer-pow-cache differs, was: " + oldValue + " and is now: " + newValue);
-            return false;
-        }
-
-        oldValue = oldOptions.RUBY_LIBRARY_CACHE;
-        newValue = newOptions.RUBY_LIBRARY_CACHE;
-        if (!newValue.equals(oldValue)) {
-            logger.fine("not reusing pre-initialized context: --ruby-library-cache differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

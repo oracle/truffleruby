@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -38,9 +37,9 @@ import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.IsFrozenNode;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -164,18 +163,18 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "gmtime", "utc" })
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected RubyTime gmtime(RubyTime time,
                 @Cached BranchProfile errorProfile,
                 @Cached BranchProfile notModifiedProfile,
-                @CachedLibrary("time") RubyLibrary rubyLibrary) {
+                @Cached IsFrozenNode isFrozenNode) {
 
             if (time.isUtc) {
                 notModifiedProfile.enter();
                 return time;
             }
 
-            if (rubyLibrary.isFrozen(time)) {
+            if (isFrozenNode.execute(time)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(time, this));
             }

@@ -15,6 +15,11 @@ Performance:
 Changes:
 
 
+Memory Footprint:
+
+* Replaced `RubyLibrary` with `FreezeNode` and `IsFrozenNode` (@horakivo).
+
+
 # 23.0.0
 
 New features:
