@@ -27,6 +27,11 @@ class IO
     Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) > 0 ? self : nil
   end
 
+  def wait_priority(timeout = nil)
+    ensure_open_and_readable
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLPRI, timeout) > 0 ? self : nil
+  end
+
 
   # call-seq:
   #   io.wait(events, timeout) -> event mask, false or nil
