@@ -205,9 +205,9 @@ module Truffle
 
     end
 
-    # This method will return a true if poll returned without error
-    # with an event within the timeout, false if the timeout expired,
-    # or raises an exception for an errno.
+    # This method will return an event mask if poll returned without error.
+    # The event mask is >0 when an event occured within the timeout, 0 if the timeout expired.
+    # Raises an exception for an errno.
     def self.poll(io, event_mask, timeout)
       if (event_mask & POLLIN) != 0
         return 1 unless io.__send__(:buffer_empty?)
@@ -257,7 +257,7 @@ module Truffle
               Errno.handle_errno(errno)
             end
           else
-            primitive_result > 0
+            primitive_result
           end
       end while result == :retry
 

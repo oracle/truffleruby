@@ -14,17 +14,75 @@ class IO
 
   def ready?
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0)
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, 0) > 0
   end
 
   def wait_readable(timeout = nil)
     ensure_open_and_readable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) ? self : nil
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLIN, timeout) > 0 ? self : nil
   end
-  alias_method :wait, :wait_readable
 
   def wait_writable(timeout = nil)
     ensure_open_and_writable
-    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) ? self : nil
+    Truffle::IOOperations.poll(self, Truffle::IOOperations::POLLOUT, timeout) > 0 ? self : nil
+  end
+
+
+  # call-seq:
+  #   io.wait(events, timeout) -> event mask, false or nil
+  #   io.wait(timeout = nil, mode = :read) -> self, true, or false
+  #
+  # Waits until the IO becomes ready for the specified events and returns the
+  # subset of events that become ready, or a falsy value when times out.
+  #
+  # The events can be a bit mask of +IO::READABLE+, +IO::WRITABLE+ or
+  # +IO::PRIORITY+.
+  #
+  # Returns a truthy value immediately when buffered data is available.
+  #
+  # Optional parameter +mode+ is one of +:read+, +:write+, or
+  # +:read_write+.
+  #
+  def wait(*args)
+    ensure_open
+
+    if args.size != 2 || args[0].is_a?(Symbol) || args[1].is_a?(Symbol)
+      # Slow/messy path:
+
+      timeout = :undef
+      events = 0
+      args.each do |arg|
+        if arg.is_a?(Symbol)
+          events |= case arg
+                    when :r, :read, :readable then IO::READABLE
+                    when :w, :write, :writable then IO::WRITABLE
+                    when :rw, :read_write, :readable_writable then IO::READABLE | IO::WRITABLE
+                    else
+                      raise ArgumentError, "unsupported mode: #{mode.inspect}"
+                    end
+
+        elsif timeout == :undef
+          timeout = arg
+        else
+          raise ArgumentError, 'timeout given more than once'
+        end
+      end
+
+      timeout = nil if timeout == :undef
+
+      events = IO::READABLE if events == 0
+
+      res = Truffle::IOOperations.poll(self, events, timeout)
+      res == 0 ? nil : self
+    else
+      # argc == 2 and neither are symbols
+      # This is the fast path and the new interface:
+
+      events, timeout = *args
+      raise ArgumentError, 'Events must be positive integer!' if events <= 0
+      res = Truffle::IOOperations.poll(self, events, timeout)
+      # return events as bit mask
+      res == 0 ? nil : res
+    end
   end
 end

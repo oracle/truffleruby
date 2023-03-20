@@ -117,7 +117,7 @@ int truffleposix_poll(int fd, int events, int timeout_ms) {
   fds.fd = fd;
   fds.events = events;
 
-  return poll(&fds, 1, timeout_ms);
+  return poll(&fds, 1, timeout_ms) >= 0 ? fds.revents : -1;
 }
 
 int truffleposix_select(int nread, int *readfds, int nwrite, int *writefds,
