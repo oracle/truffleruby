@@ -202,7 +202,7 @@ class IO
     # Returns the number of bytes to fetch from the buffer up-to-
     # and-including +pattern+. Returns +nil+ if pattern is not found.
     def find(pattern, discard = nil)
-      if count = @storage.locate(pattern, @start, @used)
+      if count = Primitive.bytearray_locate(@storage, pattern, @start, @used)
         count - @start
       end
     end
