@@ -53,6 +53,8 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
@@ -243,12 +245,12 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
-                @Cached RubyStringLibrary strings,
-                @Cached ConditionProfile normalizedIndexProfile,
-                @Cached ConditionProfile indexOutOfBoundsProfile,
-                @Cached ConditionProfile lazyProfile,
-                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
-                @Cached ConditionProfile hasValueProfile,
+                @Exclusive @Cached RubyStringLibrary strings,
+                @Shared @Cached ConditionProfile normalizedIndexProfile,
+                @Cached @Exclusive ConditionProfile indexOutOfBoundsProfile,
+                @Shared @Cached ConditionProfile lazyProfile,
+                @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop,
+                @Cached @Exclusive ConditionProfile hasValueProfile,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
 
             final Region region = matchData.region;
@@ -259,8 +261,8 @@ public abstract class MatchDataNodes {
             if (indexOutOfBoundsProfile.profile(index < 0 || index >= region.numRegs)) {
                 return nil;
             } else {
-                final int start = getStart(matchData, index, lazyProfile, interop);
-                final int end = getEnd(matchData, index, lazyProfile, interop);
+                final int start = getStart(matchData, index, lazyProfile, libInterop);
+                final int end = getEnd(matchData, index, lazyProfile, libInterop);
 
                 if (hasValueProfile.profile(start >= 0 && end >= 0)) {
                     final Object source = matchData.source;
@@ -273,10 +275,10 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(RubyMatchData matchData, int index, int length,
-                @Cached ConditionProfile negativeLengthProfile,
-                @Cached ConditionProfile normalizedIndexProfile,
-                @Cached ConditionProfile indexOutOfBoundsProfile,
-                @Cached ConditionProfile tooLargeTotalProfile) {
+                @Exclusive @Cached ConditionProfile negativeLengthProfile,
+                @Shared @Cached ConditionProfile normalizedIndexProfile,
+                @Cached @Exclusive ConditionProfile negativeIndexProfile,
+                @Exclusive @Cached ConditionProfile tooLargeTotalProfile) {
             final Object[] values = getValuesNode.execute(matchData);
 
             if (negativeLengthProfile.profile(length < 0)) {
@@ -286,7 +288,7 @@ public abstract class MatchDataNodes {
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += values.length;
 
-                if (indexOutOfBoundsProfile.profile(index < 0)) {
+                if (negativeIndexProfile.profile(index < 0)) {
                     return nil;
                 }
             }
@@ -313,8 +315,8 @@ public abstract class MatchDataNodes {
                 @Cached("findNameEntry(cachedRegexp, cachedSymbol)") NameEntry nameEntry,
                 @Cached("numBackRefs(nameEntry)") int backRefs,
                 @Cached("backRefIndex(nameEntry)") int backRefIndex,
-                @Cached ConditionProfile lazyProfile,
-                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
+                @Shared @Cached ConditionProfile lazyProfile,
+                @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             if (backRefs == 1) {
                 return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
@@ -326,8 +328,8 @@ public abstract class MatchDataNodes {
 
         @Specialization(replaces = "getIndexSymbolKnownRegexp")
         protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
-                @Cached ConditionProfile lazyProfile,
-                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
+                @Shared @Cached ConditionProfile lazyProfile,
+                @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
                     getBackRef(matchData, getRegexp(matchData), symbol.tstring, symbol.encoding, lazyProfile,
@@ -337,9 +339,9 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "libIndex.isRubyString(index)", limit = "1")
         protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
-                @Cached RubyStringLibrary libIndex,
-                @Cached ConditionProfile lazyProfile,
-                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
+                @Exclusive @Cached RubyStringLibrary libIndex,
+                @Shared @Cached ConditionProfile lazyProfile,
+                @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
                     getBackRef(matchData, getRegexp(matchData), libIndex.getTString(index), libIndex.getEncoding(index),
@@ -361,7 +363,7 @@ public abstract class MatchDataNodes {
         @Specialization(guards = "isRubyRange(range)")
         protected Object getIndexRange(RubyMatchData matchData, Object range, NotProvided other,
                 @Cached RangeNodes.NormalizedStartLengthNode startLengthNode,
-                @Cached ConditionProfile negativeStart) {
+                @Exclusive @Cached ConditionProfile negativeStart) {
             final Object[] values = getValuesNode.execute(matchData);
             final int[] startLength = startLengthNode.execute(range, values.length);
 

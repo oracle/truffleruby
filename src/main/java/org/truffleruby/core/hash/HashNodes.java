@@ -47,6 +47,7 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -380,7 +381,7 @@ public abstract class HashNodes {
 
         @Specialization
         protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
-                @Cached PropagateSharingNode propagateSharingNode) {
+                @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
             propagateSharingNode.executePropagate(hash, block);
@@ -390,7 +391,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "wasProvided(defaultValue)")
         protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
-                @Cached PropagateSharingNode propagateSharingNode) {
+                @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
             propagateSharingNode.executePropagate(hash, defaultValue);
             hash.defaultValue = defaultValue;

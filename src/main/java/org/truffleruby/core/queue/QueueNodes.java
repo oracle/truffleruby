@@ -32,6 +32,7 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -84,7 +85,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         protected Object popBlocking(RubyQueue self, boolean nonBlocking,
-                @Cached BranchProfile closedProfile) {
+                @Exclusive @Cached BranchProfile closedProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = doPop(queue);
@@ -104,7 +105,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         protected Object popNonBlock(RubyQueue self, boolean nonBlocking,
-                @Cached BranchProfile errorProfile) {
+                @Exclusive @Cached BranchProfile errorProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = queue.poll();

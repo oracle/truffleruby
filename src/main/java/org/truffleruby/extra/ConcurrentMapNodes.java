@@ -11,6 +11,7 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.annotations.CoreMethod;
@@ -189,7 +190,7 @@ public class ConcurrentMapNodes {
         @Specialization(guards = "isPrimitive(expectedValue)")
         protected boolean replacePairPrimitive(
                 RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Cached ToHashByHashCode hashNode,
+                @Exclusive @Cached ToHashByHashCode hashNode,
                 @Cached ReferenceEqualNode equalNode) {
             final int hashCode = hashNode.execute(key);
             final Key keyWrapper = new Key(key, hashCode);
@@ -210,7 +211,7 @@ public class ConcurrentMapNodes {
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
         protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Cached ToHashByHashCode hashNode) {
+                @Exclusive @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
         }
@@ -226,7 +227,7 @@ public class ConcurrentMapNodes {
         /** See {@link CompareAndSetReferenceNode} */
         @Specialization(guards = "isPrimitive(expectedValue)")
         protected boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Cached ToHashByHashCode hashNode,
+                @Exclusive @Cached ToHashByHashCode hashNode,
                 @Cached ReferenceEqualNode equalNode) {
             final int hashCode = hashNode.execute(key);
             final Key keyWrapper = new Key(key, hashCode);
@@ -247,7 +248,7 @@ public class ConcurrentMapNodes {
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
         protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Cached ToHashByHashCode hashNode) {
+                @Exclusive @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return remove(self.getMap(), new Key(key, hashCode), expectedValue);
         }

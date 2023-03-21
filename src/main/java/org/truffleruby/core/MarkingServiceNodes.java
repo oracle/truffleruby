@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -93,7 +94,7 @@ public class MarkingServiceNodes {
 
         @Specialization(guards = "stack.hasSingleMarkObject()")
         protected void markSingleObject(ExtensionCallStack stack,
-                @Cached DispatchNode callNode) {
+                @Shared @Cached DispatchNode callNode) {
             ValueWrapper value = stack.getSingleMarkObject();
             callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
         }
@@ -101,7 +102,7 @@ public class MarkingServiceNodes {
         @TruffleBoundary
         @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
         protected void marksToRun(ExtensionCallStack stack,
-                @Cached DispatchNode callNode) {
+                @Shared @Cached DispatchNode callNode) {
             // Run the markers...
             var valuesForMarking = stack.getMarkOnExitObjects();
             // Push a new stack frame because we should

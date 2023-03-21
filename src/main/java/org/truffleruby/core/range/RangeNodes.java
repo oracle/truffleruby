@@ -43,6 +43,8 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -100,8 +102,8 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
-                @Cached ConditionProfile excludedEndProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Shared @Cached ConditionProfile excludedEndProfile,
+                @Exclusive @Cached LoopConditionProfile loopProfile) {
             final int exclusiveEnd;
             if (excludedEndProfile.profile(range.excludedEnd)) {
                 exclusiveEnd = range.end;
@@ -123,8 +125,8 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
-                @Cached ConditionProfile excludedEndProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Shared @Cached ConditionProfile excludedEndProfile,
+                @Exclusive @Cached LoopConditionProfile loopProfile) {
             final long exclusiveEnd;
             if (excludedEndProfile.profile(range.excludedEnd)) {
                 exclusiveEnd = range.end;
@@ -563,26 +565,26 @@ public abstract class RangeNodes {
 
         @Specialization
         protected int[] normalizeLongRange(RubyLongRange range, int size,
-                @Cached ToIntNode toInt) {
+                @Exclusive @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isEndless()")
         protected int[] normalizeEndlessRange(RubyObjectRange range, int size,
-                @Cached ToIntNode toInt) {
+                @Shared @Cached ToIntNode toInt) {
             int begin = toInt.execute(range.begin);
             return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
         }
 
         @Specialization(guards = "range.isBounded()")
         protected int[] normalizeObjectRange(RubyObjectRange range, int size,
-                @Cached ToIntNode toInt) {
+                @Shared @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isBeginless()")
         protected int[] normalizeBeginlessRange(RubyObjectRange range, int size,
-                @Cached ToIntNode toInt) {
+                @Shared @Cached ToIntNode toInt) {
             return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
         }
 

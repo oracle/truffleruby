@@ -15,6 +15,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -26,7 +27,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
-            @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode,
+            @Shared @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode,
             @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedTString) {
         var rubyString = createString(cachedTString, Encodings.UTF_8);
         rubyString.freeze();
@@ -35,8 +36,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
 
     @Specialization(replaces = "doCached")
     protected RubyString doGeneric(String value,
-            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        var rubyString = createString(fromJavaStringNode, value, Encodings.UTF_8);
+            @Shared @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
+        var rubyString = createString(tstringFromJavaStringNode, value, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }

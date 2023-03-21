@@ -29,6 +29,7 @@ import org.truffleruby.annotations.Visibility;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -59,7 +60,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
-                @Cached BranchProfile errorProfile) {
+                @Shared @Cached BranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
@@ -70,7 +71,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
-                @Cached BranchProfile errorProfile) {
+                @Shared @Cached BranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 

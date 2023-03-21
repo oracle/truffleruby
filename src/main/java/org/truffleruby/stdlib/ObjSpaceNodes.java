@@ -35,6 +35,7 @@ import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -55,19 +56,19 @@ public abstract class ObjSpaceNodes {
 
         @Specialization
         protected int memsizeOfString(RubyString object,
-                @Cached RubyStringLibrary libString) {
+                @Exclusive @Cached RubyStringLibrary libString) {
             return memsizeOfObject(object) + libString.byteLength(object);
         }
 
         @Specialization
         protected int memsizeOfString(ImmutableRubyString object,
-                @Cached RubyStringLibrary libString) {
+                @Exclusive @Cached RubyStringLibrary libString) {
             return 1 + libString.byteLength(object);
         }
 
         @Specialization
         protected int memsizeOfMatchData(RubyMatchData object,
-                @Cached ValuesNode matchDataValues) {
+                @Exclusive @Cached ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
 
