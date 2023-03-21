@@ -191,7 +191,7 @@ class StringIO
   end
 
   def set_encoding(external, internal = nil, options = nil)
-    encoding = external || Encoding.default_external
+    encoding = Truffle::Type.coerce_to_encoding(external || Encoding.default_external)
     d = @__data__
     TruffleRuby.synchronized(d) do
       d.encoding = encoding
