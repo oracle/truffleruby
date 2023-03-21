@@ -43,6 +43,7 @@ Bug fixes:
 * Fix `rb_time_timespec_new` function to not call `Time.at` method directly (@andrykonchin).
 * Fix `StringIO#write` to transcode strings with encodings that don't match the `StringIO`'s `external_encoding`. (#2839, @flavorjones)
 * Fix processing of proc rest arguments located at the beginning if there are no actual arguments (#2921, @andrykonchin).
+* Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
 
 Compatibility:
 
