@@ -225,7 +225,7 @@ class IO
         total = size
         total = count if count and count < total
 
-        str = String.from_bytearray @storage, @start, total, encoding
+        str = Primitive.string_from_bytearray(@storage, @start, total, encoding)
         @start += total
 
         str
