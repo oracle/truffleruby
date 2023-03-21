@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -47,17 +49,15 @@ class IO
   #
   # Optional parameter +mode+ is one of +:read+, +:write+, or
   # +:read_write+.
-  #
   def wait(*args)
     ensure_open
 
-    if args.size != 2 || args[0].is_a?(Symbol) || args[1].is_a?(Symbol)
+    if args.size != 2 || Primitive.object_kind_of?(args[0], Symbol) || Primitive.object_kind_of?(args[1], Symbol)
       # Slow/messy path:
-
       timeout = :undef
       events = 0
       args.each do |arg|
-        if arg.is_a?(Symbol)
+        if Primitive.object_kind_of?(arg, Symbol)
           events |= case arg
                     when :r, :read, :readable then IO::READABLE
                     when :w, :write, :writable then IO::WRITABLE
@@ -80,9 +80,8 @@ class IO
       res = Truffle::IOOperations.poll(self, events, timeout)
       res == 0 ? nil : self
     else
-      # argc == 2 and neither are symbols
+      # args.size == 2 and neither are symbols
       # This is the fast path and the new interface:
-
       events, timeout = *args
       raise ArgumentError, 'Events must be positive integer!' if events <= 0
       res = Truffle::IOOperations.poll(self, events, timeout)

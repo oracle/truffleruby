@@ -206,7 +206,7 @@ module Truffle
     end
 
     # This method will return an event mask if poll returned without error.
-    # The event mask is >0 when an event occured within the timeout, 0 if the timeout expired.
+    # The event mask is > 0 when an event occurred within the timeout, 0 if the timeout expired.
     # Raises an exception for an errno.
     def self.poll(io, event_mask, timeout)
       if (event_mask & POLLIN) != 0
