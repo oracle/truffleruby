@@ -100,6 +100,7 @@ public abstract class MutexOperations {
         }
     }
 
+    /** Should be preceded with MutexOperations.checkOwnedMutex call to throw a proper exception */
     @TruffleBoundary
     public static void unlock(ReentrantLock lock, RubyThread thread) {
         unlockInternal(lock);

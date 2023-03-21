@@ -78,8 +78,10 @@ public abstract class TruffleMonitorNodes {
     public abstract static class MonitorExit extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object exit(RubyMutex mutex) {
+        protected Object exit(RubyMutex mutex,
+                @Cached BranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
+            MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);
             MutexOperations.unlock(mutex.lock, thread);
             return mutex;
         }
