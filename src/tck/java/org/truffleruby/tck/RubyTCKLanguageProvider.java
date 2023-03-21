@@ -75,7 +75,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         // Interop Primitives
         vals.add(createValueConstructor(context, "nil", NULL)); // should also be OBJECT?
         vals.add(createValueConstructor(context, "false", BOOLEAN));
-        // NOTE: NUMBER is only for primitives and types which are instanceof java.lang.Number.
+        // NOTE: NUMBER means InteropLibrary#isNumber
+        vals.add(createValueConstructor(context, "0", NUMBER));
         vals.add(createValueConstructor(context, "7", NUMBER)); // int
         vals.add(createValueConstructor(context, "1 << 42", NUMBER)); // long
         vals.add(createValueConstructor(context, "1 << 84", NUMBER)); // Bignum
@@ -118,7 +119,16 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         // ops.add(createBinaryOperator(context, "a * b", NUMBER, NUMBER, NUMBER));
         // ops.add(createBinaryOperator(context, "a * b", STRING, NUMBER, STRING));
         // ops.add(createBinaryOperator(context, "a * b", ARRAY, NUMBER, ARRAY));
-        ops.add(createBinaryOperator(context, "a / b", NUMBER, NUMBER, NUMBER));
+        ops.add(createBinaryOperator(context, "a / b", NUMBER, NUMBER, NUMBER, run -> {
+            Value rhs = run.getParameters().get(1);
+            // Ideally we should test if both LHS and RHS are integral but interop gives us no way currently
+            if (rhs.fitsInInt() && rhs.asInt() == 0 && run.getException() != null &&
+                    run.getException().getMessage().equals("divided by 0")) {
+                // OK, division by 0 raises
+            } else {
+                ResultVerifier.getDefaultResultVerifier().accept(run);
+            }
+        }));
         // ops.add(createBinaryOperator(context, "a % b", NUMBER, NUMBER, NUMBER));
         // ops.add(createBinaryOperator(context, "a ** b", NUMBER, NUMBER, NUMBER));
 
@@ -248,11 +258,18 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
 
     private Snippet createBinaryOperator(Context context, String operator, TypeDescriptor lhsType,
             TypeDescriptor rhsType, TypeDescriptor returnType) {
+        return createBinaryOperator(context, operator, lhsType, rhsType, returnType,
+                ResultVerifier.getDefaultResultVerifier());
+    }
+
+    private Snippet createBinaryOperator(Context context, String operator, TypeDescriptor lhsType,
+            TypeDescriptor rhsType, TypeDescriptor returnType, ResultVerifier resultVerifier) {
         final Value function = context.eval(getId(), String.format("-> a, b { %s }", operator));
 
         return Snippet
                 .newBuilder(operator, function, returnType)
                 .parameterTypes(lhsType, rhsType)
+                .resultVerifier(resultVerifier)
                 .build();
     }
 
