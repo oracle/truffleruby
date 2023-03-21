@@ -60,7 +60,7 @@ describe "Polyglot::InnerContext" do
 
     -> { context.eval('ruby', '42') }.should raise_error(RuntimeError, 'This Polyglot::InnerContext is closed')
 
-    # obj.object_id # throws a host exception, but those currently cannot be caught due to the workaround for GR-22071
+    # obj.object_id # throws a IllegalStateException which cannot be caught: GR-45031
   end
 
   it "raises ArgumentError for an unknown language" do
