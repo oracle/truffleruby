@@ -298,11 +298,13 @@ suite = {
             "sourceDirs": ["java", "ruby"],
             "requires": ["java.scripting", "java.management", "jdk.management"],
             "dependencies": [
-                "org.truffleruby",
-                "org.truffleruby.services",
+                # Distributions
+                "sdk:LAUNCHER_COMMON",
+                "TRUFFLERUBY",
+                "TRUFFLERUBY-SERVICES",
+                # Libraries
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
-                "sdk:LAUNCHER_COMMON"
             ],
             "javaCompliance": "17+",
             "checkstyle": "org.truffleruby",
@@ -585,16 +587,15 @@ suite = {
             "dependencies": [
                 "org.truffleruby.test",
             ],
-            "exclude": [
-                "mx:HAMCREST",
-                "mx:JUNIT",
-                "truffleruby:NETBEANS-LIB-PROFILER",
-            ],
             "distDependencies": [
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
-                "TRUFFLERUBY_GRAALVM_SUPPORT",
+            ],
+            "exclude": [
+                "mx:HAMCREST",
+                "mx:JUNIT",
+                "truffleruby:NETBEANS-LIB-PROFILER",
             ],
             "javaProperties": {
                 "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
