@@ -377,11 +377,6 @@ public class BacktraceFormatter {
 
     @TruffleBoundary
     public static void printInternalError(RubyContext context, Throwable throwable, String from) {
-        if (context.getEnv().isHostException(throwable)) {
-            // rethrow host exceptions to get the interleaved host and guest stacktrace of PolyglotException
-            throw ExceptionOperations.rethrow(throwable);
-        }
-
         final PrintStream stream = context.getEnvErrStream();
         final BacktraceFormatter formatter = context.getDefaultBacktraceFormatter();
         stream.println();

@@ -29,10 +29,27 @@ describe "Polyglot::ForeignException" do
   it "supports #full_message" do
     -> {
       raise @foreign
-    }.should raise_error(Polyglot::ForeignException) {
-      full_message = @foreign.full_message(highlight: false, order: :top).lines
+    }.should raise_error(Polyglot::ForeignException) { |e|
+      full_message = e.full_message(highlight: false, order: :top).lines
       full_message[0].should == "#{__FILE__}:#{__LINE__-3}:in `Kernel#raise': exception message (Polyglot::ForeignException)\n"
     }
+  end
+
+  guard -> { !TruffleRuby.native? } do
+    it "supports #full_message for a host exception" do
+      integer = Java.type("java.lang.Integer")
+      -> {
+        integer.parseInt("abc")
+      }.should raise_error(Polyglot::ForeignException) { |e|
+        full_message = e.full_message(highlight: false, order: :top).gsub(/:\d+:/, ':LINE:')
+        full_message.should.start_with?(<<~EXCEPTION)
+        NumberFormatException.java:LINE:in `forInputString': For input string: "abc" (Polyglot::ForeignException: java.lang.NumberFormatException)
+        \tfrom Integer.java:LINE:in `parseInt'
+        \tfrom Integer.java:LINE:in `parseInt'
+        \tfrom #{__FILE__ }:LINE:in `block (4 levels) in <top (required)>'
+        EXCEPTION
+      }
+    end
   end
 
   it "supports rescue Polyglot::ForeignException" do
