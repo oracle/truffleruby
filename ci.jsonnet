@@ -29,7 +29,6 @@ local common = import "ci/common.jsonnet";
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
   local jt = function(args) [["bin/jt"] + args],
-  local mri_version = "3.1.2",
 
   use: {
     common: {
@@ -224,51 +223,27 @@ local part_definitions = {
   },
 
   platform: {
-    local linux_amd64_deps = common.deps.sulong + {
+    local common_deps = common.deps.truffleruby + common.deps.sulong,
+    local linux_amd64_extra_deps = {
       packages+: {
         binutils: ">=2.30",
-        ruby: "==" + mri_version,
-        libyaml: "==0.2.5",
       },
     },
 
-    local linux_aarch64_deps = common.deps.sulong + {
-      packages+: {
-        ruby: "==3.0.2",
-        libyaml: "==0.2.5",
-      },
-    },
-
-    local darwin_amd64_deps = common.deps.sulong + {
-      packages+: {
-        ruby: "==3.0.2",
-      },
-    },
-
-    local darwin_aarch64_deps = common.deps.sulong + {
-      packages+: {
-        ruby: "==3.0.2",
-      },
-    },
-
-    linux: common.linux_amd64 + linux_amd64_deps + {
+    linux: common.linux_amd64 + common_deps + linux_amd64_extra_deps + {
       platform_name:: "LinuxAMD64",
       "$.cap":: {
         normal_machine: [],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
-      docker: {
-        image: "buildslave_ol7",
-        mount_modules: true,
-      },
     },
-    linux_aarch64: common.linux_aarch64 + linux_aarch64_deps + {
+    linux_aarch64: common.linux_aarch64 + common_deps + {
       platform_name:: "LinuxAArch64",
       "$.cap":: {
         normal_machine: [],
       },
     },
-    darwin_amd64: common.darwin_amd64 + darwin_amd64_deps + {
+    darwin_amd64: common.darwin_amd64 + common_deps + {
       platform_name:: "DarwinAMD64",
       "$.cap":: {
         normal_machine: ["darwin_mojave"],
@@ -277,7 +252,7 @@ local part_definitions = {
         LANG: "en_US.UTF-8",
       },
     },
-    darwin_aarch64: common.darwin_aarch64 + darwin_aarch64_deps + {
+    darwin_aarch64: common.darwin_aarch64 + common_deps + {
       platform_name:: "DarwinAArch64",
       "$.cap":: {
         normal_machine: [],
