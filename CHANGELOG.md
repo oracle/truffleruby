@@ -25,6 +25,8 @@ Bug fixes:
 * Don't trigger the `method_added` event when changing a method's visibility or calling `module_function` (@paracycle, @nirvdrum).
 * Fix `rb_time_timespec_new` function to not call `Time.at` method directly (@andrykonchin).
 * Fix `StringIO#write` to transcode strings with encodings that don't match the `StringIO`'s `external_encoding`. (#2839, @flavorjones)
+* Fix processing of proc rest arguments located at the beginning if there are no actual arguments (#2921, @andrykonchin).
+* Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
 
 Compatibility:
 
@@ -100,6 +102,7 @@ Compatibility:
 * Add `Refinement#import_methods` method and add deprecation warning for `Refinement#include` and `Refinement#prepend` (#2733, @horakivo).
 * Upgrading `UNICODE` version to 13.0.0 and `EMOJI` version to 13.1 (#2733, @horakivo).
 * Add `rb_io_maybe_wait_readable`, `rb_io_maybe_wait_writable` and `rb_io_maybe_wait` functions (#2733, @andrykonchin).
+* `StringIO#set_encoding` should coerce the argument to an Encoding (#2954, @eregon).
 
 Performance:
 

@@ -76,16 +76,12 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
 
         final int length = endIndex - startIndex;
 
-        if (startIndex == 0) {
-            return createArray(RubyArguments.getRawArguments(frame, startIndex, length), length);
+        if (startIndex >= endIndex) {
+            noArgumentsLeftProfile.enter();
+            return createEmptyArray();
         } else {
-            if (startIndex >= endIndex) {
-                noArgumentsLeftProfile.enter();
-                return createEmptyArray();
-            } else {
-                subsetOfArgumentsProfile.enter();
-                return createArray(RubyArguments.getRawArguments(frame, startIndex, length), length);
-            }
+            subsetOfArgumentsProfile.enter();
+            return createArray(RubyArguments.getRawArguments(frame, startIndex, length), length);
         }
     }
 
