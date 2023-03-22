@@ -68,9 +68,11 @@ import org.truffleruby.interop.FromJavaStringNodeGen;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -109,6 +111,10 @@ import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
+import org.truffleruby.platform.Platform;
+import org.truffleruby.yarp.YARPTranslator;
+import org.yarp.Loader;
+import org.yarp.Parser;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -243,6 +249,84 @@ public abstract class TruffleDebugNodes {
             return nil;
         }
 
+    }
+
+    private static byte[] yarpSerialize(RubyLanguage language, byte[] source) {
+        // TODO: load it once during context initialization (when YARP is used as the main parser)
+        Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
+        return Parser.parseAndSerialize(source);
+    }
+
+    @CoreMethod(names = "yarp_serialize", onSingleton = true, required = 1)
+    public abstract static class YARPSerializeNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(code)", limit = "1")
+        protected Object serialize(Object code,
+                @Cached RubyStringLibrary strings,
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+            var tstring = strings.getTString(code);
+            var tencoding = strings.getTEncoding(code);
+            var source = copyToByteArrayNode.execute(tstring, tencoding);
+
+            byte[] serialized = yarpSerialize(getLanguage(), source);
+
+            return createString(fromByteArrayNode, serialized, Encodings.BINARY);
+        }
+    }
+
+    @CoreMethod(names = "yarp_parse", onSingleton = true, required = 1)
+    public abstract static class YARPParseNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(code)", limit = "1")
+        protected Object parse(Object code,
+                @Cached RubyStringLibrary strings,
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            var tstring = strings.getTString(code);
+            var tencoding = strings.getTEncoding(code);
+            var source = copyToByteArrayNode.execute(tstring, tencoding);
+
+            byte[] serialized = yarpSerialize(getLanguage(), source);
+
+            var ast = Loader.load(source, serialized);
+
+            return createString(fromJavaStringNode, ast.toString(), Encodings.UTF_8);
+        }
+    }
+
+    @CoreMethod(names = "yarp_execute", onSingleton = true, required = 1)
+    public abstract static class YARPExecuteNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization(guards = "strings.isRubyString(code)", limit = "1")
+        protected Object yarpExecute(Object code,
+                @Cached RubyStringLibrary strings,
+                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
+            var tstring = strings.getTString(code);
+            var tencoding = strings.getTEncoding(code);
+            var source = copyToByteArrayNode.execute(tstring, tencoding);
+
+            byte[] serialized = yarpSerialize(getLanguage(), source);
+
+            var ast = Loader.load(source, serialized);
+            System.err.println("YARP AST:");
+            System.err.println(ast);
+            var truffleAST = new YARPTranslator(getLanguage(), source).translate(ast);
+
+            System.err.println("Truffle AST:");
+            NodeUtil.printCompactTree(getContext().getEnvErrStream(), truffleAST);
+
+            return truffleAST.getCallTarget().call(RubyArguments.pack(
+                    null,
+                    null,
+                    null,
+                    DeclarationContext.topLevel(getContext()),
+                    null,
+                    coreLibrary().mainObject,
+                    Nil.INSTANCE,
+                    EmptyArgumentsDescriptor.INSTANCE,
+                    EMPTY_ARGUMENTS));
+        }
     }
 
     @CoreMethod(names = "parse_ast", onSingleton = true, required = 1)
