@@ -440,7 +440,7 @@ describe "The launcher" do
           out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: env, args: @redirect)
           check_status_and_empty_stderr
           out = out.lines.map(&:chomp)
-          out[0].should =~ /GraalVM (CE|EE) JVM/
+          out[0].should =~ /(GraalVM CE|GraalVM EE|Oracle GraalVM) JVM/
           out[1].should == 'bar'
         end
       end
@@ -448,13 +448,13 @@ describe "The launcher" do
       it "uses --native by default" do
         out = ruby_exe(nil, options: "--version", args: @redirect)
         check_status_and_empty_stderr
-        out.should =~ /GraalVM (CE|EE) Native/
+        out.should =~ /(GraalVM CE|GraalVM EE|Oracle GraalVM) Native/
       end
 
       it "switches to JVM with --jvm as a Ruby argument" do
         out = ruby_exe(nil, options: "--jvm #{@ignore_jvm_thread_warnings} --version", args: @redirect)
         check_status_and_empty_stderr
-        out.should =~ /GraalVM (CE|EE) JVM/
+        out.should =~ /(GraalVM CE|GraalVM EE|Oracle GraalVM) JVM/
       end
 
       it "keeps --jvm as an application argument if given as an application argument" do
@@ -462,7 +462,7 @@ describe "The launcher" do
         out = ruby_exe(nil, options: "-v", args: "#{script} --jvm 1 2 #{@redirect}")
         check_status_and_empty_stderr
         out = out.lines.map(&:chomp)
-        out[0].should =~ /GraalVM (CE|EE) Native/
+        out[0].should =~ /(GraalVM CE|GraalVM EE|Oracle GraalVM) Native/
         out.should.include?('["--jvm", "1", "2"]')
       end
     end
