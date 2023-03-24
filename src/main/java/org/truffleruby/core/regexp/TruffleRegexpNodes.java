@@ -419,23 +419,20 @@ public class TruffleRegexpNodes {
             BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
-                arrayBuilderNode
-                        .appendValue(state, n++,
-                                StringOperations.createUTF8String(context, getLanguage(), e.getKey().toString()));
+                arrayBuilderNode.appendValue(state, n++,
+                        StringOperations.createUTF8String(context, getLanguage(), e.getKey().toString()));
                 arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
             return createArray(arrayBuilderNode.finish(state, n), n);
         }
 
         @TruffleBoundary
-        protected <T> RubyArray fillinInstrumentData(Set<T> map, ArrayBuilderNode arrayBuilderNode,
-                RubyContext context) {
+        protected <T> RubyArray fillinInstrumentData(Set<T> map, ArrayBuilderNode arrayBuilderNode) {
             final int arraySize = (LITERAL_REGEXPS.size() + DYNAMIC_REGEXPS.size()) * 2;
             BuilderState state = arrayBuilderNode.start(arraySize);
             int n = 0;
             for (T e : map) {
-                arrayBuilderNode
-                        .appendValue(state, n++, e);
+                arrayBuilderNode.appendValue(state, n++, e);
                 arrayBuilderNode.appendValue(state, n++, 1);
             }
             return createArray(arrayBuilderNode.finish(state, n), n);
@@ -480,8 +477,7 @@ public class TruffleRegexpNodes {
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(
                     literalRegexps ? LITERAL_REGEXPS : DYNAMIC_REGEXPS,
-                    arrayBuilderNode,
-                    getContext());
+                    arrayBuilderNode);
         }
     }
 
@@ -503,23 +499,20 @@ public class TruffleRegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object buildUnusedRegexpsArray(
-                @Cached ArrayBuilderNode arrayBuilderNode) {
+        protected Object buildUnusedRegexpsArray() {
             final Set<RubyRegexp> compiledRegexps = allCompiledRegexps();
             final Set<RubyRegexp> matchedRegexps = allMatchedRegexps();
 
             final Set<RubyRegexp> unusedRegexps = new HashSet<>(compiledRegexps);
             unusedRegexps.removeAll(matchedRegexps);
 
-            final BuilderState state = arrayBuilderNode.start(unusedRegexps.size());
+            Object[] array = new Object[unusedRegexps.size()];
             int n = 0;
             for (RubyRegexp entry : unusedRegexps) {
-                arrayBuilderNode
-                        .appendValue(state, n++,
-                                StringOperations.createUTF8String(getContext(), getLanguage(), entry.toString()));
+                array[n++] = StringOperations.createUTF8String(getContext(), getLanguage(), entry.toString());
             }
 
-            return createArray(arrayBuilderNode.finish(state, n), n);
+            return createArray(array);
         }
     }
 
