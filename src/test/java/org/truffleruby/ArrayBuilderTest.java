@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Arrays;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -31,6 +32,7 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.Nil;
 import org.truffleruby.shared.TruffleRuby;
 
 public class ArrayBuilderTest {
@@ -106,6 +108,22 @@ public class ArrayBuilderTest {
     }
 
     @Test
+    public void arrayBuilderAppendGrowTest() {
+        testInContext(() -> {
+            ArrayBuilderNode builder = createBuilder();
+            BuilderState state = builder.start(10);
+            for (int i = 0; i < 12; i++) {
+                builder.appendValue(state, i, Nil.INSTANCE);
+            }
+            Object[] result = (Object[]) builder.finish(state, 12);
+            for (int i = 0; i < 12; i++) {
+                Object e = result[i];
+                assertEquals(Nil.INSTANCE, e);
+            }
+        });
+    }
+
+    @Test
     public void arrayBuilderAppendEmptyArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
@@ -177,6 +195,28 @@ public class ArrayBuilderTest {
                     10);
             builder.appendArray(state, 0, otherStore);
             assertEquals(Object[].class, builder.finish(state, 10).getClass());
+        });
+    }
+
+    @Test
+    public void arrayBuilderAppendGrowArrayTest() {
+        testInContext(() -> {
+            ArrayBuilderNode builder = createBuilder();
+            BuilderState state = builder.start(10);
+            Object[] array = new Object[6];
+            Arrays.fill(array, Nil.INSTANCE);
+            RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
+                    array,
+                    array.length);
+            builder.appendArray(state, 0, otherStore);
+            builder.appendArray(state, 6, otherStore);
+            Object[] result = (Object[]) builder.finish(state, 12);
+            for (int i = 0; i < 12; i++) {
+                Object e = result[i];
+                assertEquals(Nil.INSTANCE, e);
+            }
         });
     }
 
