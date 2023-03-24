@@ -40,24 +40,37 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
             arrayBuilderNode = insert(ArrayBuilderNode.create());
         }
 
-        BuilderState state = arrayBuilderNode.start();
-        int length = 0;
-
+        // Compute the total length
+        int totalLength = 0;
+        final Object[] values = new Object[children.length];
         for (int n = 0; n < children.length; n++) {
-            final Object childObject = children[n].execute(frame);
+            final Object value = values[n] = children[n].execute(frame);
 
-            if (isArrayProfile.profile(childObject instanceof RubyArray)) {
-                final RubyArray childArray = (RubyArray) childObject;
-                final int size = childArray.size;
-                arrayBuilderNode.appendArray(state, length, childArray);
-                length += size;
+            if (isArrayProfile.profile(value instanceof RubyArray)) {
+                totalLength += ((RubyArray) value).size;
             } else {
-                arrayBuilderNode.appendValue(state, length, childObject);
-                length++;
+                totalLength++;
             }
         }
 
-        return createArray(arrayBuilderNode.finish(state, length), length);
+        // Create a builder with the right length and append values
+        BuilderState state = arrayBuilderNode.start(totalLength);
+        int index = 0;
+
+        for (int n = 0; n < children.length; n++) {
+            final Object value = values[n];
+
+            if (isArrayProfile.profile(value instanceof RubyArray)) {
+                final RubyArray childArray = (RubyArray) value;
+                arrayBuilderNode.appendArray(state, index, childArray);
+                index += childArray.size;
+            } else {
+                arrayBuilderNode.appendValue(state, index, value);
+                index++;
+            }
+        }
+
+        return createArray(arrayBuilderNode.finish(state, index), index);
     }
 
     @ExplodeLoop

@@ -43,7 +43,7 @@ public class ArrayBuilderTest {
     public void emptyBuilderTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            BuilderState state = builder.start();
+            BuilderState state = builder.start(0);
             assertEquals(ArrayStoreLibrary.initialStorage(false), builder.finish(state, 0));
         });
     }
