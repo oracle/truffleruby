@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
@@ -48,8 +50,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         return new ArrayBuilderProxyNode();
     }
 
-    public abstract BuilderState start();
-
     public abstract BuilderState start(int length);
 
     public abstract void appendArray(BuilderState state, int index, RubyArray array);
@@ -60,14 +60,9 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.initialAllocator(false), 0);
+        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.initialAllocator(false));
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
-
-        @Override
-        public BuilderState start() {
-            return startNode.start();
-        }
 
         @Override
         public BuilderState start(int length) {
@@ -106,7 +101,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return appendOneNode;
         }
 
-        public synchronized ArrayAllocator updateStrategy(ArrayStoreLibrary.ArrayAllocator newStrategy, int newLength) {
+        public synchronized ArrayAllocator updateStrategy(ArrayStoreLibrary.ArrayAllocator newStrategy) {
             final ArrayStoreLibrary.ArrayAllocator oldStrategy = startNode.allocator;
             final ArrayStoreLibrary.ArrayAllocator updatedAllocator;
             // If two threads have raced to update the strategy then
@@ -122,11 +117,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 updatedAllocator = oldStrategy;
             }
 
-            final int oldLength = startNode.expectedLength;
-            final int newExpectedLength = Math.max(oldLength, newLength);
-
-            if (updatedAllocator != oldStrategy || newExpectedLength > oldLength) {
-                startNode.replace(new StartNode(updatedAllocator, newExpectedLength));
+            if (updatedAllocator != oldStrategy) {
+                startNode.replace(new StartNode(updatedAllocator));
             }
 
             if (newStrategy != oldStrategy) {
@@ -145,35 +137,21 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public abstract static class ArrayBuilderBaseNode extends RubyBaseNode {
 
-        protected ArrayAllocator replaceNodes(ArrayStoreLibrary.ArrayAllocator strategy, int size) {
+        protected ArrayAllocator replaceNodes(ArrayStoreLibrary.ArrayAllocator strategy) {
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();
-            return parent.updateStrategy(strategy, size);
+            return parent.updateStrategy(strategy);
         }
     }
 
     public static class StartNode extends ArrayBuilderBaseNode {
 
         private final ArrayStoreLibrary.ArrayAllocator allocator;
-        private final int expectedLength;
 
-        public StartNode(ArrayStoreLibrary.ArrayAllocator allocator, int expectedLength) {
+        public StartNode(ArrayStoreLibrary.ArrayAllocator allocator) {
             this.allocator = allocator;
-            this.expectedLength = expectedLength;
-        }
-
-        public BuilderState start() {
-            if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
-                return new BuilderState(allocator.allocate(0), expectedLength);
-            } else {
-                return new BuilderState(allocator.allocate(expectedLength), expectedLength);
-            }
         }
 
         public BuilderState start(int length) {
-            if (length > expectedLength) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(allocator, length);
-            }
             if (allocator == ArrayStoreLibrary.initialAllocator(false)) {
                 return new BuilderState(allocator.allocate(0), length);
             } else {
@@ -196,15 +174,15 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 limit = "1")
         protected void appendCompatibleType(BuilderState state, int index, Object value,
                 @Bind("state.store") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary arrays) {
+                @CachedLibrary("store") ArrayStoreLibrary arrays,
+                @Cached BranchProfile growProfile) {
             assert state.nextIndex == index;
             final int length = arrays.capacity(state.store);
             if (index >= length) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
+                growProfile.enter();
                 final int capacity = ArrayUtils.capacityForOneMore(getLanguage(), length);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
-                replaceNodes(arrays.unsharedAllocator(state.store), capacity);
             }
             arrays.write(state.store, index, value);
             state.nextIndex++;
@@ -229,7 +207,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 neededCapacity = currentCapacity;
             }
 
-            newAllocator = replaceNodes(newAllocator, neededCapacity);
+            newAllocator = replaceNodes(newAllocator);
 
             final Object newStore = newAllocator.allocate(neededCapacity);
             stores.copyContents(state.store, 0, newStore, 0, index);
@@ -258,15 +236,15 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Bind("state.store") Object store,
                 @Bind("other.getStore()") Object otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
-                @CachedLibrary("otherStore") ArrayStoreLibrary others) {
+                @CachedLibrary("otherStore") ArrayStoreLibrary others,
+                @Cached BranchProfile growProfile) {
             assert state.nextIndex == index;
             final int otherSize = other.size;
             final int neededSize = index + otherSize;
 
             int length = arrays.capacity(state.store);
             if (neededSize > length) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(arrays.unsharedAllocator(state.store), neededSize);
+                growProfile.enter();
                 final int capacity = ArrayUtils.capacity(getLanguage(), length, neededSize);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
@@ -300,8 +278,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 }
 
                 ArrayAllocator allocator = replaceNodes(
-                        newArrayLibrary.generalizeForStore(state.store, other.getStore()),
-                        neededCapacity);
+                        newArrayLibrary.generalizeForStore(state.store, other.getStore()));
                 newStore = allocator.allocate(neededCapacity);
 
                 newArrayLibrary.copyContents(state.store, 0, newStore, 0, index);
