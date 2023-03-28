@@ -1,0 +1,3 @@
+fails:IO#wait [events, timeout] passed returns self when the READABLE event is ready during the timeout
+fails:IO#wait [events, timeout] passed returns self when the WRITABLE event is ready during the timeout
+fails:IO#wait [events, timeout] passed waits for the READABLE event to be ready

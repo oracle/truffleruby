@@ -63,7 +63,7 @@ class IO
                     when :w, :write, :writable then IO::WRITABLE
                     when :rw, :read_write, :readable_writable then IO::READABLE | IO::WRITABLE
                     else
-                      raise ArgumentError, "unsupported mode: #{mode.inspect}"
+                      raise ArgumentError, "unsupported mode: #{arg}"
                     end
 
         elsif timeout == :undef
