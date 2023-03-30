@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Add `Process.argv0` method (@andrykonchin).
 
 Performance:
 

@@ -170,7 +170,7 @@ public abstract class TruffleBootNodes {
 
         private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
             final RubySource rubySource;
-            final Object dollarZeroValue;
+            final RubyString dollarZeroValue;
             final MainLoader mainLoader = new MainLoader(getContext(), getLanguage());
             try {
                 switch (kind) {
@@ -199,6 +199,7 @@ public abstract class TruffleBootNodes {
 
             int index = getLanguage().getGlobalVariableIndex("$0");
             getContext().getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
+            getContext().setScriptName(dollarZeroValue);
 
             return rubySource;
         }
