@@ -1,0 +1,1 @@
+slow:IRB ignores key sequences that would move past history in singleline mode
