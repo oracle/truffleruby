@@ -110,7 +110,7 @@ GEM
     tempfile (0.1.2)
     test-unit (3.5.3)
       power_assert
-    time (0.2.0)
+    time (0.2.2)
       date
     timeout (0.2.0)
     tmpdir (0.1.2)
@@ -202,7 +202,7 @@ DEPENDENCIES
   syslog (= 0.1.0)
   tempfile (= 0.1.2)
   test-unit (= 3.5.3)
-  time (= 0.2.0)
+  time (= 0.2.2)
   timeout (= 0.2.0)
   tmpdir (= 0.1.2)
   tsort (= 0.1.0)
