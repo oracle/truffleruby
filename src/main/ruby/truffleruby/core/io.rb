@@ -1162,13 +1162,7 @@ class IO
               str.clear
             end
 
-            s = IO.read_encode(@io, s)
-
-            s.chomp!(@separator) if @chomp
-            $. = @io.__send__(:increment_lineno)
-            @buffer.discard @skip if @skip
-
-            yield s
+            yield prepare_read_string(s)
 
             next
           else
@@ -1210,10 +1204,7 @@ class IO
               @buffer.put_back(str.byteslice(offset, str.bytesize - offset))
             end
 
-            res = IO.read_encode(@io, str.byteslice(0, offset))
-            res.chomp!(@separator) if @chomp
-            $. = @io.__send__(:increment_lineno)
-            @buffer.discard @skip if @skip
+            res = prepare_read_string(str.byteslice(0, offset))
 
             str.clear
             last_scan_end = 0
@@ -1227,7 +1218,7 @@ class IO
 
       str << @buffer.shift
       str.chomp!(@separator) if @chomp
-      yield_string(str) { |y| yield y }
+      yield prepare_read_string(str) unless str.empty?
     end
 
     # method B, E
@@ -1245,27 +1236,16 @@ class IO
           bytes = Primitive.min(count, wanted)
           str << @buffer.shift(bytes)
 
-          str = IO.read_encode(@io, str)
-
-          str.chomp!(@separator) if @chomp
-          $. = @io.__send__(:increment_lineno)
-          @buffer.discard @skip if @skip
-
-          yield str
+          yield prepare_read_string(str)
 
           str = +''
           wanted = limit
         else
           if wanted < available
             str << @buffer.shift(wanted)
-
             str = @buffer.read_to_char_boundary(@io, str)
 
-            str.chomp!(@separator) if @chomp
-            $. = @io.__send__(:increment_lineno)
-            @buffer.discard @skip if @skip
-
-            yield str
+            yield prepare_read_string(str)
 
             str = +''
             wanted = limit
@@ -1276,8 +1256,7 @@ class IO
         end
       end
 
-      str.chomp!(@separator) if @chomp
-      yield_string(str) { |s| yield s }
+      yield prepare_read_string(str) unless str.empty?
     end
 
     # Method G
@@ -1293,7 +1272,7 @@ class IO
       end
 
       str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
-      yield_string(str) { |s| yield s }
+      yield prepare_read_string(str) unless str.empty?
     end
 
     # Method H
@@ -1319,15 +1298,17 @@ class IO
         end
       end
 
-      yield_string(str) { |s| yield s }
+      yield prepare_read_string(str) unless str.empty?
     end
 
-    def yield_string(str)
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        $. = @io.__send__(:increment_lineno)
-        yield str
-      end
+    def prepare_read_string(str)
+      s = IO.read_encode(@io, str)
+
+      s.chomp!(@separator) if @chomp
+      $. = @io.__send__(:increment_lineno)
+      @buffer.discard @skip if @skip
+
+      s
     end
   end
 
