@@ -117,7 +117,7 @@ GEM
       fileutils
     tsort (0.1.0)
     un (0.2.0)
-    uri (0.11.0)
+    uri (0.11.1)
     weakref (0.1.1)
       delegate
     yaml (0.2.0)
@@ -207,7 +207,7 @@ DEPENDENCIES
   tmpdir (= 0.1.2)
   tsort (= 0.1.0)
   un (= 0.2.0)
-  uri (= 0.11.0)
+  uri (= 0.11.1)
   weakref (= 0.1.1)
   yaml (= 0.2.0)
   zlib (= 2.1.1)
