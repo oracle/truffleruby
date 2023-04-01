@@ -10,16 +10,12 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class ToFNode extends RubyBaseNode {
 
@@ -53,34 +49,12 @@ public abstract class ToFNode extends RubyBaseNode {
 
     @Specialization(guards = { "!isRubyBignum(object)", "!isImplicitLongOrDouble(object)" })
     protected double coerceObject(Object object,
-            @Cached BranchProfile errorProfile) {
-        if (toFNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFNode = insert(DispatchNode.create());
-        }
-
-        final Object coerced;
-        try {
-            coerced = toFNode.call(object, "to_f");
-        } catch (RaiseException e) {
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "Float", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (coerced instanceof Double) {
-            return (double) coerced;
-        } else {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "Float", "to_f", coerced, this));
-        }
+            @Cached DispatchNode toFNode) {
+        return (double) toFNode.call(
+                coreLibrary().truffleTypeModule,
+                "rb_convert_type",
+                object,
+                coreLibrary().floatClass,
+                coreSymbols().TO_F);
     }
-
 }
