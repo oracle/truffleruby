@@ -273,10 +273,15 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(RubyMatchData matchData, int index, int length,
+                @Cached ConditionProfile negativeLengthProfile,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile tooLargeTotalProfile) {
             final Object[] values = getValuesNode.execute(matchData);
+
+            if (negativeLengthProfile.profile(length < 0)) {
+                return nil;
+            }
 
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += values.length;
