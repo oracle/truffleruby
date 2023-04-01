@@ -305,9 +305,6 @@ public abstract class ArrayNodes {
         protected Object slice(RubyArray array, int start, int length,
                 @Cached ReadSliceNormalizedNode readSliceNode,
                 @Cached ConditionProfile negativeIndexProfile) {
-            if (length < 0) {
-                return nil;
-            }
             if (negativeIndexProfile.profile(start < 0)) {
                 start += array.size;
             }
