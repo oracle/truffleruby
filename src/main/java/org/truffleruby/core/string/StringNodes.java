@@ -98,7 +98,6 @@ import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -4328,9 +4327,8 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
-    public abstract static class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_from_bytearray", lowerFixnum = { 1, 2 })
+    public abstract static class StringFromByteArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyString stringFromByteArray(
