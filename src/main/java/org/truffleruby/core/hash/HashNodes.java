@@ -511,9 +511,9 @@ public abstract class HashNodes {
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "hash.empty()")
-        protected Object shiftEmpty(RubyHash hash,
+        protected Nil shiftEmpty(RubyHash hash,
                 @Cached DispatchNode callDefault) {
-            return callDefault.call(hash, "default", nil);
+            return nil;
         }
 
         @Specialization(guards = "!hash.empty()", limit = "hashStrategyLimit()")
