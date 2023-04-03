@@ -47,6 +47,11 @@ public class ArgumentDescriptorUtils {
         if (argType.anonymous || name == null) {
             store = new Object[]{ language.getSymbol(argType.symbolicName) };
         } else {
+            // make sure to normalize parameter names to "_" if they start with "_$"
+            if (name.startsWith("_$")) {
+                name = "_";
+            }
+
             store = new Object[]{ language.getSymbol(argType.symbolicName), language.getSymbol(name) };
         }
 
