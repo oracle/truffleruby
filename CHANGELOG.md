@@ -131,6 +131,7 @@ Performance:
 * `Process.pid` is now cached per process like `$$` (#2882, @horakivo)
 * Use the system `libyaml` for `psych` to improve warmup when parsing YAML (#2089, @eregon).
 * Fixed repeated deoptimizations for methods building an `Array` which is growing over multiple calls at a given call site (@eregon).
+* Fixed errors in IRB when attempting to navigate beyond bounds in singleline mode (@rwstauner).
 
 Changes:
 
