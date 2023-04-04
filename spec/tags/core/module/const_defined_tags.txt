@@ -1,0 +1,1 @@
+fails:Module#const_defined? converts the given name to a String using #to_str raises a NoMethodError if the given argument raises a NoMethodError during type coercion to a String
