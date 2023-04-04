@@ -148,6 +148,9 @@ public class MemoryHistory implements History {
 
     @Override
     public String current() {
+        if (index >= size()) {
+            return "";
+        }
         return entries.get(index).line();
     }
 
