@@ -45,6 +45,7 @@ Bug fixes:
 * Fix processing of proc rest arguments located at the beginning if there are no actual arguments (#2921, @andrykonchin).
 * Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
 * Fix `MatchData#[]` to support negative `length` argument (#2929, @andrykonchin).
+* Fix `Method` and `Proc` `#parameters` method to return `_` parameter name without synthetic suffix when there are multiple `_` parameters (@paracycle).
 
 Compatibility:
 
