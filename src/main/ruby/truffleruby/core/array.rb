@@ -165,9 +165,7 @@ class Array
     # negative indexes refer to the end of array
     start += len if start < 0
     stop  += len if stop < 0
-
-    stop += 1 unless seq.exclude_end?
-    diff = stop - start
+    diff = stop - start + (seq.exclude_end? ? 0 : 1)
 
     is_out_of_bound = start < 0 || start > len
 
@@ -184,12 +182,15 @@ class Array
     return self[start, diff] if step == 1 # step == 1 is a simple slice
 
     # optimize when no step will be done and only start element is returned
-    return self[start, 1] if (step > 0 && step > diff) || (step < 0 && step < -diff)
+    return self[start, 1] if (step > 0 && step > diff)
+    return self[stop, 1] if (step < 0 && step < -diff)
 
     ustep = step.abs
     nlen = (diff + ustep - 1) / ustep
     i = 0
-    j = start + (step > 0 ? 0 : diff - 1) # because we inverted negative step ranges
+    j = start
+    j += diff - (seq.exclude_end? ? 0 : 1) if step < 0 # because we inverted negative step ranges
+
     res = Array.new(nlen)
 
     while i < nlen
