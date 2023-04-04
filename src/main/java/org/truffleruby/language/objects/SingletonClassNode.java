@@ -19,7 +19,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -130,8 +129,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
                     logicalClass,
                     object);
 
-            if (RubyLibrary.getUncached().isFrozen(object)) {
-                RubyLibrary.getUncached().freeze(singletonClass);
+            if (IsFrozenNodeGen.getUncached().execute(object)) {
+                FreezeNodeGen.getUncached().execute(singletonClass);
             }
 
             SharedObjects.propagate(context.getLanguageSlow(), object, singletonClass);

@@ -35,7 +35,7 @@ import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -133,15 +133,15 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @ExportMessage(name = "isHashEntryRemovable")
     public boolean isHashEntryModifiableAndRemovable(Object key,
             @CachedLibrary("this") InteropLibrary interop,
-            @CachedLibrary("this") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(this) && interop.isHashEntryExisting(this, key);
+            @Cached IsFrozenNode isFrozenNode) {
+        return !isFrozenNode.execute(this) && interop.isHashEntryExisting(this, key);
     }
 
     @ExportMessage
     public boolean isHashEntryInsertable(Object key,
             @CachedLibrary("this") InteropLibrary interop,
-            @CachedLibrary("this") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(this) && !interop.isHashEntryExisting(this, key);
+            @Cached IsFrozenNode isFrozenNode) {
+        return !isFrozenNode.execute(this) && !interop.isHashEntryExisting(this, key);
     }
 
     @ExportMessage(limit = "hashStrategyLimit()")
@@ -168,10 +168,10 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @ExportMessage
     public void writeHashEntry(Object key, Object value,
             @Cached @Exclusive DispatchNode set,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @Cached @Shared ForeignToRubyNode toRuby)
             throws UnsupportedMessageException {
-        if (rubyLibrary.isFrozen(this)) {
+        if (isFrozenNode.execute(this)) {
             throw UnsupportedMessageException.create();
         }
         set.call(this, "[]=", toRuby.executeConvert(key), value);
@@ -180,11 +180,11 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @ExportMessage
     public void removeHashEntry(Object key,
             @Cached @Exclusive DispatchNode delete,
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached IsFrozenNode isFrozenNode,
             @CachedLibrary("this") InteropLibrary interop,
             @Cached @Shared ForeignToRubyNode toRuby)
             throws UnsupportedMessageException, UnknownKeyException {
-        if (rubyLibrary.isFrozen(this)) {
+        if (isFrozenNode.execute(this)) {
             throw UnsupportedMessageException.create();
         }
         if (!interop.isHashEntryExisting(this, key)) {

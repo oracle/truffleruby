@@ -19,7 +19,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -46,7 +45,6 @@ public abstract class ReadStringPointerNode extends FormatNode {
 
     @Specialization
     protected RubyString read(VirtualFrame frame, long address,
-            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
             @CachedLibrary(limit = "1") InteropLibrary interop) {
         final Pointer pointer = new Pointer(getContext(), address);
         checkAssociated(

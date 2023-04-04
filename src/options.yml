@@ -43,7 +43,6 @@ LANGUAGE_OPTIONS:
 - INTEROP_CONVERT_CACHE
 - TIME_FORMAT_CACHE
 - POW_CACHE
-- RUBY_LIBRARY_CACHE
 - CONTEXT_SPECIFIC_IDENTITY_CACHE
 - IDENTITY_CACHE
 - CLASS_CACHE
@@ -208,7 +207,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     INTEROP_CONVERT_CACHE: [interop-convert-cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
     TIME_FORMAT_CACHE: [time-format-cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
     POW_CACHE: [integer-pow-cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
-    RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
 
     # Inline caches with a non-default size. When adding a new option here, update test/truffle/integration/limit-zero.sh
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]

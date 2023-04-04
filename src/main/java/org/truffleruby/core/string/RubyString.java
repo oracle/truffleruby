@@ -27,7 +27,6 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -36,7 +35,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 import java.util.Objects;
 
-@ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 @ImportStatic(RubyBaseNode.class)
 public final class RubyString extends RubyDynamicObject {
@@ -105,17 +103,13 @@ public final class RubyString extends RubyDynamicObject {
         return encoding;
     }
 
-    // region RubyLibrary messages
-    @ExportMessage
     public void freeze() {
         frozen = true;
     }
 
-    @ExportMessage
     public boolean isFrozen() {
         return frozen;
     }
-    // endregion
 
     // region String messages
     @ExportMessage

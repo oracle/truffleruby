@@ -129,7 +129,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> INTEROP_CONVERT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(IDENTITY_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
@@ -1037,14 +1036,6 @@ public class OptionsCatalog {
             .usageSyntax("8")
             .build();
 
-    public static final OptionDescriptor RUBY_LIBRARY_CACHE = OptionDescriptor
-            .newBuilder(RUBY_LIBRARY_CACHE_KEY, "ruby.ruby-library-cache")
-            .help("Ruby Library cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("8")
-            .build();
-
     public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
             .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
             .help("Cache size for inline caches comparing by identity for context-independent objects")
@@ -1537,8 +1528,6 @@ public class OptionsCatalog {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
                 return POW_CACHE;
-            case "ruby.ruby-library-cache":
-                return RUBY_LIBRARY_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.context-identity-cache":
@@ -1723,7 +1712,6 @@ public class OptionsCatalog {
             INTEROP_CONVERT_CACHE,
             TIME_FORMAT_CACHE,
             POW_CACHE,
-            RUBY_LIBRARY_CACHE,
             IDENTITY_CACHE,
             CONTEXT_SPECIFIC_IDENTITY_CACHE,
             CLASS_CACHE,

@@ -118,7 +118,6 @@ import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.loader.RequireNodeGen;
@@ -128,9 +127,11 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
+import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsCopyableObjectNode;
 import org.truffleruby.language.objects.IsCopyableObjectNodeGen;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -553,15 +554,15 @@ public abstract class KernelNodes {
         @Child SingletonClassNode singletonClassNode;
         private final BranchProfile cantUnfreezeErrorProfile = BranchProfile.create();
 
-        @Specialization(guards = "isCopyableObjectNode.execute(object)", limit = "getRubyLibraryCacheLimit()")
+        @Specialization(guards = "isCopyableObjectNode.execute(object)")
         protected RubyDynamicObject copyable(Object object, Object freeze,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached HashingNodes.ToHashByHashCode hashNode,
-                @CachedLibrary("object") RubyLibrary rubyLibrary,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
+                @Cached IsFrozenNode isFrozenNode,
+                @Cached FreezeNode freezeNode) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
@@ -582,8 +583,8 @@ public abstract class KernelNodes {
             }
 
             // Default behavior - is just to copy the frozen state of the original object
-            if (forceFrozen(freeze) || (copyFrozen && rubyLibrary.isFrozen(object))) { // Profiled through lazy usage of rubyLibraryFreeze
-                rubyLibraryFreeze.freeze(newObject);
+            if (forceFrozen(freeze) || (copyFrozen && isFrozenNode.execute(object))) { // Profiled through lazy usage of rubyLibraryFreeze
+                freezeNode.execute(newObject);
             }
 
             return newObject;
@@ -839,10 +840,10 @@ public abstract class KernelNodes {
     @GenerateUncached
     @CoreMethod(names = "frozen?", alwaysInlined = true)
     public abstract static class KernelFrozenNode extends AlwaysInlinedMethodNode {
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected boolean isFrozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            return rubyLibrary.isFrozen(self);
+                @Cached IsFrozenNode isFrozenNode) {
+            return isFrozenNode.execute(self);
         }
     }
 

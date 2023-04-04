@@ -21,14 +21,13 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.library.RubyLibrary;
 
 public class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
     @Child private RubyNode receiver;
-    @Child private RubyLibrary rubyLibrary;
+    @Child private IsFrozenNode isFrozenNode;
     @Child private RubyNode rhs;
     @Child private WriteObjectFieldNode writeNode;
 
@@ -55,7 +54,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
     }
 
     private void write(Object object, Object value) {
-        if (getRubyLibrary().isFrozen(object)) {
+        if (getIsFrozenNode().execute(object)) {
             if (!frozenProfile) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 frozenProfile = true;
@@ -76,12 +75,12 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
         return FrozenStrings.ASSIGNMENT;
     }
 
-    private RubyLibrary getRubyLibrary() {
-        if (rubyLibrary == null) {
+    private IsFrozenNode getIsFrozenNode() {
+        if (isFrozenNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            rubyLibrary = insert(RubyLibrary.createDispatched(getRubyLibraryCacheLimit()));
+            isFrozenNode = insert(IsFrozenNodeGen.create());
         }
-        return rubyLibrary;
+        return isFrozenNode;
     }
 
     @Override

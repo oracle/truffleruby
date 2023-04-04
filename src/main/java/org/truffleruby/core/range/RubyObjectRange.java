@@ -11,17 +11,13 @@ package org.truffleruby.core.range;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-@ExportLibrary(RubyLibrary.class)
 public final class RubyObjectRange extends RubyDynamicObject implements ObjectGraphNode {
 
     public boolean excludedEnd;
@@ -41,16 +37,6 @@ public final class RubyObjectRange extends RubyDynamicObject implements ObjectGr
         this.begin = begin;
         this.end = end;
         this.frozen = frozen;
-    }
-
-    @ExportMessage
-    protected void freeze() {
-        frozen = true;
-    }
-
-    @ExportMessage
-    protected boolean isFrozen() {
-        return frozen;
     }
 
     public boolean isBoundless() {
