@@ -509,7 +509,9 @@ class Range
   end
 
   def size
-    return Float::INFINITY if Primitive.nil? self.begin
+    if Primitive.nil? self.begin
+      return Primitive.is_a?(self.end, Numeric) ? Float::INFINITY : nil
+    end
     return nil unless Primitive.is_a?(self.begin, Numeric)
     return Float::INFINITY if Primitive.nil? self.end
 
