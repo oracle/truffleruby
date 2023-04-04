@@ -44,12 +44,6 @@ describe "Always-inlined core methods" do
       }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'binding' }
     end
 
-    it "for #eval" do
-      -> {
-        eval(Object.new)
-      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'eval' }
-    end
-
     it "for #local_variables" do
       -> {
         local_variables(:wrong)
@@ -233,6 +227,26 @@ describe "Always-inlined core methods" do
         e.backtrace_locations[1].label.should.start_with?('block (4 levels)')
         e.backtrace_locations[1].lineno.should == line + 2
       }
+    end
+
+    it "for #eval" do
+      -> {
+        eval(Object.new)
+      }.should raise_error(TypeError) { |e|
+        e.backtrace_locations[0].label.should == 'convert_type'
+      }
+    end
+
+    it "for Module#class_eval with Object" do
+      -> {
+        Module.new.class_eval(Object.new)
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'convert_type' }
+    end
+
+    it "for Module#module_eval with Object" do
+      -> {
+        Module.new.module_eval(Object.new)
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'convert_type' }
     end
 
     guard -> { RUBY_ENGINE != "ruby" } do

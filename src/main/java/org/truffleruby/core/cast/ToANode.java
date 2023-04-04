@@ -13,10 +13,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 // Casting of enumerable that is supposed to respond to the #to_a method to RubyArray
@@ -41,33 +39,15 @@ public abstract class ToANode extends RubyBaseNodeWithExecute {
         return array;
     }
 
-    @Specialization(guards = "!isRubyArray(enumerable)")
-    protected RubyArray toA(Object enumerable,
-            @Cached BranchProfile errorProfile,
-            @Cached DispatchNode toANode) {
-        final Object coerced;
-
-        try {
-            coerced = toANode.call(enumerable, "to_a");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorCantConvertInto(enumerable, "Array", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (!(coerced instanceof RubyArray)) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorCantConvertTo(enumerable, "Array", "to_a", coerced, this));
-        }
-
-        return (RubyArray) coerced;
+    @Specialization(guards = "!isRubyArray(object)")
+    protected RubyArray coerceObject(Object object,
+            @Cached DispatchNode toAryNode) {
+        return (RubyArray) toAryNode.call(
+                coreLibrary().truffleTypeModule,
+                "rb_convert_type",
+                object,
+                coreLibrary().arrayClass,
+                coreSymbols().TO_A);
     }
 
     @Override
