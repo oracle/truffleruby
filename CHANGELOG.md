@@ -52,6 +52,7 @@ Bug fixes:
 * Fix `MatchData#[]` to support negative `length` argument (#2929, @andrykonchin).
 * Fix `IO` line reading calls when using a multi-byte delimiter (`IO#{each,gets,readline,readlines,etc.}) (#2961, @vinistock, @nirvdrum).
 * Fix the exception type raised when type coercion raises a `NoMethodError` (#2903, @paracycle, @nirvdrum).
+* Fix `Method` and `Proc` `#parameters` method to return `_` parameter name without synthetic suffix when there are multiple `_` parameters (@paracycle).
 
 Compatibility:
 
