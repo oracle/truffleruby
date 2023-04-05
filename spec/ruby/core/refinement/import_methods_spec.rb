@@ -219,6 +219,31 @@ describe "Refinement#import_methods" do
       end
     end
 
+    it "imports module methods with super" do
+      class_to_refine = Class.new do
+        def foo(number)
+          2 * number
+        end
+      end
+
+      extension = Module.new do
+        def foo(number)
+          super * 2
+        end
+      end
+
+      refinement = Module.new do
+        refine class_to_refine do
+          import_methods extension
+        end
+      end
+
+      Module.new do
+        using refinement
+        class_to_refine.new.foo(2).should == 8
+      end
+    end
+
     context "when methods are not defined in Ruby code" do
       it "raises ArgumentError" do
         Module.new do

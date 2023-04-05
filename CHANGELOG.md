@@ -46,6 +46,7 @@ Bug fixes:
 * Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
 * Fix `MatchData#[]` to support negative `length` argument (#2929, @andrykonchin).
 * Fix `IO` line reading calls when using a multi-byte delimiter (`IO#{each,gets,readline,readlines,etc.}) (#2961, @vinistock, @nirvdrum).
+* Fix `Refinement#import_methods` to supports module methods with super (#2971, @horakivo).
 
 Compatibility:
 
