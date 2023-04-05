@@ -62,7 +62,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     /** Either nil or long */
     public volatile Object nativeThreadId = Nil.INSTANCE;
     volatile RubyException exception = null;
-    volatile Object value = null;
+    volatile Object value = Nil.INSTANCE;
     public final AtomicBoolean wakeUp = new AtomicBoolean(false);
     volatile int priority = Thread.NORM_PRIORITY;
     ThreadLocalBuffer ioBuffer;
