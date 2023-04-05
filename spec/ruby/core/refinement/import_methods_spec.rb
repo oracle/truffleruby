@@ -125,7 +125,6 @@ describe "Refinement#import_methods" do
           suppress_warning { import_methods RefinementSpec::ModuleWithAncestors }
         end
 
-
         using self
         -> {
           "foo".indent(3)
@@ -134,26 +133,26 @@ describe "Refinement#import_methods" do
     end
 
     it "doesn't import any methods if one of the arguments is not a module" do
-        str_utils = Module.new do
-          def indent(level)
-            " " * level + self
-          end
+      str_utils = Module.new do
+        def indent(level)
+          " " * level + self
         end
+      end
 
-        string_refined = Module.new do
-          refine String do
-            -> {
-              import_methods str_utils, Integer
-            }.should raise_error(TypeError)
-          end
-        end
-
-        Module.new do
-          using string_refined
+      string_refined = Module.new do
+        refine String do
           -> {
-            "foo".indent(3)
-          }.should raise_error(NoMethodError)
+            import_methods str_utils, Integer
+          }.should raise_error(TypeError)
         end
+      end
+
+      Module.new do
+        using string_refined
+        -> {
+          "foo".indent(3)
+        }.should raise_error(NoMethodError)
+      end
     end
 
     it "imports methods from multiple modules so that methods see other's module's methods" do
