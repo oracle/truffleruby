@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+- Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (@itarato).
 
 Performance:
 
