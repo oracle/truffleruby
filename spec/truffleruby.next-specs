@@ -9,4 +9,7 @@
 # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty (what causes mspec to error)
 spec/ruby/core/nil/nil_spec.rb
 
+spec/ruby/core/array/slice_spec.rb
+spec/ruby/core/array/element_reference_spec.rb
+
 spec/ruby/core/hash/shift_spec.rb
