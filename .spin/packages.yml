@@ -1,5 +1,6 @@
 ---
 - cmake
 - libssl-dev
+- libyaml-dev
 - libz-dev
 - python3
