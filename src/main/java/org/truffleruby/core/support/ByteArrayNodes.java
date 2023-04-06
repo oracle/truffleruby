@@ -15,7 +15,9 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
@@ -151,8 +153,8 @@ public abstract class ByteArrayNodes {
 
     }
 
-    @CoreMethod(names = "locate", required = 3, lowerFixnum = { 2, 3 })
-    public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "bytearray_locate", lowerFixnum = { 2, 3 })
+    public abstract static class LocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
                 guards = "isSingleBytePattern(patternTString, patternEncoding)", limit = "1")

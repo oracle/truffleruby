@@ -27,6 +27,8 @@ Bug fixes:
 * Fix `StringIO#write` to transcode strings with encodings that don't match the `StringIO`'s `external_encoding`. (#2839, @flavorjones)
 * Fix processing of proc rest arguments located at the beginning if there are no actual arguments (#2921, @andrykonchin).
 * Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
+* Fix `MatchData#[]` to support negative `length` argument (#2929, @andrykonchin).
+* Fix `IO` line reading calls when using a multi-byte delimiter (`IO#{each,gets,readline,readlines,etc.}) (#2961, @vinistock, @nirvdrum).
 
 Compatibility:
 
@@ -103,6 +105,7 @@ Compatibility:
 * Upgrading `UNICODE` version to 13.0.0 and `EMOJI` version to 13.1 (#2733, @horakivo).
 * Add `rb_io_maybe_wait_readable`, `rb_io_maybe_wait_writable` and `rb_io_maybe_wait` functions (#2733, @andrykonchin).
 * `StringIO#set_encoding` should coerce the argument to an Encoding (#2954, @eregon).
+* Implement changes of Ruby 3.0 to `IO#wait` (#2953, @larskanis).
 
 Performance:
 
@@ -110,6 +113,7 @@ Performance:
 * Splitting (copying) of call targets has been optimized by implementing `cloneUninitialized()` (@andrykonchin, @eregon).
 * `Process.pid` is now cached per process like `$$` (#2882, @horakivo)
 * Use the system `libyaml` for `psych` to improve warmup when parsing YAML (#2089, @eregon).
+* Fixed repeated deoptimizations for methods building an `Array` which is growing over multiple calls at a given call site (@eregon).
 
 Changes:
 
