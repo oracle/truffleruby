@@ -296,7 +296,7 @@ TruffleRuby currently targets Ruby 3.1. However, we welcome pull requests for
 Ruby 3.2 features as long as they don't conflict significantly with
 Ruby 3.1 semantics.
 
-It is possible to run specs for Ruby 3.1 features by setting
+It is possible to run specs for Ruby 3.2 features by setting
 `PRETEND_RUBY_VERSION`:
 
 ```bash
