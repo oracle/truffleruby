@@ -384,9 +384,10 @@ public final class InternalMethod implements ObjectGraphNode {
         }
     }
 
-    public InternalMethod withCallTargetAndDeclarationContext(RootCallTarget rootCallTarget,
-            DeclarationContext newDeclarationContext) {
-        if (rootCallTarget == this.callTarget && newDeclarationContext == declarationContext) {
+    public InternalMethod withCallTargetAndDeclarationContextAndDeclarationModule(RootCallTarget rootCallTarget,
+            DeclarationContext newDeclarationContext, RubyModule newDeclaringModule) {
+        if (rootCallTarget == this.callTarget && newDeclarationContext == declarationContext &&
+                newDeclaringModule == this.declaringModule) {
             return this;
         } else {
             return new InternalMethod(
@@ -394,7 +395,7 @@ public final class InternalMethod implements ObjectGraphNode {
                     lexicalScope,
                     newDeclarationContext,
                     name,
-                    declaringModule,
+                    newDeclaringModule,
                     owner,
                     visibility,
                     undefined,

@@ -2489,7 +2489,7 @@ public abstract class ModuleNodes {
         private void importMethodsFromModuleToRefinement(RubyModule module, RubyModule refinement) {
             var declarationContext = createDeclarationContextWithRefinement(refinement);
             for (InternalMethod methodToCopy : module.fields.getMethods()) {
-                var clonedMethod = cloneMethod(methodToCopy, declarationContext);
+                var clonedMethod = cloneMethod(methodToCopy, declarationContext, refinement);
                 refinement.fields.addMethod(getContext(), this, clonedMethod);
             }
         }
@@ -2514,9 +2514,11 @@ public abstract class ModuleNodes {
                     refinements);
         }
 
-        private InternalMethod cloneMethod(InternalMethod method, DeclarationContext declarationContext) {
+        private InternalMethod cloneMethod(InternalMethod method, DeclarationContext declarationContext,
+                RubyModule refinement) {
             var clonedCallTarget = cloneCallTarget(method);
-            return method.withCallTargetAndDeclarationContext(clonedCallTarget, declarationContext);
+            return method.withCallTargetAndDeclarationContextAndDeclarationModule(clonedCallTarget, declarationContext,
+                    refinement);
         }
 
         private RootCallTarget cloneCallTarget(InternalMethod method) {
