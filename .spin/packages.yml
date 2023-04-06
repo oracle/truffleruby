@@ -2,4 +2,4 @@
 - cmake
 - libssl-dev
 - libz-dev
-- python
+- python3
