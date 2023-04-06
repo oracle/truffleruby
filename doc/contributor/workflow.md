@@ -306,8 +306,8 @@ PRETEND_RUBY_VERSION=3.2.0 jt test spec/ruby/.../some_spec.rb
 This also works for `jt tag`/`jt untag`.
 
 When working on a feature from the next version of Ruby, add the spec file in
-the corresponding file list (`:next`) in `spec/truffleruby.mspec` so that the
-specs are run in CI too.
+the corresponding files list in `spec/truffleruby.next-specs` so that the specs
+are run in CI too.
 
 ## How to fix a failing MRI test
 

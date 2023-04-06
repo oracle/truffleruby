@@ -101,11 +101,13 @@ class MSpecScript
     "spec/truffle/capi"
   ]
 
-  # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty
-  set :next, %w[
-    spec/ruby/core/nil/nil_spec.rb
-    spec/ruby/core/hash/shift_spec.rb
-  ]
+  # Use spec/truffleruby.next-specs to specify spec files to run for the next version.
+  # Allow comments and empty lines.
+  next_spec_files = File.readlines("spec/truffleruby.next-specs")
+                        .map(&:strip)
+                        .reject { |path| path.start_with?("#") || path.empty?  }
+
+  set :next, next_spec_files
 
   set :tags_patterns, [
     [%r(^(.*)/spec/ruby/(\w+)/(.+)_spec\.rb$), '\1/spec/tags/\2/\3_tags.txt'],
