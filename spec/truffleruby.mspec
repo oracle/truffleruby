@@ -154,8 +154,13 @@ if MSpecScript.child_process?
     ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
   elsif ARGV.include? ":next"
+    version = File.read(".ruby-version")
+
+    # get the next version, e.g. 3.1.2 -> 3.2.0
+    next_version = version.split(".").tap { |ary| ary[1] = ary[1].next; ary[2] = '0' }.join(".")
+
     ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.2.0")
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(next_version)
   end
 end
 
