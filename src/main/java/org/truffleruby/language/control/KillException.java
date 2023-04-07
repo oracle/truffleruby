@@ -24,7 +24,7 @@ public final class KillException extends AbstractTruffleException {
 
     @TruffleBoundary
     private static RuntimeException javaStacktrace() {
-        return new RuntimeException();
+        return new RuntimeException("stacktrace:");
     }
 
     public KillException(Node location) {

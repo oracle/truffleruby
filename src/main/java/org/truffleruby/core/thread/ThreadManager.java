@@ -212,6 +212,14 @@ public class ThreadManager {
     private static Thread.UncaughtExceptionHandler uncaughtExceptionHandler(RubyFiber fiber) {
         assert fiber != null;
         return (javaThread, throwable) -> {
+            if (throwable instanceof KillException) {
+                // The exception killed the thread, as expected, do not print anything.
+                // We cannot just catch (KillException e) in threadMain() because it can also happen
+                // on the poll() done just after the thread enters the context and
+                // *before* running the Runnable, i.e. before running threadMain().
+                return;
+            }
+
             printInternalError(throwable);
             try {
                 fiber.uncaughtException = throwable;
@@ -307,28 +315,25 @@ public class ThreadManager {
     }
 
     /** {@link RubyLanguage#initializeThread(RubyContext, Thread)} runs before this, and
-     * {@link RubyLanguage#disposeThread(RubyContext, Thread)} runs after this. */
+     * {@link RubyLanguage#disposeThread(RubyContext, Thread)} runs after this. Note this is NOT guaranteed to run, an
+     * exception might happen in the poll() done when the thread enters the context. */
     private void threadMain(RubyThread thread, Node currentNode, Supplier<Object> task) {
         try {
             final Object result = task.get();
             setThreadValue(thread, result);
             // Handlers in the same order as in FiberManager
-            // Each catch must either setThreadValue() (before rethrowing) or setException()
-        } catch (KillException e) {
-            setThreadValue(thread, Nil.INSTANCE);
-        } catch (ThreadDeath e) { // Context#close(true)
-            setThreadValue(thread, Nil.INSTANCE);
+        } catch (KillException e) { // handled in uncaughtExceptionHandler()
+            throw e;
+        } catch (ThreadDeath e) { // Context#close(true), handled by Truffle
             throw e;
         } catch (RaiseException e) {
             setException(thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
             setException(thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } catch (ExitException e) {
-            setThreadValue(thread, Nil.INSTANCE);
             rethrowOnMainThread(currentNode, e);
         } catch (Throwable e) {
             final RuntimeException runtimeException = printInternalError(e);
-            setThreadValue(thread, Nil.INSTANCE);
             rethrowOnMainThread(currentNode, runtimeException);
         } finally {
             assert thread.value != null || thread.exception != null;

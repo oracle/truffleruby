@@ -15,14 +15,11 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
 @NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
@@ -53,31 +50,13 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object coerceObject(Object object,
-            @Cached BranchProfile errorProfile,
-            @Cached DispatchNode toStrNode,
-            @Cached RubyStringLibrary libString) {
-        final Object coerced;
-        try {
-            coerced = toStrNode.call(object, "to_str");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (libString.isRubyString(coerced)) {
-            return coerced;
-        } else {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
-        }
+            @Cached DispatchNode toStrNode) {
+        return toStrNode.call(
+                coreLibrary().truffleTypeModule,
+                "rb_convert_type",
+                object,
+                coreLibrary().stringClass,
+                coreSymbols().TO_STR);
     }
 
     @Override
