@@ -209,7 +209,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Integer and Primitive.object_kind_of?(f, Integer)
+      if Primitive.object_kind_of?(self, Integer) and Primitive.object_kind_of?(f, Integer)
         x = self < 0 ? -self : self
         case half
         when :up, nil

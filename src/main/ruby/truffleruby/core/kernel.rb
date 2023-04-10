@@ -373,7 +373,7 @@ module Kernel
 
     # module_to_wrap either is a module or is nil
     if wrap
-      module_to_wrap = wrap.is_a?(Module) ? wrap : Module.new
+      module_to_wrap = Primitive.object_kind_of?(wrap, Module) ? wrap : Module.new
     end
 
     # load absolute path
