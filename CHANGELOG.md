@@ -8,7 +8,8 @@ Bug fixes:
 
 Compatibility:
 
-- Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (@itarato).
+* Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (@itarato).
+* Make `Array#shuffle` produce the same results as CRuby (@rwstauner).
 
 Performance:
 
