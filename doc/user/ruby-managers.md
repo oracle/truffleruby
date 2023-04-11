@@ -105,7 +105,7 @@ Follow the [installation instructions](https://github.com/postmodern/ruby-instal
 Then install the latest TruffleRuby standalone release with:
 
 ```bash
-ruby-install --latest
+ruby-install --update
 ruby-install truffleruby
 ```
 
