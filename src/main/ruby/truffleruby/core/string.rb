@@ -47,7 +47,7 @@ class String
     return str unless Primitive.undefined?(str)
 
     # Convert to (int index, int length) form.
-    if Range === index_or_range && Primitive.undefined?(length)
+    if Primitive.object_kind_of?(index_or_range, Range) && Primitive.undefined?(length)
       index, length = Primitive.range_normalized_start_length(index_or_range, bytesize)
       return if index < 0 or index > bytesize
       return byteslice 0, 0 if length < 0
@@ -418,7 +418,7 @@ class String
   end
 
   def end_with?(*suffixes)
-    if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
+    if suffixes.size == 1 and suffix = suffixes[0] and Primitive.object_kind_of?(suffix, String)
       enc = Primitive.encoding_ensure_compatible_str self, suffix
       return Primitive.string_end_with?(self, suffix, enc)
     end
@@ -1098,7 +1098,7 @@ class String
   end
 
   def start_with?(*prefixes)
-    if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
+    if prefixes.size == 1 and prefix = prefixes[0] and Primitive.object_kind_of?(prefix, String)
       enc = Primitive.encoding_ensure_compatible_str self, prefix
       return Primitive.string_start_with?(self, prefix, enc)
     end
@@ -1234,7 +1234,7 @@ class String
   end
 
   def <=>(other)
-    if String === other
+    if Primitive.object_kind_of?(other, String)
       return Primitive.string_cmp(self, other, Primitive.strings_compatible?(self, other))
     end
 

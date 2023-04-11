@@ -71,17 +71,17 @@ class Range
     start = self.begin
     stop  = self.end
 
-    if Float === start || Float === stop
+    if Primitive.object_kind_of?(start, Float) || Primitive.object_kind_of?(stop, Float)
       bsearch_float(&block)
-    elsif Integer === start
+    elsif Primitive.object_kind_of?(start, Integer)
       if Primitive.nil? stop
         bsearch_endless(&block)
-      elsif Integer === stop
+      elsif Primitive.object_kind_of?(stop, Integer)
         bsearch_integer(&block)
       else
         raise TypeError, "bsearch is not available for #{stop.class}"
       end
-    elsif Primitive.nil?(start) && Integer === stop
+    elsif Primitive.nil?(start) && Primitive.object_kind_of?(stop, Integer)
       bsearch_beginless(&block)
     else
       raise TypeError, "bsearch is not available for #{start.class}"
@@ -317,7 +317,7 @@ class Range
   end
 
   private def each_endless(first, &block)
-    if Integer === first
+    if Primitive.object_kind_of?(first, Integer)
       i = first
       while true
         yield i
@@ -481,7 +481,7 @@ class Range
   end
 
   private def step_endless(first, step_size, &block)
-    if Numeric === first
+    if Primitive.object_kind_of?(first, Numeric)
       curr = first
       while true
         yield curr

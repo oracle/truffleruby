@@ -106,7 +106,7 @@ module Kernel
     base = Primitive.nil?(converted_base) ? 0 : converted_base
     raise_exception = !exception.equal?(false)
 
-    if String === obj
+    if Primitive.object_kind_of?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
     else
       bad_base_check = Proc.new do

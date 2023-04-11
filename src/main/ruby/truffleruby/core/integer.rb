@@ -186,7 +186,7 @@ class Integer < Numeric
   def round(ndigits = undefined, half: :up)
     return self if Primitive.undefined? ndigits
 
-    if Float === ndigits && ndigits.infinite?
+    if Primitive.object_kind_of?(ndigits, Float) && ndigits.infinite?
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 

@@ -108,7 +108,7 @@ module Truffle
       if e1 == e2
         !(range.exclude_end? && !other.exclude_end?)
       else
-        if Integer === e2 && other.exclude_end?
+        if Primitive.object_kind_of?(e2, Integer) && other.exclude_end?
           cover?(range, e2 - 1)
         else
           cover?(range, e2)

@@ -626,11 +626,11 @@ class Truffle::FFI::Pointer
   # pointer
 
   private def get_pointer_value(value)
-    if Truffle::FFI::Pointer === value
+    if Primitive.object_kind_of?(value, Truffle::FFI::Pointer)
       value.address
     elsif nil.equal?(value)
       0
-    elsif Integer === value
+    elsif Primitive.object_kind_of?(value, Integer)
       value
     elsif value.respond_to?(:to_ptr)
       value.to_ptr.address

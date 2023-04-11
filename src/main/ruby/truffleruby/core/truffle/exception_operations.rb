@@ -194,7 +194,7 @@ module Truffle
 
     def self.append_causes(str, err, causes, reverse, highlight)
       cause = err.cause
-      if !Primitive.nil?(cause) && Exception === cause && !causes.has_key?(cause)
+      if !Primitive.nil?(cause) && Primitive.object_kind_of?(cause, Exception) && !causes.has_key?(cause)
         causes[cause] = true
         if reverse
           append_causes(str, cause, causes, reverse, highlight)

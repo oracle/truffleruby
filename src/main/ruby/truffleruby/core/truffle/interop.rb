@@ -118,10 +118,10 @@ module Truffle
 
     class HashKeysAsPolyglotMembers
       def initialize(hash)
-        raise ArgumentError, 'expected a Hash' unless Hash === hash
+        raise ArgumentError, 'expected a Hash' unless Primitive.object_kind_of?(hash, Hash)
         # Otherwise Symbol keys won't be seen from e.g., readMember()
         @hash = hash.transform_keys do |key|
-          if Symbol === key
+          if Primitive.object_kind_of?(key, Symbol)
             key.to_s
           else
             key

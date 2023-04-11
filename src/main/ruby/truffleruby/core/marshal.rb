@@ -1064,7 +1064,7 @@ module Marshal
         @call = true
       end
 
-      unless Symbol === sym
+      unless Primitive.object_kind_of?(sym, Symbol)
         raise ArgumentError, "expected Symbol, got #{sym.inspect}"
       end
 
@@ -1303,7 +1303,7 @@ module Marshal
     end
 
     def store_unique_object(obj)
-      if Symbol === obj
+      if Primitive.object_kind_of?(obj, Symbol)
         add_symlink obj
       else
         add_non_immediate_object obj
@@ -1337,7 +1337,7 @@ module Marshal
       else
         obj = klass.allocate
 
-        raise TypeError, 'dump format error' unless Object === obj
+        raise TypeError, 'dump format error' unless Primitive.object_kind_of?(obj, Object)
 
         store_unique_object obj
         if Primitive.object_kind_of? obj, Exception

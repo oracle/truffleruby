@@ -458,7 +458,7 @@ class Dir
     end
 
     def self.run(node, all_matches, glob_base_dir, flags = 0)
-      if ConstantEntry === node
+      if Primitive.object_kind_of?(node, ConstantEntry)
         node.process_directory all_matches, nil, nil, glob_base_dir
       else
         matches = []

@@ -1348,7 +1348,7 @@ class Array
 
   # Synchronize with Enumerator#zip and Enumerable#zip
   def zip(*others)
-    if !block_given? and others.size == 1 and Array === others[0]
+    if !block_given? and others.size == 1 and Primitive.object_kind_of?(others[0], Array)
       return Primitive.array_zip self, others[0]
     end
 

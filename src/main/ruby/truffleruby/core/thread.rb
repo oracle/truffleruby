@@ -213,9 +213,9 @@ class Thread
   # Fiber-local variables
 
   private def convert_to_local_name(name)
-    if Symbol === name
+    if Primitive.object_kind_of?(name, Symbol)
       name
-    elsif String === name
+    elsif Primitive.object_kind_of?(name, String)
       name.to_sym
     else
       Kernel.raise TypeError, "#{name.inspect} is not a symbol nor a string"

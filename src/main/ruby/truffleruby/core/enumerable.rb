@@ -376,7 +376,7 @@ module Enumerable
   def each_with_index(*args, &block)
     return to_enum(:each_with_index, *args) { enumerator_size } unless block_given?
 
-    if Array === self
+    if Primitive.object_kind_of?(self, Array)
       Primitive.array_each_with_index(self, block)
     else
       idx = 0

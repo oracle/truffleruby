@@ -140,7 +140,7 @@ module Truffle::POSIX
         if blocking
           begin
             result = Primitive.thread_run_blocking_nfi_system_call(bound_func, args)
-          end while Integer === result and result == -1 and Errno.errno == EINTR
+          end while Primitive.object_kind_of?(result, Integer) and result == -1 and Errno.errno == EINTR
         else
           result = bound_func.call(*args)
         end
