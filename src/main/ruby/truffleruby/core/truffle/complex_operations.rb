@@ -20,12 +20,12 @@ module Truffle
 
       if Primitive.object_kind_of?(real, String)
         real = String::Complexifier.new(real).strict_convert(exception)
-        return nil if real.nil?
+        return nil if Primitive.nil?(real)
       end
 
       if Primitive.object_kind_of?(imag, String)
         imag = String::Complexifier.new(imag).strict_convert(exception)
-        return nil if imag.nil?
+        return nil if Primitive.nil?(imag)
       end
 
       if Primitive.object_kind_of?(real, Complex) && !Primitive.object_kind_of?(real.imag, Float) && real.imag == 0

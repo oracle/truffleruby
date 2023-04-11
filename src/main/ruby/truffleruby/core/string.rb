@@ -290,7 +290,7 @@ class String
   def strip!
     right = rstrip! # Process rstrip! first because it must perform an encoding compatibility check that lstrip! does not.
     left = lstrip!
-    left.nil? && right.nil? ? nil : self
+    Primitive.nil?(left) && Primitive.nil?(right) ? nil : self
   end
 
   def succ

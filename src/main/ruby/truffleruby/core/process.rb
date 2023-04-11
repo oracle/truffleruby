@@ -683,7 +683,7 @@ module Process
     end
 
     def exited?
-      @exitstatus != nil
+      !Primitive.nil?(@exitstatus)
     end
 
     def pid
@@ -691,11 +691,11 @@ module Process
     end
 
     def signaled?
-      @termsig != nil
+      !Primitive.nil?(@termsig)
     end
 
     def stopped?
-      @stopsig != nil
+      !Primitive.nil?(@stopsig)
     end
 
     def success?

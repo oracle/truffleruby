@@ -70,7 +70,7 @@ class Enumerator
   end
 
   def inspect
-    return "#<#{self.class}: uninitialized>" if @object.nil? && @iter.nil?
+    return "#<#{self.class}: uninitialized>" if Primitive.nil?(@object) && Primitive.nil?(@iter)
 
     args = @kwargs.empty? ? @args : [*@args, @kwargs]
     args = args.empty? ? '' : "(#{args.map(&:inspect).join(', ')})"
@@ -222,7 +222,7 @@ class Enumerator
     # Taken from https://github.com/zverok/enumerator_generate
     raise ArgumentError, 'No block given' unless block_given?
     Enumerator.new(Float::INFINITY) do |y|
-      val = initial == nil ? yield() : initial
+      val = Primitive.nil?(initial) ? yield() : initial
 
       loop do
         y << val

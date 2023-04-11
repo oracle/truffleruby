@@ -1014,7 +1014,7 @@ class IO
 
   # Used to find out if there is buffered data available.
   private def buffer_empty?
-    @ibuffer.nil? or @ibuffer.empty?
+    Primitive.nil?(@ibuffer) or @ibuffer.empty?
   end
 
   def close_on_exec=(value)

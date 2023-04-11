@@ -122,9 +122,9 @@ module Truffle
     end
 
     def self.results_match?(md1, md2)
-      if md1 == nil
-        md2 == nil
-      elsif md2 == nil
+      if Primitive.nil?(md1)
+        Primitive.nil?(md2)
+      elsif Primitive.nil?(md2)
         false
       elsif Primitive.object_kind_of?(md1, Exception)
         md1.class == md2.class
@@ -144,7 +144,7 @@ module Truffle
     end
 
     def self.print_match_data(md)
-      if md == nil
+      if Primitive.nil?(md)
         $stderr.puts '    NO MATCH'
       elsif Primitive.object_kind_of?(md, Exception)
         $stderr.puts "    EXCEPTION - #{md}"
