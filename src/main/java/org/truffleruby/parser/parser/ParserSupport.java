@@ -160,6 +160,8 @@ public class ParserSupport {
     public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
     public static final TruffleString FORWARD_ARGS_BLOCK_VAR_TSTRING = TStringUtils
             .usAsciiString(FORWARD_ARGS_BLOCK_VAR);
+    /** A prefix for duplicated '_' local variables to build unique names */
+    public static final String UNDERSCORE_PREFIX = "_$";
 
     // Parser states:
     protected StaticScope currentScope;
@@ -1587,7 +1589,7 @@ public class ParserSupport {
         if (name == "_") {
             int count = 0;
             while (current.exists(name) >= 0) {
-                name = ("_$" + count++).intern();
+                name = (UNDERSCORE_PREFIX + count++).intern(); // e.g. _$1, _$2, etc
             }
         }
 

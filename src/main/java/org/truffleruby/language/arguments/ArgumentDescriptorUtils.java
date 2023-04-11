@@ -19,6 +19,7 @@ import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.parser.parser.ParserSupport;
 
 public class ArgumentDescriptorUtils {
 
@@ -48,7 +49,7 @@ public class ArgumentDescriptorUtils {
             store = new Object[]{ language.getSymbol(argType.symbolicName) };
         } else {
             // make sure to normalize parameter names to "_" if they start with "_$"
-            if (name.startsWith("_$")) {
+            if (name.startsWith(ParserSupport.UNDERSCORE_PREFIX)) {
                 name = "_";
             }
 
