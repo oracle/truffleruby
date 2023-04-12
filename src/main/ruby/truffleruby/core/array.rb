@@ -1240,9 +1240,11 @@ class Array
       random_generator = options[:random] if options[:random].respond_to?(:rand)
     end
 
-    size.times do |i|
-      r = i + random_generator.rand(size - i).to_int
-      raise RangeError, "random number too big #{r - i}" if r < 0 || r >= size
+    # Start at the end and work toward the beginning for compatibility with CRuby.
+    (size - 1).downto(0) do |i|
+      r = random_generator.rand(i + 1).to_int
+      raise RangeError, "random number too small #{r}" if r < 0
+      raise RangeError, "random number too big #{r}" if r > i
       swap(i, r)
     end
     self
