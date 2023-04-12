@@ -21,6 +21,3 @@ PLATFORMS
 
 DEPENDENCIES
   rspec (~> 3.0)
-
-BUNDLED WITH
-   2.1.4
