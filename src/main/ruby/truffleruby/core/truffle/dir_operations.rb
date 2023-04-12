@@ -60,7 +60,6 @@ module Truffle
     end
 
     def self.readdir_name(dir)
-      dir.__send__(:ensure_open)
       dirptr = Primitive.object_ivar_get(dir, :@ptr)
       entry = Truffle::POSIX.truffleposix_readdir_name(dirptr)
       Errno.handle unless entry
