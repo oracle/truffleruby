@@ -93,6 +93,8 @@ import org.truffleruby.platform.Signals;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -271,8 +273,8 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
                 limit = "1")
         protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
-                @Cached RubyStringLibrary libSignalString,
-                @Cached RubyStringLibrary libAction) {
+                @Shared @Cached RubyStringLibrary libSignalString,
+                @Exclusive @Cached RubyStringLibrary libAction) {
             final String actionString = RubyGuards.getJavaString(action);
             final String signalName = RubyGuards.getJavaString(signalString);
 
@@ -291,7 +293,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)", limit = "1")
         protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
-                @Cached RubyStringLibrary libSignalString) {
+                @Shared @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {

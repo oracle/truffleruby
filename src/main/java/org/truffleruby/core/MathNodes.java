@@ -53,6 +53,7 @@ import org.truffleruby.language.objects.IsANode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -549,13 +550,13 @@ public abstract class MathNodes {
 
         @Specialization
         protected int min(int a, int b,
-                @Cached ConditionProfile profile) {
+                @Shared @Cached ConditionProfile profile) {
             return profile.profile(a < b) ? a : b;
         }
 
         @Specialization
         protected long min(long a, long b,
-                @Cached ConditionProfile profile) {
+                @Shared @Cached ConditionProfile profile) {
             return profile.profile(a < b) ? a : b;
         }
 

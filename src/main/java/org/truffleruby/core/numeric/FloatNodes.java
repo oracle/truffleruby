@@ -12,6 +12,7 @@ package org.truffleruby.core.numeric;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -404,13 +405,13 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
         protected int compareDoubleDouble(double a, double b,
-                @Cached ConditionProfile equalProfile) {
+                @Shared @Cached ConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile);
         }
 
         @Specialization(guards = "!isNaN(a)")
         protected int compareDoubleLong(double a, long b,
-                @Cached ConditionProfile equalProfile) {
+                @Shared @Cached ConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile);
         }
 

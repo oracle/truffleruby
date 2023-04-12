@@ -74,6 +74,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -286,14 +287,14 @@ public class TruffleRegexpNodes {
                 limit = "getDefaultCacheLimit()")
         protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Cached BranchProfile errorProfile,
+                @Shared @Cached BranchProfile errorProfile,
                 @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "fastUnion")
         protected Object slowUnion(RubyString str, Object sep, Object[] args,
-                @Cached BranchProfile errorProfile) {
+                @Shared @Cached BranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
 

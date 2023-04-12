@@ -10,6 +10,7 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -92,13 +93,13 @@ public abstract class HashingNodes {
 
         @Specialization
         protected int hashString(RubyString value,
-                @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 
         @Specialization
         protected int hashImmutableString(ImmutableRubyString value,
-                @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 

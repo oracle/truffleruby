@@ -59,6 +59,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -232,8 +233,8 @@ public abstract class InteropNodes {
                         "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
-                @Cached RubyStringLibrary stringsMimeType,
-                @Cached RubyStringLibrary stringsSource,
+                @Shared @Cached RubyStringLibrary stringsMimeType,
+                @Shared @Cached RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -248,8 +249,8 @@ public abstract class InteropNodes {
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
                 replaces = "evalCached", limit = "1")
         protected Object evalUncached(Object mimeType, RubyString source,
-                @Cached RubyStringLibrary stringsMimeType,
-                @Cached RubyStringLibrary stringsSource,
+                @Shared @Cached RubyStringLibrary stringsMimeType,
+                @Shared @Cached RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode) {

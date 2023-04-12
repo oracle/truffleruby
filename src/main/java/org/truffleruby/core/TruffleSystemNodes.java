@@ -70,6 +70,7 @@ import org.truffleruby.shared.BasicPlatform;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -230,8 +231,8 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "3")
         protected Object logCached(RubySymbol level, Object message,
-                @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode,
+                @Shared @Cached RubyStringLibrary strings,
+                @Shared @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, toJavaStringNode.executeToJavaString(message));
@@ -240,8 +241,8 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached", limit = "1")
         protected Object log(RubySymbol level, Object message,
-                @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Shared @Cached RubyStringLibrary strings,
+                @Shared @Cached ToJavaStringNode toJavaStringNode) {
             log(getLevel(level), toJavaStringNode.executeToJavaString(message));
             return nil;
         }
