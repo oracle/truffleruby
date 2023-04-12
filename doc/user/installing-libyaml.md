@@ -13,8 +13,22 @@ This is done automatically by Ruby managers, and mentioned in the post-install m
 
 ### Fedora-based: RHEL, Oracle Linux, etc
 
+#### Fedora
+
 ```bash
 sudo dnf install libyaml-devel
+```
+
+#### Oracle Linux 7
+
+```bash
+sudo yum install --enablerepo=ol7_optional_latest libyaml-devel
+```
+
+#### Oracle Linux 8
+
+```bash
+sudo dnf install --enablerepo=ol8_codeready_builder libyaml-devel
 ```
 
 ### Debian-based: Ubuntu, etc
