@@ -84,7 +84,7 @@ module FFI
     # @raise {RuntimeError} if +mod+ is not a Module
     # Test if extended object is a Module. If not, raise RuntimeError.
     def self.extended(mod)
-      raise RuntimeError.new("must only be extended by module") unless mod.kind_of?(Module)
+      raise RuntimeError.new("must only be extended by module") unless mod.kind_of?(::Module)
     end
 
 
@@ -126,7 +126,7 @@ module FFI
               else
                 # TODO better library lookup logic
                 unless libname.start_with?("/") || FFI::Platform.windows?
-                  path = ['/usr/lib/','/usr/local/lib/','/opt/local/lib/'].find do |pth|
+                  path = ['/usr/lib/','/usr/local/lib/','/opt/local/lib/', '/opt/homebrew/lib/'].find do |pth|
                     File.exist?(pth + libname)
                   end
                   if path
