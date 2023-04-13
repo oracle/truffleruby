@@ -296,7 +296,7 @@ TruffleRuby currently targets Ruby 3.1. However, we welcome pull requests for
 Ruby 3.2 features as long as they don't conflict significantly with
 Ruby 3.1 semantics.
 
-It is possible to run specs for Ruby 3.1 features by setting
+It is possible to run specs for Ruby 3.2 features by setting
 `PRETEND_RUBY_VERSION`:
 
 ```bash
@@ -306,8 +306,8 @@ PRETEND_RUBY_VERSION=3.2.0 jt test spec/ruby/.../some_spec.rb
 This also works for `jt tag`/`jt untag`.
 
 When working on a feature from the next version of Ruby, add the spec file in
-the corresponding file list (`:next`) in `spec/truffleruby.mspec` so that the
-specs are run in CI too.
+the corresponding files list in `spec/truffleruby.next-specs` so that the specs
+are run in CI too.
 
 ## How to fix a failing MRI test
 
