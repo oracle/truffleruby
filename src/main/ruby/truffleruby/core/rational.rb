@@ -330,7 +330,7 @@ class Rational < Numeric
   end
 
   def self.convert(num, den)
-    if num.equal?(nil) || den.equal?(nil)
+    if Primitive.object_equal(num, nil) || Primitive.object_equal(den, nil)
       raise TypeError, 'cannot convert nil into Rational'
     end
 
@@ -354,7 +354,7 @@ class Rational < Numeric
       den = den.to_r
     end
 
-    if den.equal?(1) && !(Primitive.object_kind_of?(num, Integer))
+    if Primitive.object_equal(den, 1) && !(Primitive.object_kind_of?(num, Integer))
       return Truffle::Type.coerce_to(num, Rational, :to_r)
     elsif Primitive.object_kind_of?(num, Numeric) && Primitive.object_kind_of?(den, Numeric) &&
         !(Primitive.object_kind_of?(num, Integer) && Primitive.object_kind_of?(den, Integer))

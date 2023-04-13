@@ -243,7 +243,7 @@ class << ENV
   end
 
   def replace(other)
-    return self if equal?(other)
+    return self if Primitive.object_equal(self, other)
     other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     keys_to_delete = keys
     other.each do |k, v|
@@ -295,7 +295,7 @@ class << ENV
   end
 
   def update(other)
-    return self if equal?(other)
+    return self if Primitive.object_equal(self, other)
     other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     if block_given?
       other.each do |k, v|

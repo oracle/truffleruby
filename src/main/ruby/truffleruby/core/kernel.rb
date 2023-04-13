@@ -54,7 +54,7 @@ module Kernel
   module_function :Complex
 
   def Float(obj, exception: true)
-    raise_exception = !exception.equal?(false)
+    raise_exception = !Primitive.object_equal(exception, false)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
@@ -74,7 +74,7 @@ module Kernel
         nil
       end
     when Complex
-      if obj.respond_to?(:imag) && obj.imag.equal?(0)
+      if obj.respond_to?(:imag) && Primitive.object_equal(obj.imag, 0)
         Truffle::Type.coerce_to obj, Float, :to_f
       else
         raise RangeError, "can't convert #{obj} into Float"
@@ -90,7 +90,7 @@ module Kernel
   module_function :Float
 
   def Hash(obj)
-    return {} if obj.equal?(nil) || obj == []
+    return {} if Primitive.object_equal(obj, nil) || obj == []
 
     if hash = Truffle::Type.rb_check_convert_type(obj, Hash, :to_hash)
       return hash
@@ -104,7 +104,7 @@ module Kernel
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
-    raise_exception = !exception.equal?(false)
+    raise_exception = !Primitive.object_equal(exception, false)
 
     if Primitive.object_kind_of?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
@@ -203,8 +203,8 @@ module Kernel
 
   def autoload(name, file)
     nesting = Primitive.caller_nesting
-    mod = nesting.first || (Kernel.equal?(self) ? Kernel : Object)
-    if mod.equal?(self)
+    mod = nesting.first || (Primitive.object_equal(Kernel, self) ? Kernel : Object)
+    if Primitive.object_equal(mod, self)
       super(name, file) # Avoid recursion
     else
       mod.autoload(name, file)
@@ -213,7 +213,7 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    if Kernel.equal?(self)
+    if Primitive.object_equal(Kernel, self)
       super(name) # Avoid recursion
     else
       Object.autoload?(name)

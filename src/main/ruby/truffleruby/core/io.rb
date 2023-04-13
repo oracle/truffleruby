@@ -487,7 +487,7 @@ class IO
     internal = io.internal_encoding
     external = io.external_encoding || Encoding.default_external
 
-    if external.equal? Encoding::BINARY
+    if Primitive.object_equal(external, Encoding::BINARY)
       str.force_encoding external
     elsif internal and external
       ec = Encoding::Converter.new external, internal

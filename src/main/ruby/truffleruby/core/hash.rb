@@ -41,7 +41,7 @@ class Hash
     one.all? do |key, value|
       if two.has_key?(key)
         two_value = two[key]
-        value.equal?(two_value) || value == two_value
+        Primitive.object_equal(value, two_value) || value == two_value
       else
         false
       end
@@ -130,7 +130,7 @@ class Hash
   end
 
   def eql_op(op, other)
-    return true if self.equal? other
+    return true if Primitive.object_equal(self, other)
     unless Primitive.object_kind_of?(other, Hash)
       return false unless other.respond_to? :to_hash
       return other.send(op, self)

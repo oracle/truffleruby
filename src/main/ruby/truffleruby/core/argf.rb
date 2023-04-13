@@ -59,7 +59,7 @@ module Truffle
     # @see  #advance!
     #
     def initialize(argv = ARGV, *others)
-      @argv = argv.equal?(ARGV) ? ARGV : [argv, *others]
+      @argv = Primitive.object_equal(argv, ARGV) ? ARGV : [argv, *others]
       @lineno = 0
       # Setting $. sets ARGF.last_lineno, but does not set
       # ARGF.lineno, Almost every operation that sets lineno also sets

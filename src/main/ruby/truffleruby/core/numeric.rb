@@ -57,7 +57,7 @@ class Numeric
     # It's important this method NOT contain the coercion protocols!
     # MRI doesn't and doing so breaks stuff!
 
-    return 0 if self.equal? other
+    return 0 if Primitive.object_equal(self, other)
     nil
   end
 

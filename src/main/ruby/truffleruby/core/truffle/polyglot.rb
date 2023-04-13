@@ -585,7 +585,7 @@ module Java
     type = Java.type(name)
     if mod.const_defined?(simple_name)
       current = mod.const_get(simple_name)
-      if current.equal?(type)
+      if Primitive.object_equal(current, type)
         # Ignore - it's already set
       else
         raise NameError, "constant #{simple_name} already set"

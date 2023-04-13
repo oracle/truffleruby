@@ -45,7 +45,7 @@ class MatchData
   end
 
   def ==(other)
-    return true if equal?(other)
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, MatchData) &&
       string == other.string  &&

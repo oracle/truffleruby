@@ -48,7 +48,7 @@ class Range
   private :initialize
 
   def ==(other)
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, Range) and
       self.begin == other.begin and
@@ -57,7 +57,7 @@ class Range
   end
 
   def eql?(other)
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, Range) and
         self.begin.eql?(other.begin) and

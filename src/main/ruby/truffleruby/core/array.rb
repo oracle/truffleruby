@@ -84,7 +84,7 @@ class Array
 
   def <=>(other)
     other = Truffle::Type.rb_check_convert_type other, Array, :to_ary
-    return 0 if equal? other
+    return 0 if Primitive.object_equal(self, other)
     return nil if Primitive.nil? other
 
     total = other.size
@@ -125,7 +125,7 @@ class Array
       return result
     end
 
-    return true if equal?(other)
+    return true if Primitive.object_equal(self, other)
     unless Primitive.object_kind_of?(other, Array)
       return false unless other.respond_to? :to_ary
       return other == self
@@ -323,7 +323,7 @@ class Array
 
     return nil if empty?
 
-    if nil.equal? n
+    if Primitive.object_equal(nil, n)
       until empty?
         each { |x| yield x }
       end
@@ -380,7 +380,7 @@ class Array
       return result
     end
 
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
     return false unless Primitive.object_kind_of?(other, Array)
     return false if size != other.size
 

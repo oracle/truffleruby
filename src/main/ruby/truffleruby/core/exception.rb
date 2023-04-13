@@ -99,7 +99,7 @@ class Exception
   def self.to_tty?
     # Whether $stderr refers to the original STDERR and STDERR is a tty.
     # When using polyglot stdio, we cannot know and assume false.
-    $stderr.equal?(STDERR) && !STDERR.closed? &&
+    Primitive.object_equal($stderr, STDERR) && !STDERR.closed? &&
       (!Truffle::Boot.get_option('polyglot-stdio') && STDERR.tty?)
   end
 end
@@ -282,7 +282,7 @@ class SystemCallError < StandardError
     #
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
-    if self.equal? SystemCallError
+    if Primitive.object_equal(self, SystemCallError)
       case args.size
       when 1
         if Primitive.object_kind_of?(args.first, Integer)
@@ -326,7 +326,7 @@ class SystemCallError < StandardError
 
       if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && Primitive.object_class(error).equal?(self)
+        if error && Primitive.object_equal(Primitive.object_class(error), self)
           return error
         end
       end
