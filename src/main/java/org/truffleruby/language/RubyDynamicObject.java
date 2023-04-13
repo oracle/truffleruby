@@ -585,7 +585,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public void writeMember(String name, Object value,
             @Cached WriteObjectFieldNode writeObjectFieldNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
-            @Cached IsFrozenNode isFrozenNode,
+            @Cached @Shared IsFrozenNode isFrozenNode,
             @Shared @Cached ConditionProfile dynamicProfile,
             @Shared @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared @Cached BranchProfile errorProfile)
@@ -693,7 +693,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberModifiable(String name,
-            @Cached IsFrozenNode isFrozenNode,
+            @Cached @Shared IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -710,7 +710,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberRemovable(String name,
-            @Cached IsFrozenNode isFrozenNode,
+            @Cached @Shared IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -744,7 +744,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isMemberInsertable(String name,
-            @Cached IsFrozenNode isFrozenNode,
+            @Cached @Shared IsFrozenNode isFrozenNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
