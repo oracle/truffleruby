@@ -141,7 +141,7 @@ class Dir
   end
 
   def inspect
-    "#<#{self.class}:#{@path}>"
+    "#<#{Primitive.object_class(self)}:#{@path}>"
   end
 
   class << self

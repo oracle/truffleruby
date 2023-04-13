@@ -1228,7 +1228,7 @@ class File < IO
   end
 
   def inspect
-    return_string = "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path}"
+    return_string = "#<#{Primitive.object_class(self)}:0x#{object_id.to_s(16)} path=#{@path}"
     return_string << ' (closed)' if closed?
     return_string << '>'
   end

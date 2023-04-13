@@ -47,7 +47,7 @@ class Exception
 
   def to_s
     msg = Truffle::ExceptionOperations.compute_message(self)
-    return self.class.to_s if Primitive.nil?(msg)
+    return Primitive.object_class(self).to_s if Primitive.nil?(msg)
     msg
   end
 
@@ -71,9 +71,9 @@ class Exception
   def inspect
     s = self.to_s
     if s.empty?
-      self.class.name
+      Primitive.object_class(self).name
     else
-      "#<#{self.class.name}: #{s}>"
+      "#<#{Primitive.object_class(self).name}: #{s}>"
     end
   end
 
@@ -326,7 +326,7 @@ class SystemCallError < StandardError
 
       if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && error.class.equal?(self)
+        if error && Primitive.object_class(error).equal?(self)
           return error
         end
       end
@@ -377,7 +377,7 @@ class SignalException < Exception
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
-        raise ArgumentError, "bad signal type #{sig.class.name}" if Primitive.nil? sig_converted
+        raise ArgumentError, "bad signal type #{Primitive.object_class(sig).name}" if Primitive.nil? sig_converted
         sig = sig_converted
       end
       signal_name = sig

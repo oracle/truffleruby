@@ -319,7 +319,7 @@ module Enumerable
     each_with_index(*arg) do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -342,7 +342,7 @@ module Enumerable
       elsif Primitive.object_respond_to?(enum, :each, false)
         enum.to_enum(:each)
       else
-        raise TypeError, "wrong argument type #{enum.class} (must respond to :each)"
+        raise TypeError, "wrong argument type #{Primitive.object_class(enum)} (must respond to :each)"
       end
     end
 
@@ -798,7 +798,7 @@ module Enumerable
       else
         comp = block_given? ? yield(o, chosen) : o <=> chosen
         unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{chosen} failed"
+          raise ArgumentError, "comparison of #{Primitive.object_class(o)} with #{chosen} failed"
         end
 
         if (Comparable.compare_int(comp) <=> 0) == relative

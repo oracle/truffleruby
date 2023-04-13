@@ -65,7 +65,7 @@ module Truffle
     end
 
     def self.show_exception_for_debug(exc, uplevel)
-      STDERR.puts "Exception: `#{exc.class}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
+      STDERR.puts "Exception: `#{Primitive.object_class(exc)}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
     end
 
     def self.class_name(receiver)
@@ -94,7 +94,7 @@ module Truffle
     def self.message_and_class(exception, highlight)
       message = StringValue exception.message.to_s
 
-      klass = exception.class.to_s
+      klass = Primitive.object_class(exception).to_s
       if Primitive.object_kind_of?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
         klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
@@ -258,9 +258,9 @@ module Truffle
       y_classname = if Truffle::Type.is_special_const?(y)
                       y.inspect
                     else
-                      y.class
+                      Primitive.object_class(y)
                     end
-      "comparison of #{x.class} with #{y_classname} failed"
+      "comparison of #{Primitive.object_class(x)} with #{y_classname} failed"
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|

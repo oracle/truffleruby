@@ -24,7 +24,7 @@ module Truffle
 
     def self.convert_duration_to_nanoseconds(duration)
       unless duration.respond_to?(:divmod)
-        raise TypeError, "can't convert #{duration.class} into time interval"
+        raise TypeError, "can't convert #{Primitive.object_class(duration)} into time interval"
       end
       a, b = duration.divmod(1)
       ((a + b) * 1_000_000_000)
@@ -172,7 +172,7 @@ module Truffle
       :$stdout,
       -> { Primitive.global_variable_get :$stdout },
       -> v {
-        raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        raise TypeError, "$stdout must have a write method, #{Primitive.object_class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stdout, v
       })
 
@@ -182,7 +182,7 @@ module Truffle
       :$stderr,
       -> { Primitive.global_variable_get :$stderr },
       -> v {
-        raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        raise TypeError, "$stderr must have a write method, #{Primitive.object_class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stderr, v
       })
 

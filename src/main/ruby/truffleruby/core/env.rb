@@ -281,7 +281,7 @@ class << ENV
     each_pair do |*elem|
       elem = yield(elem)
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{elem.class} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.object_class(elem)} (expected array)"
       end
 
       ary = elem.to_ary

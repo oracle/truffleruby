@@ -208,7 +208,7 @@ class Rational < Numeric
         [other, Complex(self)]
       end
     else
-      raise TypeError, "#{other.class.name} can't be coerced into Rational"
+      raise TypeError, "#{Primitive.object_class(other).name} can't be coerced into Rational"
     end
   end
 

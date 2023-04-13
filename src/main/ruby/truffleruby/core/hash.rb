@@ -112,13 +112,13 @@ class Hash
   def <(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size >= other.size
-    self.class.contains_all_internal(self, other)
+    Primitive.object_class(self).contains_all_internal(self, other)
   end
 
   def <=(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size > other.size
-    self.class.contains_all_internal(self, other)
+    Primitive.object_class(self).contains_all_internal(self, other)
   end
 
   def ==(other)
@@ -159,13 +159,13 @@ class Hash
   def >(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size <= other.size
-    self.class.contains_all_internal(other, self)
+    Primitive.object_class(self).contains_all_internal(other, self)
   end
 
   def >=(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size < other.size
-    self.class.contains_all_internal(other, self)
+    Primitive.object_class(self).contains_all_internal(other, self)
   end
 
   def assoc(key)

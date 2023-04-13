@@ -127,7 +127,7 @@ module Truffle
       elsif Primitive.nil?(md2)
         false
       elsif Primitive.object_kind_of?(md1, Exception)
-        md1.class == md2.class
+        Primitive.object_class(md1) == Primitive.object_class(md2)
       elsif Primitive.object_kind_of?(md2, Exception)
         false
       else

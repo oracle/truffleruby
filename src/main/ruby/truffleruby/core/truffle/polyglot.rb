@@ -502,7 +502,7 @@ module Polyglot
         Truffle::Interop.write_member(self, member, value)
       rescue Polyglot::UnsupportedMessageError
         # the receiver does not support writing at all, e.g. it is immutable
-        raise FrozenError.new("can't modify frozen #{self.class}", receiver: self)
+        raise FrozenError.new("can't modify frozen #{Primitive.object_class(self)}", receiver: self)
       end
     end
 

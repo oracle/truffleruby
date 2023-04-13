@@ -499,7 +499,7 @@ end
 
 module Unmarshalable
   private def __marshal__(ms)
-    raise TypeError, "marshaling is undefined for class #{self.class}"
+    raise TypeError, "marshaling is undefined for class #{Primitive.object_class(self)}"
   end
 end
 

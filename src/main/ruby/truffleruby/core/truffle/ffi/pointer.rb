@@ -98,7 +98,7 @@ module Truffle::FFI
         sign = ''
       end
 
-      "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
+      "#<#{Primitive.object_class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
     def null?

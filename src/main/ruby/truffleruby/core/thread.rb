@@ -110,7 +110,7 @@ class Thread
       thread = Primitive.thread_allocate(self)
       thread.send(:initialize, ...)
       unless Primitive.thread_initialized?(thread)
-        raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
+        raise ThreadError, "uninitialized thread - check `#{Primitive.object_class(thread)}#initialize'"
       end
       thread
     end
@@ -364,7 +364,7 @@ class ConditionVariable
   end
 
   def marshal_dump
-    raise TypeError, "can't dump #{self.class}"
+    raise TypeError, "can't dump #{Primitive.object_class(self)}"
   end
 end
 

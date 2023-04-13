@@ -182,7 +182,7 @@ module Kernel
   module_function :` # `
 
   def =~(other)
-    warn "deprecated Object#=~ is called on #{self.class}; it always returns nil", uplevel: 1 if $VERBOSE
+    warn "deprecated Object#=~ is called on #{Primitive.object_class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
     nil
   end
 
@@ -326,7 +326,7 @@ module Kernel
 
     modules.reverse_each do |mod|
       if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
       end
 
       mod.__send__ :extend_object, self
@@ -775,7 +775,7 @@ module Kernel
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
-      raise ArgumentError, "unexpected value for freeze: #{freeze.class}"
+      raise ArgumentError, "unexpected value for freeze: #{Primitive.object_class(freeze)}"
     end
 
     Primitive.object_clone self, freeze

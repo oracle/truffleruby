@@ -70,11 +70,11 @@ class Enumerator
   end
 
   def inspect
-    return "#<#{self.class}: uninitialized>" if Primitive.nil?(@object) && Primitive.nil?(@iter)
+    return "#<#{Primitive.object_class(self)}: uninitialized>" if Primitive.nil?(@object) && Primitive.nil?(@iter)
 
     args = @kwargs.empty? ? @args : [*@args, @kwargs]
     args = args.empty? ? '' : "(#{args.map(&:inspect).join(', ')})"
-    "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
+    "#<#{Primitive.object_class(self)}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
   def each(*args, **kwargs, &block)
@@ -538,7 +538,7 @@ class Enumerator
         elsif Primitive.object_respond_to?(list, :each, false)
           list.to_enum :each
         else
-          raise TypeError, "wrong argument type #{list.class} (must respond to :each)"
+          raise TypeError, "wrong argument type #{Primitive.object_class(list)} (must respond to :each)"
         end
       end
 
@@ -795,8 +795,8 @@ class Enumerator::Chain < Enumerator
   end
 
   def inspect
-    return "#<#{self.class.name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
-      return "#<#{self.class.name}: #{@enums || "uninitialized"}>"
+    return "#<#{Primitive.object_class(self).name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
+      return "#<#{Primitive.object_class(self).name}: #{@enums || "uninitialized"}>"
     end
   end
 end

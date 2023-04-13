@@ -111,7 +111,7 @@ class Struct
   end
 
   private def _attrs # :nodoc:
-    self.class::STRUCT_ATTRS
+    Primitive.object_class(self)::STRUCT_ATTRS
   end
 
   def select
@@ -128,7 +128,7 @@ class Struct
     each_pair.each_with_index do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -150,10 +150,10 @@ class Struct
         values << "#{var}=#{val.inspect}"
       end
 
-      if Primitive.module_anonymous?(self.class)
+      if Primitive.module_anonymous?(Primitive.object_class(self))
         return "#<struct #{values.join(', ')}>"
       else
-        name = Primitive.module_name self.class
+        name = Primitive.module_name Primitive.object_class(self)
         return "#<struct #{name} #{values.join(', ')}>"
       end
     end
@@ -169,7 +169,7 @@ class Struct
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
     end
 
-    if self.class::KEYWORD_INIT
+    if Primitive.object_class(self)::KEYWORD_INIT
       # Accept a single positional hash for https://bugs.ruby-lang.org/issues/18632 and spec
       if kwargs.empty? && args.size == 1 && Primitive.object_kind_of?(args.first, Hash)
         kwargs = args.first
@@ -204,7 +204,7 @@ class Struct
   end
 
   def ==(other)
-    return false if self.class != other.class
+    return false if Primitive.object_class(self) != Primitive.object_class(other)
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
       return self.values == other.values
@@ -287,7 +287,7 @@ class Struct
 
   def eql?(other)
     return true if equal? other
-    return false if self.class != other.class
+    return false if Primitive.object_class(self) != Primitive.object_class(other)
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
       _attrs.each do |var|
@@ -342,7 +342,7 @@ class Struct
   end
 
   def members
-    self.class.members
+    Primitive.object_class(self).members
   end
 
   def to_a

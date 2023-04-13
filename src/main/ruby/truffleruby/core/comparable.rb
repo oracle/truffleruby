@@ -82,7 +82,7 @@ module Comparable
   def clamp(min, max = undefined)
     if Primitive.undefined?(max)
       range = min
-      raise TypeError, "wrong argument type #{range.class} (expected Range)" unless Primitive.object_kind_of?(range, Range)
+      raise TypeError, "wrong argument type #{Primitive.object_class(range)} (expected Range)" unless Primitive.object_kind_of?(range, Range)
       raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
       min, max = range.begin, range.end
     end
