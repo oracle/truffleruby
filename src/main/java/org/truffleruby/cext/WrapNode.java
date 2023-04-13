@@ -24,6 +24,8 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -44,7 +46,7 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     protected ValueWrapper wrapLong(long value,
-            @Cached BranchProfile smallFixnumProfile) {
+            @Cached @Exclusive BranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
             long val = (value << 1) | LONG_TAG;
@@ -85,7 +87,7 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization(guards = "!isNil(value)")
     protected ValueWrapper wrapImmutable(ImmutableRubyObject value,
-            @Cached BranchProfile noHandleProfile) {
+            @Cached @Shared BranchProfile noHandleProfile) {
         ValueWrapper wrapper = value.getValueWrapper();
         if (wrapper == null) {
             noHandleProfile.enter();
@@ -106,7 +108,7 @@ public abstract class WrapNode extends RubyBaseNode {
     @Specialization(limit = "getDynamicObjectCacheLimit()")
     protected ValueWrapper wrapValue(RubyDynamicObject value,
             @CachedLibrary("value") DynamicObjectLibrary objectLibrary,
-            @Cached BranchProfile noHandleProfile) {
+            @Cached @Shared BranchProfile noHandleProfile) {
         ValueWrapper wrapper = (ValueWrapper) objectLibrary.getOrDefault(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
             noHandleProfile.enter();

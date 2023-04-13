@@ -25,6 +25,8 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -152,14 +154,14 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization
         protected ValueWrapper longToWrapper(long value,
-                @Cached NativeToWrapperNode nativeToWrapperNode) {
+                @Cached @Exclusive NativeToWrapperNode nativeToWrapperNode) {
             return nativeToWrapperNode.execute(value);
         }
 
         @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
         protected ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
-                @Cached NativeToWrapperNode nativeToWrapperNode,
+                @Cached @Exclusive NativeToWrapperNode nativeToWrapperNode,
                 @Cached BranchProfile unsupportedProfile) {
             long handle;
             try {
@@ -189,7 +191,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,
                 @Cached("size") int cachedSize,
-                @Cached UnwrapNode unwrapNode) {
+                @Cached @Shared UnwrapNode unwrapNode) {
             final Object[] store = new Object[cachedSize];
             for (int i = 0; i < cachedSize; i++) {
                 final Object cValue = readArrayElement(cArray, interop, i);
@@ -202,7 +204,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         protected Object[] unwrapCArray(Object cArray,
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,
-                @Cached UnwrapNode unwrapNode,
+                @Cached @Shared UnwrapNode unwrapNode,
                 @Cached LoopConditionProfile loopProfile) {
             final Object[] store = new Object[size];
             int i = 0;
@@ -249,14 +251,14 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @Specialization
     protected Object longToWrapper(long value,
-            @Cached UnwrapNativeNode unwrapNode) {
+            @Cached @Exclusive UnwrapNativeNode unwrapNode) {
         return unwrapNode.execute(value);
     }
 
     @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
     protected Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
-            @Cached UnwrapNativeNode unwrapNativeNode,
+            @Cached @Exclusive UnwrapNativeNode unwrapNativeNode,
             @Cached BranchProfile unsupportedProfile) {
         long handle;
         try {

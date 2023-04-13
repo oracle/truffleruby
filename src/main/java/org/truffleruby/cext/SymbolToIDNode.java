@@ -13,6 +13,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -26,7 +27,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
 
     @Specialization(guards = "symbol == cachedSymbol", limit = "2")
     protected Object getIDCached(RubySymbol symbol,
-            @Cached WrapNode wrapNode,
+            @Cached @Shared WrapNode wrapNode,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getID(cachedSymbol, wrapNode)") Object cachedID) {
         return cachedID;
@@ -34,7 +35,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
 
     @Specialization(replaces = "getIDCached")
     protected Object getIDUncached(RubySymbol symbol,
-            @Cached WrapNode wrapNode,
+            @Cached @Shared WrapNode wrapNode,
             @Cached ConditionProfile staticSymbolProfile) {
         if (staticSymbolProfile.profile(symbol.getId() != RubySymbol.UNASSIGNED_ID)) {
             return symbol.getId();

@@ -121,6 +121,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -956,8 +957,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string,
-                @Cached BranchProfile errorProfile) {
+        protected ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string) {
             throw new RaiseException(getContext(),
                     coreExceptions().runtimeError("temporal unlocking immutable string", this));
         }
@@ -1937,7 +1937,7 @@ public class CExtNodes {
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
         protected Object typesCached(VirtualFrame frame, Object format,
-                @Cached RubyStringLibrary libFormat,
+                @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
@@ -1947,7 +1947,7 @@ public class CExtNodes {
 
         @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
         protected RubyArray typesUncached(VirtualFrame frame, Object format,
-                @Cached RubyStringLibrary libFormat) {
+                @Cached @Shared RubyStringLibrary libFormat) {
             return compileArgTypes(libFormat.getTString(format), libFormat.getEncoding(format), byteArrayNode);
         }
 
@@ -1978,11 +1978,8 @@ public class CExtNodes {
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
         protected RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached WrapNode wrapNode,
-                @Cached UnwrapNode unwrapNode,
-                @Cached RubyStringLibrary libFormat,
+                @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
@@ -2004,12 +2001,9 @@ public class CExtNodes {
                 guards = "libFormat.isRubyString(format)",
                 replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached WrapNode wrapNode,
-                @Cached UnwrapNode unwrapNode,
                 @Cached IndirectCallNode formatNode,
-                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached RubyStringLibrary libFormat) {
+                @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached @Shared RubyStringLibrary libFormat) {
             var tstring = libFormat.getTString(format);
             var encoding = libFormat.getEncoding(format);
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
