@@ -44,6 +44,8 @@ export SYSTEM_RUBY=/path/to/mri/bin/ruby
 alias jt=/path/to/truffleruby/bin/jt
 ```
 
+Note: `SYSTEM_RUBY` should be CRuby version 2.3 or higher.
+
 ```bash
 jt --help
 ```
@@ -146,14 +148,25 @@ or use one of the `native*` build configuration (which also builds a native truf
 
 ## Running
 
-`jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
-command. Additionally, `jt ruby` sets a couple of extra options to help you when
+### Running Small Scripts
+
+`jt ruby` runs TruffleRuby.
+You can use it exactly as you'd run the MRI `ruby` command and this is useful to compare behavior.
+Additionally, `jt ruby` sets a couple of extra options to help you when
 developing, such as loading the core library from disk rather than the JAR.
 `jt ruby` prints the real command it's running as it starts.
 
-If you are running a Ruby environment manager like `rvm`, `rbenv`, or `chruby`
-please run `rvm use system`, `rbenv system`, or `chruby system` to clear their
-environment variables, so that the correct gems are picked up.
+`jt ruby` does not add TruffleRuby to `PATH` and does not support installing gems
+if `GEM_HOME` or `GEM_PATH` is set, see below for that.
+
+### Running Ruby Programs Which Need Gems
+
+The best here is to use a Ruby manager like `rbenv` or `chruby` for this.
+`jt build` automatically registers any truffleruby build with `rbenv` or `chruby`.
+So you can simply `chruby truffleruby-jvm` or `rbenv shell truffleruby-jvm` (adapt the name for a different build configuration).
+And with that, the gem environment is properly setup and you can use TruffleRuby just like you would use CRuby, including using `gem`, `bundle`, `rake`, `ruby`, etc.
+
+### Build Configurations
 
 By default, `jt ruby` runs the `jvm` build of TruffleRuby (that is, built with the `--jvm` [build
 configuration](#building) and using the default build name) and aborts if this build doesn't exist.
