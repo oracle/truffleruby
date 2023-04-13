@@ -3,6 +3,7 @@ rpm: &rpm
   specs: which findutils
   zlib: zlib-devel
   openssl: openssl-devel
+  yaml: libyaml-devel
   cext: gcc make
   set-locale:
     - ENV LANG=en_US.UTF-8
@@ -13,6 +14,7 @@ deb: &deb
   specs: netbase
   zlib: libz-dev
   openssl: libssl-dev
+  yaml: libyaml-dev
   cext: gcc make
   set-locale:
     # Uncomment the en_US.UTF-8 line in /etc/locale.gen
@@ -23,13 +25,15 @@ deb: &deb
 
 ol7:
   base: oraclelinux:7-slim
-  install: RUN yum install -y
+  # --enablerepo needed for libyaml-devel
+  install: RUN yum install --enablerepo=ol7_optional_latest -y
   locale:
   <<: *rpm
 
 ol8:
   base: oraclelinux:8-slim
-  install: RUN microdnf install -y
+  # --enablerepo needed for libyaml-devel
+  install: RUN microdnf install --enablerepo=ol8_codeready_builder -y
   locale: glibc-langpack-en
   <<: *rpm
 

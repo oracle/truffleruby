@@ -13,6 +13,40 @@ Note that running a test will fail the `build` command, so building the image
 is itself a test. You can then also log into the image after it's successfully
 built to use TruffleRuby.
 
+## Tests Run on Release Candidates or Previews
+
+This is what we run on release builds before the release to ensure the built artifacts work on the various Linux distributions.
+
+First, it is useful to create a branch with the potential changes needed to [tool/docker-configs.yaml](../../tool/docker-configs.yaml), `jt docker`, etc:
+```bash
+cd truffleruby
+git checkout master
+git checkout -b bd/docker-tests-$VERSION
+```
+Note that branch is based on `master`, not the release branch, because it should be merged to `master` (so those changes will be used for the next release).
+
+Then download the standalone's `.tar.gz` for linux-amd64 (looks like `ruby-standalone-svm-java*-linux-amd64-*.tar.gz`).
+The jdk version to use for the standalone is the one in `graal/vm/ce-release-artifacts.json`.
+The TruffleRuby commit in that build should correspond to the last commit of the release branch (`release/graal-vm/$VERSION`).
+
+We run all Docker tests, only on the standalone distribution to make it reasonably fast.
+This can be done with:
+```bash
+jt docker test --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
+# A concrete example
+jt docker test --standalone $PWD/ruby-standalone-svm-java17-linux-amd64-*.tar.gz --test release/graal-vm/23.0
+```
+
+We typically run them in parallel instead to make it faster, running each of these commands in a different terminal:
+```bash
+jt docker test --filter ol --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
+jt docker test --filter fedora --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
+jt docker test --filter ubuntu --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
+jt docker test --filter debian --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
+```
+
+## Example Usages
+
 For example, to run a full set of tests on a set of new release candidate tarballs:
 
 ```bash
