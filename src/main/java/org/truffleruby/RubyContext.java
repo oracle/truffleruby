@@ -58,6 +58,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -158,6 +159,8 @@ public class RubyContext {
 
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
+
+    private RubyString scriptName;
 
     private static final ContextReference<RubyContext> REFERENCE = ContextReference.create(RubyLanguage.class);
 
@@ -759,5 +762,13 @@ public class RubyContext {
     @NeverDefault
     public GlobalVariableStorage getGlobalVariableStorage(int index) {
         return globalVariablesArray.get(index);
+    }
+
+    public void setScriptName(RubyString name) {
+        this.scriptName = name;
+    }
+
+    public RubyString getScriptName() {
+        return this.scriptName;
     }
 }

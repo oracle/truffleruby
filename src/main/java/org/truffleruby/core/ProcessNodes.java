@@ -9,9 +9,12 @@
  */
 package org.truffleruby.core;
 
+import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -21,8 +24,18 @@ import sun.misc.Signal;
 
 import java.time.Instant;
 
-@CoreModule(value = "Process", isClass = true)
+@CoreModule(value = "Process")
 public abstract class ProcessNodes {
+
+    @CoreMethod(names = "argv0", onSingleton = true)
+    public abstract static class Argv0Node extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString argv0() {
+            return getContext().getScriptName();
+        }
+
+    }
 
     @Primitive(name = "process_time_nanotime")
     public abstract static class ProcessTimeNanoTimeNode extends PrimitiveArrayArgumentsNode {
