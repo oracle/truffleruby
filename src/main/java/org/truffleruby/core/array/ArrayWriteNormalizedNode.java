@@ -19,6 +19,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,7 +54,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores) {
+            @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores) {
         final int size = array.size;
         final Object newStore = stores.allocateForNewValue(store, value, size);
         stores.copyContents(store, 0, newStore, 0, size);
@@ -81,8 +82,8 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
-            @Cached LoopConditionProfile loopProfile) {
+            @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
+            @Cached @Exclusive LoopConditionProfile loopProfile) {
         final int newSize = index + 1;
         final Object objectStore = stores.allocateForNewValue(store, nil, newSize);
         int oldSize = array.size;
@@ -110,9 +111,9 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     protected Object writeBeyondObject(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
+            @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @Cached LoopConditionProfile loopProfile) {
+            @Cached @Exclusive LoopConditionProfile loopProfile) {
         Object newStore = ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         int n = array.size;
         try {

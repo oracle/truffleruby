@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -28,7 +29,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     protected Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @Cached CountingConditionProfile extendProfile) {
+            @Cached @Shared CountingConditionProfile extendProfile) {
         final int currentCapacity = stores.capacity(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
@@ -47,7 +48,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     protected Object ensureCapacity(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
-            @Cached CountingConditionProfile extendProfile) {
+            @Cached @Shared CountingConditionProfile extendProfile) {
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);
