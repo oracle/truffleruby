@@ -372,6 +372,14 @@ class Time
     end
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
+      # Ensure all the user provided numeric values fit into int type.
+      # sec and nsec are handled separately.
+      Primitive.rb_num2int(min)
+      Primitive.rb_num2int(hour)
+      Primitive.rb_num2int(mday)
+      Primitive.rb_num2int(month)
+      Primitive.rb_num2int(year)
+
       time = Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
       return time unless Primitive.undefined?(time)
 
