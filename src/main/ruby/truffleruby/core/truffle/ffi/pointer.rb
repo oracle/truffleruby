@@ -125,7 +125,7 @@ module Truffle::FFI
     end
 
     def ==(other)
-      return true if Primitive.object_equal(nil, other) && null?
+      return true if Primitive.nil?(other) && null?
       return false unless Primitive.object_kind_of?(other, Pointer)
       address == other.address
     end

@@ -32,7 +32,7 @@ module Truffle
         io.write DEFAULT_RECORD_SEPARATOR
       else
         args.each do |arg|
-          if Primitive.object_equal(arg, nil)
+          if Primitive.nil?(arg)
             str = ''
           elsif Primitive.object_kind_of?(arg, String)
             # might be a Foreign String we need to convert

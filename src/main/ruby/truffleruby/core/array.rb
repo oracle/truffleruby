@@ -323,7 +323,7 @@ class Array
 
     return nil if empty?
 
-    if Primitive.object_equal(nil, n)
+    if Primitive.nil?(n)
       until empty?
         each { |x| yield x }
       end

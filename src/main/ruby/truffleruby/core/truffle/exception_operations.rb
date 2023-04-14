@@ -127,7 +127,7 @@ module Truffle
     end
 
     def self.full_message(exception, highlight, order)
-      highlight = if Primitive.object_equal(highlight, nil)
+      highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
                   else
                     raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.object_equal(highlight, true) || Primitive.object_equal(highlight, false)

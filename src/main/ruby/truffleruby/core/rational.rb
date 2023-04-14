@@ -330,7 +330,7 @@ class Rational < Numeric
   end
 
   def self.convert(num, den)
-    if Primitive.object_equal(num, nil) || Primitive.object_equal(den, nil)
+    if Primitive.nil?(num) || Primitive.nil?(den)
       raise TypeError, 'cannot convert nil into Rational'
     end
 
