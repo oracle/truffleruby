@@ -662,33 +662,10 @@ public class ThreadManager {
     @TruffleBoundary
     public void killAndWaitOtherThreads() {
         // Kill all Ruby Threads and Fibers
-
-        // The logic below avoids using the SafepointManager if there is
-        // only the current thread and the reference processing thread.
-        final RubyThread currentThread = language.getCurrentThread();
-        boolean otherThreads = false;
-        RubyThread referenceProcessingThread = null;
-        for (RubyThread thread : runningRubyThreads) {
-            if (thread == currentThread) {
-                // no need to kill the current thread
-            } else if (thread == context.getReferenceProcessor().getProcessingThread()) {
-                referenceProcessingThread = thread;
-            } else {
-                otherThreads = true;
-                break;
-            }
-        }
-
-        if (!otherThreads && referenceProcessingThread != null) {
-            if (!context.getReferenceProcessor().shutdownProcessingThread()) {
-                otherThreads = true;
-            }
-        }
-
-        if (otherThreads) {
+        if (runningRubyThreads.size() > 1) {
             doKillOtherThreads();
         }
-        context.fiberManager.killOtherFibers(currentThread);
+        context.fiberManager.killOtherFibers(language.getCurrentThread());
 
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {

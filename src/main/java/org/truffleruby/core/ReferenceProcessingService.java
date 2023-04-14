@@ -17,7 +17,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
-import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -73,7 +72,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
-        private volatile boolean shutdown = false;
         protected RubyThread processingThread;
         protected final RubyContext context;
 
@@ -121,38 +119,11 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
                 while (true) {
-                    final PhantomProcessingReference<?, ?> reference = threadManager
-                            .runUntilResult(DummyNode.INSTANCE, () -> {
-                                try {
-                                    return (PhantomProcessingReference<?, ?>) processingQueue.remove();
-                                } catch (InterruptedException interrupted) {
-                                    if (shutdown) {
-                                        throw new KillException(DummyNode.INSTANCE);
-                                    } else {
-                                        throw interrupted;
-                                    }
-                                }
-                            });
+                    final PhantomProcessingReference<?, ?> reference = threadManager.runUntilResult(DummyNode.INSTANCE,
+                            () -> (PhantomProcessingReference<?, ?>) processingQueue.remove());
                     reference.service().processReference(context, language, reference);
                 }
             });
-        }
-
-        public boolean shutdownProcessingThread() {
-            final Thread javaThread = processingThread == null ? null : processingThread.thread;
-            if (javaThread == null) {
-                return false;
-            }
-
-            shutdown = true;
-            javaThread.interrupt();
-
-            context.getThreadManager().runUntilResultKeepStatus(DummyNode.INSTANCE, t -> t.join(1000), javaThread);
-            return true;
-        }
-
-        public RubyThread getProcessingThread() {
-            return processingThread;
         }
 
         @TruffleBoundary
