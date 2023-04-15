@@ -98,7 +98,7 @@ module Truffle::FFI
         sign = ''
       end
 
-      "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
+      "#<#{Primitive.object_class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
     def null?
@@ -125,7 +125,7 @@ module Truffle::FFI
     end
 
     def ==(other)
-      return true if nil.equal?(other) && null?
+      return true if Primitive.nil?(other) && null?
       return false unless Primitive.object_kind_of?(other, Pointer)
       address == other.address
     end

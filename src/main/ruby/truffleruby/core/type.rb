@@ -188,11 +188,11 @@ module Truffle
     end
 
     def self.fits_into_int?(val)
-      Integer === val && Primitive.integer_fits_into_int(val)
+      Primitive.object_kind_of?(val, Integer) && Primitive.integer_fits_into_int(val)
     end
 
     def self.fits_into_long?(val)
-      Integer === val && Primitive.integer_fits_into_long(val)
+      Primitive.object_kind_of?(val, Integer) && Primitive.integer_fits_into_long(val)
     end
 
     def self.check_uint(val)
@@ -398,7 +398,7 @@ module Truffle
     end
 
     def self.coerce_to_regexp(pattern, quote = false)
-      if Regexp === pattern
+      if Primitive.object_kind_of?(pattern, Regexp)
         pattern
       else
         pattern = StringValue(pattern)
@@ -467,7 +467,7 @@ module Truffle
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end
 
-      if Rational === offset
+      if Primitive.object_kind_of?(offset, Rational)
         offset = offset.round
       end
 
@@ -578,7 +578,7 @@ module Truffle
 
     def self.is_special_const?(object)
       # Avoid calling methods on object since it might be a foreign object
-      NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
+      Primitive.object_kind_of?(object, NilClass) || Primitive.object_kind_of?(object, TrueClass) || Primitive.object_kind_of?(object, FalseClass) || Primitive.object_kind_of?(object, Symbol) || Truffle::Type.fits_into_long?(object)
     end
   end
 end

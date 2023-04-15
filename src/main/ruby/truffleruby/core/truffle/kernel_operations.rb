@@ -24,7 +24,7 @@ module Truffle
 
     def self.convert_duration_to_nanoseconds(duration)
       unless duration.respond_to?(:divmod)
-        raise TypeError, "can't convert #{duration.class} into time interval"
+        raise TypeError, "can't convert #{Primitive.object_class(duration)} into time interval"
       end
       a, b = duration.divmod(1)
       ((a + b) * 1_000_000_000)
@@ -172,7 +172,7 @@ module Truffle
       :$stdout,
       -> { Primitive.global_variable_get :$stdout },
       -> v {
-        raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        raise TypeError, "$stdout must have a write method, #{Primitive.object_class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stdout, v
       })
 
@@ -182,7 +182,7 @@ module Truffle
       :$stderr,
       -> { Primitive.global_variable_get :$stderr },
       -> v {
-        raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        raise TypeError, "$stderr must have a write method, #{Primitive.object_class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stderr, v
       })
 
@@ -211,10 +211,10 @@ module Truffle
 
     # Will throw an exception if the arguments are invalid, and potentially convert a range to [omit, length] format.
     def self.normalize_backtrace_args(omit, length)
-      if Integer === length && length < 0
+      if Primitive.object_kind_of?(length, Integer) && length < 0
         raise ArgumentError, "negative size (#{length})"
       end
-      if Range === omit
+      if Primitive.object_kind_of?(omit, Range)
         range = omit
         if Primitive.nil? range.begin
           omit = 0

@@ -84,7 +84,7 @@ class Array
 
   def <=>(other)
     other = Truffle::Type.rb_check_convert_type other, Array, :to_ary
-    return 0 if equal? other
+    return 0 if Primitive.object_equal(self, other)
     return nil if Primitive.nil? other
 
     total = other.size
@@ -125,7 +125,7 @@ class Array
       return result
     end
 
-    return true if equal?(other)
+    return true if Primitive.object_equal(self, other)
     unless Primitive.object_kind_of?(other, Array)
       return false unless other.respond_to? :to_ary
       return other == self
@@ -323,7 +323,7 @@ class Array
 
     return nil if empty?
 
-    if nil.equal? n
+    if Primitive.nil?(n)
       until empty?
         each { |x| yield x }
       end
@@ -380,7 +380,7 @@ class Array
       return result
     end
 
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
     return false unless Primitive.object_kind_of?(other, Array)
     return false if size != other.size
 
@@ -507,7 +507,7 @@ class Array
     level = Primitive.rb_num2int level
     return nil if level == 0
 
-    out = self.class.allocate # new_reserved size
+    out = Primitive.object_class(self).allocate # new_reserved size
     if Primitive.array_flatten_helper(self, out, level)
       Primitive.steal_array_storage(self, out)
       return self
@@ -1285,7 +1285,7 @@ class Array
     each_with_index do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -1350,7 +1350,7 @@ class Array
 
   # Synchronize with Enumerator#zip and Enumerable#zip
   def zip(*others)
-    if !block_given? and others.size == 1 and Array === others[0]
+    if !block_given? and others.size == 1 and Primitive.object_kind_of?(others[0], Array)
       return Primitive.array_zip self, others[0]
     end
 
@@ -1364,7 +1364,7 @@ class Array
       elsif Primitive.object_respond_to?(other, :each, false)
         other.to_enum(:each)
       else
-        raise TypeError, "wrong argument type #{other.class} (must respond to :each)"
+        raise TypeError, "wrong argument type #{Primitive.object_class(other)} (must respond to :each)"
       end
     end
 

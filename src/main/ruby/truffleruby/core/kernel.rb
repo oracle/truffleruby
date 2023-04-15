@@ -54,7 +54,7 @@ module Kernel
   module_function :Complex
 
   def Float(obj, exception: true)
-    raise_exception = !exception.equal?(false)
+    raise_exception = !Primitive.object_equal(exception, false)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
@@ -74,7 +74,7 @@ module Kernel
         nil
       end
     when Complex
-      if obj.respond_to?(:imag) && obj.imag.equal?(0)
+      if obj.respond_to?(:imag) && Primitive.object_equal(obj.imag, 0)
         Truffle::Type.coerce_to obj, Float, :to_f
       else
         raise RangeError, "can't convert #{obj} into Float"
@@ -90,7 +90,7 @@ module Kernel
   module_function :Float
 
   def Hash(obj)
-    return {} if obj.equal?(nil) || obj == []
+    return {} if Primitive.nil?(obj) || obj == []
 
     if hash = Truffle::Type.rb_check_convert_type(obj, Hash, :to_hash)
       return hash
@@ -104,9 +104,9 @@ module Kernel
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
-    raise_exception = !exception.equal?(false)
+    raise_exception = !Primitive.object_equal(exception, false)
 
-    if String === obj
+    if Primitive.object_kind_of?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
     else
       bad_base_check = Proc.new do
@@ -182,7 +182,7 @@ module Kernel
   module_function :` # `
 
   def =~(other)
-    warn "deprecated Object#=~ is called on #{self.class}; it always returns nil", uplevel: 1 if $VERBOSE
+    warn "deprecated Object#=~ is called on #{Primitive.object_class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
     nil
   end
 
@@ -203,8 +203,8 @@ module Kernel
 
   def autoload(name, file)
     nesting = Primitive.caller_nesting
-    mod = nesting.first || (Kernel.equal?(self) ? Kernel : Object)
-    if mod.equal?(self)
+    mod = nesting.first || (Primitive.object_equal(Kernel, self) ? Kernel : Object)
+    if Primitive.object_equal(mod, self)
       super(name, file) # Avoid recursion
     else
       mod.autoload(name, file)
@@ -213,7 +213,7 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    if Kernel.equal?(self)
+    if Primitive.object_equal(Kernel, self)
       super(name) # Avoid recursion
     else
       Object.autoload?(name)
@@ -326,7 +326,7 @@ module Kernel
 
     modules.reverse_each do |mod|
       if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
       end
 
       mod.__send__ :extend_object, self
@@ -373,7 +373,7 @@ module Kernel
 
     # module_to_wrap either is a module or is nil
     if wrap
-      module_to_wrap = wrap.is_a?(Module) ? wrap : Module.new
+      module_to_wrap = Primitive.object_kind_of?(wrap, Module) ? wrap : Module.new
     end
 
     # load absolute path
@@ -761,7 +761,7 @@ module Kernel
   module_function :caller_locations
 
   def at_exit(&block)
-    raise ArgumentError, 'called without a block' if block.nil?
+    raise ArgumentError, 'called without a block' if Primitive.nil?(block)
     Truffle::KernelOperations.at_exit false, &block
   end
   module_function :at_exit
@@ -775,7 +775,7 @@ module Kernel
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
-      raise ArgumentError, "unexpected value for freeze: #{freeze.class}"
+      raise ArgumentError, "unexpected value for freeze: #{Primitive.object_class(freeze)}"
     end
 
     Primitive.object_clone self, freeze

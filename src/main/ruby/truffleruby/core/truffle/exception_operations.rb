@@ -65,7 +65,7 @@ module Truffle
     end
 
     def self.show_exception_for_debug(exc, uplevel)
-      STDERR.puts "Exception: `#{exc.class}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
+      STDERR.puts "Exception: `#{Primitive.object_class(exc)}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
     end
 
     def self.class_name(receiver)
@@ -94,7 +94,7 @@ module Truffle
     def self.message_and_class(exception, highlight)
       message = StringValue exception.message.to_s
 
-      klass = exception.class.to_s
+      klass = Primitive.object_class(exception).to_s
       if Primitive.object_kind_of?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
         klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
@@ -127,15 +127,15 @@ module Truffle
     end
 
     def self.full_message(exception, highlight, order)
-      highlight = if highlight.equal?(nil)
+      highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
                   else
-                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless highlight.equal?(true) || highlight.equal?(false)
-                    !highlight.equal?(false)
+                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.object_equal(highlight, true) || Primitive.object_equal(highlight, false)
+                    !Primitive.object_equal(highlight, false)
                   end
 
-      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless order.equal?(:top) || order.equal?(:bottom)
-      reverse = !order.equal?(:top)
+      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.object_equal(order, :top) || Primitive.object_equal(order, :bottom)
+      reverse = !Primitive.object_equal(order, :top)
 
       result = ''.b
       bt = exception.backtrace || caller(2)
@@ -194,7 +194,7 @@ module Truffle
 
     def self.append_causes(str, err, causes, reverse, highlight)
       cause = err.cause
-      if !Primitive.nil?(cause) && Exception === cause && !causes.has_key?(cause)
+      if !Primitive.nil?(cause) && Primitive.object_kind_of?(cause, Exception) && !causes.has_key?(cause)
         causes[cause] = true
         if reverse
           append_causes(str, cause, causes, reverse, highlight)
@@ -258,9 +258,9 @@ module Truffle
       y_classname = if Truffle::Type.is_special_const?(y)
                       y.inspect
                     else
-                      y.class
+                      Primitive.object_class(y)
                     end
-      "comparison of #{x.class} with #{y_classname} failed"
+      "comparison of #{Primitive.object_class(x)} with #{y_classname} failed"
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|

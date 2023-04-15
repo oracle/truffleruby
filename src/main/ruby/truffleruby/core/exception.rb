@@ -47,7 +47,7 @@ class Exception
 
   def to_s
     msg = Truffle::ExceptionOperations.compute_message(self)
-    return self.class.to_s if Primitive.nil?(msg)
+    return Primitive.object_class(self).to_s if Primitive.nil?(msg)
     msg
   end
 
@@ -71,9 +71,9 @@ class Exception
   def inspect
     s = self.to_s
     if s.empty?
-      self.class.name
+      Primitive.object_class(self).name
     else
-      "#<#{self.class.name}: #{s}>"
+      "#<#{Primitive.object_class(self).name}: #{s}>"
     end
   end
 
@@ -99,7 +99,7 @@ class Exception
   def self.to_tty?
     # Whether $stderr refers to the original STDERR and STDERR is a tty.
     # When using polyglot stdio, we cannot know and assume false.
-    $stderr.equal?(STDERR) && !STDERR.closed? &&
+    Primitive.object_equal($stderr, STDERR) && !STDERR.closed? &&
       (!Truffle::Boot.get_option('polyglot-stdio') && STDERR.tty?)
   end
 end
@@ -282,7 +282,7 @@ class SystemCallError < StandardError
     #
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
-    if self.equal? SystemCallError
+    if Primitive.object_equal(self, SystemCallError)
       case args.size
       when 1
         if Primitive.object_kind_of?(args.first, Integer)
@@ -326,7 +326,7 @@ class SystemCallError < StandardError
 
       if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && error.class.equal?(self)
+        if error && Primitive.object_equal(Primitive.object_class(error), self)
           return error
         end
       end
@@ -377,7 +377,7 @@ class SignalException < Exception
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
-        raise ArgumentError, "bad signal type #{sig.class.name}" if Primitive.nil? sig_converted
+        raise ArgumentError, "bad signal type #{Primitive.object_class(sig).name}" if Primitive.nil? sig_converted
         sig = sig_converted
       end
       signal_name = sig

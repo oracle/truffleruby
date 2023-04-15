@@ -28,7 +28,7 @@
 
 module Comparable
   def ==(other)
-    return true if equal?(other)
+    return true if Primitive.object_equal(self, other)
 
     return false if Truffle::ThreadOperations.detect_pair_recursion(self, other) do
       unless comp = (self <=> other)
@@ -82,7 +82,7 @@ module Comparable
   def clamp(min, max = undefined)
     if Primitive.undefined?(max)
       range = min
-      raise TypeError, "wrong argument type #{range.class} (expected Range)" unless Primitive.object_kind_of?(range, Range)
+      raise TypeError, "wrong argument type #{Primitive.object_class(range)} (expected Range)" unless Primitive.object_kind_of?(range, Range)
       raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
       min, max = range.begin, range.end
     end

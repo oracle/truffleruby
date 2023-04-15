@@ -309,7 +309,7 @@ module Truffle
 
       def redirect(child_fd, parent_fd)
         map = (@options[:redirect_fd] ||= [])
-        if parent_fd.nil?
+        if Primitive.nil?(parent_fd)
           fds_to_close = (@options[:fds_to_close] ||= [])
           fds_to_close << child_fd
         elsif child_fd == parent_fd

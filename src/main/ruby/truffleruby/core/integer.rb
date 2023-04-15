@@ -186,7 +186,7 @@ class Integer < Numeric
   def round(ndigits = undefined, half: :up)
     return self if Primitive.undefined? ndigits
 
-    if Float === ndigits && ndigits.infinite?
+    if Primitive.object_kind_of?(ndigits, Float) && ndigits.infinite?
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 
@@ -209,7 +209,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Integer and Primitive.object_kind_of?(f, Integer)
+      if Primitive.object_kind_of?(self, Integer) and Primitive.object_kind_of?(f, Integer)
         x = self < 0 ? -self : self
         case half
         when :up, nil
@@ -242,7 +242,7 @@ class Integer < Numeric
   end
 
   def gcd(other)
-    raise TypeError, "Expected Integer but got #{other.class}" unless Primitive.object_kind_of?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.object_kind_of?(other, Integer)
     min = self.abs
     max = other.abs
     while min > 0
@@ -270,7 +270,7 @@ class Integer < Numeric
   end
 
   def lcm(other)
-    raise TypeError, "Expected Integer but got #{other.class}" unless Primitive.object_kind_of?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.object_kind_of?(other, Integer)
     if self.zero? or other.zero?
       0
     else

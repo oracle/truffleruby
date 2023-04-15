@@ -48,7 +48,7 @@ class Range
   private :initialize
 
   def ==(other)
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, Range) and
       self.begin == other.begin and
@@ -57,7 +57,7 @@ class Range
   end
 
   def eql?(other)
-    return true if equal? other
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, Range) and
         self.begin.eql?(other.begin) and
@@ -71,20 +71,20 @@ class Range
     start = self.begin
     stop  = self.end
 
-    if Float === start || Float === stop
+    if Primitive.object_kind_of?(start, Float) || Primitive.object_kind_of?(stop, Float)
       bsearch_float(&block)
-    elsif Integer === start
+    elsif Primitive.object_kind_of?(start, Integer)
       if Primitive.nil? stop
         bsearch_endless(&block)
-      elsif Integer === stop
+      elsif Primitive.object_kind_of?(stop, Integer)
         bsearch_integer(&block)
       else
-        raise TypeError, "bsearch is not available for #{stop.class}"
+        raise TypeError, "bsearch is not available for #{Primitive.object_class(stop)}"
       end
-    elsif Primitive.nil?(start) && Integer === stop
+    elsif Primitive.nil?(start) && Primitive.object_kind_of?(stop, Integer)
       bsearch_beginless(&block)
     else
-      raise TypeError, "bsearch is not available for #{start.class}"
+      raise TypeError, "bsearch is not available for #{Primitive.object_class(start)}"
     end
   end
 
@@ -275,7 +275,7 @@ class Range
     first, last = self.begin, self.end
 
     unless first.respond_to?(:succ) && !Primitive.object_kind_of?(first, Time)
-      raise TypeError, "can't iterate from #{first.class}"
+      raise TypeError, "can't iterate from #{Primitive.object_class(first)}"
     end
 
     return each_endless(first, &block) if Primitive.nil? last
@@ -317,7 +317,7 @@ class Range
   end
 
   private def each_endless(first, &block)
-    if Integer === first
+    if Primitive.object_kind_of?(first, Integer)
       i = first
       while true
         yield i
@@ -481,7 +481,7 @@ class Range
   end
 
   private def step_endless(first, step_size, &block)
-    if Numeric === first
+    if Primitive.object_kind_of?(first, Numeric)
       curr = first
       while true
         yield curr

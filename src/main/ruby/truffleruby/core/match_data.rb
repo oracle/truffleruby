@@ -45,7 +45,7 @@ class MatchData
   end
 
   def ==(other)
-    return true if equal?(other)
+    return true if Primitive.object_equal(self, other)
 
     Primitive.object_kind_of?(other, MatchData) &&
       string == other.string  &&
@@ -71,7 +71,7 @@ class MatchData
   end
 
   def begin(index)
-    backref = if String === index || Symbol === index
+    backref = if Primitive.object_kind_of?(index, String) || Primitive.object_kind_of?(index, Symbol)
                 names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else
@@ -83,7 +83,7 @@ class MatchData
   end
 
   def end(index)
-    backref = if String === index || Symbol === index
+    backref = if Primitive.object_kind_of?(index, String) || Primitive.object_kind_of?(index, Symbol)
                 names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else

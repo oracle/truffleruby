@@ -1,3 +1,9 @@
+require:
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_nil.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_class.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_equal.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_kind_of.rb
+
 AllCops:
   TargetRubyVersion: 3.1
   DisabledByDefault: true
@@ -390,3 +396,27 @@ Layout/SpaceInsideBlockBraces:
 Layout/SpaceAroundEqualsInParameterDefault:
   Description: Checks that the equals signs in parameter default assignments have or don't have surrounding space depending on configuration.
   Enabled: true
+
+# Supports --auto-correct
+TruffleRuby/ReplaceWithPrimitiveNil:
+  Enabled: true
+  Include: # inspect *only* this directory
+    - src/main/ruby/**/*.rb
+
+# Supports --auto-correct
+TruffleRuby/ReplaceWithPrimitiveObjectClass:
+  Enabled: true
+  Include: # inspect *only* this directory
+    - src/main/ruby/**/*.rb
+
+# Supports --auto-correct
+TruffleRuby/ReplaceWithPrimitiveObjectEqual:
+  Enabled: true
+  Include: # inspect *only* this directory
+    - src/main/ruby/**/*.rb
+
+# Supports --auto-correct
+TruffleRuby/ReplaceWithPrimitiveObjectKindOf:
+  Enabled: true
+  Include: # inspect *only* this directory
+    - src/main/ruby/**/*.rb

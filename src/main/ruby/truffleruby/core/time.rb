@@ -179,7 +179,7 @@ class Time
     # the only cases when #localtime is allowed for a frozen time -
     # - to covert from UTC to UTC
     # - to convert from local time to the same local time
-    if frozen? && !(utc? && to_utc || !utc? && offset.nil?)
+    if frozen? && !(utc? && to_utc || !utc? && Primitive.nil?(offset))
       raise FrozenError, "can't modify frozen Time: #{self}"
     end
 
