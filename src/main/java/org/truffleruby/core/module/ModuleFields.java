@@ -145,6 +145,18 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass ? null : new ConcurrentWeakSet<>();
+
+        if (lexicalParent == null && givenBaseName != null) {
+            setFullName(givenBaseName);
+        }
+    }
+
+    /** Compute the name eagerly now as it can cause a Shape transition. We need to do so because
+     * InteropLibrary$Asserts.assertMetaObject calls getMetaQualifiedName() and if getName() at that point adds the
+     * object_id property then accepts() asserts that follow will fail. We cannot call this in the ModuleFields
+     * constructor as the name depends on fields of RubyClass (e.g., isSingleton). */
+    public void afterConstructed() {
+        getName();
     }
 
     public RubyConstant getAdoptedByLexicalParent(
@@ -152,6 +164,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyModule lexicalParent,
             String name,
             Node currentNode) {
+        assert name != null;
+
         RubyConstant previous = lexicalParent.fields.setConstantInternal(
                 context,
                 currentNode,
@@ -981,12 +995,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return refinements;
     }
 
+    /** Must be called inside the RubyClass constructor */
     public void setSuperClass(RubyClass superclass) {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
-        newMethodsVersion(new ArrayList<>(methods.keySet()));
-        newConstantsVersion(new ArrayList<>(constants.keySet()));
-        newHierarchyVersion();
     }
 
     @Override

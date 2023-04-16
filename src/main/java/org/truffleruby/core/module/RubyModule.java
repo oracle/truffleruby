@@ -61,10 +61,7 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     protected RubyModule(RubyLanguage language, Shape classShape, String constructorOnlyForClassClass) {
         super(classShape, constructorOnlyForClassClass);
-
-        final ModuleFields fields = new ModuleFields(language, null, null, "Class", this);
-        fields.setFullName("Class");
-        this.fields = fields;
+        this.fields = new ModuleFields(language, null, null, "Class", this);
     }
 
     public String getName() {
