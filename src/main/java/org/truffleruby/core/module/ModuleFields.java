@@ -112,6 +112,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
+    /** Only set for a Module and not a Class since there is no usage of it for a Class */
     private final CyclicAssumption hierarchyUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
@@ -141,7 +142,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.hierarchyUnmodifiedAssumption = new CyclicAssumption("hierarchy is unmodified");
+        this.hierarchyUnmodifiedAssumption = rubyModule instanceof RubyClass
+                ? null
+                : new CyclicAssumption("hierarchy is unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass ? null : new ConcurrentWeakSet<>();
@@ -799,6 +802,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return !this.hasFullName;
     }
 
+    private boolean isClass() {
+        return rubyModule instanceof RubyClass;
+    }
+
     public boolean isRefinement() {
         return isRefinement;
     }
@@ -824,7 +831,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newHierarchyVersion() {
-        hierarchyUnmodifiedAssumption.invalidate(getName());
+        if (!isClass()) {
+            hierarchyUnmodifiedAssumption.invalidate(getName());
+        }
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
@@ -884,6 +893,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Assumption getHierarchyUnmodifiedAssumption() {
+        assert !isClass();
         return hierarchyUnmodifiedAssumption.getAssumption();
     }
 
