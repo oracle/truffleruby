@@ -41,3 +41,19 @@ describe "Truffle::Interop.meta_object" do
     Truffle::Interop.should_not.has_meta_parents?(Enumerable)
   end
 end
+
+describe "Truffle::Interop.meta_object?" do
+  it "returns true for a Class" do
+    Truffle::Interop.should.meta_object?(String)
+    Truffle::Interop.should.meta_object?(Class.new)
+  end
+
+  it "returns true for a Module" do
+    Truffle::Interop.should.meta_object?(Kernel)
+    Truffle::Interop.should.meta_object?(Module.new)
+  end
+
+  it "returns false for objects" do
+    Truffle::Interop.should_not.meta_object?(Object.new)
+  end
+end
