@@ -52,7 +52,13 @@ public abstract class IsANode extends RubyBaseNode {
         return result;
     }
 
+    /** If we are checking if an object.is_a?(SomeClass), then no matter hierarchy changes the superclass chain never
+     * changes. The superclass is always set when creating the RubyClass on TruffleRuby, i.e. it cannot be set later by
+     * Class#initialize. */
     public Assumption getHierarchyUnmodifiedAssumption(RubyModule module) {
+        if (module instanceof RubyClass) {
+            return Assumption.ALWAYS_VALID;
+        }
         return module.fields.getHierarchyUnmodifiedAssumption();
     }
 
