@@ -671,7 +671,7 @@ public abstract class ArrayNodes {
         protected Object delete(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile) {
 
             return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile);
@@ -684,7 +684,7 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile) {
 
             final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(array.size));
@@ -770,7 +770,7 @@ public abstract class ArrayNodes {
         protected Object deleteAt(RubyArray array, int index,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Shared ConditionProfile negativeIndexProfile,
                 @Cached @Shared ConditionProfile notInBoundsProfile) {
             final int size = arraySizeProfile.profile(array.size);
@@ -796,7 +796,7 @@ public abstract class ArrayNodes {
         protected Object deleteAtCopying(RubyArray array, int index,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Shared ConditionProfile negativeIndexProfile,
                 @Cached @Shared ConditionProfile notInBoundsProfile) {
             final int size = arraySizeProfile.profile(array.size);
@@ -1420,7 +1420,7 @@ public abstract class ArrayNodes {
                 VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached @Shared ToJavaStringNode toJavaString) {
             return injectSymbolHelper(
@@ -1444,7 +1444,7 @@ public abstract class ArrayNodes {
                 VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached @Shared ToJavaStringNode toJavaString) {
             return injectSymbolHelper(
@@ -1672,7 +1672,7 @@ public abstract class ArrayNodes {
         protected RubyArray popNotEmptySharedStorage(RubyArray array, int n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Shared ConditionProfile minProfile) {
             final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
@@ -1691,7 +1691,7 @@ public abstract class ArrayNodes {
         protected RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Shared ConditionProfile minProfile) {
             final int size = arraySizeProfile.profile(array.size);
             final int numPop = minProfile.profile(size < n) ? size : n;
@@ -1879,8 +1879,8 @@ public abstract class ArrayNodes {
         protected RubyArray rotate(RubyArray array, int rotation,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
-                @Cached @Exclusive IntValueProfile rotationProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile rotationProfile,
                 @Cached LoopConditionProfile loop1Profile,
                 @Cached LoopConditionProfile loop2Profile,
                 @Cached LoopConditionProfile loop3Profile) {
@@ -1912,8 +1912,8 @@ public abstract class ArrayNodes {
         protected RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
-                @Cached @Exclusive IntValueProfile rotationProfile) {
+                @Cached @Shared IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile rotationProfile) {
             final int size = arraySizeProfile.profile(array.size);
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
@@ -2109,7 +2109,7 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile,
+                @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object newStore = stores
@@ -2159,7 +2159,7 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary mutableStores,
-                @Cached @Exclusive IntValueProfile arraySizeProfile) {
+                @Cached @Shared IntValueProfile arraySizeProfile) {
             final int size = arraySizeProfile.profile(array.size);
             Object newStore = stores.unsharedAllocator(store).allocate(size);
             stores.copyContents(store, 0, newStore, 0, size);

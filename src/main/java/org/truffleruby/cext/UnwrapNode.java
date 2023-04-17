@@ -154,14 +154,14 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization
         protected ValueWrapper longToWrapper(long value,
-                @Cached @Exclusive NativeToWrapperNode nativeToWrapperNode) {
+                @Cached @Shared NativeToWrapperNode nativeToWrapperNode) {
             return nativeToWrapperNode.execute(value);
         }
 
         @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
         protected ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
-                @Cached @Exclusive NativeToWrapperNode nativeToWrapperNode,
+                @Cached @Shared NativeToWrapperNode nativeToWrapperNode,
                 @Cached BranchProfile unsupportedProfile) {
             long handle;
             try {
