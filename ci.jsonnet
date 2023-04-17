@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "4ad7ff807a0b032af7377339db4fb947bac60dca";
+local overlay = "5248a4efff6c845aa7b0d4efb920c22bef826e71";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -273,8 +273,14 @@ local part_definitions = {
       capabilities+: self["$.cap"].bench_machine,
       targets+: ["bench"],
     },
-    daily: { targets+: ["daily"] },
-    weekly: { targets+: ["weekly"] },
+    daily: {
+      targets+: ["daily"],
+      notify_groups: ["ruby"],
+    },
+    weekly: {
+      targets+: ["weekly"],
+      notify_groups: ["ruby"],
+    },
     manual: {
       capabilities+: self["$.cap"].normal_machine,
       targets: [],
