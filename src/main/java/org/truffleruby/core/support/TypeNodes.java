@@ -94,10 +94,10 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "class_of")
-    public abstract static class ClassOfNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "metaclass")
+    public abstract static class MetaClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyClass classOf(Object object,
+        protected RubyClass metaClass(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.execute(object);
         }

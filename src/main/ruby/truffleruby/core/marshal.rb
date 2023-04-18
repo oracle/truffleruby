@@ -731,7 +731,7 @@ module Marshal
             end
 
       if @freeze && !postpone_freezing && !(Primitive.is_a?(obj, Class) || Primitive.is_a?(obj, Module))
-        obj = -obj if Primitive.class_of(obj) == String
+        obj = -obj if Primitive.metaclass(obj) == String
         Primitive.object_freeze(obj)
       end
 
@@ -1118,7 +1118,7 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
-      metaclass = Primitive.class_of(obj)
+      metaclass = Primitive.metaclass(obj)
       if metaclass.singleton_class? &&
         (Primitive.singleton_methods?(obj) || Primitive.any_instance_variable?(metaclass))
         raise TypeError, "singleton can't be dumped"

@@ -451,7 +451,7 @@ module Truffle::CExt
   end
 
   def rb_class_of(object)
-    Primitive.class_of(object)
+    Primitive.metaclass(object)
   end
 
   def rb_class_real(ruby_class)
