@@ -518,7 +518,7 @@ class Array
   end
 
   def hash
-    unless Primitive.object_can_contain_object(self)
+    unless Primitive.array_can_contain_object?(self)
       # Primitive arrays do not need the recursion check
       return hash_internal
     end

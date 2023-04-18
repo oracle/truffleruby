@@ -20,9 +20,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -54,7 +52,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -357,42 +354,6 @@ public abstract class TypeNodes {
             writeNode.execute(object, identifier, value);
             return value;
         }
-    }
-
-    @Primitive(name = "object_can_contain_object")
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
-
-        @NeverDefault
-        public static CanContainObjectNode create() {
-            return TypeNodesFactory.CanContainObjectNodeFactory.create(null);
-        }
-
-        public abstract boolean execute(RubyArray array);
-
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "stores.isPrimitive(array.getStore())" })
-        protected boolean primitiveArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return false;
-        }
-
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "!stores.isPrimitive(array.getStore())" })
-        protected boolean objectArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return true;
-        }
-
-        @Specialization(guards = "!isRubyArray(array)")
-        protected boolean other(Object array) {
-            return true;
-        }
-
     }
 
     @Primitive(name = "rb_any_to_s")

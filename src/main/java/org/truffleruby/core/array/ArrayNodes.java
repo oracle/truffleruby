@@ -2380,14 +2380,14 @@ public abstract class ArrayNodes {
         @Specialization(guards = "!canContainObject.execute(array)", limit = "1")
         protected boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
                 @Cached @Exclusive ArrayAppendManyNode concat,
-                @Cached @Exclusive TypeNodes.CanContainObjectNode canContainObject) {
+                @Cached @Exclusive ArrayCanContainObjectNode canContainObject) {
             concat.executeAppendMany(out, array);
             return false;
         }
 
         @Specialization(replaces = "flattenHelperPrimitive")
         protected boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
-                @Cached @Exclusive TypeNodes.CanContainObjectNode canContainObject,
+                @Cached @Exclusive ArrayCanContainObjectNode canContainObject,
                 @Cached @Exclusive ArrayAppendManyNode concat,
                 @Cached AtNode at,
                 @Cached DispatchNode convert,
@@ -2456,5 +2456,41 @@ public abstract class ArrayNodes {
         private static void add(EconomicSet<RubyArray> set, RubyArray array) {
             set.add(array);
         }
+    }
+
+    @Primitive(name = "array_can_contain_object?")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class ArrayCanContainObjectNode extends PrimitiveArrayArgumentsNode {
+
+        @NeverDefault
+        public static ArrayCanContainObjectNode create() {
+            return ArrayNodesFactory.ArrayCanContainObjectNodeFactory.create(null);
+        }
+
+        public abstract boolean execute(RubyArray array);
+
+        @Specialization(
+                guards = {
+                        "stores.accepts(array.getStore())",
+                        "stores.isPrimitive(array.getStore())" })
+        protected boolean primitiveArray(RubyArray array,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
+            return false;
+        }
+
+        @Specialization(
+                guards = {
+                        "stores.accepts(array.getStore())",
+                        "!stores.isPrimitive(array.getStore())" })
+        protected boolean objectArray(RubyArray array,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
+            return true;
+        }
+
+        @Specialization(guards = "!isRubyArray(array)")
+        protected boolean other(Object array) {
+            return true;
+        }
+
     }
 }

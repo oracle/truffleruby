@@ -67,7 +67,7 @@ module Truffle::ThreadOperations
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
   def self.detect_recursion(obj, &block)
-    unless Primitive.object_can_contain_object obj
+    unless Primitive.array_can_contain_object? obj
       yield
       return false
     end
@@ -81,7 +81,7 @@ module Truffle::ThreadOperations
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
   def self.detect_pair_recursion(obj, paired_obj)
-    unless Primitive.object_can_contain_object obj
+    unless Primitive.array_can_contain_object? obj
       yield
       return false
     end
