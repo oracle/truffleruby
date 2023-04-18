@@ -845,11 +845,10 @@ public class BodyTranslator extends BaseTranslator {
                     "inspect",
                     null,
                     EmptyArgumentsDescriptor.INSTANCE,
-                    new RubyNode[0],
+                    RubyNode.EMPTY_ARRAY,
                     false,
                     true);
-            RubyNode inspected = language.coreMethodAssumptions
-                    .createCallNode(inspectCallParameters);
+            RubyNode inspected = language.coreMethodAssumptions.createCallNode(inspectCallParameters);
             elseNode = new CheckIfPatternsMatchedNode(inspected);
         } else {
             elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
@@ -877,8 +876,7 @@ public class BodyTranslator extends BaseTranslator {
             // us we-using the 'when' parser for 'in' temporarily.
             final ParseNode patternNode = in.getExpressionNodes();
 
-            final RubyNode conditionNode = tr.translatePatternNode(patternNode, readTemp,
-                    sourceSection);
+            final RubyNode conditionNode = tr.translatePatternNode(patternNode, readTemp);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
             final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);

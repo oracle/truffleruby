@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -16,6 +16,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
+
     @Child RubyNode currentValueToMatch;
     final int patternLength;
     final boolean hasRest;
@@ -32,11 +33,11 @@ public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         Object matchArray = currentValueToMatch.execute(frame);
         if (isArrayProfile.profile(matchArray instanceof RubyArray)) {
-            long aSize = ((RubyArray) matchArray).getArraySize();
+            long size = ((RubyArray) matchArray).getArraySize();
             if (hasRest) {
-                return patternLength <= aSize;
+                return patternLength <= size;
             } else {
-                return patternLength == aSize;
+                return patternLength == size;
             }
         } else {
             return false;

@@ -23,7 +23,6 @@ import org.truffleruby.language.control.ExecuteAndReturnTrueNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.locals.ReadLocalNode;
@@ -70,10 +69,8 @@ public class PatternMatchingTranslator extends BaseTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            /** data to match on */
-            ParseNode data,
-            /** cases to check. */
-            ListParseNode cases,
+            ParseNode data, // data to match on
+            ListParseNode cases, // cases to check
             TranslatorEnvironment environment,
             BodyTranslator bodyTranslator) {
         super(language, source, parserContext, currentNode, environment);
@@ -97,8 +94,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
     @Override
     public RubyNode visitArrayPatternNode(ArrayPatternParseNode arrayPatternParseNode) {
         final RubyCallNodeParameters deconstructCallParameters;
-        final RubyCallNodeParameters matcherCallParameters;
-        final RubyCallNodeParameters matcherCallParametersPost;
         final RubyNode receiver;
         final RubyNode deconstructed;
         final SourceIndexLength sourceSection = arrayPatternParseNode.getPosition();
@@ -106,8 +101,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
         ListParseNode preNodes = arrayPatternParseNode.getPreArgs();
         ListParseNode postNodes = arrayPatternParseNode.getPostArgs();
         ParseNode restNode = arrayPatternParseNode.getRestArg();
-
-        var arrayParseNodeRest = arrayPatternParseNode.getRestArg();
 
         receiver = new TruffleInternalModuleLiteralNode();
         receiver.unsafeSetSourceSection(sourceSection);
@@ -119,19 +112,16 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 new RubyNode[]{ currentValueToMatch },
                 false,
                 true);
-        deconstructed = language.coreMethodAssumptions
-                .createCallNode(deconstructCallParameters);
+        deconstructed = language.coreMethodAssumptions.createCallNode(deconstructCallParameters);
 
         final int deconSlot = environment.declareLocalTemp("p_decon_array");
         final ReadLocalNode readTemp = environment.readNode(deconSlot, sourceSection);
         final RubyNode assignTemp = readTemp.makeWriteNode(deconstructed);
         currentValueToMatch = readTemp;
 
-
         int preSize = arrayPatternParseNode.preArgsNum();
 
-        RubyNode condition = null;
-        condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
+        RubyNode condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
                 currentValueToMatch, arrayPatternParseNode.hasRestArg());
 
         // Constant == pattern.deconstruct
@@ -146,11 +136,9 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     new RubyNode[]{ currentValueToMatch },
                     false,
                     true);
-            RubyNode isInstance = language.coreMethodAssumptions
-                    .createCallNode(instanceCheckParameters);
+            RubyNode isInstance = language.coreMethodAssumptions.createCallNode(instanceCheckParameters);
             condition = new AndNode(isInstance, condition);
         }
-
 
         for (int i = 0; i < preSize; i++) {
             ParseNode loopPreNode = preNodes.get(i);
@@ -174,11 +162,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     true);
 
             var callNode = language.coreMethodAssumptions.createCallNode(parameters);
-            if (condition == null) {
-                condition = callNode;
-            } else {
-                condition = new AndNode(condition, callNode);
-            }
+            condition = new AndNode(condition, callNode);
         }
 
         if (restNode != null) {
@@ -199,11 +183,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     currentValueToMatch = prev;
                 }
                 var seq = new ExecuteAndReturnTrueNode(restAccept);
-                if (condition == null) {
-                    condition = seq;
-                } else {
-                    condition = new AndNode(condition, seq);
-                }
+                condition = new AndNode(condition, seq);
             }
         }
 
@@ -231,15 +211,10 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         true);
 
                 var callNode = language.coreMethodAssumptions.createCallNode(parameters);
-                if (condition == null) {
-                    condition = callNode;
-                } else {
-                    condition = new AndNode(condition, callNode);
-                }
+                condition = new AndNode(condition, callNode);
             }
         }
 
-        condition = condition == null ? new BooleanLiteralNode(true) : condition;
         return sequence(sourceSection, Arrays.asList(assignTemp, condition));
     }
 
@@ -262,8 +237,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 new RubyNode[]{ new NilLiteralNode(true) },
                 false,
                 true);
-        deconstructed = language.coreMethodAssumptions
-                .createCallNode(deconstructCallParameters);
+        deconstructed = language.coreMethodAssumptions.createCallNode(deconstructCallParameters);
 
         receiver = new TruffleInternalModuleLiteralNode();
         receiver.unsafeSetSourceSection(node.getPosition());
@@ -277,17 +251,11 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 false,
                 true);
 
-        return language.coreMethodAssumptions
-                .createCallNode(matcherCallParameters);
+        return language.coreMethodAssumptions.createCallNode(matcherCallParameters);
     }
 
-    public RubyNode translatePatternNode(ParseNode patternNode, RubyNode expressionValue,
-            SourceIndexLength sourceSection) {
-        final RubyCallNodeParameters deconstructCallParameters;
+    public RubyNode translatePatternNode(ParseNode patternNode, RubyNode expressionValue) {
         final RubyCallNodeParameters matcherCallParameters;
-        final RubyCallNodeParameters matcherCallParametersPost;
-        final RubyNode receiver;
-        final RubyNode deconstructed;
 
         currentValueToMatch = expressionValue;
 
@@ -303,7 +271,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().syntaxError(
-                                "not yet handled in pattern matching: " + node.toString() + " " + node.getPosition(),
+                                "not yet handled in pattern matching: " + node + " " + node.getPosition(),
                                 currentNode,
                                 node.getPosition().toSourceSection(source)));
             case IFNODE: // handles both if and unless
@@ -311,11 +279,9 @@ public class PatternMatchingTranslator extends BaseTranslator {
                 RubyNode pattern;
                 RubyNode condition = ifNode.getCondition().accept(bodyTranslator);
                 if (ifNode.getThenBody() != null) {
-                    pattern = translatePatternNode(ifNode.getThenBody(), expressionValue,
-                            sourceSection);
+                    pattern = translatePatternNode(ifNode.getThenBody(), expressionValue);
                 } else {
-                    pattern = translatePatternNode(ifNode.getElseBody(), expressionValue,
-                            sourceSection);
+                    pattern = translatePatternNode(ifNode.getElseBody(), expressionValue);
                     condition = new NotNode(condition);
                 }
 
@@ -329,8 +295,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
                         false,
                         true);
-                return language.coreMethodAssumptions
-                        .createCallNode(matcherCallParameters);
+                return language.coreMethodAssumptions.createCallNode(matcherCallParameters);
         }
     }
 
