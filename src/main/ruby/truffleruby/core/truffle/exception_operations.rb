@@ -75,7 +75,7 @@ module Truffle
     # MRI: name_err_mesg_to_str
     def self.receiver_string(receiver)
       ret = begin
-        if Primitive.object_respond_to?(receiver, :inspect, false)
+        if Primitive.respond_to?(receiver, :inspect, false)
           Truffle::Type.rb_inspect(receiver)
         else
           nil

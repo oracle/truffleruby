@@ -96,7 +96,7 @@ module Truffle
       else
         add_method_key = proc do |method|
           # do not list methods which cannot be read using interop
-          keys << method.to_s if Primitive.object_respond_to? object, method, true
+          keys << method.to_s if Primitive.respond_to? object, method, true
         end
 
         object.public_methods.each(&add_method_key)

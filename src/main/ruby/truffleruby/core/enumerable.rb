@@ -185,7 +185,7 @@ module Enumerable
   end
 
   def enumerator_size
-    Primitive.object_respond_to?(self, :size, false) ? size : nil
+    Primitive.respond_to?(self, :size, false) ? size : nil
   end
   private :enumerator_size
 
@@ -339,7 +339,7 @@ module Enumerable
 
       if array
         array
-      elsif Primitive.object_respond_to?(enum, :each, false)
+      elsif Primitive.respond_to?(enum, :each, false)
         enum.to_enum(:each)
       else
         raise TypeError, "wrong argument type #{Primitive.object_class(enum)} (must respond to :each)"

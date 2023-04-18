@@ -814,7 +814,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless Primitive.object_respond_to? obj, :_load_data, false
+      unless Primitive.respond_to? obj, :_load_data, false
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -1002,7 +1002,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if Primitive.object_respond_to? klass, :__construct__, false
+      if Primitive.respond_to? klass, :__construct__, false
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -1026,7 +1026,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Primitive.object_respond_to? obj, :marshal_load, true
+      unless Primitive.respond_to? obj, :marshal_load, true
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -1103,9 +1103,9 @@ module Marshal
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if Primitive.object_respond_to? obj, :marshal_dump, true
+        if Primitive.respond_to? obj, :marshal_dump, true
           str = serialize_user_marshal obj
-        elsif Primitive.object_respond_to? obj, :_dump, true
+        elsif Primitive.respond_to? obj, :_dump, true
           str = serialize_user_defined obj
         else
           str = obj.__send__ :__marshal__, self
@@ -1259,7 +1259,7 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if Primitive.object_respond_to? obj, :__custom_marshal__, false
+      if Primitive.respond_to? obj, :__custom_marshal__, false
         return obj.__custom_marshal__(self)
       end
 
@@ -1440,10 +1440,10 @@ module Marshal
     ms = State.new nil, depth, nil, nil
 
     if an_io
-      unless Primitive.object_respond_to? an_io, :write, false
+      unless Primitive.respond_to? an_io, :write, false
         raise TypeError, 'output must respond to write'
       end
-      if Primitive.object_respond_to? an_io, :binmode, false
+      if Primitive.respond_to? an_io, :binmode, false
         an_io.binmode
       end
     end
@@ -1459,14 +1459,14 @@ module Marshal
   end
 
   def self.load(obj, prc = nil, freeze: false)
-    if Primitive.object_respond_to? obj, :to_str, false
+    if Primitive.respond_to? obj, :to_str, false
       data = obj.to_s
       ms = StringState.new data, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte
-    elsif Primitive.object_respond_to? obj, :read, false and
-          Primitive.object_respond_to? obj, :getc, false
+    elsif Primitive.respond_to? obj, :read, false and
+          Primitive.respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc, freeze
 
       major = ms.consume_byte

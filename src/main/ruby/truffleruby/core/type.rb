@@ -422,7 +422,7 @@ module Truffle
       if Primitive.is_a?(obj, String)
         path = obj
       else
-        if Primitive.object_respond_to? obj, :to_path, false
+        if Primitive.respond_to? obj, :to_path, false
           obj = obj.to_path
         end
 

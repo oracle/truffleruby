@@ -1362,7 +1362,7 @@ class Array
 
       if array
         array
-      elsif Primitive.object_respond_to?(other, :each, false)
+      elsif Primitive.respond_to?(other, :each, false)
         other.to_enum(:each)
       else
         raise TypeError, "wrong argument type #{Primitive.object_class(other)} (must respond to :each)"

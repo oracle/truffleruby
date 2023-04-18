@@ -489,8 +489,8 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
 
-        if Primitive.object_respond_to?(yield_ret, :force, false) &&
-           Primitive.object_respond_to?(yield_ret, :each, false)
+        if Primitive.respond_to?(yield_ret, :force, false) &&
+           Primitive.respond_to?(yield_ret, :each, false)
           yield_ret.each do |v|
             yielder.yield v
           end
@@ -535,7 +535,7 @@ class Enumerator
 
         if array
           array
-        elsif Primitive.object_respond_to?(list, :each, false)
+        elsif Primitive.respond_to?(list, :each, false)
           list.to_enum :each
         else
           raise TypeError, "wrong argument type #{Primitive.object_class(list)} (must respond to :each)"

@@ -75,10 +75,10 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_respond_to?")
-    public abstract static class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "respond_to?")
+    public abstract static class RespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectRespondTo(Object object, Object name, boolean includePrivate,
+        protected boolean respondTo(Object object, Object name, boolean includePrivate,
                 @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
             return respondToNode.executeDoesRespondTo(object, name, includePrivate);
