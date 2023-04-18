@@ -837,11 +837,24 @@ public class BodyTranslator extends BaseTranslator {
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        RubyNode caseExprValue = node.getCaseNode().accept(this);
+
+        PatternMatchingTranslator translator = new PatternMatchingTranslator(language, source, parserContext,
+                currentNode, node.getCases(), environment, this);
+
+        // Evaluate the case expression and store it in a local
+
+        final RubyNode caseExprValue = node.getCaseNode().accept(this);
+        final int tempSlot = environment.declareLocalTemp("case in value");
+        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
+        final RubyNode assignTemp = readTemp.makeWriteNode(caseExprValue);
+
+        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
+         * its else clause. */
+
         RubyNode elseNode;
         if (node.getElseNode() == null) {
             RubyCallNodeParameters inspectCallParameters = new RubyCallNodeParameters(
-                    caseExprValue,
+                    NodeUtil.cloneNode(readTemp),
                     "inspect",
                     null,
                     EmptyArgumentsDescriptor.INSTANCE,
@@ -854,20 +867,6 @@ public class BodyTranslator extends BaseTranslator {
             elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
         }
 
-        PatternMatchingTranslator tr = new PatternMatchingTranslator(language, source, parserContext,
-                currentNode, node.getCaseNode(), node.getCases(), environment, this);
-
-        final RubyNode ret;
-
-        // Evaluate the case expression and store it in a local
-
-        final int tempSlot = environment.declareLocalTemp("case in value");
-        final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
-        final RubyNode assignTemp = readTemp.makeWriteNode(caseExprValue);
-
-        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
-         * its else clause. */
-
         for (int n = node.getCases().size() - 1; n >= 0; n--) {
             final InParseNode in = (InParseNode) node.getCases().get(n);
 
@@ -876,7 +875,7 @@ public class BodyTranslator extends BaseTranslator {
             // us we-using the 'when' parser for 'in' temporarily.
             final ParseNode patternNode = in.getExpressionNodes();
 
-            final RubyNode conditionNode = tr.translatePatternNode(patternNode, readTemp);
+            final RubyNode conditionNode = translator.translatePatternNode(patternNode, readTemp);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
             final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
@@ -888,7 +887,7 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode ifNode = elseNode;
 
         // A top-level block assigns the temp then runs the if
-        ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
+        final RubyNode ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
 
         return addNewlineIfNeeded(node, ret);
     }

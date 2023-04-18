@@ -57,7 +57,6 @@ import java.util.Arrays;
 
 public class PatternMatchingTranslator extends BaseTranslator {
 
-    final ParseNode data;
     final ListParseNode cases;
     final TranslatorEnvironment environment;
     final BodyTranslator bodyTranslator;
@@ -69,12 +68,10 @@ public class PatternMatchingTranslator extends BaseTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ParseNode data, // data to match on
             ListParseNode cases, // cases to check
             TranslatorEnvironment environment,
             BodyTranslator bodyTranslator) {
         super(language, source, parserContext, currentNode, environment);
-        this.data = data;
         this.cases = cases;
         this.environment = environment;
         this.bodyTranslator = bodyTranslator;

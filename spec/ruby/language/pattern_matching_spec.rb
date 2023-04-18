@@ -251,6 +251,18 @@ describe "Pattern matching" do
     }.should raise_error(NoMatchingPatternError, /\[0, 1\]/)
   end
 
+  it "raises NoMatchingPatternError if no pattern matches and evaluates the expression only once" do
+    evals = 0
+    -> {
+      eval <<~RUBY
+        case (evals += 1; [0, 1])
+        in [0]
+        end
+      RUBY
+    }.should raise_error(NoMatchingPatternError, /\[0, 1\]/)
+    evals.should == 1
+  end
+
   it "does not allow calculation or method calls in a pattern" do
     -> {
       eval <<~RUBY
