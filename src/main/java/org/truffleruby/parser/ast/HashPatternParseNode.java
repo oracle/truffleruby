@@ -99,7 +99,7 @@ public class HashPatternParseNode extends ParseNode {
         return keywordArgs;
     }
 
-    public List getKeys() {
+    public List<ParseNode> getKeys() {
         List<ParseNodeTuple> pairs = keywordArgs.getPairs();
         List<ParseNode> keys = new ArrayList<>(pairs.size());
 
