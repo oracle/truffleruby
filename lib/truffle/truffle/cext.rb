@@ -1255,7 +1255,7 @@ module Truffle::CExt
   end
 
   def rb_equal(a, b)
-    Primitive.object_same_or_equal(a, b)
+    Primitive.same_or_equal?(a, b)
   end
 
   def rb_obj_call_init(obj, args, block)

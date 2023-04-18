@@ -138,7 +138,7 @@ class Array
       total = size
 
       while i < total
-        return false unless Primitive.object_same_or_equal(self[i], other[i])
+        return false unless Primitive.same_or_equal?(self[i], other[i])
         i += 1
       end
     end
