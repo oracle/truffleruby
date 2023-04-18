@@ -28,7 +28,6 @@
 
 package org.truffleruby.parser.parser;
 
-/** Stubbed out version of our own yydebug impl for debugging if we ever find the need. */
 public class YYDebug {
     public void accept(Object a) {
         System.err.println("Accept: " + a);
