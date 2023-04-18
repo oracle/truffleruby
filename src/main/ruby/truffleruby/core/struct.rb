@@ -286,7 +286,7 @@ class Struct
   end
 
   def eql?(other)
-    return true if Primitive.object_equal(self, other)
+    return true if Primitive.equal?(self, other)
     return false if Primitive.object_class(self) != Primitive.object_class(other)
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
@@ -452,7 +452,7 @@ class Struct
     # the specialize if we're trying new Struct's directly from Struct itself,
     # not a Struct subclass.
 
-    return unless Primitive.object_equal(superclass, Struct)
+    return unless Primitive.equal?(superclass, Struct)
     return unless attrs.map(&:to_s).all? { |a| a.ascii_only? || (a.encoding == Encoding::UTF_8 && a.valid_encoding?) }
 
     args, assigns, hashes, vars = [], [], [], []

@@ -57,8 +57,8 @@ class Module
       raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
     end
 
-    return false if Primitive.object_equal(self, mod)
-    ancestors.any? { |m| Primitive.object_equal(mod, m) }
+    return false if Primitive.equal?(self, mod)
+    ancestors.any? { |m| Primitive.equal?(mod, m) }
   end
 
   private def method_added(name)

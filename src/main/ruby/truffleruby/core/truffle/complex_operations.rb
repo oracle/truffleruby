@@ -11,7 +11,7 @@
 module Truffle
   module ComplexOperations
     def self.convert_not_real_arguments(real, imag, exception)
-      raise_exception = !Primitive.object_equal(exception, false)
+      raise_exception = !Primitive.equal?(exception, false)
       if Primitive.nil?(real) || Primitive.nil?(imag)
         return nil unless raise_exception
         raise TypeError, "can't convert nil into Complex"

@@ -3,7 +3,7 @@
 module RuboCop
   module Cop
     module TruffleRuby
-      # Prefer Primitive method `object_equal` to check whether two objects are
+      # Prefer Primitive method `equal?` to check whether two objects are
       # the same object.
       #
       # @example
@@ -12,12 +12,12 @@ module RuboCop
       #   foo.equal?(bar)
       #
       #   # good
-      #   Primitive.object_equal(foo, bar)
+      #   Primitive.equal?(foo, bar)
       #
       class ReplaceWithPrimitiveObjectEqual < Base
         extend AutoCorrector
 
-        MSG = 'Use `Primitive.object_equal` instead of `#equal?`'
+        MSG = 'Use `Primitive.equal?` instead of `#equal?`'
         RESTRICT_ON_SEND = %i[equal?].freeze
 
         # @!method bad_method?(node)
@@ -33,7 +33,7 @@ module RuboCop
             receiver, argument = captures.map { |n| n&.source }
             receiver ||= 'self'
 
-            source_string = "Primitive.object_equal(#{receiver}, #{argument})"
+            source_string = "Primitive.equal?(#{receiver}, #{argument})"
             corrector.replace(node.loc.expression, source_string)
           end
         end

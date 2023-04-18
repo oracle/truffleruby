@@ -354,7 +354,7 @@ class Rational < Numeric
       den = den.to_r
     end
 
-    if Primitive.object_equal(den, 1) && !(Primitive.is_a?(num, Integer))
+    if Primitive.equal?(den, 1) && !(Primitive.is_a?(num, Integer))
       return Truffle::Type.coerce_to(num, Rational, :to_r)
     elsif Primitive.is_a?(num, Numeric) && Primitive.is_a?(den, Numeric) &&
         !(Primitive.is_a?(num, Integer) && Primitive.is_a?(den, Integer))

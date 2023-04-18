@@ -121,7 +121,7 @@ end
 
 module Random::Formatter
   def random_number(limit = undefined)
-    randomizer = if Primitive.object_equal(self, Random)
+    randomizer = if Primitive.equal?(self, Random)
                    Primitive.thread_randomizer
                  elsif defined?(@randomizer)
                    @randomizer

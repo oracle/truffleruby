@@ -103,10 +103,10 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_equal")
-    public abstract static class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "equal?")
+    public abstract static class EqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectEqual(Object a, Object b,
+        protected boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
         }

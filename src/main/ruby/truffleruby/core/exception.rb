@@ -87,7 +87,7 @@ class Exception
 
   def exception(message = nil)
     # As strange as this may seem, this is actually the protocol that CRuby implements
-    if message and !Primitive.object_equal(message, self)
+    if message and !Primitive.equal?(message, self)
       copy = clone # note: rb_obj_clone() in CRuby
       Primitive.exception_set_message copy, message
       copy
@@ -99,7 +99,7 @@ class Exception
   def self.to_tty?
     # Whether $stderr refers to the original STDERR and STDERR is a tty.
     # When using polyglot stdio, we cannot know and assume false.
-    Primitive.object_equal($stderr, STDERR) && !STDERR.closed? &&
+    Primitive.equal?($stderr, STDERR) && !STDERR.closed? &&
       (!Truffle::Boot.get_option('polyglot-stdio') && STDERR.tty?)
   end
 end
@@ -282,7 +282,7 @@ class SystemCallError < StandardError
     #
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
-    if Primitive.object_equal(self, SystemCallError)
+    if Primitive.equal?(self, SystemCallError)
       case args.size
       when 1
         if Primitive.is_a?(args.first, Integer)
@@ -326,7 +326,7 @@ class SystemCallError < StandardError
 
       if defined?(self::Errno) && Primitive.is_a?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && Primitive.object_equal(Primitive.object_class(error), self)
+        if error && Primitive.equal?(Primitive.object_class(error), self)
           return error
         end
       end

@@ -28,7 +28,7 @@
 
 module Comparable
   def ==(other)
-    return true if Primitive.object_equal(self, other)
+    return true if Primitive.equal?(self, other)
 
     return false if Truffle::ThreadOperations.detect_pair_recursion(self, other) do
       unless comp = (self <=> other)

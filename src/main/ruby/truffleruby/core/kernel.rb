@@ -54,7 +54,7 @@ module Kernel
   module_function :Complex
 
   def Float(obj, exception: true)
-    raise_exception = !Primitive.object_equal(exception, false)
+    raise_exception = !Primitive.equal?(exception, false)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
@@ -74,7 +74,7 @@ module Kernel
         nil
       end
     when Complex
-      if obj.respond_to?(:imag) && Primitive.object_equal(obj.imag, 0)
+      if obj.respond_to?(:imag) && Primitive.equal?(obj.imag, 0)
         Truffle::Type.coerce_to obj, Float, :to_f
       else
         raise RangeError, "can't convert #{obj} into Float"
@@ -104,7 +104,7 @@ module Kernel
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
-    raise_exception = !Primitive.object_equal(exception, false)
+    raise_exception = !Primitive.equal?(exception, false)
 
     if Primitive.is_a?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
@@ -203,8 +203,8 @@ module Kernel
 
   def autoload(name, file)
     nesting = Primitive.caller_nesting
-    mod = nesting.first || (Primitive.object_equal(Kernel, self) ? Kernel : Object)
-    if Primitive.object_equal(mod, self)
+    mod = nesting.first || (Primitive.equal?(Kernel, self) ? Kernel : Object)
+    if Primitive.equal?(mod, self)
       super(name, file) # Avoid recursion
     else
       mod.autoload(name, file)
@@ -213,7 +213,7 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    if Primitive.object_equal(Kernel, self)
+    if Primitive.equal?(Kernel, self)
       super(name) # Avoid recursion
     else
       Object.autoload?(name)
@@ -456,7 +456,7 @@ module Kernel
 
   def puts(*args)
     stdout = $stdout
-    if Primitive.object_equal(self, stdout)
+    if Primitive.equal?(self, stdout)
       Truffle::IOOperations.puts(stdout, *args)
     else
       stdout.__send__(:puts, *args)
@@ -653,7 +653,7 @@ module Kernel
       Truffle::IOOperations.puts(stringio, *messages)
       message = stringio.string
 
-      if Primitive.object_equal(self, Warning) # avoid recursion when redefining Warning#warn
+      if Primitive.equal?(self, Warning) # avoid recursion when redefining Warning#warn
         unless message.encoding.ascii_compatible?
           raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
         end
@@ -695,7 +695,7 @@ module Kernel
 
       exc.set_backtrace(ctx) if ctx
       Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
-      Primitive.exception_set_cause exc, cause unless Primitive.object_equal(exc, cause)
+      Primitive.exception_set_cause exc, cause unless Primitive.equal?(exc, cause)
     end
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG

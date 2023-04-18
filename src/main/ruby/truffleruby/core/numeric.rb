@@ -30,7 +30,7 @@ class Numeric
   include Comparable
 
   def clone(freeze: nil)
-    if Primitive.object_equal(freeze, false)
+    if Primitive.equal?(freeze, false)
       raise ArgumentError, "can't unfreeze #{Primitive.object_class(self).name}"
     end
     self
@@ -57,7 +57,7 @@ class Numeric
     # It's important this method NOT contain the coercion protocols!
     # MRI doesn't and doing so breaks stuff!
 
-    return 0 if Primitive.object_equal(self, other)
+    return 0 if Primitive.equal?(self, other)
     nil
   end
 

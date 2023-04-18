@@ -130,12 +130,12 @@ module Truffle
       highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
                   else
-                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.object_equal(highlight, true) || Primitive.object_equal(highlight, false)
-                    !Primitive.object_equal(highlight, false)
+                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.equal?(highlight, true) || Primitive.equal?(highlight, false)
+                    !Primitive.equal?(highlight, false)
                   end
 
-      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.object_equal(order, :top) || Primitive.object_equal(order, :bottom)
-      reverse = !Primitive.object_equal(order, :top)
+      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.equal?(order, :top) || Primitive.equal?(order, :bottom)
+      reverse = !Primitive.equal?(order, :top)
 
       result = ''.b
       bt = exception.backtrace || caller(2)

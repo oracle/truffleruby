@@ -268,7 +268,7 @@ class Complex < Numeric
   def to_s
     result = real.to_s
 
-    if imag < 0 || Primitive.object_equal(imag, -0.0)
+    if imag < 0 || Primitive.equal?(imag, -0.0)
       result << '-'
     else
       result << '+'

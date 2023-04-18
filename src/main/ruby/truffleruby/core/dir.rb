@@ -266,7 +266,7 @@ class Dir
 
       matches = []
       index = 0
-      flags |= File::FNM_GLOB_NOSORT if Primitive.object_equal(sort, false)
+      flags |= File::FNM_GLOB_NOSORT if Primitive.equal?(sort, false)
 
       normalized_base = if Primitive.nil? base
                           nil

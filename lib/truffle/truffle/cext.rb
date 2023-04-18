@@ -1059,7 +1059,7 @@ module Truffle::CExt
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
 
-    unless Primitive.object_equal(nil, e)
+    unless Primitive.equal?(nil, e)
       store_exception(e)
       pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
