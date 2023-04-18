@@ -11,6 +11,7 @@ Compatibility:
 * Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (@itarato).
 * Make `Array#shuffle` produce the same results as CRuby (@rwstauner).
 * Add `Process.argv0` method (@andrykonchin).
+* Add support for array pattern matching. This is opt-in via `--pattern-matching` since pattern matching is not fully supported yet. (#2683, @razetime).
 
 Performance:
 
