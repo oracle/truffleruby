@@ -72,7 +72,6 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
-import org.truffleruby.language.control.CheckIfPatternsMatchedNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
@@ -81,6 +80,7 @@ import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
+import org.truffleruby.language.control.NoMatchingPatternNodeGen;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrLazyValueDefinedNode;
@@ -853,16 +853,7 @@ public class BodyTranslator extends BaseTranslator {
 
         RubyNode elseNode;
         if (node.getElseNode() == null) {
-            RubyCallNodeParameters inspectCallParameters = new RubyCallNodeParameters(
-                    NodeUtil.cloneNode(readTemp),
-                    "inspect",
-                    null,
-                    EmptyArgumentsDescriptor.INSTANCE,
-                    RubyNode.EMPTY_ARRAY,
-                    false,
-                    true);
-            RubyNode inspected = language.coreMethodAssumptions.createCallNode(inspectCallParameters);
-            elseNode = new CheckIfPatternsMatchedNode(inspected);
+            elseNode = NoMatchingPatternNodeGen.create(readTemp);
         } else {
             elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
         }

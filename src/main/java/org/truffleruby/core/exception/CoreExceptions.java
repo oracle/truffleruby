@@ -381,9 +381,9 @@ public class CoreExceptions {
     // NoMatchingPatternError
 
     @TruffleBoundary
-    public RubyException noMatchingPatternError(String message, Node currentNode) {
+    public RubyException noMatchingPatternError(Object errorMessage, Node currentNode) {
+        assert RubyStringLibrary.getUncached().isRubyString(errorMessage);
         RubyClass exceptionClass = context.getCoreLibrary().noMatchingPatternErrorClass;
-        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
