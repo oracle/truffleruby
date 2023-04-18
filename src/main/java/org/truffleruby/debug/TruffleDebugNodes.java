@@ -1385,7 +1385,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object parseName(Object hostRunnable) {
             Runnable runnable = (Runnable) getContext().getEnv().asHostObject(hostRunnable);
-            final Thread thread = getContext().getEnv().createThread(runnable);
+            final Thread thread = getContext().getEnv().newTruffleThreadBuilder(runnable).build();
             return getContext().getEnv().asGuestValue(thread);
         }
     }
