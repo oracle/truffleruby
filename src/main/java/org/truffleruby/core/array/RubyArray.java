@@ -126,19 +126,19 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @ExportMessage
     public boolean isArrayElementModifiable(long index,
-            @Cached IsFrozenNode isFrozenNode) {
+            @Cached @Shared IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(this) && inBounds(index);
     }
 
     @ExportMessage
     public boolean isArrayElementRemovable(long index,
-            @Cached IsFrozenNode isFrozenNode) {
+            @Cached @Shared IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(this) && inBounds(index);
     }
 
     @ExportMessage
     public boolean isArrayElementInsertable(long index,
-            @Cached IsFrozenNode isFrozenNode) {
+            @Cached @Shared IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(this) && RubyGuards.fitsInInteger(index) && index >= size;
     }
     // endregion
