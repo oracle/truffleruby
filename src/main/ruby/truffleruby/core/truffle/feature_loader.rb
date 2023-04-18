@@ -41,12 +41,17 @@ module Truffle
     # nil if there is no relative path in $LOAD_PATH, a copy of the cwd to check if the cwd changed otherwise.
     @working_directory_copy = nil
 
+    @loaded_feature_path_cache = {}
+    # Cache version related to `$LOAD_PATH.version`. If they differ, @loaded_feature_path_cache needs to be cleared.
+    @loaded_feature_path_cache_version = nil
+
     def self.clear_cache
       @loaded_features_index.clear
       @loaded_features_version = -1
       @expanded_load_path.clear
       @load_path_version = -1
       @working_directory_copy = nil
+      @loaded_feature_path_cache.clear
     end
 
     class FeatureEntry
@@ -171,7 +176,7 @@ module Truffle
                                      if expanded
                                        false
                                      else
-                                       feature_path_loaded?(loaded_feature, feature, get_expanded_load_path)
+                                       cached_loaded_feature_path(loaded_feature, feature)
                                      end
                                    end
               if found_feature_path
@@ -193,6 +198,18 @@ module Truffle
 
         false
       end
+    end
+
+    def self.cached_loaded_feature_path(loaded_feature, feature)
+      if @loaded_feature_path_cache_version != $LOAD_PATH.version
+        @loaded_feature_path_cache.clear
+        @loaded_feature_path_cache_version = $LOAD_PATH.version
+      end
+
+      cache_key = "#{loaded_feature}::#{feature}"
+      return @loaded_feature_path_cache[cache_key] if @loaded_feature_path_cache.key?(cache_key)
+
+      @loaded_feature_path_cache[cache_key] = feature_path_loaded?(loaded_feature, feature, get_expanded_load_path)
     end
 
     # MRI: loaded_feature_path
