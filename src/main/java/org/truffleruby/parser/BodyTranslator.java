@@ -828,7 +828,7 @@ public class BodyTranslator extends BaseTranslator {
         }
 
         PatternMatchingTranslator translator = new PatternMatchingTranslator(language, source, parserContext,
-                currentNode, node.getCases(), environment, this);
+                currentNode, environment, this);
 
         // Evaluate the case expression and store it in a local
         final int tempSlot = environment.declareLocalTemp("case in value");

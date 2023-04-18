@@ -38,7 +38,6 @@ import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.LambdaParseNode;
-import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -55,7 +54,6 @@ import java.util.Arrays;
 
 public class PatternMatchingTranslator extends BaseTranslator {
 
-    final ListParseNode cases;
     final TranslatorEnvironment environment;
     final BodyTranslator bodyTranslator;
 
@@ -66,11 +64,9 @@ public class PatternMatchingTranslator extends BaseTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ListParseNode cases, // cases to check
             TranslatorEnvironment environment,
             BodyTranslator bodyTranslator) {
         super(language, source, parserContext, currentNode, environment);
-        this.cases = cases;
         this.environment = environment;
         this.bodyTranslator = bodyTranslator;
     }
@@ -267,7 +263,6 @@ public class PatternMatchingTranslator extends BaseTranslator {
         return bodyTranslator.visitFixnumNode(node);
     }
 
-    // Possible value patterns delegated to BodyTranslator explicitly to prevent errors.
     @Override
     public RubyNode visitTrueNode(TrueParseNode node) {
         return bodyTranslator.visitTrueNode(node);
