@@ -732,7 +732,7 @@ module Marshal
 
       if @freeze && !postpone_freezing && !(Primitive.is_a?(obj, Class) || Primitive.is_a?(obj, Module))
         obj = -obj if Primitive.metaclass(obj) == String
-        Primitive.object_freeze(obj)
+        Primitive.freeze(obj)
       end
 
       return @proc.call(obj) if call_proc and @proc and @call

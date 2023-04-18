@@ -404,7 +404,7 @@ class Rational < Numeric
   def initialize(num, den)
     @numerator = num
     @denominator = den
-    Primitive.object_freeze(self)
+    Primitive.freeze(self)
   end
   private :initialize
 

@@ -150,8 +150,8 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_freeze")
-    public abstract static class ObjectFreezePrimitive extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "freeze")
+    public abstract static class FreezePrimitive extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected Object freeze(Object self,
                 @Cached ObjectFreezeNode objectFreezeNode) {

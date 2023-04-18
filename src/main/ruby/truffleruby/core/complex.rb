@@ -73,7 +73,7 @@ class Complex < Numeric
   def initialize(a, b = 0)
     @real = a
     @imag = b
-    Primitive.object_freeze(self)
+    Primitive.freeze(self)
   end
 
   def -@
