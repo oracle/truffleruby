@@ -93,7 +93,6 @@ import org.truffleruby.language.control.UnlessNode;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
-import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.exceptions.EnsureNode;
 import org.truffleruby.language.exceptions.RescueStandardErrorNode;
@@ -777,16 +776,7 @@ public class BodyTranslator extends BaseTranslator {
                     method = "when_splat";
                     arguments = new RubyNode[]{ rubyExpression, NodeUtil.cloneNode(readTemp) };
                 }
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                        receiver,
-                        method,
-                        null,
-                        EmptyArgumentsDescriptor.INSTANCE,
-                        arguments,
-                        false,
-                        true);
-                final RubyNode conditionNode = language.coreMethodAssumptions
-                        .createCallNode(callParameters);
+                final RubyNode conditionNode = createCallNode(receiver, method, arguments);
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
@@ -2249,15 +2239,7 @@ public class BodyTranslator extends BaseTranslator {
 
             default: {
                 final SourceIndexLength sourceSection = node.getPosition();
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                        lhs,
-                        node.getOperator(),
-                        null,
-                        EmptyArgumentsDescriptor.INSTANCE,
-                        new RubyNode[]{ rhs },
-                        false,
-                        true);
-                final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters);
+                final RubyNode opNode = createCallNode(lhs, node.getOperator(), rhs);
                 final RubyNode ret = lhs.makeWriteNode(opNode);
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);
@@ -2589,15 +2571,8 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode moduleNode = new ObjectClassLiteralNode();
         ReadConstantNode receiver = new ReadConstantNode(moduleNode, name);
         RubyNode[] arguments = new RubyNode[]{ a, b };
-        RubyCallNodeParameters parameters = new RubyCallNodeParameters(
-                receiver,
-                "convert",
-                null,
-                EmptyArgumentsDescriptor.INSTANCE,
-                arguments,
-                false,
-                true);
-        return withSourceSection(sourceSection, new RubyCallNode(parameters));
+        var callNode = createCallNode(receiver, "convert", arguments);
+        return withSourceSection(sourceSection, callNode);
     }
 
     @Override

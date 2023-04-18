@@ -15,11 +15,14 @@ import java.util.List;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.debug.ChaosNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.SequenceNode;
+import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.objects.SelfNode;
@@ -166,6 +169,19 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 
     protected static RubyNode[] createArray(int size) {
         return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
+    }
+
+    /** Uses ignoreVisibility=true */
+    protected RubyContextSourceNode createCallNode(RubyNode receiver, String method, RubyNode... arguments) {
+        var parameters = new RubyCallNodeParameters(
+                receiver,
+                method,
+                null,
+                EmptyArgumentsDescriptor.INSTANCE,
+                arguments,
+                false,
+                true);
+        return language.coreMethodAssumptions.createCallNode(parameters);
     }
 
 }
