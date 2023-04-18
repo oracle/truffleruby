@@ -41,12 +41,15 @@ module Truffle
     # nil if there is no relative path in $LOAD_PATH, a copy of the cwd to check if the cwd changed otherwise.
     @working_directory_copy = nil
 
+    @loaded_feature_path_cache = {}
+
     def self.clear_cache
       @loaded_features_index.clear
       @loaded_features_version = -1
       @expanded_load_path.clear
       @load_path_version = -1
       @working_directory_copy = nil
+      @loaded_feature_path_cache = {}
     end
 
     class FeatureEntry
@@ -199,8 +202,12 @@ module Truffle
     # Search if $LOAD_PATH[i]/feature corresponds to loaded_feature.
     # Returns the $LOAD_PATH entry containing feature.
     def self.loaded_feature_path(loaded_feature, feature, load_path)
+      cache_key = "#{loaded_feature}::#{feature}"
+      return @loaded_feature_path_cache[cache_key] if @loaded_feature_path_cache.key?(cache_key)
+
       name_ext = extension(loaded_feature)
-      load_path.find do |p|
+
+      @loaded_feature_path_cache[cache_key] = load_path.find do |p|
         loaded_feature == "#{p}/#{feature}#{name_ext}" || loaded_feature == "#{p}/#{feature}"
       end
     end
