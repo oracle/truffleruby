@@ -39,6 +39,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
@@ -58,7 +59,11 @@ public class InParseNode extends ParseNode {
         super(position);
 
         if (expressionNodes instanceof ArrayParseNode) {
-            expressionNodes = ((ArrayParseNode) expressionNodes).get(0);
+            var arrayParseNode = (ArrayParseNode) expressionNodes;
+            if (arrayParseNode.size() != 1) {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+            expressionNodes = arrayParseNode.get(0);
         }
 
         this.expressionNodes = expressionNodes;
