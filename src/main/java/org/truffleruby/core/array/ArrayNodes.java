@@ -2469,22 +2469,11 @@ public abstract class ArrayNodes {
 
         public abstract boolean execute(RubyArray array);
 
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "stores.isPrimitive(array.getStore())" })
-        protected boolean primitiveArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return false;
-        }
-
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "!stores.isPrimitive(array.getStore())" })
-        protected boolean objectArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return true;
+        @Specialization(limit = "storageStrategyLimit()")
+        protected boolean array(RubyArray array,
+                @Bind("array.getStore()") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores) {
+            return !stores.isPrimitive(store);
         }
 
         @Specialization(guards = "!isRubyArray(array)")
