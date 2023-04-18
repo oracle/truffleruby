@@ -59,14 +59,14 @@ module Signal
   @handlers = {}
 
   def self.trap(signal, handler = nil, &block)
-    unless Primitive.object_kind_of?(signal, Symbol) || Primitive.object_kind_of?(signal, String) \
-        || Primitive.object_kind_of?(signal, Integer)
+    unless Primitive.is_a?(signal, Symbol) || Primitive.is_a?(signal, String) \
+        || Primitive.is_a?(signal, Integer)
       raise ArgumentError, "bad signal type #{Primitive.object_class(signal)}"
     end
 
-    signal = signal.to_s if Primitive.object_kind_of?(signal, Symbol)
+    signal = signal.to_s if Primitive.is_a?(signal, Symbol)
 
-    if Primitive.object_kind_of?(signal, String)
+    if Primitive.is_a?(signal, String)
       if signal.start_with? 'SIG'
         signal = signal[3..-1]
       end
@@ -90,7 +90,7 @@ module Signal
     end
 
     handler ||= block
-    handler = handler.to_s if Primitive.object_kind_of?(handler, Symbol)
+    handler = handler.to_s if Primitive.is_a?(handler, Symbol)
 
     case handler
     when 'DEFAULT', 'SIG_DFL'

@@ -357,7 +357,7 @@ class << ENV
   end
 
   def set_encoding(value)
-    return unless Primitive.object_kind_of?(value, String)
+    return unless Primitive.is_a?(value, String)
     if Encoding.default_internal && value.ascii_only?
       value = value.encode Encoding.default_internal, Encoding::LOCALE
     elsif value.encoding != Encoding::LOCALE

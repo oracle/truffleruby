@@ -339,7 +339,7 @@ class Enumerator
       raise ArgumentError, 'attempt to take negative size' if n < 0
 
       current_size = enumerator_size
-      if Primitive.object_kind_of?(current_size, Numeric)
+      if Primitive.is_a?(current_size, Numeric)
         # Not Primitive.min since current_size is not always an Integer
         set_size = n < current_size ? n : current_size
       else
@@ -365,7 +365,7 @@ class Enumerator
       raise ArgumentError, 'attempt to drop negative size' if n < 0
 
       current_size = enumerator_size
-      if Primitive.object_kind_of?(current_size, Integer)
+      if Primitive.is_a?(current_size, Integer)
         set_size = n < current_size ? current_size - n : 0
       else
         set_size = current_size
@@ -684,7 +684,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
     return last if Primitive.undefined?(n)
 
-    n = Primitive.rb_to_int(n) if !Primitive.object_kind_of?(n, Integer)
+    n = Primitive.rb_to_int(n) if !Primitive.is_a?(n, Integer)
 
     raise ArgumentError, 'negative array size' if n < 0
 
@@ -697,7 +697,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   end
 
   def inspect
-    if Primitive.object_kind_of?(@object, Range)
+    if Primitive.is_a?(@object, Range)
       step = @step == 1 ? '' : "(#{@step})"
       to = @end.to_s
       exclude_end = exclude_end? ? '.' : ''
@@ -716,7 +716,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   end
 
   def ==(other)
-    Primitive.object_kind_of?(other, Enumerator::ArithmeticSequence) &&
+    Primitive.is_a?(other, Enumerator::ArithmeticSequence) &&
         @begin == other.begin &&
         @end == other.end &&
         @exclude_end == other.exclude_end? &&
@@ -746,7 +746,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
   def size
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
-    unless Primitive.object_kind_of?(from, Float) || Primitive.object_kind_of?(to, Float) || Primitive.object_kind_of?(step, Float)
+    unless Primitive.is_a?(from, Float) || Primitive.is_a?(to, Float) || Primitive.is_a?(step, Float)
       step = Primitive.rb_to_int(step)
     end
     Truffle::NumericOperations.step_size(from, to, step, true, exclude_end)
@@ -775,10 +775,10 @@ class Enumerator::Chain < Enumerator
     total = 0
     @enums.each do |e|
       size = e.size
-      if Primitive.nil?(size) || (Primitive.object_kind_of?(size, Float) && size.infinite?)
+      if Primitive.nil?(size) || (Primitive.is_a?(size, Float) && size.infinite?)
         return size
       end
-      unless Primitive.object_kind_of?(size, Integer)
+      unless Primitive.is_a?(size, Integer)
         return nil
       end
       total += size

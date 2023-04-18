@@ -52,18 +52,18 @@ module Truffle
       floats = false
       lhs = 0.0
       rhs = 0.0
-      if Primitive.object_kind_of?(a, Float)
-        if Primitive.object_kind_of?(b, Float)
+      if Primitive.is_a?(a, Float)
+        if Primitive.is_a?(b, Float)
           lhs = a
           rhs = b
           floats = true
-        elsif Primitive.object_kind_of?(b, Integer) || Primitive.object_kind_of?(b, Rational)
+        elsif Primitive.is_a?(b, Integer) || Primitive.is_a?(b, Rational)
           lhs = a
           rhs = b.to_f
           floats = true
         end
-      elsif Primitive.object_kind_of?(b, Float)
-        if Primitive.object_kind_of?(a, Integer) || Primitive.object_kind_of?(a, Rational)
+      elsif Primitive.is_a?(b, Float)
+        if Primitive.is_a?(a, Integer) || Primitive.is_a?(a, Rational)
           lhs = a.to_f
           rhs = b
           floats = true

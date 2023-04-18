@@ -82,7 +82,7 @@ module Comparable
   def clamp(min, max = undefined)
     if Primitive.undefined?(max)
       range = min
-      raise TypeError, "wrong argument type #{Primitive.object_class(range)} (expected Range)" unless Primitive.object_kind_of?(range, Range)
+      raise TypeError, "wrong argument type #{Primitive.object_class(range)} (expected Range)" unless Primitive.is_a?(range, Range)
       raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
       min, max = range.begin, range.end
     end
@@ -96,7 +96,7 @@ module Comparable
 
   # A version of MRI's rb_cmpint (sort of)
   def self.compare_int(int)
-    return int if Primitive.object_kind_of?(int, Integer)
+    return int if Primitive.is_a?(int, Integer)
 
     return 1  if int > 0
     return -1 if int < 0

@@ -385,7 +385,7 @@ class File < IO
   def self.directory?(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    mode = if Primitive.object_kind_of?(io, IO)
+    mode = if Primitive.is_a?(io, IO)
              Truffle::POSIX.truffleposix_fstat_mode(io.fileno)
            else
              path = Truffle::Type.coerce_to_path(io_or_path)
@@ -931,7 +931,7 @@ class File < IO
   def self.size(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    if Primitive.object_kind_of?(io, IO)
+    if Primitive.is_a?(io, IO)
       s = Truffle::POSIX.truffleposix_fstat_size(io.fileno)
       if s >= 0
         s
@@ -955,7 +955,7 @@ class File < IO
   def self.size?(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    s = if Primitive.object_kind_of?(io, IO)
+    s = if Primitive.is_a?(io, IO)
           Truffle::POSIX.truffleposix_fstat_size(io.fileno)
         else
           path = Truffle::Type.coerce_to_path(io_or_path)
@@ -1077,8 +1077,8 @@ class File < IO
       atime ||= now
       mtime ||= now
     end
-    atime = Time.at(atime) unless Primitive.object_kind_of?(atime, Time)
-    mtime = Time.at(mtime) unless Primitive.object_kind_of?(mtime, Time)
+    atime = Time.at(atime) unless Primitive.is_a?(atime, Time)
+    mtime = Time.at(mtime) unless Primitive.is_a?(mtime, Time)
     paths.each do |path|
       path = Truffle::Type.coerce_to_path(path)
       n = POSIX.truffleposix_utimes(path, atime.to_i, atime.nsec,
@@ -1159,7 +1159,7 @@ class File < IO
   end
 
   def initialize(path_or_fd, mode = nil, perm = nil, **options)
-    if Primitive.object_kind_of?(path_or_fd, Integer)
+    if Primitive.is_a?(path_or_fd, Integer)
       super(path_or_fd, mode, **options)
       @path = nil
     else

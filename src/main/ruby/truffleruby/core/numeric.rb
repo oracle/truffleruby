@@ -183,7 +183,7 @@ class Numeric
 
     values = other.coerce(self)
 
-    unless Primitive.object_kind_of?(values, Array) && values.length == 2
+    unless Primitive.is_a?(values, Array) && values.length == 2
       if error == :no_error
         return nil
       else
@@ -210,7 +210,7 @@ class Numeric
 
   def bit_coerce(other)
     values = math_coerce(other)
-    unless Primitive.object_kind_of?(values[0], Integer) && Primitive.object_kind_of?(values[1], Integer)
+    unless Primitive.is_a?(values[0], Integer) && Primitive.is_a?(values[1], Integer)
       raise TypeError, "#{Primitive.object_class(values[1])} can't be coerced into #{Primitive.object_class(self)}"
     end
     values

@@ -208,7 +208,7 @@ module Polyglot
     end
 
     def [](index)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         at(index)
       else
         super(index)
@@ -216,7 +216,7 @@ module Polyglot
     end
 
     def []=(index, value)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         Truffle::Interop.write_array_element(self, index, value)
       else
         super(index, value)
@@ -224,7 +224,7 @@ module Polyglot
     end
 
     def delete(index)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         Truffle::Interop.remove_array_element(self, index)
       else
         super(index)
@@ -488,7 +488,7 @@ module Polyglot
         Truffle::Interop.meta_instance?(klass, self)
       else
         receiver = Truffle::Interop.unbox_if_needed(self)
-        Primitive.object_kind_of?(receiver, klass)
+        Primitive.is_a?(receiver, klass)
       end
     end
     alias_method :kind_of?, :is_a?

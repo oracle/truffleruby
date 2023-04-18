@@ -60,7 +60,7 @@ module Truffle::Internal
   def self.deconstruct_checked(pattern)
     if pattern.respond_to? :deconstruct
       deconstructed = pattern.deconstruct
-      if Primitive.object_kind_of?(deconstructed, Array)
+      if Primitive.is_a?(deconstructed, Array)
         deconstructed
       else
         raise TypeError,'deconstruct must return Array'

@@ -20,9 +20,9 @@ module Truffle
           exc = exc.exception msg
         end
 
-        exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
+        exception_class_object_expected! unless Primitive.is_a?(exc, ::Exception)
         exc
-      elsif Primitive.object_kind_of?(exc, ::String)
+      elsif Primitive.is_a?(exc, ::String)
         ::RuntimeError.exception exc
       else
         exception_class_object_expected!
@@ -50,7 +50,7 @@ module Truffle
 
     def self.call_exception(exc, *args)
       res = Truffle::Type.check_funcall(exc, :exception, args)
-      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.object_kind_of?(res, Exception)
+      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.is_a?(res, Exception)
       res
     end
 
@@ -95,7 +95,7 @@ module Truffle
       message = StringValue exception.message.to_s
 
       klass = Primitive.object_class(exception).to_s
-      if Primitive.object_kind_of?(exception, Polyglot::ForeignException) and
+      if Primitive.is_a?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
         klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
       end
@@ -194,7 +194,7 @@ module Truffle
 
     def self.append_causes(str, err, causes, reverse, highlight)
       cause = err.cause
-      if !Primitive.nil?(cause) && Primitive.object_kind_of?(cause, Exception) && !causes.has_key?(cause)
+      if !Primitive.nil?(cause) && Primitive.is_a?(cause, Exception) && !causes.has_key?(cause)
         causes[cause] = true
         if reverse
           append_causes(str, cause, causes, reverse, highlight)

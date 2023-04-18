@@ -35,7 +35,7 @@ class Struct
 
   def self.new(klass_name, *attrs, keyword_init: nil, &block)
     if klass_name
-      if Primitive.object_kind_of?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
+      if Primitive.is_a?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
         klass_name = nil
       else
@@ -54,7 +54,7 @@ class Struct
         a
       when String
         sym = a.to_sym
-        unless Primitive.object_kind_of?(sym, Symbol)
+        unless Primitive.is_a?(sym, Symbol)
           raise TypeError, "#to_sym didn't return a symbol"
         end
         sym
@@ -171,7 +171,7 @@ class Struct
 
     if Primitive.object_class(self)::KEYWORD_INIT
       # Accept a single positional hash for https://bugs.ruby-lang.org/issues/18632 and spec
-      if kwargs.empty? && args.size == 1 && Primitive.object_kind_of?(args.first, Hash)
+      if kwargs.empty? && args.size == 1 && Primitive.is_a?(args.first, Hash)
         kwargs = args.first
       elsif args.size > 0
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
@@ -353,7 +353,7 @@ class Struct
 
   def deconstruct_keys(keys)
     return to_h if Primitive.nil?(keys)
-    raise TypeError, "wrong argument type #{Primitive.object_class(keys)} (expected Array or nil)" unless Primitive.object_kind_of?(keys, Array)
+    raise TypeError, "wrong argument type #{Primitive.object_class(keys)} (expected Array or nil)" unless Primitive.is_a?(keys, Array)
     return {} if self.length < keys.length
 
     h = {}
@@ -380,7 +380,7 @@ class Struct
     out = []
 
     args.each do |elem|
-      if Primitive.object_kind_of?(elem, Range)
+      if Primitive.is_a?(elem, Range)
         start, length = Primitive.range_normalized_start_length(elem, size)
         finish = start + length - 1
 

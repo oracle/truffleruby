@@ -106,7 +106,7 @@ module Kernel
     base = Primitive.nil?(converted_base) ? 0 : converted_base
     raise_exception = !Primitive.object_equal(exception, false)
 
-    if Primitive.object_kind_of?(obj, String)
+    if Primitive.is_a?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
     else
       bad_base_check = Proc.new do
@@ -173,7 +173,7 @@ module Kernel
   module_function :StringValue
 
   def `(str) #`
-    str = StringValue(str) unless Primitive.object_kind_of?(str, String)
+    str = StringValue(str) unless Primitive.is_a?(str, String)
 
     output = IO.popen(str) { |io| io.read }
 
@@ -325,7 +325,7 @@ module Kernel
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
     modules.reverse_each do |mod|
-      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
+      if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
       end
 
@@ -373,7 +373,7 @@ module Kernel
 
     # module_to_wrap either is a module or is nil
     if wrap
-      module_to_wrap = Primitive.object_kind_of?(wrap, Module) ? wrap : Module.new
+      module_to_wrap = Primitive.is_a?(wrap, Module) ? wrap : Module.new
     end
 
     # load absolute path
@@ -430,7 +430,7 @@ module Kernel
 
     path = Truffle::Type.coerce_to_path obj
 
-    if Primitive.object_kind_of?(path, String) and path.start_with? '|'
+    if Primitive.is_a?(path, String) and path.start_with? '|'
       return IO.popen(path[1..-1], *(rest + [options]), &block)
     end
 
@@ -469,7 +469,7 @@ module Kernel
     randomizer = Primitive.thread_randomizer
     if Primitive.nil?(limit)
       randomizer.random_float
-    elsif Primitive.object_kind_of?(limit, Range)
+    elsif Primitive.is_a?(limit, Range)
       begin
         Truffle::RandomOperations.rand_range(randomizer, limit)
       rescue ArgumentError # invalid argument - negative limit
@@ -715,7 +715,7 @@ module Kernel
 
   def printf(*args)
     return nil if args.empty?
-    if Primitive.object_kind_of?(args[0], String)
+    if Primitive.is_a?(args[0], String)
       print sprintf(*args)
     else
       io = args.shift
@@ -731,7 +731,7 @@ module Kernel
   end
 
   def caller(start = 1, limit = nil)
-    args =  if Primitive.object_kind_of?(start, Range)
+    args =  if Primitive.is_a?(start, Range)
               if Primitive.nil?(start.begin) and Primitive.nil?(start.end)
                 [1]
               elsif Primitive.nil? start.begin

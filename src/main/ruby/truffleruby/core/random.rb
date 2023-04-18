@@ -108,7 +108,7 @@ class Random
   private :state
 
   def ==(other)
-    return false unless Primitive.object_kind_of?(other, Random)
+    return false unless Primitive.is_a?(other, Random)
     seed == other.seed
   end
 
@@ -130,7 +130,7 @@ module Random::Formatter
                  end
 
     # Weird case, spec'd for SecureRandom.random_number
-    if Primitive.object_kind_of?(limit, Numeric) and limit <= 0
+    if Primitive.is_a?(limit, Numeric) and limit <= 0
       return randomizer.random_float
     end
 

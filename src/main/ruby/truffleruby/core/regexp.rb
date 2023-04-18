@@ -56,8 +56,8 @@ class Regexp
   end
 
   def self.convert(pattern)
-    return pattern if Primitive.object_kind_of?(pattern, Regexp)
-    if Primitive.object_kind_of?(pattern, Array)
+    return pattern if Primitive.is_a?(pattern, Regexp)
+    if Primitive.is_a?(pattern, Array)
       union(*pattern)
     else
       Regexp.quote(pattern.to_s)
@@ -119,7 +119,7 @@ class Regexp
     str = ''.encode(enc)
 
     patterns = patterns.map do |pat|
-      if Primitive.object_kind_of?(pat, Regexp)
+      if Primitive.is_a?(pat, Regexp)
         pat
       else
         StringValue(pat)
@@ -131,7 +131,7 @@ class Regexp
   Truffle::Graal.always_split(method(:union))
 
   def self.new(pattern, opts = undefined, encoding = nil)
-    if Primitive.object_kind_of?(pattern, Regexp)
+    if Primitive.is_a?(pattern, Regexp)
       warn 'flags ignored' unless Primitive.undefined?(opts)
       opts = pattern.options
       pattern = pattern.source
@@ -139,7 +139,7 @@ class Regexp
       pattern = Truffle::Type.rb_convert_type pattern, String, :to_str
     end
 
-    if Primitive.object_kind_of?(opts, Integer)
+    if Primitive.is_a?(opts, Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif !Primitive.undefined?(opts) && opts
       opts = IGNORECASE
@@ -187,9 +187,9 @@ class Regexp
   end
 
   def ===(other)
-    if Primitive.object_kind_of?(other, Symbol)
+    if Primitive.is_a?(other, Symbol)
       other = other.to_s
-    elsif !Primitive.object_kind_of?(other, String)
+    elsif !Primitive.is_a?(other, String)
       other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
@@ -207,7 +207,7 @@ class Regexp
   end
 
   def eql?(other)
-    return false unless Primitive.object_kind_of?(other, Regexp)
+    return false unless Primitive.is_a?(other, Regexp)
     return false unless source == other.source
     (options & ~NOENCODING) == (other.options & ~NOENCODING)
   end
@@ -229,7 +229,7 @@ class Regexp
   def ~
     line = Primitive.io_last_line_get(Primitive.caller_special_variables)
 
-    unless Primitive.object_kind_of?(line, String)
+    unless Primitive.is_a?(line, String)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end

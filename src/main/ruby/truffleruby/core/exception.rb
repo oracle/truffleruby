@@ -54,7 +54,7 @@ class Exception
   def set_backtrace(bt)
     case bt
     when Array
-      if bt.all? { |s| Primitive.object_kind_of?(s, String) }
+      if bt.all? { |s| Primitive.is_a?(s, String) }
         Primitive.exception_set_custom_backtrace(self, bt)
       else
         raise TypeError, 'backtrace must be Array of String'
@@ -285,7 +285,7 @@ class SystemCallError < StandardError
     if Primitive.object_equal(self, SystemCallError)
       case args.size
       when 1
-        if Primitive.object_kind_of?(args.first, Integer)
+        if Primitive.is_a?(args.first, Integer)
           errno = args.first
           message = nil
         else
@@ -324,7 +324,7 @@ class SystemCallError < StandardError
         raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
       end
 
-      if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
+      if defined?(self::Errno) && Primitive.is_a?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
         if error && Primitive.object_equal(Primitive.object_class(error), self)
           return error
@@ -373,7 +373,7 @@ class SignalException < Exception
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if Primitive.nil? signo
       raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless Primitive.undefined?(message)
-      if Primitive.object_kind_of?(sig, Symbol)
+      if Primitive.is_a?(sig, Symbol)
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str

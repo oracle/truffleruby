@@ -49,10 +49,10 @@ module Truffle
     end
 
     def self.arithmetic_range?(from, to)
-      if Primitive.object_kind_of?(from, Numeric)
-        Primitive.object_kind_of?(to, Numeric) || Primitive.nil?(to)
+      if Primitive.is_a?(from, Numeric)
+        Primitive.is_a?(to, Numeric) || Primitive.nil?(to)
       else
-        Primitive.nil?(from) && Primitive.object_kind_of?(to, Numeric)
+        Primitive.nil?(from) && Primitive.is_a?(to, Numeric)
       end
     end
 
@@ -66,7 +66,7 @@ module Truffle
     end
 
     def self.validate_step_size(first, last, step_size)
-      if Primitive.object_kind_of?(step_size, Float) or Primitive.object_kind_of?(first, Float) or Primitive.object_kind_of?(last, Float)
+      if Primitive.is_a?(step_size, Float) or Primitive.is_a?(first, Float) or Primitive.is_a?(last, Float)
         # if any are floats they all must be
         begin
           step_size = Float(from = step_size)
@@ -78,7 +78,7 @@ module Truffle
       else
         step_size = Integer(from = step_size)
 
-        unless Primitive.object_kind_of?(step_size, Integer)
+        unless Primitive.is_a?(step_size, Integer)
           raise TypeError, "can't convert #{Primitive.object_class(from)} to Integer (#{Primitive.object_class(from)}#to_int gives #{Primitive.object_class(step_size)})"
         end
       end
@@ -108,7 +108,7 @@ module Truffle
       if e1 == e2
         !(range.exclude_end? && !other.exclude_end?)
       else
-        if Primitive.object_kind_of?(e2, Integer) && other.exclude_end?
+        if Primitive.is_a?(e2, Integer) && other.exclude_end?
           cover?(range, e2 - 1)
         else
           cover?(range, e2)

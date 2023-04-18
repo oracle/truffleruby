@@ -75,7 +75,7 @@ module Truffle
       :$/,
       -> { Primitive.global_variable_get :$/ },
       -> v {
-        if v && !Primitive.object_kind_of?(v, String)
+        if v && !Primitive.is_a?(v, String)
           raise TypeError, '$/ must be a String'
         end
         Primitive.global_variable_set :$/, v
@@ -87,7 +87,7 @@ module Truffle
       :$\,
       -> { Primitive.global_variable_get :$\ },
       -> v {
-        if v && !Primitive.object_kind_of?(v, String)
+        if v && !Primitive.is_a?(v, String)
           raise TypeError, '$\ must be a String'
         end
         Primitive.global_variable_set :$\, v
@@ -107,7 +107,7 @@ module Truffle
       :'$,',
       -> { Primitive.global_variable_get :$, },
       -> v {
-        if v && !Primitive.object_kind_of?(v, String)
+        if v && !Primitive.is_a?(v, String)
           raise TypeError, '$, must be a String'
         end
         warn "`$,' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
@@ -203,7 +203,7 @@ module Truffle
     end
 
     def self.check_last_line(line)
-      unless Primitive.object_kind_of? line, String
+      unless Primitive.is_a? line, String
         raise TypeError, "$_ value need to be String (#{Truffle::ExceptionOperations.to_class_name(line)} given)"
       end
       line
@@ -211,10 +211,10 @@ module Truffle
 
     # Will throw an exception if the arguments are invalid, and potentially convert a range to [omit, length] format.
     def self.normalize_backtrace_args(omit, length)
-      if Primitive.object_kind_of?(length, Integer) && length < 0
+      if Primitive.is_a?(length, Integer) && length < 0
         raise ArgumentError, "negative size (#{length})"
       end
-      if Primitive.object_kind_of?(omit, Range)
+      if Primitive.is_a?(omit, Range)
         range = omit
         if Primitive.nil? range.begin
           omit = 0

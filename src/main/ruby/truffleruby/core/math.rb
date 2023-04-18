@@ -37,7 +37,7 @@ module Math
     result = Primitive.math_ldexp(fraction, exponent)
     if !Primitive.undefined?(result)
       result
-    elsif Primitive.object_kind_of?(exponent, Float) and exponent.nan?
+    elsif Primitive.is_a?(exponent, Float) and exponent.nan?
       raise RangeError, 'float NaN out of range of integer'
     else
       ldexp(

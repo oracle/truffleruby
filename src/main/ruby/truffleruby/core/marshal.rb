@@ -730,7 +730,7 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      if @freeze && !postpone_freezing && !(Primitive.object_kind_of?(obj, Class) || Primitive.object_kind_of?(obj, Module))
+      if @freeze && !postpone_freezing && !(Primitive.is_a?(obj, Class) || Primitive.is_a?(obj, Module))
         obj = -obj if Primitive.class_of(obj) == String
         Primitive.object_freeze(obj)
       end
@@ -1064,7 +1064,7 @@ module Marshal
         @call = true
       end
 
-      unless Primitive.object_kind_of?(sym, Symbol)
+      unless Primitive.is_a?(sym, Symbol)
         raise ArgumentError, "expected Symbol, got #{sym.inspect}"
       end
 
@@ -1184,7 +1184,7 @@ module Marshal
 
     # Integers bigger than 4 bytes are serialized in a special format
     def serialize_as_bignum?(obj)
-      Primitive.object_kind_of?(obj, Integer) && !Truffle::Type.fits_into_int?(obj)
+      Primitive.is_a?(obj, Integer) && !Truffle::Type.fits_into_int?(obj)
     end
 
     def serialize_fixnum(n)
@@ -1265,7 +1265,7 @@ module Marshal
 
       str = obj.__send__ :_dump, @depth
 
-      unless Primitive.object_kind_of? str, String
+      unless Primitive.is_a? str, String
         raise TypeError, '_dump() must return string'
       end
 
@@ -1303,7 +1303,7 @@ module Marshal
     end
 
     def store_unique_object(obj)
-      if Primitive.object_kind_of?(obj, Symbol)
+      if Primitive.is_a?(obj, Symbol)
         add_symlink obj
       else
         add_non_immediate_object obj
@@ -1337,10 +1337,10 @@ module Marshal
       else
         obj = klass.allocate
 
-        raise TypeError, 'dump format error' unless Primitive.object_kind_of?(obj, Object)
+        raise TypeError, 'dump format error' unless Primitive.is_a?(obj, Object)
 
         store_unique_object obj
-        if Primitive.object_kind_of? obj, Exception
+        if Primitive.is_a? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1428,7 +1428,7 @@ module Marshal
 
   def self.dump(obj, an_io = nil, limit = nil)
     unless limit
-      if Primitive.object_kind_of? an_io, Integer
+      if Primitive.is_a? an_io, Integer
         limit = an_io
         an_io = nil
       else

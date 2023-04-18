@@ -23,8 +23,8 @@ module Truffle
       attr_reader :min_expected, :max_expected
 
       def initialize(min_expected, max_expected = min_expected)
-        raise ArgumentError unless Primitive.object_kind_of?(min_expected, Integer)
-        raise ArgumentError unless Primitive.object_kind_of?(max_expected, Integer)
+        raise ArgumentError unless Primitive.is_a?(min_expected, Integer)
+        raise ArgumentError unless Primitive.is_a?(max_expected, Integer)
         @min_expected = min_expected
         @max_expected = max_expected
       end
@@ -118,10 +118,10 @@ module Truffle
 
     class HashKeysAsPolyglotMembers
       def initialize(hash)
-        raise ArgumentError, 'expected a Hash' unless Primitive.object_kind_of?(hash, Hash)
+        raise ArgumentError, 'expected a Hash' unless Primitive.is_a?(hash, Hash)
         # Otherwise Symbol keys won't be seen from e.g., readMember()
         @hash = hash.transform_keys do |key|
-          if Primitive.object_kind_of?(key, Symbol)
+          if Primitive.is_a?(key, Symbol)
             key.to_s
           else
             key

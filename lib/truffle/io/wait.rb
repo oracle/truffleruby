@@ -52,12 +52,12 @@ class IO
   def wait(*args)
     ensure_open
 
-    if args.size != 2 || Primitive.object_kind_of?(args[0], Symbol) || Primitive.object_kind_of?(args[1], Symbol)
+    if args.size != 2 || Primitive.is_a?(args[0], Symbol) || Primitive.is_a?(args[1], Symbol)
       # Slow/messy path:
       timeout = :undef
       events = 0
       args.each do |arg|
-        if Primitive.object_kind_of?(arg, Symbol)
+        if Primitive.is_a?(arg, Symbol)
           events |= case arg
                     when :r, :read, :readable then IO::READABLE
                     when :w, :write, :writable then IO::WRITABLE

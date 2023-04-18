@@ -84,7 +84,7 @@ class Thread
   end
 
   def self.handle_interrupt(config, &block)
-    unless Primitive.object_kind_of?(config, Hash)
+    unless Primitive.is_a?(config, Hash)
       raise ArgumentError, 'unknown mask signature'
     end
     timing = config.first[1]
@@ -163,7 +163,7 @@ class Thread
   end
 
   def priority=(priority)
-    Kernel.raise TypeError, 'priority must be an Integer' unless Primitive.object_kind_of?(priority, Integer)
+    Kernel.raise TypeError, 'priority must be an Integer' unless Primitive.is_a?(priority, Integer)
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]
@@ -213,9 +213,9 @@ class Thread
   # Fiber-local variables
 
   private def convert_to_local_name(name)
-    if Primitive.object_kind_of?(name, Symbol)
+    if Primitive.is_a?(name, Symbol)
       name
-    elsif Primitive.object_kind_of?(name, String)
+    elsif Primitive.is_a?(name, String)
       name.to_sym
     else
       Kernel.raise TypeError, "#{name.inspect} is not a symbol nor a string"
@@ -352,13 +352,13 @@ class ConditionVariable
       timeout = Primitive.rb_num2long(timeout)
     end
 
-    if defined?(::Mutex_m) && Primitive.object_kind_of?(mutex, ::Mutex_m)
+    if defined?(::Mutex_m) && Primitive.is_a?(mutex, ::Mutex_m)
       raw_mutex = mutex.instance_variable_get(:@_mutex)
     else
       raw_mutex = mutex
     end
 
-    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless Primitive.object_kind_of?(raw_mutex, Mutex)
+    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless Primitive.is_a?(raw_mutex, Mutex)
 
     Primitive.condition_variable_wait(self, raw_mutex, timeout)
   end

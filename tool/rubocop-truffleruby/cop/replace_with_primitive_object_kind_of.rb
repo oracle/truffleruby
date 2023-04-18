@@ -3,7 +3,7 @@
 module RuboCop
   module Cop
     module TruffleRuby
-      # Prefer Primitive method `object_kind_of?` to check an object class for
+      # Prefer Primitive method `is_a?` to check an object class for
       # performance reasons.
       #
       # @safety
@@ -21,12 +21,12 @@ module RuboCop
       #   String === a
       #
       #   # good
-      #   Primitive.object_kind_of?(a, String)
+      #   Primitive.is_a?(a, String)
       #
       class ReplaceWithPrimitiveObjectKindOf < Base
         extend AutoCorrector
 
-        MSG = 'Use `Primitive.object_kind_of?` instead of `#kind_of?` or `#is_a?`'
+        MSG = 'Use `Primitive.is_a?` instead of `#kind_of?` or `#is_a?`'
         RESTRICT_ON_SEND = %i[is_a? kind_of? ===].freeze
 
         # @!method bad_method?(node)
@@ -58,7 +58,7 @@ module RuboCop
             constant = captures[1].source
           end
 
-          "Primitive.object_kind_of?(#{object}, #{constant})"
+          "Primitive.is_a?(#{object}, #{constant})"
         end
       end
     end

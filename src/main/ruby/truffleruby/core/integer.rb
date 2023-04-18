@@ -48,11 +48,11 @@ class Integer < Numeric
       return pow
     end
 
-    if (Primitive.object_kind_of?(o, Float) || Primitive.object_kind_of?(o, Rational)) && self < 0 && o != o.round
+    if (Primitive.is_a?(o, Float) || Primitive.is_a?(o, Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
-    elsif Primitive.object_kind_of?(o, Integer) && o < 0
+    elsif Primitive.is_a?(o, Integer) && o < 0
       return Rational.__send__(:new_already_canonical, self, 1) ** o
-    elsif Primitive.object_kind_of?(o, Integer) && o > 0
+    elsif Primitive.is_a?(o, Integer) && o > 0
       return self ** o.to_f
     end
 
@@ -60,7 +60,7 @@ class Integer < Numeric
   end
 
   def [](index, len = undefined)
-    if Primitive.object_kind_of?(index, Range)
+    if Primitive.is_a?(index, Range)
       Truffle::IntegerOperations.bits_reference_range(self, index)
     else
       index = Primitive.rb_to_int(index)
@@ -89,7 +89,7 @@ class Integer < Numeric
   end
 
   def coerce(other)
-    if Primitive.object_kind_of?(other, Integer)
+    if Primitive.is_a?(other, Integer)
       return [other, self]
     end
 
@@ -110,7 +110,7 @@ class Integer < Numeric
   end
 
   def fdiv(n)
-    if Primitive.object_kind_of?(n, Integer)
+    if Primitive.is_a?(n, Integer)
       Primitive.integer_fdiv(self, n)
     else
       redo_coerced :fdiv, n
@@ -132,8 +132,8 @@ class Integer < Numeric
     if Primitive.undefined?(m)
       self ** e
     else
-      raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.object_kind_of?(e, Integer)
-      raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.object_kind_of?(m, Integer)
+      raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.is_a?(e, Integer)
+      raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
       raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
 
       Primitive.mod_pow(self, e, m)
@@ -186,7 +186,7 @@ class Integer < Numeric
   def round(ndigits = undefined, half: :up)
     return self if Primitive.undefined? ndigits
 
-    if Primitive.object_kind_of?(ndigits, Float) && ndigits.infinite?
+    if Primitive.is_a?(ndigits, Float) && ndigits.infinite?
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 
@@ -209,7 +209,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if Primitive.object_kind_of?(self, Integer) and Primitive.object_kind_of?(f, Integer)
+      if Primitive.is_a?(self, Integer) and Primitive.is_a?(f, Integer)
         x = self < 0 ? -self : self
         case half
         when :up, nil
@@ -227,7 +227,7 @@ class Integer < Numeric
         return x
       end
 
-      return 0 if Primitive.object_kind_of?(f, Float)
+      return 0 if Primitive.is_a?(f, Float)
 
       h = f / 2
       r = self % f
@@ -242,7 +242,7 @@ class Integer < Numeric
   end
 
   def gcd(other)
-    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.object_kind_of?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.is_a?(other, Integer)
     min = self.abs
     max = other.abs
     while min > 0
@@ -270,7 +270,7 @@ class Integer < Numeric
   end
 
   def lcm(other)
-    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.object_kind_of?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.is_a?(other, Integer)
     if self.zero? or other.zero?
       0
     else

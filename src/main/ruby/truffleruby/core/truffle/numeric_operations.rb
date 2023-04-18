@@ -39,7 +39,7 @@ module Truffle
     def self.step_no_block(from, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
       step = 1 if Primitive.nil?(step)
 
-      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
+      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.is_a?(to, Numeric)) && Primitive.is_a?(step, Numeric)
         return Enumerator::ArithmeticSequence.new(from, :step, from, limit, step, false)
       end
 
@@ -180,7 +180,7 @@ module Truffle
         raise ArgumentError, "step can't be 0" if step == 0
       end
 
-      unless Primitive.object_kind_of?(step, Numeric)
+      unless Primitive.is_a?(step, Numeric)
         coerced = Truffle::Type.check_funcall(step, :>, [0])
         raise TypeError, "0 can't be coerced into #{Primitive.object_class(step)}" if Primitive.undefined?(coerced)
         step = coerced
@@ -189,9 +189,9 @@ module Truffle
       desc = step < 0
       default_limit = desc ? -Float::INFINITY : Float::INFINITY
 
-      if Primitive.object_kind_of?(value, Float) or
-          Primitive.object_kind_of?(limit, Float) or
-          Primitive.object_kind_of?(step, Float)
+      if Primitive.is_a?(value, Float) or
+          Primitive.is_a?(limit, Float) or
+          Primitive.is_a?(step, Float)
         [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || default_limit),
          Truffle::Type.rb_num2dbl(step), desc, true]
       else

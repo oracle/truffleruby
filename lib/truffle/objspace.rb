@@ -78,7 +78,7 @@ module ObjectSpace
 
   # Helper method for ObjectSpace.dump
   def _dump(object, output)
-    if Primitive.object_kind_of?(output, String)
+    if Primitive.is_a?(output, String)
       require 'json'
       json = {
         address: '0x' + object.object_id.to_s(16),
@@ -120,7 +120,7 @@ module ObjectSpace
 
   # Helper method for ObjectSpace.dump_all
   def _dump_all(output, full, since)
-    if Primitive.object_kind_of?(output, String)
+    if Primitive.is_a?(output, String)
       objects = []
       ObjectSpace.each_object do |object|
         objects.push dump(object)

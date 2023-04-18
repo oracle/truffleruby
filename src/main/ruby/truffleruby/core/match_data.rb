@@ -47,7 +47,7 @@ class MatchData
   def ==(other)
     return true if Primitive.object_equal(self, other)
 
-    Primitive.object_kind_of?(other, MatchData) &&
+    Primitive.is_a?(other, MatchData) &&
       string == other.string  &&
       regexp == other.regexp  &&
       captures == other.captures
@@ -71,7 +71,7 @@ class MatchData
   end
 
   def begin(index)
-    backref = if Primitive.object_kind_of?(index, String) || Primitive.object_kind_of?(index, Symbol)
+    backref = if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
                 names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else
@@ -83,7 +83,7 @@ class MatchData
   end
 
   def end(index)
-    backref = if Primitive.object_kind_of?(index, String) || Primitive.object_kind_of?(index, Symbol)
+    backref = if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
                 names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else
@@ -109,9 +109,9 @@ class MatchData
     size = self.size
 
     indexes.each do |elem|
-      if Primitive.object_kind_of?(elem, String) || Primitive.object_kind_of?(elem, Symbol)
+      if Primitive.is_a?(elem, String) || Primitive.is_a?(elem, Symbol)
         out << self[elem]
-      elsif Primitive.object_kind_of?(elem, Range)
+      elsif Primitive.is_a?(elem, Range)
         start, length = Primitive.range_normalized_start_length(elem, size)
         finish = start + length - 1
 

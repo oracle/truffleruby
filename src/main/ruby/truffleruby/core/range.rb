@@ -35,7 +35,7 @@ class Range
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if self.begin
 
-    unless Primitive.object_kind_of?(first, Integer) && Primitive.object_kind_of?(last, Integer)
+    unless Primitive.is_a?(first, Integer) && Primitive.is_a?(last, Integer)
       begin
         raise ArgumentError, 'bad value for range' unless first <=> last
       rescue
@@ -50,7 +50,7 @@ class Range
   def ==(other)
     return true if Primitive.object_equal(self, other)
 
-    Primitive.object_kind_of?(other, Range) and
+    Primitive.is_a?(other, Range) and
       self.begin == other.begin and
       self.end == other.end and
       self.exclude_end? == other.exclude_end?
@@ -59,7 +59,7 @@ class Range
   def eql?(other)
     return true if Primitive.object_equal(self, other)
 
-    Primitive.object_kind_of?(other, Range) and
+    Primitive.is_a?(other, Range) and
         self.begin.eql?(other.begin) and
         self.end.eql?(other.end) and
         self.exclude_end? == other.exclude_end?
@@ -71,17 +71,17 @@ class Range
     start = self.begin
     stop  = self.end
 
-    if Primitive.object_kind_of?(start, Float) || Primitive.object_kind_of?(stop, Float)
+    if Primitive.is_a?(start, Float) || Primitive.is_a?(stop, Float)
       bsearch_float(&block)
-    elsif Primitive.object_kind_of?(start, Integer)
+    elsif Primitive.is_a?(start, Integer)
       if Primitive.nil? stop
         bsearch_endless(&block)
-      elsif Primitive.object_kind_of?(stop, Integer)
+      elsif Primitive.is_a?(stop, Integer)
         bsearch_integer(&block)
       else
         raise TypeError, "bsearch is not available for #{Primitive.object_class(stop)}"
       end
-    elsif Primitive.nil?(start) && Primitive.object_kind_of?(stop, Integer)
+    elsif Primitive.nil?(start) && Primitive.is_a?(stop, Integer)
       bsearch_beginless(&block)
     else
       raise TypeError, "bsearch is not available for #{Primitive.object_class(start)}"
@@ -137,7 +137,7 @@ class Range
       result = yield min
       # Find-minimum mode: It's not going to get any smaller than negative infinity.
       return min if result == true || result == 0
-      return nil if Primitive.object_kind_of?(result, Numeric) && result < 0
+      return nil if Primitive.is_a?(result, Numeric) && result < 0
       min = normalized_begin = -Float::MAX # guaranteed to be <= max
     end
 
@@ -229,7 +229,7 @@ class Range
   private def bsearch_integer(&block)
     min = self.begin
     max = self.end
-    max -= 1 if Primitive.object_kind_of?(max, Integer) and exclude_end?
+    max -= 1 if Primitive.is_a?(max, Integer) and exclude_end?
     return nil if max < min
     last_admissible = nil
     stop = false
@@ -274,7 +274,7 @@ class Range
     return to_enum { size } unless block_given?
     first, last = self.begin, self.end
 
-    unless first.respond_to?(:succ) && !Primitive.object_kind_of?(first, Time)
+    unless first.respond_to?(:succ) && !Primitive.is_a?(first, Time)
       raise TypeError, "can't iterate from #{Primitive.object_class(first)}"
     end
 
@@ -317,7 +317,7 @@ class Range
   end
 
   private def each_endless(first, &block)
-    if Primitive.object_kind_of?(first, Integer)
+    if Primitive.is_a?(first, Integer)
       i = first
       while true
         yield i
@@ -358,10 +358,10 @@ class Range
   def include?(value)
     if self.begin.respond_to?(:to_int) ||
         self.end.respond_to?(:to_int) ||
-        Primitive.object_kind_of?(self.begin, Numeric) ||
-        Primitive.object_kind_of?(self.end, Numeric) ||
-        Primitive.object_kind_of?(self.begin, Time) ||
-        Primitive.object_kind_of?(self.end, Time)
+        Primitive.is_a?(self.begin, Numeric) ||
+        Primitive.is_a?(self.end, Numeric) ||
+        Primitive.is_a?(self.begin, Time) ||
+        Primitive.is_a?(self.end, Time)
       cover? value
     else
       super
@@ -396,16 +396,16 @@ class Range
       raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' if block_given?
       return exclude_end? ? self.end - 1 : self.end
     end
-    return super if block_given? || (exclude_end? && !Primitive.object_kind_of?(self.end, Numeric))
+    return super if block_given? || (exclude_end? && !Primitive.is_a?(self.end, Numeric))
     return nil if Comparable.compare_int(self.end <=> self.begin) < 0
     return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
     return self.end unless exclude_end?
 
-    unless Primitive.object_kind_of?(self.end, Integer)
+    unless Primitive.is_a?(self.end, Integer)
       raise TypeError, 'cannot exclude non Integer end value'
     end
 
-    unless Primitive.object_kind_of?(self.begin, Integer)
+    unless Primitive.is_a?(self.begin, Integer)
       raise TypeError, 'cannot exclude end value with non Integer begin value'
     end
 
@@ -481,7 +481,7 @@ class Range
   end
 
   private def step_endless(first, step_size, &block)
-    if Primitive.object_kind_of?(first, Numeric)
+    if Primitive.is_a?(first, Numeric)
       curr = first
       while true
         yield curr
@@ -501,7 +501,7 @@ class Range
   end
 
   def cover?(value)
-    if Primitive.object_kind_of?(value, Range)
+    if Primitive.is_a?(value, Range)
       Truffle::RangeOperations.range_cover?(self, value)
     else
       Truffle::RangeOperations.cover?(self, value)
@@ -510,13 +510,13 @@ class Range
 
   def size
     return Float::INFINITY if Primitive.nil? self.begin
-    return nil unless Primitive.object_kind_of?(self.begin, Numeric)
+    return nil unless Primitive.is_a?(self.begin, Numeric)
     return Float::INFINITY if Primitive.nil? self.end
 
     delta = self.end - self.begin
     return 0 if delta < 0
 
-    if Primitive.object_kind_of?(self.begin, Float) || Primitive.object_kind_of?(self.end, Float)
+    if Primitive.is_a?(self.begin, Float) || Primitive.is_a?(self.end, Float)
       return delta if delta == Float::INFINITY
 
       err = (self.begin.abs + self.end.abs + delta.abs) * Float::EPSILON
@@ -541,7 +541,7 @@ class Range
   alias_method :collect, :map
 
   private def to_a_internal # MODIFIED called from java to_a
-    return to_a_from_enumerable unless Primitive.object_kind_of?(self.begin, Integer) and Primitive.object_kind_of?(self.end, Integer)
+    return to_a_from_enumerable unless Primitive.is_a?(self.begin, Integer) and Primitive.is_a?(self.end, Integer)
 
     fin = self.end
     fin += 1 unless exclude_end?

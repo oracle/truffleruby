@@ -126,7 +126,7 @@ class Array
     end
 
     return true if Primitive.object_equal(self, other)
-    unless Primitive.object_kind_of?(other, Array)
+    unless Primitive.is_a?(other, Array)
       return false unless other.respond_to? :to_ary
       return other == self
     end
@@ -204,7 +204,7 @@ class Array
 
   def assoc(obj)
     each do |x|
-      if Primitive.object_kind_of?(x, Array) and x.first == obj
+      if Primitive.is_a?(x, Array) and x.first == obj
         return x
       end
     end
@@ -382,7 +382,7 @@ class Array
     end
 
     return true if Primitive.object_equal(self, other)
-    return false unless Primitive.object_kind_of?(other, Array)
+    return false unless Primitive.is_a?(other, Array)
     return false if size != other.size
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
@@ -442,7 +442,7 @@ class Array
     if Primitive.undefined?(index) || !index
       left = 0
       right = size
-    elsif Primitive.object_kind_of?(index, Range)
+    elsif Primitive.is_a?(index, Range)
       raise TypeError, 'length invalid with range' unless Primitive.undefined?(length)
 
       left, length = Primitive.range_normalized_start_length(index, size)
@@ -862,7 +862,7 @@ class Array
 
   def rassoc(obj)
     each do |elem|
-      if Primitive.object_kind_of?(elem, Array) and elem.at(1) == obj
+      if Primitive.is_a?(elem, Array) and elem.at(1) == obj
         return elem
       end
     end
@@ -1334,7 +1334,7 @@ class Array
 
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
-      if Primitive.object_kind_of?(elem, Range)
+      if Primitive.is_a?(elem, Range)
         start, length = Primitive.range_normalized_start_length(elem, size)
         finish = start + length - 1
         next if start < 0
@@ -1351,7 +1351,7 @@ class Array
 
   # Synchronize with Enumerator#zip and Enumerable#zip
   def zip(*others)
-    if !block_given? and others.size == 1 and Primitive.object_kind_of?(others[0], Array)
+    if !block_given? and others.size == 1 and Primitive.is_a?(others[0], Array)
       return Primitive.array_zip self, others[0]
     end
 
@@ -1619,7 +1619,7 @@ class Array
     Primitive.check_frozen self
 
     if Primitive.undefined? length
-      if Primitive.object_kind_of?(start, Range)
+      if Primitive.is_a?(start, Range)
         range = start
         out = self[range]
 

@@ -50,9 +50,9 @@ class Complex < Numeric
   private_class_method :convert
 
   def Complex.generic?(other) # :nodoc:
-    Primitive.object_kind_of?(other, Integer) or
-    Primitive.object_kind_of?(other, Float) or
-    (defined?(Rational) and Primitive.object_kind_of?(other, Rational))
+    Primitive.is_a?(other, Integer) or
+    Primitive.is_a?(other, Float) or
+    (defined?(Rational) and Primitive.is_a?(other, Rational))
   end
 
   def Complex.rect(real, imag = 0)
@@ -81,9 +81,9 @@ class Complex < Numeric
   end
 
   def +(other)
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       Complex(real + other.real, imag + other.imag)
-    elsif Primitive.object_kind_of?(other, Numeric) && other.real?
+    elsif Primitive.is_a?(other, Numeric) && other.real?
       Complex(real + other, imag)
     else
       redo_coerced(:+, other)
@@ -91,9 +91,9 @@ class Complex < Numeric
   end
 
   def -(other)
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       Complex(real - other.real, imag - other.imag)
-    elsif Primitive.object_kind_of?(other, Numeric) && other.real?
+    elsif Primitive.is_a?(other, Numeric) && other.real?
       Complex(real - other, imag)
     else
       redo_coerced(:-, other)
@@ -101,10 +101,10 @@ class Complex < Numeric
   end
 
   def *(other)
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       Complex(real * other.real - imag * other.imag,
               real * other.imag + imag * other.real)
-    elsif Primitive.object_kind_of?(other, Numeric) && other.real?
+    elsif Primitive.is_a?(other, Numeric) && other.real?
       Complex(real * other, imag * other)
     else
       redo_coerced(:*, other)
@@ -112,9 +112,9 @@ class Complex < Numeric
   end
 
   def /(other)
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       self * other.conjugate / other.abs2
-    elsif Primitive.object_kind_of?(other, Numeric) && other.real?
+    elsif Primitive.is_a?(other, Numeric) && other.real?
       Complex(real.quo(other), imag.quo(other))
     else
       redo_coerced(:quo, other)
@@ -123,17 +123,17 @@ class Complex < Numeric
   alias_method :quo, :/
 
   def ** (other)
-    if !Primitive.object_kind_of?(other, Float) && other == 0
+    if !Primitive.is_a?(other, Float) && other == 0
       return Complex(1)
     end
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       r, theta = polar
       ore = other.real
       oim = other.imag
       nr = Math.exp(ore*Math.log(r) - oim * theta)
       ntheta = theta*ore + oim*Math.log(r)
       Complex.polar(nr, ntheta)
-    elsif Primitive.object_kind_of?(other, Integer)
+    elsif Primitive.is_a?(other, Integer)
       if other > 0
         x = self
         z = x
@@ -188,9 +188,9 @@ class Complex < Numeric
   alias_method :conj, :conjugate
 
   def ==(other)
-    if Primitive.object_kind_of?(other, Complex)
+    if Primitive.is_a?(other, Complex)
       real == other.real && imag == other.imag
-    elsif Primitive.object_kind_of?(other, Numeric) && other.real?
+    elsif Primitive.is_a?(other, Numeric) && other.real?
       real == other && imag == 0
     else
       other == self
@@ -198,16 +198,16 @@ class Complex < Numeric
   end
 
   def eql?(other)
-    Primitive.object_kind_of?(other, Complex) and
+    Primitive.is_a?(other, Complex) and
     Primitive.object_class(imag) == Primitive.object_class(other.imag) and
     Primitive.object_class(real) == Primitive.object_class(other.real) and
     self == other
   end
 
   def coerce(other)
-    if Primitive.object_kind_of?(other, Numeric) && other.real?
+    if Primitive.is_a?(other, Numeric) && other.real?
       [Complex.new(other, 0), self]
-    elsif Primitive.object_kind_of?(other, Complex)
+    elsif Primitive.is_a?(other, Complex)
       [other, self]
     else
       raise TypeError, "#{Primitive.object_class(other)} can't be coerced into Complex"
@@ -246,22 +246,22 @@ class Complex < Numeric
   end
 
   def to_f
-    raise RangeError, "can't convert #{self} into Float" unless !Primitive.object_kind_of?(imag, Float) && imag == 0
+    raise RangeError, "can't convert #{self} into Float" unless !Primitive.is_a?(imag, Float) && imag == 0
     real.to_f
   end
 
   def to_i
-    raise RangeError, "can't convert #{self} into Integer" unless !Primitive.object_kind_of?(imag, Float) && imag == 0
+    raise RangeError, "can't convert #{self} into Integer" unless !Primitive.is_a?(imag, Float) && imag == 0
     real.to_i
   end
 
   def to_r
-    raise RangeError, "can't' convert #{self} into Rational" unless !Primitive.object_kind_of?(imag, Float) && imag == 0
+    raise RangeError, "can't' convert #{self} into Rational" unless !Primitive.is_a?(imag, Float) && imag == 0
     real.to_r
   end
 
   def rationalize(eps = nil)
-    raise RangeError, "can't' convert #{self} into Rational" unless !Primitive.object_kind_of?(imag, Float) && imag == 0
+    raise RangeError, "can't' convert #{self} into Rational" unless !Primitive.is_a?(imag, Float) && imag == 0
     real.rationalize(eps)
   end
 
@@ -305,7 +305,7 @@ class Complex < Numeric
   end
 
   def fdiv(other)
-    raise TypeError, "#{Primitive.object_class(other)} can't be coerced into Complex" unless Primitive.object_kind_of?(other, Numeric)
+    raise TypeError, "#{Primitive.object_class(other)} can't be coerced into Complex" unless Primitive.is_a?(other, Numeric)
 
     # FIXME
     self / other
@@ -330,8 +330,8 @@ class Complex < Numeric
   private :marshal_load
 
   def <=>(other)
-    if imag == 0 && Primitive.object_kind_of?(other, Numeric)
-      if Primitive.object_kind_of?(other, Complex) && other.imag == 0
+    if imag == 0 && Primitive.is_a?(other, Numeric)
+      if Primitive.is_a?(other, Complex) && other.imag == 0
         real <=> other.real
       elsif other.real?
         real <=> other

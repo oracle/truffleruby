@@ -12,7 +12,7 @@ module Truffle
   module RegexpOperations
 
     LAST_MATCH_SET = -> v, s {
-      unless Primitive.nil?(v) || Primitive.object_kind_of?(v, MatchData)
+      unless Primitive.nil?(v) || Primitive.is_a?(v, MatchData)
         raise TypeError, "Wrong argument type #{v} (expected MatchData)"
       end
       Primitive.regexp_last_match_set(s, v)
@@ -33,7 +33,7 @@ module Truffle
     def self.match(re, str, pos = 0)
       return nil unless str
 
-      str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
+      str = Primitive.is_a?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
       return nil if pos < 0 or pos > str.size
@@ -46,7 +46,7 @@ module Truffle
     def self.match?(re, str, pos = 0)
       return false unless str
 
-      str = Primitive.object_kind_of?(str, Symbol) ? str.to_s : StringValue(str)
+      str = Primitive.is_a?(str, Symbol) ? str.to_s : StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
       return false if pos < 0 or pos > str.size
@@ -126,9 +126,9 @@ module Truffle
         Primitive.nil?(md2)
       elsif Primitive.nil?(md2)
         false
-      elsif Primitive.object_kind_of?(md1, Exception)
+      elsif Primitive.is_a?(md1, Exception)
         Primitive.object_class(md1) == Primitive.object_class(md2)
-      elsif Primitive.object_kind_of?(md2, Exception)
+      elsif Primitive.is_a?(md2, Exception)
         false
       else
         if md1.size != md2.size
@@ -146,7 +146,7 @@ module Truffle
     def self.print_match_data(md)
       if Primitive.nil?(md)
         $stderr.puts '    NO MATCH'
-      elsif Primitive.object_kind_of?(md, Exception)
+      elsif Primitive.is_a?(md, Exception)
         $stderr.puts "    EXCEPTION - #{md}"
       else
         md.size.times do |x|
@@ -159,7 +159,7 @@ module Truffle
     end
 
     def self.return_match_data(md)
-      if Primitive.object_kind_of?(md, Exception)
+      if Primitive.is_a?(md, Exception)
         raise md
       else
         md

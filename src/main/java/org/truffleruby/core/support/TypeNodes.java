@@ -66,10 +66,10 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
-    @Primitive(name = "object_kind_of?")
-    public abstract static class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "is_a?")
+    public abstract static class IsAPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectKindOf(Object object, RubyModule module,
+        protected boolean isA(Object object, RubyModule module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(object, module);
         }

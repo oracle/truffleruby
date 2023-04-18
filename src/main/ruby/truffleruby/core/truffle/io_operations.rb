@@ -34,7 +34,7 @@ module Truffle
         args.each do |arg|
           if Primitive.nil?(arg)
             str = ''
-          elsif Primitive.object_kind_of?(arg, String)
+          elsif Primitive.is_a?(arg, String)
             # might be a Foreign String we need to convert
             str = arg.to_str
           elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))
@@ -49,7 +49,7 @@ module Truffle
             end
           else
             str = arg.to_s
-            str = Primitive.rb_any_to_s(arg) unless Primitive.object_kind_of?(str, String)
+            str = Primitive.rb_any_to_s(arg) unless Primitive.is_a?(str, String)
           end
 
           if str
@@ -214,7 +214,7 @@ module Truffle
       end
 
       if timeout
-        unless Primitive.object_kind_of? timeout, Numeric
+        unless Primitive.is_a? timeout, Numeric
           raise TypeError, 'Timeout must be numeric'
         end
 
@@ -325,7 +325,7 @@ module Truffle
     end
 
     def self.parse_mode(mode)
-      return mode if Primitive.object_kind_of? mode, Integer
+      return mode if Primitive.is_a? mode, Integer
 
       mode = StringValue(mode)
 
