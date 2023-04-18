@@ -25,14 +25,12 @@ import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
-import com.oracle.truffle.api.TruffleSafepoint.CompiledInterruptible;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.Memo;
 import org.truffleruby.collections.ConcurrentWeakSet;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.InterruptMode;
@@ -199,7 +197,7 @@ public class ThreadManager {
             throw new UnsupportedOperationException("threads should not be created while pre-initializing the context");
         }
 
-        final Thread thread = context.getEnv().createThread(runnable);
+        final Thread thread = context.getEnv().newTruffleThreadBuilder(runnable).build();
 
         language.rubyThreadInitMap.put(thread, rubyThread);
         language.rubyFiberInitMap.put(thread, rubyThread.getRootFiber());
@@ -533,11 +531,11 @@ public class ThreadManager {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
 
         final BlockingCallInterruptible.State state = new BlockingCallInterruptible.State(thread, executable, args);
-        safepoint.setBlockedWithException(currentNode, interrupter, blockingCallInterruptible, state, null, null);
-        return state.result;
+        return safepoint.setBlockedFunction(currentNode, interrupter, blockingCallInterruptible, state, null, null);
     }
 
-    public static class BlockingCallInterruptible implements CompiledInterruptible<BlockingCallInterruptible.State> {
+    public static class BlockingCallInterruptible
+            implements TruffleSafepoint.CompiledInterruptibleFunction<BlockingCallInterruptible.State, Object> {
 
         final InteropLibrary receivers;
         final TranslateInteropExceptionNode translateInteropExceptionNode;
@@ -554,7 +552,6 @@ public class ThreadManager {
             final RubyThread thread;
             final Object executable;
             final Object[] args;
-            Object result;
 
             private State(RubyThread thread, Object executable, Object[] args) {
                 this.thread = thread;
@@ -564,7 +561,7 @@ public class ThreadManager {
         }
 
         @Override
-        public void apply(State state) {
+        public Object apply(State state) {
             CompilerAsserts.partialEvaluationConstant(this);
             final RubyThread thread = state.thread;
 
@@ -574,8 +571,7 @@ public class ThreadManager {
                 // NOTE: NFI uses CallTargets, so the TruffleSafepoint.poll() will happen before coming back from this call
                 CompilerAsserts.partialEvaluationConstant(receivers);
                 CompilerAsserts.partialEvaluationConstant(translateInteropExceptionNode);
-                state.result = InteropNodes
-                        .execute(state.executable, state.args, receivers, translateInteropExceptionNode);
+                return InteropNodes.execute(state.executable, state.args, receivers, translateInteropExceptionNode);
             } finally {
                 thread.status = status;
             }
@@ -605,7 +601,6 @@ public class ThreadManager {
         // we want to allow side-effecting actions to interrupt this blocking action and run here.
         final boolean onBlocking = runningThread.interruptMode == InterruptMode.ON_BLOCKING;
 
-        final Memo<T> result = new Memo<>(null);
         final ThreadStatus status = runningThread.status;
         boolean sideEffects = false;
 
@@ -613,10 +608,10 @@ public class ThreadManager {
             sideEffects = safepoint.setAllowSideEffects(true);
         }
         try {
-            safepoint.setBlockedWithException(currentNode, Interrupter.THREAD_INTERRUPT, arg -> {
+            return safepoint.setBlockedFunction(currentNode, Interrupter.THREAD_INTERRUPT, arg -> {
                 runningThread.status = ThreadStatus.SLEEP;
                 try {
-                    result.set(action.block());
+                    return action.block();
                 } finally {
                     runningThread.status = status; // restore status for running the safepoint
                 }
@@ -626,8 +621,6 @@ public class ThreadManager {
                 safepoint.setAllowSideEffects(sideEffects);
             }
         }
-
-        return result.get();
     }
 
     @TruffleBoundary
