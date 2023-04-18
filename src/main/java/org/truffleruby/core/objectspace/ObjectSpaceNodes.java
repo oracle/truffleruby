@@ -256,7 +256,7 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    @Primitive(name = "object_space_define_data_finalizer")
+    @Primitive(name = "objectspace_define_data_finalizer")
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
