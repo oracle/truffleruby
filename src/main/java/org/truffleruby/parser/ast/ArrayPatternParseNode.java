@@ -28,83 +28,103 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- *
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-/** Represents an in condition */
-public class InParseNode extends ParseNode {
-    protected final ParseNode expressionNodes;
-    protected final ParseNode bodyNode;
-    private final ParseNode nextCase;
+public class ArrayPatternParseNode extends ParseNode {
+    private ListParseNode preArgs;
+    private final ParseNode restArg;
+    private final ListParseNode postArgs;
 
-    public InParseNode(
+    private ParseNode constant;
+
+    public ArrayPatternParseNode(
             SourceIndexLength position,
-            ParseNode expressionNodes,
-            ParseNode bodyNode,
-            ParseNode nextCase) {
+            ListParseNode preArgs,
+            ParseNode restArg,
+            ListParseNode postArgs) {
         super(position);
 
-        if (expressionNodes instanceof ArrayParseNode) {
-            var arrayParseNode = (ArrayParseNode) expressionNodes;
-            if (arrayParseNode.size() != 1) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            expressionNodes = arrayParseNode.get(0);
-        }
-
-        this.expressionNodes = expressionNodes;
-        this.bodyNode = bodyNode;
-        this.nextCase = nextCase;
-
-        assert bodyNode != null : "bodyNode is not null";
+        this.preArgs = preArgs;
+        this.restArg = restArg;
+        this.postArgs = postArgs;
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.INNODE;
-    }
-
-    /** Accept for the visitor pattern.
-     * 
-     * @param iVisitor the visitor **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitInNode(this);
-    }
-
-    /** Gets the bodyNode.
-     * 
-     * @return Returns a INode */
-    public ParseNode getBodyNode() {
-        return bodyNode;
-    }
-
-    /** Gets the next case node (if any). */
-    public ParseNode getNextCase() {
-        return nextCase;
-    }
-
-    /** Get the expressionNode(s). */
-    public ParseNode getExpressionNodes() {
-        return expressionNodes;
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitArrayPatternNode(this);
     }
 
     @Override
     public List<ParseNode> childNodes() {
-        return ParseNode.createList(expressionNodes, bodyNode, nextCase);
+        return createList(preArgs, restArg, postArgs, constant);
+    }
+
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.ARRAYPATTERNNODE;
+    }
+
+    public void setConstant(ParseNode constant) {
+        this.constant = constant;
+    }
+
+    public boolean hasConstant() {
+        return constant != null;
+    }
+
+    public ParseNode getConstant() {
+        return constant;
+    }
+
+    public ListParseNode getPreArgs() {
+        return preArgs;
+    }
+
+    public ListParseNode getPostArgs() {
+        return postArgs;
+    }
+
+    public void setPreArgs(ListParseNode preArgs) {
+        this.preArgs = preArgs;
+    }
+
+    public ParseNode getRestArg() {
+        return restArg;
+    }
+
+    public boolean hasRestArg() {
+        return restArg != null;
+    }
+
+    public boolean isNamedRestArg() {
+        return !(restArg instanceof StarParseNode);
+    }
+
+    public boolean usesRestNum() {
+        if (restArg == null) {
+            return false;
+        }
+
+        boolean named = !(restArg instanceof StarParseNode);
+
+        return named || !named && postArgsNum() > 0;
+    }
+
+    public int preArgsNum() {
+        return preArgs == null ? 0 : preArgs.size();
+    }
+
+    public int postArgsNum() {
+        return postArgs == null ? 0 : postArgs.size();
+    }
+
+    public int minimumArgsNum() {
+        return preArgsNum() + postArgsNum();
     }
 }

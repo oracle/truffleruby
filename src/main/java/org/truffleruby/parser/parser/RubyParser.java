@@ -42,6 +42,10 @@ package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
+import java.util.Set;
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.encoding.Encodings;
@@ -53,6 +57,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
@@ -73,19 +78,23 @@ import org.truffleruby.parser.ast.DXStrParseNode;
 import org.truffleruby.parser.ast.DefnParseNode;
 import org.truffleruby.parser.ast.DefsParseNode;
 import org.truffleruby.parser.ast.DotParseNode;
+import org.truffleruby.parser.ast.DVarParseNode;
 import org.truffleruby.parser.ast.EncodingParseNode;
 import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FileParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
 import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -157,7 +166,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 125 "-"
+// line 134 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -181,118 +190,118 @@ public class RubyParser {
   public static final int keyword_next = 276;
   public static final int keyword_redo = 277;
   public static final int keyword_retry = 278;
-  public static final int keyword_in = 279;
-  public static final int keyword_do = 280;
-  public static final int keyword_do_cond = 281;
-  public static final int keyword_do_block = 282;
-  public static final int keyword_return = 283;
-  public static final int keyword_yield = 284;
-  public static final int keyword_super = 285;
-  public static final int keyword_self = 286;
-  public static final int keyword_nil = 287;
-  public static final int keyword_true = 288;
-  public static final int keyword_false = 289;
-  public static final int keyword_and = 290;
-  public static final int keyword_or = 291;
-  public static final int keyword_not = 292;
-  public static final int modifier_if = 293;
-  public static final int modifier_unless = 294;
-  public static final int modifier_while = 295;
-  public static final int modifier_until = 296;
-  public static final int modifier_rescue = 297;
-  public static final int keyword_alias = 298;
-  public static final int keyword_defined = 299;
-  public static final int keyword_BEGIN = 300;
-  public static final int keyword_END = 301;
-  public static final int keyword__LINE__ = 302;
-  public static final int keyword__FILE__ = 303;
-  public static final int keyword__ENCODING__ = 304;
-  public static final int keyword_do_lambda = 305;
-  public static final int tIDENTIFIER = 306;
-  public static final int tFID = 307;
-  public static final int tGVAR = 308;
-  public static final int tIVAR = 309;
-  public static final int tCONSTANT = 310;
-  public static final int tCVAR = 311;
-  public static final int tLABEL = 312;
-  public static final int tCHAR = 313;
-  public static final int tUPLUS = 314;
-  public static final int tUMINUS = 315;
-  public static final int tUMINUS_NUM = 316;
-  public static final int tPOW = 317;
-  public static final int tCMP = 318;
-  public static final int tEQ = 319;
-  public static final int tEQQ = 320;
-  public static final int tNEQ = 321;
-  public static final int tGEQ = 322;
-  public static final int tLEQ = 323;
-  public static final int tANDOP = 324;
-  public static final int tOROP = 325;
-  public static final int tMATCH = 326;
-  public static final int tNMATCH = 327;
-  public static final int tDOT = 328;
-  public static final int tDOT2 = 329;
-  public static final int tDOT3 = 330;
-  public static final int tBDOT2 = 331;
-  public static final int tBDOT3 = 332;
-  public static final int tAREF = 333;
-  public static final int tASET = 334;
-  public static final int tLSHFT = 335;
-  public static final int tRSHFT = 336;
-  public static final int tANDDOT = 337;
-  public static final int tCOLON2 = 338;
-  public static final int tCOLON3 = 339;
-  public static final int tOP_ASGN = 340;
-  public static final int tASSOC = 341;
-  public static final int tLPAREN = 342;
-  public static final int tLPAREN2 = 343;
-  public static final int tRPAREN = 344;
-  public static final int tLPAREN_ARG = 345;
-  public static final int tLBRACK = 346;
-  public static final int tRBRACK = 347;
-  public static final int tLBRACE = 348;
-  public static final int tLBRACE_ARG = 349;
-  public static final int tSTAR = 350;
-  public static final int tSTAR2 = 351;
-  public static final int tAMPER = 352;
-  public static final int tAMPER2 = 353;
-  public static final int tTILDE = 354;
-  public static final int tPERCENT = 355;
-  public static final int tDIVIDE = 356;
-  public static final int tPLUS = 357;
-  public static final int tMINUS = 358;
-  public static final int tLT = 359;
-  public static final int tGT = 360;
-  public static final int tPIPE = 361;
-  public static final int tBANG = 362;
-  public static final int tCARET = 363;
-  public static final int tLCURLY = 364;
-  public static final int tRCURLY = 365;
-  public static final int tBACK_REF2 = 366;
-  public static final int tSYMBEG = 367;
-  public static final int tSTRING_BEG = 368;
-  public static final int tXSTRING_BEG = 369;
-  public static final int tREGEXP_BEG = 370;
-  public static final int tWORDS_BEG = 371;
-  public static final int tQWORDS_BEG = 372;
-  public static final int tSTRING_DBEG = 373;
-  public static final int tSTRING_DVAR = 374;
-  public static final int tSTRING_END = 375;
-  public static final int tLAMBDA = 376;
-  public static final int tLAMBEG = 377;
-  public static final int tNTH_REF = 378;
-  public static final int tBACK_REF = 379;
-  public static final int tSTRING_CONTENT = 380;
-  public static final int tINTEGER = 381;
-  public static final int tIMAGINARY = 382;
-  public static final int tFLOAT = 383;
-  public static final int tRATIONAL = 384;
-  public static final int tREGEXP_END = 385;
-  public static final int tSYMBOLS_BEG = 386;
-  public static final int tQSYMBOLS_BEG = 387;
-  public static final int tDSTAR = 388;
-  public static final int tSTRING_DEND = 389;
-  public static final int tLABEL_END = 390;
+  public static final int keyword_do = 279;
+  public static final int keyword_do_cond = 280;
+  public static final int keyword_do_block = 281;
+  public static final int keyword_return = 282;
+  public static final int keyword_yield = 283;
+  public static final int keyword_super = 284;
+  public static final int keyword_self = 285;
+  public static final int keyword_nil = 286;
+  public static final int keyword_true = 287;
+  public static final int keyword_false = 288;
+  public static final int keyword_and = 289;
+  public static final int keyword_or = 290;
+  public static final int keyword_not = 291;
+  public static final int modifier_if = 292;
+  public static final int modifier_unless = 293;
+  public static final int modifier_while = 294;
+  public static final int modifier_until = 295;
+  public static final int modifier_rescue = 296;
+  public static final int keyword_alias = 297;
+  public static final int keyword_defined = 298;
+  public static final int keyword_BEGIN = 299;
+  public static final int keyword_END = 300;
+  public static final int keyword__LINE__ = 301;
+  public static final int keyword__FILE__ = 302;
+  public static final int keyword__ENCODING__ = 303;
+  public static final int keyword_do_lambda = 304;
+  public static final int tIDENTIFIER = 305;
+  public static final int tFID = 306;
+  public static final int tGVAR = 307;
+  public static final int tIVAR = 308;
+  public static final int tCONSTANT = 309;
+  public static final int tCVAR = 310;
+  public static final int tLABEL = 311;
+  public static final int tCHAR = 312;
+  public static final int tUPLUS = 313;
+  public static final int tUMINUS = 314;
+  public static final int tUMINUS_NUM = 315;
+  public static final int tPOW = 316;
+  public static final int tCMP = 317;
+  public static final int tEQ = 318;
+  public static final int tEQQ = 319;
+  public static final int tNEQ = 320;
+  public static final int tGEQ = 321;
+  public static final int tLEQ = 322;
+  public static final int tANDOP = 323;
+  public static final int tOROP = 324;
+  public static final int tMATCH = 325;
+  public static final int tNMATCH = 326;
+  public static final int tDOT = 327;
+  public static final int tDOT2 = 328;
+  public static final int tDOT3 = 329;
+  public static final int tBDOT2 = 330;
+  public static final int tBDOT3 = 331;
+  public static final int tAREF = 332;
+  public static final int tASET = 333;
+  public static final int tLSHFT = 334;
+  public static final int tRSHFT = 335;
+  public static final int tANDDOT = 336;
+  public static final int tCOLON2 = 337;
+  public static final int tCOLON3 = 338;
+  public static final int tOP_ASGN = 339;
+  public static final int tASSOC = 340;
+  public static final int tLPAREN = 341;
+  public static final int tLPAREN2 = 342;
+  public static final int tRPAREN = 343;
+  public static final int tLPAREN_ARG = 344;
+  public static final int tLBRACK = 345;
+  public static final int tRBRACK = 346;
+  public static final int tLBRACE = 347;
+  public static final int tLBRACE_ARG = 348;
+  public static final int tSTAR = 349;
+  public static final int tSTAR2 = 350;
+  public static final int tAMPER = 351;
+  public static final int tAMPER2 = 352;
+  public static final int tTILDE = 353;
+  public static final int tPERCENT = 354;
+  public static final int tDIVIDE = 355;
+  public static final int tPLUS = 356;
+  public static final int tMINUS = 357;
+  public static final int tLT = 358;
+  public static final int tGT = 359;
+  public static final int tPIPE = 360;
+  public static final int tBANG = 361;
+  public static final int tCARET = 362;
+  public static final int tLCURLY = 363;
+  public static final int tRCURLY = 364;
+  public static final int tBACK_REF2 = 365;
+  public static final int tSYMBEG = 366;
+  public static final int tSTRING_BEG = 367;
+  public static final int tXSTRING_BEG = 368;
+  public static final int tREGEXP_BEG = 369;
+  public static final int tWORDS_BEG = 370;
+  public static final int tQWORDS_BEG = 371;
+  public static final int tSTRING_DBEG = 372;
+  public static final int tSTRING_DVAR = 373;
+  public static final int tSTRING_END = 374;
+  public static final int tLAMBDA = 375;
+  public static final int tLAMBEG = 376;
+  public static final int tNTH_REF = 377;
+  public static final int tBACK_REF = 378;
+  public static final int tSTRING_CONTENT = 379;
+  public static final int tINTEGER = 380;
+  public static final int tIMAGINARY = 381;
+  public static final int tFLOAT = 382;
+  public static final int tRATIONAL = 383;
+  public static final int tREGEXP_END = 384;
+  public static final int tSYMBOLS_BEG = 385;
+  public static final int tQSYMBOLS_BEG = 386;
+  public static final int tDSTAR = 387;
+  public static final int tSTRING_DEND = 388;
+  public static final int tLABEL_END = 389;
+  public static final int keyword_in = 390;
   public static final int tLOWEST = 391;
   public static final int yyErrorCode = 256;
 
@@ -304,77 +313,88 @@ public class RubyParser {
       Order is mandated by <i>jay</i>.
     */
   protected static final short[] yyLhs = {
-//yyLhs 675
-    -1,   156,     0,   142,   143,   143,   143,   143,   144,   144,
-    37,    36,    38,    38,    38,    38,    44,   159,    44,   160,
+//yyLhs 782
+    -1,   186,     0,   141,   142,   142,   142,   142,   143,   143,
+    37,    36,    38,    38,    38,    38,    44,   189,    44,   190,
     39,    39,    39,    39,    39,    39,    39,    39,    39,    39,
     39,    39,    39,    39,    39,    39,    39,    31,    31,    31,
     31,    31,    31,    31,    31,    62,    62,    62,    40,    40,
-    40,    40,    40,    40,    45,    32,    32,    61,    61,   116,
-   152,    43,    43,    43,    43,    43,    43,    43,    43,    43,
-    43,    43,   119,   119,   130,   130,   120,   120,   120,   120,
-   120,   120,   120,   120,   120,   120,    76,    76,   106,   106,
-   107,   107,    77,    77,    77,    77,    77,    77,    77,    77,
+    40,    40,    40,    40,    45,    32,    32,    61,    61,   115,
+   151,    43,    43,    43,    43,    43,    43,    43,    43,    43,
+    43,    43,   118,   118,   129,   129,   119,   119,   119,   119,
+   119,   119,   119,   119,   119,   119,    76,    76,   105,   105,
+   106,   106,    77,    77,    77,    77,    77,    77,    77,    77,
     77,    77,    77,    77,    77,    77,    77,    77,    77,    77,
-    77,    83,    83,    83,    83,    83,    83,    83,    83,    83,
-    83,    83,    83,    83,    83,    83,    83,    83,    83,    83,
+    77,    82,    82,    82,    82,    82,    82,    82,    82,    82,
+    82,    82,    82,    82,    82,    82,    82,    82,    82,    82,
      8,     8,    30,    30,    30,     7,     7,     7,     7,     7,
-   123,   123,   124,   124,    65,   162,    65,     6,     6,     6,
+   122,   122,   123,   123,    65,   192,    65,     6,     6,     6,
      6,     6,     6,     6,     6,     6,     6,     6,     6,     6,
      6,     6,     6,     6,     6,     6,     6,     6,     6,     6,
-     6,     6,     6,     6,     6,     6,     6,   137,   137,   137,
-   137,   137,   137,   137,   137,   137,   137,   137,   137,   137,
-   137,   137,   137,   137,   137,   137,   137,   137,   137,   137,
-   137,   137,   137,   137,   137,   137,   137,   137,   137,   137,
-   137,   137,   137,   137,   137,   137,   137,   137,   137,    41,
+     6,     6,     6,     6,     6,     6,     6,   136,   136,   136,
+   136,   136,   136,   136,   136,   136,   136,   136,   136,   136,
+   136,   136,   136,   136,   136,   136,   136,   136,   136,   136,
+   136,   136,   136,   136,   136,   136,   136,   136,   136,   136,
+   136,   136,   136,   136,   136,   136,   136,   136,   136,    41,
     41,    41,    41,    41,    41,    41,    41,    41,    41,    41,
     41,    41,    41,    41,    41,    41,    41,    41,    41,    41,
     41,    41,    41,    41,    41,    41,    41,    41,    41,    41,
     41,    41,    41,    41,    41,    41,    41,    41,    41,    41,
-    41,    41,   139,   139,   139,   139,    52,    52,    78,    82,
-    82,    82,    82,    63,    63,    55,    55,    55,    59,    59,
-   133,   133,   133,   133,   133,    53,    53,    53,    53,    53,
-   164,    57,   110,   110,   109,   109,    85,    85,    85,    85,
+    41,    41,   138,   138,   138,   138,    52,    52,    78,    81,
+    81,    81,    81,    63,    63,    55,    55,    55,    59,    59,
+   132,   132,   132,   132,   132,    53,    53,    53,    53,    53,
+   194,    57,   109,   109,   108,   108,    84,    84,    84,    84,
     35,    35,    75,    75,    75,    42,    42,    42,    42,    42,
-    42,    42,    42,    42,    42,    42,   165,    42,   166,    42,
-   167,   168,    42,    42,    42,    42,    42,    42,    42,    42,
+    42,    42,    42,    42,    42,    42,   195,    42,   196,    42,
+   197,   198,    42,    42,    42,    42,    42,    42,    42,    42,
     42,    42,    42,    42,    42,    42,    42,    42,    42,    42,
-    42,   170,   172,    42,   173,   174,    42,    42,    42,    42,
-   175,   176,    42,   177,    42,   179,    42,   180,    42,   181,
-   182,    42,   183,   184,    42,    42,    42,    42,    42,    46,
-   154,   155,   153,   169,   169,   169,   171,   171,    50,    50,
-    47,    47,   132,   132,   134,   134,    90,    90,   135,   135,
-   135,   135,   135,   135,   135,   135,   135,    97,    97,    97,
-    97,    97,    96,    96,    71,    71,    71,    71,    71,    71,
+    42,   200,   202,    42,   203,   204,    42,    42,    42,    42,
+   205,   206,    42,   207,    42,   209,    42,   210,    42,   211,
+   212,    42,   213,   214,    42,    42,    42,    42,    42,    46,
+   153,   154,   152,   199,   199,   199,   201,   201,    50,    50,
+    47,    47,   131,   131,   133,   133,    89,    89,   134,   134,
+   134,   134,   134,   134,   134,   134,   134,    96,    96,    96,
+    96,    96,    95,    95,    71,    71,    71,    71,    71,    71,
     71,    71,    71,    71,    71,    71,    71,    71,    71,    73,
-   186,    73,    72,    72,    72,   127,   127,   126,   126,   136,
-   136,   187,   188,   129,   189,    70,   190,    70,    70,   128,
-   128,   115,    60,    60,    60,    60,    22,    22,    22,    22,
-    22,    22,    22,    22,    22,   114,   114,   191,   192,   117,
-   193,   194,   118,    79,    48,    48,    80,    49,    49,   121,
-   121,    81,    81,    81,    51,    51,    54,    54,    28,    28,
-    28,    15,    16,    16,    16,    17,    18,    19,    25,    87,
-    87,    27,    27,    93,    91,    91,    26,    94,    86,    86,
-    92,    92,    20,    20,    21,    21,    24,    24,    23,   195,
-    23,   196,   197,   198,   199,   200,    23,    66,    66,    66,
-    66,     2,     1,     1,     1,     1,    29,    33,    33,    34,
-    34,    34,    34,    58,    58,    58,    58,    58,    58,    58,
-    58,    58,    58,    58,    58,   122,   122,   122,   122,   122,
-   122,   122,   122,   122,   122,   122,   122,    67,    67,   201,
-    56,    56,    74,   202,    74,    98,    98,    98,    98,    98,
-    95,    95,    68,    68,    69,    69,    69,    69,    69,    69,
+   216,    73,    72,    72,    72,   126,   126,   125,   125,   135,
+   135,   217,   218,   128,   219,    70,   220,    70,    70,   127,
+   127,   114,    60,    60,    60,    60,    22,    22,    22,    22,
+    22,    22,    22,    22,    22,   113,   113,   221,   222,   116,
+   223,   224,   117,    79,    48,    48,   225,   226,   227,   155,
+    49,    49,   156,   156,   156,   157,   157,   157,   157,   157,
+   157,   158,   159,   159,   160,   160,   182,   183,   161,   161,
+   161,   161,   161,   161,   161,   161,   161,   161,   161,   161,
+   161,   228,   161,   161,   229,   161,   163,   163,   163,   163,
+   163,   163,   163,   163,   164,   164,   165,   165,   162,   177,
+   177,   166,   166,   167,   174,   174,   174,   174,   175,   175,
+   176,   176,   181,   181,   178,   178,   179,   180,   180,   168,
+   168,   168,   168,   168,   168,   168,   168,   168,   168,   169,
+   169,   169,   169,   169,   169,   169,   169,   169,   169,   169,
+   169,   169,   169,   169,   169,   170,   171,   171,   172,   173,
+   173,   173,   120,   120,    80,    80,    80,    51,    51,    54,
+    54,    28,    28,    28,    15,    16,    16,    16,    17,    18,
+    19,    25,    86,    86,    27,    27,    92,    90,    90,    26,
+    93,    85,    85,    91,    91,    20,    20,    21,    21,    24,
+    24,    23,   230,    23,   231,   232,   233,   234,   235,    23,
+    66,    66,    66,    66,     2,     1,     1,     1,     1,    29,
+    33,    33,   184,   184,   184,    34,    34,    34,    34,    58,
+    58,    58,    58,    58,    58,    58,    58,    58,    58,    58,
+    58,   121,   121,   121,   121,   121,   121,   121,   121,   121,
+   121,   121,   121,    67,    67,   236,    56,    56,    74,   237,
+    74,    97,    97,    97,    97,    97,    94,    94,    68,    68,
     69,    69,    69,    69,    69,    69,    69,    69,    69,    69,
-   148,   138,   138,   138,   138,     9,     9,   151,   125,   125,
-    88,    88,   147,    99,    99,   100,   100,   101,   101,   102,
-   102,   145,   145,   185,   146,   146,    64,   131,   108,   108,
-    89,    89,    10,    10,    13,    13,    12,    12,   113,   113,
-   112,   112,    14,   203,    14,   103,   103,   104,   104,   105,
-   105,   105,   105,   105,     3,     3,     3,     4,     4,     4,
-     4,     5,     5,     5,    11,    11,   149,   149,   150,   150,
-   157,   157,   161,   161,   140,   141,   163,   163,   163,   178,
-   178,   158,   158,    84,   111,
+    69,    69,    69,    69,    69,    69,   147,   137,   137,   137,
+   137,     9,     9,   150,   124,   124,    87,    87,   146,    98,
+    98,    99,    99,   100,   100,   101,   101,   144,   144,   215,
+   145,   145,    64,   130,   107,   107,    88,    88,    10,    10,
+    13,    13,    12,    12,   112,   112,   111,   111,    14,   238,
+    14,   102,   102,   103,   103,   104,   104,   104,   104,   104,
+     3,     3,     3,     4,     4,     4,     4,     5,     5,     5,
+    11,    11,   148,   148,   149,   149,   187,   187,   191,   191,
+   139,   140,   185,   193,   193,   193,   208,   208,   188,   188,
+    83,   110,
     }, yyLen = {
-//yyLen 675
+//yyLen 782
      2,     0,     2,     2,     1,     1,     3,     2,     1,     4,
      4,     2,     1,     1,     3,     2,     1,     0,     5,     0,
      4,     3,     3,     3,     2,     3,     3,     3,     3,     3,
@@ -408,7 +428,7 @@ public class RubyParser {
      1,     1,     3,     4,     2,     1,     1,     1,     1,     1,
      1,     1,     1,     1,     1,     1,     0,     4,     0,     3,
      0,     0,     5,     3,     3,     2,     3,     3,     1,     4,
-     3,     1,     5,     4,     3,     2,     1,     2,     2,     6,
+     3,     1,     5,     4,     3,     2,     1,     2,     1,     6,
      6,     0,     0,     7,     0,     0,     7,     5,     4,     5,
      0,     0,     9,     0,     6,     0,     7,     0,     5,     0,
      0,     7,     0,     0,     9,     1,     1,     1,     1,     1,
@@ -418,185 +438,213 @@ public class RubyParser {
      2,     1,     2,     0,     6,     8,     4,     6,     4,     2,
      6,     2,     4,     6,     2,     4,     2,     4,     1,     1,
      0,     2,     3,     1,     4,     1,     4,     1,     3,     1,
-     1,     0,     0,     4,     0,     5,     0,     2,     0,     3,
+     1,     0,     0,     5,     0,     5,     0,     2,     0,     3,
      3,     3,     2,     4,     5,     5,     2,     4,     4,     3,
      3,     3,     2,     1,     4,     3,     3,     0,     0,     4,
-     0,     0,     4,     5,     1,     1,     5,     1,     1,     6,
-     0,     1,     1,     1,     2,     1,     2,     1,     1,     1,
-     1,     1,     1,     1,     2,     3,     3,     3,     4,     0,
-     3,     1,     2,     4,     0,     3,     4,     4,     0,     3,
-     0,     3,     0,     2,     0,     2,     0,     2,     1,     0,
-     3,     0,     0,     0,     0,     0,     8,     1,     1,     1,
-     1,     2,     1,     1,     1,     1,     3,     1,     2,     1,
+     0,     0,     4,     5,     1,     1,     0,     0,     0,     8,
+     1,     1,     1,     3,     3,     1,     2,     3,     1,     1,
+     1,     1,     3,     1,     3,     1,     1,     1,     1,     1,
+     4,     4,     4,     3,     4,     4,     4,     3,     3,     3,
+     2,     0,     4,     2,     0,     4,     1,     1,     2,     3,
+     5,     2,     4,     1,     2,     3,     1,     3,     5,     2,
+     1,     1,     3,     1,     3,     1,     2,     1,     1,     3,
+     2,     1,     1,     3,     2,     1,     2,     1,     1,     1,
+     3,     3,     2,     2,     1,     1,     1,     2,     2,     1,
+     1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+     1,     1,     1,     1,     1,     1,     2,     2,     4,     2,
+     3,     1,     6,     0,     1,     1,     1,     2,     1,     2,
+     1,     1,     1,     1,     1,     1,     1,     2,     3,     3,
+     3,     4,     0,     3,     1,     2,     4,     0,     3,     4,
+     4,     0,     3,     0,     3,     0,     2,     0,     2,     0,
+     2,     1,     0,     3,     0,     0,     0,     0,     0,     8,
+     1,     1,     1,     1,     2,     1,     1,     1,     1,     3,
+     1,     2,     1,     1,     1,     1,     1,     1,     1,     1,
      1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
      1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-     1,     1,     1,     1,     1,     1,     1,     1,     1,     0,
-     4,     0,     3,     0,     3,     4,     2,     2,     2,     1,
-     2,     0,     1,     0,     6,     8,     4,     6,     4,     6,
-     2,     4,     6,     2,     4,     2,     4,     1,     3,     1,
-     1,     1,     1,     1,     1,     1,     1,     1,     1,     3,
-     1,     3,     1,     2,     1,     2,     1,     1,     3,     1,
-     3,     1,     1,     2,     2,     1,     3,     3,     1,     3,
-     1,     3,     1,     1,     2,     1,     1,     1,     2,     1,
-     2,     0,     1,     0,     4,     1,     2,     1,     3,     3,
-     2,     1,     4,     2,     1,     1,     1,     1,     1,     1,
+     1,     1,     1,     1,     1,     0,     4,     0,     3,     0,
+     3,     4,     2,     2,     2,     1,     2,     0,     1,     0,
+     6,     8,     4,     6,     4,     6,     2,     4,     6,     2,
+     4,     2,     4,     1,     3,     1,     1,     1,     1,     1,
+     1,     1,     1,     1,     1,     3,     1,     3,     1,     2,
+     1,     2,     1,     1,     3,     1,     3,     1,     1,     2,
+     2,     1,     3,     3,     1,     3,     1,     3,     1,     1,
+     2,     1,     1,     1,     2,     1,     2,     0,     1,     0,
+     4,     1,     2,     1,     3,     3,     2,     1,     4,     2,
      1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-     0,     1,     0,     1,     2,     2,     0,     1,     1,     1,
-     1,     1,     2,     0,     0,
+     1,     1,     1,     1,     1,     1,     0,     1,     0,     1,
+     2,     2,     2,     0,     1,     1,     1,     1,     1,     2,
+     0,     0,
     }, yyDefRed = {
-//yyDefRed 1142
+//yyDefRed 1290
      1,     0,     0,     0,   370,   371,     0,     0,   316,     0,
      0,     0,   341,   344,     0,     0,     0,   367,   368,   372,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-   482,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,   502,   504,   506,     0,     0,
-   431,   557,   558,   529,   532,   530,   531,     0,     0,   479,
-    60,   306,     0,   483,   307,   308,     0,   309,   310,   305,
-   480,    31,    48,   478,   527,     0,     0,     0,     0,     0,
+   585,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,   605,   607,   609,     0,     0,
+   431,   663,   664,   635,   638,   636,   637,     0,     0,   582,
+    60,   306,     0,   586,   307,   308,     0,   309,   310,   305,
+   583,    31,    48,   581,   630,     0,     0,     0,     0,     0,
      0,     0,   313,     0,    56,     0,     0,    86,     0,     4,
-   311,   312,     0,     0,    72,     0,     2,     0,     5,     0,
-     0,     0,     0,     7,   187,   198,   188,   211,   184,   204,
-   194,   193,   214,   215,   209,   192,   191,   186,   212,   216,
-   217,   196,   185,   199,   203,   205,   197,   190,   206,   213,
+   311,   312,     0,     0,    72,     0,   338,     2,     0,     5,
+     0,     0,     0,     0,     7,   187,   198,   188,   211,   184,
+   204,   194,   193,   214,   215,   209,   192,   191,   186,   212,
+   216,   217,   196,   185,   199,   203,   205,   190,   206,   213,
    208,     0,     0,     0,     0,   183,   202,   201,   218,   182,
-   189,   180,   181,     0,     0,     0,     0,   137,   535,   534,
-     0,   537,   172,   173,   169,   150,   151,   152,   159,   156,
-   158,   153,   154,   174,   175,   160,   161,   633,   166,   165,
+   189,   180,   181,     0,     0,     0,     0,   137,   641,   640,
+     0,   643,   172,   173,   169,   150,   151,   152,   159,   156,
+   158,   153,   154,   174,   175,   160,   161,   739,   166,   165,
    149,   171,   168,   167,   163,   164,   157,   155,   147,   170,
-   148,   176,   162,   138,   359,     0,   632,   139,   207,   200,
-   210,   195,   177,   178,   179,   135,   136,   141,   140,   143,
-     0,   142,   144,     0,     0,     0,     0,     0,     0,     0,
+   148,   176,   162,   197,   138,   359,     0,   738,   139,   207,
+   200,   210,   195,   177,   178,   179,   135,   136,   141,   140,
+   143,     0,   142,   144,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,   669,   670,     0,     0,     0,
-   671,     0,     0,   365,   366,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,   776,   777,     0,     0,
+     0,   778,     0,     0,   365,   366,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,   369,     0,     0,   382,   383,     0,     0,
-   328,     0,     0,     0,     0,   502,     0,     0,   285,    70,
-     0,     0,     0,   637,   289,    71,     0,    68,     0,     0,
-   452,    67,     0,   663,     0,     0,    19,     0,     0,     0,
-   241,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,    13,    12,     0,     0,     0,     0,     0,
-   269,     0,     0,     0,   635,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,   369,     0,     0,   382,   383,     0,
+     0,   328,     0,     0,     0,     0,   605,     0,     0,   285,
+    70,     0,     0,     0,   743,   289,    71,     0,    68,     0,
+     0,   452,    67,     0,   769,     0,     0,    19,     0,     0,
+     0,   241,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,    13,    12,     0,     0,     0,     0,
+     0,   269,     0,     0,     0,   741,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,   254,    52,   253,   524,   523,   525,
-   521,   522,     0,     0,     0,     0,   489,   498,   338,     0,
-   494,   500,   484,   460,   457,   337,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,   254,    52,   253,   627,   626,
+   628,   624,   625,     0,     0,     0,     0,   592,   601,     0,
+   597,   603,   587,   460,   457,   337,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,   264,   265,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,   263,   262,     0,     0,     0,     0,
-   460,   442,   656,   657,     0,     0,     0,     0,   659,   658,
+   460,   442,   762,   763,     0,     0,     0,     0,   765,   764,
      0,     0,    88,     0,     0,     0,     0,     0,     0,     3,
-     0,   446,     0,   335,    69,   539,   538,   540,   541,   543,
-   542,   544,     0,     0,     0,     0,   133,     0,     0,   314,
-   357,     0,   360,   654,   655,   362,   145,     0,     0,     0,
+     0,   446,     0,   335,    69,   645,   644,   646,   647,   649,
+   648,   650,     0,     0,     0,     0,   133,     0,     0,   314,
+   357,     0,   360,   760,   761,   362,   145,     0,     0,     0,
    374,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,   672,     0,     0,     0,   528,     0,     0,
-     0,     0,   350,   640,   297,   292,     0,   643,     0,     0,
+     0,     0,     0,   779,     0,     0,     0,   631,     0,     0,
+     0,     0,   350,   746,   297,   292,     0,   749,     0,     0,
    286,   295,     0,   287,     0,   330,     0,   291,     0,   281,
    280,     0,     0,     0,     0,     0,   334,    51,    21,    23,
     22,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,   323,    11,     0,     0,   319,     0,   326,
-     0,   667,   270,     0,   272,   327,   636,     0,    90,     0,
-     0,     0,     0,     0,   511,   509,   526,   508,   505,   485,
-   503,   486,   487,   507,     0,     0,   434,   432,     0,     0,
+     0,   774,   270,     0,   272,   327,   742,     0,    90,     0,
+     0,     0,     0,     0,   614,   612,   629,   611,   608,   588,
+   606,   589,   590,   610,     0,     0,   434,   432,     0,     0,
      0,     0,   461,     0,   458,    25,    26,    27,    28,    29,
     49,    50,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-   449,     0,   451,     0,     0,     0,   649,     0,     0,   650,
-   450,     0,   647,   648,     0,    47,     0,     0,     0,    44,
+   449,     0,   451,     0,     0,     0,   755,     0,     0,   756,
+   450,     0,   753,   754,     0,    47,     0,     0,     0,    44,
    227,     0,     0,     0,     0,    37,   219,    33,   296,     0,
      0,     0,     0,    89,    32,     0,   300,     0,    38,   220,
-     6,   457,    62,     0,   130,     0,   132,   559,   353,     0,
+     6,   457,    62,     0,   130,     0,   132,   665,   353,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,   317,
-     0,   375,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,   375,     0,     0,     0,     0,     0,     0,   466,     0,
      0,     0,   348,   377,   342,   376,   345,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,   639,     0,     0,     0,
-   294,   638,   329,   664,     0,     0,   275,   277,   333,    20,
+     0,     0,     0,     0,     0,     0,   745,     0,     0,     0,
+   294,   744,   329,   770,     0,     0,   275,   277,   333,    20,
      0,     9,    30,     0,   226,     0,     0,    14,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,   512,     0,   488,
-   491,     0,   496,     0,     0,     0,   596,   593,   592,   591,
-   594,   602,   611,   590,     0,   623,   622,   627,   626,   612,
-   597,     0,     0,     0,   620,   437,     0,     0,   587,   609,
-     0,   569,   600,   595,     0,     0,     0,   589,     0,     0,
-   493,     0,   497,     0,   456,     0,   455,     0,     0,   441,
+     0,     0,     0,     0,     0,     0,     0,   615,     0,   591,
+   594,     0,   599,     0,     0,     0,   702,   699,   698,   697,
+   700,   708,   717,   696,     0,   729,   728,   733,   732,   718,
+   703,     0,     0,     0,   726,   437,     0,     0,   693,   715,
+     0,   675,   706,   701,     0,     0,     0,   695,     0,     0,
+   596,     0,   600,     0,   456,     0,   455,     0,     0,   441,
      0,     0,   448,     0,     0,     0,     0,     0,     0,   279,
      0,   447,   278,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,    87,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,   134,     0,     0,   634,     0,     0,     0,
-   363,   146,   472,     0,     0,   473,     0,     0,   380,     0,
-   378,     0,     0,     0,     0,     0,     0,     0,     0,   347,
-   349,     0,     0,     0,     0,     0,     0,   642,   299,   288,
-     0,     0,   332,     0,   322,   271,    91,     0,   513,   517,
-   518,   519,   510,   520,   490,   492,   499,     0,   572,     0,
-     0,   433,     0,     0,   384,     0,   386,     0,   624,   628,
-     0,   585,     0,   580,     0,   583,     0,   566,   613,   614,
-     0,   567,   603,     0,   568,   495,   501,     0,   419,     0,
-     0,     0,    43,   224,    42,   225,    66,     0,   665,    40,
+     0,     0,     0,   134,     0,     0,   740,     0,     0,     0,
+   363,   146,   575,     0,     0,   576,     0,     0,   380,     0,
+   378,     0,     0,     0,     0,     0,     0,     0,   467,   347,
+   349,     0,     0,     0,     0,     0,     0,   748,   299,   288,
+     0,     0,   332,     0,   322,   271,    91,     0,   616,   620,
+   621,   622,   613,   623,   593,   595,   602,     0,   678,     0,
+     0,   433,     0,     0,   384,     0,   386,     0,   730,   734,
+     0,   691,     0,   686,     0,   689,     0,   672,   719,   720,
+     0,   673,   709,     0,   674,   598,   604,     0,   419,     0,
+     0,     0,    43,   224,    42,   225,    66,     0,   771,    40,
    222,    41,   223,    64,   445,   444,    46,     0,     0,     0,
      0,     0,     0,     0,     0,     0,    34,    59,     0,     0,
-     0,   454,   358,     0,     0,     0,     0,     0,     0,   475,
-   381,     0,    10,   477,     0,   339,     0,   340,     0,   298,
-     0,     0,     0,   351,     0,   276,    18,   514,     0,     0,
-     0,     0,     0,     0,     0,     0,   599,     0,   570,   598,
-     0,     0,   601,   588,     0,   621,     0,   610,   630,     0,
-     0,   616,   462,   423,     0,   421,   459,     0,     0,    39,
-     0,     0,     0,   560,   354,   562,   361,   564,     0,     0,
+     0,   454,   358,     0,     0,     0,     0,     0,     0,   578,
+   381,     0,    10,   580,     0,   339,     0,   340,     0,   298,
+     0,     0,     0,   351,     0,   276,    18,   617,     0,     0,
+     0,     0,     0,     0,     0,     0,   705,     0,   676,   704,
+     0,     0,   707,   694,     0,   727,     0,   716,   736,     0,
+     0,   722,   462,   423,     0,   421,   459,     0,     0,    39,
+     0,     0,     0,   666,   354,   668,   361,   670,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,   474,     0,   476,     0,     0,   464,
-   463,   465,   343,   346,     0,   515,   435,     0,   440,   439,
-   385,     0,     0,     0,   387,     0,   586,     0,   578,     0,
-   576,     0,   581,   584,   565,     0,     0,     0,   418,   607,
-     0,     0,   401,     0,   618,     0,     0,     0,     0,   356,
-     0,     0,     0,     0,     0,     0,     0,   467,   466,   468,
-     0,     0,   429,     0,   427,   430,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,   416,     0,     0,   411,     0,
-   398,     0,   414,   422,   399,     0,     0,     0,     0,     0,
-   400,   364,     0,     0,     0,     0,     0,   469,   379,   352,
-     0,     0,   426,     0,     0,   579,     0,   574,   577,   582,
-     0,   402,   424,     0,     0,   608,     0,     0,     0,   619,
-   325,     0,     0,     0,   516,   428,     0,     0,     0,   417,
-     0,   408,     0,   406,   397,     0,   412,   415,     0,     0,
-   575,     0,     0,     0,     0,   410,     0,   404,   407,   413,
-     0,   405,
+     0,     0,     0,     0,   577,     0,   579,     0,   558,   557,
+   559,   560,   562,   561,   563,   565,   571,   532,     0,     0,
+     0,   504,     0,     0,     0,   605,     0,   550,   551,   552,
+   553,   554,   549,   555,   556,   564,     0,     0,     0,     0,
+   481,     0,   485,   478,   479,   488,     0,   489,   544,   545,
+     0,   480,     0,   528,     0,   537,   538,   527,     0,   464,
+   463,   465,   343,   346,     0,   618,   435,     0,   440,   439,
+   385,     0,     0,     0,   387,     0,   692,     0,   684,     0,
+   682,     0,   687,   690,   671,     0,     0,     0,   418,   713,
+     0,     0,   401,     0,   724,     0,     0,     0,     0,   356,
+     0,     0,     0,     0,     0,     0,     0,   547,   548,   131,
+   569,     0,   500,     0,     0,     0,     0,   513,     0,   503,
+     0,     0,   519,     0,   566,   633,   632,   634,     0,   567,
+   536,   534,   468,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+   429,     0,   427,   430,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,   416,     0,     0,   411,     0,   398,     0,
+   414,   422,   399,     0,     0,     0,     0,     0,   400,   364,
+     0,     0,     0,     0,     0,   572,   379,     0,   499,   498,
+     0,     0,     0,   514,   772,   605,     0,   533,     0,     0,
+   473,   474,   482,   477,     0,   484,   540,   541,   570,   497,
+   493,     0,     0,     0,     0,     0,     0,   529,   524,     0,
+   521,   352,     0,     0,   426,     0,     0,   685,     0,   680,
+   683,   688,     0,   402,   424,     0,     0,   714,     0,     0,
+     0,   725,   325,     0,     0,     0,   505,     0,     0,   515,
+     0,   502,   568,     0,     0,   491,   490,   492,   495,   494,
+   496,     0,   619,   428,     0,     0,     0,   417,     0,   408,
+     0,   406,   397,     0,   412,   415,     0,     0,     0,     0,
+   470,   469,   471,     0,   522,   518,   681,     0,     0,     0,
+     0,     0,     0,   410,     0,   404,   407,   413,     0,   405,
     }, yyDgoto = {
-//yyDgoto 204
-     1,   350,    69,    70,   669,   590,   591,   208,   436,   730,
-   731,   445,   732,   733,   195,    71,    72,    73,    74,    75,
-   353,   352,    76,   538,   355,    77,    78,   711,    79,    80,
-   437,    81,    82,    83,    84,   625,   447,   448,   311,   312,
-    86,    87,    88,    89,   313,   229,   301,   810,  1000,  1048,
-   811,   918,    91,   489,   922,   592,   638,   287,    92,   771,
-    93,    94,   615,   616,   734,   210,   842,   231,   847,   848,
-   547,  1026,   965,   877,   798,   617,    96,    97,   280,   462,
-   660,   804,   319,   232,   314,   593,   545,   544,   736,   737,
-   855,   549,   550,   100,   101,   861,  1065,  1101,   948,   739,
-  1029,  1030,   740,   325,   492,   283,   102,   529,  1031,   480,
-   284,   481,   867,   741,   423,   401,   632,   553,   551,   103,
-   104,   648,   233,   211,   212,   742,  1053,   938,   851,   358,
-   316,  1034,   268,   493,   856,   857,  1054,   197,   743,   399,
-   485,   765,   106,   107,   108,   744,   745,   746,   747,   641,
-   410,   949,   269,   270,   111,   112,     2,   238,   239,   511,
-   501,   486,   646,   522,   288,   213,   317,   318,   698,   451,
-   241,   664,   823,   242,   824,   674,  1004,   790,   452,   788,
+//yyDgoto 239
+     1,   351,    69,    70,   669,   590,   591,   209,   436,   730,
+   731,   445,   732,   733,   196,    71,    72,    73,    74,    75,
+   354,   353,    76,   540,   356,    77,    78,   711,    79,    80,
+   437,    81,    82,    83,    84,   625,   447,   448,   312,   313,
+    86,    87,    88,    89,   314,   230,   302,   810,  1050,  1271,
+   811,   918,    91,   489,   922,   592,   638,   288,    92,   771,
+    93,    94,   615,   616,   734,   211,   842,   232,   847,   848,
+   547,  1076,   965,   877,   798,   617,    96,    97,   281,   462,
+   804,   320,   233,   315,   593,   545,   544,   736,   737,   855,
+   549,   550,   100,   101,   861,  1153,  1223,   948,   739,  1079,
+  1080,   740,   326,   492,   284,   102,   529,  1081,   480,   285,
+   481,   867,   741,   423,   401,   632,   553,   551,   103,   104,
+   648,   234,   212,   213,   742,  1141,   938,   851,   106,   317,
+  1084,   269,   493,   856,   857,  1142,   198,   743,   399,   485,
+   765,   107,   108,   109,   744,   745,   746,   747,   641,   410,
+   949,   110,   111,   112,   113,   660,  1027,  1028,  1181,  1030,
+  1031,  1032,  1033,  1105,  1106,  1107,  1209,  1108,  1035,  1036,
+  1037,  1038,  1039,  1040,  1041,  1042,  1043,  1044,  1045,  1046,
+  1047,  1048,  1133,  1134,  1119,  1109,     2,   239,   240,   511,
+   501,   486,   646,   522,   289,   214,   318,   319,   698,   451,
+   242,   664,   823,   243,   824,   674,  1054,   790,   452,   788,
    642,   442,   644,   645,   916,   749,   879,   359,   715,   714,
-   548,   554,   757,   552,   755,   708,   707,   838,   937,  1005,
-  1051,   789,   799,   441,
+   548,   554,   757,   552,   755,   818,   928,  1189,  1111,  1101,
+   708,   707,   838,   937,  1055,  1139,   789,   799,   441,
     }, yySindex = {
-//yySindex 1142
-     0,     0, 19997, 21580,     0,     0, 19352, 19748,     0, 22759,
- 22759, 18556,     0,     0, 23283, 20392, 20392,     0,     0,     0,
-  -278,  -196,     0,     0,     0,     0,    91, 19616,   149,  -202,
-  -161,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0, 22890, 22890,   867, 22890, 22890,   -92, 20129,     0, 21052,
- 21448, 18824, 22890, 23021, 19484,     0,     0,     0,   211,   261,
-     0,     0,     0,     0,     0,     0,     0,   269,   288,     0,
-     0,     0,   -64,     0,     0,     0,  -222,     0,     0,     0,
-     0,     0,     0,     0,     0,   925,    49,  3634,     0,    95,
-   699,   477,     0,   481,     0,   -11,   309,     0,   320,     0,
-     0,     0, 23414,   345,     0,   116,     0,   135,     0,  -197,
- 20392, 23545, 23676,     0,     0,     0,     0,     0,     0,     0,
+//yySindex 1290
+     0,     0, 21762, 23333,     0,     0, 21107, 21509,     0, 24503,
+ 24503, 19515,     0,     0, 25023, 22154, 22154,     0,     0,     0,
+  -236,  -177,     0,     0,     0,     0,   114, 21375,   158,  -160,
+  -127,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0, 24633, 24633,   940, 24633, 24633,   -44, 21893,     0, 22809,
+ 23202, 20074, 24633, 24763, 21241,     0,     0,     0,   249,   259,
+     0,     0,     0,     0,     0,     0,     0,   270,   346,     0,
+     0,     0,   -61,     0,     0,     0,   -84,     0,     0,     0,
+     0,     0,     0,     0,     0,  1706,    80,  7772,     0,   285,
+  1041,   568,     0,   688,     0,    60,   497,     0,   517,     0,
+     0,     0, 25153,   544,     0,   282,     0,     0,   649,     0,
+  -112, 22154, 25283, 25413,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -604,242 +652,273 @@ public class RubyParser {
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,  -105,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,   -68,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-   423,     0,     0, 20261,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,   160, 20261,    49,   107,
-   823,   178,   461,   185,   107,     0,     0,   135,   274,   492,
-     0, 22759, 22759,     0,     0,  -278,  -196,     0,     0,     0,
-     0,   267,   149,     0,     0,     0,     0,     0,     0,     0,
-     0,   867,   314,     0,  1154,     0,     0,     0,   327,  -197,
-     0, 22890, 22890, 22890, 22890,     0, 22890,  3634,     0,     0,
-   294,   607,   609,     0,     0,     0, 16851,     0, 20392, 20524,
-     0,     0, 18691,     0, 22759,   322,     0, 21842, 19997, 20261,
-     0,  1175,   351,   357,  3720,  3720,   338, 21711,     0, 20129,
-   337,   135,   925,     0,     0,     0,   149,   149, 21711,   335,
-     0,   158,   163,   294,     0,   319,   163,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0,     0,   396,
- 23807,  1248,     0,   651,     0,     0,     0,     0,     0,     0,
-     0,     0,   612,   827,  1214,   323,     0,     0,     0,   369,
-     0,     0,     0,     0,     0,     0, 22759, 22759, 22759, 22759,
- 21711, 22759, 22759, 22890, 22890, 22890, 22890, 22890,     0,     0,
- 22890, 22890, 22890, 22890, 22890, 22890, 22890, 22890, 22890, 22890,
- 22890, 22890, 22890, 22890,     0,     0, 22890, 22890, 22890, 22890,
-     0,     0,     0,     0,  4093, 20392,  4601, 22890,     0,     0,
- 24673, 23021,     0, 21973, 20129, 18959,   675, 21973, 23021,     0,
- 19090,     0,   375,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0, 22759,    -4,     0,   367,  1276,     0,
-     0, 22759,     0,     0,     0,     0,     0,   469,   479,   338,
-     0, 20261,   466,  5201, 20392,  5667, 22890, 22890, 22890, 20261,
-    29, 22104,   485,     0,    75,    75,   402,     0,     0,  6089,
- 20392,  8232,     0,     0,     0,     0,   754,     0, 22890, 20656,
-     0,     0, 21184,     0,   149,     0,   409,     0, 22890,     0,
-     0,   719,   720,   149,   149,   272,     0,     0,     0,     0,
-     0, 19748, 22759,  3634,   405,   410,  5201,  5667, 22890, 22890,
-   925,   403,   149,     0,     0, 19221,     0,     0,   925,     0,
- 21316,     0,     0, 21448,     0,     0,     0,     0,     0,   728,
- 24151, 20392, 24209, 23807,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,  1243,   233,     0,     0,  4179,  1345,
-   264,   513,     0,   416,     0,     0,     0,     0,     0,     0,
-     0,     0,   351,  3241,  3241,  3241,  3241,  4736,  4228,  3241,
-  3241,  3720,  3720,   457,   457,   351,  2645,   351,   351,   815,
-   815,  2673,  2673,  6598,  3095,   521,   452,     0,   454,  -196,
-     0,     0,     0,   751,   149,   505,     0,   510,  -196,     0,
-     0,  3095,     0,     0,  -196,     0,   500,  3164,  1303,     0,
-     0,   -11,   745, 22890,  3164,     0,     0,     0,     0,   808,
-   149, 23807,   810,     0,     0,   528,     0,     0,     0,     0,
-     0,     0,     0,    49,     0,     0,     0,     0,     0, 24267,
- 20392, 24325, 20261,   272,   518, 19880, 19748, 22235,   587,     0,
-   300,     0,   522,   529,   149,   530,   532,   587, 22104,   604,
-   615,   710,     0,     0,     0,     0,     0,     0,     0,  -196,
-   149,     0,     0,  -196, 22759, 22890,     0, 22890,   294,   609,
-     0,     0,     0,     0, 20788, 21184,     0,     0,     0,     0,
-   272,     0,     0,   351,     0, 19997,     0,     0,   149,   163,
- 23807,     0,     0,   149,     0,     0,   728,     0,   717,     0,
-     0,    10,     0,   844,  4179,  -151,     0,     0,     0,     0,
-     0,     0,     0,     0,  1533,     0,     0,     0,     0,     0,
-     0,   584,   586,   849,     0,     0,   854,   857,     0,     0,
-   866,     0,     0,     0,   -27,   868, 22890,     0,   852,   868,
-     0,   159,     0,   884,     0,     0,     0,     0,   864,     0,
- 23021, 23021,     0,   375, 20656,   585,   581, 23021, 23021,     0,
-   375,     0,     0,    95,  -222, 21711, 22890, 24383, 20392, 24441,
- 23021,     0, 22366,     0,   728, 23807, 21711,   567,   135, 22759,
- 20261,     0,     0,     0,   149,   685,     0,  4179, 20261,  4179,
-     0,     0,     0,     0,   603,     0, 20261,   698,     0, 22759,
-     0,   700, 22890, 22890,   623, 22890, 22890,   702,   710,     0,
-     0, 22497, 20261, 20261, 20261,     0,    75,     0,     0,     0,
-   924,   149,     0,   605,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,   149,     0, 20261,
- 20261,     0,  1533,   549,     0,   935,     0,   149,     0,     0,
-  1927,     0,  4179,     0,  4687,     0,   842,     0,     0,     0,
-   290,     0,     0, 22890,     0,     0,     0, 20261,     0,  -140,
- 20261, 22890,     0,     0,     0,     0,     0, 23021,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,  3634,   452,   454,
-   149,   505,   510, 22890,     0,   728,     0,     0, 20261,   135,
-   718,     0,     0,   149,   725,   135,   518, 23938,   107,     0,
-     0, 20261,     0,     0,   107,     0, 22890,     0, 20261,     0,
-   316,   730,   733,     0, 21184,     0,     0,     0,   639,   941,
-   737,   642,   149,  2297,   967,  2236,     0,   968,     0,     0,
-   975,   976,     0,     0,   978,     0,   968,     0,     0,   723,
-   868,     0,     0,     0,   663,     0,     0,  3634,  3634,     0,
-   585,     0,   759,     0,     0,     0,     0,     0, 20261,     0,
+     0,   596,     0,     0, 22024,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,   341, 22024,    80,
+   104,  1139,   308,   605,   380,   104,     0,     0,   649,   459,
+   674,     0, 24503, 24503,     0,     0,  -236,  -177,     0,     0,
+     0,     0,   394,   158,     0,     0,     0,     0,     0,     0,
+     0,     0,   940,   435,     0,  1197,     0,     0,     0,   364,
+  -112,     0, 24633, 24633, 24633, 24633,     0, 24633,  7772,     0,
+     0,   416,   721,   743,     0,     0,     0, 17967,     0, 22154,
+ 22285,     0,     0, 19647,     0, 24503,   486,     0, 23593, 21762,
+ 22024,     0,  1320,   451,   461,  4268,  4268,   498, 23463,     0,
+ 21893,   529,   649,  1706,     0,     0,     0,   158,   158, 23463,
+   500,     0,    69,    87,   416,     0,   545,    87,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,   721,  1307,     0,     0, 20261,     0, 20261,   -31,     0,
-     0,     0,     0,     0, 20261,     0,     0,  1616,     0,     0,
-     0,   995,  2297,   625,     0,  1927,     0,  1927,     0,  4687,
-     0,  1927,     0,     0,     0,   998,   149,  1004,     0,     0,
-  1009,  1010,     0,   694,     0,   868, 24069,  1006,   868,     0,
-   795,     0, 24499, 20392, 24557,   469,   300,     0,     0,     0,
-   801, 20261,     0,   202,     0,     0,  2297,   995,  2297,  1024,
-   968,  1028,   968,   968,  1927,     0,   712,  4687,     0,   842,
-     0,  4687,     0,     0,     0,     0,     0,   768,  1439, 24069,
-     0,     0,     0,     0,   149,     0,     0,     0,     0,     0,
-   690,  1616,     0,   995,  2297,     0,  1927,     0,     0,     0,
-  1036,     0,     0,  1040,  1043,     0,   868,  1044,  1036,     0,
-     0, 24615,  1439,     0,     0,     0,   995,   968,  1927,     0,
-  1927,     0,  4687,     0,     0,  1927,     0,     0,     0,     0,
-     0,  1036,  1045,  1036,  1036,     0,  1927,     0,     0,     0,
-  1036,     0,
+   579, 25543,  1344,     0,   890,     0,     0,     0,     0,     0,
+     0,     0,     0,  1332,  1440,  1694,  1293,     0,     0,   598,
+     0,     0,     0,     0,     0,     0, 24503, 24503, 24503, 24503,
+ 23463, 24503, 24503, 24633, 24633, 24633, 24633, 24633,     0,     0,
+ 24633, 24633, 24633, 24633, 24633, 24633, 24633, 24633, 24633, 24633,
+ 24633, 24633, 24633, 24633,     0,     0, 24633, 24633, 24633, 24633,
+     0,     0,     0,     0,  4218, 22154,  4729, 24633,     0,     0,
+  5295, 24763,     0, 23723, 21893, 20204,   899, 23723, 24763,     0,
+ 20334,     0,   608,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0, 24503,  -184,     0,   601,  1390,     0,
+     0, 24503,     0,     0,     0,     0,     0,   700,   710,   498,
+     0, 22024,   715,  7657, 22154, 25885, 24633, 24633, 24633, 22024,
+  -144, 23853,   722,     0,   208,   208,   650,     0,     0, 25943,
+ 22154, 26001,     0,     0,     0,     0,  1035,     0, 24633, 22416,
+     0,     0, 22940,     0,   158,     0,   662,     0, 24633,     0,
+     0,   966,   973,   158,   158,    92,     0,     0,     0,     0,
+     0, 21509, 24503,  7772,   657,   668,  7657, 25885, 24633, 24633,
+  1706,   671,   158,     0,     0, 20464,     0,     0,  1706,     0,
+ 23071,     0,     0, 23202,     0,     0,     0,     0,     0,   991,
+ 26059, 22154, 26117, 25543,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,  1703,  -203,     0,     0,  3708,  1753,
+   494,   775,     0,   679,     0,     0,     0,     0,     0,     0,
+     0,     0,   451,  3338,  3338,  3338,  3338,  4807,  4352,  3338,
+  3338,  4268,  4268,  1680,  1680,   451,  1220,   451,   451,  1157,
+  1157,  1800,  1800,  6248,  3172,   781,   712,     0,   714,  -177,
+     0,     0,     0,  1016,   158,   735,     0,   737,  -177,     0,
+     0,  3172,     0,     0,  -177,     0,   776,  7264,  1446,     0,
+     0,    60,  1019, 24633,  7264,     0,     0,     0,     0,  1051,
+   158, 25543,  1052,     0,     0,   801,     0,     0,     0,     0,
+     0,     0,     0,    80,     0,     0,     0,     0,     0, 26175,
+ 22154, 26233, 22024,    92,   757, 21643, 21509, 23983,   832,     0,
+   553,     0,   767,   771,   158,   777,   779,   832,     0,   856,
+   860,   118,     0,     0,     0,     0,     0,     0,     0,  -177,
+   158,     0,     0,  -177, 24503, 24633,     0, 24633,   416,   743,
+     0,     0,     0,     0, 22547, 22940,     0,     0,     0,     0,
+    92,     0,     0,   451,     0, 21762,     0,     0,   158,    87,
+ 25543,     0,     0,   158,     0,     0,   991,     0,  1274,     0,
+     0,   210,     0,  1097,  3708,  -174,     0,     0,     0,     0,
+     0,     0,     0,     0,  2734,     0,     0,     0,     0,     0,
+     0,   830,   833,  1112,     0,     0,  1113,  1115,     0,     0,
+  1122,     0,     0,     0,   -58,  1124, 24633,     0,  1109,  1124,
+     0,   257,     0,  1140,     0,     0,     0,     0,  1117,     0,
+ 24763, 24763,     0,   608, 22416,   838,   834, 24763, 24763,     0,
+   608,     0,     0,   285,   -84, 23463, 24633, 26291, 22154, 26349,
+ 24763,     0, 24113,     0,   991, 25543, 23463,   817,   649, 24503,
+ 22024,     0,     0,     0,   158,   927,     0,  3708, 22024,  3708,
+     0,     0,     0,     0,   852,     0, 22024,   930,     0, 24503,
+     0,   932, 24633, 24633,   867, 24633, 24633,   945,     0,     0,
+     0, 24243, 22024, 22024, 22024,     0,   208,     0,     0,     0,
+  1168,   158,     0,   855,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,   158,     0, 22024,
+ 22024,     0,  2734,  1123,     0,  1176,     0,   158,     0,     0,
+  3169,     0,  3708,     0,  3255,     0,  1036,     0,     0,     0,
+   503,     0,     0, 24633,     0,     0,     0, 22024,     0,  -136,
+ 22024, 24633,     0,     0,     0,     0,     0, 24763,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,  7772,   712,   714,
+   158,   735,   737, 24633,     0,   991,     0,     0, 22024,   649,
+   957,     0,     0,   158,   961,   649,   757, 25673,   104,     0,
+     0, 22024,     0,     0,   104,     0, 24633,     0, 20772,     0,
+   342,   971,   972,     0, 22940,     0,     0,     0,   900,  1196,
+   993,   894,   158,  1673,  1217,  3326,     0,  1219,     0,     0,
+  1223,  1231,     0,     0,  1234,     0,  1219,     0,     0,   975,
+  1124,     0,     0,     0,  2588,     0,     0,  7772,  7772,     0,
+   838,     0,  1017,     0,     0,     0,     0,     0, 22024,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,   974,  1601,     0,     0, 22024,     0, 22024,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,  3823,  3823,
+   466,     0,  3699,   158,   980,     0,  1708,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,   254,   104,   610,    65,
+     0,  1165,     0,     0,     0,     0,   604,     0,     0,     0,
+   175,     0,  1248,     0,  1249,     0,     0,     0, 20977,     0,
+     0,     0,     0,     0, 22024,     0,     0,  1545,     0,     0,
+     0,  1251,  1673,  1146,     0,  3169,     0,  3169,     0,  3255,
+     0,  3169,     0,     0,     0,  1253,   158,  1257,     0,     0,
+  1259,  1260,     0,   946,     0,  1124, 25803,  1250,  1124,     0,
+  1045,     0, 26407, 22154, 26465,   700,   553,     0,     0,     0,
+     0, 20977,     0,   992,   158,   158, 17703,     0,  1269,     0,
+   951,   469,     0,  1121,     0,     0,     0,     0, 24503,     0,
+     0,     0,     0, 24503, 24503,  1029, 20875, 20977,  3823,  3823,
+   466,   158,   158, 20772, 20772,   469, 20977,   992,  1074, 22024,
+     0,    97,     0,     0,  1673,  1251,  1673,  1302,  1219,  1304,
+  1219,  1219,  3169,     0,   995,  3255,     0,  1036,     0,  3255,
+     0,     0,     0,     0,     0,  1054,  1782, 25803,     0,     0,
+     0,     0,   158,     0,     0,     0,     0,   177,     0,     0,
+    17,   992,  1316,     0,     0,     0,   158,     0,  1342, 22024,
+     0,     0,     0,     0,  1317,     0,     0,     0,     0,     0,
+     0,   158,   158,   158,   158,   158,   158,     0,     0,  1341,
+     0,     0,  1007,  1545,     0,  1251,  1673,     0,  3169,     0,
+     0,     0,  1366,     0,     0,  1369,  1375,     0,  1124,  1382,
+  1366,     0,     0, 26523,  1782,     0,     0,  1395, 20977,     0,
+   436,     0,     0,  -210, 20977,     0,     0,     0,     0,     0,
+     0, 20875,     0,     0,  1251,  1219,  3169,     0,  3169,     0,
+  3255,     0,     0,  3169,     0,     0,     0,     0, 20977,  1399,
+     0,     0,     0,  1399,     0,     0,     0,  1366,  1402,  1366,
+  1366,  1399, 20977,     0,  3169,     0,     0,     0,  1366,     0,
     }, yyRindex = {
-//yyRindex 1142
-     0,     0,   161,     0,     0,     0,     0,     0,     0,     0,
-     0,   822,     0,     0,     0, 10675, 10812,     0,     0,     0,
-  5486,  5020, 12220, 12324, 12435, 12572, 23152,     0, 22628,     0,
-     0, 12676, 12787, 12924,  5819,  4004, 13028, 13139,  5952, 13276,
-     0,     0,     0,     0,     0,     0,     0,   139, 18422,   753,
-   736,   114,     0,     0,  1367,     0,     0,     0,     0,     0,
+//yyRindex 1290
+     0,     0,   758,     0,     0,     0,     0,     0,     0,     0,
+     0,  1177,     0,     0,     0, 11472, 11609,     0,     0,     0,
+  5578,  5112,  9613,  9964, 10315, 10666, 24893,     0, 24373,     0,
+     0, 11017, 13075, 13187,  5910,  4096, 13322, 13426,  6044, 13538,
+     0,     0,     0,     0,     0,     0,     0,   116, 19378,  1106,
+  1093,    31,     0,     0,  1852,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0, 10108,     0,     0,     0, 10212,     0,     0,     0,
-     0,     0,     0,     0,     0,    72, 16729,  7210, 10323,  7718,
-     0, 13380,     0, 16527,     0, 13491,     0,     0,     0,     0,
-     0,     0,   263,     0,     0,     0,     0,    36,     0, 20920,
- 10916,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,  1484,  2710,  3091,  5126,     0,     0,     0,     0,     0,
-     0,     0,     0,  5592,  6041,  6550,  7058,     0,     0,     0,
-  7566,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0, 10419,     0,     0,     0, 10907,     0,     0,     0,
+     0,     0,     0,     0,     0,    76,  1758, 17377, 11121, 17480,
+     0, 13673,     0, 17515,     0, 14024,     0,     0,     0,     0,
+     0,     0,   194,     0,     0,     0,     0,     0,    63,     0,
+ 22678, 11713,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,  5216,  5682,  6197,  6705,     0,     0,     0,     0,     0,
+     0,     0,     0,  7213,  7721, 12054, 12391,     0,     0,     0,
+ 12728,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
- 16787,     0,     0,  1064,  8452,  8563,  8700,  8804,  8915,  9052,
-  9156,  2852,  9267,  9404,  2988,  9508,     0,   139, 16674,     0,
-     0,  9860,     0,     0,     0,     0,     0,    80,     0,    92,
-     0,     0,     0,     0,     0, 10460,  9619,  1146,  1172,  1301,
-  1435,     0,   765,  1700,  1713,  1756,  1322,  1938,  2474,  1785,
-  2531,     0,     0,     0,     0,  3277,     0,     0,     0,     0,
-     0,  1302,     0,  3738,     0,     0,     0, 16299,     0,     0,
- 16427,  4246,  4246,     0,     0,     0,   769,     0,     0,   166,
-     0,     0,   769,     0,     0,     0,     0,     0,    37,    37,
-     0,     0, 11268, 10564,  1918,  2553, 13628,     0, 18018,   139,
-     0,  2689,  1282,     0,     0,    38,   769,   769,     0,     0,
-     0,   770,   770,     0,     0,     0,   750,  1471,  1611,  1677,
-  2131,  2300,  9479,  9831,  1663, 10183, 10535,  1998, 10887,     0,
-     0,     0, 11239,   273,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0,     0,  3589,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0, 11027, 11164,     0,     0,     0,     0,
+     0,  3318,     0,     0,  1632,  2513,  8450,  8664,  8801,  9015,
+  9152,  9366,  2925,  9503,  9717,  3080,  9854,     0,   116, 17649,
+     0,     0, 10556,     0,     0,     0,     0,     0,  -133,     0,
+   -60,     0,     0,     0,     0,     0, 11258, 10068,   410,   729,
+   750,  1268,     0,  1132,  1280,  1312,  1376,  2169,  1652,  1670,
+  2766,  1882,     0,     0,     0,     0,  1996,     0,     0,     0,
+     0,     0,  2198,     0, 17117,     0,     0,     0,  2709,     0,
+     0, 16963, 17160, 17160,     0,     0,     0,  1134,     0,     0,
+   156,     0,     0,  1134,     0,     0,     0,     0,     0,   100,
+   100,     0,     0, 12162,  1596, 16167, 16273, 14130,     0, 18977,
+   116,     0,  2557,  1741,     0,     0,    57,  1134,  1134,     0,
+     0,     0,  1119,  1119,     0,     0,     0,  1116,   897,  1037,
+  1195,  1435,  1453,  1754,  1967,  2409,  2257,  2350,  2607,  2631,
+     0,     0,     0,  2697,   200,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,  3192,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,    40,     0,     0,     0,     0,
-     0,     0,     0,     0,   139,   344,   538,     0,     0,     0,
-    71,     0,  4754,     0,     0,     0,     0,     0,     0,     0,
-     0,     0, 16984, 17120,     0,     0,     0, 18153,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,   570,     0,  9971,
-     0,   488, 17748,     0,    40,     0,     0,     0,     0,   673,
-     0,     0,     0,     0,     0,     0,     0,     0,  3785,     0,
-    40,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,   769,     0,     0,     0,   170,     0,
-     0,   183,    52,   769,   769,   769,     0,     0,     0,     0,
-     0,     0,     0, 15935,     0,     0,     0,     0,     0,     0,
-  1414,     0,   769,     0,     0,  3127,    46,     0,   194,     0,
-   778,     0,     0,   -52,     0,     0,     0, 11591,     0,   616,
-     0,    40,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0, 11825, 11960,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,    18,     0,     0,     0,     0,
+     0,     0,     0,     0,   116,   217,   219,     0,     0,     0,
+    82,     0, 17206,     0,     0,     0,     0,     0,     0,     0,
+     0,     0, 18106, 18250,     0,     0,     0, 19109,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,   815,     0, 10770,
+     0,   707, 17837,     0,    18,     0,     0,     0,     0,   725,
+     0,     0,     0,     0,     0,     0,     0,     0,  2109,     0,
+    18,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,  1134,     0,     0,     0,   176,     0,
+     0,   222,   207,  1134,  1134,  1134,     0,     0,     0,     0,
+     0,     0,     0, 16529,     0,     0,     0,     0,     0,     0,
+  2187,     0,  1134,     0,     0,  2648,    68,     0,   229,     0,
+  1143,     0,     0,   -41,     0,     0,     0,  2710,     0,   224,
+     0,    18,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0, 11379, 14909, 15032, 15149, 15249, 15340, 15691, 15489,
- 15600, 15781, 15845, 14084, 14195, 11516, 14332, 11620, 11731, 13732,
- 13843, 14436, 14547,  1084, 14680,     0,  6327,  4379,  7851, 20920,
-     0,  4512,     0,    47,   796,  6460,     0,  6835,  5353,     0,
-     0, 14792,     0,     0,  2394,     0,  1840, 16363,     0,     0,
-     0, 13980,     0,     0, 15404,     0,     0,     0,     0,     0,
-   769,     0,   618,     0,     0,  2023,     0,  2061,     0,     0,
-     0,     0,     0,   150,     0, 17614,     0,     0,     0,     0,
-    40,     0,  1064,   769,  8072,     0,     0,   617,   407,     0,
-   883,     0,  3363,  4887,   796,  3496,  3871,   883,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,  2099,  1299,     0,
-   796,  2601,  3198,  9756,     0,     0,     0,     0, 16487,  4246,
-     0,     0,     0,     0,   206,   129,     0,     0,     0,     0,
-   769,     0,     0, 11868,     0,    37,   134,     0,   769,   770,
-     0,  2085,  1065,   796,  2197,  2529,   644,     0,     0,     0,
-     0,     0,     0,     0,   212,     0,     0,     0,     0,     0,
+     0,     0, 12297, 15263, 15366, 15477, 15608, 15719, 16017, 15822,
+ 15911, 16362, 16423, 14377, 14481, 12499, 14619, 12634, 12836, 13777,
+ 13915, 14779, 14910,  1427, 15021,     0,  6418,  4470,  7942, 22678,
+     0,  4604,     0,    98,  1156,  6552,     0,  6926,  5444,     0,
+     0, 15124,     0,     0,  8316,     0,  2083, 16874,     0,     0,
+     0, 14266,     0,     0,  1405,     0,     0,     0,     0,     0,
+  1134,     0,   263,     0,     0,  8488,     0,  1539,     0,     0,
+     0,     0,     0,   702,     0, 18708,     0,     0,     0,     0,
+    18,     0,  1632,  1134, 12740,     0,     0,   822,   685,     0,
+  1222,     0,  3454,  4978,  1156,  3588,  3962,  1222,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,  3213,   524,     0,
+  1156,  3794,  4302, 10205,     0,     0,     0,     0, 17027, 17160,
+     0,     0,     0,     0,   231,   248,     0,     0,     0,     0,
+  1134,     0,     0, 12971,     0,   100,   140,     0,  1134,  1119,
+     0,  2752,   886,  1156, 12047, 12072,   283,     0,     0,     0,
+     0,     0,     0,     0,   130,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,   221,   268,   200,     0,     0,   200,   200,     0,     0,
-   244,     0,     0,     0,   271,   244,    53,     0,   120,   244,
-     0,     0,     0,     0,     0, 17884,     0, 18287,     0,     0,
-     0,     0,     0,  6194,    57, 11972,     0,     0,     0,     0,
-  6702,     0,     0, 16591,  1152,     0,     0,     0,    40,     0,
-     0,   843,     0,     0,   677,     0,     0,     0,     0,     0,
-  1064, 17300, 17434,     0,   796,     0,     0,   214,  1064,   155,
-     0,     0,     0,   171,   606,     0,   781,   883,     0,     0,
-     0,     0,     0,     0,  8348,     0,     0,     0,     0,     0,
-     0,     0,   640,   191,   191,   671,     0,     0,     0,     0,
-    52,   769,     0,     0,     0,     0,     0,  2727,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     2,     0,  1064,
-    37,     0,     0,   222,     0,   226,     0,   769,     0,     0,
+     0,   294,   267,   363,     0,     0,   363,   363,     0,     0,
+   407,     0,     0,     0,   621,   407,   146,     0,   665,   407,
+     0,     0,     0,     0,     0, 18840,     0, 19246,     0,     0,
+     0,     0,     0, 17273,   136,  8911,     0,     0,     0,     0,
+ 17337,     0,     0, 17593, 11394,     0,     0,     0,    18,     0,
+     0,  1298,     0,     0,   333,     0,     0,     0,     0,     0,
+  1632, 18407, 18551,     0,  1156,     0,     0,   258,  1632,   732,
+     0,     0,     0,   821,   280,     0,   840,  1222,     0,     0,
+     0,     0,     0,     0,  2045,     0,     0,     0,     0,     0,
+     0,     0,   947,   675,   675,   910,     0,     0,     0,     0,
+   207,  1134,     0,     0,     0,     0,     0,  1039,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     3,     0,  1632,
+   100,     0,     0,   260,     0,   274,     0,  1134,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,  1064,     0,     0,
-    37,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,     0,     0, 16023,  6968,  7984,
-   796,  7343,  7476,     0,  1690,   680,     0,     0,  1064,     0,
-     0,     0,     0,   769,     0,     0,  8072,     0,     0,     0,
-     0,   191,     0,     0,     0,     0,     0,     0,   449,     0,
-   883,     0,     0,     0,   143,     0,     0,     0,     0,   -70,
-     0,     0,   769,     0,   231,     0,     0,   200,     0,     0,
-   200,   200,     0,     0,   200,     0,   200,     0,     0,   271,
-   244,     0,     0,     0,    -6,     0,     0, 16123, 16211,     0,
- 12083, 16655,     0,     0,     0,     0,     0,     0,  1064,  1779,
-  2151,  2246,  2500,  2523,  2526,  2636,   919,  8389,  8427,   947,
-  8457,     0,     0,  8599,     0,  1064,     0,   488,   883,     0,
-     0,     0,     0,     0,   191,     0,     0,     0,     0,     0,
-     0,   234,     0,   235,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,     0,   130,    -6,   130,     0,     0,
-   140,   130,     0,     0,     0,   140,   111,   125,   140,     0,
-     0,  8671,     0,    40,     0,   570,   883,     0,     0,     0,
-     0,    25,     0,    17,     0,     0,     0,   237,     0,   246,
-   200,   200,   200,   200,     0,     0,     0,   141,     0,     0,
-     0,     0,     0,     0,     0,  2010, 13918,     0,   128,     0,
-     0,     0,  1810,  1565,   796,  2461,  2463,     0,     0,     0,
-     0,     0,     0,   253,     0,     0,     0,     0,     0,     0,
-   130,     0,     0,   130,   130,     0,   140,   130,   130,     0,
-     0,     0,   138,   543,     0,     0,   260,   200,     0,     0,
-     0,     0,     0,     0,     0,     0,     0,     0, 14577,  1394,
-     0,   130,   130,   130,   130,     0,     0,     0,     0,     0,
-   130,     0,
+     0,     0,     0,     0,     0,     0,     0,  1632,     0,     0,
+   100,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0, 16618,  7060,  8076,
+  1156,  7434,  7568,     0, 16232,   370,     0,     0,  1632,     0,
+     0,     0,     0,  1134,     0,     0, 12740,     0,     0,     0,
+     0,   675,     0,     0,     0,     0,     0,     0,     0,     0,
+  1222,     0,     0,     0,   331,     0,     0,     0,     0,   188,
+     0,     0,  1134,     0,   289,     0,     0,   363,     0,     0,
+   363,   363,     0,     0,   363,     0,   363,     0,     0,   621,
+   407,     0,     0,     0,    -1,     0,     0, 16721, 16785,     0,
+  9262, 17702,     0,     0,     0,     0,     0,     0,  1632,  2231,
+  2591,  2615,  2755,  5219,  5685,  8706,  2228,  9020,  9305,  2817,
+  9371,     0,     0,  9402,     0,  1632,     0,   707,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,  1156,   620,  2689,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,  1286,     0,   733,   686,
+     0,  8878,     0,     0,     0,     0,   902,     0,     0,     0,
+  1698,     0,  1700,     0,  1935,     0,     0,     0,   769,     0,
+     0,     0,     0,     0,   675,     0,     0,     0,     0,     0,
+     0,   309,     0,   317,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,    93,    -1,    93,     0,     0,
+   110,    93,     0,     0,     0,   110,   137,   138,   110,     0,
+     0,  9408,     0,    18,     0,   815,  1222,     0,     0,     0,
+     0,     0,     0,  6707,  1156,  1156,  2210,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,   911,     0, 11649, 13009,
+     0, 20566, 20669,     0,     0,  1764,     0,  1058,     0,    16,
+     0,   367,     0,     0,     0,   326,     0,   338,   363,   363,
+   363,   363,     0,     0,     0,   126,     0,     0,     0,     0,
+     0,     0,     0,  1542,  2189,     0,   150,     0,     0,     0,
+  8554,  1449,  1156,  8557, 10175,     0,     0,  1134,     0,     0,
+  4202,  7215,  4710,     0,     0,     0,  1128,     0,     0,    86,
+     0,     0,     0,     0,   934,     0,     0,     0,     0,     0,
+     0,  1134,  1134,  1134,  1156,  1156,  1156,     0,     0,  4844,
+     0,     0,     0,     0,     0,   355,     0,     0,     0,     0,
+     0,     0,    93,     0,     0,    93,    93,     0,   110,    93,
+    93,     0,     0,     0,   154, 10877,     0,  5684,     0,     0,
+     0,     0,     0,  1222,     0,     0,     0,     0,     0,     0,
+     0,     0,     0,     0,   414,   363,     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,  8806,  6118,     0,  5818,
+     0,     0,     0,  1258,     0,     0,     0,    93,    93,    93,
+    93,  6792,     0,     0,     0,     0,     0,     0,    93,     0,
     }, yyGindex = {
-//yyGindex 204
-     0,     0,     3,     0,  -218,     0,    14,    22,  -354,  -113,
-     0,     0,     0,   318,     0,     0,     0,  1076,     0,     0,
-   878,  1099,     0,  -280,     0,     0,     0,   608,     0,    16,
-  1046,  -286,   -38,     0,    27,     0,   437,   391,     0,    30,
-    94,  2110,     4,    23,   648,    77,    -2,  -406,     0,     0,
-   131,     0,     0,   764,     0,    48,     0,   -15,  1169,   589,
-     0,     0,  -320,   509,  -800,     0,     0,   296,  -177,   637,
-     0,     0,     0,   431,   275,  -371,   -91,   -20,   385,  -435,
-   198,     0,     0,  1250,    87,   103,     0,     0, 11855,   341,
-  -737,     0,     0,     0,     0,   218,  2439,   241,  -437,   331,
-   146,     0,     0,     0,    64,  -428,     0,  -413,   145,  -258,
-  -423,     0,    86,  1970,   -72,   455,  -421,   579,   838,  1225,
-    13,   196,  1553,     0,    -5,  -229,     0,  -821,     0,     0,
-  -186,  -993,     0,  -368,  -879,   390,   174,     0,  -933,  1163,
-   917,  -577,  -269,     0,    31,  -814,  1186,   398,  -262,   -74,
-     0,  -531,   937,  1088,     0,     0,     0,    21,    34,     0,
-     0,   -23,     0,  -282,     0,     0,     0,     0,     0,  -232,
-     0,  -373,     0,     0,     0,     0,     0,     0,    15,     0,
-     0,     0,     0,     0,     0,  1841,     0,     0,     0,     0,
+//yyGindex 239
+     0,     0,    26,     0,  -316,     0,    37,     6,  -425,  -695,
+     0,     0,     0,  -690,     0, 15241,     0,  1432, 15819, 16686,
+  -274,  1450,     0,  -202,     0, 18935, 18987,   956, 18998,    38,
+  1403,  -180,   117,     0,    14,     0,   190,   509,     0,    67,
+    40,  2247,   -13,    62,  1000,    29,    21,  -644,     0,     0,
+   422,     0,     0,   782,     0,    90,     0,   -12,  1514,   919,
+     0,     0,  -384,   796,  -769,     0,     0,   205,  -465,   982,
+     0,     0,     0,   770,   612,  -351,   -88,    -5,   585,  -445,
+     0,     0,   504,    -2,   462,     0,     0,    56,   673,  -179,
+     0,     0, 19035, 19166,  -593,  1884,   584,   153,   693,   411,
+     0,     0,     0,     5,  -440,     0,   101,   425,  -266,  -463,
+     0,  -665,   178,   -70,   798,  -564,   958,  1187,  1574,    46,
+   502,   723,     0,   -22,  -840,     0,  -822,     0, 19182,  -191,
+  -998,     0,  -353,  -841,   747,   389,     0, -1001,  1522,   340,
+   265,  -281,     0,    22,   550,   184,  2334,  -283,   -82,     0,
+  -369,  1348,  1797,     0,     0,   371,     0,     0,  2524,     0,
+     0,   488,  -890,  -239,     0,   690,  -362,   979,     0,  -816,
+   499,     0,     0,     0,  -443,     0,   484, -1011,     0,     0,
+   491,     0,     0,     0,     0,   441,     0,   536,    -3,     0,
+     0,    45,     0,  -242,     0,     0,     0,     0,     0,  -232,
+     0,  -378,     0,     0,     0,     0,     0,     0,   264,     0,
+     0,     0,     0,     0,     0,  2359,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     0,     0,     0,     0,
+     0,     0,     0,     0,     0,     0,     0,     0,     0,
     };
     protected static final short[] yyTable = YyTables.yyTable();
     protected static final short[] yyCheck = YyTables.yyCheck();
@@ -851,11 +930,13 @@ public class RubyParser {
     "end-of-file",null,null,null,null,null,null,null,null,null,"'\\n'",
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,"' '",null,null,null,null,null,
-    null,null,null,null,null,null,"','",null,null,null,null,null,null,
+    null,null,"'('","')'",null,null,"','",null,null,null,null,null,null,
     null,null,null,null,null,null,null,"':'","';'",null,"'='",null,"'?'",
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,
-    "'['",null,null,null,null,null,null,null,null,null,null,null,null,
+    "'['",null,null,"'^'",null,null,null,null,null,null,null,null,null,
+    null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+    null,null,null,null,null,null,"'|'",null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
@@ -865,35 +946,32 @@ public class RubyParser {
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-    null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-    null,null,null,null,null,null,null,null,null,null,null,null,null,
     "keyword_class","keyword_module","keyword_def","keyword_undef",
     "keyword_begin","keyword_rescue","keyword_ensure","keyword_end",
     "keyword_if","keyword_unless","keyword_then","keyword_elsif",
     "keyword_else","keyword_case","keyword_when","keyword_while",
     "keyword_until","keyword_for","keyword_break","keyword_next",
-    "keyword_redo","keyword_retry","keyword_in","keyword_do",
-    "keyword_do_cond","keyword_do_block","keyword_return","keyword_yield",
-    "keyword_super","keyword_self","keyword_nil","keyword_true",
-    "keyword_false","keyword_and","keyword_or","keyword_not",
-    "modifier_if","modifier_unless","modifier_while","modifier_until",
-    "modifier_rescue","keyword_alias","keyword_defined","keyword_BEGIN",
-    "keyword_END","keyword__LINE__","keyword__FILE__",
-    "keyword__ENCODING__","keyword_do_lambda","tIDENTIFIER","tFID",
-    "tGVAR","tIVAR","tCONSTANT","tCVAR","tLABEL","tCHAR","unary+",
-"unary-","tUMINUS_NUM","'**'","'<=>'","'=='","'==='","'!='","'>='",
-"'<='","'&&'","'||'","'=~'","'!~'","'.'","'..'","'...'",
-    "tBDOT2","tBDOT3","'[]'","'[]='","'<<'","'>>'","'&.'",
-"'::'","':: at EXPR_BEG'","tOP_ASGN","'=>'","'('","'( arg'",
-"')'","'['","'{'","'{ arg'","'['","'[ args'",
-"'*'","'*'","'&'","'&'","'~'","'%'","'/'",
-"'+'","'-'","'<'","'>'","'|'","'!'","'^'","'{'",
-"'}'","'`'","':'","tSTRING_BEG","tXSTRING_BEG",
-    "tREGEXP_BEG","tWORDS_BEG","tQWORDS_BEG","tSTRING_DBEG",
-    "tSTRING_DVAR","tSTRING_END","'->'","tLAMBEG","tNTH_REF",
-    "tBACK_REF","tSTRING_CONTENT","tINTEGER","tIMAGINARY","tFLOAT",
-    "tRATIONAL","tREGEXP_END","tSYMBOLS_BEG","tQSYMBOLS_BEG","'**'",
-    "tSTRING_DEND","tLABEL_END","tLOWEST",
+    "keyword_redo","keyword_retry","keyword_do","keyword_do_cond",
+    "keyword_do_block","keyword_return","keyword_yield","keyword_super",
+    "keyword_self","keyword_nil","keyword_true","keyword_false",
+    "keyword_and","keyword_or","keyword_not","modifier_if",
+    "modifier_unless","modifier_while","modifier_until","modifier_rescue",
+    "keyword_alias","keyword_defined","keyword_BEGIN","keyword_END",
+    "keyword__LINE__","keyword__FILE__","keyword__ENCODING__",
+    "keyword_do_lambda","tIDENTIFIER","tFID","tGVAR","tIVAR","tCONSTANT",
+    "tCVAR","tLABEL","tCHAR","unary+","unary-","tUMINUS_NUM","'**'",
+"'<=>'","'=='","'==='","'!='","'>='","'<='","'&&'","'||'","'=~'",
+"'!~'","'.'","'..'","'...'","tBDOT2","tBDOT3","'[]'","'[]='",
+"'<<'","'>>'","'&.'","'::'","':: at EXPR_BEG'","tOP_ASGN","'=>'",
+"'('","'( arg'","')'","'['","'['","'[ arg'",
+"'{'","'{ args'","'*'","'*'","'&'","'&'","'~'",
+"'%'","'/'","'+'","'-'","'<'","'>'","'|'","'!'",
+"'^'","'{'","'}'","'`'","':'","tSTRING_BEG",
+    "tXSTRING_BEG","tREGEXP_BEG","tWORDS_BEG","tQWORDS_BEG",
+    "tSTRING_DBEG","tSTRING_DVAR","tSTRING_END","'->'","tLAMBEG",
+    "tNTH_REF","tBACK_REF","tSTRING_CONTENT","tINTEGER","tIMAGINARY",
+    "tFLOAT","tRATIONAL","tREGEXP_END","tSYMBOLS_BEG","tQSYMBOLS_BEG",
+"'**'","tSTRING_DEND","tLABEL_END","keyword_in","tLOWEST",
     };
 
 
@@ -1056,7 +1134,7 @@ public class RubyParser {
     }
   }
 
-static ParserState[] states = new ParserState[675];
+static ParserState[] states = new ParserState[782];
 static {
 states[1] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_BEG);
@@ -2197,7 +2275,7 @@ states[257] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[258] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.newOrNode(((ParseNode)yyVals[-2+yyTop]).getPosition(), ((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+    yyVal = support.newOrNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), ((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[259] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2584,7 +2662,7 @@ states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[349] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.newCaseInNode(((SourceIndexLength)yyVals[-4+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[-1+yyTop]));
+    yyVal = support.newCaseInNode(((SourceIndexLength)yyVals[-4+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((InParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
 states[350] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2737,7 +2815,7 @@ states[379] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[381] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((ParseNode)yyVals[0+yyTop]);
+    yyVal = ((ParseNode)yyVals[0+yyTop]) == null ? NilImplicitParseNode.NIL : ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
 states[383] = (support, lexer, yyVal, yyVals, yyTop) -> yyVal;
@@ -3100,10 +3178,428 @@ states[463] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[466] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.newInNode(((SourceIndexLength)yyVals[-4+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+    lexer.setState(EXPR_BEG|EXPR_LABEL);
+    lexer.commandStart = false;
+    /* Lexcontext object is not used in favour of lexer.inKwarg*/
+    /* LexContext ctxt = (LexContext) lexer.getLexContext();*/
+    yyVals[0+yyTop] = lexer.inKwarg;
+    lexer.inKwarg = true;
+    yyVal = support.push_pvtbl();
+    return yyVal;
+};
+states[467] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.push_pktbl(); /* after in*/
+    return yyVal;
+};
+states[468] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    support.pop_pvtbl(((Set)yyVals[-3+yyTop]));
+    lexer.inKwarg = ((Boolean)yyVals[-4+yyTop]);
     return yyVal;
 };
 states[469] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.newInNode(support.getPosition(yyVals[-7+yyTop]), ((ParseNode)yyVals[-4+yyTop]), ((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[471] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((InParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[473] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new IfParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.getConditionNode(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[-2+yyTop]), null);
+    ((ParseNode)yyVal).extendPosition(((ParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[474] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new IfParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.getConditionNode(((ParseNode)yyVals[0+yyTop])), null, ((ParseNode)yyVals[-2+yyTop]));
+    ((ParseNode)yyVal).extendPosition(((ParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[476] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-1+yyTop])), null, ((ParseNode)yyVals[-1+yyTop]),
+                                   support.new_array_pattern_tail(support.getPosition(((ParseNode)yyVals[-1+yyTop])), null, true, null, null));
+    return yyVal;
+};
+states[477] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-2+yyTop])), null, ((ParseNode)yyVals[-2+yyTop]), ((ArrayPatternParseNode)yyVals[0+yyTop]));
+    /* the following line is a no-op. May or many not require an impl*/
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-2+yyTop])));
+    return yyVal;
+};
+states[478] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_find_pattern(null, ((FindPatternParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[479] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((ArrayPatternParseNode)yyVals[0+yyTop])), null, null, ((ArrayPatternParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[480] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern(null, ((HashPatternParseNode)yyVals[0+yyTop])); /* new_hash_pattern*/
+    return yyVal;
+};
+states[482] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new HashParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), new ParseNodeTuple(((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]))); /* p_as*/
+    return yyVal;
+};
+states[484] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.newOrNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), ((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[486] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.push_pktbl();
+    return yyVal;
+};
+states[487] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.push_pktbl();
+    return yyVal;
+};
+states[490] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-3+yyTop])), ((ParseNode)yyVals[-3+yyTop]), null, ((ArrayPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[491] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_find_pattern(((ParseNode)yyVals[-3+yyTop]), ((FindPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[492] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_hash_pattern(((ParseNode)yyVals[-3+yyTop]), ((HashPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[493] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-2+yyTop])), ((ParseNode)yyVals[-2+yyTop]), null,
+                                   support.new_array_pattern_tail(support.getPosition(((ParseNode)yyVals[-2+yyTop])), null, false, null, null));
+    return yyVal;
+};
+states[494] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-3+yyTop])), ((ParseNode)yyVals[-3+yyTop]), null, ((ArrayPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[495] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_find_pattern(((ParseNode)yyVals[-3+yyTop]), ((FindPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[496] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = support.new_hash_pattern(((ParseNode)yyVals[-3+yyTop]), ((HashPatternParseNode)yyVals[-1+yyTop]));
+    support.nd_set_first_loc(((ParseNode)yyVal), support.getPosition(((ParseNode)yyVals[-3+yyTop])));
+    return yyVal;
+};
+states[497] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((ParseNode)yyVals[-2+yyTop])), ((ParseNode)yyVals[-2+yyTop]), null,
+            support.new_array_pattern_tail(support.getPosition(((ParseNode)yyVals[-2+yyTop])), null, false, null, null));
+    return yyVal;
+};
+states[498] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((TruffleString)yyVals[-2+yyTop])), null, null, ((ArrayPatternParseNode)yyVals[-1+yyTop]));
+    return yyVal;
+};
+states[499] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_find_pattern(null, ((FindPatternParseNode)yyVals[-1+yyTop]));
+    return yyVal;
+};
+states[500] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern(support.getPosition(((TruffleString)yyVals[-1+yyTop])), null, null,
+            support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[-1+yyTop])), null, false, null, null));
+    return yyVal;
+};
+states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.push_pktbl(); /* p_expr_basic last production*/
+    yyVals[0+yyTop] = lexer.inKwarg;
+    lexer.inKwarg = false;
+    return yyVal;
+};
+states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop])); /* p_expr_basic last production 1*/
+    lexer.inKwarg = ((Boolean)yyVals[-3+yyTop]);
+    yyVal = support.new_hash_pattern(null, ((HashPatternParseNode)yyVals[-1+yyTop]));
+    return yyVal;
+};
+states[503] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition(yyVals[-1+yyTop]), null, null));
+    return yyVal;
+};
+states[504] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.push_pktbl();
+    return yyVal;
+};
+states[505] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.pop_pktbl(((Set)yyVals[-2+yyTop]));
+    yyVal = ((ParseNode)yyVals[-1+yyTop]);
+    return yyVal;
+};
+states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ListParseNode preArgs = support.newArrayNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[0+yyTop])); /* p_expr*/
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ParseNode)yyVals[0+yyTop])), preArgs, false, null, null);
+    return yyVal;
+};
+states[507] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[0+yyTop])), ((ListParseNode)yyVals[0+yyTop]), true, null, null);
+    return yyVal;
+};
+states[508] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[-1+yyTop])), support.list_concat(((ListParseNode)yyVals[-1+yyTop]), ((ListParseNode)yyVals[0+yyTop])), false, null, null);
+    return yyVal;
+};
+states[509] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[-2+yyTop])), ((ListParseNode)yyVals[-2+yyTop]), true, ((TruffleString)yyVals[0+yyTop]), null);
+    return yyVal;
+};
+states[510] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[-4+yyTop])), ((ListParseNode)yyVals[-4+yyTop]), true, ((TruffleString)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[511] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[-1+yyTop])), ((ListParseNode)yyVals[-1+yyTop]), true, null, null);
+    return yyVal;
+};
+states[512] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((ListParseNode)yyVals[-3+yyTop])), ((ListParseNode)yyVals[-3+yyTop]), true, null, ((ListParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[513] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ArrayPatternParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[514] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ListParseNode)yyVals[-1+yyTop]);
+    return yyVal;
+};
+states[515] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.list_concat(((ListParseNode)yyVals[-2+yyTop]), ((ListParseNode)yyVals[-1+yyTop]));
+    return yyVal;
+};
+states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, true, ((TruffleString)yyVals[0+yyTop]), null); /* p_args_tail*/
+    return yyVal;
+};
+states[517] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_array_pattern_tail(support.getPosition(((TruffleString)yyVals[-2+yyTop])), null, true, ((TruffleString)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop])); /* p_args_tail_2*/
+    return yyVal;
+};
+states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_find_pattern_tail(support.getPosition(((TruffleString)yyVals[-4+yyTop])), ((TruffleString)yyVals[-4+yyTop]), ((ListParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop])); /* p_find*/
+    support.warn(support.getPosition(((TruffleString)yyVals[-4+yyTop])), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
+    return yyVal;
+};
+states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((TruffleString)yyVals[0+yyTop]); /* p_rest*/
+    return yyVal;
+};
+states[520] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = null; /* p_rest_2*/
+    return yyVal;
+};
+states[522] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.list_concat(((ListParseNode)yyVals[-2+yyTop]), ((ListParseNode)yyVals[0+yyTop])); /* p_args_post*/
+    return yyVal;
+};
+states[523] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.newArrayNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop])); /* p_arg*/
+    return yyVal;
+};
+states[524] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-2+yyTop])), ((HashParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop])); /* p_kwargs_1*/
+    return yyVal;
+};
+states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[0+yyTop])), ((HashParseNode)yyVals[0+yyTop]), null); /* p_kwargs_2*/
+    return yyVal;
+};
+states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((HashParseNode)yyVals[-1+yyTop])), ((HashParseNode)yyVals[-1+yyTop]), null); /* p_kwargs_3*/
+    return yyVal;
+};
+states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_hash_pattern_tail(support.getPosition(((TruffleString)yyVals[0+yyTop])), null, ((TruffleString)yyVals[0+yyTop])); /* p_kwargs_4*/
+    return yyVal;
+};
+states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new HashParseNode(support.getPosition(((ParseNodeTuple)yyVals[0+yyTop])), ((ParseNodeTuple)yyVals[0+yyTop])); /* p_kwarg*/
+    return yyVal;
+};
+states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ((HashParseNode)yyVals[-2+yyTop]).add(((ParseNodeTuple)yyVals[0+yyTop])); /* p_kwarg 2*/
+    yyVal = ((HashParseNode)yyVals[-2+yyTop]);
+    return yyVal;
+};
+states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[-1+yyTop])); /* p_kw.*/
+
+    ParseNode label = support.asSymbol(support.getPosition(((TruffleString)yyVals[-1+yyTop])), ((TruffleString)yyVals[-1+yyTop]));
+
+    yyVal = new ParseNodeTuple(label, ((ParseNode)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[531] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.error_duplicate_pattern_key(((TruffleString)yyVals[0+yyTop])); /* p_kw_label.*/
+    if (((TruffleString)yyVals[0+yyTop]) != null && !support.is_local_id(((TruffleString)yyVals[0+yyTop]))) {
+        support.yyerror("key must be valid as local variables");
+    }
+    support.error_duplicate_pattern_variable(((TruffleString)yyVals[0+yyTop]));
+
+    ParseNode label = support.asSymbol(support.getPosition(((TruffleString)yyVals[0+yyTop])), ((TruffleString)yyVals[0+yyTop]));
+    yyVal = new ParseNodeTuple(label, support.assignableLabelOrIdentifier(((TruffleString)yyVals[0+yyTop]), null));
+    return yyVal;
+};
+states[533] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    if (((ParseNode)yyVals[-1+yyTop]) == null || ((ParseNode)yyVals[-1+yyTop]) instanceof StrParseNode) {
+        yyVal = ((StrParseNode)yyVals[-1+yyTop]).getValue();
+    } else {
+        support.yyerror("symbol literal with interpolation is not allowed");
+        yyVal = null;
+    }
+    return yyVal;
+};
+states[534] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((TruffleString)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[535] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = null;
+    return yyVal;
+};
+states[536] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = null;
+    return yyVal;
+};
+states[538] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ParserSupport.KWNOREST;
+    return yyVal;
+};
+states[540] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[-2+yyTop]));
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[0+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[-2+yyTop]) instanceof FixnumParseNode && ((ParseNode)yyVals[0+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[0+yyTop])), false, isLiteral);
+    return yyVal;
+};
+states[541] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[-2+yyTop]));
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[0+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[-2+yyTop]) instanceof FixnumParseNode && ((ParseNode)yyVals[0+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[0+yyTop])), true, isLiteral);
+    return yyVal;
+};
+states[542] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[-1+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[-1+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((ParseNode)yyVals[-1+yyTop])), support.makeNullNil(((ParseNode)yyVals[-1+yyTop])), NilImplicitParseNode.NIL, false, isLiteral);
+    return yyVal;
+};
+states[543] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[-1+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[-1+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((ParseNode)yyVals[-1+yyTop])), support.makeNullNil(((ParseNode)yyVals[-1+yyTop])), NilImplicitParseNode.NIL, true, isLiteral);
+    return yyVal;
+};
+states[547] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[0+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[0+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((TruffleString)yyVals[-1+yyTop])), NilImplicitParseNode.NIL, support.makeNullNil(((ParseNode)yyVals[0+yyTop])), false, isLiteral);
+    return yyVal;
+};
+states[548] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParserSupport.value_expr(lexer, ((ParseNode)yyVals[0+yyTop]));
+    boolean isLiteral = ((ParseNode)yyVals[0+yyTop]) instanceof FixnumParseNode;
+    yyVal = new DotParseNode(support.getPosition(((TruffleString)yyVals[-1+yyTop])), NilImplicitParseNode.NIL, support.makeNullNil(((ParseNode)yyVals[0+yyTop])), true, isLiteral);
+    return yyVal;
+};
+states[553] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[554] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[555] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ListParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[556] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((ListParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[557] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new NilParseNode(lexer.tokline);
+    return yyVal;
+};
+states[558] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new SelfParseNode(lexer.tokline);
+    return yyVal;
+};
+states[559] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new TrueParseNode(lexer.tokline);
+    return yyVal;
+};
+states[560] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new FalseParseNode(lexer.tokline);
+    return yyVal;
+};
+states[561] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    /* TODO: make a helper for this since it is used twice now*/
+    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
+    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+    return yyVal;
+};
+states[562] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());
+    return yyVal;
+};
+states[563] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
+    return yyVal;
+};
+states[564] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = ((LambdaParseNode)yyVals[0+yyTop]);
+    return yyVal;
+};
+states[565] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    support.error_duplicate_pattern_variable(((TruffleString)yyVals[0+yyTop]));
+    yyVal = support.assignableInCurr(((TruffleString)yyVals[0+yyTop]), null);
+    return yyVal;
+};
+states[566] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    ParseNode n = support.gettable(((TruffleString)yyVals[0+yyTop]));
+    if (!(n instanceof LocalVarParseNode || n instanceof DVarParseNode)) {
+        support.compile_error("" + ((TruffleString)yyVals[0+yyTop]) + ": no such local variable");
+    }
+    yyVal = n;
+    return yyVal;
+};
+states[567] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.gettable(((TruffleString)yyVals[0+yyTop]));
+    if (yyVal == null) yyVal = new BeginParseNode(lexer.tokline, NilImplicitParseNode.NIL);
+    return yyVal;
+};
+states[568] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new BeginParseNode(lexer.tokline, ((ParseNode)yyVals[-1+yyTop]));
+    return yyVal;
+};
+states[569] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_colon3(lexer.tokline, ((TruffleString)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[570] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = support.new_colon2(lexer.tokline, ((ParseNode)yyVals[-2+yyTop]), ((TruffleString)yyVals[0+yyTop]));
+    return yyVal;
+};
+states[571] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = new ConstParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])));
+    return yyVal;
+};
+states[572] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode node;
     if (((ParseNode)yyVals[-3+yyTop]) != null) {
         node = support.appendToBlock(support.node_assign(((ParseNode)yyVals[-3+yyTop]), new GlobalVarParseNode(((SourceIndexLength)yyVals[-5+yyTop]), support.symbolID(TStringConstants.DOLLAR_BANG))), ((ParseNode)yyVals[-1+yyTop]));
@@ -3117,36 +3613,36 @@ states[469] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new RescueBodyParseNode(((SourceIndexLength)yyVals[-5+yyTop]), ((ParseNode)yyVals[-4+yyTop]), body, ((RescueBodyParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[470] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[573] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null; 
     return yyVal;
 };
-states[471] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[574] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.newArrayNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[472] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[575] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.splat_array(((ParseNode)yyVals[0+yyTop]));
     if (yyVal == null) yyVal = ((ParseNode)yyVals[0+yyTop]); /* ArgsCat or ArgsPush*/
     return yyVal;
 };
-states[474] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[577] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[476] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[579] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[478] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[581] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((NumericParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[479] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[582] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.asSymbol(lexer.getPosition(), ((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
-states[481] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[584] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ParseNode)yyVals[0+yyTop]).getPosition(), lexer.getEncoding()).add(((ParseNode)yyVals[0+yyTop])) : ((ParseNode)yyVals[0+yyTop]);
     /*
     NODE *node = $1;
@@ -3159,25 +3655,25 @@ states[481] = (support, lexer, yyVal, yyVals, yyTop) -> {
     */
     return yyVal;
 };
-states[482] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[585] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((StrParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[483] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[586] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[484] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[587] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.literal_concat(((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[485] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[588] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.heredoc_dedent(((ParseNode)yyVals[-1+yyTop]));
     lexer.setHeredocIndent(0);
     yyVal = ((ParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[486] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[589] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(((ParseNode)yyVals[-1+yyTop]));
 
     lexer.heredoc_dedent(((ParseNode)yyVals[-1+yyTop]));
@@ -3194,133 +3690,133 @@ states[486] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
     return yyVal;
 };
-states[487] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[590] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.newRegexpNode(support.getPosition(((ParseNode)yyVals[-1+yyTop])), ((ParseNode)yyVals[-1+yyTop]), ((RegexpParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[488] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[591] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[489] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[592] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(lexer.getPosition());
     return yyVal;
 };
-states[490] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[593] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[-1+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ListParseNode)yyVals[-2+yyTop]).getPosition(), lexer.getEncoding()).add(((ParseNode)yyVals[-1+yyTop])) : ((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
-states[491] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((ParseNode)yyVals[0+yyTop]);
+states[594] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = yyVals[0+yyTop];
     return yyVal;
 };
-states[492] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[595] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.literal_concat(((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[493] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[596] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[494] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[597] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(lexer.getPosition());
     return yyVal;
 };
-states[495] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[598] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[-1+yyTop]) instanceof EvStrParseNode ? new DSymbolParseNode(((ListParseNode)yyVals[-2+yyTop]).getPosition()).add(((ParseNode)yyVals[-1+yyTop])) : support.asSymbol(((ListParseNode)yyVals[-2+yyTop]).getPosition(), ((ParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
-states[496] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[599] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[497] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[600] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[498] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[601] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(lexer.getPosition());
     return yyVal;
 };
-states[499] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[602] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
-states[500] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[603] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(lexer.getPosition());
     return yyVal;
 };
-states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[604] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(support.asSymbol(((ListParseNode)yyVals[-2+yyTop]).getPosition(), ((ParseNode)yyVals[-1+yyTop])));
     return yyVal;
 };
-states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[605] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.createStr(lexer.encoding.tencoding.getEmpty(), lexer.encoding, 0);
     return yyVal;
 };
-states[503] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[606] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.literal_concat(((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[504] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[607] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
-states[505] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[608] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.literal_concat(((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[609] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
-states[507] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[610] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* FIXME: mri is different here.*/
                     yyVal = support.literal_concat(((ParseNode)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[508] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[611] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[509] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[612] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getStrTerm();
     lexer.setStrTerm(null);
     lexer.setState(EXPR_BEG);
     return yyVal;
 };
-states[510] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[613] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setStrTerm(((StrTerm)yyVals[-1+yyTop]));
     yyVal = new EvStrParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[511] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[614] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getStrTerm();
     lexer.setStrTerm(null);
     lexer.getConditionState().stop();
     return yyVal;
 };
-states[512] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[615] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getCmdArgumentState().getStack();
     lexer.getCmdArgumentState().reset();
     return yyVal;
 };
-states[513] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[616] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getState();
     lexer.setState(EXPR_BEG);
     return yyVal;
 };
-states[514] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[617] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getBraceNest();
     lexer.setBraceNest(0);
     return yyVal;
 };
-states[515] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[618] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.getHeredocIndent();
     lexer.setHeredocIndent(0);
     return yyVal;
 };
-states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[619] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.getConditionState().restart();
     lexer.setStrTerm(((StrTerm)yyVals[-6+yyTop]));
     lexer.getCmdArgumentState().reset(((Long)yyVals[-5+yyTop]).longValue());
@@ -3332,36 +3828,36 @@ states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.newEvStrNode(support.getPosition(((ParseNode)yyVals[-1+yyTop])), ((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
-states[517] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[620] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new GlobalVarParseNode(lexer.getPosition(), support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[621] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new InstVarParseNode(lexer.getPosition(), support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[622] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ClassVarParseNode(lexer.getPosition(), support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[521] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[624] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_END|EXPR_ENDARG);
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[523] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[626] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[524] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[627] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[628] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[629] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_END|EXPR_ENDARG);
 
     /* DStrNode: :"some text #{some expression}"*/
@@ -3380,269 +3876,269 @@ states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
     return yyVal;
 };
-states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[630] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((NumericParseNode)yyVals[0+yyTop]);  
     return yyVal;
 };
-states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[631] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.negateNumeric(((NumericParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[635] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[636] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((FloatParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[531] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[637] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((RationalParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[532] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[638] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[533] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[639] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.declareIdentifier(((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
-states[534] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[640] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new InstVarParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[535] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[641] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new GlobalVarParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[536] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[642] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ConstParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[537] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[643] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ClassVarParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])));
     return yyVal;
 };
-states[538] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new NilParseNode(lexer.tokline);
     return yyVal;
 };
-states[539] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[645] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new SelfParseNode(lexer.tokline);
     return yyVal;
 };
-states[540] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[646] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new TrueParseNode((SourceIndexLength) yyVal);
     return yyVal;
 };
-states[541] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[647] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new FalseParseNode((SourceIndexLength) yyVal);
     return yyVal;
 };
-states[542] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[648] = (support, lexer, yyVal, yyVals, yyTop) -> {
     RubyEncoding encoding = support.getConfiguration().getContext() == null ? Encodings.UTF_8 : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
     yyVal = new FileParseNode(lexer.tokline, TStringUtils.fromJavaString(lexer.getFile(), encoding), encoding);
     return yyVal;
 };
-states[543] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[649] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine() + lexer.getLineOffset());
     return yyVal;
 };
-states[544] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[650] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
     return yyVal;
 };
-states[545] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.assignableLabelOrIdentifier(((TruffleString)yyVals[0+yyTop]), null);
     return yyVal;
 };
-states[546] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[652] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new InstAsgnParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])), NilImplicitParseNode.NIL);
     return yyVal;
 };
-states[547] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[653] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new GlobalAsgnParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])), NilImplicitParseNode.NIL);
     return yyVal;
 };
-states[548] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[654] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (support.isInDef()) support.compile_error("dynamic constant assignment");
 
     yyVal = new ConstDeclParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])), null, NilImplicitParseNode.NIL);
     return yyVal;
 };
-states[549] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[655] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ClassVarAsgnParseNode(lexer.tokline, support.symbolID(((TruffleString)yyVals[0+yyTop])), NilImplicitParseNode.NIL);
     return yyVal;
 };
-states[550] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[656] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to nil");
     yyVal = null;
     return yyVal;
 };
-states[551] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[657] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't change the value of self");
     yyVal = null;
     return yyVal;
 };
-states[552] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[658] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to true");
     yyVal = null;
     return yyVal;
 };
-states[553] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[659] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to false");
     yyVal = null;
     return yyVal;
 };
-states[554] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[660] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to __FILE__");
     yyVal = null;
     return yyVal;
 };
-states[555] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[661] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to __LINE__");
     yyVal = null;
     return yyVal;
 };
-states[556] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[662] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.compile_error("Can't assign to __ENCODING__");
     yyVal = null;
     return yyVal;
 };
-states[557] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[663] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[558] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[664] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[559] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[665] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_BEG);
     lexer.commandStart = true;
     return yyVal;
 };
-states[560] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[666] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[561] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[667] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
-states[562] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[668] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ArgsParseNode)yyVals[-1+yyTop]);
     lexer.setState(EXPR_BEG);
     lexer.commandStart = true;
     return yyVal;
 };
-states[563] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[669] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = lexer.inKwarg;
     lexer.inKwarg = true;
     lexer.setState(lexer.getState() | EXPR_LABEL);
     return yyVal;
 };
-states[564] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[670] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.inKwarg = ((Boolean)yyVals[-2+yyTop]);
      yyVal = ((ArgsParseNode)yyVals[-1+yyTop]);
      lexer.setState(EXPR_BEG);
      lexer.commandStart = true;
     return yyVal;
 };
-states[565] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[671] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(((ListParseNode)yyVals[-3+yyTop]).getPosition(), ((ListParseNode)yyVals[-3+yyTop]), ((TruffleString)yyVals[-1+yyTop]), ((BlockArgParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[566] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[672] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), (TruffleString) null, ((BlockArgParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[567] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[673] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(lexer.getPosition(), null, ((TruffleString)yyVals[-1+yyTop]), ((BlockArgParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[568] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[674] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, ((BlockArgParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[569] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[675] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(((BlockArgParseNode)yyVals[0+yyTop]).getPosition(), null, (TruffleString) null, ((BlockArgParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[570] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[676] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ArgsTailHolder)yyVals[0+yyTop]);
     return yyVal;
 };
-states[571] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[677] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args_tail(lexer.getPosition(), null, (TruffleString) null, null);
     return yyVal;
 };
-states[572] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[678] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ArgsParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[573] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[679] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
     return yyVal;
 };
-states[574] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[680] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-5+yyTop]).getPosition(), ((ListParseNode)yyVals[-5+yyTop]), ((ListParseNode)yyVals[-3+yyTop]), ((RestArgParseNode)yyVals[-1+yyTop]), null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[575] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[681] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-7+yyTop]).getPosition(), ((ListParseNode)yyVals[-7+yyTop]), ((ListParseNode)yyVals[-5+yyTop]), ((RestArgParseNode)yyVals[-3+yyTop]), ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[576] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[682] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-3+yyTop]).getPosition(), ((ListParseNode)yyVals[-3+yyTop]), ((ListParseNode)yyVals[-1+yyTop]), null, null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[577] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[683] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-5+yyTop]).getPosition(), ((ListParseNode)yyVals[-5+yyTop]), ((ListParseNode)yyVals[-3+yyTop]), null, ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[578] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[684] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-3+yyTop]).getPosition(), ((ListParseNode)yyVals[-3+yyTop]), null, ((RestArgParseNode)yyVals[-1+yyTop]), null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[579] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[685] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-5+yyTop]).getPosition(), ((ListParseNode)yyVals[-5+yyTop]), null, ((RestArgParseNode)yyVals[-3+yyTop]), ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[580] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[686] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, null, null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[581] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[687] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-3+yyTop]).getPosition(), null, ((ListParseNode)yyVals[-3+yyTop]), ((RestArgParseNode)yyVals[-1+yyTop]), null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[582] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[688] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-5+yyTop]).getPosition(), null, ((ListParseNode)yyVals[-5+yyTop]), ((RestArgParseNode)yyVals[-3+yyTop]), ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[583] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[689] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), null, ((ListParseNode)yyVals[-1+yyTop]), null, null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[584] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[690] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ListParseNode)yyVals[-3+yyTop]).getPosition(), null, ((ListParseNode)yyVals[-3+yyTop]), null, ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[585] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[691] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((RestArgParseNode)yyVals[-1+yyTop]).getPosition(), null, null, ((RestArgParseNode)yyVals[-1+yyTop]), null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[586] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[692] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((RestArgParseNode)yyVals[-3+yyTop]).getPosition(), null, null, ((RestArgParseNode)yyVals[-3+yyTop]), ((ListParseNode)yyVals[-1+yyTop]), ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[587] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[693] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(((ArgsTailHolder)yyVals[0+yyTop]).getPosition(), null, null, null, null, ((ArgsTailHolder)yyVals[0+yyTop]));
     return yyVal;
 };
-states[588] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[694] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
@@ -3650,7 +4146,7 @@ states[588] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(position, ((ListParseNode)yyVals[-2+yyTop]), null, splat, null, argsTail);
     return yyVal;
 };
-states[589] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[695] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
@@ -3658,41 +4154,41 @@ states[589] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.new_args(position, null, null, splat, null, argsTail);
     return yyVal;
 };
-states[591] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[697] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.yyerror("formal argument cannot be a constant");
     return yyVal;
 };
-states[592] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[698] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.yyerror("formal argument cannot be an instance variable");
     return yyVal;
 };
-states[593] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[699] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.yyerror("formal argument cannot be a global variable");
     return yyVal;
 };
-states[594] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[700] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.yyerror("formal argument cannot be a class variable");
     return yyVal;
 };
-states[595] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[701] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]); /* Not really reached*/
     return yyVal;
 };
-states[596] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[702] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.formal_argument(((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
-states[597] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[703] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(((TruffleString)yyVals[0+yyTop]));
     yyVal = support.arg_var(((TruffleString)yyVals[0+yyTop]));
     return yyVal;
 };
-states[598] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[704] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
     yyVal = ((ArgumentParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[599] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[705] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[-1+yyTop]);
     /*            {
             ID tid = internal_id();
@@ -3707,107 +4203,107 @@ $2->nd_value = NEW_LVAR(tid);
             $$->nd_next = $2;*/
     return yyVal;
 };
-states[600] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[706] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(lexer.getPosition(), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[601] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[707] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[0+yyTop]));
     yyVal = ((ListParseNode)yyVals[-2+yyTop]);
     return yyVal;
 };
-states[602] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[708] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.arg_var(support.formal_argument(((TruffleString)yyVals[0+yyTop])));
     lexer.setCurrentArg(((TruffleString)yyVals[0+yyTop]));
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[603] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[709] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
     yyVal = support.keyword_arg(((ParseNode)yyVals[0+yyTop]).getPosition(), support.assignableKeyword(((TruffleString)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
-states[604] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[710] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
     yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((TruffleString)yyVals[0+yyTop]), RequiredKeywordArgumentValueParseNode.INSTANCE));
     return yyVal;
 };
-states[605] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[711] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.keyword_arg(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableKeyword(((TruffleString)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
-states[606] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[712] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((TruffleString)yyVals[0+yyTop]), RequiredKeywordArgumentValueParseNode.INSTANCE));
     return yyVal;
 };
-states[607] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[713] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[608] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[714] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[609] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[715] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new ArrayParseNode(((ParseNode)yyVals[0+yyTop]).getPosition(), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[610] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[716] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[611] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[717] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[612] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[718] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[614] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[720] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.shadowing_lvar(((TruffleString)yyVals[0+yyTop]));
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[615] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[721] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ParserSupport.INTERNAL_ID;
     return yyVal;
 };
-states[616] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[722] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
     yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName(), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
-states[617] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[723] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
     yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName(), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
-states[618] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[724] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new BlockParseNode(((ParseNode)yyVals[0+yyTop]).getPosition()).add(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[619] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[725] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.appendToBlock(((ListParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[620] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[726] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new BlockParseNode(((ParseNode)yyVals[0+yyTop]).getPosition()).add(((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[621] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[727] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.appendToBlock(((ListParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[622] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[728] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[623] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[729] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[624] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[730] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (!support.is_local_id(((TruffleString)yyVals[0+yyTop]))) {
         support.yyerror("rest argument must be local variable");
     }
@@ -3815,20 +4311,20 @@ states[624] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new RestArgParseNode(support.arg_var(support.shadowing_lvar(((TruffleString)yyVals[0+yyTop]))));
     return yyVal;
 };
-states[625] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[731] = (support, lexer, yyVal, yyVals, yyTop) -> {
   /* FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).*/
   yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), Layouts.TEMP_PREFIX + "unnamed_rest", support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
-states[626] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[732] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[627] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[733] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[628] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[734] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (!support.is_local_id(((TruffleString)yyVals[0+yyTop]))) {
         support.yyerror("block argument must be local variable");
     }
@@ -3836,28 +4332,28 @@ states[628] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new BlockArgParseNode(support.arg_var(support.shadowing_lvar(((TruffleString)yyVals[0+yyTop]))));
     return yyVal;
 };
-states[629] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[735] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new BlockArgParseNode(support.arg_var(support.shadowing_lvar(ParserSupport.FORWARD_ARGS_BLOCK_VAR_TSTRING)));
     return yyVal;
 };
-states[630] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[736] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((BlockArgParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[631] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[737] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
-states[632] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[738] = (support, lexer, yyVal, yyVals, yyTop) -> {
     value_expr(lexer, ((ParseNode)yyVals[0+yyTop]));
     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[633] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[739] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_BEG);
     return yyVal;
 };
-states[634] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[740] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
         support.yyerror("can't define single method for ().");
     } else if (((ParseNode)yyVals[-1+yyTop]) instanceof ILiteralNode) {
@@ -3867,38 +4363,38 @@ states[634] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((ParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
-states[635] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[741] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new HashParseNode(lexer.getPosition());
     return yyVal;
 };
-states[636] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[742] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.remove_duplicate_keys(((HashParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
-states[637] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[743] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = new HashParseNode(lexer.getPosition(), ((ParseNodeTuple)yyVals[0+yyTop]));
     return yyVal;
 };
-states[638] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[744] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((HashParseNode)yyVals[-2+yyTop]).add(((ParseNodeTuple)yyVals[0+yyTop]));
     return yyVal;
 };
-states[639] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[745] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.createKeyValue(((ParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[640] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[746] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode label = support.asSymbol(support.getPosition(((ParseNode)yyVals[0+yyTop])), ((TruffleString)yyVals[-1+yyTop]));
     yyVal = support.createKeyValue(label, ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[641] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[747] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode val = support.declareIdentifier(((TruffleString)yyVals[0+yyTop]));
     ParseNode label = support.asSymbol(support.getPosition(null), ((TruffleString)yyVals[0+yyTop]));
     yyVal = support.createKeyValue(label, val);
     return yyVal;
 };
-states[642] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[748] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (((ParseNode)yyVals[-2+yyTop]) instanceof StrParseNode) {
         DStrParseNode dnode = new DStrParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), lexer.getEncoding());
         dnode.add(((ParseNode)yyVals[-2+yyTop]));
@@ -3911,88 +4407,92 @@ states[642] = (support, lexer, yyVal, yyVals, yyTop) -> {
 
     return yyVal;
 };
-states[643] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[749] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = support.createKeyValue(null, ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[750] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[645] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[751] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[646] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[752] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[647] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[753] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[648] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[754] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[649] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[755] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[650] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[756] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[757] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[652] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[758] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[653] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[759] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[654] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[760] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[655] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[761] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[656] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[762] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[657] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[763] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[659] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[765] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[664] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[770] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[665] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[771] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = ((TruffleString)yyVals[0+yyTop]);
     return yyVal;
 };
-states[673] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[772] = (support, lexer, yyVal, yyVals, yyTop) -> {
+    yyVal = TStringConstants.RCURLY;
+    return yyVal;
+};
+states[780] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
-states[674] = (support, lexer, yyVal, yyVals, yyTop) -> {
+states[781] = (support, lexer, yyVal, yyVals, yyTop) -> {
     yyVal = null;
     return yyVal;
 };
 }
-// line 2838 "RubyParser.y"
+// line 3249 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4002,11 +4502,11 @@ states[674] = (support, lexer, yyVal, yyVals, yyTop) -> {
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());
         
-        yyparse(lexer, null);
+        yyparse(lexer, new org.truffleruby.parser.parser.YYDebug());
         
         return support.getResult();
     }
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10943 "-"
+// line 12094 "-"

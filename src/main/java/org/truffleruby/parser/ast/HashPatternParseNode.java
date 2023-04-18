@@ -28,83 +28,89 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- *
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.parser.parser.ParseNodeTuple;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/** Represents an in condition */
-public class InParseNode extends ParseNode {
-    protected final ParseNode expressionNodes;
-    protected final ParseNode bodyNode;
-    private final ParseNode nextCase;
+public class HashPatternParseNode extends ParseNode {
+    private final ParseNode restArg;
+    private final HashParseNode keywordArgs;
 
-    public InParseNode(
-            SourceIndexLength position,
-            ParseNode expressionNodes,
-            ParseNode bodyNode,
-            ParseNode nextCase) {
+    private ParseNode constant;
+
+    public HashPatternParseNode(SourceIndexLength position, ParseNode restArg, HashParseNode keywordArgs) {
         super(position);
 
-        if (expressionNodes instanceof ArrayParseNode) {
-            var arrayParseNode = (ArrayParseNode) expressionNodes;
-            if (arrayParseNode.size() != 1) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            expressionNodes = arrayParseNode.get(0);
-        }
-
-        this.expressionNodes = expressionNodes;
-        this.bodyNode = bodyNode;
-        this.nextCase = nextCase;
-
-        assert bodyNode != null : "bodyNode is not null";
+        this.restArg = restArg;
+        this.keywordArgs = keywordArgs;
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.INNODE;
-    }
-
-    /** Accept for the visitor pattern.
-     * 
-     * @param iVisitor the visitor **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitInNode(this);
-    }
-
-    /** Gets the bodyNode.
-     * 
-     * @return Returns a INode */
-    public ParseNode getBodyNode() {
-        return bodyNode;
-    }
-
-    /** Gets the next case node (if any). */
-    public ParseNode getNextCase() {
-        return nextCase;
-    }
-
-    /** Get the expressionNode(s). */
-    public ParseNode getExpressionNodes() {
-        return expressionNodes;
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitHashPatternNode(this);
     }
 
     @Override
     public List<ParseNode> childNodes() {
-        return ParseNode.createList(expressionNodes, bodyNode, nextCase);
+        return createList(restArg, keywordArgs, constant);
+    }
+
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.HASHPATTERNNODE;
+    }
+
+    public ParseNode getConstant() {
+        return constant;
+    }
+
+    public void setConstant(ParseNode constant) {
+        this.constant = constant;
+    }
+
+    // MRI: args_num in compile.c
+    public int getArgumentSize() {
+        return keywordArgs == null ? 0 : keywordArgs.getPairs().size();
+    }
+
+    public ParseNode getRestArg() {
+        return restArg;
+    }
+
+    public boolean hasRestArg() {
+        return restArg != null;
+    }
+
+    public boolean isNamedRestArg() {
+        return !(restArg instanceof StarParseNode);
+    }
+
+    public boolean hasKeywordArgs() {
+        return keywordArgs != null;
+    }
+
+    public HashParseNode getKeywordArgs() {
+        return keywordArgs;
+    }
+
+    public List<ParseNode> getKeys() {
+        List<ParseNodeTuple> pairs = keywordArgs.getPairs();
+        List<ParseNode> keys = new ArrayList<>(pairs.size());
+
+        for (ParseNodeTuple pair : pairs) {
+            keys.add(pair.getKey());
+        }
+
+        return keys;
+    }
+
+    public boolean hashNamedKeywordRestArg() {
+        return hasRestArg() && !(restArg instanceof StarParseNode);
     }
 }

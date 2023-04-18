@@ -39,6 +39,10 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
         return FrozenStrings.ASSIGNMENT;
     }
 
+    public void setValueNode(RubyNode valueNode) {
+        this.valueNode = valueNode;
+    }
+
     @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         return tag == WriteVariableTag.class || super.hasTag(tag);
@@ -49,5 +53,4 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
         String name = getVariableName();
         return new SingleMemberDescriptor(WriteVariableTag.NAME, name);
     }
-
 }

@@ -39,6 +39,7 @@ import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgsPushParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
@@ -74,6 +75,7 @@ import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FlipParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
@@ -81,6 +83,7 @@ import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
@@ -100,6 +103,7 @@ import org.truffleruby.parser.ast.ModuleParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
@@ -163,6 +167,8 @@ public interface NodeVisitor<T> {
     T visitArgumentNode(ArgumentParseNode iVisited);
 
     T visitArrayNode(ArrayParseNode iVisited);
+
+    T visitArrayPatternNode(ArrayPatternParseNode iVisited);
 
     T visitAttrAssignNode(AttrAssignParseNode iVisited);
 
@@ -232,6 +238,8 @@ public interface NodeVisitor<T> {
 
     T visitFalseNode(FalseParseNode iVisited);
 
+    T visitFindPatternNode(FindPatternParseNode iVisited);
+
     T visitFixnumNode(FixnumParseNode iVisited);
 
     T visitFlipNode(FlipParseNode iVisited);
@@ -245,6 +253,8 @@ public interface NodeVisitor<T> {
     T visitGlobalVarNode(GlobalVarParseNode iVisited);
 
     T visitHashNode(HashParseNode iVisited);
+
+    T visitHashPatternNode(HashPatternParseNode iVisited);
 
     T visitInstAsgnNode(InstAsgnParseNode iVisited);
 
@@ -369,4 +379,6 @@ public interface NodeVisitor<T> {
     T visitTruffleFragmentNode(TruffleFragmentParseNode iVisited);
 
     T visitOther(ParseNode iVisited);
+
+    T visitNilRestArgNode(NilRestArgParseNode nilRestArgParseNode);
 }

@@ -3,6 +3,10 @@ package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
+import java.util.Set;
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.encoding.Encodings;
@@ -14,6 +18,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
@@ -34,19 +39,23 @@ import org.truffleruby.parser.ast.DXStrParseNode;
 import org.truffleruby.parser.ast.DefnParseNode;
 import org.truffleruby.parser.ast.DefsParseNode;
 import org.truffleruby.parser.ast.DotParseNode;
+import org.truffleruby.parser.ast.DVarParseNode;
 import org.truffleruby.parser.ast.EncodingParseNode;
 import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
 import org.truffleruby.parser.ast.FileParseNode;
+import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
 import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -124,7 +133,7 @@ public class RubyParser {
   keyword_begin keyword_rescue keyword_ensure keyword_end keyword_if
   keyword_unless keyword_then keyword_elsif keyword_else keyword_case
   keyword_when keyword_while keyword_until keyword_for keyword_break
-  keyword_next keyword_redo keyword_retry keyword_in keyword_do
+  keyword_next keyword_redo keyword_retry keyword_do
   keyword_do_cond keyword_do_block keyword_return keyword_yield keyword_super
   keyword_self keyword_nil keyword_true keyword_false keyword_and keyword_or
   keyword_not modifier_if modifier_unless modifier_while modifier_until
@@ -164,7 +173,7 @@ public class RubyParser {
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
 %token <TruffleString> tLBRACK        /* [ */
 %token <TruffleString> tRBRACK        /* ] */
-%token <SourceIndexLength> tLBRACE        /* { */
+%token <Object> tLBRACE        /* { */
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
 %token <TruffleString> tSTAR          /* * */
 %token <TruffleString> tSTAR2         /* *  Is just '*' in ruby and not a token */
@@ -209,7 +218,7 @@ public class RubyParser {
 %type <ParseNode> string_dvar backref
 %type <ArgsParseNode> f_args f_args_any f_larglist block_param block_param_def opt_block_param
 %type <Object> f_arglist
-%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body p_case_body exc_list aref_args
+%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body exc_list aref_args
 %type <ParseNode> lhs none args
 %type <ListParseNode> qword_list word_list
 %type <ListParseNode> f_arg f_optarg
@@ -253,6 +262,24 @@ public class RubyParser {
 %type <FCallParseNode> fcall
 %token <TruffleString> tLABEL_END
 %type <SourceIndexLength> k_return k_class k_module
+%type <InParseNode> p_case_body
+%type <ParseNode> p_cases p_top_expr p_top_expr_body
+%type <ParseNode> p_expr p_as p_alt p_expr_basic
+%type <FindPatternParseNode> p_find
+%type <ArrayPatternParseNode> p_args
+%type <ListParseNode> p_args_head
+%type <ArrayPatternParseNode> p_args_tail
+%type <ListParseNode> p_args_post p_arg
+%type <ParseNode> p_value p_primitive p_variable p_var_ref p_expr_ref p_const
+%type <HashPatternParseNode> p_kwargs
+%type <HashParseNode> p_kwarg
+%type <ParseNodeTuple> p_kw
+%type <TruffleString> p_rest p_kwrest p_kwnorest p_any_kwrest p_kw_label
+%type <ParseNode> p_lparen p_lbracket
+%type <TruffleString> nonlocal_var
+%type <Integer> rbrace
+%token <Object> keyword_in
+
 
 /*
  *    precedence table
@@ -1242,7 +1269,7 @@ arg             : lhs '=' arg_rhs {
                     $$ = support.newAndNode($1.getPosition(), $1, $3);
                 }
                 | arg tOROP arg {
-                    $$ = support.newOrNode($1.getPosition(), $1, $3);
+                    $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | keyword_defined opt_nl arg {
                     $$ = support.new_defined($1, $3);
@@ -1549,8 +1576,8 @@ primary         : literal
                     $$ = $<BlockAcceptingParseNode>1.setIterNode($2);
                     $<ParseNode>$.extendPosition($1);
                 }
-                | tLAMBDA lambda {
-                    $$ = $2;
+                | lambda {
+                    $$ = $1;
                 }
                 | keyword_if expr_value then compstmt if_tail keyword_end {
                     $$ = new IfParseNode($1, support.getConditionNode($2), $4, $5);
@@ -1715,7 +1742,7 @@ if_tail         : opt_else
 
 opt_else        : none
                 | keyword_else compstmt {
-                    $$ = $2;
+                    $$ = $2 == null ? NilImplicitParseNode.NIL : $2;
                 }
 
 // [!null]
@@ -1882,7 +1909,7 @@ bvar            : tIDENTIFIER {
                     $$ = null;
                 }
 
-lambda          : /* none */  {
+lambda          : tLAMBDA {
                     support.pushBlockScope();
                     $$ = lexer.getLeftParenBegin();
                     lexer.setLeftParenBegin(lexer.incrementParenNest());
@@ -1890,10 +1917,10 @@ lambda          : /* none */  {
                     $$ = Long.valueOf(lexer.getCmdArgumentState().getStack());
                     lexer.getCmdArgumentState().reset();
                 } lambda_body {
-                    lexer.getCmdArgumentState().reset($<Long>3.longValue());
+                    lexer.getCmdArgumentState().reset($<Long>4.longValue());
                     lexer.getCmdArgumentState().restart();
-                    $$ = new LambdaParseNode($2.getPosition(), $2, $4, support.getCurrentScope());
-                    lexer.setLeftParenBegin($<Integer>1);
+                    $$ = new LambdaParseNode($3.getPosition(), $3, $5, support.getCurrentScope());
+                    lexer.setLeftParenBegin($<Integer>2);
                     support.popCurrentScope();
                 }
 
@@ -2024,11 +2051,388 @@ case_body       : keyword_when args then compstmt cases {
 
 cases           : opt_else | case_body
 
-p_case_body     : keyword_in args then compstmt p_cases {
-                    $$ = support.newInNode($1, $2, $4, $5);
+p_case_body     : keyword_in {
+                    lexer.setState(EXPR_BEG|EXPR_LABEL);
+                    lexer.commandStart = false;
+                    // Lexcontext object is not used in favour of lexer.inKwarg
+                    // LexContext ctxt = (LexContext) lexer.getLexContext();
+                    $1 = lexer.inKwarg;
+                    lexer.inKwarg = true;
+                    $$ = support.push_pvtbl();
+                } {
+                    $$ = support.push_pktbl(); // after in
+                } p_top_expr then {
+                    support.pop_pktbl($<Set>3);
+                    support.pop_pvtbl($<Set>2);
+                    lexer.inKwarg = $<Boolean>1;
+                } compstmt p_cases {
+                    $$ = support.newInNode(support.getPosition($1), $4, $7, $8);
                 }
 
-p_cases         : opt_else | p_case_body
+p_cases         : opt_else
+                | p_case_body {
+                    $$ = $1;
+                }
+
+p_top_expr      : p_top_expr_body
+                | p_top_expr_body modifier_if expr_value {
+                    $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), $1, null);
+                    $<ParseNode>$.extendPosition($3);
+                }
+                | p_top_expr_body modifier_unless expr_value {
+                    $$ = new IfParseNode(support.getPosition($1), support.getConditionNode($3), null, $1);
+                    $<ParseNode>$.extendPosition($3);
+                }
+
+p_top_expr_body : p_expr
+                | p_expr ',' {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, $1,
+                                                   support.new_array_pattern_tail(support.getPosition($1), null, true, null, null));
+                }
+                | p_expr ',' p_args {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, $1, $3);
+                    // the following line is a no-op. May or many not require an impl
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_find {
+                    $$ = support.new_find_pattern(null, $1);
+                }
+                | p_args_tail {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, null, $1);
+                }
+                | p_kwargs {
+                    $$ = support.new_hash_pattern(null, $1); // new_hash_pattern
+                }
+
+p_expr          : p_as
+
+p_as            : p_expr tASSOC p_variable {
+                    $$ = new HashParseNode(support.getPosition($1), new ParseNodeTuple($1, $3)); // p_as
+                }
+                | p_alt
+
+p_alt           : p_alt '|' p_expr_basic {
+                    $$ = support.newOrNode(support.getPosition($1), $1, $3);
+                }
+                | p_expr_basic
+
+p_lparen        : '(' {
+                    $$ = support.push_pktbl();
+                }
+p_lbracket      : '[' {
+                    $$ = support.push_pktbl();
+                }
+p_expr_basic    : p_value
+                | p_variable
+                | p_const p_lparen p_args rparen {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lparen p_find rparen {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_find_pattern($1, $3);
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lparen p_kwargs rparen {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_hash_pattern($1, $3);
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const '(' rparen {
+                     $$ = support.new_array_pattern(support.getPosition($1), $1, null,
+                                                    support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | p_const p_lbracket p_args rbracket {
+                     support.pop_pktbl($<Set>2);
+                     $$ = support.new_array_pattern(support.getPosition($1), $1, null, $3);
+                     support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lbracket p_find rbracket {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_find_pattern($1, $3);
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const p_lbracket p_kwargs rbracket {
+                    support.pop_pktbl($<Set>2);
+                    $$ = support.new_hash_pattern($1, $3);
+                    support.nd_set_first_loc($<ParseNode>$, support.getPosition($1));
+                }
+                | p_const '[' rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), $1, null,
+                            support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | tLBRACK p_args rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, null, $2);
+                }
+                | tLBRACK p_find rbracket {
+                    $$ = support.new_find_pattern(null, $2);
+                }
+                | tLBRACK rbracket {
+                    $$ = support.new_array_pattern(support.getPosition($1), null, null,
+                            support.new_array_pattern_tail(support.getPosition($1), null, false, null, null));
+                }
+                | tLBRACE {
+                    $$ = support.push_pktbl(); // p_expr_basic last production
+                    $1 = lexer.inKwarg;
+                    lexer.inKwarg = false;
+                } p_kwargs rbrace {
+                    support.pop_pktbl($<Set>2); // p_expr_basic last production 1
+                    lexer.inKwarg = $<Boolean>1;
+                    $$ = support.new_hash_pattern(null, $3);
+                }
+                | tLBRACE rbrace {              // p_expr_basic last production 2
+                    $$ = support.new_hash_pattern(null, support.new_hash_pattern_tail(support.getPosition($1), null, null));
+                }
+                | tLPAREN {
+                    $$ = support.push_pktbl();
+                 } p_expr rparen {
+                    support.pop_pktbl($<Set>2);
+                    $$ = $3;
+                }
+
+p_args          : p_expr {
+                     ListParseNode preArgs = support.newArrayNode(support.getPosition($1), $1); // p_expr
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), preArgs, false, null, null);
+                }
+                | p_args_head {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, null);
+                }
+                | p_args_head p_arg {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), support.list_concat($1, $2), false, null, null);
+                }
+                | p_args_head tSTAR tIDENTIFIER {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, $3, null);
+                }
+                | p_args_head tSTAR tIDENTIFIER ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, $3, $5);
+                }
+                | p_args_head tSTAR {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, null);
+                }
+                | p_args_head tSTAR ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), $1, true, null, $4);
+                }
+                | p_args_tail {
+                     $$ = $1;
+                }
+
+p_args_head     : p_arg ',' {
+                     $$ = $1;
+                }
+                | p_args_head p_arg ',' {
+                     $$ = support.list_concat($1, $2);
+                }
+
+p_args_tail     : p_rest {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, null); // p_args_tail
+                }
+                | p_rest ',' p_args_post {
+                     $$ = support.new_array_pattern_tail(support.getPosition($1), null, true, $1, $3); // p_args_tail_2
+                }
+                
+p_find          : p_rest ',' p_args_post ',' p_rest {
+                     $$ = support.new_find_pattern_tail(support.getPosition($1), $1, $3, $5); // p_find
+                     support.warn(support.getPosition($1), "Find pattern is experimental, and the behavior may change in future versions of Ruby!");
+                }
+
+p_rest          : tSTAR tIDENTIFIER {
+                    $$ = $2; // p_rest
+                }
+                | tSTAR {
+                    $$ = null; // p_rest_2
+                }
+
+// ListNode - [!null]
+p_args_post     : p_arg
+                | p_args_post ',' p_arg {
+                    $$ = support.list_concat($1, $3); // p_args_post
+                }
+
+// ListNode - [!null]
+p_arg           : p_expr {
+                    $$ = support.newArrayNode($1.getPosition(), $1); // p_arg
+                }
+
+// HashPatternNode - [!null]
+p_kwargs        : p_kwarg ',' p_any_kwrest {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, $3); // p_kwargs_1
+                }
+		        | p_kwarg {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null); // p_kwargs_2
+                }
+                | p_kwarg ',' {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null); // p_kwargs_3
+                }
+                | p_any_kwrest {
+                    $$ = support.new_hash_pattern_tail(support.getPosition($1), null, $1); // p_kwargs_4
+                }
+                
+// HashParseNode - [!null]
+p_kwarg         :  p_kw {
+                    $$ = new HashParseNode(support.getPosition($1), $1); // p_kwarg
+                }
+                | p_kwarg ',' p_kw {
+                   $1.add($3); // p_kwarg 2
+                   $$ = $1;
+                }
+                
+// KeyValuePair - [!null]
+p_kw            : p_kw_label p_expr {
+                    support.error_duplicate_pattern_key($1); // p_kw.
+
+                    ParseNode label = support.asSymbol(support.getPosition($1), $1);
+
+                    $$ = new ParseNodeTuple(label, $2);
+                }
+                | p_kw_label {
+                    support.error_duplicate_pattern_key($1); // p_kw_label.
+                    if ($1 != null && !support.is_local_id($1)) {
+                        support.yyerror("key must be valid as local variables");
+                    }
+                    support.error_duplicate_pattern_variable($1);
+
+                    ParseNode label = support.asSymbol(support.getPosition($1), $1);
+                    $$ = new ParseNodeTuple(label, support.assignableLabelOrIdentifier($1, null));
+                }
+
+// Rope
+p_kw_label      : tLABEL
+                | tSTRING_BEG string_contents tLABEL_END {
+                    if ($2 == null || $2 instanceof StrParseNode) {
+                        $$ = $<StrParseNode>2.getValue();
+                    } else {
+                        support.yyerror("symbol literal with interpolation is not allowed");
+                        $$ = null;
+                    }
+                }
+
+p_kwrest        : kwrest_mark tIDENTIFIER {
+                    $$ = $2;
+                }
+                | kwrest_mark {
+                    $$ = null;
+                }
+
+p_kwnorest      : kwrest_mark keyword_nil {
+                    $$ = null;
+                }
+
+p_any_kwrest    : p_kwrest
+                | p_kwnorest {
+                    $$ = ParserSupport.KWNOREST;
+                }
+
+p_value         : p_primitive
+                | p_primitive tDOT2 p_primitive {
+                    ParserSupport.value_expr(lexer, $1);
+                    ParserSupport.value_expr(lexer, $3);
+                    boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), false, isLiteral);
+                }
+                | p_primitive tDOT3 p_primitive {
+                    ParserSupport.value_expr(lexer, $1);
+                    ParserSupport.value_expr(lexer, $3);
+                    boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), true, isLiteral);
+                }
+                | p_primitive tDOT2 {
+                    ParserSupport.value_expr(lexer, $1);
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
+                }
+                | p_primitive tDOT3 {
+                    ParserSupport.value_expr(lexer, $1);
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
+                }
+                | p_var_ref
+                | p_expr_ref
+                | p_const
+                | tBDOT2 p_primitive {
+                    ParserSupport.value_expr(lexer, $2);
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), NilImplicitParseNode.NIL, support.makeNullNil($2), false, isLiteral);
+                }
+                | tBDOT3 p_primitive {
+                    ParserSupport.value_expr(lexer, $2);
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), NilImplicitParseNode.NIL, support.makeNullNil($2), true, isLiteral);
+                }
+
+p_primitive     : literal
+                | strings
+                | xstring
+                | regexp
+                | words {
+                    $$ = $1;
+                }
+                | qwords {
+                    $$ = $1;
+                }
+                | symbols {
+                    $$ = $1;
+                }
+                | qsymbols {
+                    $$ = $1;
+                }
+                | /*mri:keyword_variable*/ keyword_nil {
+                    $$ = new NilParseNode(lexer.tokline);
+                }
+                | keyword_self {
+                    $$ = new SelfParseNode(lexer.tokline);
+                }
+                | keyword_true {
+                    $$ = new TrueParseNode(lexer.tokline);
+                }
+                | keyword_false {
+                    $$ = new FalseParseNode(lexer.tokline);
+                }
+                | keyword__FILE__ {
+                    // TODO: make a helper for this since it is used twice now
+                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
+                    $$ = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+                }
+                | keyword__LINE__ {
+                    $$ = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());
+                }
+                | keyword__ENCODING__ {
+                    $$ = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
+                } /*mri:keyword_variable*/
+                | lambda {
+                    $$ = $1;
+                }
+
+p_variable      : tIDENTIFIER {
+                    support.error_duplicate_pattern_variable($1);
+                    $$ = support.assignableInCurr($1, null);
+                }
+
+p_var_ref       : '^' tIDENTIFIER {
+                    ParseNode n = support.gettable($2);
+                    if (!(n instanceof LocalVarParseNode || n instanceof DVarParseNode)) {
+                        support.compile_error("" + $2 + ": no such local variable");
+                    }
+                    $$ = n;
+                }
+                | '^' nonlocal_var {
+                    $$ = support.gettable($2);
+                    if ($$ == null) $$ = new BeginParseNode(lexer.tokline, NilImplicitParseNode.NIL);
+                }
+
+p_expr_ref      : '^' tLPAREN expr_value ')' {
+                    $$ = new BeginParseNode(lexer.tokline, $3);
+                }
+
+p_const         : tCOLON3 cname {
+                    $$ = support.new_colon3(lexer.tokline, $2);
+                }
+                | p_const tCOLON2 cname {
+                    $$ = support.new_colon2(lexer.tokline, $1, $3);
+                }
+                | tCONSTANT {
+                    $$ = new ConstParseNode(lexer.tokline, support.symbolID($1));
+                }
 
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
@@ -2137,7 +2541,7 @@ word_list       : /* none */ {
                 }
 
 word            : string_content {
-                     $$ = $<ParseNode>1;
+                     $$ = $1;
                 }
                 | word string_content {
                      $$ = support.literal_concat($1, $<ParseNode>2);
@@ -2292,6 +2696,10 @@ numeric         : simple_numeric {
                 | tUMINUS_NUM simple_numeric %prec tLOWEST {
                      $$ = support.negateNumeric($2);
                 }
+
+nonlocal_var    : tIVAR
+                | tGVAR
+                | tCVAR
 
 simple_numeric  : tINTEGER {
                     $$ = $1;
@@ -2818,6 +3226,9 @@ rparen          : opt_nl tRPAREN {
 rbracket        : opt_nl tRBRACK {
                     $$ = $2;
                 }
+rbrace          : opt_nl tRCURLY {
+                    $$ = TStringConstants.RCURLY;
+                }
 trailer         : /* none */ | '\n' | ','
 
 term            : ';'
@@ -2844,7 +3255,7 @@ none_block_pass : /* none */ {
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());
         
-        yyparse(lexer, null);
+        yyparse(lexer, new org.truffleruby.parser.parser.YYDebug());
         
         return support.getResult();
     }

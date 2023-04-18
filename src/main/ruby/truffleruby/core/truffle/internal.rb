@@ -57,11 +57,16 @@ module Truffle::Internal
     end
   end
 
-  def self.array_pattern_matches?(pattern, expression)
-    return false unless pattern.length == expression.length
-
-    pattern.zip(expression).all? do |a, b|
-      a === b
+  def self.deconstruct_checked(pattern)
+    if pattern.respond_to? :deconstruct
+      deconstructed = pattern.deconstruct
+      if Primitive.object_kind_of?(deconstructed, Array)
+        deconstructed
+      else
+        raise TypeError,'deconstruct must return Array'
+      end
+    else
+      nil
     end
   end
 

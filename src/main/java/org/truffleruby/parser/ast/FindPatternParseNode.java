@@ -28,83 +28,68 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- *
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-/** Represents an in condition */
-public class InParseNode extends ParseNode {
-    protected final ParseNode expressionNodes;
-    protected final ParseNode bodyNode;
-    private final ParseNode nextCase;
+public class FindPatternParseNode extends ParseNode {
+    private final ParseNode preRestArg;
+    private final ListParseNode args;
+    private final ParseNode postRestArg;
+    private ParseNode constant;
 
-    public InParseNode(
+    public FindPatternParseNode(
             SourceIndexLength position,
-            ParseNode expressionNodes,
-            ParseNode bodyNode,
-            ParseNode nextCase) {
+            ParseNode preRestArg,
+            ListParseNode args,
+            ParseNode postRestArg) {
         super(position);
 
-        if (expressionNodes instanceof ArrayParseNode) {
-            var arrayParseNode = (ArrayParseNode) expressionNodes;
-            if (arrayParseNode.size() != 1) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            expressionNodes = arrayParseNode.get(0);
-        }
-
-        this.expressionNodes = expressionNodes;
-        this.bodyNode = bodyNode;
-        this.nextCase = nextCase;
-
-        assert bodyNode != null : "bodyNode is not null";
+        this.preRestArg = preRestArg;
+        this.args = args;
+        this.postRestArg = postRestArg;
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.INNODE;
-    }
-
-    /** Accept for the visitor pattern.
-     * 
-     * @param iVisitor the visitor **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitInNode(this);
-    }
-
-    /** Gets the bodyNode.
-     * 
-     * @return Returns a INode */
-    public ParseNode getBodyNode() {
-        return bodyNode;
-    }
-
-    /** Gets the next case node (if any). */
-    public ParseNode getNextCase() {
-        return nextCase;
-    }
-
-    /** Get the expressionNode(s). */
-    public ParseNode getExpressionNodes() {
-        return expressionNodes;
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitFindPatternNode(this);
     }
 
     @Override
     public List<ParseNode> childNodes() {
-        return ParseNode.createList(expressionNodes, bodyNode, nextCase);
+        return createList(preRestArg, args, postRestArg, constant);
+    }
+
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.FINDPATTERNNODE;
+    }
+
+    public void setConstant(ParseNode constant) {
+        this.constant = constant;
+    }
+
+    public boolean hasConstant() {
+        return constant != null;
+    }
+
+    public ParseNode getConstant() {
+        return constant;
+    }
+
+    public ListParseNode getArgs() {
+        return args;
+    }
+
+    public ParseNode getPreRestArg() {
+        return preRestArg;
+    }
+
+    public ParseNode getPostRestArg() {
+        return postRestArg;
     }
 }
