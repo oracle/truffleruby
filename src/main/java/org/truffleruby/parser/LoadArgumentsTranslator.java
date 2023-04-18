@@ -608,5 +608,4 @@ public class LoadArgumentsTranslator extends Translator {
         return node;
     }
 
-
 }

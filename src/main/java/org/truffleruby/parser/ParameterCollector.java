@@ -144,5 +144,4 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
     public Object visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
         return null;
     }
-
 }

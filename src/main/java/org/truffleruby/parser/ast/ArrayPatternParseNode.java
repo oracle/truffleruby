@@ -57,7 +57,7 @@ public class ArrayPatternParseNode extends ParseNode {
 
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitArrayPatternNode(this); // add this
+        return visitor.visitArrayPatternNode(this);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ArrayPatternParseNode extends ParseNode {
 
     @Override
     public NodeType getNodeType() {
-        return NodeType.ARRAYPATTERNNODE; // add this
+        return NodeType.ARRAYPATTERNNODE;
     }
 
     public void setConstant(ParseNode constant) {

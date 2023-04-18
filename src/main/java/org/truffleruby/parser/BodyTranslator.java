@@ -188,7 +188,6 @@ import org.truffleruby.parser.ast.EnsureParseNode;
 import org.truffleruby.parser.ast.EvStrParseNode;
 import org.truffleruby.parser.ast.FCallParseNode;
 import org.truffleruby.parser.ast.FalseParseNode;
-import org.truffleruby.parser.ast.FindPatternParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
 import org.truffleruby.parser.ast.FlipParseNode;
 import org.truffleruby.parser.ast.FloatParseNode;
@@ -196,7 +195,6 @@ import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
-import org.truffleruby.parser.ast.HashPatternParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InParseNode;
@@ -843,11 +841,9 @@ public class BodyTranslator extends BaseTranslator {
                 currentNode, node.getCases(), environment, this);
 
         // Evaluate the case expression and store it in a local
-
-        final RubyNode caseExprValue = node.getCaseNode().accept(this);
         final int tempSlot = environment.declareLocalTemp("case in value");
         final ReadLocalNode readTemp = environment.readNode(tempSlot, sourceSection);
-        final RubyNode assignTemp = readTemp.makeWriteNode(caseExprValue);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
 
         /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
          * its else clause. */
@@ -856,7 +852,7 @@ public class BodyTranslator extends BaseTranslator {
         if (node.getElseNode() == null) {
             elseNode = NoMatchingPatternNodeGen.create(readTemp);
         } else {
-            elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+            elseNode = node.getElseNode().accept(this);
         }
 
         for (int n = node.getCases().size() - 1; n >= 0; n--) {
@@ -1493,11 +1489,6 @@ public class BodyTranslator extends BaseTranslator {
     }
 
     @Override
-    public RubyNode visitFindPatternNode(FindPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
-    }
-
-    @Override
     public RubyNode visitFixnumNode(FixnumParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         final long value = node.getValue();
@@ -1810,11 +1801,6 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
-    }
-
-    @Override
-    public RubyNode visitHashPatternNode(HashPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO");
     }
 
     @Override
