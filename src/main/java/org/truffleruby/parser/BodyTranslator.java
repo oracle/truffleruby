@@ -151,7 +151,6 @@ import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgsPushParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
-import org.truffleruby.parser.ast.ArrayPatternParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
@@ -218,7 +217,6 @@ import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
-import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -305,7 +303,6 @@ public class BodyTranslator extends BaseTranslator {
     }
 
     private RubySymbol translateNameNodeToSymbol(ParseNode node) {
-
         if (node instanceof LiteralParseNode) {
             return language.getSymbol(((LiteralParseNode) node).getName());
         } else if (node instanceof SymbolParseNode) {
@@ -408,11 +405,6 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode ret = ArrayLiteralNode.create(language, translatedValues);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
-    }
-
-    @Override
-    public RubyNode visitArrayPatternNode(ArrayPatternParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
@@ -2208,10 +2200,6 @@ public class BodyTranslator extends BaseTranslator {
         SourceIndexLength sourceSection = node.getPosition();
         final RubyNode ret = nilNode(sourceSection);
         return addNewlineIfNeeded(node, ret);
-    }
-
-    public RubyNode visitNilRestArgNode(NilRestArgParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override

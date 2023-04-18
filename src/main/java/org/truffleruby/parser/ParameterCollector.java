@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -24,7 +23,6 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
-import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -145,11 +143,6 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
     @Override
     public Object visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
         return null;
-    }
-
-    @Override
-    public Object visitNilRestArgNode(NilRestArgParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
 }

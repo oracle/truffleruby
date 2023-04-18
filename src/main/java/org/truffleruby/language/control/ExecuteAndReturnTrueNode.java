@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public final class ExecuteAndReturnTrueNode extends RubyContextSourceNode {
+
     @Child RubyNode child;
 
     public ExecuteAndReturnTrueNode(RubyNode child) {
@@ -23,7 +24,7 @@ public final class ExecuteAndReturnTrueNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        child.execute(frame);
+        child.doExecuteVoid(frame);
         return true;
     }
 

@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -51,7 +50,6 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
-import org.truffleruby.parser.ast.NilRestArgParseNode;
 import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -262,11 +260,6 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitNoKeywordsArgNode(NoKeywordsArgParseNode node) {
         return new CheckNoKeywordArgumentsNode();
-    }
-
-    @Override
-    public RubyNode visitNilRestArgNode(NilRestArgParseNode node) {
-        throw CompilerDirectives.shouldNotReachHere("TODO"); // TODO
     }
 
     @Override
