@@ -778,7 +778,7 @@ module Kernel
       raise ArgumentError, "unexpected value for freeze: #{Primitive.class(freeze)}"
     end
 
-    Primitive.object_clone self, freeze
+    Primitive.kernel_clone self, freeze
   end
 
   def initialize_clone(from, freeze: nil)

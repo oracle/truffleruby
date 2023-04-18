@@ -547,7 +547,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @Primitive(name = "object_clone") // "clone"
+    @Primitive(name = "kernel_clone") // "clone"
     public abstract static class CloneNode extends PrimitiveArrayArgumentsNode {
 
         @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
