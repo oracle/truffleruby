@@ -12,8 +12,8 @@ class Refinement
 
   def import_methods(*modules)
     modules.each do |mod|
-      if Primitive.object_class(mod) != Module
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+      if Primitive.class(mod) != Module
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
     end
 

@@ -101,12 +101,12 @@ module Truffle
     end
 
     def self.coerce_to_failed(object, klass)
-      raise TypeError, "wrong argument type #{Primitive.object_class object} (expected #{klass})"
+      raise TypeError, "wrong argument type #{Primitive.class object} (expected #{klass})"
     end
 
     def self.coerce_to_type_error(original, converted, method, klass)
-      oc = Primitive.object_class original
-      raise TypeError, "failed to convert #{oc} to #{klass}: #{oc}\##{method} returned #{Primitive.object_class converted}"
+      oc = Primitive.class original
+      raise TypeError, "failed to convert #{oc} to #{klass}: #{oc}\##{method} returned #{Primitive.class converted}"
     end
 
     # MRI conversion macros and functions
@@ -183,8 +183,8 @@ module Truffle
     end
 
     def self.conversion_mismatch(obj, cls, meth, res)
-      oc = Primitive.object_class(obj)
-      raise TypeError, "can't convert #{oc} to #{cls} (#{oc}##{meth} gives #{Primitive.object_class(res)})"
+      oc = Primitive.class(obj)
+      raise TypeError, "can't convert #{oc} to #{cls} (#{oc}##{meth} gives #{Primitive.class(res)})"
     end
 
     def self.fits_into_int?(val)
@@ -264,7 +264,7 @@ module Truffle
     # MRI: Check_Type / rb_check_type
     def self.rb_check_type(obj, cls)
       unless Primitive.is_a?(obj, cls)
-        raise TypeError, "wrong argument type #{Primitive.object_class(obj)} (expected #{cls})"
+        raise TypeError, "wrong argument type #{Primitive.class(obj)} (expected #{cls})"
       end
       obj
     end
@@ -393,7 +393,7 @@ module Truffle
       when nil, true, false
         raise TypeError, "can't convert #{obj.inspect} into Float"
       else
-        raise TypeError, "can't convert #{Primitive.object_class(obj)} into Float"
+        raise TypeError, "can't convert #{Primitive.class(obj)} into Float"
       end
     end
 

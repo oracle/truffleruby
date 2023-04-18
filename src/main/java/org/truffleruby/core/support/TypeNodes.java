@@ -85,8 +85,8 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_class")
-    public abstract static class ObjectClassNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "class")
+    public abstract static class ClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyClass objectClass(Object object,
                 @Cached LogicalClassNode logicalClassNode) {

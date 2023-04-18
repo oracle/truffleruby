@@ -266,7 +266,7 @@ module Truffle::CExt
   end
 
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
-    raise TypeError, format(message, klass, Primitive.object_class(obj)) unless Primitive.is_a?(obj, klass)
+    raise TypeError, format(message, klass, Primitive.class(obj)) unless Primitive.is_a?(obj, klass)
   end
 
   def rb_method_boundp(klass, id, ex)
@@ -278,7 +278,7 @@ module Truffle::CExt
   end
 
   def rb_obj_is_instance_of(object, ruby_class)
-    Primitive.object_class(object) == ruby_class
+    Primitive.class(object) == ruby_class
   end
 
   def rb_obj_is_kind_of(object, ruby_class)
@@ -443,11 +443,11 @@ module Truffle::CExt
   end
 
   def rb_obj_class(object)
-    Primitive.object_class(object)
+    Primitive.class(object)
   end
 
   def rb_obj_classname(object)
-    Primitive.object_class(object).name
+    Primitive.class(object).name
   end
 
   def rb_class_of(object)

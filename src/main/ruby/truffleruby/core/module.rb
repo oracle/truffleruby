@@ -54,7 +54,7 @@ class Module
 
   def include?(mod)
     if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
-      raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+      raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
     end
 
     return false if Primitive.equal?(self, mod)
@@ -80,7 +80,7 @@ class Module
     end
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :append_features, self
@@ -96,7 +96,7 @@ class Module
     end
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :prepend_features, self

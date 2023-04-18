@@ -38,7 +38,7 @@ class BasicObject
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
 
     if Primitive.module_anonymous?(cls)
       raise ::TypeError, "can't dump anonymous class #{cls}"
@@ -112,7 +112,7 @@ class Exception
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
 
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
@@ -160,7 +160,7 @@ class Time
     ivars = Primitive.object_ivars(self)
     Primitive.string_binary_append out, 'I'
 
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
     end
@@ -326,7 +326,7 @@ class Range
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     name = Primitive.module_name cls
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
@@ -418,7 +418,7 @@ class Struct
 
     Primitive.string_binary_append out, 'S'
 
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
     end
@@ -499,7 +499,7 @@ end
 
 module Unmarshalable
   private def __marshal__(ms)
-    raise TypeError, "marshaling is undefined for class #{Primitive.object_class(self)}"
+    raise TypeError, "marshaling is undefined for class #{Primitive.class(self)}"
   end
 end
 
@@ -1243,7 +1243,7 @@ module Marshal
     end
 
     def serialize_user_class(obj, cls)
-      obj_class = Primitive.object_class obj
+      obj_class = Primitive.class obj
 
       if obj_class != cls
         name = Primitive.module_name obj_class
@@ -1269,7 +1269,7 @@ module Marshal
         raise TypeError, '_dump() must return string'
       end
 
-      cls = Primitive.object_class obj
+      cls = Primitive.class obj
       if Primitive.module_anonymous?(cls)
         raise TypeError, "can't dump anonymous class #{cls}"
       end
@@ -1290,7 +1290,7 @@ module Marshal
 
       add_non_immediate_object val
 
-      cls = Primitive.object_class obj
+      cls = Primitive.class obj
 
       if Primitive.module_anonymous?(cls)
         raise TypeError, "can't dump anonymous class #{cls}"

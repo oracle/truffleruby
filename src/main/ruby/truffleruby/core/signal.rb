@@ -61,7 +61,7 @@ module Signal
   def self.trap(signal, handler = nil, &block)
     unless Primitive.is_a?(signal, Symbol) || Primitive.is_a?(signal, String) \
         || Primitive.is_a?(signal, Integer)
-      raise ArgumentError, "bad signal type #{Primitive.object_class(signal)}"
+      raise ArgumentError, "bad signal type #{Primitive.class(signal)}"
     end
 
     signal = signal.to_s if Primitive.is_a?(signal, Symbol)

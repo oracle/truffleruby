@@ -73,13 +73,13 @@ module Truffle
           first     = Float(from = first)
           last      = Float(from = last) unless Primitive.nil? last
         rescue ArgumentError
-          raise TypeError, "no implicit conversion to float from #{Primitive.object_class(from)}"
+          raise TypeError, "no implicit conversion to float from #{Primitive.class(from)}"
         end
       else
         step_size = Integer(from = step_size)
 
         unless Primitive.is_a?(step_size, Integer)
-          raise TypeError, "can't convert #{Primitive.object_class(from)} to Integer (#{Primitive.object_class(from)}#to_int gives #{Primitive.object_class(step_size)})"
+          raise TypeError, "can't convert #{Primitive.class(from)} to Integer (#{Primitive.class(from)}#to_int gives #{Primitive.class(step_size)})"
         end
       end
 

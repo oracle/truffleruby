@@ -28,6 +28,6 @@
 
 class Mutex
   def marshal_dump
-    raise TypeError, "can't dump #{Primitive.object_class(self)}"
+    raise TypeError, "can't dump #{Primitive.class(self)}"
   end
 end

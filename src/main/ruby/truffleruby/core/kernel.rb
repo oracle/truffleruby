@@ -96,7 +96,7 @@ module Kernel
       return hash
     end
 
-    raise TypeError, "can't convert #{Primitive.object_class(obj)} into Hash"
+    raise TypeError, "can't convert #{Primitive.class(obj)} into Hash"
   end
   module_function :Hash
 
@@ -182,7 +182,7 @@ module Kernel
   module_function :` # `
 
   def =~(other)
-    warn "deprecated Object#=~ is called on #{Primitive.object_class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
+    warn "deprecated Object#=~ is called on #{Primitive.class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
     nil
   end
 
@@ -326,7 +326,7 @@ module Kernel
 
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :extend_object, self
@@ -348,7 +348,7 @@ module Kernel
   module_function :gets
 
   def inspect
-    prefix = "#<#{Primitive.object_class(self)}:0x#{self.__id__.to_s(16)}"
+    prefix = "#<#{Primitive.class(self)}:0x#{self.__id__.to_s(16)}"
 
     ivars = Primitive.object_ivars self
 
@@ -775,7 +775,7 @@ module Kernel
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
-      raise ArgumentError, "unexpected value for freeze: #{Primitive.object_class(freeze)}"
+      raise ArgumentError, "unexpected value for freeze: #{Primitive.class(freeze)}"
     end
 
     Primitive.object_clone self, freeze

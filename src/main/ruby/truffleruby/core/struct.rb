@@ -111,7 +111,7 @@ class Struct
   end
 
   private def _attrs # :nodoc:
-    Primitive.object_class(self)::STRUCT_ATTRS
+    Primitive.class(self)::STRUCT_ATTRS
   end
 
   def select
@@ -128,7 +128,7 @@ class Struct
     each_pair.each_with_index do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -150,10 +150,10 @@ class Struct
         values << "#{var}=#{val.inspect}"
       end
 
-      if Primitive.module_anonymous?(Primitive.object_class(self))
+      if Primitive.module_anonymous?(Primitive.class(self))
         return "#<struct #{values.join(', ')}>"
       else
-        name = Primitive.module_name Primitive.object_class(self)
+        name = Primitive.module_name Primitive.class(self)
         return "#<struct #{name} #{values.join(', ')}>"
       end
     end
@@ -169,7 +169,7 @@ class Struct
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
     end
 
-    if Primitive.object_class(self)::KEYWORD_INIT
+    if Primitive.class(self)::KEYWORD_INIT
       # Accept a single positional hash for https://bugs.ruby-lang.org/issues/18632 and spec
       if kwargs.empty? && args.size == 1 && Primitive.is_a?(args.first, Hash)
         kwargs = args.first
@@ -204,7 +204,7 @@ class Struct
   end
 
   def ==(other)
-    return false if Primitive.object_class(self) != Primitive.object_class(other)
+    return false if Primitive.class(self) != Primitive.class(other)
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
       return self.values == other.values
@@ -287,7 +287,7 @@ class Struct
 
   def eql?(other)
     return true if Primitive.equal?(self, other)
-    return false if Primitive.object_class(self) != Primitive.object_class(other)
+    return false if Primitive.class(self) != Primitive.class(other)
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
       _attrs.each do |var|
@@ -318,7 +318,7 @@ class Struct
   end
 
   def hash
-    val = Primitive.vm_hash_start(Primitive.object_class(self).hash)
+    val = Primitive.vm_hash_start(Primitive.class(self).hash)
     val = Primitive.vm_hash_update(val, size)
     return val if Truffle::ThreadOperations.detect_outermost_recursion self do
       _attrs.each do |var|
@@ -342,7 +342,7 @@ class Struct
   end
 
   def members
-    Primitive.object_class(self).members
+    Primitive.class(self).members
   end
 
   def to_a
@@ -353,7 +353,7 @@ class Struct
 
   def deconstruct_keys(keys)
     return to_h if Primitive.nil?(keys)
-    raise TypeError, "wrong argument type #{Primitive.object_class(keys)} (expected Array or nil)" unless Primitive.is_a?(keys, Array)
+    raise TypeError, "wrong argument type #{Primitive.class(keys)} (expected Array or nil)" unless Primitive.is_a?(keys, Array)
     return {} if self.length < keys.length
 
     h = {}
@@ -475,7 +475,7 @@ class Struct
       end
 
       def hash
-        hash = Primitive.vm_hash_start(Primitive.object_class(self).hash)
+        hash = Primitive.vm_hash_start(Primitive.class(self).hash)
         hash = Primitive.vm_hash_update hash, #{hashes.size}
 
         return hash if Truffle::ThreadOperations.detect_outermost_recursion(self) do

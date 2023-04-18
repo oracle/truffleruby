@@ -36,7 +36,7 @@
 
 class Exception
   def ==(other)
-    other.instance_of?(Primitive.object_class(self)) &&
+    other.instance_of?(Primitive.class(self)) &&
       message == other.message &&
       backtrace == other.backtrace
   end
@@ -47,7 +47,7 @@ class Exception
 
   def to_s
     msg = Truffle::ExceptionOperations.compute_message(self)
-    return Primitive.object_class(self).to_s if Primitive.nil?(msg)
+    return Primitive.class(self).to_s if Primitive.nil?(msg)
     msg
   end
 
@@ -71,9 +71,9 @@ class Exception
   def inspect
     s = self.to_s
     if s.empty?
-      Primitive.object_class(self).name
+      Primitive.class(self).name
     else
-      "#<#{Primitive.object_class(self).name}: #{s}>"
+      "#<#{Primitive.class(self).name}: #{s}>"
     end
   end
 
@@ -326,7 +326,7 @@ class SystemCallError < StandardError
 
       if defined?(self::Errno) && Primitive.is_a?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && Primitive.equal?(Primitive.object_class(error), self)
+        if error && Primitive.equal?(Primitive.class(error), self)
           return error
         end
       end
@@ -377,7 +377,7 @@ class SignalException < Exception
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
-        raise ArgumentError, "bad signal type #{Primitive.object_class(sig).name}" if Primitive.nil? sig_converted
+        raise ArgumentError, "bad signal type #{Primitive.class(sig).name}" if Primitive.nil? sig_converted
         sig = sig_converted
       end
       signal_name = sig

@@ -508,7 +508,7 @@ class Array
     level = Primitive.rb_num2int level
     return nil if level == 0
 
-    out = Primitive.object_class(self).allocate # new_reserved size
+    out = Primitive.class(self).allocate # new_reserved size
     if Primitive.array_flatten_helper(self, out, level)
       Primitive.steal_array_storage(self, out)
       return self
@@ -1286,7 +1286,7 @@ class Array
     each_with_index do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -1365,7 +1365,7 @@ class Array
       elsif Primitive.respond_to?(other, :each, false)
         other.to_enum(:each)
       else
-        raise TypeError, "wrong argument type #{Primitive.object_class(other)} (must respond to :each)"
+        raise TypeError, "wrong argument type #{Primitive.class(other)} (must respond to :each)"
       end
     end
 

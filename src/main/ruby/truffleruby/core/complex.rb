@@ -199,8 +199,8 @@ class Complex < Numeric
 
   def eql?(other)
     Primitive.is_a?(other, Complex) and
-    Primitive.object_class(imag) == Primitive.object_class(other.imag) and
-    Primitive.object_class(real) == Primitive.object_class(other.real) and
+    Primitive.class(imag) == Primitive.class(other.imag) and
+    Primitive.class(real) == Primitive.class(other.real) and
     self == other
   end
 
@@ -210,7 +210,7 @@ class Complex < Numeric
     elsif Primitive.is_a?(other, Complex)
       [other, self]
     else
-      raise TypeError, "#{Primitive.object_class(other)} can't be coerced into Complex"
+      raise TypeError, "#{Primitive.class(other)} can't be coerced into Complex"
     end
   end
 
@@ -305,7 +305,7 @@ class Complex < Numeric
   end
 
   def fdiv(other)
-    raise TypeError, "#{Primitive.object_class(other)} can't be coerced into Complex" unless Primitive.is_a?(other, Numeric)
+    raise TypeError, "#{Primitive.class(other)} can't be coerced into Complex" unless Primitive.is_a?(other, Numeric)
 
     # FIXME
     self / other

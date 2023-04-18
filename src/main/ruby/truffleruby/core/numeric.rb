@@ -31,7 +31,7 @@ class Numeric
 
   def clone(freeze: nil)
     if Primitive.equal?(freeze, false)
-      raise ArgumentError, "can't unfreeze #{Primitive.object_class(self).name}"
+      raise ArgumentError, "can't unfreeze #{Primitive.class(self).name}"
     end
     self
   end
@@ -49,7 +49,7 @@ class Numeric
   end
 
   def eql?(other)
-    return false unless Primitive.object_class(other) == Primitive.object_class(self)
+    return false unless Primitive.class(other) == Primitive.class(self)
     self == other
   end
 
@@ -161,7 +161,7 @@ class Numeric
   def coerce(other)
     other = Truffle::Interop.unbox_if_needed(other)
 
-    if other.instance_of? Primitive.object_class(self)
+    if other.instance_of? Primitive.class(self)
       return [other, self]
     end
 
@@ -197,9 +197,9 @@ class Numeric
 
   def math_coerce_error(other, error)
     if error == :coerce_error
-      raise TypeError, "#{Primitive.object_class(other)} can't be coerced into #{Primitive.object_class(self)}"
+      raise TypeError, "#{Primitive.class(other)} can't be coerced into #{Primitive.class(self)}"
     elsif error == :compare_error
-      raise ArgumentError, "comparison of #{Primitive.object_class(self)} with #{Primitive.object_class(other)} failed"
+      raise ArgumentError, "comparison of #{Primitive.class(self)} with #{Primitive.class(other)} failed"
     elsif error == :bad_coerce_return_error
       nil
     elsif error == :no_error
@@ -211,7 +211,7 @@ class Numeric
   def bit_coerce(other)
     values = math_coerce(other)
     unless Primitive.is_a?(values[0], Integer) && Primitive.is_a?(values[1], Integer)
-      raise TypeError, "#{Primitive.object_class(values[1])} can't be coerced into #{Primitive.object_class(self)}"
+      raise TypeError, "#{Primitive.class(values[1])} can't be coerced into #{Primitive.class(self)}"
     end
     values
   end
@@ -337,6 +337,6 @@ class Numeric
 
   def singleton_method_added(name)
     self.singleton_class.send(:remove_method, name)
-    raise TypeError, "can't define singleton method #{name} for #{Primitive.object_class(self)}"
+    raise TypeError, "can't define singleton method #{name} for #{Primitive.class(self)}"
   end
 end

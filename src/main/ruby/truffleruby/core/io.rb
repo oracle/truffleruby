@@ -1320,9 +1320,9 @@ class IO
   # Return a string describing this IO object.
   def inspect
     if Primitive.io_fd(self) != -1
-      "#<#{Primitive.object_class(self)}:fd #{Primitive.io_fd(self)}>"
+      "#<#{Primitive.class(self)}:fd #{Primitive.io_fd(self)}>"
     else
-      "#<#{Primitive.object_class(self)}:(closed)>"
+      "#<#{Primitive.class(self)}:(closed)>"
     end
   end
 
@@ -1991,7 +1991,7 @@ class IO
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, Primitive.io_fd(self))
 
-        Primitive.vm_set_class self, Primitive.object_class(io)
+        Primitive.vm_set_class self, Primitive.class(io)
 
         # We need to use that mode of other here like MRI, and not fcntl(), because fcntl(fd, F_GETFL)
         # gives O_RDWR for the 3 standard IOs, even though they are not bidirectional.

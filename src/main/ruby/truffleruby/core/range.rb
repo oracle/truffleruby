@@ -79,12 +79,12 @@ class Range
       elsif Primitive.is_a?(stop, Integer)
         bsearch_integer(&block)
       else
-        raise TypeError, "bsearch is not available for #{Primitive.object_class(stop)}"
+        raise TypeError, "bsearch is not available for #{Primitive.class(stop)}"
       end
     elsif Primitive.nil?(start) && Primitive.is_a?(stop, Integer)
       bsearch_beginless(&block)
     else
-      raise TypeError, "bsearch is not available for #{Primitive.object_class(start)}"
+      raise TypeError, "bsearch is not available for #{Primitive.class(start)}"
     end
   end
 
@@ -275,7 +275,7 @@ class Range
     first, last = self.begin, self.end
 
     unless first.respond_to?(:succ) && !Primitive.is_a?(first, Time)
-      raise TypeError, "can't iterate from #{Primitive.object_class(first)}"
+      raise TypeError, "can't iterate from #{Primitive.class(first)}"
     end
 
     return each_endless(first, &block) if Primitive.nil? last

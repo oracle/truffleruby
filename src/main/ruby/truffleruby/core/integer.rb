@@ -242,7 +242,7 @@ class Integer < Numeric
   end
 
   def gcd(other)
-    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.is_a?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.class(other)}" unless Primitive.is_a?(other, Integer)
     min = self.abs
     max = other.abs
     while min > 0
@@ -270,7 +270,7 @@ class Integer < Numeric
   end
 
   def lcm(other)
-    raise TypeError, "Expected Integer but got #{Primitive.object_class(other)}" unless Primitive.is_a?(other, Integer)
+    raise TypeError, "Expected Integer but got #{Primitive.class(other)}" unless Primitive.is_a?(other, Integer)
     if self.zero? or other.zero?
       0
     else
