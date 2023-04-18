@@ -1293,6 +1293,7 @@ public abstract class InteropNodes {
     @NodeChild(value = "argumentNodes", type = RubyNode[].class)
     public abstract static class ReadMemberNode extends RubySourceNode {
 
+        @NeverDefault
         public static ReadMemberNode create() {
             return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }

@@ -147,6 +147,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -244,13 +245,13 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)", limit = "1")
         protected boolean refEqual(Object a, Object b,
-                @Cached ReferenceEqualNode referenceEqual) {
+                @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
         }
 
         @Specialization(replaces = "refEqual")
         protected boolean refEqualOrEql(Object a, Object b,
-                @Cached ReferenceEqualNode referenceEqual,
+                @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
             return referenceEqual.executeReferenceEqual(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
@@ -262,8 +263,8 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
         protected Object findFile(Object featureString,
-                @Cached BranchProfile notFoundProfile,
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Cached @Shared BranchProfile notFoundProfile,
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             String feature = toJavaStringNode.executeToJavaString(featureString);
@@ -272,8 +273,8 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object findFileString(String featureString,
-                @Cached BranchProfile notFoundProfile,
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+                @Cached @Shared BranchProfile notFoundProfile,
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
                 notFoundProfile.enter();
@@ -519,7 +520,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "!isRubyClass(self)")
         protected RubyDynamicObject copyRubyDynamicObject(RubyDynamicObject self,
                 @Cached DispatchNode allocateNode,
-                @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
+                @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(), "__allocate__");
             copyInstanceVariablesNode.execute(newObject, self);
             return newObject;
@@ -527,7 +528,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyDynamicObject copyRubyClass(RubyClass self,
-                @Cached CopyInstanceVariablesNode copyInstanceVariablesNode) {
+                @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
                     null, null, false, null, self.superclass);
             copyInstanceVariablesNode.execute(newClass, self);
@@ -749,8 +750,8 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @Cached RubyStringLibrary libSource,
-                @Cached RubyStringLibrary libFile,
+                @Cached @Shared RubyStringLibrary libSource,
+                @Cached @Shared RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
                 @Cached("asTruffleStringUncached(file)") TruffleString cachedFile,
@@ -771,8 +772,8 @@ public abstract class KernelNodes {
                 replaces = "evalCached", limit = "1")
         protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
-                @Cached RubyStringLibrary libFile,
-                @Cached RubyStringLibrary libSource,
+                @Cached @Shared RubyStringLibrary libFile,
+                @Cached @Shared RubyStringLibrary libSource,
                 @Cached ToJavaStringNode toJavaStringNode) {
 
             var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
@@ -884,13 +885,13 @@ public abstract class KernelNodes {
 
         @Specialization
         protected long hashString(RubyString value,
-                @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode) {
             return stringHashNode.execute(value);
         }
 
         @Specialization
         protected long hashImmutableString(ImmutableRubyString value,
-                @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode) {
             return stringHashNode.execute(value);
         }
 
@@ -1009,9 +1010,9 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableGetSymbol(RubyDynamicObject object, Object name,
-                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
             return objectLibrary.getOrDefault(object, nameString, nil);
@@ -1019,8 +1020,8 @@ public abstract class KernelNodes {
 
         @Fallback
         protected Object immutable(Object object, Object name,
-                @Cached CheckIVarNameNode checkIVarNameNode,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
             return nil;
@@ -1032,9 +1033,9 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableSet(RubyDynamicObject object, Object name, Object value,
-                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached WriteObjectFieldNode writeNode,
-                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
@@ -1045,8 +1046,8 @@ public abstract class KernelNodes {
 
         @Fallback
         protected Object immutable(Object object, Object name, Object value,
-                @Cached CheckIVarNameNode checkIVarNameNode,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
@@ -1058,8 +1059,8 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object removeInstanceVariable(RubyDynamicObject object, Object name,
-                @Cached CheckIVarNameNode checkIVarNameNode,
-                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
@@ -1069,8 +1070,8 @@ public abstract class KernelNodes {
 
         @Fallback
         protected Object immutable(Object object, Object name,
-                @Cached CheckIVarNameNode checkIVarNameNode,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared CheckIVarNameNode checkIVarNameNode,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
@@ -1676,7 +1677,7 @@ public abstract class KernelNodes {
                         "isDebug(frame) == cachedIsDebug" },
                 limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
-                @Cached RubyStringLibrary libFormat,
+                @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -1700,7 +1701,7 @@ public abstract class KernelNodes {
                 replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
-                @Cached RubyStringLibrary libFormat) {
+                @Cached @Shared RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.execute(frame);
             var tstring = libFormat.getTString(format);

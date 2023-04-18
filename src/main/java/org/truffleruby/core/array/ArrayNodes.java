@@ -672,7 +672,7 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Exclusive LoopConditionProfile loopProfile) {
+                @Cached @Shared LoopConditionProfile loopProfile) {
 
             return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile);
         }
@@ -685,7 +685,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Exclusive LoopConditionProfile loopProfile) {
+                @Cached @Shared LoopConditionProfile loopProfile) {
 
             final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(array.size));
             return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,

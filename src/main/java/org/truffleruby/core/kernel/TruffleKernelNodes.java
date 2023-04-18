@@ -54,6 +54,7 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -82,8 +83,8 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)", limit = "1")
         protected boolean load(Object file, Nil wrapModule,
-                @Cached RubyStringLibrary strings,
-                @Cached IndirectCallNode callNode) {
+                @Cached @Shared RubyStringLibrary strings,
+                @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
             final Pair<Source, TStringWithEncoding> sourceTStringPair = getSourceTStringPair(feature);
 
@@ -109,8 +110,8 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)", limit = "1")
         protected boolean load(Object file, RubyModule wrapModule,
-                @Cached RubyStringLibrary strings,
-                @Cached IndirectCallNode callNode) {
+                @Cached @Shared RubyStringLibrary strings,
+                @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
             final Pair<Source, TStringWithEncoding> sourceTStringPair = getSourceTStringPair(feature);
 

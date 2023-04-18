@@ -34,7 +34,7 @@ public abstract class SetClassVariableNode extends RubyBaseNode {
     @Specialization(guards = "!objectLibrary.isShared(classVariableStorage)")
     protected Object setClassVariableLocal(RubyModule module, String name, Object value,
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
-            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") @Shared DynamicObjectLibrary objectLibrary,
             @Cached @Shared BranchProfile slowPath) {
         if (!objectLibrary.putIfPresent(classVariableStorage, name, value)) {
             slowPath.enter();
@@ -46,7 +46,7 @@ public abstract class SetClassVariableNode extends RubyBaseNode {
     @Specialization(guards = "objectLibrary.isShared(classVariableStorage)")
     protected Object setClassVariableShared(RubyModule module, String name, Object value,
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
-            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") @Shared DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached @Shared BranchProfile slowPath) {
         // See WriteObjectFieldNode

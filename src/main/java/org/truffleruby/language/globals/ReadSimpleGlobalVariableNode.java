@@ -18,6 +18,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.WarningNode;
 
@@ -46,7 +47,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value,
-            @Cached("new()") WarningNode warningNode,
+            @Cached("new()") @Shared WarningNode warningNode,
             @Cached(value = "storage.isDefined()", neverDefault = false) boolean isDefined) {
         if (!isDefined && warningNode.shouldWarn()) {
             SourceSection sourceSection = getEncapsulatingSourceSection();
@@ -60,7 +61,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
 
     @Specialization
     protected Object read(
-            @Cached("new()") WarningNode warningNode,
+            @Cached("new()") @Shared WarningNode warningNode,
             @Cached ConditionProfile isDefinedProfile) {
         if (lookupGlobalVariableStorageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

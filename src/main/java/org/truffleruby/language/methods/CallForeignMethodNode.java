@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -128,7 +129,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         @Specialization(guards = "args.length == 0", limit = "getInteropCacheLimit()")
         protected Object readOrInvoke(Object receiver, String name, Object[] args,
                 @Cached ToSymbolNode toSymbolNode,
-                @Cached InvokeMemberNode invokeNode,
+                @Cached @Shared InvokeMemberNode invokeNode,
                 @Cached ReadMemberNode readNode,
                 @Cached ConditionProfile invocable,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -141,7 +142,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
 
         @Specialization(guards = "args.length != 0")
         protected Object invoke(Object receiver, String name, Object[] args,
-                @Cached InvokeMemberNode invokeNode) {
+                @Cached @Shared InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
     }
@@ -154,8 +155,8 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getInteropCacheLimit()")
         protected Object callBoolean(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
+                @Cached @Shared TranslateInteropExceptionNode translateInteropException,
+                @Cached @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asBoolean(receiver), name, args);
             } catch (InteropException e) {
@@ -168,8 +169,8 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         protected Object callInt(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
+                @Cached @Shared TranslateInteropExceptionNode translateInteropException,
+                @Cached @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asInt(receiver), name, args);
             } catch (InteropException e) {
@@ -185,8 +186,8 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         protected Object callLong(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
+                @Cached @Shared TranslateInteropExceptionNode translateInteropException,
+                @Cached @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asLong(receiver), name, args);
             } catch (InteropException e) {
@@ -202,8 +203,8 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         protected Object callBigInteger(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
+                @Cached @Shared TranslateInteropExceptionNode translateInteropException,
+                @Cached @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(new RubyBignum(receivers.asBigInteger(receiver)), name, args);
             } catch (InteropException e) {
@@ -219,8 +220,8 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         protected Object callDouble(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached DispatchNode dispatch) {
+                @Cached @Shared TranslateInteropExceptionNode translateInteropException,
+                @Cached @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asDouble(receiver), name, args);
             } catch (InteropException e) {
