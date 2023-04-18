@@ -31,9 +31,8 @@ public class RubyCallNodeParameters {
             RubyNode block,
             ArgumentsDescriptor descriptor,
             RubyNode[] arguments,
-            boolean isSplatted,
             boolean ignoreVisibility) {
-        this(receiver, methodName, block, descriptor, arguments, isSplatted, ignoreVisibility, false, false, false);
+        this(receiver, methodName, block, descriptor, arguments, false, ignoreVisibility, false, false, false);
     }
 
     public RubyCallNodeParameters(

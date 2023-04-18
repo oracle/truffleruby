@@ -81,7 +81,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         boolean ignoreVisibility = node.receiver == null;
         return new RubyCallNode(new RubyCallNodeParameters(receiver, methodName, null,
-                EmptyArgumentsDescriptor.INSTANCE, translatedArguments, false, ignoreVisibility));
+                EmptyArgumentsDescriptor.INSTANCE, translatedArguments, ignoreVisibility));
     }
 
     @Override

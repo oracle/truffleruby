@@ -179,7 +179,6 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
                 null,
                 EmptyArgumentsDescriptor.INSTANCE,
                 arguments,
-                false,
                 true);
         return language.coreMethodAssumptions.createCallNode(parameters);
     }
