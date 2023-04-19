@@ -285,11 +285,11 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = "isArithmeticSequence(index, isANode)", limit = "1")
-        protected Object indexArithmeticSequence(RubyArray array, Object index, NotProvided length,
+        @Specialization(guards = "isArithmeticSequence(enumerator, isANode)", limit = "1")
+        protected Object indexArithmeticSequence(RubyArray array, Object enumerator, NotProvided length,
                 @Cached @Shared IsANode isANode,
                 @Cached DispatchNode callSliceArithmeticSequence) {
-            return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", index);
+            return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", enumerator);
         }
 
         @Specialization(
