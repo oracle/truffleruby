@@ -19,7 +19,7 @@ module Truffle
 
       invalid_argument(limit) if Primitive.nil?(limit)
 
-      unless Primitive.object_kind_of?(limit, Float)
+      unless Primitive.is_a?(limit, Float)
         if limit_int = Truffle::Type.rb_check_to_integer(limit, :to_int)
           return rand_int(randomizer, limit_int, true)
         end
@@ -35,7 +35,7 @@ module Truffle
           r *= limit_float if limit_float > 0.0
           r
         end
-      elsif Primitive.object_kind_of?(limit, Range)
+      elsif Primitive.is_a?(limit, Range)
         rand_range(randomizer, limit)
       else
         error == ArgumentError ? invalid_argument(limit) : Primitive.rb_num2long(limit)
@@ -65,7 +65,7 @@ module Truffle
       raise Errno::EDOM if Primitive.nil?(b) || Primitive.nil?(e)
 
       diff = e - b
-      if !Primitive.object_kind_of?(diff, Float) &&
+      if !Primitive.is_a?(diff, Float) &&
         !Primitive.nil?(v = Truffle::Type.rb_check_to_integer(diff, :to_int))
         max = exclude_end ? v - 1 : v
         if max >= 0
@@ -102,7 +102,7 @@ module Truffle
         end
       end
 
-      if Primitive.object_kind_of?(b, Integer) && Primitive.object_kind_of?(v, Integer)
+      if Primitive.is_a?(b, Integer) && Primitive.is_a?(v, Integer)
         return b + v
       end
 
@@ -122,7 +122,7 @@ module Truffle
 
     def self.obj_random_bytes(obj, len)
       bytes = obj.bytes(len)
-      raise TypeError, 'type must be String' unless Primitive.object_kind_of?(bytes, String)
+      raise TypeError, 'type must be String' unless Primitive.is_a?(bytes, String)
       bytesize = bytes.bytesize
       unless bytesize == len
         raise RangeError, "random data too #{bytesize < len ? 'short' : 'long'} #{bytesize}"

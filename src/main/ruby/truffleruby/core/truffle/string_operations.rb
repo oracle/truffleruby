@@ -36,7 +36,7 @@ module Truffle
           val
         end
       else
-        unless Primitive.object_kind_of?(replacement, String)
+        unless Primitive.is_a?(replacement, String)
           hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
           replacement = StringValue(replacement) unless hash
         end
@@ -68,9 +68,9 @@ module Truffle
     end
 
     def self.gsub_internal_matches(global, orig, pattern)
-      if Primitive.object_kind_of?(pattern, Regexp)
+      if Primitive.is_a?(pattern, Regexp)
         gsub_regexp_matches(global, orig, pattern)
-      elsif Primitive.object_kind_of?(pattern, String)
+      elsif Primitive.is_a?(pattern, String)
         gsub_string_matches(global, orig, pattern)
       else
         gsub_other_matches(global, orig, pattern)
@@ -139,8 +139,8 @@ module Truffle
         Primitive.string_append(ret, str) if str
 
         val = yield ret, match
-        val = val.to_s unless Primitive.object_kind_of?(val, String)
-        val = Primitive.rb_any_to_s(val) unless Primitive.object_kind_of?(val, String)
+        val = val.to_s unless Primitive.is_a?(val, String)
+        val = Primitive.rb_any_to_s(val) unless Primitive.is_a?(val, String)
 
         Primitive.string_append(ret, val)
         last_end = Primitive.match_data_byte_end(match, 0)
@@ -155,8 +155,8 @@ module Truffle
     def self.concat_internal(string, other)
       Primitive.check_frozen string
 
-      unless Primitive.object_kind_of?(other, String)
-        if Primitive.object_kind_of?(other, Integer)
+      unless Primitive.is_a?(other, String)
+        if Primitive.is_a?(other, Integer)
           if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
             string.force_encoding(Encoding::BINARY)
           end
@@ -290,7 +290,7 @@ module Truffle
     def self.byte_index(src, str, enc, start = 0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
-        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.is_a?(str, Regexp)
         return nil
       end
 

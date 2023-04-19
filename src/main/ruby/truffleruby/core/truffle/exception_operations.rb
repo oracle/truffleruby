@@ -20,9 +20,9 @@ module Truffle
           exc = exc.exception msg
         end
 
-        exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
+        exception_class_object_expected! unless Primitive.is_a?(exc, ::Exception)
         exc
-      elsif Primitive.object_kind_of?(exc, ::String)
+      elsif Primitive.is_a?(exc, ::String)
         ::RuntimeError.exception exc
       else
         exception_class_object_expected!
@@ -50,7 +50,7 @@ module Truffle
 
     def self.call_exception(exc, *args)
       res = Truffle::Type.check_funcall(exc, :exception, args)
-      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.object_kind_of?(res, Exception)
+      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.is_a?(res, Exception)
       res
     end
 
@@ -65,17 +65,17 @@ module Truffle
     end
 
     def self.show_exception_for_debug(exc, uplevel)
-      STDERR.puts "Exception: `#{Primitive.object_class(exc)}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
+      STDERR.puts "Exception: `#{Primitive.class(exc)}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
     end
 
     def self.class_name(receiver)
-      Primitive.object_class(receiver).name
+      Primitive.class(receiver).name
     end
 
     # MRI: name_err_mesg_to_str
     def self.receiver_string(receiver)
       ret = begin
-        if Primitive.object_respond_to?(receiver, :inspect, false)
+        if Primitive.respond_to?(receiver, :inspect, false)
           Truffle::Type.rb_inspect(receiver)
         else
           nil
@@ -94,8 +94,8 @@ module Truffle
     def self.message_and_class(exception, highlight)
       message = StringValue exception.message.to_s
 
-      klass = Primitive.object_class(exception).to_s
-      if Primitive.object_kind_of?(exception, Polyglot::ForeignException) and
+      klass = Primitive.class(exception).to_s
+      if Primitive.is_a?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
         klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
       end
@@ -130,12 +130,12 @@ module Truffle
       highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
                   else
-                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.object_equal(highlight, true) || Primitive.object_equal(highlight, false)
-                    !Primitive.object_equal(highlight, false)
+                    raise ArgumentError, "expected true of false as highlight: #{highlight}" unless Primitive.equal?(highlight, true) || Primitive.equal?(highlight, false)
+                    !Primitive.equal?(highlight, false)
                   end
 
-      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.object_equal(order, :top) || Primitive.object_equal(order, :bottom)
-      reverse = !Primitive.object_equal(order, :top)
+      raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.equal?(order, :top) || Primitive.equal?(order, :bottom)
+      reverse = !Primitive.equal?(order, :top)
 
       result = ''.b
       bt = exception.backtrace || caller(2)
@@ -194,7 +194,7 @@ module Truffle
 
     def self.append_causes(str, err, causes, reverse, highlight)
       cause = err.cause
-      if !Primitive.nil?(cause) && Primitive.object_kind_of?(cause, Exception) && !causes.has_key?(cause)
+      if !Primitive.nil?(cause) && Primitive.is_a?(cause, Exception) && !causes.has_key?(cause)
         causes[cause] = true
         if reverse
           append_causes(str, cause, causes, reverse, highlight)
@@ -246,7 +246,7 @@ module Truffle
       when false
         'false'
       else
-        Primitive.object_class(val).name
+        Primitive.class(val).name
       end
     end
 
@@ -258,9 +258,9 @@ module Truffle
       y_classname = if Truffle::Type.is_special_const?(y)
                       y.inspect
                     else
-                      Primitive.object_class(y)
+                      Primitive.class(y)
                     end
-      "comparison of #{Primitive.object_class(x)} with #{y_classname} failed"
+      "comparison of #{Primitive.class(x)} with #{y_classname} failed"
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|

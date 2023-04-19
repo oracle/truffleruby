@@ -60,7 +60,7 @@ class Rational < Numeric
   end
 
   def **(other)
-    if Primitive.object_kind_of?(other, Rational) && other.denominator == 1
+    if Primitive.is_a?(other, Rational) && other.denominator == 1
       other = other.numerator
     end
 
@@ -208,7 +208,7 @@ class Rational < Numeric
         [other, Complex(self)]
       end
     else
-      raise TypeError, "#{Primitive.object_class(other).name} can't be coerced into Rational"
+      raise TypeError, "#{Primitive.class(other).name} can't be coerced into Rational"
     end
   end
 
@@ -302,7 +302,7 @@ class Rational < Numeric
   end
 
   def to_f
-    if Primitive.object_kind_of?(@numerator, Integer) && Primitive.object_kind_of?(@denominator, Integer)
+    if Primitive.is_a?(@numerator, Integer) && Primitive.is_a?(@denominator, Integer)
       @numerator.fdiv(@denominator)
     else
       Truffle::Type.rb_num2dbl(@numerator) / Truffle::Type.rb_num2dbl(@denominator)
@@ -334,7 +334,7 @@ class Rational < Numeric
       raise TypeError, 'cannot convert nil into Rational'
     end
 
-    if Primitive.object_kind_of?(num, Integer) && Primitive.object_kind_of?(den, Integer)
+    if Primitive.is_a?(num, Integer) && Primitive.is_a?(den, Integer)
       return reduce(num, den)
     end
 
@@ -354,10 +354,10 @@ class Rational < Numeric
       den = den.to_r
     end
 
-    if Primitive.object_equal(den, 1) && !(Primitive.object_kind_of?(num, Integer))
+    if Primitive.equal?(den, 1) && !(Primitive.is_a?(num, Integer))
       return Truffle::Type.coerce_to(num, Rational, :to_r)
-    elsif Primitive.object_kind_of?(num, Numeric) && Primitive.object_kind_of?(den, Numeric) &&
-        !(Primitive.object_kind_of?(num, Integer) && Primitive.object_kind_of?(den, Integer))
+    elsif Primitive.is_a?(num, Numeric) && Primitive.is_a?(den, Numeric) &&
+        !(Primitive.is_a?(num, Integer) && Primitive.is_a?(den, Integer))
       return num / den
     end
 
@@ -404,7 +404,7 @@ class Rational < Numeric
   def initialize(num, den)
     @numerator = num
     @denominator = den
-    Primitive.object_freeze(self)
+    Primitive.freeze(self)
   end
   private :initialize
 
@@ -431,7 +431,7 @@ class Rational < Numeric
   private :marshal_load
 
   def with_precision(method, n, **kwargs)
-    raise TypeError, 'not an integer' unless Primitive.object_kind_of?(n, Integer)
+    raise TypeError, 'not an integer' unless Primitive.is_a?(n, Integer)
 
     p = 10 ** n
     s = self * p

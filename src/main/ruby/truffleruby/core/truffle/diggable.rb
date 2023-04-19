@@ -18,7 +18,7 @@ module Truffle::Diggable
 
       # We've inlined the logic for dig for three core classes - before we use that logic we need to check if the method has been monkey patched
       unless Primitive.vm_builtin_method?(obj, :dig)
-        raise TypeError, "#{Primitive.object_class(obj)} does not have #dig method" unless obj.respond_to?(:dig)
+        raise TypeError, "#{Primitive.class(obj)} does not have #dig method" unless obj.respond_to?(:dig)
         return obj.dig(*idxs[n...])
       end
 

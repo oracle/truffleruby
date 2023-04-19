@@ -38,7 +38,7 @@ module Truffle
     end
 
     def self.change_default_encoding(name, obj)
-      raise unless Primitive.object_kind_of?(obj, Encoding) || Primitive.nil?(obj)
+      raise unless Primitive.is_a?(obj, Encoding) || Primitive.nil?(obj)
       key = name.upcase.to_sym
       EncodingMap[key][1] = obj
     end

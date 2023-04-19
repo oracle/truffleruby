@@ -47,7 +47,7 @@ class String
     return str unless Primitive.undefined?(str)
 
     # Convert to (int index, int length) form.
-    if Primitive.object_kind_of?(index_or_range, Range) && Primitive.undefined?(length)
+    if Primitive.is_a?(index_or_range, Range) && Primitive.undefined?(length)
       index, length = Primitive.range_normalized_start_length(index_or_range, bytesize)
       return if index < 0 or index > bytesize
       return byteslice 0, 0 if length < 0
@@ -188,7 +188,7 @@ class String
   def partition(pattern = nil)
     return super() if Primitive.nil?(pattern) && block_given?
 
-    if Primitive.object_kind_of?(pattern, Regexp)
+    if Primitive.is_a?(pattern, Regexp)
       if m = Truffle::RegexpOperations.match(pattern, self)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m.to_s, m.post_match]
@@ -211,7 +211,7 @@ class String
   end
 
   def rpartition(pattern)
-    if Primitive.object_kind_of?(pattern, Regexp)
+    if Primitive.is_a?(pattern, Regexp)
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
@@ -418,7 +418,7 @@ class String
   end
 
   def end_with?(*suffixes)
-    if suffixes.size == 1 and suffix = suffixes[0] and Primitive.object_kind_of?(suffix, String)
+    if suffixes.size == 1 and suffix = suffixes[0] and Primitive.is_a?(suffix, String)
       enc = Primitive.encoding_ensure_compatible_str self, suffix
       return Primitive.string_end_with?(self, suffix, enc)
     end
@@ -635,7 +635,7 @@ class String
     if Primitive.undefined?(two)
       result = slice(one)
 
-      if Primitive.object_kind_of?(one, Regexp)
+      if Primitive.is_a?(one, Regexp)
         lm = $~
         self[one] = '' if result
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
@@ -645,7 +645,7 @@ class String
     else
       result = slice(one, two)
 
-      if Primitive.object_kind_of?(one, Regexp)
+      if Primitive.is_a?(one, Regexp)
         lm = $~
         self[one, two] = '' if result
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
@@ -873,7 +873,7 @@ class String
   end
 
   def match(pattern, pos = 0)
-    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
 
     result = if block_given?
                pattern.match self, pos do |match|
@@ -887,7 +887,7 @@ class String
   end
 
   def match?(pattern, pos = 0)
-    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
     pattern.match? self, pos
   end
 
@@ -1022,12 +1022,12 @@ class String
 
       start += size if start < 0
       if start < 0 or start > size
-        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.is_a?(str, Regexp)
         return
       end
     end
 
-    if Primitive.object_kind_of?(str, Regexp)
+    if Primitive.is_a?(str, Regexp)
       Primitive.encoding_ensure_compatible self, str
 
       start = Primitive.character_index_to_byte_index(self, start)
@@ -1071,7 +1071,7 @@ class String
 
     byte_finish = Primitive.character_index_to_byte_index(self, finish)
 
-    if Primitive.object_kind_of?(sub, Regexp)
+    if Primitive.is_a?(sub, Regexp)
       Primitive.encoding_ensure_compatible self, sub
 
       match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
@@ -1098,7 +1098,7 @@ class String
   end
 
   def start_with?(*prefixes)
-    if prefixes.size == 1 and prefix = prefixes[0] and Primitive.object_kind_of?(prefix, String)
+    if prefixes.size == 1 and prefix = prefixes[0] and Primitive.is_a?(prefix, String)
       enc = Primitive.encoding_ensure_compatible_str self, prefix
       return Primitive.string_start_with?(self, prefix, enc)
     end
@@ -1147,7 +1147,7 @@ class String
   end
 
   def %(args)
-    if Primitive.object_kind_of?(args, Hash)
+    if Primitive.is_a?(args, Hash)
       sprintf(self, args)
     else
       result = Truffle::Type.rb_check_convert_type args, Array, :to_ary
@@ -1234,7 +1234,7 @@ class String
   end
 
   def <=>(other)
-    if Primitive.object_kind_of?(other, String)
+    if Primitive.is_a?(other, String)
       return Primitive.string_cmp(self, other, Primitive.strings_compatible?(self, other))
     end
 

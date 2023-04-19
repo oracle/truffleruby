@@ -98,7 +98,7 @@ module Truffle::FFI
         sign = ''
       end
 
-      "#<#{Primitive.object_class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
+      "#<#{Primitive.class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
     def null?
@@ -126,7 +126,7 @@ module Truffle::FFI
 
     def ==(other)
       return true if Primitive.nil?(other) && null?
-      return false unless Primitive.object_kind_of?(other, Pointer)
+      return false unless Primitive.is_a?(other, Pointer)
       address == other.address
     end
 
@@ -279,7 +279,7 @@ module Truffle::FFI
       total_length = 0
       offsets = []
       args.each do |length|
-        unless Primitive.object_kind_of?(length, Integer)
+        unless Primitive.is_a?(length, Integer)
           raise ArgumentError, "incorrect pointer type: #{length.inspect}"
         end
         offsets << [total_length, length]

@@ -20,9 +20,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -54,7 +52,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -66,27 +63,27 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
-    @Primitive(name = "object_kind_of?")
-    public abstract static class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "is_a?")
+    public abstract static class IsAPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectKindOf(Object object, RubyModule module,
+        protected boolean isA(Object object, RubyModule module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(object, module);
         }
     }
 
-    @Primitive(name = "object_respond_to?")
-    public abstract static class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "respond_to?")
+    public abstract static class RespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectRespondTo(Object object, Object name, boolean includePrivate,
+        protected boolean respondTo(Object object, Object name, boolean includePrivate,
                 @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
             return respondToNode.executeDoesRespondTo(object, name, includePrivate);
         }
     }
 
-    @Primitive(name = "object_class")
-    public abstract static class ObjectClassNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "class")
+    public abstract static class ClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyClass objectClass(Object object,
                 @Cached LogicalClassNode logicalClassNode) {
@@ -94,19 +91,19 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "class_of")
-    public abstract static class ClassOfNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "metaclass")
+    public abstract static class MetaClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyClass classOf(Object object,
+        protected RubyClass metaClass(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.execute(object);
         }
     }
 
-    @Primitive(name = "object_equal")
-    public abstract static class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "equal?")
+    public abstract static class EqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean objectEqual(Object a, Object b,
+        protected boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
         }
@@ -150,8 +147,8 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "object_freeze")
-    public abstract static class ObjectFreezePrimitive extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "freeze")
+    public abstract static class FreezePrimitive extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected Object freeze(Object self,
                 @Cached ObjectFreezeNode objectFreezeNode) {
@@ -357,42 +354,6 @@ public abstract class TypeNodes {
             writeNode.execute(object, identifier, value);
             return value;
         }
-    }
-
-    @Primitive(name = "object_can_contain_object")
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
-
-        @NeverDefault
-        public static CanContainObjectNode create() {
-            return TypeNodesFactory.CanContainObjectNodeFactory.create(null);
-        }
-
-        public abstract boolean execute(RubyArray array);
-
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "stores.isPrimitive(array.getStore())" })
-        protected boolean primitiveArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return false;
-        }
-
-        @Specialization(
-                guards = {
-                        "stores.accepts(array.getStore())",
-                        "!stores.isPrimitive(array.getStore())" })
-        protected boolean objectArray(RubyArray array,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            return true;
-        }
-
-        @Specialization(guards = "!isRubyArray(array)")
-        protected boolean other(Object array) {
-            return true;
-        }
-
     }
 
     @Primitive(name = "rb_any_to_s")

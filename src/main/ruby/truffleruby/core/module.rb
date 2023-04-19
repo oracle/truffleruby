@@ -53,12 +53,12 @@ class Module
   alias_method :freeze, :freeze
 
   def include?(mod)
-    if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-      raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+    if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
+      raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
     end
 
-    return false if Primitive.object_equal(self, mod)
-    ancestors.any? { |m| Primitive.object_equal(mod, m) }
+    return false if Primitive.equal?(self, mod)
+    ancestors.any? { |m| Primitive.equal?(mod, m) }
   end
 
   private def method_added(name)
@@ -75,12 +75,12 @@ class Module
 
   def include(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
-    if Primitive.object_kind_of?(self, Refinement)
+    if Primitive.is_a?(self, Refinement)
       warn 'Refinement#include is deprecated and will be removed in Ruby 3.2', category: :deprecated, uplevel: 1
     end
     modules.reverse_each do |mod|
-      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+      if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :append_features, self
@@ -91,12 +91,12 @@ class Module
 
   def prepend(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
-    if Primitive.object_kind_of?(self, Refinement)
+    if Primitive.is_a?(self, Refinement)
       warn 'Refinement#prepend is deprecated and will be removed in Ruby 3.2', category: :deprecated, uplevel: 1
     end
     modules.reverse_each do |mod|
-      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+      if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :prepend_features, self
@@ -132,7 +132,7 @@ class Module
           end
 
     names.each_with_index do |s, i|
-      if Primitive.object_kind_of?(res, Module)
+      if Primitive.is_a?(res, Module)
         res = if !inherit
                 Primitive.module_const_get res, s, false, false, true
               elsif i == 0

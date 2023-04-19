@@ -23,10 +23,10 @@ module RuboCop
       #   nil.equal?(object)
       #
       #   # bad
-      #   Primitive.object_equal(nil, object)
+      #   Primitive.equal?(nil, object)
       #
       #   # bad
-      #   Primitive.object_equal(object, nil)
+      #   Primitive.equal?(object, nil)
       #
       #   # good
       #   Primitive.nil?(object)
@@ -35,7 +35,7 @@ module RuboCop
         extend AutoCorrector
 
         MSG = 'Use `Primitive.nil?` instead of `Object#nil?` or `object == nil`'
-        RESTRICT_ON_SEND = %i[nil? == != equal? object_equal].freeze
+        RESTRICT_ON_SEND = %i[nil? == != equal?].freeze
 
         # @!method bad_method?(node)
         def_node_matcher :bad_method?, <<~PATTERN
@@ -45,8 +45,8 @@ module RuboCop
             (send $_ :!= nil)
             (send nil :equal? $_)
             (send $_ :equal? nil)
-            (send (const {nil? cbase} :Primitive) :object_equal $_ nil)
-            (send (const {nil? cbase} :Primitive) :object_equal nil $_)
+            (send (const {nil? cbase} :Primitive) :equal? $_ nil)
+            (send (const {nil? cbase} :Primitive) :equal? nil $_)
           }
         PATTERN
 

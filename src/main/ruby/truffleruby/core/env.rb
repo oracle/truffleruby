@@ -243,7 +243,7 @@ class << ENV
   end
 
   def replace(other)
-    return self if Primitive.object_equal(self, other)
+    return self if Primitive.equal?(self, other)
     other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     keys_to_delete = keys
     other.each do |k, v|
@@ -281,7 +281,7 @@ class << ENV
     each_pair do |*elem|
       elem = yield(elem)
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.object_class(elem)} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.class(elem)} (expected array)"
       end
 
       ary = elem.to_ary
@@ -295,7 +295,7 @@ class << ENV
   end
 
   def update(other)
-    return self if Primitive.object_equal(self, other)
+    return self if Primitive.equal?(self, other)
     other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     if block_given?
       other.each do |k, v|
@@ -357,7 +357,7 @@ class << ENV
   end
 
   def set_encoding(value)
-    return unless Primitive.object_kind_of?(value, String)
+    return unless Primitive.is_a?(value, String)
     if Encoding.default_internal && value.ascii_only?
       value = value.encode Encoding.default_internal, Encoding::LOCALE
     elsif value.encoding != Encoding::LOCALE

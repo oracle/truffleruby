@@ -333,7 +333,7 @@ class StringScanner
   private def scan_internal(pattern, advance_pos, getstr, headonly)
     scan_check_args(pattern, headonly)
 
-    if Primitive.object_kind_of?(pattern, String)
+    if Primitive.is_a?(pattern, String)
       md = scan_internal_string_pattern(pattern)
     else
       start = @fixed_anchor ? 0 : @pos

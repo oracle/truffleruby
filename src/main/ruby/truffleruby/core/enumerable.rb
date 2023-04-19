@@ -49,7 +49,7 @@ module Enumerable
       end
       each do |val|
         key = block.yield(val)
-        if Primitive.nil?(key) || (Primitive.object_kind_of?(key, Symbol) && key.to_s[0, 1] == '_')
+        if Primitive.nil?(key) || (Primitive.is_a?(key, Symbol) && key.to_s[0, 1] == '_')
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
           previous = nil
@@ -101,7 +101,7 @@ module Enumerable
 
   def map(&block)
     if block
-      return Primitive.hash_collect(self, block) if Primitive.object_kind_of?(self, Hash) && self.method(:each).owner == Hash
+      return Primitive.hash_collect(self, block) if Primitive.is_a?(self, Hash) && self.method(:each).owner == Hash
       ary = []
       Primitive.share_special_variables(Primitive.proc_special_variables(block))
       b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
@@ -166,7 +166,7 @@ module Enumerable
 
       value = Truffle::Type.try_convert(result, Array, :to_ary) || result
 
-      if Primitive.object_kind_of?(value, Array)
+      if Primitive.is_a?(value, Array)
         array.concat value
       else
         array.push value
@@ -185,7 +185,7 @@ module Enumerable
   end
 
   def enumerator_size
-    Primitive.object_respond_to?(self, :size, false) ? size : nil
+    Primitive.respond_to?(self, :size, false) ? size : nil
   end
   private :enumerator_size
 
@@ -319,7 +319,7 @@ module Enumerable
     each_with_index(*arg) do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.object_class(elem)} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
@@ -339,10 +339,10 @@ module Enumerable
 
       if array
         array
-      elsif Primitive.object_respond_to?(enum, :each, false)
+      elsif Primitive.respond_to?(enum, :each, false)
         enum.to_enum(:each)
       else
-        raise TypeError, "wrong argument type #{Primitive.object_class(enum)} (must respond to :each)"
+        raise TypeError, "wrong argument type #{Primitive.class(enum)} (must respond to :each)"
       end
     end
 
@@ -376,7 +376,7 @@ module Enumerable
   def each_with_index(*args, &block)
     return to_enum(:each_with_index, *args) { enumerator_size } unless block_given?
 
-    if Primitive.object_kind_of?(self, Array)
+    if Primitive.is_a?(self, Array)
       Primitive.array_each_with_index(self, block)
     else
       idx = 0
@@ -404,11 +404,11 @@ module Enumerable
         end
       end
     else
-      if Primitive.object_kind_of?(pattern, Regexp)
+      if Primitive.is_a?(pattern, Regexp)
         each do
           o = Primitive.single_block_arg
           matchable =
-            if Primitive.object_kind_of?(o, Symbol)
+            if Primitive.is_a?(o, Symbol)
               o
             else
               Truffle::Type.rb_check_convert_type(o, String, :to_str)
@@ -443,11 +443,11 @@ module Enumerable
         end
       end
     else
-      if Primitive.object_kind_of?(pattern, Regexp)
+      if Primitive.is_a?(pattern, Regexp)
         each do
           o = Primitive.single_block_arg
           matchable =
-            if Primitive.object_kind_of?(o, Symbol)
+            if Primitive.is_a?(o, Symbol)
               o
             else
               Truffle::Type.rb_check_convert_type(o, String, :to_str)
@@ -528,7 +528,7 @@ module Enumerable
       block = nil
     end
 
-    if Primitive.object_kind_of?(self, ::Array)
+    if Primitive.is_a?(self, ::Array)
       return Primitive.array_inject(self, initial, sym, block)
     end
 
@@ -798,7 +798,7 @@ module Enumerable
       else
         comp = block_given? ? yield(o, chosen) : o <=> chosen
         unless comp
-          raise ArgumentError, "comparison of #{Primitive.object_class(o)} with #{chosen} failed"
+          raise ArgumentError, "comparison of #{Primitive.class(o)} with #{chosen} failed"
         end
 
         if (Comparable.compare_int(comp) <=> 0) == relative
@@ -1089,12 +1089,12 @@ module Enumerable
       result = inject(init) do |sum, e|
         Truffle::EnumerableOperations.sum_add(sum, yield(e), compensation)
       end
-      Primitive.object_kind_of?(result, Float) ? result + compensation.value : result
+      Primitive.is_a?(result, Float) ? result + compensation.value : result
     else
       result = inject(init) do |sum, e|
         Truffle::EnumerableOperations.sum_add(sum, e, compensation)
       end
-      Primitive.object_kind_of?(result, Float) ? result + compensation.value : result
+      Primitive.is_a?(result, Float) ? result + compensation.value : result
     end
   end
 

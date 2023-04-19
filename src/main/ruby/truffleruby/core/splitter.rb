@@ -71,7 +71,7 @@ module Truffle
           # We pass the original block to string_awk_split to handle it on Java side
           # See motivation: https://github.com/oracle/truffleruby/pull/2052#issuecomment-663494235
           return Primitive.string_awk_split string, awk_limit, orig_block
-        elsif Primitive.object_kind_of?(pattern, Regexp)
+        elsif Primitive.is_a?(pattern, Regexp)
           split_type_regexp(string, pattern, limit, block)
         else
           pattern = StringValue(pattern)

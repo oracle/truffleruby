@@ -138,7 +138,7 @@ module Digest
     alias_method :length, :size
 
     def ==(other)
-      if Primitive.object_kind_of?(other, Digest::Instance)
+      if Primitive.is_a?(other, Digest::Instance)
         self_str = self.digest
         other_str = other.digest
       else

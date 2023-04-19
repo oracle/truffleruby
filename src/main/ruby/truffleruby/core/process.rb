@@ -138,7 +138,7 @@ module Process
   end
 
   def clock_gettime(id, unit = :float_second)
-    if Primitive.object_kind_of?(id, Symbol)
+    if Primitive.is_a?(id, Symbol)
       id = case id
            when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
                 :TIME_BASED_CLOCK_REALTIME
@@ -267,9 +267,9 @@ module Process
     raise ArgumentError, 'PID argument required' if pids.length == 0
 
     use_process_group = false
-    signal = signal.to_s if Primitive.object_kind_of?(signal, Symbol)
+    signal = signal.to_s if Primitive.is_a?(signal, Symbol)
 
-    if Primitive.object_kind_of?(signal, String)
+    if Primitive.is_a?(signal, String)
       if signal.start_with? '-'
         signal = signal[1..-1]
         use_process_group = true
@@ -282,7 +282,7 @@ module Process
       signal = Signal::Names[signal]
     end
 
-    raise ArgumentError unless Primitive.object_kind_of?(signal, Integer)
+    raise ArgumentError unless Primitive.is_a?(signal, Integer)
 
     if signal < 0
       signal = -signal
@@ -674,7 +674,7 @@ module Process
     end
 
     def ==(other)
-      other = other.to_i if Primitive.object_kind_of?(other, Process::Status)
+      other = other.to_i if Primitive.is_a?(other, Process::Status)
       @raw_status == other
     end
 

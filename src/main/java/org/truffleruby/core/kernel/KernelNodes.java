@@ -175,7 +175,7 @@ public abstract class KernelNodes {
 
     /** Check if operands are the same object or call #==. Known as rb_equal() in MRI. The fact Kernel#=== uses this is
      * pure coincidence. */
-    @Primitive(name = "object_same_or_equal")
+    @Primitive(name = "same_or_equal?")
     public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Child private DispatchNode equalNode;
@@ -547,7 +547,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @Primitive(name = "object_clone") // "clone"
+    @Primitive(name = "kernel_clone") // "clone"
     public abstract static class CloneNode extends PrimitiveArrayArgumentsNode {
 
         @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();

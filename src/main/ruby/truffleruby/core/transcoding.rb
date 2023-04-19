@@ -110,7 +110,7 @@ class Encoding
       @source_encoding = Truffle::Type.coerce_to_encoding from
       @destination_encoding = Truffle::Type.coerce_to_encoding to
 
-      if Primitive.object_kind_of?(options, Integer)
+      if Primitive.is_a?(options, Integer)
         @options = options
       else
         options = Truffle::Type.coerce_to options, Hash, :to_hash
@@ -209,7 +209,7 @@ class Encoding
         raise ArgumentError, 'byte offset is greater than destination buffer size'
       end
 
-      unless Primitive.object_kind_of?(options, Integer)
+      unless Primitive.is_a?(options, Integer)
         opts = Truffle::Type.coerce_to options, Hash, :to_hash
 
         options = 0

@@ -38,7 +38,7 @@ class BasicObject
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
 
     if Primitive.module_anonymous?(cls)
       raise ::TypeError, "can't dump anonymous class #{cls}"
@@ -112,7 +112,7 @@ class Exception
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
 
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
@@ -160,7 +160,7 @@ class Time
     ivars = Primitive.object_ivars(self)
     Primitive.string_binary_append out, 'I'
 
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
     end
@@ -326,7 +326,7 @@ class Range
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     Primitive.string_binary_append out, 'o'
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     name = Primitive.module_name cls
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
@@ -418,7 +418,7 @@ class Struct
 
     Primitive.string_binary_append out, 'S'
 
-    cls = Primitive.object_class self
+    cls = Primitive.class self
     if Primitive.module_anonymous?(cls)
       raise TypeError, "can't dump anonymous class #{cls}"
     end
@@ -499,7 +499,7 @@ end
 
 module Unmarshalable
   private def __marshal__(ms)
-    raise TypeError, "marshaling is undefined for class #{Primitive.object_class(self)}"
+    raise TypeError, "marshaling is undefined for class #{Primitive.class(self)}"
   end
 end
 
@@ -730,9 +730,9 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      if @freeze && !postpone_freezing && !(Primitive.object_kind_of?(obj, Class) || Primitive.object_kind_of?(obj, Module))
-        obj = -obj if Primitive.class_of(obj) == String
-        Primitive.object_freeze(obj)
+      if @freeze && !postpone_freezing && !(Primitive.is_a?(obj, Class) || Primitive.is_a?(obj, Module))
+        obj = -obj if Primitive.metaclass(obj) == String
+        Primitive.freeze(obj)
       end
 
       return @proc.call(obj) if call_proc and @proc and @call
@@ -814,7 +814,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless Primitive.object_respond_to? obj, :_load_data, false
+      unless Primitive.respond_to? obj, :_load_data, false
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -1002,7 +1002,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if Primitive.object_respond_to? klass, :__construct__, false
+      if Primitive.respond_to? klass, :__construct__, false
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -1026,7 +1026,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Primitive.object_respond_to? obj, :marshal_load, true
+      unless Primitive.respond_to? obj, :marshal_load, true
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -1064,7 +1064,7 @@ module Marshal
         @call = true
       end
 
-      unless Primitive.object_kind_of?(sym, Symbol)
+      unless Primitive.is_a?(sym, Symbol)
         raise ArgumentError, "expected Symbol, got #{sym.inspect}"
       end
 
@@ -1103,9 +1103,9 @@ module Marshal
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if Primitive.object_respond_to? obj, :marshal_dump, true
+        if Primitive.respond_to? obj, :marshal_dump, true
           str = serialize_user_marshal obj
-        elsif Primitive.object_respond_to? obj, :_dump, true
+        elsif Primitive.respond_to? obj, :_dump, true
           str = serialize_user_defined obj
         else
           str = obj.__send__ :__marshal__, self
@@ -1118,7 +1118,7 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
-      metaclass = Primitive.class_of(obj)
+      metaclass = Primitive.metaclass(obj)
       if metaclass.singleton_class? &&
         (Primitive.singleton_methods?(obj) || Primitive.any_instance_variable?(metaclass))
         raise TypeError, "singleton can't be dumped"
@@ -1184,7 +1184,7 @@ module Marshal
 
     # Integers bigger than 4 bytes are serialized in a special format
     def serialize_as_bignum?(obj)
-      Primitive.object_kind_of?(obj, Integer) && !Truffle::Type.fits_into_int?(obj)
+      Primitive.is_a?(obj, Integer) && !Truffle::Type.fits_into_int?(obj)
     end
 
     def serialize_fixnum(n)
@@ -1243,7 +1243,7 @@ module Marshal
     end
 
     def serialize_user_class(obj, cls)
-      obj_class = Primitive.object_class obj
+      obj_class = Primitive.class obj
 
       if obj_class != cls
         name = Primitive.module_name obj_class
@@ -1259,17 +1259,17 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if Primitive.object_respond_to? obj, :__custom_marshal__, false
+      if Primitive.respond_to? obj, :__custom_marshal__, false
         return obj.__custom_marshal__(self)
       end
 
       str = obj.__send__ :_dump, @depth
 
-      unless Primitive.object_kind_of? str, String
+      unless Primitive.is_a? str, String
         raise TypeError, '_dump() must return string'
       end
 
-      cls = Primitive.object_class obj
+      cls = Primitive.class obj
       if Primitive.module_anonymous?(cls)
         raise TypeError, "can't dump anonymous class #{cls}"
       end
@@ -1290,7 +1290,7 @@ module Marshal
 
       add_non_immediate_object val
 
-      cls = Primitive.object_class obj
+      cls = Primitive.class obj
 
       if Primitive.module_anonymous?(cls)
         raise TypeError, "can't dump anonymous class #{cls}"
@@ -1303,7 +1303,7 @@ module Marshal
     end
 
     def store_unique_object(obj)
-      if Primitive.object_kind_of?(obj, Symbol)
+      if Primitive.is_a?(obj, Symbol)
         add_symlink obj
       else
         add_non_immediate_object obj
@@ -1337,10 +1337,10 @@ module Marshal
       else
         obj = klass.allocate
 
-        raise TypeError, 'dump format error' unless Primitive.object_kind_of?(obj, Object)
+        raise TypeError, 'dump format error' unless Primitive.is_a?(obj, Object)
 
         store_unique_object obj
-        if Primitive.object_kind_of? obj, Exception
+        if Primitive.is_a? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1428,7 +1428,7 @@ module Marshal
 
   def self.dump(obj, an_io = nil, limit = nil)
     unless limit
-      if Primitive.object_kind_of? an_io, Integer
+      if Primitive.is_a? an_io, Integer
         limit = an_io
         an_io = nil
       else
@@ -1440,10 +1440,10 @@ module Marshal
     ms = State.new nil, depth, nil, nil
 
     if an_io
-      unless Primitive.object_respond_to? an_io, :write, false
+      unless Primitive.respond_to? an_io, :write, false
         raise TypeError, 'output must respond to write'
       end
-      if Primitive.object_respond_to? an_io, :binmode, false
+      if Primitive.respond_to? an_io, :binmode, false
         an_io.binmode
       end
     end
@@ -1459,14 +1459,14 @@ module Marshal
   end
 
   def self.load(obj, prc = nil, freeze: false)
-    if Primitive.object_respond_to? obj, :to_str, false
+    if Primitive.respond_to? obj, :to_str, false
       data = obj.to_s
       ms = StringState.new data, nil, prc, freeze
 
       major = ms.consume_byte
       minor = ms.consume_byte
-    elsif Primitive.object_respond_to? obj, :read, false and
-          Primitive.object_respond_to? obj, :getc, false
+    elsif Primitive.respond_to? obj, :read, false and
+          Primitive.respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc, freeze
 
       major = ms.consume_byte

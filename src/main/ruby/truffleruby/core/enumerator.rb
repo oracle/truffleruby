@@ -70,11 +70,11 @@ class Enumerator
   end
 
   def inspect
-    return "#<#{Primitive.object_class(self)}: uninitialized>" if Primitive.nil?(@object) && Primitive.nil?(@iter)
+    return "#<#{Primitive.class(self)}: uninitialized>" if Primitive.nil?(@object) && Primitive.nil?(@iter)
 
     args = @kwargs.empty? ? @args : [*@args, @kwargs]
     args = args.empty? ? '' : "(#{args.map(&:inspect).join(', ')})"
-    "#<#{Primitive.object_class(self)}: #{@object.inspect}:#{@iter}#{args}>"
+    "#<#{Primitive.class(self)}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
   def each(*args, **kwargs, &block)
@@ -339,7 +339,7 @@ class Enumerator
       raise ArgumentError, 'attempt to take negative size' if n < 0
 
       current_size = enumerator_size
-      if Primitive.object_kind_of?(current_size, Numeric)
+      if Primitive.is_a?(current_size, Numeric)
         # Not Primitive.min since current_size is not always an Integer
         set_size = n < current_size ? n : current_size
       else
@@ -365,7 +365,7 @@ class Enumerator
       raise ArgumentError, 'attempt to drop negative size' if n < 0
 
       current_size = enumerator_size
-      if Primitive.object_kind_of?(current_size, Integer)
+      if Primitive.is_a?(current_size, Integer)
         set_size = n < current_size ? current_size - n : 0
       else
         set_size = current_size
@@ -489,8 +489,8 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
 
-        if Primitive.object_respond_to?(yield_ret, :force, false) &&
-           Primitive.object_respond_to?(yield_ret, :each, false)
+        if Primitive.respond_to?(yield_ret, :force, false) &&
+           Primitive.respond_to?(yield_ret, :each, false)
           yield_ret.each do |v|
             yielder.yield v
           end
@@ -535,10 +535,10 @@ class Enumerator
 
         if array
           array
-        elsif Primitive.object_respond_to?(list, :each, false)
+        elsif Primitive.respond_to?(list, :each, false)
           list.to_enum :each
         else
-          raise TypeError, "wrong argument type #{Primitive.object_class(list)} (must respond to :each)"
+          raise TypeError, "wrong argument type #{Primitive.class(list)} (must respond to :each)"
         end
       end
 
@@ -684,7 +684,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
     return last if Primitive.undefined?(n)
 
-    n = Primitive.rb_to_int(n) if !Primitive.object_kind_of?(n, Integer)
+    n = Primitive.rb_to_int(n) if !Primitive.is_a?(n, Integer)
 
     raise ArgumentError, 'negative array size' if n < 0
 
@@ -697,7 +697,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   end
 
   def inspect
-    if Primitive.object_kind_of?(@object, Range)
+    if Primitive.is_a?(@object, Range)
       step = @step == 1 ? '' : "(#{@step})"
       to = @end.to_s
       exclude_end = exclude_end? ? '.' : ''
@@ -716,7 +716,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   end
 
   def ==(other)
-    Primitive.object_kind_of?(other, Enumerator::ArithmeticSequence) &&
+    Primitive.is_a?(other, Enumerator::ArithmeticSequence) &&
         @begin == other.begin &&
         @end == other.end &&
         @exclude_end == other.exclude_end? &&
@@ -746,7 +746,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
   def size
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
-    unless Primitive.object_kind_of?(from, Float) || Primitive.object_kind_of?(to, Float) || Primitive.object_kind_of?(step, Float)
+    unless Primitive.is_a?(from, Float) || Primitive.is_a?(to, Float) || Primitive.is_a?(step, Float)
       step = Primitive.rb_to_int(step)
     end
     Truffle::NumericOperations.step_size(from, to, step, true, exclude_end)
@@ -775,10 +775,10 @@ class Enumerator::Chain < Enumerator
     total = 0
     @enums.each do |e|
       size = e.size
-      if Primitive.nil?(size) || (Primitive.object_kind_of?(size, Float) && size.infinite?)
+      if Primitive.nil?(size) || (Primitive.is_a?(size, Float) && size.infinite?)
         return size
       end
-      unless Primitive.object_kind_of?(size, Integer)
+      unless Primitive.is_a?(size, Integer)
         return nil
       end
       total += size
@@ -795,8 +795,8 @@ class Enumerator::Chain < Enumerator
   end
 
   def inspect
-    return "#<#{Primitive.object_class(self).name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
-      return "#<#{Primitive.object_class(self).name}: #{@enums || "uninitialized"}>"
+    return "#<#{Primitive.class(self).name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
+      return "#<#{Primitive.class(self).name}: #{@enums || "uninitialized"}>"
     end
   end
 end

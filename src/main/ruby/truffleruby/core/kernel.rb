@@ -54,7 +54,7 @@ module Kernel
   module_function :Complex
 
   def Float(obj, exception: true)
-    raise_exception = !Primitive.object_equal(exception, false)
+    raise_exception = !Primitive.equal?(exception, false)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
@@ -74,7 +74,7 @@ module Kernel
         nil
       end
     when Complex
-      if obj.respond_to?(:imag) && Primitive.object_equal(obj.imag, 0)
+      if obj.respond_to?(:imag) && Primitive.equal?(obj.imag, 0)
         Truffle::Type.coerce_to obj, Float, :to_f
       else
         raise RangeError, "can't convert #{obj} into Float"
@@ -96,7 +96,7 @@ module Kernel
       return hash
     end
 
-    raise TypeError, "can't convert #{Primitive.object_class(obj)} into Hash"
+    raise TypeError, "can't convert #{Primitive.class(obj)} into Hash"
   end
   module_function :Hash
 
@@ -104,9 +104,9 @@ module Kernel
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
-    raise_exception = !Primitive.object_equal(exception, false)
+    raise_exception = !Primitive.equal?(exception, false)
 
-    if Primitive.object_kind_of?(obj, String)
+    if Primitive.is_a?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)
     else
       bad_base_check = Proc.new do
@@ -173,7 +173,7 @@ module Kernel
   module_function :StringValue
 
   def `(str) #`
-    str = StringValue(str) unless Primitive.object_kind_of?(str, String)
+    str = StringValue(str) unless Primitive.is_a?(str, String)
 
     output = IO.popen(str) { |io| io.read }
 
@@ -182,7 +182,7 @@ module Kernel
   module_function :` # `
 
   def =~(other)
-    warn "deprecated Object#=~ is called on #{Primitive.object_class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
+    warn "deprecated Object#=~ is called on #{Primitive.class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
     nil
   end
 
@@ -203,8 +203,8 @@ module Kernel
 
   def autoload(name, file)
     nesting = Primitive.caller_nesting
-    mod = nesting.first || (Primitive.object_equal(Kernel, self) ? Kernel : Object)
-    if Primitive.object_equal(mod, self)
+    mod = nesting.first || (Primitive.equal?(Kernel, self) ? Kernel : Object)
+    if Primitive.equal?(mod, self)
       super(name, file) # Avoid recursion
     else
       mod.autoload(name, file)
@@ -213,7 +213,7 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    if Primitive.object_equal(Kernel, self)
+    if Primitive.equal?(Kernel, self)
       super(name) # Avoid recursion
     else
       Object.autoload?(name)
@@ -325,8 +325,8 @@ module Kernel
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
     modules.reverse_each do |mod|
-      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
-        raise TypeError, "wrong argument type #{Primitive.object_class(mod)} (expected Module)"
+      if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
+        raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
       mod.__send__ :extend_object, self
@@ -348,7 +348,7 @@ module Kernel
   module_function :gets
 
   def inspect
-    prefix = "#<#{Primitive.object_class(self)}:0x#{self.__id__.to_s(16)}"
+    prefix = "#<#{Primitive.class(self)}:0x#{self.__id__.to_s(16)}"
 
     ivars = Primitive.object_ivars self
 
@@ -373,7 +373,7 @@ module Kernel
 
     # module_to_wrap either is a module or is nil
     if wrap
-      module_to_wrap = Primitive.object_kind_of?(wrap, Module) ? wrap : Module.new
+      module_to_wrap = Primitive.is_a?(wrap, Module) ? wrap : Module.new
     end
 
     # load absolute path
@@ -430,7 +430,7 @@ module Kernel
 
     path = Truffle::Type.coerce_to_path obj
 
-    if Primitive.object_kind_of?(path, String) and path.start_with? '|'
+    if Primitive.is_a?(path, String) and path.start_with? '|'
       return IO.popen(path[1..-1], *(rest + [options]), &block)
     end
 
@@ -456,7 +456,7 @@ module Kernel
 
   def puts(*args)
     stdout = $stdout
-    if Primitive.object_equal(self, stdout)
+    if Primitive.equal?(self, stdout)
       Truffle::IOOperations.puts(stdout, *args)
     else
       stdout.__send__(:puts, *args)
@@ -469,7 +469,7 @@ module Kernel
     randomizer = Primitive.thread_randomizer
     if Primitive.nil?(limit)
       randomizer.random_float
-    elsif Primitive.object_kind_of?(limit, Range)
+    elsif Primitive.is_a?(limit, Range)
       begin
         Truffle::RandomOperations.rand_range(randomizer, limit)
       rescue ArgumentError # invalid argument - negative limit
@@ -653,7 +653,7 @@ module Kernel
       Truffle::IOOperations.puts(stringio, *messages)
       message = stringio.string
 
-      if Primitive.object_equal(self, Warning) # avoid recursion when redefining Warning#warn
+      if Primitive.equal?(self, Warning) # avoid recursion when redefining Warning#warn
         unless message.encoding.ascii_compatible?
           raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
         end
@@ -695,7 +695,7 @@ module Kernel
 
       exc.set_backtrace(ctx) if ctx
       Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
-      Primitive.exception_set_cause exc, cause unless Primitive.object_equal(exc, cause)
+      Primitive.exception_set_cause exc, cause unless Primitive.equal?(exc, cause)
     end
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG
@@ -715,7 +715,7 @@ module Kernel
 
   def printf(*args)
     return nil if args.empty?
-    if Primitive.object_kind_of?(args[0], String)
+    if Primitive.is_a?(args[0], String)
       print sprintf(*args)
     else
       io = args.shift
@@ -731,7 +731,7 @@ module Kernel
   end
 
   def caller(start = 1, limit = nil)
-    args =  if Primitive.object_kind_of?(start, Range)
+    args =  if Primitive.is_a?(start, Range)
               if Primitive.nil?(start.begin) and Primitive.nil?(start.end)
                 [1]
               elsif Primitive.nil? start.begin
@@ -775,10 +775,10 @@ module Kernel
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
-      raise ArgumentError, "unexpected value for freeze: #{Primitive.object_class(freeze)}"
+      raise ArgumentError, "unexpected value for freeze: #{Primitive.class(freeze)}"
     end
 
-    Primitive.object_clone self, freeze
+    Primitive.kernel_clone self, freeze
   end
 
   def initialize_clone(from, freeze: nil)

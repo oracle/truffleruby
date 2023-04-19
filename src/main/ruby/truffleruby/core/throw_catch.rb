@@ -45,7 +45,7 @@ module Kernel
     tags = Primitive.fiber_get_catch_tags
 
     tags.each do |c|
-      if Primitive.object_equal(c, tag)
+      if Primitive.equal?(c, tag)
         Primitive.vm_throw tag, value
       end
     end

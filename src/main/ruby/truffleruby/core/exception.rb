@@ -36,7 +36,7 @@
 
 class Exception
   def ==(other)
-    other.instance_of?(Primitive.object_class(self)) &&
+    other.instance_of?(Primitive.class(self)) &&
       message == other.message &&
       backtrace == other.backtrace
   end
@@ -47,14 +47,14 @@ class Exception
 
   def to_s
     msg = Truffle::ExceptionOperations.compute_message(self)
-    return Primitive.object_class(self).to_s if Primitive.nil?(msg)
+    return Primitive.class(self).to_s if Primitive.nil?(msg)
     msg
   end
 
   def set_backtrace(bt)
     case bt
     when Array
-      if bt.all? { |s| Primitive.object_kind_of?(s, String) }
+      if bt.all? { |s| Primitive.is_a?(s, String) }
         Primitive.exception_set_custom_backtrace(self, bt)
       else
         raise TypeError, 'backtrace must be Array of String'
@@ -71,9 +71,9 @@ class Exception
   def inspect
     s = self.to_s
     if s.empty?
-      Primitive.object_class(self).name
+      Primitive.class(self).name
     else
-      "#<#{Primitive.object_class(self).name}: #{s}>"
+      "#<#{Primitive.class(self).name}: #{s}>"
     end
   end
 
@@ -87,7 +87,7 @@ class Exception
 
   def exception(message = nil)
     # As strange as this may seem, this is actually the protocol that CRuby implements
-    if message and !Primitive.object_equal(message, self)
+    if message and !Primitive.equal?(message, self)
       copy = clone # note: rb_obj_clone() in CRuby
       Primitive.exception_set_message copy, message
       copy
@@ -99,7 +99,7 @@ class Exception
   def self.to_tty?
     # Whether $stderr refers to the original STDERR and STDERR is a tty.
     # When using polyglot stdio, we cannot know and assume false.
-    Primitive.object_equal($stderr, STDERR) && !STDERR.closed? &&
+    Primitive.equal?($stderr, STDERR) && !STDERR.closed? &&
       (!Truffle::Boot.get_option('polyglot-stdio') && STDERR.tty?)
   end
 end
@@ -282,10 +282,10 @@ class SystemCallError < StandardError
     #
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
-    if Primitive.object_equal(self, SystemCallError)
+    if Primitive.equal?(self, SystemCallError)
       case args.size
       when 1
-        if Primitive.object_kind_of?(args.first, Integer)
+        if Primitive.is_a?(args.first, Integer)
           errno = args.first
           message = nil
         else
@@ -324,9 +324,9 @@ class SystemCallError < StandardError
         raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
       end
 
-      if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
+      if defined?(self::Errno) && Primitive.is_a?(self::Errno, Integer)
         error = SystemCallError.errno_error(self, message, self::Errno, location)
-        if error && Primitive.object_equal(Primitive.object_class(error), self)
+        if error && Primitive.equal?(Primitive.class(error), self)
           return error
         end
       end
@@ -373,11 +373,11 @@ class SignalException < Exception
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if Primitive.nil? signo
       raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless Primitive.undefined?(message)
-      if Primitive.object_kind_of?(sig, Symbol)
+      if Primitive.is_a?(sig, Symbol)
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
-        raise ArgumentError, "bad signal type #{Primitive.object_class(sig).name}" if Primitive.nil? sig_converted
+        raise ArgumentError, "bad signal type #{Primitive.class(sig).name}" if Primitive.nil? sig_converted
         sig = sig_converted
       end
       signal_name = sig

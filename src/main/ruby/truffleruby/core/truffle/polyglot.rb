@@ -208,7 +208,7 @@ module Polyglot
     end
 
     def [](index)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         at(index)
       else
         super(index)
@@ -216,7 +216,7 @@ module Polyglot
     end
 
     def []=(index, value)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         Truffle::Interop.write_array_element(self, index, value)
       else
         super(index, value)
@@ -224,7 +224,7 @@ module Polyglot
     end
 
     def delete(index)
-      if Primitive.object_kind_of?(index, Numeric)
+      if Primitive.is_a?(index, Numeric)
         Truffle::Interop.remove_array_element(self, index)
       else
         super(index)
@@ -488,7 +488,7 @@ module Polyglot
         Truffle::Interop.meta_instance?(klass, self)
       else
         receiver = Truffle::Interop.unbox_if_needed(self)
-        Primitive.object_kind_of?(receiver, klass)
+        Primitive.is_a?(receiver, klass)
       end
     end
     alias_method :kind_of?, :is_a?
@@ -502,7 +502,7 @@ module Polyglot
         Truffle::Interop.write_member(self, member, value)
       rescue Polyglot::UnsupportedMessageError
         # the receiver does not support writing at all, e.g. it is immutable
-        raise FrozenError.new("can't modify frozen #{Primitive.object_class(self)}", receiver: self)
+        raise FrozenError.new("can't modify frozen #{Primitive.class(self)}", receiver: self)
       end
     end
 
@@ -585,7 +585,7 @@ module Java
     type = Java.type(name)
     if mod.const_defined?(simple_name)
       current = mod.const_get(simple_name)
-      if Primitive.object_equal(current, type)
+      if Primitive.equal?(current, type)
         # Ignore - it's already set
       else
         raise NameError, "constant #{simple_name} already set"

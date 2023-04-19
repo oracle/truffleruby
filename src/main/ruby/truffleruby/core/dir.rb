@@ -141,7 +141,7 @@ class Dir
   end
 
   def inspect
-    "#<#{Primitive.object_class(self)}:#{@path}>"
+    "#<#{Primitive.class(self)}:#{@path}>"
   end
 
   class << self
@@ -254,7 +254,7 @@ class Dir
     end
 
     def glob(pattern, flags = 0, base: nil, sort: true, &block)
-      if Primitive.object_kind_of?(pattern, Array)
+      if Primitive.is_a?(pattern, Array)
         patterns = pattern
       else
         pattern = Truffle::Type.coerce_to_path(pattern, false)
@@ -266,7 +266,7 @@ class Dir
 
       matches = []
       index = 0
-      flags |= File::FNM_GLOB_NOSORT if Primitive.object_equal(sort, false)
+      flags |= File::FNM_GLOB_NOSORT if Primitive.equal?(sort, false)
 
       normalized_base = if Primitive.nil? base
                           nil

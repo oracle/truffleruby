@@ -35,10 +35,10 @@ module Truffle
       end.join(', ').prepend('(') << ')'
 
       if !Primitive.undefined?(receiver) && owner.singleton_class?
-        "#<#{Primitive.object_class(meth)}: #{receiver.inspect}.#{meth.name}#{params}#{extra}>"
+        "#<#{Primitive.class(meth)}: #{receiver.inspect}.#{meth.name}#{params}#{extra}>"
       else
         origin_owner = origin == owner ? origin : "#{origin}(#{owner})"
-        "#<#{Primitive.object_class(meth)}: #{origin_owner}##{meth.name}#{params}#{extra}>"
+        "#<#{Primitive.class(meth)}: #{origin_owner}##{meth.name}#{params}#{extra}>"
       end
     end
   end

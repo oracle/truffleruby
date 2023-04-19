@@ -36,7 +36,7 @@
 
 module Truffle::GCOperations
   def self.stat_hash(key_or_hash)
-    if Primitive.object_kind_of?(key_or_hash, Symbol)
+    if Primitive.is_a?(key_or_hash, Symbol)
       case key_or_hash
       when :time
         Primitive.gc_stat[0]

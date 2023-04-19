@@ -266,7 +266,7 @@ module Truffle::CExt
   end
 
   def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
-    raise TypeError, format(message, klass, Primitive.object_class(obj)) unless Primitive.object_kind_of?(obj, klass)
+    raise TypeError, format(message, klass, Primitive.class(obj)) unless Primitive.is_a?(obj, klass)
   end
 
   def rb_method_boundp(klass, id, ex)
@@ -278,11 +278,11 @@ module Truffle::CExt
   end
 
   def rb_obj_is_instance_of(object, ruby_class)
-    Primitive.object_class(object) == ruby_class
+    Primitive.class(object) == ruby_class
   end
 
   def rb_obj_is_kind_of(object, ruby_class)
-    Primitive.object_kind_of?(object, ruby_class)
+    Primitive.is_a?(object, ruby_class)
   end
 
   def SYMBOL_P(value)
@@ -310,7 +310,7 @@ module Truffle::CExt
   end
 
   def RB_FLOAT_TYPE_P(value)
-    Primitive.object_kind_of?(value, Float)
+    Primitive.is_a?(value, Float)
   end
 
   def rb_integer_type_p(value)
@@ -406,7 +406,7 @@ module Truffle::CExt
     if Primitive.nil?(ary) && !raise_error
       return nil
     end
-    if !Primitive.object_kind_of?(ary, Array) || ary.size != 2
+    if !Primitive.is_a?(ary, Array) || ary.size != 2
       raise TypeError, 'coerce must return [x, y]'
     end
     ary
@@ -443,15 +443,15 @@ module Truffle::CExt
   end
 
   def rb_obj_class(object)
-    Primitive.object_class(object)
+    Primitive.class(object)
   end
 
   def rb_obj_classname(object)
-    Primitive.object_class(object).name
+    Primitive.class(object).name
   end
 
   def rb_class_of(object)
-    Primitive.class_of(object)
+    Primitive.metaclass(object)
   end
 
   def rb_class_real(ruby_class)
@@ -785,7 +785,7 @@ module Truffle::CExt
   end
 
   def RB_ENC_CODERANGE(obj)
-    if Primitive.object_kind_of?(obj, String)
+    if Primitive.is_a?(obj, String)
       rb_enc_str_coderange(obj)
     else
       raise "Unknown coderange for obj with class `#{obj.class}`"
@@ -847,7 +847,7 @@ module Truffle::CExt
               0
             end
           end
-    enc = rb_enc_to_index(enc) if Primitive.object_kind_of?(enc, Encoding)
+    enc = rb_enc_to_index(enc) if Primitive.is_a?(enc, Encoding)
     enc
   end
 
@@ -1007,7 +1007,7 @@ module Truffle::CExt
     rescue NameError
       raise ArgumentError, "undefined class/module #{path}"
     end
-    unless Primitive.object_kind_of?(const, ::Module)
+    unless Primitive.is_a?(const, ::Module)
       raise TypeError, "#{path} does not refer to class/module"
     end
     const
@@ -1059,7 +1059,7 @@ module Truffle::CExt
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
 
-    unless Primitive.object_equal(nil, e)
+    unless Primitive.equal?(nil, e)
       store_exception(e)
       pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
@@ -1129,7 +1129,7 @@ module Truffle::CExt
   end
 
   def rb_set_errinfo(error)
-    if Primitive.nil?(error) || Primitive.object_kind_of?(error, Exception)
+    if Primitive.nil?(error) || Primitive.is_a?(error, Exception)
       Primitive.thread_set_exception(error)
     else
       raise TypeError, 'assigning non-exception to ?!'
@@ -1255,7 +1255,7 @@ module Truffle::CExt
   end
 
   def rb_equal(a, b)
-    Primitive.object_same_or_equal(a, b)
+    Primitive.same_or_equal?(a, b)
   end
 
   def rb_obj_call_init(obj, args, block)
@@ -1487,7 +1487,7 @@ module Truffle::CExt
     data_holder = Primitive.data_holder_create(data, mark, free)
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
 
-    Primitive.object_space_define_data_finalizer object, data_holder unless Truffle::Interop.null?(free)
+    Primitive.objectspace_define_data_finalizer object, data_holder unless Truffle::Interop.null?(free)
 
     define_marker object, mark
 
@@ -1502,7 +1502,7 @@ module Truffle::CExt
     Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
     Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless Truffle::Interop.null?(size)
 
-    Primitive.object_space_define_data_finalizer object, data_holder unless Truffle::Interop.null?(free)
+    Primitive.objectspace_define_data_finalizer object, data_holder unless Truffle::Interop.null?(free)
 
     define_marker object, mark
 
@@ -1544,7 +1544,7 @@ module Truffle::CExt
   def test_kwargs(kwargs, raise_error)
     return false if kwargs.nil?
 
-    if Primitive.object_kind_of?(kwargs, Hash) && kwargs.keys.all? { |k| Primitive.object_kind_of?(k, Symbol) }
+    if Primitive.is_a?(kwargs, Hash) && kwargs.keys.all? { |k| Primitive.is_a?(k, Symbol) }
       true
     elsif raise_error
       raise ArgumentError, "the value is not a Hash with all keys being Symbols as kwargs requires: #{kwargs}"
@@ -1698,7 +1698,7 @@ module Truffle::CExt
 
   def rb_time_interval_acceptable(time_val)
     # TODO (pitr-ch 09-Mar-2017): more precise error messages
-    raise TypeError, 'cannot be Time' if Primitive.object_kind_of?(time_val, Time)
+    raise TypeError, 'cannot be Time' if Primitive.is_a?(time_val, Time)
     raise ArgumentError, 'cannot be negative' if time_val < 0
   end
 
@@ -1789,7 +1789,7 @@ module Truffle::CExt
   end
 
   def rb_class_inherited_p(ruby_module, object)
-    if Primitive.object_kind_of?(object, Module)
+    if Primitive.is_a?(object, Module)
       ruby_module <= object
     else
       raise TypeError
