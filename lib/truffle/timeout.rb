@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+# truffleruby_primitives: true
+
 #--
 # = timeout.rb
 #
@@ -155,7 +157,7 @@ module Timeout
     # module method, so you can call it directly as Timeout.timeout().
 
     def timeout(sec, exception = Error, message = nil)
-      return yield if sec == nil or sec.zero?
+      return yield if Primitive.nil?(sec) or sec.zero?
 
       message ||= 'execution expired'
       req = Timeout.add_timeout sec, exception, message

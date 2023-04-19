@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 #

@@ -51,7 +51,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   def sysread(length = nil, buffer = nil)
     str = read(length, buffer)
 
-    if str.nil?
+    if Primitive.nil?(str)
       raise EOFError, 'end of file reached'
     end
 
@@ -62,7 +62,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   def read_nonblock(length, buffer = nil, exception: true)
     str = read(length, buffer)
 
-    if exception and str.nil?
+    if exception and Primitive.nil?(str)
       raise EOFError, 'end of file reached'
     end
 
@@ -145,7 +145,7 @@ class StringIO
 
     mode, _binary, _external, _internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
 
-    if string.nil?
+    if Primitive.nil?(string)
       mode ||= IO::RDWR
       @__data__ = Data.new ''.force_encoding(Encoding.default_external)
     else
@@ -714,7 +714,7 @@ class StringIO
     else
       limit = nil
 
-      unless sep == $/ or sep.nil?
+      unless sep == $/ or Primitive.nil?(sep)
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
         unless sep
@@ -737,7 +737,7 @@ class StringIO
       string = d.string
       bytesize = string.bytesize
 
-      if sep.nil?
+      if Primitive.nil?(sep)
         if limit
           line = string.byteslice(pos, limit)
         else

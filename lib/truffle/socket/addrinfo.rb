@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -159,7 +161,7 @@ class Addrinfo
     if sockaddr.is_a?(Array)
       case @socktype
       when 0, nil
-        if @protocol != 0 and @protocol != nil and @protocol != Socket::IPPROTO_UDP
+        if @protocol != 0 and !Primitive.nil?(@protocol) and @protocol != Socket::IPPROTO_UDP
           raise SocketError, 'Socket protocol must be IPPROTO_UDP or left unset'
         end
       when Socket::SOCK_RAW

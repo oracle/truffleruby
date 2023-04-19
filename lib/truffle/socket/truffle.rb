@@ -320,7 +320,7 @@ module Truffle
     end
 
     def self.convert_reverse_lookup(socket = nil, reverse_lookup = nil)
-      if reverse_lookup.nil?
+      if Primitive.nil?(reverse_lookup)
         if socket
           reverse_lookup = !socket.do_not_reverse_lookup
         else

@@ -14,7 +14,7 @@ module Truffle::ObjSpace
 
     until node_stack.empty?
       node = node_stack.pop
-      next if node.nil?
+      next if Primitive.nil?(node)
 
       name = node.first
       children = node.drop(1)

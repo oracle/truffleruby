@@ -45,7 +45,7 @@ DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=flamegraph]
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
-  src/main/ruby/truffleruby
+  src/main/ruby
   src/test/ruby
   tool/docker.rb
   tool/jt.rb

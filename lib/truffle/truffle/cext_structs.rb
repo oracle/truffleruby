@@ -538,7 +538,7 @@ class Truffle::CExt::RbEncoding
   end
 
   def polyglot_pointer?
-    !@pointer.nil?
+    !Primitive.nil?(@pointer)
   end
 
   def polyglot_to_native

@@ -12,6 +12,7 @@ AllCops:
   Exclude:
     - 'lib/truffle/date/format.rb' # crashes Rubocop in VariableForce
     - 'lib/truffle/date/delta/parser.rb' # generated code
+    - 'lib/truffle/pathname.rb' # from upstream and should be upstreamed
     - 'lib/truffle/socket/mri.rb' # taken from MRI
     - 'lib/truffle/ffi/**/*.rb' # taken from FFI gem
     - 'src/main/ruby/truffleruby/core/truffle/ffi/pointer_extra.rb' # taken from FFI gem
@@ -401,6 +402,7 @@ Layout/SpaceAroundEqualsInParameterDefault:
 TruffleRuby/ReplaceWithPrimitiveNil:
   Enabled: true
   Include: # inspect *only* this directory
+    - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct

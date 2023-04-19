@@ -76,7 +76,7 @@ class UDPSocket < IPSocket
   private def __recvfrom_nonblock(maxlen, flags, buffer, exception)
     self.nonblock = true
 
-    flags = 0 if flags.nil?
+    flags = 0 if Primitive.nil?(flags)
 
     internal_recvfrom(maxlen, flags | Socket::MSG_DONTWAIT, buffer, exception)
   end

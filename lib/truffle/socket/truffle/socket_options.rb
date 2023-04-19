@@ -1,5 +1,5 @@
 # truffleruby_primitives: true
-#
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #

@@ -97,7 +97,7 @@ module Truffle::FiddleBackend
       val.to_i
     elsif val.respond_to?(:to_ptr)
       val.to_ptr.to_i
-    elsif val.nil?
+    elsif Primitive.nil?(val)
       0
     elsif val.is_a?(Integer)
       val
@@ -339,7 +339,7 @@ module Fiddle
 
     def initialize(address, size = 0, freefunc = nil)
       @size = size
-      raise unless freefunc == nil
+      raise unless Primitive.nil?(freefunc)
       @pointer = Truffle::FFI::Pointer.new(address)
     end
 

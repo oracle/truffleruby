@@ -138,6 +138,15 @@ public abstract class InteropNodes {
         }
     }
 
+    @Primitive(name = "interop_null?")
+    public abstract static class InteropIsNullNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected boolean isNull(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isNull(receiver);
+        }
+    }
+
     @Primitive(name = "interop_execute")
     public abstract static class InteropExecuteNode extends PrimitiveArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")

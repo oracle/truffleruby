@@ -294,7 +294,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if @match.nil?
+    raise ScanError if Primitive.nil?(@match)
     @pos = @prev_pos
     @prev_pos = nil
     @match = nil

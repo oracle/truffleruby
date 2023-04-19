@@ -375,7 +375,7 @@ module Truffle::CExt
 
   def rb_num_coerce_cmp(x, y, func)
     ary = do_coerce(x, y, false)
-    if ary.nil?
+    if Primitive.nil?(ary)
       nil
     else
       a, b = ary
@@ -385,11 +385,11 @@ module Truffle::CExt
 
   def rb_num_coerce_relop(x, y, func)
     ary = do_coerce(x, y, false)
-    unless ary.nil?
+    unless Primitive.nil?(ary)
       a, b = ary
       res = a.__send__(func, b)
     end
-    raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if res.nil?
+    raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if Primitive.nil?(res)
     res
   end
 
@@ -595,7 +595,7 @@ module Truffle::CExt
   end
 
   def rb_reg_nth_match(nth, match)
-    return nil if match.nil?
+    return nil if Primitive.nil?(match)
     match[nth]
   end
 
@@ -748,7 +748,7 @@ module Truffle::CExt
 
   def rb_cstr_to_dbl(string, badcheck)
     result = Primitive.string_to_f string
-    if result.nil?
+    if Primitive.nil?(result)
       if badcheck
         raise ArgumentError, "invalid value for Float(): #{string.inspect}"
       else
@@ -861,7 +861,7 @@ module Truffle::CExt
 
   def rb_str_encode(str, to, ecflags, ecopts)
     opts = {}
-    opts.merge!(ecopts) unless ecopts.nil?
+    opts.merge!(ecopts) unless Primitive.nil?(ecopts)
 
     # TODO BJF 8-Mar-2017 Handle more ecflags
     if ecflags & Encoding::Converter::INVALID_REPLACE != 0
@@ -889,7 +889,7 @@ module Truffle::CExt
   end
 
   def rb_cmpint(val, a, b)
-    raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if val.nil?
+    raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if Primitive.nil?(val)
     if val > 0
       1
     elsif val < 0
@@ -1059,7 +1059,7 @@ module Truffle::CExt
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
 
-    unless Primitive.equal?(nil, e)
+    unless Primitive.nil?(e)
       store_exception(e)
       pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
@@ -1271,7 +1271,7 @@ module Truffle::CExt
   end
 
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
-    return rb_enumeratorize(obj, meth, args) if size_fn.nil?
+    return rb_enumeratorize(obj, meth, args) if Primitive.interop_null?(size_fn)
     enum = obj.to_enum(meth, *args) do
       Primitive.call_with_c_mutex_and_frame_and_unwrap(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)], Primitive.caller_special_variables_if_available, nil)
     end
@@ -1542,7 +1542,7 @@ module Truffle::CExt
   end
 
   def test_kwargs(kwargs, raise_error)
-    return false if kwargs.nil?
+    return false if Primitive.nil?(kwargs)
 
     if Primitive.is_a?(kwargs, Hash) && kwargs.keys.all? { |k| Primitive.is_a?(k, Symbol) }
       true
@@ -1670,7 +1670,7 @@ module Truffle::CExt
   end
 
   def warn?
-    !$VERBOSE.nil?
+    !Primitive.nil?($VERBOSE)
   end
 
   def warning?
@@ -1765,7 +1765,7 @@ module Truffle::CExt
       timeout = tv_secs + tv_usecs/1.0e6
     end
     r, w, e = Primitive.send_without_cext_lock(IO, :select, [read, write, error, *timeout], nil)
-    if r.nil? # timeout
+    if Primitive.nil?(r) # timeout
       0
     else
       result = 0

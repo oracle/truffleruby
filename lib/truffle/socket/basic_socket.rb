@@ -182,7 +182,7 @@ class BasicSocket < IO
     if socket_type == Socket::SOCK_STREAM
       grow_msg = false
     else
-      grow_msg = max_msg_len.nil?
+      grow_msg = Primitive.nil?(max_msg_len)
     end
 
     flags |= Socket::MSG_PEEK if grow_msg
