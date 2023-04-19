@@ -55,7 +55,7 @@ module Truffle
                    type.to_sym
                  end
 
-        if !(Array === type) && ::FFI.find_type(type).size != size
+        if !(Primitive.is_a?(type, Array)) && ::FFI.find_type(type).size != size
           raise ArgumentError, "FFI::Type#size of #{type} (#{::FFI.find_type(type).size}) differs from config size (#{size})"
         end
 
@@ -73,12 +73,12 @@ module Truffle
     end
 
     def self.sockaddr_class_for_socket(socket)
-      if socket.is_a?(::UNIXSocket)
+      if Primitive.is_a?(socket, ::UNIXSocket)
         return Foreign::SockaddrUn
       end
 
       # Socket created using for example Socket.unix('foo')
-      if socket.is_a?(::Socket) and
+      if Primitive.is_a?(socket, ::Socket) and
         socket.instance_variable_get(:@family) == ::Socket::AF_UNIX
         return Foreign::SockaddrUn
       end
@@ -159,7 +159,7 @@ module Truffle
     end
 
     def self.coerce_to_string(object)
-      if object.is_a?(String) or object.is_a?(Symbol)
+      if Primitive.is_a?(object, String) or Primitive.is_a?(object, Symbol)
         object.to_s
       elsif object.respond_to?(:to_str)
         Truffle::Type.coerce_to(object, String, :to_str)

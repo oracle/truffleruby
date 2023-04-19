@@ -49,7 +49,7 @@ class Socket < BasicSocket
       host = '255.255.255.255'
     end
 
-    if service.kind_of?(Integer)
+    if Primitive.is_a?(service, Integer)
       service = service.to_s
     elsif service
       service = Truffle::Socket.coerce_to_string(service)
@@ -93,7 +93,7 @@ class Socket < BasicSocket
     host   = nil
     family = Socket::AF_UNSPEC
 
-    if sockaddr.is_a?(Array)
+    if Primitive.is_a?(sockaddr, Array)
       if sockaddr.size == 3
         af, port, host = sockaddr
       elsif sockaddr.size == 4
@@ -237,7 +237,7 @@ class Socket < BasicSocket
   end
 
   def self.unpack_sockaddr_in(addr)
-    addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
+    addr = addr.to_sockaddr if Primitive.is_a?(addr, Addrinfo)
     _, address, port = Truffle::Socket::Foreign
       .unpack_sockaddr_in(addr, false)
 
@@ -289,7 +289,7 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_un(addr)
-      addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
+      addr = addr.to_sockaddr if Primitive.is_a?(addr, Addrinfo)
       struct = Truffle::Socket::Foreign::SockaddrUn.with_sockaddr(addr)
       begin
         unless struct.family == Socket::AF_UNIX
@@ -321,7 +321,7 @@ class Socket < BasicSocket
   end
 
   def bind(addr)
-    if addr.is_a?(Addrinfo)
+    if Primitive.is_a?(addr, Addrinfo)
       addr = addr.to_sockaddr
     end
 
@@ -333,7 +333,7 @@ class Socket < BasicSocket
   end
 
   def connect(sockaddr)
-    if sockaddr.is_a?(Addrinfo)
+    if Primitive.is_a?(sockaddr, Addrinfo)
       sockaddr = sockaddr.to_sockaddr
     end
 
@@ -347,7 +347,7 @@ class Socket < BasicSocket
   private def __connect_nonblock(sockaddr, exception)
     self.nonblock = true
 
-    if sockaddr.is_a?(Addrinfo)
+    if Primitive.is_a?(sockaddr, Addrinfo)
       sockaddr = sockaddr.to_sockaddr
     end
 

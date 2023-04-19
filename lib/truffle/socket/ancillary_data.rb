@@ -36,7 +36,7 @@ class Socket < BasicSocket
 
     def self.unix_rights(*ios)
       descriptors = ios.map do |io|
-        unless io.is_a?(IO)
+        unless Primitive.is_a?(io, IO)
           raise TypeError, "IO expected, got #{Primitive.class(io)} instead"
         end
 

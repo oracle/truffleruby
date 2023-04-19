@@ -91,15 +91,15 @@ module Truffle::FiddleBackend
   end
 
   def self.get_pointer_value(val)
-    if val.is_a?(String)
+    if Primitive.is_a?(val, String)
       Truffle::CExt.string_to_ffi_pointer(val)
-    elsif val.is_a?(Fiddle::Pointer)
+    elsif Primitive.is_a?(val, Fiddle::Pointer)
       val.to_i
     elsif val.respond_to?(:to_ptr)
       val.to_ptr.to_i
     elsif Primitive.nil?(val)
       0
-    elsif val.is_a?(Integer)
+    elsif Primitive.is_a?(val, Integer)
       val
     else
       raise NotImplementedError, "#{val.inspect} to pointer"
@@ -220,7 +220,7 @@ module Fiddle
       ret_type = Truffle::FiddleBackend.type_to_nfi(ret_type)
       signature = "(#{args.join(',')}):#{ret_type}"
 
-      if ptr.is_a?(Closure)
+      if Primitive.is_a?(ptr, Closure)
         @function = ptr.method(:call)
       else
         ptr = Truffle::FFI::Pointer.new(ptr)
@@ -321,9 +321,9 @@ module Fiddle
     end
 
     def self.to_ptr(val)
-      if val.is_a?(IO)
+      if Primitive.is_a?(val, IO)
         raise NotImplementedError
-      elsif val.is_a?(String)
+      elsif Primitive.is_a?(val, String)
         ptr = Pointer.new(Truffle::CExt.string_pointer_to_native(val), val.bytesize)
       elsif val.respond_to?(:to_ptr)
         raise NotImplementedError

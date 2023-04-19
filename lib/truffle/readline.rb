@@ -64,7 +64,7 @@ module Readline
 
     Primitive.readline_set_completion_proc -> buffer {
       result = proc.call(buffer)
-      unless Array === result
+      unless Primitive.is_a?(result, Array)
         result = Array(result)
       end
       result.map do |e|

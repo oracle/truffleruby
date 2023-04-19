@@ -423,4 +423,5 @@ TruffleRuby/ReplaceWithPrimitiveObjectEqual:
 TruffleRuby/ReplaceWithPrimitiveObjectKindOf:
   Enabled: true
   Include: # inspect *only* these files
+    - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb

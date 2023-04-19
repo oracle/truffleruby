@@ -38,7 +38,7 @@ module Truffle
       end
 
       def self.socket_level(level, family = nil)
-        if level.is_a?(Symbol) or level.is_a?(String)
+        if Primitive.is_a?(level, Symbol) or Primitive.is_a?(level, String)
           if ::Socket.const_defined?(level, false) # Truffle: added inherit false
             ::Socket.const_get(level, false) # Truffle: added inherit false
           else

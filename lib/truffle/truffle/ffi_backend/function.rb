@@ -40,21 +40,21 @@ module FFI
     def initialize(return_type, param_types, function = nil, options = {}, &block)
       function ||= block
 
-      if FunctionType === return_type and nil == param_types
+      if Primitive.is_a?(return_type, FunctionType) and nil == param_types
         @function_info = return_type
       else
         @function_info = FunctionType.new(return_type, param_types, options)
       end
 
-      if FFI::DynamicLibrary::Symbol === function
+      if Primitive.is_a?(function, FFI::DynamicLibrary::Symbol)
         @function = @function_info.nfi_signature.bind(function.handle)
         @native_wrapper = nil
         super(@function)
-      elsif FFI::Pointer === function
+      elsif Primitive.is_a?(function, FFI::Pointer)
         @function = @function_info.nfi_signature.bind(function)
         @native_wrapper = nil
         super(@function)
-      elsif Proc === function || Method === function
+      elsif Primitive.is_a?(function, Proc) || Primitive.is_a?(function, Method)
         @function = function
         @native_wrapper = create_native_wrapper(@function, @function_info)
         super(@native_wrapper)
@@ -84,7 +84,7 @@ module FFI
       if blocking
         begin
           result = Primitive.thread_run_blocking_nfi_system_call(@function, args)
-        end while Integer === result and result == -1 and Errno.errno == Errno::EINTR::Errno
+        end while Primitive.is_a?(result, Integer) and result == -1 and Errno.errno == Errno::EINTR::Errno
       else
         result = @function.call(*args)
       end
@@ -138,9 +138,9 @@ module FFI
     end
 
     private def convert_ruby_to_native(type, value, enums)
-      if FFI::Type::Mapped === type
+      if Primitive.is_a?(type, FFI::Type::Mapped)
         type.to_native(value, nil)
-      elsif enums and Symbol === value
+      elsif enums and Primitive.is_a?(value, Symbol)
         enums.__map_symbol(value)
       elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
         Truffle::Type.rb_num2ulong(value)
@@ -151,7 +151,7 @@ module FFI
       elsif FFI::Type::STRING == type
         Truffle::Type.check_null_safe(value) unless Primitive.nil?(value)
         get_pointer_value(value)
-      elsif FFI::FunctionType === type and Proc === value
+      elsif Primitive.is_a?(type, FFI::FunctionType) and Primitive.is_a?(value, Proc)
         callback(value, type)
       else
         value
@@ -159,7 +159,7 @@ module FFI
     end
 
     private def convert_native_to_ruby(type, value)
-      if Type::Mapped === type
+      if Primitive.is_a?(type, Type::Mapped)
         # #to_native expects a Ruby object, not e.g., a NFI NativePointer
         ruby_value = convert_native_to_ruby(type.native_type, value)
         type.from_native(ruby_value, nil)
@@ -170,7 +170,7 @@ module FFI
       elsif FFI::Type::STRING == type
         if Primitive.interop_null?(value)
           nil
-        elsif String === value
+        elsif Primitive.is_a?(value, String)
           value
         else
           FFI::Pointer.new(Truffle::Interop.as_pointer(value)).read_string_to_null
@@ -178,7 +178,7 @@ module FFI
       elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
         # GR-15358: No uint64 in interop yet
         type.signed2unsigned(value)
-      elsif FFI::FunctionType === type
+      elsif Primitive.is_a?(type, FFI::FunctionType)
         ptr = FFI::Pointer.new(Truffle::Interop.as_pointer(value))
         FFI::Function.new(type, nil, ptr)
       else
@@ -188,11 +188,11 @@ module FFI
 
     # Returns a Truffle::FFI::Pointer, to correctly keep the argument alive during the native call
     private def get_pointer_value(value)
-      if Truffle::FFI::Pointer === value
+      if Primitive.is_a?(value, Truffle::FFI::Pointer)
         value
       elsif Primitive.nil?(value)
         Truffle::FFI::Pointer::NULL
-      elsif String === value
+      elsif Primitive.is_a?(value, String)
         Truffle::CExt.string_to_ffi_pointer(value)
       elsif value.respond_to?(:to_ptr)
         Truffle::Type.coerce_to value, Truffle::FFI::Pointer, :to_ptr

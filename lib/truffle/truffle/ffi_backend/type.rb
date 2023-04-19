@@ -122,7 +122,7 @@ module FFI
         end
 
         native_type = converter.native_type
-        unless native_type.kind_of?(FFI::Type)
+        unless Primitive.is_a?(native_type, FFI::Type)
           raise TypeError, 'native_type did not return instance of FFI::Type'
         end
 
@@ -183,7 +183,7 @@ module FFI
 
     def initialize(struct_class)
       layout = struct_class.instance_variable_get(:@layout)
-      unless FFI::StructLayout === layout
+      unless Primitive.is_a?(layout, FFI::StructLayout)
         raise TypeError, 'wrong type in @layout ivar (expected FFI::StructLayout)'
       end
       super(layout.size, layout.alignment, 'STRUCT_BY_VALUE') # layout.nfi_type)
@@ -215,7 +215,7 @@ module FFI
       @param_types = param_types
       @enums = options[:enums]
       @blocking = options[:blocking]
-      @function_index = param_types.index { |type| FFI::FunctionType === type }
+      @function_index = param_types.index { |type| Primitive.is_a?(type, FFI::FunctionType) }
 
       if varargs
         @nfi_type = nfi_varags_signature(@return_type, varargs, @param_types)

@@ -85,14 +85,14 @@ class BasicSocket < IO
     when false then optval = 0
     end
 
-    if optval.is_a?(Integer)
+    if Primitive.is_a?(optval, Integer)
       Truffle::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
         pointer.write_int(optval)
 
         error = Truffle::Socket::Foreign
           .setsockopt(Primitive.io_fd(self), level, optname, pointer, pointer.total)
       end
-    elsif optval.is_a?(String)
+    elsif Primitive.is_a?(optval, String)
       Truffle::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
         pointer.write_bytes(optval)
 
@@ -121,14 +121,14 @@ class BasicSocket < IO
     bytes      = message.bytesize
     bytes_sent = 0
 
-    if dest_sockaddr.is_a?(Addrinfo)
+    if Primitive.is_a?(dest_sockaddr, Addrinfo)
       dest_sockaddr = dest_sockaddr.to_sockaddr
     end
 
     Truffle::Socket::Foreign.char_pointer(bytes) do |buffer|
       buffer.write_bytes(message)
 
-      if dest_sockaddr.is_a?(String)
+      if Primitive.is_a?(dest_sockaddr, String)
         addr = Truffle::Socket.sockaddr_class_for_socket(self)
           .with_sockaddr(dest_sockaddr)
 
@@ -254,11 +254,11 @@ class BasicSocket < IO
 
       header.message = io_vec
 
-      if dest_sockaddr.is_a?(Addrinfo)
+      if Primitive.is_a?(dest_sockaddr, Addrinfo)
         dest_sockaddr = dest_sockaddr.to_sockaddr
       end
 
-      if dest_sockaddr.is_a?(String)
+      if Primitive.is_a?(dest_sockaddr, String)
         address = Truffle::Socket::Foreign::SockaddrIn.with_sockaddr(dest_sockaddr)
 
         header.address = address

@@ -154,7 +154,7 @@ class StringIO
     end
 
     if mode
-      if mode.is_a?(Integer)
+      if Primitive.is_a?(mode, Integer)
         mode_from_integer(mode)
       else
         mode = StringValue(mode)
@@ -430,7 +430,7 @@ class StringIO
   def putc(obj)
     check_writable
 
-    if obj.is_a?(String)
+    if Primitive.is_a?(obj, String)
       char = obj[0]
     else
       c = Truffle::Type.coerce_to obj, Integer, :to_int
@@ -494,7 +494,7 @@ class StringIO
   end
 
   def reopen(string = nil, mode = Undefined)
-    if string and not string.kind_of? String and Primitive.equal?(mode, Undefined)
+    if string and not Primitive.is_a?(string, String) and Primitive.equal?(mode, Undefined)
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
       initialize_copy stringio
@@ -592,7 +592,7 @@ class StringIO
   def ungetc(char)
     check_readable
 
-    if char.kind_of? Integer
+    if Primitive.is_a?(char, Integer)
       char = Truffle::Type.coerce_to char, String, :chr
     else
       char = Truffle::Type.coerce_to char, String, :to_str
@@ -622,7 +622,7 @@ class StringIO
 
     return unless bytes
 
-    if bytes.kind_of? Integer
+    if Primitive.is_a?(bytes, Integer)
       bytes = ''.b << (bytes & 0xff)
     else
       bytes = StringValue(bytes).b

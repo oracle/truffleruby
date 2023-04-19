@@ -286,7 +286,7 @@ module Truffle::CExt
   end
 
   def SYMBOL_P(value)
-    Symbol === value
+    Primitive.is_a?(value, Symbol)
   end
 
   def rb_to_int(val)
@@ -500,7 +500,7 @@ module Truffle::CExt
 
   def rb_ivar_foreach(object, func, arg)
     keys_and_vals = []
-    if Module === object
+    if Primitive.is_a?(object, Module)
       keys_and_vals << :__classpath__
       keys_and_vals << object.name
 
@@ -698,7 +698,7 @@ module Truffle::CExt
     parse_event = -> bits, name do
       if events.anybits? bits
         events ^= bits
-        if Symbol === name
+        if Primitive.is_a?(name, Symbol)
           events_ary << name
         else
           warn "warning: rb_tracepoint_new(#{name}) is not yet implemented" if $VERBOSE
@@ -1297,7 +1297,7 @@ module Truffle::CExt
   end
 
   def rb_get_alloc_func(ruby_class)
-    return nil unless Class === ruby_class
+    return nil unless Primitive.is_a?(ruby_class, Class)
     begin
       allocate_method = ruby_class.method(:__allocate__).owner
     rescue NameError
@@ -1858,7 +1858,7 @@ module Truffle::CExt
   end
 
   def rb_convert_to_encoding(encoding)
-    if Encoding === encoding
+    if Primitive.is_a?(encoding, Encoding)
       encoding
     else
       Encoding.find(encoding.to_str)

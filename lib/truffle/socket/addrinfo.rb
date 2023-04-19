@@ -99,7 +99,7 @@ class Addrinfo
   end
 
   def initialize(sockaddr, pfamily = nil, socktype = 0, protocol = 0)
-    if sockaddr.kind_of?(Array)
+    if Primitive.is_a?(sockaddr, Array)
       @afamily    = Truffle::Socket.address_family(sockaddr[0])
       @ip_port    = sockaddr[1]
       @ip_address = sockaddr[3]
@@ -138,7 +138,7 @@ class Addrinfo
     end
 
     # MRI only checks this if "sockaddr" is an Array.
-    if sockaddr.kind_of?(Array)
+    if Primitive.is_a?(sockaddr, Array)
       if @afamily == Socket::AF_INET6
         if Socket.sockaddr_in(0, @ip_address).bytesize != 28
           raise SocketError, "Invalid IPv6 address: #{@ip_address.inspect}"
@@ -158,7 +158,7 @@ class Addrinfo
     end
 
     # Per MRI this validation should only happen when "sockaddr" is an Array.
-    if sockaddr.is_a?(Array)
+    if Primitive.is_a?(sockaddr, Array)
       case @socktype
       when 0, nil
         if @protocol != 0 and !Primitive.nil?(@protocol) and @protocol != Socket::IPPROTO_UDP

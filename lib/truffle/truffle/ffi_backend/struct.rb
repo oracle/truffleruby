@@ -50,12 +50,12 @@ module FFI
       else
         @layout = Primitive.class(self).layout(*args)
       end
-      unless FFI::StructLayout === @layout
+      unless Primitive.is_a?(@layout, FFI::StructLayout)
         raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
       end
 
       if pointer
-        unless FFI::AbstractMemory === pointer
+        unless Primitive.is_a?(pointer, FFI::AbstractMemory)
           raise ArgumentError, "Invalid Memory object: #{pointer.inspect}"
         end
         @pointer = pointer
@@ -81,7 +81,7 @@ module FFI
     end
 
     private def pointer=(pointer)
-      unless FFI::AbstractMemory === pointer
+      unless Primitive.is_a?(pointer, FFI::AbstractMemory)
         raise TypeError, "wrong argument type #{Primitive.class(pointer)} (expected Pointer or Buffer)"
       end
 
@@ -95,7 +95,7 @@ module FFI
     end
 
     private def layout=(layout)
-      unless FFI::StructLayout === layout
+      unless Primitive.is_a?(layout, FFI::StructLayout)
         raise TypeError, "wrong argument type #{Primitive.class(layout)} (expected #{FFI::StructLayout})"
       end
       @layout = layout
@@ -117,7 +117,7 @@ module FFI
         @layout
       else
         layout = Primitive.class(self).instance_variable_get(:@layout)
-        unless FFI::StructLayout === layout
+        unless Primitive.is_a?(layout, FFI::StructLayout)
           raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
         end
         unless defined?(@pointer) and @pointer
@@ -156,7 +156,7 @@ module FFI
         @pointer = pointer
         @offset = field.offset
 
-        raise unless FFI::Type::ArrayType === field.type
+        raise unless Primitive.is_a?(field.type, FFI::Type::ArrayType)
         @array_type = field.type
         @length = @array_type.length
       end

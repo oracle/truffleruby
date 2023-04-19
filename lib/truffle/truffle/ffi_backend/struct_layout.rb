@@ -42,7 +42,7 @@ module FFI
       @field_map = {}
 
       @fields = fields.map.with_index do |field, i|
-        unless FFI::StructLayout::Field === field
+        unless Primitive.is_a?(field, FFI::StructLayout::Field)
           raise TypeError, "wrong type for field #{i}."
         end
         type = field.type
@@ -141,9 +141,9 @@ module FFI
       end
 
       def put(struct_pointer, value)
-        if nil == value or FFI::Function === value
+        if nil == value or Primitive.is_a?(value, FFI::Function)
           function = value
-        elsif ::Proc === value || value.respond_to?(:call)
+        elsif Primitive.is_a?(value, ::Proc) || value.respond_to?(:call)
           function = FFI::Function.new(@type, nil, value)
         else
           raise TypeError, 'wrong type (expected Proc or Function)'

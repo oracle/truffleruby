@@ -77,7 +77,7 @@ class StringScanner
 
   def [](n)
     if @match
-      raise TypeError, "no implicit conversion of #{Primitive.class(n)} into Integer" if Range === n
+      raise TypeError, "no implicit conversion of #{Primitive.class(n)} into Integer" if Primitive.is_a?(n, Range)
       @match[n]
     end
   end
