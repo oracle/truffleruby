@@ -27,18 +27,12 @@ require C extension support for gems using FFI.
 
 ## Synchronization
 
-I use a branch `truffleruby-specs-$FFI_RELEASE` on my fork https://github.com/eregon/ffi
-which keeps our modifications on top of the FFI release tag we are based on.
-`tool/import-ffi.sh` from the latest of these branches should synchronize cleanly.
+`tool/import-ffi.sh` from the corresponding FFI version should synchronize cleanly.
 
-In general, changes are done in TruffleRuby first, then I add them to my local `ffi` repository
-in the `truffleruby-specs-$FFI_RELEASE` branch with `git cherry-pick`.
-This requires `truffleruby` to be added as a remote to the `ffi` repo:
-```bash
-git remote add truffleruby ../truffleruby-ws/truffleruby
-```
+In general, changes are done in `ffi` first, and I copy them to truffleruby via `tool/import-ffi.sh` while working on them.
+We should upstream all changes we do to `ffi`.
 
-From there we should of course upstream as many changes as possible to minimize the diff.
+The only diff we should have is in `src/main/ruby/truffleruby/core/truffle/ffi/pointer_extra.rb` and it should remain small.
 
 ## Running Specs in Upstream FFI Repository
 

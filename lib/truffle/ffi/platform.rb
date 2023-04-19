@@ -132,11 +132,8 @@ module FFI
     end
 
     LIBC = if IS_WINDOWS
-      if RbConfig::CONFIG['host_os'] =~ /mingw/i
-        RbConfig::CONFIG['RUBY_SO_NAME'].split('-')[-2] + '.dll'
-      else
-        "ucrtbase.dll"
-      end
+      crtname = RbConfig::CONFIG["RUBY_SO_NAME"][/msvc\w+/] || 'ucrtbase'
+      "#{crtname}.dll"
     elsif IS_GNU
       GNU_LIBC
     elsif OS == 'cygwin'
