@@ -548,7 +548,7 @@ public class ThreadManager {
         }
 
         @ValueType
-        private static class State {
+        private static final class State {
             final RubyThread thread;
             final Object executable;
             final Object[] args;

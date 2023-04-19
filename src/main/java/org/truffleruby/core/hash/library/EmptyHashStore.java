@@ -29,7 +29,7 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
-public class EmptyHashStore {
+public final class EmptyHashStore {
 
     public static final EmptyHashStore NULL_HASH_STORE = new EmptyHashStore();
 

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format;
 
-public class MissingValue {
+public final class MissingValue {
 
     public static final MissingValue INSTANCE = new MissingValue();
 

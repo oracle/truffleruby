@@ -2367,7 +2367,7 @@ public abstract class ArrayNodes {
     @Primitive(name = "array_flatten_helper", lowerFixnum = 2)
     public abstract static class FlattenHelperNode extends PrimitiveArrayArgumentsNode {
 
-        static class Entry {
+        static final class Entry {
             final RubyArray array;
             final int index;
 

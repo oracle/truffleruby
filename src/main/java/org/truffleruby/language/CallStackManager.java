@@ -170,7 +170,7 @@ public class CallStackManager {
         return Truffle.getRuntime().iterateFrames(new FilterApplyVisitor<>(skip, filter, action));
     }
 
-    private static class FilterApplyVisitor<R> implements FrameInstanceVisitor<R> {
+    private static final class FilterApplyVisitor<R> implements FrameInstanceVisitor<R> {
         private final int skip;
         private final Predicate<FrameInstance> filter;
         private final Function<FrameInstance, R> action;

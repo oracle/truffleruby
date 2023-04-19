@@ -62,7 +62,7 @@ import org.truffleruby.core.support.RubyIO;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class ConsoleHolder {
+public final class ConsoleHolder {
 
     // Set to true to print logging messages from JLine
     private static final boolean DEBUG_JLINE = false;
