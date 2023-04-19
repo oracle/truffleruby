@@ -416,6 +416,7 @@ TruffleRuby/ReplaceWithPrimitiveObjectClass:
 TruffleRuby/ReplaceWithPrimitiveObjectEqual:
   Enabled: true
   Include: # inspect *only* these files
+    - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct

@@ -494,12 +494,12 @@ class StringIO
   end
 
   def reopen(string = nil, mode = Undefined)
-    if string and not string.kind_of? String and mode.equal? Undefined
+    if string and not string.kind_of? String and Primitive.equal?(mode, Undefined)
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
       initialize_copy stringio
     else
-      mode = nil if mode.equal? Undefined
+      mode = nil if Primitive.equal?(mode, Undefined)
       string = '' unless string
 
       initialize string, mode

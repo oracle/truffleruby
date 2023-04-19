@@ -65,7 +65,7 @@ module FFI
     end
 
     def initialize_copy(other)
-      return self if equal?(other)
+      return self if Primitive.equal?(self, other)
 
       @layout = other.layout
 
