@@ -41,7 +41,7 @@ class UNIXSocket < BasicSocket
   end
 
   def initialize(path)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
     @path              = '' # empty for client sockets
 
     fd = Truffle::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)

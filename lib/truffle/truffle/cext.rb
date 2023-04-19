@@ -183,7 +183,7 @@ module Truffle::CExt
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
 
-    value_class = value.class
+    value_class = Primitive.class(value)
     type = Primitive.object_hidden_var_get(value_class, RB_TYPE)
     type ||= Primitive.object_hidden_var_set(value_class, RB_TYPE, rb_tr_find_type(value))
     rb_tr_cached_type(value, type)
@@ -246,7 +246,7 @@ module Truffle::CExt
       # See #rb_tr_cached_type, the final type must be calculated for each object.
       T_NONE
     else
-      raise "unknown type #{value.class}"
+      raise "unknown type #{Primitive.class(value)}"
     end
   end
 
@@ -389,14 +389,14 @@ module Truffle::CExt
       a, b = ary
       res = a.__send__(func, b)
     end
-    raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if Primitive.nil?(res)
+    raise ArgumentError, "comparison of #{Primitive.class(x)} with #{Primitive.class(y)} failed" if Primitive.nil?(res)
     res
   end
 
   private def do_coerce(x, y, raise_error)
     unless y.respond_to?(:coerce)
       if raise_error
-        raise TypeError, "#{y.class} can't be coerced to #{x.class}"
+        raise TypeError, "#{Primitive.class(y)} can't be coerced to #{Primitive.class(x)}"
       else
         return nil
       end
@@ -788,7 +788,7 @@ module Truffle::CExt
     if Primitive.is_a?(obj, String)
       rb_enc_str_coderange(obj)
     else
-      raise "Unknown coderange for obj with class `#{obj.class}`"
+      raise "Unknown coderange for obj with class `#{Primitive.class(obj)}`"
     end
   end
 
@@ -798,7 +798,7 @@ module Truffle::CExt
     when String
       obj.force_encoding(enc)
     else
-      raise "rb_enc_associate_index not implemented for class `#{obj.class}`"
+      raise "rb_enc_associate_index not implemented for class `#{Primitive.class(obj)}`"
     end
   end
 
@@ -889,7 +889,7 @@ module Truffle::CExt
   end
 
   def rb_cmpint(val, a, b)
-    raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if Primitive.nil?(val)
+    raise ArgumentError, "comparison of #{Primitive.class(a)} and #{Primitive.class(b)} failed" if Primitive.nil?(val)
     if val > 0
       1
     elsif val < 0
@@ -1192,7 +1192,7 @@ module Truffle::CExt
 
     if Primitive.module_const_defined?(mod, name, false, false)
       current_class = Primitive.module_const_get(mod, name, false, false, false)
-      unless current_class.class == Class
+      unless Primitive.class(current_class) == Class
         raise TypeError, "#{mod}::#{name} is not a class"
       end
       if superclass != current_class.superclass
@@ -1207,7 +1207,7 @@ module Truffle::CExt
   def rb_define_module_under(mod, name)
     if Primitive.module_const_defined?(mod, name, false, false)
       val = Primitive.module_const_get(mod, name, false, false, false)
-      unless val.class == Module
+      unless Primitive.class(val) == Module
         raise TypeError, "#{mod}::#{name} is not a module"
       end
       val
@@ -1914,7 +1914,7 @@ module Truffle::CExt
   # An object that once unreachable frees the associated native pointer using ruby_xfree()
   class IMemoTmpBufAutoFree
     def pointer=(address)
-      ObjectSpace.define_finalizer(self, self.class.free(address))
+      ObjectSpace.define_finalizer(self, Primitive.class(self).free(address))
     end
 
     def self.free(address)
@@ -1933,7 +1933,7 @@ module Truffle::CExt
   def rb_debug_inspector_open_contexts
     Truffle::Debug.get_frame_bindings.map do |binding|
       if binding
-        [binding.receiver, binding.receiver.class, binding]
+        [binding.receiver, Primitive.class(binding.receiver), binding]
       else
         [nil, nil, nil]
       end

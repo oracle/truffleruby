@@ -75,7 +75,7 @@ module Truffle
             end
           else
             raise TypeError,
-              "no implicit conversion of #{type.class} into Integer"
+              "no implicit conversion of #{Primitive.class(type)} into Integer"
           end
         end
       end

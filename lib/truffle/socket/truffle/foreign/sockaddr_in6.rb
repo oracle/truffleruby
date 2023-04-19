@@ -45,7 +45,7 @@ module Truffle
         end
 
         def to_s
-          pointer.read_string(self.class.size)
+          pointer.read_string(Primitive.class(self).size)
         end
       end
     end

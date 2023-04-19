@@ -786,6 +786,6 @@ class StringIO
   end
 
   def marshal_dump
-    raise TypeError, "can't dump #{self.class}"
+    raise TypeError, "can't dump #{Primitive.class(self)}"
   end
 end

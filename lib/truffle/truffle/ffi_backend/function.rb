@@ -197,7 +197,7 @@ module FFI
       elsif value.respond_to?(:to_ptr)
         Truffle::Type.coerce_to value, Truffle::FFI::Pointer, :to_ptr
       else
-        raise ArgumentError, "#{value.inspect} (#{value.class}) is not a pointer"
+        raise ArgumentError, "#{value.inspect} (#{Primitive.class(value)}) is not a pointer"
       end
     end
 

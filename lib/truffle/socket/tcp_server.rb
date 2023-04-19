@@ -28,7 +28,7 @@
 
 class TCPServer < TCPSocket
   def initialize(host = nil, service)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
 
     remote_addrs = Socket
       .getaddrinfo(host, service, :UNSPEC, :STREAM, 0, Socket::AI_PASSIVE)

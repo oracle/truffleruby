@@ -46,12 +46,12 @@ module FFI
 
     def initialize(pointer = nil, *args)
       if args.empty?
-        @layout = self.class.instance_variable_get(:@layout)
+        @layout = Primitive.class(self).instance_variable_get(:@layout)
       else
-        @layout = self.class.layout(*args)
+        @layout = Primitive.class(self).layout(*args)
       end
       unless FFI::StructLayout === @layout
-        raise RuntimeError, "invalid Struct layout for #{self.class}"
+        raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
       end
 
       if pointer
@@ -82,13 +82,13 @@ module FFI
 
     private def pointer=(pointer)
       unless FFI::AbstractMemory === pointer
-        raise TypeError, "wrong argument type #{pointer.class} (expected Pointer or Buffer)"
+        raise TypeError, "wrong argument type #{Primitive.class(pointer)} (expected Pointer or Buffer)"
       end
 
       layout = get_layout
       if layout.size > pointer.size
         raise ArgumentError, "memory of #{pointer.size} bytes too small for struct" +
-                             " #{self.class} (expected at least #{@layout.size})"
+                             " #{Primitive.class(self)} (expected at least #{@layout.size})"
       end
 
       @pointer = pointer
@@ -96,7 +96,7 @@ module FFI
 
     private def layout=(layout)
       unless FFI::StructLayout === layout
-        raise TypeError, "wrong argument type #{layout.class} (expected #{FFI::StructLayout})"
+        raise TypeError, "wrong argument type #{Primitive.class(layout)} (expected #{FFI::StructLayout})"
       end
       @layout = layout
     end
@@ -116,9 +116,9 @@ module FFI
       if defined?(@layout)
         @layout
       else
-        layout = self.class.instance_variable_get(:@layout)
+        layout = Primitive.class(self).instance_variable_get(:@layout)
         unless FFI::StructLayout === layout
-          raise RuntimeError, "invalid Struct layout for #{self.class}"
+          raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
         end
         unless defined?(@pointer) and @pointer
           @pointer = MemoryPointer.new(layout.size, 1, true)

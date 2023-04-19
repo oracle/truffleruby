@@ -96,7 +96,7 @@ module Truffle
           next_pointer = self.next
 
           until next_pointer.null?
-            struct = self.class.new(next_pointer)
+            struct = Primitive.class(self).new(next_pointer)
 
             yield struct
 

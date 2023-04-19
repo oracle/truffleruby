@@ -49,11 +49,11 @@ module FFI
     end
 
     def get_at(pointer, offset)
-      raise "unimplemented for #{self.class}"
+      raise "unimplemented for #{Primitive.class(self)}"
     end
 
     def put_at(pointer, offset, value)
-      raise "unimplemented for #{self.class}"
+      raise "unimplemented for #{Primitive.class(self)}"
     end
 
     class Builtin < Type
@@ -106,7 +106,7 @@ module FFI
       end
 
       def inspect
-        "#<#{self.class}:#{@name} size=#{@size} alignment=#{@alignment}>"
+        "#<#{Primitive.class(self)}:#{@name} size=#{@size} alignment=#{@alignment}>"
       end
     end
 

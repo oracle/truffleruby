@@ -28,7 +28,7 @@
 
 class UDPSocket < IPSocket
   def initialize(family = Socket::AF_INET)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
     @family            = Truffle::Socket.address_family(family)
 
     descriptor = Truffle::Socket::Foreign
@@ -82,6 +82,6 @@ class UDPSocket < IPSocket
   end
 
   def inspect
-    "#<#{self.class}:fd #{fileno}>"
+    "#<#{Primitive.class(self)}:fd #{fileno}>"
   end
 end

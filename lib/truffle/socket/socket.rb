@@ -307,7 +307,7 @@ class Socket < BasicSocket
   end
 
   def initialize(family, socket_type, protocol = 0)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
 
     @family = Truffle::Socket.protocol_family(family)
     socket_type = Truffle::Socket.socket_type(socket_type)

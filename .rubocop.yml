@@ -401,24 +401,25 @@ Layout/SpaceAroundEqualsInParameterDefault:
 # Supports --auto-correct
 TruffleRuby/ReplaceWithPrimitiveNil:
   Enabled: true
-  Include: # inspect *only* this directory
+  Include: # inspect *only* these files
     - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
 TruffleRuby/ReplaceWithPrimitiveObjectClass:
   Enabled: true
-  Include: # inspect *only* this directory
+  Include: # inspect *only* these files
+    - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
 TruffleRuby/ReplaceWithPrimitiveObjectEqual:
   Enabled: true
-  Include: # inspect *only* this directory
+  Include: # inspect *only* these files
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
 TruffleRuby/ReplaceWithPrimitiveObjectKindOf:
   Enabled: true
-  Include: # inspect *only* this directory
+  Include: # inspect *only* these files
     - src/main/ruby/**/*.rb

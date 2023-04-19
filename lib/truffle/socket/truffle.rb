@@ -375,7 +375,7 @@ module Truffle
           shutdown_option(coerce_to_string(how))
         else
           raise TypeError,
-            "no implicit conversion of #{how.class} into Integer"
+            "no implicit conversion of #{Primitive.class(how)} into Integer"
         end
       end
     end

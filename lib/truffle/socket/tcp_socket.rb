@@ -44,7 +44,7 @@ class TCPSocket < IPSocket
   end
 
   def initialize(host, service, local_host = nil, local_service = nil)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
 
     if host
       host = Truffle::Socket.coerce_to_string(host)

@@ -16,7 +16,7 @@ module Truffle::CExt
     # A specialized version of rb_check_type(object, T_DATA)
     data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
     unless data_holder
-      raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
+      raise TypeError, "wrong argument type #{Primitive.class(object)} (expected T_DATA)"
     end
 
     RData.new(object, data_holder)
@@ -26,7 +26,7 @@ module Truffle::CExt
     # A specialized version of rb_check_type(object, T_DATA)
     data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
     unless data_holder
-      raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
+      raise TypeError, "wrong argument type #{Primitive.class(object)} (expected T_DATA)"
     end
 
     Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(Primitive.data_holder_get_marker(data_holder))
