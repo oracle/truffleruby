@@ -247,6 +247,7 @@ suite = {
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
+            "checkstyleVersion": "10.7.0",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
