@@ -1,21 +1,21 @@
-#	jay skeleton for Java
+# jay skeleton for Java
 
-#	character in column 1 determines outcome...
-#		# is a comment
-#		. is copied
-#		t is copied as //t if -t is set
-#	other lines are interpreted to call jay procedures
+# character in column 1 determines outcome...
+#  # is a comment
+#  . is copied
+#  t is copied as //t if -t is set
+# other lines are interpreted to call jay procedures
 
- version	Java 1.0 (c) 2002 ats@cs.rit.edu
+ version Java 1.0 (c) 2002 ats@cs.rit.edu
 .
- prolog		## %{ ... %} prior to the first %%
+ prolog         ## %{ ... %} prior to the first %%
 
 .  // %token constants
- tokens	public static final int
+ tokens public static final int
 .
 .  /** number of final state.
 .    */
- yyFinal	protected static final int yyFinal =
+ yyFinal protected static final int yyFinal =
 .
 .  /** parser tables.
 .      Order is mandated by <i>jay</i>.
@@ -130,16 +130,16 @@ t    this.yydebug = (org.truffleruby.parser.parser.YYDebug) ayydebug;
 .      @return result of the last reduction, if any.
 .    */
 .  public Object yyparse (RubyLexer yyLex) {
-.    if (yyMax <= 0) yyMax = 256;			// initial size
-.    int yyState = 0, yyStates[] = new int[yyMax];	// state stack
-.    Object yyVal = null, yyVals[] = new Object[yyMax];	// value stack
-.    int yyToken = -1;					// current input
-.    int yyErrorFlag = 0;				// #tokens to shift
+.    if (yyMax <= 0) yyMax = 256;                       // initial size
+.    int yyState = 0, yyStates[] = new int[yyMax];      // state stack
+.    Object yyVal = null, yyVals[] = new Object[yyMax]; // value stack
+.    int yyToken = -1;                                  // current input
+.    int yyErrorFlag = 0;                               // #tokens to shift
 .
- local		## %{ ... %} after the first %%
+ local          ## %{ ... %} after the first %%
 
 .    yyLoop: for (int yyTop = 0;; ++ yyTop) {
-.      if (yyTop >= yyStates.length) {			// dynamically increase
+.      if (yyTop >= yyStates.length) {                  // dynamically increase
 .        int[] i = new int[yyStates.length+yyMax];
 .        System.arraycopy(yyStates, 0, i, 0, yyStates.length);
 .        yyStates = i;
@@ -151,9 +151,9 @@ t    this.yydebug = (org.truffleruby.parser.parser.YYDebug) ayydebug;
 .      yyVals[yyTop] = yyVal;
 t      if (yydebug != null) yydebug.push(yyState, yyVal);
 .
-.      yyDiscarded: for (;;) {	// discarding a token does not change stack
+.      yyDiscarded: for (;;) {  // discarding a token does not change stack
 .        int yyN;
-.        if ((yyN = yyDefRed[yyState]) == 0) {	// else [default] reduce (yyN)
+.        if ((yyN = yyDefRed[yyState]) == 0) {  // else [default] reduce (yyN)
 .          if (yyToken < 0) {
 .//            yyToken = yyLex.advance() ? yyLex.token() : 0;
 .            yyToken = yyLex.nextToken();
@@ -164,7 +164,7 @@ t              yydebug.lex(yyState, yyToken, yyName(yyToken), yyLex.value());
 .              && yyN < yyTable.length && yyCheck[yyN] == yyToken) {
 t            if (yydebug != null)
 t              yydebug.shift(yyState, yyTable[yyN], yyErrorFlag-1);
-.            yyState = yyTable[yyN];		// shift to yyN
+.            yyState = yyTable[yyN];            // shift to yyN
 .            yyVal = yyLex.value();
 .            yyToken = -1;
 .            if (yyErrorFlag > 0) -- yyErrorFlag;
@@ -172,7 +172,7 @@ t              yydebug.shift(yyState, yyTable[yyN], yyErrorFlag-1);
 .          }
 .          if ((yyN = yyRindex[yyState]) != 0 && (yyN += yyToken) >= 0
 .              && yyN < yyTable.length && yyCheck[yyN] == yyToken)
-.            yyN = yyTable[yyN];			// reduce (yyN)
+.            yyN = yyTable[yyN];                        // reduce (yyN)
 .          else
 .            switch (yyErrorFlag) {
 .  
@@ -206,9 +206,9 @@ t                if (yydebug != null) yydebug.reject();
 .              }
 t              if (yydebug != null)
 t                yydebug.discard(yyState, yyToken, yyName(yyToken),
-t  							yyLex.value());
+t                                                       yyLex.value());
 .              yyToken = -1;
-.              continue yyDiscarded;		// leave stack alone
+.              continue yyDiscarded;            // leave stack alone
 .            }
 .        }
 .        int yyV = yyTop + 1-yyLen[yyN];
@@ -223,7 +223,7 @@ t          yydebug.reduce(yyState, yyStates[yyV-1], yyN, yyRule[yyN], yyLen[yyN]
 .//        switch (yyN) {
 .// ACTIONS_BEGIN
 
- actions		## code from the actions within the grammar
+ actions                ## code from the actions within the grammar
 
 .// ACTIONS_END
 .//        }
@@ -257,4 +257,4 @@ t        if (yydebug != null) yydebug.shift(yyStates[yyTop], yyState);
 .  }
 .
 .// ACTION_BODIES
- epilog			## text following second %%
+ epilog                 ## text following second %%
