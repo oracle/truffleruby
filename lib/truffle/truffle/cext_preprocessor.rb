@@ -6,6 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+# rubocop:disable TruffleRuby/*
+
 require_relative 'patches/json_patches'
 require_relative 'patches/nokogiri_patches'
 require_relative 'patches/oci8_patches'
