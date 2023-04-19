@@ -12,12 +12,52 @@ package org.truffleruby;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.SharedArrayStorage;
 
 public class ArrayStoreTest {
+
+    @Test
+    public void delegatedArrayLibraryOnlyAcceptsSpecificStore() {
+        var intDelegated = new DelegatedArrayStorage(new int[]{ 42 }, 0, 1);
+        var longDelegated = new DelegatedArrayStorage(new long[]{ 1 }, 0, 1);
+        var library = ArrayStoreLibrary.create(intDelegated);
+        RubyTest.adopt(library);
+
+        assertTrue(library.accepts(intDelegated));
+        assertFalse(library.accepts(longDelegated));
+
+        assertEquals(42, library.read(intDelegated, 0));
+        try {
+            library.read(longDelegated, 0);
+            fail();
+        } catch (AssertionError e) {
+            assertTrue(e.getMessage().contains("Library does not accept given receiver"));
+        }
+    }
+
+    @Test
+    public void sharedArrayLibraryOnlyAcceptsSpecificStore() {
+        var intShared = new SharedArrayStorage(new int[]{ 42 });
+        var longShared = new SharedArrayStorage(new long[]{ 1 });
+        var library = ArrayStoreLibrary.create(intShared);
+        RubyTest.adopt(library);
+
+        assertTrue(library.accepts(intShared));
+        assertFalse(library.accepts(longShared));
+
+        assertEquals(42, library.read(intShared, 0));
+        try {
+            library.read(longShared, 0);
+            fail();
+        } catch (AssertionError e) {
+            assertTrue(e.getMessage().contains("Library does not accept given receiver"));
+        }
+    }
 
     @Test
     public void zeroLengthGeneralisesToInteger() {

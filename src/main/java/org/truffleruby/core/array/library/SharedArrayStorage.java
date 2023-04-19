@@ -68,20 +68,20 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected static boolean accepts(SharedArrayStorage store,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.accepts(store.storage);
+            @CachedLibrary("store.storage") ArrayStoreLibrary stores) {
+        return true;
     }
 
     @ExportMessage
     protected Object read(int index,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.read(storage, index);
     }
 
     @ExportMessage
     protected void write(int index, Object value,
             @Shared @Cached WriteBarrierNode writeBarrierNode,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         writeBarrierNode.executeWriteBarrier(value);
         stores.write(storage, index, value);
     }
@@ -89,38 +89,38 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected void fill(int start, int length, Object value,
             @Shared @Cached WriteBarrierNode writeBarrierNode,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         writeBarrierNode.executeWriteBarrier(value);
         stores.fill(storage, start, length, value);
     }
 
     @ExportMessage
     protected boolean acceptsValue(Object value,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.acceptsValue(storage, value);
     }
 
     @ExportMessage
     protected boolean acceptsAllValues(Object otherStore,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.acceptsAllValues(storage, otherStore);
     }
 
     @ExportMessage
     protected boolean isMutable(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.isMutable(storage);
     }
 
     @ExportMessage
     protected boolean isNative(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.isNative(storage);
     }
 
     @ExportMessage
     protected boolean isPrimitive(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
     }
 
@@ -136,7 +136,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Object backingStore(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.backingStore(storage);
     }
 
@@ -148,37 +148,37 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     @TruffleBoundary
     protected String toString(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return String.format("Shared storage of (%s)", stores.toString(storage));
     }
 
     @ExportMessage
     protected int capacity(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.capacity(storage);
     }
 
     @ExportMessage
     protected Object expand(int capacity,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return new SharedArrayStorage(stores.expand(storage, capacity));
     }
 
     @ExportMessage
     protected Object extractRange(int start, int end,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return new SharedArrayStorage(stores.extractRange(storage, start, end));
     }
 
     @ExportMessage
     protected Object extractRangeAndUnshare(int start, int end,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.extractRange(storage, start, end);
     }
 
     @ExportMessage
     protected Object[] boxedCopyOfRange(int start, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.boxedCopyOfRange(storage, start, length);
     }
 
@@ -196,7 +196,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
         protected static void copyContents(
                 SharedArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
+                @CachedLibrary("srcStore.storage") ArrayStoreLibrary srcStores,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             int i = 0;
             try {
@@ -216,79 +216,79 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void clear(int start, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         stores.clear(storage, start, length);
     }
 
     @ExportMessage
     protected Object toJavaArrayCopy(int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.toJavaArrayCopy(storage, length);
     }
 
     @ExportMessage
     protected void sort(int size,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         stores.sort(storage, size);
     }
 
     @ExportMessage
     protected Iterable<Object> getIterable(int from, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.getIterable(storage, from, length);
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForValue(Object newValue,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.generalizeForValue(storage, newValue);
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForStore(Object newStore,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        return stores.generalizeForStore(newStore, storage);
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
+        return stores.generalizeForStore(storage, newStore);
     }
 
     @ExportMessage
     public ArrayAllocator generalizeForSharing(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.generalizeForSharing(storage);
     }
 
     @ExportMessage
     protected Object allocateForNewValue(Object newValue, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return new SharedArrayStorage(stores.allocateForNewValue(storage, newValue, length));
     }
 
     @ExportMessage
     protected Object allocateForNewStore(Object newStore, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return new SharedArrayStorage(stores.allocateForNewStore(storage, newStore, length));
     }
 
     @ExportMessage
     protected Object unsharedAllocateForNewStore(Object newStore, int length,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.allocateForNewStore(storage, newStore, length);
     }
 
     @ExportMessage
     protected boolean isDefaultValue(Object value,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.isDefaultValue(storage, value);
     }
 
     @ExportMessage
     protected ArrayAllocator allocator(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return new SharedArrayAllocator(stores.unsharedAllocator(storage));
     }
 
     @ExportMessage
     protected ArrayAllocator unsharedAllocator(
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.unsharedAllocator(storage);
     }
 

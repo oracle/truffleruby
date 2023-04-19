@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.truffleruby.language.RubyRootNode;
@@ -39,6 +41,22 @@ public abstract class RubyTest {
             assertTrue(e.isGuestException());
             exceptionVerifier.accept(e);
         }
+    }
+
+    public static <T extends Node> T adopt(T node) {
+        RootNode root = new RootNode(null) {
+            @Child Node childNode;
+            {
+                childNode = insert(node);
+            }
+
+            @Override
+            public Object execute(VirtualFrame frame) {
+                return null;
+            }
+        };
+        root.adoptChildren();
+        return node;
     }
 
     protected <T extends Node> void testWithNode(String text, Class<T> nodeClass, Consumer<T> test) {

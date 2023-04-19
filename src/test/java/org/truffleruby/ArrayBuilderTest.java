@@ -19,10 +19,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.junit.After;
@@ -221,7 +217,7 @@ public class ArrayBuilderTest {
     }
 
     private ArrayBuilderNode createBuilder() {
-        return adopt(ArrayBuilderNode.create());
+        return RubyTest.adopt(ArrayBuilderNode.create());
     }
 
     private void testInContext(Runnable test) {
@@ -255,22 +251,5 @@ public class ArrayBuilderTest {
             context.close();
         }
     }
-
-    static <T extends Node> T adopt(T node) {
-        RootNode root = new RootNode(null) {
-            @Child Node childNode;
-            {
-                childNode = insert(node);
-            }
-
-            @Override
-            public Object execute(VirtualFrame frame) {
-                return null;
-            }
-        };
-        root.adoptChildren();
-        return node;
-    }
-
 
 }
