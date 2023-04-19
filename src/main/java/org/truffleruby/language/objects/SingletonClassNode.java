@@ -81,13 +81,13 @@ public abstract class SingletonClassNode extends RubySourceNode {
             limit = "getIdentityCacheContextLimit()")
     protected RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
-            @Cached("getSingletonClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
+            @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(replaces = "singletonClassClassCached")
     protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClass(getContext(), rubyClass);
+        return ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
     }
 
     @Specialization(
@@ -109,8 +109,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
         throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
     }
 
-    protected RubyClass getSingletonClassOrNull(RubyContext context, RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOrNull(context, rubyClass);
+    protected RubyClass getSingletonClassOfClassOrNull(RubyContext context, RubyClass rubyClass) {
+        return ClassNodes.getSingletonClassOfClassOrNull(context, rubyClass);
     }
 
     @TruffleBoundary

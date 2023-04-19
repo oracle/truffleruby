@@ -67,9 +67,6 @@ public abstract class ClassNodes {
     @TruffleBoundary
     public static RubyClass createSingletonClassOfObject(RubyContext context, SourceSection sourceSection,
             RubyClass superclass, RubyDynamicObject attached) {
-        // We also need to create the singleton class of a singleton class for proper lookup and consistency.
-        // See rb_singleton_class() documentation in MRI.
-        // Allocator is null here, we cannot create instances of singleton classes.
         assert attached != null;
         final RubyClass rubyClass = createRubyClass(
                 context,
@@ -136,19 +133,35 @@ public abstract class ClassNodes {
         ensureItHasSingletonClassCreated(context, rubyClass);
     }
 
+    /** We also need to create the singleton class of any class exposed to the user for proper lookup and consistency.
+     * This is not so intuitive, but basically it follows the rule of: "every Class object exposed to the user must have
+     * a singleton class", i.e., only (singleton) classes not exposed to the user can have their own singleton class
+     * created lazily. An example is `class K; def self.foo; end; end; sc = k.new.singleton_class`. `sc` there must have
+     * its singleton class created, otherwise `Primitive.class_of(sc).ancestors` would be `[Class, Module, Object,
+     * Kernel, BasicObject]` and `sc.foo` would not find method foo (which is defined on `#<Class:K>`). With `sc` having
+     * the singleton class as soon as `sc` is exposed to the user, then it's fine, and
+     * `Primitive.class_of(sc).ancestors` is `[#<Class:#<Class:#<K:0xc8>>>, #<Class:K>, #<Class:Object>,
+     * #<Class:BasicObject>, Class, Module, Object, Kernel, BasicObject]`. See rb_singleton_class() documentation in
+     * MRI. In theory, it might be possible to do this lazily in `MetaClassNode` but it's unlikely not a good
+     * performance trade-off (add a check at every usage vs do it eagerly and no check). As an anecdote a single
+     * ruby/spec fails when not calling this in {@link #createSingletonClassOfObject}, maybe there is an opportunity?
+     * TODO (eregon, 23 March 2023): CRuby (3.1) seems to deal with this better, `RBASIC_CLASS(sc).ancestors` is
+     * `[#<Class:K>, #<Class:Object>, #<Class:BasicObject>, Class, Module, Object, Kernel, BasicObject]` so it points to
+     * the superclass (which is a singleton class) and then somehow knows this is not this class's singleton class
+     * (maybe by comparing `attached`), so on `sc.singleton_class` it actually creates it. */
     private static RubyClass ensureItHasSingletonClassCreated(RubyContext context, RubyClass rubyClass) {
         getLazyCreatedSingletonClass(context, rubyClass);
         return rubyClass;
     }
 
     @TruffleBoundary
-    public static RubyClass getSingletonClass(RubyContext context, RubyClass rubyClass) {
+    public static RubyClass getSingletonClassOfClass(RubyContext context, RubyClass rubyClass) {
         // We also need to create the singleton class of a singleton class for proper lookup and consistency.
         // See rb_singleton_class() documentation in MRI.
         return ensureItHasSingletonClassCreated(context, getLazyCreatedSingletonClass(context, rubyClass));
     }
 
-    public static RubyClass getSingletonClassOrNull(RubyContext context, RubyClass rubyClass) {
+    public static RubyClass getSingletonClassOfClassOrNull(RubyContext context, RubyClass rubyClass) {
         RubyClass metaClass = rubyClass.getMetaClass();
         if (metaClass.isSingleton) {
             return ensureItHasSingletonClassCreated(context, metaClass);

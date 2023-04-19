@@ -165,7 +165,7 @@ public abstract class ObjectSpaceNodes {
                 return true;
             } else if (object instanceof RubyDynamicObject) {
                 if (object instanceof RubyClass) {
-                    return !RubyGuards.isSingletonClass((RubyClass) object);
+                    return !RubyGuards.isSingletonClass(object);
                 } else {
                     return true;
                 }
