@@ -82,7 +82,10 @@ public class FiberManager {
         assert context.getEnv().getContext().isEntered();
         final CountDownLatch initializedLatch = fiber.initializedLatch;
 
-        context.getThreadManager().runUntilResultKeepStatus(currentNode, CountDownLatch::await, initializedLatch);
+        context.getThreadManager().runUntilResultKeepStatus(currentNode, latch -> {
+            latch.await();
+            return BlockingAction.SUCCESS;
+        }, initializedLatch);
 
         final Throwable uncaughtException = fiber.uncaughtException;
         if (uncaughtException != null) {

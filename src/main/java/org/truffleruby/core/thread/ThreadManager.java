@@ -26,6 +26,7 @@ import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.TruffleSafepoint.InterruptibleFunction;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
@@ -504,9 +505,9 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public <T> void runUntilResultKeepStatus(Node currentNode, TruffleSafepoint.Interruptible<T> action, T object) {
+    public <T, R> R runUntilResultKeepStatus(Node currentNode, InterruptibleFunction<T, R> action, T object) {
         assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
-        TruffleSafepoint.setBlockedThreadInterruptible(currentNode, action, object);
+        return TruffleSafepoint.setBlockedThreadInterruptibleFunction(currentNode, action, object);
     }
 
     public static Object executeBlockingCall(RubyThread thread, Interrupter interrupter, Object executable,
@@ -646,7 +647,10 @@ public class ThreadManager {
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
             if (thread != Thread.currentThread()) {
-                runUntilResultKeepStatus(DummyNode.INSTANCE, Thread::join, thread);
+                runUntilResultKeepStatus(DummyNode.INSTANCE, t -> {
+                    t.join();
+                    return BlockingAction.SUCCESS;
+                }, thread);
             }
         }
     }

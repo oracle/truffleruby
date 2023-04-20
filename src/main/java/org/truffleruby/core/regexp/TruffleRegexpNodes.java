@@ -1088,19 +1088,13 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
             // Keep status as RUN because MRI has an uninterruptible Regexp engine
-            int[] result = new int[1];
             if (onlyMatchAtStart) {
-                getContext().getThreadManager().runUntilResultKeepStatus(
-                        this,
-                        r -> r[0] = matcher.matchInterruptible(startPos, range, Option.DEFAULT),
-                        result);
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.matchInterruptible(startPos, range, Option.DEFAULT), null);
             } else {
-                getContext().getThreadManager().runUntilResultKeepStatus(
-                        this,
-                        r -> r[0] = matcher.searchInterruptible(startPos, range, Option.DEFAULT),
-                        result);
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.searchInterruptible(startPos, range, Option.DEFAULT), null);
             }
-            return result[0];
         }
 
         private boolean assertValidRegion(Region region) {
