@@ -43,6 +43,10 @@ public abstract class ArrayStoreLibrary extends Library {
         return FACTORY.createDispatched(language.options.ARRAY_STRATEGY_CACHE);
     }
 
+    public static ArrayStoreLibrary create(Object store) {
+        return FACTORY.create(store);
+    }
+
     public static ArrayStoreLibrary getUncached() {
         CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
         return FACTORY.getUncached();
