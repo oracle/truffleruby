@@ -12,7 +12,7 @@ package org.truffleruby;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.truffleruby.RubyTest.assertThrows;
 
 import org.junit.Test;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -32,12 +32,9 @@ public class ArrayStoreTest {
         assertFalse(library.accepts(longDelegated));
 
         assertEquals(42, library.read(intDelegated, 0));
-        try {
-            library.read(longDelegated, 0);
-            fail();
-        } catch (AssertionError e) {
-            assertTrue(e.getMessage().contains("Library does not accept given receiver"));
-        }
+
+        var e = assertThrows(() -> library.read(longDelegated, 0), AssertionError.class);
+        assertTrue(e.getMessage().contains("Library does not accept given receiver"));
     }
 
     @Test
@@ -51,12 +48,9 @@ public class ArrayStoreTest {
         assertFalse(library.accepts(longShared));
 
         assertEquals(42, library.read(intShared, 0));
-        try {
-            library.read(longShared, 0);
-            fail();
-        } catch (AssertionError e) {
-            assertTrue(e.getMessage().contains("Library does not accept given receiver"));
-        }
+
+        var e = assertThrows(() -> library.read(longShared, 0), AssertionError.class);
+        assertTrue(e.getMessage().contains("Library does not accept given receiver"));
     }
 
     @Test

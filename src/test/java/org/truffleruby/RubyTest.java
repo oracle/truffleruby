@@ -34,13 +34,23 @@ import com.oracle.truffle.api.source.Source;
 public abstract class RubyTest {
 
     public static void assertThrows(Runnable test, Consumer<PolyglotException> exceptionVerifier) {
+        PolyglotException e = assertThrows(test, PolyglotException.class);
+        assertTrue(e.isGuestException());
+        exceptionVerifier.accept(e);
+    }
+
+    public static <E> E assertThrows(Runnable test, Class<E> exceptionClass) {
         try {
             test.run();
-            fail("should have thrown");
-        } catch (PolyglotException e) {
-            assertTrue(e.isGuestException());
-            exceptionVerifier.accept(e);
+        } catch (Throwable e) {
+            if (!exceptionClass.isInstance(e)) {
+                throw e;
+            }
+            return exceptionClass.cast(e);
         }
+
+        fail("should have thrown");
+        throw new Error("unreachable");
     }
 
     public static <T extends Node> T adopt(T node) {
