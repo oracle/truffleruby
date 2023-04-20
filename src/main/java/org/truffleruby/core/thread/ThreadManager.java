@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
@@ -321,7 +320,7 @@ public class ThreadManager {
         thread.start();
 
         // Must not leave the context here, to perform safepoint actions, if e.g. the new thread Thread#raise this one
-        FiberManager.waitForInitialization(context, rootFiber, currentNode);
+        FiberManager.waitForInitializationEntered(context, rootFiber, currentNode);
     }
 
     /** {@link RubyLanguage#initializeThread(RubyContext, Thread)} runs before this, and
@@ -504,36 +503,8 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext) {
-        assert truffleContext.isEntered();
-        return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
-    }
-
-    /** Only use when the context is not entered. */
     @TruffleBoundary
-    public <T> void retryWhileInterrupted(Node currentNode, TruffleSafepoint.Interruptible<T> interruptible, T object) {
-        assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    interruptible.apply(object);
-                    break;
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                    // retry
-                }
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    @TruffleBoundary
-    public <T> void runUntilResultKeepStatus(Node currentNode, TruffleSafepoint.Interruptible<T> action,
-            T object) {
+    public <T> void runUntilResultKeepStatus(Node currentNode, TruffleSafepoint.Interruptible<T> action, T object) {
         assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
         TruffleSafepoint.setBlockedThreadInterruptible(currentNode, action, object);
     }
