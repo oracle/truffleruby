@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.fiber;
 
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
@@ -61,16 +62,27 @@ public class FiberManager {
     public void initialize(RubyFiber fiber, boolean blocking, RubyProc block, Node currentNode) {
         final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
         fiber.sourceLocation = context.fileLine(sourceSection);
+        fiber.body = block;
+        fiber.initializeNode = currentNode;
         fiber.blocking = blocking;
+    }
 
+    private void createThreadToReceiveFirstMessage(RubyFiber fiber, Node currentNode) {
+        assert fiber.thread == null;
+        RubyProc block = Objects.requireNonNull(fiber.body);
+        fiber.body = null;
+        Node initializeNode = Objects.requireNonNull(fiber.initializeNode);
+        fiber.initializeNode = null;
+
+        var sourceSection = block.getSharedMethodInfo().getSourceSection();
         final TruffleContext truffleContext = context.getEnv().getContext();
 
         truffleContext.leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT, (unused) -> {
-            ThreadManager threadManager = context.getThreadManager();
-            Thread thread = threadManager.createFiberJavaThread(fiber, sourceSection,
-                    () -> beforeEnter(fiber, currentNode),
-                    () -> fiberMain(context, fiber, block, currentNode),
+            Thread thread = context.getThreadManager().createFiberJavaThread(fiber, sourceSection,
+                    () -> beforeEnter(fiber, initializeNode),
+                    () -> fiberMain(context, fiber, block, initializeNode),
                     () -> afterLeave(fiber), currentNode);
+            fiber.thread = thread;
             thread.start();
             waitForInitializationUnentered(context, fiber, currentNode);
             return BlockingAction.SUCCESS;
@@ -121,9 +133,8 @@ public class FiberManager {
 
         try {
             fiber.firstMessage = waitMessage(fiber, currentNode);
-        } catch (InterruptedException e) { // TODO ideally we would let this pop out of beforeEnter()
-            Thread.currentThread().interrupt();
-            return;
+        } catch (InterruptedException e) {
+            throw CompilerDirectives.shouldNotReachHere("unexpected interrupt in Fiber beforeEnter()");
         }
 
         // enter() polls so we need the current Fiber to be set before enter()
@@ -131,12 +142,8 @@ public class FiberManager {
     }
 
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
-        final FiberMessage message = fiber.firstMessage;
+        final FiberMessage message = Objects.requireNonNull(fiber.firstMessage);
         fiber.firstMessage = null;
-        if (message == null) {
-            TruffleSafepoint.poll(currentNode);
-            throw CompilerDirectives.shouldNotReachHere("null Fiber message and no cancellation");
-        }
 
         FiberMessage lastMessage = null;
         try {
@@ -308,6 +315,11 @@ public class FiberManager {
     @TruffleBoundary
     private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber toFiber, FiberOperation operation,
             ArgumentsDescriptor descriptor, Object[] args, Node currentNode) {
+
+        if (toFiber.body != null) {
+            context.fiberManager.createThreadToReceiveFirstMessage(toFiber, currentNode);
+        }
+
         final TruffleContext truffleContext = context.getEnv().getContext();
         final FiberMessage message = truffleContext.leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT,
                 (unused) -> {
@@ -334,7 +346,12 @@ public class FiberManager {
     }
 
     public void start(RubyFiber fiber, Thread javaThread) {
-        fiber.thread = javaThread;
+        if (fiber.isRootFiber()) {
+            fiber.thread = javaThread;
+            fiber.status = FiberStatus.RESUMED;
+        } else {
+            // fiber.thread set by createThreadToReceiveFirstMessage()
+        }
 
         final RubyThread rubyThread = fiber.rubyThread;
 

@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -23,6 +24,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -87,6 +89,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public Thread thread = null;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
+    RubyProc body;
+    Node initializeNode;
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
     boolean blocking = true;
