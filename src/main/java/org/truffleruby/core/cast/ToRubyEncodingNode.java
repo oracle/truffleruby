@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -34,13 +35,13 @@ public abstract class ToRubyEncodingNode extends RubyBaseNode {
 
     @Specialization
     protected RubyEncoding stringToEncoding(RubyString value,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 
     @Specialization
     protected RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 

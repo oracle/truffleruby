@@ -12,6 +12,8 @@ package org.truffleruby.core.format.convert;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
@@ -91,7 +93,7 @@ public abstract class ToStringNode extends FormatNode {
     @TruffleBoundary
     @Specialization(guards = "specialClassBehaviour")
     protected Object toStringSpecialClass(RubyClass rubyClass,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Shared RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
             return createString(TStringConstants.TRUE, Encodings.US_ASCII);
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
@@ -105,8 +107,8 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = "libString.isRubyString(string)", limit = "1")
     protected Object toStringString(Object string,
-            @Cached RubyStringLibrary libValue,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Exclusive RubyStringLibrary libValue,
+            @Cached @Shared RubyStringLibrary libString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
@@ -121,7 +123,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization
     protected Object toString(RubyArray array,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Shared RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
@@ -139,7 +141,7 @@ public abstract class ToStringNode extends FormatNode {
     @Specialization(
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected Object toString(Object object,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Shared RubyStringLibrary libString) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (libString.isRubyString(value)) {

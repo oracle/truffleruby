@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -145,7 +146,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         protected static String asStringCached(ImmutableRubyString string,
-                @Cached RubyStringLibrary libString,
+                @Cached @Shared RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
                 @Cached("string.getJavaString()") String javaString,
@@ -155,7 +156,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(ImmutableRubyString string,
-                @Cached RubyStringLibrary libString,
+                @Cached @Shared RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached ConditionProfile binaryNonAsciiProfile) {

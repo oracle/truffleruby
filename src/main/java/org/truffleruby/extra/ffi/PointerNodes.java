@@ -38,6 +38,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -263,8 +264,8 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit != 0")
         protected RubyString readStringToNull(long address, long limit,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
-                @CachedLibrary(limit = "1") InteropLibrary interop) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
             final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0, limit);
@@ -273,8 +274,8 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyString readStringToNull(long address, Nil limit,
-                @CachedLibrary(limit = "1") InteropLibrary interop,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @CachedLibrary(limit = "1") @Shared InteropLibrary interop,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Pointer ptr = new Pointer(getContext(), address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0);

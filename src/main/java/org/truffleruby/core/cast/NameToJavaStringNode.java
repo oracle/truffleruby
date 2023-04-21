@@ -48,9 +48,9 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public abstract RubyBaseNodeWithExecute getValueNode();
 
-    @Specialization(guards = "strings.isRubyString(value)", limit = "1")
+    @Specialization(guards = "libString.isRubyString(value)", limit = "1")
     protected String stringNameToJavaString(Object value,
-            @Cached RubyStringLibrary strings,
+            @Cached @Shared RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
@@ -70,7 +70,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     protected String nameToJavaString(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @Cached RubyStringLibrary libString,
+            @Cached @Shared RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         final Object coerced;
         try {
