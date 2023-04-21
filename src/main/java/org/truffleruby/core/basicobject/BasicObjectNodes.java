@@ -77,6 +77,7 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -355,11 +356,11 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InstanceExecBlockNode instanceExecNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
             if (count > 0) {
-                errorProfile.enter();
+                wrongNumberOfArgumentsProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
             }
 
@@ -370,7 +371,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
         protected Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile errorProfile,
+                @Cached @Exclusive BranchProfile zeroNumberOfArguments,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ToStrNode toStrNode,
@@ -382,7 +383,7 @@ public abstract class BasicObjectNodes {
             int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
             if (count == 0) {
-                errorProfile.enter();
+                zeroNumberOfArguments.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
             }
 

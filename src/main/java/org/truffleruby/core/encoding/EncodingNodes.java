@@ -45,6 +45,7 @@ import org.truffleruby.language.yield.CallBlockNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -260,8 +261,8 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" }, limit = "1")
         protected RubyEncoding negotiateStringStringEncoding(Object first, Object second,
-                @Cached RubyStringLibrary libFirst,
-                @Cached RubyStringLibrary libSecond,
+                @Cached @Shared RubyStringLibrary libFirst,
+                @Cached @Shared RubyStringLibrary libSecond,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateNode) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
@@ -282,8 +283,7 @@ public abstract class EncodingNodes {
                         "firstEncoding != secondEncoding" },
                 limit = "getCacheLimit()")
         protected RubyEncoding negotiateStringObjectCached(Object first, Object second,
-                @Cached RubyStringLibrary libFirst,
-                @Cached RubyStringLibrary libSecond,
+                @Cached @Shared RubyStringLibrary libFirst,
                 @Cached("getEncoding(first)") RubyEncoding firstEncoding,
                 @Cached("getEncoding(second)") RubyEncoding secondEncoding,
                 @Cached("getCodeRange(first, libFirst)") TruffleString.CodeRange codeRange,
@@ -298,7 +298,7 @@ public abstract class EncodingNodes {
                         "isNotRubyString(second)" },
                 replaces = "negotiateStringObjectCached", limit = "1")
         protected RubyEncoding negotiateStringObjectUncached(Object first, Object second,
-                @Cached RubyStringLibrary libFirst) {
+                @Cached @Shared RubyStringLibrary libFirst) {
             final RubyEncoding firstEncoding = getEncoding(first);
             final RubyEncoding secondEncoding = getEncoding(second);
 
@@ -328,7 +328,7 @@ public abstract class EncodingNodes {
                         "isNotRubyString(first)" },
                 limit = "1")
         protected RubyEncoding negotiateObjectString(Object first, Object second,
-                @Cached RubyStringLibrary libSecond) {
+                @Cached @Shared RubyStringLibrary libSecond) {
             return negotiateStringObjectUncached(second, first, libSecond);
         }
 

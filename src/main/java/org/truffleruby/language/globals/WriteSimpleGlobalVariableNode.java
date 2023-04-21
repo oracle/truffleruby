@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
@@ -43,7 +44,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" },
             limit = "1")
     protected Object writeTryToKeepConstant(Object value,
-            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {
         // NOTE: we still do the volatile write to get the proper memory barrier,
@@ -58,7 +59,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object writeAssumeConstant(Object value,
-            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
+            @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);

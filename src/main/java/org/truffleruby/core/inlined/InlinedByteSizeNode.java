@@ -16,6 +16,8 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -34,8 +36,8 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected int byteSize(VirtualFrame frame, RubyString self,
-            @Cached LookupMethodOnSelfNode lookupNode,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Shared LookupMethodOnSelfNode lookupNode,
+            @Cached @Exclusive RubyStringLibrary libString) {
         return libString.byteLength(self);
     }
 
@@ -44,8 +46,8 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
-            @Cached LookupMethodOnSelfNode lookupNode,
-            @Cached RubyStringLibrary libString) {
+            @Cached @Shared LookupMethodOnSelfNode lookupNode,
+            @Cached @Exclusive RubyStringLibrary libString) {
         return libString.byteLength(self);
     }
 

@@ -12,6 +12,7 @@ package org.truffleruby.core.time;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -422,17 +423,17 @@ public abstract class TimeNodes {
                 guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftimeCached(RubyTime time, Object format,
-                @Cached RubyStringLibrary libFormat,
+                @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
-                @Cached TruffleString.ConcatNode concatNode,
-                @Cached TruffleString.FromLongNode fromLongNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared TruffleString.ConcatNode concatNode,
+                @Cached @Shared TruffleString.FromLongNode fromLongNode,
+                @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
                 var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
@@ -446,11 +447,11 @@ public abstract class TimeNodes {
         @TruffleBoundary
         @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached", limit = "1")
         protected RubyString timeStrftime(RubyTime time, Object format,
-                @Cached RubyStringLibrary libFormat,
-                @Cached TruffleString.ConcatNode concatNode,
-                @Cached TruffleString.FromLongNode fromLongNode,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared TruffleString.ConcatNode concatNode,
+                @Cached @Shared TruffleString.FromLongNode fromLongNode,
+                @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
             final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {

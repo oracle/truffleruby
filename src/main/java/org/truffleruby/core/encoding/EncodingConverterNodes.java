@@ -51,6 +51,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -280,7 +281,7 @@ public abstract class EncodingConverterNodes {
 
         @Specialization
         protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
-                @Cached DispatchNode sourceEncodingNode) {
+                @Cached @Shared DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
@@ -291,7 +292,7 @@ public abstract class EncodingConverterNodes {
 
         @Specialization
         protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes,
-                @Cached DispatchNode sourceEncodingNode) {
+                @Cached @Shared DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
