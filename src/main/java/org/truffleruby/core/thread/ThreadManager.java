@@ -664,7 +664,7 @@ public class ThreadManager {
 
         context.getSafepointManager().pauseAllThreadsAndExecute(
                 DummyNode.INSTANCE,
-                new SafepointAction("kill other threads for shutdown", predicate, true, false) {
+                new SafepointAction("kill other threads for shutdown", predicate, true, true) {
                     @Override
                     public void run(RubyThread rubyThread, Node currentNode) {
                         rubyThread.status = ThreadStatus.ABORTING;
