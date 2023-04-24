@@ -630,8 +630,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
                 }
                 context.getThreadManager().start(rubyThread, thread);
-            } else {
-                // Fiber
+            } else { // (non-root) Fiber
+                var fiber = this.rubyFiber.get(thread);
+                rubyThread.setCurrentFiber(fiber);
             }
             return;
         }

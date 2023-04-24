@@ -136,9 +136,6 @@ public class FiberManager {
         } catch (InterruptedException e) {
             throw CompilerDirectives.shouldNotReachHere("unexpected interrupt in Fiber beforeEnter()");
         }
-
-        // enter() polls so we need the current Fiber to be set before enter()
-        fiber.rubyThread.setCurrentFiber(fiber);
     }
 
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
