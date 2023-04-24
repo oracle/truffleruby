@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -86,7 +87,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
-            @Cached @Shared RubyStringLibrary strings,
+            @Cached @Exclusive RubyStringLibrary strings,
             @Cached ToSymbolNode toSymbolNode) {
         var coerced = toStrNode.call(
                 coreLibrary().truffleTypeModule,

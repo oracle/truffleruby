@@ -105,14 +105,14 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    @Specialization(guards = "argLibString.isRubyString(string)", limit = "1")
     protected Object toStringString(Object string,
-            @Cached @Exclusive RubyStringLibrary libValue,
-            @Cached @Shared RubyStringLibrary libString) {
+            @Cached @Shared RubyStringLibrary libString,
+            @Cached @Exclusive RubyStringLibrary argLibString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
-            if (libValue.isRubyString(value)) {
+            if (libString.isRubyString(value)) {
                 return value;
             } else {
                 throw new NoImplicitConversionException(string, "String");
