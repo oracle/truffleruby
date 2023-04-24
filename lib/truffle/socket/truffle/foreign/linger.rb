@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -47,7 +49,7 @@ module Truffle
         end
 
         def on_off=(value)
-          if value.is_a?(Integer)
+          if Primitive.is_a?(value, Integer)
             self[:l_onoff] = value
           else
             self[:l_onoff] = value ? 1 : 0

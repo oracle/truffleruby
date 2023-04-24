@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -61,7 +63,7 @@ class Socket < BasicSocket
     end
 
     def inspect
-      "#<#{self.class}: #@family_name #@level_name #@opt_name #{@data.inspect}>"
+      "#<#{Primitive.class(self)}: #@family_name #@level_name #@opt_name #{@data.inspect}>"
     end
 
     def bool

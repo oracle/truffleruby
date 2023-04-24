@@ -77,7 +77,7 @@ class StringScanner
 
   def [](n)
     if @match
-      raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
+      raise TypeError, "no implicit conversion of #{Primitive.class(n)} into Integer" if Primitive.is_a?(n, Range)
       @match[n]
     end
   end
@@ -160,7 +160,7 @@ class StringScanner
   def inspect
     if defined? @string
       if eos?
-        str = "#<#{self.class} fin>"
+        str = "#<#{Primitive.class(self)} fin>"
       else
         pos = @pos
         if string.bytesize - pos > 5
@@ -176,15 +176,15 @@ class StringScanner
             prev = string[0...pos]
           end
 
-          str = "#<#{self.class} #{pos}/#{string.bytesize} #{prev.inspect} @ #{rest.inspect}>"
+          str = "#<#{Primitive.class(self)} #{pos}/#{string.bytesize} #{prev.inspect} @ #{rest.inspect}>"
         else
-          str = "#<#{self.class} #{pos}/#{string.bytesize} @ #{rest.inspect}>"
+          str = "#<#{Primitive.class(self)} #{pos}/#{string.bytesize} @ #{rest.inspect}>"
         end
       end
 
       str
     else
-      "#<#{self.class} (uninitialized)>"
+      "#<#{Primitive.class(self)} (uninitialized)>"
     end
   end
 
@@ -294,7 +294,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if @match.nil?
+    raise ScanError if Primitive.nil?(@match)
     @pos = @prev_pos
     @prev_pos = nil
     @match = nil

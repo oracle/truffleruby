@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -34,8 +36,8 @@ class Socket < BasicSocket
 
     def self.unix_rights(*ios)
       descriptors = ios.map do |io|
-        unless io.is_a?(IO)
-          raise TypeError, "IO expected, got #{io.class} instead"
+        unless Primitive.is_a?(io, IO)
+          raise TypeError, "IO expected, got #{Primitive.class(io)} instead"
         end
 
         io.fileno

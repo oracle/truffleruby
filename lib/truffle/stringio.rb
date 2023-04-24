@@ -51,7 +51,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   def sysread(length = nil, buffer = nil)
     str = read(length, buffer)
 
-    if str.nil?
+    if Primitive.nil?(str)
       raise EOFError, 'end of file reached'
     end
 
@@ -62,7 +62,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   def read_nonblock(length, buffer = nil, exception: true)
     str = read(length, buffer)
 
-    if exception and str.nil?
+    if exception and Primitive.nil?(str)
       raise EOFError, 'end of file reached'
     end
 
@@ -145,7 +145,7 @@ class StringIO
 
     mode, _binary, _external, _internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
 
-    if string.nil?
+    if Primitive.nil?(string)
       mode ||= IO::RDWR
       @__data__ = Data.new ''.force_encoding(Encoding.default_external)
     else
@@ -154,7 +154,7 @@ class StringIO
     end
 
     if mode
-      if mode.is_a?(Integer)
+      if Primitive.is_a?(mode, Integer)
         mode_from_integer(mode)
       else
         mode = StringValue(mode)
@@ -430,7 +430,7 @@ class StringIO
   def putc(obj)
     check_writable
 
-    if obj.is_a?(String)
+    if Primitive.is_a?(obj, String)
       char = obj[0]
     else
       c = Truffle::Type.coerce_to obj, Integer, :to_int
@@ -494,12 +494,12 @@ class StringIO
   end
 
   def reopen(string = nil, mode = Undefined)
-    if string and not string.kind_of? String and mode.equal? Undefined
+    if string and not Primitive.is_a?(string, String) and Primitive.equal?(mode, Undefined)
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
       initialize_copy stringio
     else
-      mode = nil if mode.equal? Undefined
+      mode = nil if Primitive.equal?(mode, Undefined)
       string = '' unless string
 
       initialize string, mode
@@ -592,7 +592,7 @@ class StringIO
   def ungetc(char)
     check_readable
 
-    if char.kind_of? Integer
+    if Primitive.is_a?(char, Integer)
       char = Truffle::Type.coerce_to char, String, :chr
     else
       char = Truffle::Type.coerce_to char, String, :to_str
@@ -622,7 +622,7 @@ class StringIO
 
     return unless bytes
 
-    if bytes.kind_of? Integer
+    if Primitive.is_a?(bytes, Integer)
       bytes = ''.b << (bytes & 0xff)
     else
       bytes = StringValue(bytes).b
@@ -714,7 +714,7 @@ class StringIO
     else
       limit = nil
 
-      unless sep == $/ or sep.nil?
+      unless sep == $/ or Primitive.nil?(sep)
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
         unless sep
@@ -737,7 +737,7 @@ class StringIO
       string = d.string
       bytesize = string.bytesize
 
-      if sep.nil?
+      if Primitive.nil?(sep)
         if limit
           line = string.byteslice(pos, limit)
         else
@@ -786,6 +786,6 @@ class StringIO
   end
 
   def marshal_dump
-    raise TypeError, "can't dump #{self.class}"
+    raise TypeError, "can't dump #{Primitive.class(self)}"
   end
 end

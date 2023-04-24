@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -42,13 +44,13 @@ class TCPSocket < IPSocket
   end
 
   def initialize(host, service, local_host = nil, local_service = nil)
-    @no_reverse_lookup = self.class.do_not_reverse_lookup
+    @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
 
     if host
       host = Truffle::Socket.coerce_to_string(host)
     end
 
-    if service.is_a?(Integer)
+    if Primitive.is_a?(service, Integer)
       service = service.to_s
     else
       service = Truffle::Socket.coerce_to_string(service)
@@ -63,7 +65,7 @@ class TCPSocket < IPSocket
         local_host = Truffle::Socket.coerce_to_string(local_host)
       end
 
-      if local_service.is_a?(Integer)
+      if Primitive.is_a?(local_service, Integer)
         local_service = local_service.to_s
       elsif local_service
         local_service = Truffle::Socket.coerce_to_string(local_service)

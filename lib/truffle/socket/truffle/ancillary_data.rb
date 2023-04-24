@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -36,7 +38,7 @@ module Truffle
       }
 
       def self.level(raw_level)
-        if raw_level.is_a?(Integer)
+        if Primitive.is_a?(raw_level, Integer)
           raw_level
         else
           level = Socket.coerce_to_string(raw_level)
@@ -54,7 +56,7 @@ module Truffle
       end
 
       def self.type(family, level, raw_type)
-        if raw_type.is_a?(Integer)
+        if Primitive.is_a?(raw_type, Integer)
           raw_type
         else
           type = Socket.coerce_to_string(raw_type)
@@ -73,7 +75,7 @@ module Truffle
             end
           else
             raise TypeError,
-              "no implicit conversion of #{type.class} into Integer"
+              "no implicit conversion of #{Primitive.class(type)} into Integer"
           end
         end
       end

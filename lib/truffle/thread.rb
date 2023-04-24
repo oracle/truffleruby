@@ -1,3 +1,4 @@
+# truffleruby_primitives: true
 # Truffle: Last version of lib/thread.rb in MRI @ r42801 (324df61e).
 
 #

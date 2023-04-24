@@ -84,7 +84,7 @@ module FFI
     alias_method :find_variable, :find_symbol
 
     def to_s
-      "\#<#{self.class} @name=#{@name.inspect}>"
+      "\#<#{Primitive.class(self)} @name=#{@name.inspect}>"
     end
     alias_method :inspect, :to_s
   end

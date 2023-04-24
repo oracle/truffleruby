@@ -1,5 +1,5 @@
 # truffleruby_primitives: true
-#
+
 # = pathname.rb
 #
 # Object-Oriented Pathname Class

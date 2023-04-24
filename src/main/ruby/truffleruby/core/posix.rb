@@ -146,7 +146,7 @@ module Truffle::POSIX
         end
 
         if return_type == :string
-          if result.nil? # rubocop:disable TruffleRuby/ReplaceWithPrimitiveNil
+          if Primitive.interop_null?(result)
             result = nil
           else
             ptr = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))

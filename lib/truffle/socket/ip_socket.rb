@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -64,7 +66,7 @@ class IPSocket < BasicSocket
   end
 
   def recvfrom(maxlen, flags = 0)
-    flags = 0 if flags.nil?
+    flags = 0 if Primitive.nil?(flags)
     internal_recvfrom(maxlen, flags, nil, true)
   end
 end

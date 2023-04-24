@@ -83,16 +83,16 @@ module Digest
     end
 
     def block_length
-      raise RuntimeError, "#{self.class.name} does not implement block_length()"
+      raise RuntimeError, "#{Primitive.class(self).name} does not implement block_length()"
     end
 
     def update(message)
-      raise RuntimeError, "#{self.class.name} does not implement update()"
+      raise RuntimeError, "#{Primitive.class(self).name} does not implement update()"
     end
     alias_method :<<, :update
 
     def reset
-      raise RuntimeError, "#{self.class.name} does not implement reset()"
+      raise RuntimeError, "#{Primitive.class(self).name} does not implement reset()"
     end
 
     def digest(message = NO_MESSAGE)
@@ -150,7 +150,7 @@ module Digest
     end
 
     def inspect
-      "#<#{self.class.name}: #{hexdigest}>"
+      "#<#{Primitive.class(self).name}: #{hexdigest}>"
     end
   end
 

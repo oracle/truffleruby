@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 #
@@ -44,16 +46,16 @@ module FFI
 
     def initialize(pointer = nil, *args)
       if args.empty?
-        @layout = self.class.instance_variable_get(:@layout)
+        @layout = Primitive.class(self).instance_variable_get(:@layout)
       else
-        @layout = self.class.layout(*args)
+        @layout = Primitive.class(self).layout(*args)
       end
-      unless FFI::StructLayout === @layout
-        raise RuntimeError, "invalid Struct layout for #{self.class}"
+      unless Primitive.is_a?(@layout, FFI::StructLayout)
+        raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
       end
 
       if pointer
-        unless FFI::AbstractMemory === pointer
+        unless Primitive.is_a?(pointer, FFI::AbstractMemory)
           raise ArgumentError, "Invalid Memory object: #{pointer.inspect}"
         end
         @pointer = pointer
@@ -63,7 +65,7 @@ module FFI
     end
 
     def initialize_copy(other)
-      return self if equal?(other)
+      return self if Primitive.equal?(self, other)
 
       @layout = other.layout
 
@@ -79,22 +81,22 @@ module FFI
     end
 
     private def pointer=(pointer)
-      unless FFI::AbstractMemory === pointer
-        raise TypeError, "wrong argument type #{pointer.class} (expected Pointer or Buffer)"
+      unless Primitive.is_a?(pointer, FFI::AbstractMemory)
+        raise TypeError, "wrong argument type #{Primitive.class(pointer)} (expected Pointer or Buffer)"
       end
 
       layout = get_layout
       if layout.size > pointer.size
         raise ArgumentError, "memory of #{pointer.size} bytes too small for struct" +
-                             " #{self.class} (expected at least #{@layout.size})"
+                             " #{Primitive.class(self)} (expected at least #{@layout.size})"
       end
 
       @pointer = pointer
     end
 
     private def layout=(layout)
-      unless FFI::StructLayout === layout
-        raise TypeError, "wrong argument type #{layout.class} (expected #{FFI::StructLayout})"
+      unless Primitive.is_a?(layout, FFI::StructLayout)
+        raise TypeError, "wrong argument type #{Primitive.class(layout)} (expected #{FFI::StructLayout})"
       end
       @layout = layout
     end
@@ -114,9 +116,9 @@ module FFI
       if defined?(@layout)
         @layout
       else
-        layout = self.class.instance_variable_get(:@layout)
-        unless FFI::StructLayout === layout
-          raise RuntimeError, "invalid Struct layout for #{self.class}"
+        layout = Primitive.class(self).instance_variable_get(:@layout)
+        unless Primitive.is_a?(layout, FFI::StructLayout)
+          raise RuntimeError, "invalid Struct layout for #{Primitive.class(self)}"
         end
         unless defined?(@pointer) and @pointer
           @pointer = MemoryPointer.new(layout.size, 1, true)
@@ -154,7 +156,7 @@ module FFI
         @pointer = pointer
         @offset = field.offset
 
-        raise unless FFI::Type::ArrayType === field.type
+        raise unless Primitive.is_a?(field.type, FFI::Type::ArrayType)
         @array_type = field.type
         @length = @array_type.length
       end

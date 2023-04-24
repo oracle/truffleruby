@@ -183,7 +183,7 @@ module Truffle::CExt
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
 
-    value_class = value.class
+    value_class = Primitive.class(value)
     type = Primitive.object_hidden_var_get(value_class, RB_TYPE)
     type ||= Primitive.object_hidden_var_set(value_class, RB_TYPE, rb_tr_find_type(value))
     rb_tr_cached_type(value, type)
@@ -246,7 +246,7 @@ module Truffle::CExt
       # See #rb_tr_cached_type, the final type must be calculated for each object.
       T_NONE
     else
-      raise "unknown type #{value.class}"
+      raise "unknown type #{Primitive.class(value)}"
     end
   end
 
@@ -286,7 +286,7 @@ module Truffle::CExt
   end
 
   def SYMBOL_P(value)
-    Symbol === value
+    Primitive.is_a?(value, Symbol)
   end
 
   def rb_to_int(val)
@@ -375,7 +375,7 @@ module Truffle::CExt
 
   def rb_num_coerce_cmp(x, y, func)
     ary = do_coerce(x, y, false)
-    if ary.nil?
+    if Primitive.nil?(ary)
       nil
     else
       a, b = ary
@@ -385,18 +385,18 @@ module Truffle::CExt
 
   def rb_num_coerce_relop(x, y, func)
     ary = do_coerce(x, y, false)
-    unless ary.nil?
+    unless Primitive.nil?(ary)
       a, b = ary
       res = a.__send__(func, b)
     end
-    raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if res.nil?
+    raise ArgumentError, "comparison of #{Primitive.class(x)} with #{Primitive.class(y)} failed" if Primitive.nil?(res)
     res
   end
 
   private def do_coerce(x, y, raise_error)
     unless y.respond_to?(:coerce)
       if raise_error
-        raise TypeError, "#{y.class} can't be coerced to #{x.class}"
+        raise TypeError, "#{Primitive.class(y)} can't be coerced to #{Primitive.class(x)}"
       else
         return nil
       end
@@ -500,7 +500,7 @@ module Truffle::CExt
 
   def rb_ivar_foreach(object, func, arg)
     keys_and_vals = []
-    if Module === object
+    if Primitive.is_a?(object, Module)
       keys_and_vals << :__classpath__
       keys_and_vals << object.name
 
@@ -595,7 +595,7 @@ module Truffle::CExt
   end
 
   def rb_reg_nth_match(nth, match)
-    return nil if match.nil?
+    return nil if Primitive.nil?(match)
     match[nth]
   end
 
@@ -698,7 +698,7 @@ module Truffle::CExt
     parse_event = -> bits, name do
       if events.anybits? bits
         events ^= bits
-        if Symbol === name
+        if Primitive.is_a?(name, Symbol)
           events_ary << name
         else
           warn "warning: rb_tracepoint_new(#{name}) is not yet implemented" if $VERBOSE
@@ -748,7 +748,7 @@ module Truffle::CExt
 
   def rb_cstr_to_dbl(string, badcheck)
     result = Primitive.string_to_f string
-    if result.nil?
+    if Primitive.nil?(result)
       if badcheck
         raise ArgumentError, "invalid value for Float(): #{string.inspect}"
       else
@@ -788,7 +788,7 @@ module Truffle::CExt
     if Primitive.is_a?(obj, String)
       rb_enc_str_coderange(obj)
     else
-      raise "Unknown coderange for obj with class `#{obj.class}`"
+      raise "Unknown coderange for obj with class `#{Primitive.class(obj)}`"
     end
   end
 
@@ -798,7 +798,7 @@ module Truffle::CExt
     when String
       obj.force_encoding(enc)
     else
-      raise "rb_enc_associate_index not implemented for class `#{obj.class}`"
+      raise "rb_enc_associate_index not implemented for class `#{Primitive.class(obj)}`"
     end
   end
 
@@ -861,7 +861,7 @@ module Truffle::CExt
 
   def rb_str_encode(str, to, ecflags, ecopts)
     opts = {}
-    opts.merge!(ecopts) unless ecopts.nil?
+    opts.merge!(ecopts) unless Primitive.nil?(ecopts)
 
     # TODO BJF 8-Mar-2017 Handle more ecflags
     if ecflags & Encoding::Converter::INVALID_REPLACE != 0
@@ -889,7 +889,7 @@ module Truffle::CExt
   end
 
   def rb_cmpint(val, a, b)
-    raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if val.nil?
+    raise ArgumentError, "comparison of #{Primitive.class(a)} and #{Primitive.class(b)} failed" if Primitive.nil?(val)
     if val > 0
       1
     elsif val < 0
@@ -1059,7 +1059,7 @@ module Truffle::CExt
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
 
-    unless Primitive.equal?(nil, e)
+    unless Primitive.nil?(e)
       store_exception(e)
       pos = extract_tag(e)
       Primitive.thread_set_exception(extract_ruby_exception(e))
@@ -1186,13 +1186,13 @@ module Truffle::CExt
 
   def rb_define_class_under(mod, name, superclass)
     # nil is TypeError (checked below), false is ArgumentError
-    if false.equal?(superclass)
+    if Primitive.equal?(false, superclass)
       raise ArgumentError, "no super class for `#{name}'"
     end
 
     if Primitive.module_const_defined?(mod, name, false, false)
       current_class = Primitive.module_const_get(mod, name, false, false, false)
-      unless current_class.class == Class
+      unless Primitive.class(current_class) == Class
         raise TypeError, "#{mod}::#{name} is not a class"
       end
       if superclass != current_class.superclass
@@ -1207,7 +1207,7 @@ module Truffle::CExt
   def rb_define_module_under(mod, name)
     if Primitive.module_const_defined?(mod, name, false, false)
       val = Primitive.module_const_get(mod, name, false, false, false)
-      unless val.class == Module
+      unless Primitive.class(val) == Module
         raise TypeError, "#{mod}::#{name} is not a module"
       end
       val
@@ -1271,7 +1271,7 @@ module Truffle::CExt
   end
 
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
-    return rb_enumeratorize(obj, meth, args) if size_fn.nil?
+    return rb_enumeratorize(obj, meth, args) if Primitive.interop_null?(size_fn)
     enum = obj.to_enum(meth, *args) do
       Primitive.call_with_c_mutex_and_frame_and_unwrap(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)], Primitive.caller_special_variables_if_available, nil)
     end
@@ -1297,7 +1297,7 @@ module Truffle::CExt
   end
 
   def rb_get_alloc_func(ruby_class)
-    return nil unless Class === ruby_class
+    return nil unless Primitive.is_a?(ruby_class, Class)
     begin
       allocate_method = ruby_class.method(:__allocate__).owner
     rescue NameError
@@ -1542,7 +1542,7 @@ module Truffle::CExt
   end
 
   def test_kwargs(kwargs, raise_error)
-    return false if kwargs.nil?
+    return false if Primitive.nil?(kwargs)
 
     if Primitive.is_a?(kwargs, Hash) && kwargs.keys.all? { |k| Primitive.is_a?(k, Symbol) }
       true
@@ -1670,7 +1670,7 @@ module Truffle::CExt
   end
 
   def warn?
-    !$VERBOSE.nil?
+    !Primitive.nil?($VERBOSE)
   end
 
   def warning?
@@ -1765,7 +1765,7 @@ module Truffle::CExt
       timeout = tv_secs + tv_usecs/1.0e6
     end
     r, w, e = Primitive.send_without_cext_lock(IO, :select, [read, write, error, *timeout], nil)
-    if r.nil? # timeout
+    if Primitive.nil?(r) # timeout
       0
     else
       result = 0
@@ -1858,7 +1858,7 @@ module Truffle::CExt
   end
 
   def rb_convert_to_encoding(encoding)
-    if Encoding === encoding
+    if Primitive.is_a?(encoding, Encoding)
       encoding
     else
       Encoding.find(encoding.to_str)
@@ -1914,7 +1914,7 @@ module Truffle::CExt
   # An object that once unreachable frees the associated native pointer using ruby_xfree()
   class IMemoTmpBufAutoFree
     def pointer=(address)
-      ObjectSpace.define_finalizer(self, self.class.free(address))
+      ObjectSpace.define_finalizer(self, Primitive.class(self).free(address))
     end
 
     def self.free(address)
@@ -1933,7 +1933,7 @@ module Truffle::CExt
   def rb_debug_inspector_open_contexts
     Truffle::Debug.get_frame_bindings.map do |binding|
       if binding
-        [binding.receiver, binding.receiver.class, binding]
+        [binding.receiver, Primitive.class(binding.receiver), binding]
       else
         [nil, nil, nil]
       end

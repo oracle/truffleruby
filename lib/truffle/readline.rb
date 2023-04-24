@@ -54,7 +54,7 @@ module Readline
   end
 
   def self.completion_append_character=(char)
-    char = '' if char == nil
+    char = '' if Primitive.nil?(char)
     char = String(char)
     @completion_append_character = char.empty? ? nil : char[0]
   end
@@ -64,7 +64,7 @@ module Readline
 
     Primitive.readline_set_completion_proc -> buffer {
       result = proc.call(buffer)
-      unless Array === result
+      unless Primitive.is_a?(result, Array)
         result = Array(result)
       end
       result.map do |e|
