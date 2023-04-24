@@ -65,6 +65,31 @@ public class MiscTest {
     }
 
     @Test
+    public void testCancellationWithFibers() throws Throwable {
+        Context context = RubyTest.createContext();
+
+        // schedule a timeout in 100ms
+        TestingThread thread = new TestingThread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new Error(e);
+            }
+            context.close(true);
+        });
+
+        context.eval("ruby", "init = 1");
+        thread.start();
+        try {
+            String code = "unstarted = Fiber.new {}; resumed = Fiber.new { Fiber.yield }.tap(&:resume); sleep 1";
+            RubyTest.assertThrows(() -> context.eval("ruby", code),
+                    e -> assertTrue(e.isCancelled()));
+        } finally {
+            thread.join();
+        }
+    }
+
+    @Test
     public void testEvalFromIntegratorThreadSingleThreaded() throws Throwable {
         final String codeDependingOnCurrentThread = "Thread.current.object_id";
 
