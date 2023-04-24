@@ -171,11 +171,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         }
     }
 
-    @ExportMessage
+    @ExportMessage(limit = "storageStrategyLimit()")
     protected void copyContents(int srcStart, Object destStore, int destStart, int length,
             @CachedLibrary("this") ArrayStoreLibrary srcStores,
             @Cached @Exclusive LoopConditionProfile loopProfile,
-            @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
+            @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
         int i = 0;
         try {
             for (; loopProfile.inject(i < length); i++) {

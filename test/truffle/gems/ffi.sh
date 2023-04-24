@@ -13,4 +13,4 @@ cd spec/ffi || exit 1
 bundle config --local cache_path "$gem_test_pack/gem-testing/msgpack-ruby/gem-cache"
 bundle install --local --no-cache
 
-bundle exec rspec --format doc .
+bundle exec rspec --format doc --exclude-pattern 'vendor/**/*' .
