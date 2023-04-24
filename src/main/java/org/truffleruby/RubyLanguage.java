@@ -668,7 +668,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 }
                 context.getThreadManager().cleanupThreadState(rubyThread, thread);
             } else { // (non-root) Fiber
-                // Fibers are always cleaned up by their thread's cleanup with FiberManager#killOtherFibers()
+                var fiber = this.rubyFiber.get(thread);
+                context.fiberManager.cleanup(fiber, thread);
             }
             return;
         }

@@ -182,9 +182,6 @@ public class FiberManager {
     }
 
     private void afterLeave(RubyFiber fiber) {
-        final Thread thread = Thread.currentThread();
-        cleanup(fiber, thread);
-
         if (fiber.lastMessage != null) {
             addToMessageQueue(fiber.returnFiber, fiber.lastMessage);
             fiber.returnFiber = null;
