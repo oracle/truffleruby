@@ -25,6 +25,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
@@ -110,6 +111,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
                 context,
                 language,
                 this,
+                FiberStatus.RESUMED,
                 "root");
         this.currentFiber = rootFiber;
     }

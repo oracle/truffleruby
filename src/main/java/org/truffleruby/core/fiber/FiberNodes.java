@@ -109,6 +109,7 @@ public abstract class FiberNodes {
                     getContext(),
                     getLanguage(),
                     thread,
+                    FiberStatus.CREATED,
                     "<uninitialized>");
             AllocationTracing.trace(fiber, this);
             return fiber;

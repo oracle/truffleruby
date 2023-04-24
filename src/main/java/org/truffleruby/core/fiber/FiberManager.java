@@ -342,7 +342,6 @@ public class FiberManager {
     public void start(RubyFiber fiber, Thread javaThread) {
         if (fiber.isRootFiber()) {
             fiber.thread = javaThread;
-            fiber.status = FiberStatus.RESUMED;
         } else {
             // fiber.thread set by createThreadToReceiveFirstMessage()
         }

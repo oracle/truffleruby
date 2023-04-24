@@ -85,7 +85,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     /** the most recently-resumed Fiber by this Fiber */
     volatile RubyFiber resumingFiber = null;
     volatile boolean yielding = false;
-    volatile FiberStatus status = FiberStatus.CREATED;
+    volatile FiberStatus status;
     public Thread thread = null;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
@@ -107,6 +107,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
             RubyContext context,
             RubyLanguage language,
             RubyThread rubyThread,
+            FiberStatus status,
             String sourceLocation) {
         super(rubyClass, shape);
         assert rubyThread != null;
@@ -116,6 +117,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
                 language.basicObjectShape);
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
+        this.status = status;
         this.sourceLocation = sourceLocation;
         extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
         handleData = new ValueWrapperManager.HandleBlockHolder();
