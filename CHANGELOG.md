@@ -17,6 +17,7 @@ Compatibility:
 
 Performance:
 
+* Improve `Truffle::FeatureLoader.loaded_feature_path` by removing expensive string ops from a loop. Speeds up feature lookup time (#3010, @itarato).
 
 Changes:
 
