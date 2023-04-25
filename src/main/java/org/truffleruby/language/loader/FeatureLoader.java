@@ -505,17 +505,12 @@ public class FeatureLoader {
         try {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(language, context, path);
             FileLoader.ensureReadable(context, truffleFile, currentNode);
-
-            final Source source;
-            try {
-                source = Source.newBuilder("llvm", truffleFile).build();
-            } catch (IOException e) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError(e, path, currentNode));
-            }
-
+            final Source source = Source
+                    .newBuilder("nfi", "with llvm load (RTLD_GLOBAL) '" + path + "'",
+                            "load RTLD_GLOBAL with Sulong through NFI")
+                    .build();
             final Object library = context.getEnv().parseInternal(source).call();
-
-            final Object embeddedABIVersion = getEmbeddedABIVersion(path, library);
+            final Object embeddedABIVersion = getEmbeddedABIVersion(library);
             DispatchNode.getUncached().call(context.getCoreLibrary().truffleCExtModule, "check_abi_version",
                     embeddedABIVersion, path);
 
@@ -525,7 +520,7 @@ public class FeatureLoader {
         }
     }
 
-    private Object getEmbeddedABIVersion(String expandedPath, Object library) {
+    private Object getEmbeddedABIVersion(Object library) {
         final Object abiVersionFunction;
         try {
             abiVersionFunction = InteropLibrary.getFactory().getUncached(library).readMember(library,
