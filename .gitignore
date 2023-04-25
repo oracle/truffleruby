@@ -50,6 +50,7 @@ src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
 
 spec/ffi/.bundle/config
+spec/ffi/vendor/bundle
 
 test/truffle/cexts/**/Makefile
 

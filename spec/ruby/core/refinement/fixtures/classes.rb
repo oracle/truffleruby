@@ -8,5 +8,3 @@ module RefinementSpec
     end
   end
 end
-
-
