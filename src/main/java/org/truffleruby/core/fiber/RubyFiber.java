@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -23,6 +24,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -83,14 +85,21 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     /** the most recently-resumed Fiber by this Fiber */
     volatile RubyFiber resumingFiber = null;
     volatile boolean yielding = false;
-    volatile FiberStatus status = FiberStatus.CREATED;
+    volatile FiberStatus status;
     public Thread thread = null;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
+    RubyProc body;
+    Node initializeNode;
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
     boolean blocking = true;
     public RubyArray cGlobalVariablesDuringInitFunction;
+
+    // To pass state between beforeEnter(), fiberMain() and afterLeave()
+    FiberManager.FiberMessage firstMessage;
+    RubyFiber returnFiber;
+    FiberManager.FiberMessage lastMessage;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -98,6 +107,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
             RubyContext context,
             RubyLanguage language,
             RubyThread rubyThread,
+            FiberStatus status,
             String sourceLocation) {
         super(rubyClass, shape);
         assert rubyThread != null;
@@ -107,6 +117,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
                 language.basicObjectShape);
         this.catchTags = ArrayHelpers.createEmptyArray(context, language);
         this.rubyThread = rubyThread;
+        this.status = status;
         this.sourceLocation = sourceLocation;
         extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
         handleData = new ValueWrapperManager.HandleBlockHolder();

@@ -21,11 +21,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.TruffleSafepoint.InterruptibleFunction;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
@@ -164,16 +165,29 @@ public class ThreadManager {
 
     @CompilationFinal static ThreadFactory VIRTUAL_THREAD_FACTORY = getVirtualThreadFactory();
 
-    private Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable runnable) {
+    public Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable beforeEnter,
+            Runnable body, Runnable afterLeave, Node node) {
         if (context.isPreInitializing()) {
-            throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
+            throw CompilerDirectives
+                    .shouldNotReachHere("fibers should not be created while pre-initializing the context");
         }
 
         final Thread thread;
         if (context.getOptions().VIRTUAL_THREAD_FIBERS) {
-            thread = VIRTUAL_THREAD_FACTORY.newThread(runnable);
+            thread = VIRTUAL_THREAD_FACTORY.newThread(() -> {
+                var truffleContext = context.getEnv().getContext();
+                beforeEnter.run();
+                Object prev = truffleContext.enter(node);
+                try {
+                    body.run();
+                } finally {
+                    truffleContext.leave(node, prev);
+                    afterLeave.run();
+                }
+            });
         } else {
-            thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+            thread = context.getEnv().newTruffleThreadBuilder(body).beforeEnter(beforeEnter).afterLeave(afterLeave)
+                    .build();
         }
 
         language.rubyThreadInitMap.put(thread, fiber.rubyThread);
@@ -186,15 +200,16 @@ public class ThreadManager {
         return thread;
     }
 
-    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread, String info) {
+    private Thread createJavaThread(Runnable runnable, RubyThread rubyThread, String info, Node node) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
+                    context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", node));
         }
 
         if (context.isPreInitializing()) {
-            throw new UnsupportedOperationException("threads should not be created while pre-initializing the context");
+            throw CompilerDirectives
+                    .shouldNotReachHere("threads should not be created while pre-initializing the context");
         }
 
         final Thread thread = context.getEnv().newTruffleThreadBuilder(runnable).build();
@@ -233,10 +248,6 @@ public class ThreadManager {
                 printInternalError(t);
             }
         };
-    }
-
-    public void spawnFiber(RubyFiber fiber, SourceSection sourceSection, Runnable task) {
-        createFiberJavaThread(fiber, sourceSection, task).start();
     }
 
     /** Whether the thread was created by TruffleRuby. */
@@ -303,13 +314,14 @@ public class ThreadManager {
         rubyThread.sourceLocation = info;
         final RubyFiber rootFiber = rubyThread.getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread, info);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rubyThread, info,
+                currentNode);
         rubyThread.thread = thread;
 
         thread.start();
 
         // Must not leave the context here, to perform safepoint actions, if e.g. the new thread Thread#raise this one
-        FiberManager.waitForInitialization(context, rootFiber, currentNode);
+        FiberManager.waitForInitializationEntered(context, rootFiber, currentNode);
     }
 
     /** {@link RubyLanguage#initializeThread(RubyContext, Thread)} runs before this, and
@@ -492,38 +504,10 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext) {
-        assert truffleContext.isEntered();
-        return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
-    }
-
-    /** Only use when the context is not entered. */
     @TruffleBoundary
-    public <T> void retryWhileInterrupted(Node currentNode, TruffleSafepoint.Interruptible<T> interruptible, T object) {
-        assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    interruptible.apply(object);
-                    break;
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                    // retry
-                }
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    @TruffleBoundary
-    public <T> void runUntilResultKeepStatus(Node currentNode, TruffleSafepoint.Interruptible<T> action,
-            T object) {
+    public <T, R> R runUntilResultKeepStatus(Node currentNode, InterruptibleFunction<T, R> action, T object) {
         assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
-        TruffleSafepoint.setBlockedThreadInterruptible(currentNode, action, object);
+        return TruffleSafepoint.setBlockedThreadInterruptibleFunction(currentNode, action, object);
     }
 
     public static Object executeBlockingCall(RubyThread thread, Interrupter interrupter, Object executable,
@@ -663,7 +647,10 @@ public class ThreadManager {
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
             if (thread != Thread.currentThread()) {
-                runUntilResultKeepStatus(DummyNode.INSTANCE, Thread::join, thread);
+                runUntilResultKeepStatus(DummyNode.INSTANCE, t -> {
+                    t.join();
+                    return BlockingAction.SUCCESS;
+                }, thread);
             }
         }
     }
@@ -677,7 +664,7 @@ public class ThreadManager {
 
         context.getSafepointManager().pauseAllThreadsAndExecute(
                 DummyNode.INSTANCE,
-                new SafepointAction("kill other threads for shutdown", predicate, true, false) {
+                new SafepointAction("kill other threads for shutdown", predicate, true, true) {
                     @Override
                     public void run(RubyThread rubyThread, Node currentNode) {
                         rubyThread.status = ThreadStatus.ABORTING;

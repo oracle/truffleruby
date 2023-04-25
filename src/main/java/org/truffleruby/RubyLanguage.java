@@ -406,6 +406,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         tracingAssumption = tracingCyclicAssumption.getAssumption();
     }
 
+    private boolean multiThreading = false;
+
+    public boolean isMultiThreaded() {
+        return multiThreading;
+    }
+
+    @Override
+    protected void initializeMultiThreading(RubyContext context) {
+        this.multiThreading = true;
+    }
+
     @Override
     protected void initializeMultipleContexts() {
         LOGGER.fine("initializeMultipleContexts()");
@@ -619,8 +630,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
                 }
                 context.getThreadManager().start(rubyThread, thread);
-            } else {
-                // Fiber
+            } else { // (non-root) Fiber
+                var fiber = this.rubyFiber.get(thread);
+                rubyThread.setCurrentFiber(fiber);
             }
             return;
         }
@@ -657,7 +669,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 }
                 context.getThreadManager().cleanupThreadState(rubyThread, thread);
             } else { // (non-root) Fiber
-                // Fibers are always cleaned up by their thread's cleanup with FiberManager#killOtherFibers()
+                var fiber = this.rubyFiber.get(thread);
+                context.fiberManager.cleanup(fiber, thread);
             }
             return;
         }
