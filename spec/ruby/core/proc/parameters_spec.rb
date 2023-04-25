@@ -129,7 +129,7 @@ describe "Proc#parameters" do
       [:block, :_]
     ]
 
-    lambda = ->(_, _, _ = 1, *_, _:, _: 2, **_, &_) {}
+    lambda = -> _, _, _ = 1, *_, _:, _: 2, **_, &_ {}
     lambda.parameters.should == [
       [:req, :_],
       [:req, :_],

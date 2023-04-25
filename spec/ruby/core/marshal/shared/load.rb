@@ -141,14 +141,16 @@ describe :marshal_load, shared: true do
       end
 
       ruby_bug "#19427", "3.1"..."3.3" do
-        it "returns frozen object having #_dump method" do
-          object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
-          object.should.frozen?
-        end
+        ruby_bug "#19427", "3.1"..."3.4" do # https://bugs.ruby-lang.org/issues/19427#note-15
+          it "returns frozen object having #_dump method" do
+            object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
+            object.should.frozen?
+          end
 
-        it "returns frozen object responding to #marshal_dump and #marshal_load" do
-          object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
-          object.should.frozen?
+          it "returns frozen object responding to #marshal_dump and #marshal_load" do
+            object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
+            object.should.frozen?
+          end
         end
 
         it "returns frozen object extended by a module" do
@@ -636,6 +638,12 @@ describe :marshal_load, shared: true do
       require 'stringio'
       obj = "This is a string which should be unmarshalled through StringIO stream!"
       Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
+    end
+
+    it "sets binmode if it is loading through StringIO stream" do
+      io = StringIO.new("\004\b:\vsymbol")
+      def io.binmode; raise "binmode"; end
+      -> { Marshal.load(io) }.should raise_error(RuntimeError, "binmode")
     end
 
     it "loads a string with an ivar" do

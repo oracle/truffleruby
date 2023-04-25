@@ -602,6 +602,15 @@ describe "Marshal.dump" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
       Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
     end
+
+    it "dumps without marshaling any attached finalizer" do
+      obj = Object.new
+      finalizer = Object.new
+      def finalizer.noop(_)
+      end
+      ObjectSpace.define_finalizer(obj, finalizer.method(:noop))
+      Marshal.load(Marshal.dump(obj)).class.should == Object
+    end
   end
 
   describe "with a Range" do
@@ -730,7 +739,7 @@ describe "Marshal.dump" do
       rescue => e
       end
 
-      Marshal.dump(e).should.include? "undefined method `foo' for \"\":String"
+      Marshal.dump(e).should =~ /undefined method `foo' for ("":String|an instance of String)/
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
