@@ -633,7 +633,7 @@ module Truffle::CExt
 
   def rb_to_encoding_index(enc)
     enc = Truffle::Type.coerce_to_encoding(enc)
-    return -1 if enc == false
+    return -1 if Primitive.false?(enc)
     rb_enc_to_index(enc)
   end
 
@@ -1186,7 +1186,7 @@ module Truffle::CExt
 
   def rb_define_class_under(mod, name, superclass)
     # nil is TypeError (checked below), false is ArgumentError
-    if Primitive.equal?(false, superclass)
+    if Primitive.false?(superclass)
       raise ArgumentError, "no super class for `#{name}'"
     end
 

@@ -333,7 +333,7 @@ module Truffle
       elsif reverse_lookup == :numeric
         reverse_lookup = false
 
-      elsif reverse_lookup != true and reverse_lookup != false
+      elsif !Primitive.true?(reverse_lookup) and !Primitive.false?(reverse_lookup)
         raise ArgumentError,
           "invalid reverse_lookup flag: #{reverse_lookup.inspect}"
       end

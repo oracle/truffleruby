@@ -286,7 +286,7 @@ module Truffle
               @options[:unsetenv_others] = true
             end
           when :pgroup
-            if value == true
+            if Primitive.true?(value)
               value = 0
             elsif value
               value = Truffle::Type.coerce_to value, Integer, :to_int

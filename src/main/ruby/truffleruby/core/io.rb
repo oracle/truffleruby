@@ -1461,7 +1461,7 @@ class IO
 
     if !arg
       arg = 0
-    elsif arg == true
+    elsif Primitive.true?(arg)
       arg = 1
     elsif Primitive.is_a?(arg, String)
       raise NotImplementedError, 'cannot handle String'
@@ -1491,7 +1491,7 @@ class IO
 
     if !arg
       real_arg = 0
-    elsif arg == true
+    elsif Primitive.true?(arg)
       real_arg = 1
     elsif Primitive.is_a?(arg, String)
       # This could be faster.

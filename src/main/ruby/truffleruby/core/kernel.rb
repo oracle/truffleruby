@@ -54,7 +54,7 @@ module Kernel
   module_function :Complex
 
   def Float(obj, exception: true)
-    raise_exception = !Primitive.equal?(exception, false)
+    raise_exception = !Primitive.false?(exception)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
@@ -104,7 +104,7 @@ module Kernel
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
     base = Primitive.nil?(converted_base) ? 0 : converted_base
-    raise_exception = !Primitive.equal?(exception, false)
+    raise_exception = !Primitive.false?(exception)
 
     if Primitive.is_a?(obj, String)
       Primitive.string_to_inum(obj, base, true, raise_exception)

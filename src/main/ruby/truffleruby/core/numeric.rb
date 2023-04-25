@@ -30,7 +30,7 @@ class Numeric
   include Comparable
 
   def clone(freeze: nil)
-    if Primitive.equal?(freeze, false)
+    if Primitive.false?(freeze)
       raise ArgumentError, "can't unfreeze #{Primitive.class(self).name}"
     end
     self
