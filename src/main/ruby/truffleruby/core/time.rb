@@ -37,11 +37,6 @@
 class Time
   include Comparable
 
-  MonthValue = {
-    'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
-    'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
-  }
-
   def inspect
     str = strftime('%Y-%m-%d %H:%M:%S')
 
@@ -371,103 +366,6 @@ class Time
       time
     end
 
-    def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      # Ensure all the user provided numeric values fit into int type.
-      # sec and nsec are handled separately.
-      Primitive.rb_num2int(min)
-      Primitive.rb_num2int(hour)
-      Primitive.rb_num2int(mday)
-      Primitive.rb_num2int(month)
-      Primitive.rb_num2int(year)
-
-      # handle sec and nsec
-      if Primitive.is_a?(sec, String)
-        sec = sec.to_i
-      elsif nsec
-        sec = Truffle::Type.coerce_to(sec || 0, Integer, :to_int)
-      else
-        s = Truffle::Type.coerce_to_exact_num(sec || 0)
-
-        sec       = s.to_i
-        nsec_frac = s % 1.0
-
-        if s < 0 && nsec_frac > 0
-          sec -= 1
-        end
-
-        nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
-      end
-
-      nsec ||= 0
-
-      Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-    end
-    private :from_array
-
-    def compose(offset, p1, p2 = nil, p3 = nil, p4 = nil, p5 = nil, p6 = nil, p7 = nil,
-                yday = undefined, is_dst = undefined, tz = undefined)
-      if Primitive.undefined?(tz)
-        unless Primitive.undefined?(is_dst)
-          raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
-        end
-
-        y = p1
-        m = p2
-        d = p3
-        hr = p4
-        min = p5
-        sec = p6
-        usec = p7
-        is_dst = -1
-      else
-        y = p6
-        m = p5
-        d = p4
-        hr = p3
-        min = p2
-        sec = p1
-        usec = 0
-        is_dst = is_dst ? 1 : 0
-      end
-
-      if Primitive.is_a?(m, String) or m.respond_to?(:to_str)
-        m = StringValue(m)
-        m = MonthValue[m.upcase] || m.to_i
-
-        raise ArgumentError, 'month argument out of range' unless m
-      else
-        m = Truffle::Type.coerce_to(m || 1, Integer, :to_int)
-      end
-
-      y   = Primitive.is_a?(y, String)   ? y.to_i   : Truffle::Type.coerce_to(y,        Integer, :to_int)
-      d   = Primitive.is_a?(d, String)   ? d.to_i   : Truffle::Type.coerce_to(d   || 1, Integer, :to_int)
-      hr  = Primitive.is_a?(hr, String)  ? hr.to_i  : Truffle::Type.coerce_to(hr  || 0, Integer, :to_int)
-      min = Primitive.is_a?(min, String) ? min.to_i : Truffle::Type.coerce_to(min || 0, Integer, :to_int)
-
-      nsec = nil
-      if Primitive.is_a?(usec, String)
-        nsec = usec.to_i * 1000
-      elsif usec
-        nsec = (usec * 1000).to_i
-      end
-
-      case offset
-      when :utc
-        is_dst = -1
-        is_utc = true
-        offset = nil
-      when :local
-        is_utc = false
-        offset = nil
-      else
-        is_dst = -1
-        is_utc = false
-      end
-
-      from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
-    end
-    private :compose
-
     def new(year = undefined, month = nil, day = nil, hour = nil, minute = nil, second = nil, utc_offset = nil, **options)
       if utc_offset && options[:in]
         raise ArgumentError, 'timezone argument given as positional and keyword arguments'
@@ -478,18 +376,18 @@ class Time
       if Primitive.undefined?(year)
         utc_offset ? self.now.getlocal(utc_offset) : self.now
       elsif Primitive.nil? utc_offset
-        compose(:local, year, month, day, hour, minute, second)
+        Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second)
       elsif utc_offset == :std
-        compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
+        Truffle::TimeOperations.compose(self, :local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst
-        compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
+        Truffle::TimeOperations.compose(self, :local, second, minute, hour, day, month, year, nil, nil, true, nil)
       else
         if utc_offset_in_utc?(utc_offset)
           utc_offset = :utc
         else
           utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
         end
-        compose(utc_offset, year, month, day, hour, minute, second)
+        Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
       end
     end
 
@@ -512,12 +410,12 @@ class Time
     end
 
     def local(*args)
-      compose(:local, *args)
+      Truffle::TimeOperations.compose(self, :local, *args)
     end
     alias_method :mktime, :local
 
     def gm(*args)
-      compose(:utc, *args)
+      Truffle::TimeOperations.compose(self, :utc, *args)
     end
     alias_method :utc, :gm
   end
