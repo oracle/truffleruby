@@ -34,7 +34,7 @@ import static org.graalvm.shadowed.org.jline.reader.impl.ReaderUtils.isSet;
 
 /** Since JLine3 has no MemoryHistory and we need a mutable history because the Ruby API exposes it, we have to write
  * our own. */
-public class MemoryHistory implements History {
+public final class MemoryHistory implements History {
 
     private final LinkedList<Entry> entries = new LinkedList<>();
     private int index = 0;
@@ -236,7 +236,7 @@ public class MemoryHistory implements History {
         return entries.listIterator(i);
     }
 
-    private static class SimpleEntry implements Entry {
+    private static final class SimpleEntry implements Entry {
         private final int index;
         private final String line;
         private final Instant time;

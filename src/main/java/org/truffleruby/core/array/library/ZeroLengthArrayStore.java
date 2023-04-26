@@ -27,7 +27,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
-public class ZeroLengthArrayStore {
+public final class ZeroLengthArrayStore {
 
     private ZeroLengthArrayStore() {
     }

@@ -447,7 +447,7 @@ public abstract class HashNodes {
         @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
         @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
-        private static class MapState {
+        private static final class MapState {
             final BuilderState builderState;
             final RubyProc block;
 

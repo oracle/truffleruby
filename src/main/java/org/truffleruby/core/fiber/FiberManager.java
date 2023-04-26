@@ -493,7 +493,7 @@ public class FiberManager {
         }
     }
 
-    private static class FiberSafepointMessage implements FiberMessage {
+    private static final class FiberSafepointMessage implements FiberMessage {
         private final RubyFiber sendingFiber;
         private final SafepointAction action;
 

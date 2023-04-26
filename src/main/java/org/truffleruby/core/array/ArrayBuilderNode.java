@@ -34,7 +34,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
  * by another usage (e.g. recursive) of this ArrayBuilderNode. */
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
-    public static class BuilderState {
+    public static final class BuilderState {
         protected int capacity;
         protected int nextIndex = 0;
         protected Object store;

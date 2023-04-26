@@ -1406,13 +1406,13 @@ command_args    : /* none */ {
 block_arg       : tAMPER arg_value {
                     $$ = new BlockPassParseNode(support.getPosition($2), $2);
                 }
-		| tAMPER {
-		    if (!support.local_id(ParserSupport.FORWARD_ARGS_BLOCK_VAR)) {
-		        support.yyerror("no anonymous block parameter");
-		    }
+                | tAMPER {
+                    if (!support.local_id(ParserSupport.FORWARD_ARGS_BLOCK_VAR)) {
+                        support.yyerror("no anonymous block parameter");
+                    }
 
-		    $$ = new BlockPassParseNode(lexer.tokline, new LocalVarParseNode(support.getPosition(null), 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
-		}
+                    $$ = new BlockPassParseNode(lexer.tokline, new LocalVarParseNode(support.getPosition(null), 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
+                }
 
 opt_block_arg   : ',' block_arg {
                     $$ = $2;
@@ -2258,7 +2258,7 @@ p_arg           : p_expr {
 p_kwargs        : p_kwarg ',' p_any_kwrest {
                     $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, $3); // p_kwargs_1
                 }
-		        | p_kwarg {
+                | p_kwarg {
                     $$ = support.new_hash_pattern_tail(support.getPosition($1), $1, null); // p_kwargs_2
                 }
                 | p_kwarg ',' {

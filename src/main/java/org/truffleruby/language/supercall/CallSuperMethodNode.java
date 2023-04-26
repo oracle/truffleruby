@@ -23,7 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-public class CallSuperMethodNode extends SpecialVariablesSendingNode {
+public final class CallSuperMethodNode extends SpecialVariablesSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.create();
 

@@ -123,7 +123,7 @@ public abstract class AllocationTracing {
         storeAllocationTrace(context, instance, allocatingSourceSection, className, allocatingMethod);
     }
 
-    public static class AllocationTrace {
+    public static final class AllocationTrace {
         public final String className;
         public final String allocatingMethod;
         public final SourceSection allocatingSourceSection;

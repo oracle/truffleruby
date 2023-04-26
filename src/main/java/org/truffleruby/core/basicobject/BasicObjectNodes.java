@@ -524,7 +524,7 @@ public abstract class BasicObjectNodes {
             throw new RaiseException(getContext(), buildMethodMissingException(self, name, args, block));
         }
 
-        private static class FrameAndCallNode {
+        private static final class FrameAndCallNode {
             final Frame frame;
             final Node callNode;
 

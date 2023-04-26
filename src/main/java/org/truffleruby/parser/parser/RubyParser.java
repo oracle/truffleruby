@@ -1035,14 +1035,14 @@ public class RubyParser {
       @return result of the last reduction, if any.
     */
   public Object yyparse (RubyLexer yyLex) {
-    if (yyMax <= 0) yyMax = 256;			// initial size
-    int yyState = 0, yyStates[] = new int[yyMax];	// state stack
-    Object yyVal = null, yyVals[] = new Object[yyMax];	// value stack
-    int yyToken = -1;					// current input
-    int yyErrorFlag = 0;				// #tokens to shift
+    if (yyMax <= 0) yyMax = 256;                       // initial size
+    int yyState = 0, yyStates[] = new int[yyMax];      // state stack
+    Object yyVal = null, yyVals[] = new Object[yyMax]; // value stack
+    int yyToken = -1;                                  // current input
+    int yyErrorFlag = 0;                               // #tokens to shift
 
     yyLoop: for (int yyTop = 0;; ++ yyTop) {
-      if (yyTop >= yyStates.length) {			// dynamically increase
+      if (yyTop >= yyStates.length) {                  // dynamically increase
         int[] i = new int[yyStates.length+yyMax];
         System.arraycopy(yyStates, 0, i, 0, yyStates.length);
         yyStates = i;
@@ -1053,16 +1053,16 @@ public class RubyParser {
       yyStates[yyTop] = yyState;
       yyVals[yyTop] = yyVal;
 
-      yyDiscarded: for (;;) {	// discarding a token does not change stack
+      yyDiscarded: for (;;) {  // discarding a token does not change stack
         int yyN;
-        if ((yyN = yyDefRed[yyState]) == 0) {	// else [default] reduce (yyN)
+        if ((yyN = yyDefRed[yyState]) == 0) {  // else [default] reduce (yyN)
           if (yyToken < 0) {
 //            yyToken = yyLex.advance() ? yyLex.token() : 0;
             yyToken = yyLex.nextToken();
           }
           if ((yyN = yySindex[yyState]) != 0 && (yyN += yyToken) >= 0
               && yyN < yyTable.length && yyCheck[yyN] == yyToken) {
-            yyState = yyTable[yyN];		// shift to yyN
+            yyState = yyTable[yyN];            // shift to yyN
             yyVal = yyLex.value();
             yyToken = -1;
             if (yyErrorFlag > 0) -- yyErrorFlag;
@@ -1070,7 +1070,7 @@ public class RubyParser {
           }
           if ((yyN = yyRindex[yyState]) != 0 && (yyN += yyToken) >= 0
               && yyN < yyTable.length && yyCheck[yyN] == yyToken)
-            yyN = yyTable[yyN];			// reduce (yyN)
+            yyN = yyTable[yyN];                        // reduce (yyN)
           else
             switch (yyErrorFlag) {
   
@@ -1097,7 +1097,7 @@ public class RubyParser {
                 support.yyerror("irrecoverable syntax error at end-of-file");
               }
               yyToken = -1;
-              continue yyDiscarded;		// leave stack alone
+              continue yyDiscarded;            // leave stack alone
             }
         }
         int yyV = yyTop + 1-yyLen[yyN];

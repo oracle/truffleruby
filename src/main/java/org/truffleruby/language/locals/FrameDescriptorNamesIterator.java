@@ -13,7 +13,7 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 
-public class FrameDescriptorNamesIterator implements Iterator<Object> {
+public final class FrameDescriptorNamesIterator implements Iterator<Object> {
 
     public static Iterable<Object> iterate(FrameDescriptor descriptor) {
         return () -> new FrameDescriptorNamesIterator(descriptor);
