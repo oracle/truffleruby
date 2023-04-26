@@ -10,6 +10,8 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -67,7 +69,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
             guards = { "strings.isRubyString(str)", "equalNode.execute(strings, str, cachedTString, cachedEncoding)" },
             limit = "getCacheLimit()")
     protected RubySymbol rubyString(Object str,
-            @Cached RubyStringLibrary strings,
+            @Cached @Shared RubyStringLibrary strings,
             @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
@@ -77,7 +79,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString", limit = "1")
     protected RubySymbol rubyStringUncached(Object str,
-            @Cached RubyStringLibrary strings) {
+            @Cached @Shared RubyStringLibrary strings) {
         return getSymbol(strings.getTString(str), strings.getEncoding(str));
     }
 
@@ -85,7 +87,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
-            @Cached RubyStringLibrary libString,
+            @Cached @Exclusive RubyStringLibrary strings,
             @Cached ToSymbolNode toSymbolNode) {
         var coerced = toStrNode.call(
                 coreLibrary().truffleTypeModule,
@@ -94,7 +96,7 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
                 coreLibrary().stringClass,
                 coreSymbols().TO_STR);
 
-        if (libString.isRubyString(coerced)) {
+        if (strings.isRubyString(coerced)) {
             return toSymbolNode.execute(coerced);
         } else {
             errorProfile.enter();

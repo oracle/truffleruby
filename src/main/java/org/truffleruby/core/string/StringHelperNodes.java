@@ -12,6 +12,8 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -171,9 +173,9 @@ public abstract class StringHelperNodes {
 
         public abstract int executeCount(Object string, TStringWithEncoding[] tstringsWithEncs);
 
-        @Specialization(guards = "strings.getTString(string).isEmpty()", limit = "1")
+        @Specialization(guards = "libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, Object[] args,
-                @Cached RubyStringLibrary strings) {
+                @Cached @Shared RubyStringLibrary libString) {
             return 0;
         }
 
@@ -187,15 +189,15 @@ public abstract class StringHelperNodes {
                 limit = "getDefaultCacheLimit()")
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
-                @Cached RubyStringLibrary libString,
+                @Cached @Shared RubyStringLibrary libString,
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
+                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
             var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
             return StringSupport.strCount(byteArray, codeRange, squeeze, tables, compatEncoding.jcoding, this);
@@ -204,9 +206,9 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
                 @Cached BranchProfile errorProfile,
-                @Cached RubyStringLibrary libString,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
+                @Cached @Shared RubyStringLibrary libString,
+                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             if (tstringsWithEncs.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
@@ -313,12 +315,12 @@ public abstract class StringHelperNodes {
                 limit = "getDefaultCacheLimit()")
         protected Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
-                @Cached RubyStringLibrary libString,
+                @Cached @Shared RubyStringLibrary libString,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
-                @Cached BranchProfile nullProfile) {
+                @Cached @Exclusive BranchProfile nullProfile) {
             var processedTString = processStr(string, squeeze, compatEncoding, tables);
             if (processedTString == null) {
                 nullProfile.enter();
@@ -331,8 +333,8 @@ public abstract class StringHelperNodes {
 
         @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
         protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
-                @Cached RubyStringLibrary libString,
-                @Cached BranchProfile errorProfile) {
+                @Cached @Shared RubyStringLibrary libString,
+                @Cached @Exclusive BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));

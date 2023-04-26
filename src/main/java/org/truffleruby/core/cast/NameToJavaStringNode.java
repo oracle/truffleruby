@@ -20,6 +20,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -48,9 +49,9 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
 
     public abstract RubyBaseNodeWithExecute getValueNode();
 
-    @Specialization(guards = "strings.isRubyString(value)", limit = "1")
+    @Specialization(guards = "libString.isRubyString(value)", limit = "1")
     protected String stringNameToJavaString(Object value,
-            @Cached RubyStringLibrary strings,
+            @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
@@ -70,8 +71,8 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     protected String nameToJavaString(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStr,
-            @Cached RubyStringLibrary libString,
-            @Cached @Shared ToJavaStringNode toJavaStringNode) {
+            @Cached @Exclusive RubyStringLibrary libString,
+            @Cached @Exclusive ToJavaStringNode toJavaStringNode) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");

@@ -29,6 +29,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -162,7 +163,7 @@ public abstract class ByteArrayNodes {
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
-                @Cached RubyStringLibrary libPattern,
+                @Cached @Shared RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
 
@@ -191,7 +192,7 @@ public abstract class ByteArrayNodes {
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
                 @Cached ConditionProfile noCopyProfile,
                 @Cached ConditionProfile notFoundProfile,
-                @Cached RubyStringLibrary libPattern,
+                @Cached @Shared RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
             // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.

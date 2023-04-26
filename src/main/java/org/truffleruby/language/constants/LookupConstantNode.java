@@ -22,6 +22,7 @@ import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -62,7 +63,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             @Cached("isValidName(cachedCheckName, cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
-            @Cached ConditionProfile sameNameProfile) {
+            @Cached @Exclusive ConditionProfile sameNameProfile) {
         if (!isValidConstantName) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(cachedName, this));
         } else if (!isVisible) {
@@ -76,9 +77,9 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @Specialization
     protected RubyConstant lookupConstantUncached(RubyModule module, String name, boolean checkName,
-            @Cached ConditionProfile isValidConstantNameProfile,
-            @Cached ConditionProfile isVisibleProfile,
-            @Cached ConditionProfile isDeprecatedProfile) {
+            @Cached @Exclusive ConditionProfile isValidConstantNameProfile,
+            @Cached @Exclusive ConditionProfile isVisibleProfile,
+            @Cached @Exclusive ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup(module, name);
         boolean isVisible = isVisible(module, constant);
 

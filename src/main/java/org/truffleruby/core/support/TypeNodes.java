@@ -51,6 +51,8 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -116,15 +118,15 @@ public abstract class TypeNodes {
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
-                @Cached FreezeNode freezeNode) {
+                @Cached @Exclusive FreezeNode freezeNode) {
             freezeNode.execute(self);
             return self;
         }
 
         @Specialization(guards = "!metaClass.isSingleton", limit = "1")
         protected Object freezeNormalObject(RubyDynamicObject self,
-                @Cached FreezeNode freezeNode,
-                @Cached MetaClassNode metaClassNode,
+                @Cached @Shared FreezeNode freezeNode,
+                @Cached @Shared MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
             freezeNode.execute(self);
             return self;
@@ -132,11 +134,11 @@ public abstract class TypeNodes {
 
         @Specialization(guards = "metaClass.isSingleton", limit = "1")
         protected Object freezeSingletonObject(RubyDynamicObject self,
-                @Cached FreezeNode freezeNode,
-                @Cached FreezeNode freezeMetaClasNode,
+                @Cached @Shared FreezeNode freezeNode,
+                @Cached @Exclusive FreezeNode freezeMetaClasNode,
                 @Cached IsFrozenNode isFrozenMetaClassNode,
                 @Cached ConditionProfile singletonClassUnfrozenProfile,
-                @Cached MetaClassNode metaClassNode,
+                @Cached @Shared MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
             if (singletonClassUnfrozenProfile.profile(
                     !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {

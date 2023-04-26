@@ -131,6 +131,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -449,7 +450,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isFrozenNode.execute(self)", limit = "1")
         protected Object writer(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached IsFrozenNode isFrozenNode,
+                @Cached @Shared IsFrozenNode isFrozenNode,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
@@ -461,7 +462,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isFrozenNode.execute(self)", limit = "1")
         protected Object frozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached IsFrozenNode isFrozenNode) {
+                @Cached @Shared IsFrozenNode isFrozenNode) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
         }
     }
@@ -707,12 +708,12 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile errorProfile,
+                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ClassExecBlockNode classExecNode) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
             if (count > 0) {
-                errorProfile.enter();
+                wrongNumberOfArgumentsProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
             }
 
@@ -723,7 +724,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
         protected Object evalWithString(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile errorProfile,
+                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
@@ -735,7 +736,7 @@ public abstract class ModuleNodes {
             int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
 
             if (count == 0) {
-                errorProfile.enter();
+                wrongNumberOfArgumentsProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
             }
 
@@ -1082,7 +1083,7 @@ public abstract class ModuleNodes {
                 limit = "getLimit()")
         protected Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @Cached RubyStringLibrary stringsName,
+                @Cached @Shared RubyStringLibrary stringsName,
                 @Cached("asTruffleStringUncached(name)") TruffleString cachedTString,
                 @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
                 @Cached("getJavaString(name)") String cachedString,
@@ -1097,8 +1098,8 @@ public abstract class ModuleNodes {
                 replaces = "getConstantStringCached", limit = "1")
         protected Object getConstantString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @Cached RubyStringLibrary stringsName,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached @Shared RubyStringLibrary stringsName,
+                @Cached @Shared ToJavaStringNode toJavaStringNode) {
             return getConstant(module, toJavaStringNode.executeToJavaString(name), checkName, lookInObject);
         }
 
@@ -1106,8 +1107,8 @@ public abstract class ModuleNodes {
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName, name)" }, limit = "1")
         protected Object getConstantNoInheritString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @Cached RubyStringLibrary stringsName,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached @Shared RubyStringLibrary stringsName,
+                @Cached @Shared ToJavaStringNode toJavaStringNode) {
             return getConstantNoInherit(module, toJavaStringNode.executeToJavaString(name), checkName);
         }
 
@@ -1115,7 +1116,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name)" }, limit = "1")
         protected Object getConstantScoped(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
-                @Cached RubyStringLibrary stringsName) {
+                @Cached @Shared RubyStringLibrary stringsName) {
             return FAILURE;
         }
 
@@ -1342,7 +1343,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyMethod(getArgument(rubyArgs, 1))" })
         protected RubySymbol defineMethodWithMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
@@ -1352,7 +1353,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
         protected RubySymbol defineMethodWithProc(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
@@ -1364,7 +1365,7 @@ public abstract class ModuleNodes {
                 guards = { "isMethodParameterProvided(rubyArgs)", "isRubyUnboundMethod(getArgument(rubyArgs, 1))" })
         protected RubySymbol defineMethodWithUnboundMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
@@ -1385,7 +1386,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "isBlockProvided(rubyArgs)" })
         protected RubySymbol defineMethodWithBlock(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object block = RubyArguments.getBlock(rubyArgs);
 
@@ -1696,7 +1697,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
-                @Cached BranchProfile errorProfile) {
+                @Cached @Shared BranchProfile errorProfile) {
             checkNotClass(module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
@@ -1707,7 +1708,7 @@ public abstract class ModuleNodes {
         protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached BranchProfile errorProfile,
+                @Cached @Shared BranchProfile errorProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached SingleValueCastNode singleValueCastNode) {
             checkNotClass(module, errorProfile);

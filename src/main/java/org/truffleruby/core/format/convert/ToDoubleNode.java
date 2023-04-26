@@ -18,6 +18,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.IsANode;
@@ -55,14 +56,14 @@ public abstract class ToDoubleNode extends FormatNode {
 
     @Specialization(guards = { "!isRubyNumber(object)", "isNumeric(object, isANode)" }, limit = "1")
     protected double toDouble(RubyDynamicObject object,
-            @Cached IsANode isANode,
+            @Cached @Shared IsANode isANode,
             @Cached ToFNode toFNode) {
         return toFNode.executeToDouble(object);
     }
 
     @Specialization(guards = { "!isRubyNumber(object)", "!isNumeric(object, isANode)" }, limit = "1")
     protected double toDouble(Object object,
-            @Cached IsANode isANode) {
+            @Cached @Shared IsANode isANode) {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().typeErrorCantConvertInto(object, "Float", this));
