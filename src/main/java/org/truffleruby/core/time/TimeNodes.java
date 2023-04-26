@@ -527,22 +527,6 @@ public abstract class TimeNodes {
             return buildTime(language, timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
-        @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        protected Object timeSFromArrayFallback(
-                RubyClass timeClass,
-                Object sec,
-                int min,
-                int hour,
-                int mday,
-                int month,
-                int year,
-                Object nsec,
-                int isdst,
-                boolean isutc,
-                Object utcoffset) {
-            return FAILURE;
-        }
-
         @TruffleBoundary
         private RubyTime buildTime(RubyLanguage language, RubyClass timeClass, int sec, int min, int hour, int mday,
                 int month,

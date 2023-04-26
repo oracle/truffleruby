@@ -380,9 +380,7 @@ class Time
       Primitive.rb_num2int(month)
       Primitive.rb_num2int(year)
 
-      time = Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      return time unless Primitive.undefined?(time)
-
+      # handle sec and nsec
       if Primitive.is_a?(sec, String)
         sec = sec.to_i
       elsif nsec
@@ -401,10 +399,8 @@ class Time
       end
 
       nsec ||= 0
-      sec += nsec / 1_000_000_000
-      nsec %= 1_000_000_000
 
-      from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
+      Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
     end
     private :from_array
 
