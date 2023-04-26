@@ -432,5 +432,98 @@ module Truffle
 
       [external, internal]
     end
+
+    def self.normalize_options(mode, perm, options, default_mode = nil)
+      autoclose = true
+
+      if mode
+        mode = (Truffle::Type.try_convert(mode, Integer, :to_int) or
+          Truffle::Type.coerce_to(mode, String, :to_str))
+      end
+
+      if options
+        if optmode = options[:mode]
+          optmode = (Truffle::Type.try_convert(optmode, Integer, :to_int) or
+            Truffle::Type.coerce_to(optmode, String, :to_str))
+        end
+
+        if mode && optmode
+          raise ArgumentError, 'mode specified twice'
+        end
+
+        mode ||= optmode
+        mode ||= default_mode
+
+        if flags = options[:flags]
+          flags = Truffle::Type.rb_convert_type(flags, Integer, :to_int)
+
+          if Primitive.nil?(mode)
+            mode = flags
+          elsif Primitive.is_a?(mode, Integer)
+            mode |= flags
+          else # it's a String
+            mode = Truffle::IOOperations.parse_mode(mode)
+            mode |= flags
+          end
+        end
+
+        if optperm = options[:perm]
+          optperm = Truffle::Type.try_convert(optperm, Integer, :to_int)
+        end
+
+        if perm
+          raise ArgumentError, 'perm specified twice' if optperm
+        else
+          perm = optperm
+        end
+
+        autoclose = Primitive.as_boolean(options[:autoclose]) if options.key?(:autoclose)
+      end
+
+      mode ||= default_mode
+
+      if Primitive.is_a?(mode, String)
+        mode, external, internal = mode.split(':', 3)
+        raise ArgumentError, 'invalid access mode' unless mode
+
+        binary = true  if mode.include?(?b)
+        binary = false if mode.include?(?t)
+      elsif mode
+        binary = true  if (mode & BINARY) != 0
+      end
+
+      if options
+        if options[:textmode] and options[:binmode]
+          raise ArgumentError, 'both textmode and binmode specified'
+        end
+
+        if Primitive.nil? binary
+          binary = options[:binmode]
+        elsif options.key?(:textmode) or options.key?(:binmode)
+          raise ArgumentError, 'text/binary mode specified twice'
+        end
+
+        if !external and !internal
+          external = options[:external_encoding]
+          internal = options[:internal_encoding]
+        elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
+          raise ArgumentError, 'encoding specified twice'
+        end
+
+        if !external and !internal
+          encoding = options[:encoding]
+
+          if Primitive.is_a?(encoding, Encoding)
+            external = encoding
+          elsif !Primitive.nil?(encoding)
+            encoding = StringValue(encoding)
+            external, internal = encoding.split(':', 2)
+          end
+        end
+      end
+      external = Encoding::BINARY if binary and !external and !internal
+      perm ||= 0666
+      [mode, binary, external, internal, autoclose, perm]
+    end
   end
 end
