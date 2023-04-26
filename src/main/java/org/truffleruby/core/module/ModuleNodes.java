@@ -162,10 +162,11 @@ public abstract class ModuleNodes {
                 sourceSection,
                 lexicalParent,
                 name);
+
+        module.fields.afterConstructed();
+
         if (lexicalParent != null) {
             module.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
-        } else if (name != null) { // bootstrap module
-            module.fields.setFullName(name);
         }
         return module;
     }

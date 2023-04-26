@@ -112,6 +112,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
+    /** Only set for a Module and not a Class since there is no usage of it for a Class */
     private final CyclicAssumption hierarchyUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
@@ -141,10 +142,24 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.hierarchyUnmodifiedAssumption = new CyclicAssumption("hierarchy is unmodified");
+        this.hierarchyUnmodifiedAssumption = rubyModule instanceof RubyClass
+                ? null
+                : new CyclicAssumption("hierarchy is unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass ? null : new ConcurrentWeakSet<>();
+
+        if (lexicalParent == null && givenBaseName != null) {
+            setFullName(givenBaseName);
+        }
+    }
+
+    /** Compute the name eagerly now as it can cause a Shape transition. We need to do so because
+     * InteropLibrary$Asserts.assertMetaObject calls getMetaQualifiedName() and if getName() at that point adds the
+     * object_id property then accepts() asserts that follow will fail. We cannot call this in the ModuleFields
+     * constructor as the name depends on fields of RubyClass (e.g., isSingleton). */
+    public void afterConstructed() {
+        getName();
     }
 
     public RubyConstant getAdoptedByLexicalParent(
@@ -152,6 +167,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyModule lexicalParent,
             String name,
             Node currentNode) {
+        assert name != null;
+
         RubyConstant previous = lexicalParent.fields.setConstantInternal(
                 context,
                 currentNode,
@@ -785,6 +802,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return !this.hasFullName;
     }
 
+    private boolean isClass() {
+        return rubyModule instanceof RubyClass;
+    }
+
     public boolean isRefinement() {
         return isRefinement;
     }
@@ -810,7 +831,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newHierarchyVersion() {
-        hierarchyUnmodifiedAssumption.invalidate(getName());
+        if (!isClass()) {
+            hierarchyUnmodifiedAssumption.invalidate(getName());
+        }
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
@@ -870,6 +893,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Assumption getHierarchyUnmodifiedAssumption() {
+        assert !isClass();
         return hierarchyUnmodifiedAssumption.getAssumption();
     }
 
@@ -981,12 +1005,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return refinements;
     }
 
+    /** Must be called inside the RubyClass constructor */
     public void setSuperClass(RubyClass superclass) {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
-        newMethodsVersion(new ArrayList<>(methods.keySet()));
-        newConstantsVersion(new ArrayList<>(constants.keySet()));
-        newHierarchyVersion();
     }
 
     @Override

@@ -168,8 +168,10 @@
 #define RUBY_ALIAS_FUNCTION_VOID(prot, name, args) RUBY_ALIAS_FUNCTION_TYPE(void, prot, name, args)
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
+#define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
 #define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
+#define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
 #define HAVE_DECL_GETENV 1
@@ -431,9 +433,8 @@
 #define DLEXT_MAXLEN 3
 #define DLEXT ".so"
 #define HAVE__SETJMP 1
-#define RUBY_SETJMP(env) _setjmp((env))
-#define RUBY_LONGJMP(env,val) _longjmp((env),val)
-#define RUBY_JMP_BUF jmp_buf
+#define RUBY_SETJMP(env) __builtin_setjmp((void **)(env))
+#define RUBY_LONGJMP(env,val) __builtin_longjmp((void **)(env),val)
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
 #define THREAD_IMPL_H "thread_pthread.h"

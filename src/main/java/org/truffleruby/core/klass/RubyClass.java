@@ -59,11 +59,10 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         assert !isSingleton || givenBaseName == null;
         this.isSingleton = isSingleton;
         this.attached = attached;
+        this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
+        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
 
         if (superclass instanceof RubyClass) {
-            if (lexicalParent == null && givenBaseName != null) {
-                fields.setFullName(givenBaseName);
-            }
             // superclass should be set after "full name"
             this.superclass = superclass;
             this.ancestorClasses = computeAncestorClasses((RubyClass) superclass);
@@ -75,13 +74,13 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             }
         } else { // BasicObject (nil superclass)
             assert superclass == nil;
+            assert givenBaseName == "BasicObject";
             this.superclass = superclass;
             this.ancestorClasses = EMPTY_CLASS_ARRAY;
             this.depth = 0;
         }
 
-        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
-        this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
+        fields.afterConstructed();
     }
 
 
@@ -91,6 +90,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.isSingleton = false;
         this.attached = null;
         this.nonSingletonClass = this;
+        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
 
         RubyClass basicObjectClass = ClassNodes.createBootClass(language, this, nil, "BasicObject");
         RubyClass objectClass = ClassNodes.createBootClass(language, this, basicObjectClass, "Object");
@@ -100,8 +100,9 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.superclass = superclass;
         this.ancestorClasses = computeAncestorClasses(superclass);
         this.depth = superclass.depth + 1;
-        this.directNonSingletonSubclasses = new ConcurrentWeakSet<>();
         fields.setSuperClass(superclass);
+
+        fields.afterConstructed();
     }
 
     private RubyClass computeNonSingletonClass(boolean isSingleton, Object superclassObject) {
