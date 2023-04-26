@@ -58,7 +58,7 @@ class Module
       result = Primitive.unbound_method_ruby2_keywords(method)
       if Primitive.nil?(result)
         warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords or method does not accept argument splat)", uplevel: 1
-      elsif result == false
+      elsif Primitive.false?(result)
         warn "Skipping set of ruby2_keywords flag for #{name} (unknown reason)", uplevel: 1
       end
     end
@@ -71,7 +71,7 @@ class Proc
     result = Primitive.proc_ruby2_keywords(self)
     if Primitive.nil?(result)
       warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords or proc does not accept argument splat)', uplevel: 1
-    elsif result == false
+    elsif Primitive.false?(result)
       warn 'Skipping set of ruby2_keywords flag for proc (unknown reason)', uplevel: 1
     end
     self

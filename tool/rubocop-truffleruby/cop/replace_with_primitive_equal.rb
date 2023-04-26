@@ -14,7 +14,7 @@ module RuboCop
       #   # good
       #   Primitive.equal?(foo, bar)
       #
-      class ReplaceWithPrimitiveObjectEqual < Base
+      class ReplaceWithPrimitiveEqual < Base
         extend AutoCorrector
 
         MSG = 'Use `Primitive.equal?` instead of `#equal?`'

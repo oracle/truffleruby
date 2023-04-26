@@ -225,7 +225,7 @@ module Truffle
         while timeout_ms > 2147483647 # INT_MAX
           timeout_ms -= 2147483000
           ret = poll(io, event_mask, 2147483)
-          return ret unless ret == false
+          return ret unless Primitive.false?(ret)
         end
 
         remaining_timeout = timeout_ms

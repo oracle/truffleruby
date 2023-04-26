@@ -112,7 +112,7 @@ class Range
     return nil if max < min || max == min && self.exclude_end? #-inf.prev_float == -inf!
     if max == min
       result = yield max
-      return result == true || result == 0 ? max : nil
+      return Primitive.true?(result) || result == 0 ? max : nil
     end
 
     # max == -Float::INFINITY will already be covered by the comparisons above.
@@ -136,7 +136,7 @@ class Range
     if min == -Float::INFINITY
       result = yield min
       # Find-minimum mode: It's not going to get any smaller than negative infinity.
-      return min if result == true || result == 0
+      return min if Primitive.true?(result) || result == 0
       return nil if Primitive.is_a?(result, Numeric) && result < 0
       min = normalized_begin = -Float::MAX # guaranteed to be <= max
     end
@@ -175,12 +175,12 @@ class Range
       # max is untested only if it's the end of the range.
       # It can only change the result of the search if we haven't found an admissible value yet (+ infinity edge case).
       result = yield max
-      return max if result == true || result == 0
+      return max if Primitive.true?(result) || result == 0
     elsif mid == max && min == normalized_begin
       # min is untested only if it's the begin of the range.
       result = yield min
       # Favor smallest value in case we're in find-minimum mode.
-      return min if result == true || result == 0
+      return min if Primitive.true?(result) || result == 0
     end
 
     last_admissible

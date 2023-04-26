@@ -224,6 +224,32 @@ public abstract class TypeNodes {
         }
     }
 
+    @Primitive(name = "true?")
+    public abstract static class IsTrue extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected boolean bool(boolean value) {
+            return value;
+        }
+
+        @Fallback
+        protected boolean other(Object value) {
+            return false;
+        }
+    }
+
+    @Primitive(name = "false?")
+    public abstract static class IsFalse extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected boolean bool(boolean value) {
+            return !value;
+        }
+
+        @Fallback
+        protected boolean other(Object value) {
+            return false;
+        }
+    }
+
     @Primitive(name = "object_ivars")
     public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
 

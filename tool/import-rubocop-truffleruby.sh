@@ -20,4 +20,9 @@ if [ ! "$(ls $SOURCE_DIR)" ]; then
     echo "FAILURE: git clone failed"
   fi
 fi
+
+# handle a case when a source cop file was renamed/deleted
+rm -r $TARGET_DIR/cop
+mkdir $TARGET_DIR/cop
+
 cp $SOURCE_DIR/$SOURCE_PATH/* $TARGET_DIR/cop/

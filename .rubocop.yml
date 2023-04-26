@@ -1,8 +1,9 @@
 require:
   - ./tool/rubocop-truffleruby/cop/replace_with_primitive_nil.rb
-  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_class.rb
-  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_equal.rb
-  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_object_kind_of.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_class.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_equal.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_is_a.rb
+  - ./tool/rubocop-truffleruby/cop/replace_with_primitive_true_and_false_predicates.rb
 
 AllCops:
   TargetRubyVersion: 3.1
@@ -406,21 +407,28 @@ TruffleRuby/ReplaceWithPrimitiveNil:
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
-TruffleRuby/ReplaceWithPrimitiveObjectClass:
+TruffleRuby/ReplaceWithPrimitiveClass:
   Enabled: true
   Include: # inspect *only* these files
     - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
-TruffleRuby/ReplaceWithPrimitiveObjectEqual:
+TruffleRuby/ReplaceWithPrimitiveEqual:
   Enabled: true
   Include: # inspect *only* these files
     - lib/truffle/**/*.rb
     - src/main/ruby/**/*.rb
 
 # Supports --auto-correct
-TruffleRuby/ReplaceWithPrimitiveObjectKindOf:
+TruffleRuby/ReplaceWithPrimitiveIsA:
+  Enabled: true
+  Include: # inspect *only* these files
+    - lib/truffle/**/*.rb
+    - src/main/ruby/**/*.rb
+
+# Supports --auto-correct
+TruffleRuby/ReplaceWithPrimitiveTrueAndFalsePredicates:
   Enabled: true
   Include: # inspect *only* these files
     - lib/truffle/**/*.rb

@@ -23,7 +23,7 @@ module RuboCop
       #   # good
       #   Primitive.is_a?(a, String)
       #
-      class ReplaceWithPrimitiveObjectKindOf < Base
+      class ReplaceWithPrimitiveIsA < Base
         extend AutoCorrector
 
         MSG = 'Use `Primitive.is_a?` instead of `#kind_of?` or `#is_a?`'

@@ -13,7 +13,7 @@ module RuboCop
       #   # good
       #   Primitive.class(object)
       #
-      class ReplaceWithPrimitiveObjectClass < Base
+      class ReplaceWithPrimitiveClass < Base
         extend AutoCorrector
 
         MSG = 'Use `Primitive.class` instead of `Object#class`'
