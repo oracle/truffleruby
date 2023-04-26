@@ -112,6 +112,7 @@ module FFI
 
     class Mapped < Type
       attr_reader :native_type
+      attr_reader :converter
       alias_method :type, :native_type
 
       def initialize(converter)
