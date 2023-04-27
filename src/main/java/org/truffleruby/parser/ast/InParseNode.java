@@ -58,8 +58,7 @@ public class InParseNode extends ParseNode {
             ParseNode nextCase) {
         super(position);
 
-        if (expressionNodes instanceof ArrayParseNode) {
-            var arrayParseNode = (ArrayParseNode) expressionNodes;
+        if (expressionNodes instanceof ArrayParseNode arrayParseNode) {
             if (arrayParseNode.size() != 1) {
                 throw CompilerDirectives.shouldNotReachHere();
             }
