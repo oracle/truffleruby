@@ -49,12 +49,6 @@ public final class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static boolean accepts(DelegatedArrayStorage store,
-            @CachedLibrary("store.storage") ArrayStoreLibrary stores) {
-        return true;
-    }
-
-    @ExportMessage
     protected Object read(int index,
             @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.read(storage, index + offset);
