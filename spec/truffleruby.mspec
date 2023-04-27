@@ -118,7 +118,10 @@ class MSpecScript
 
   if defined?(::TruffleRuby)
     if TruffleRuby.native?
-      excludes << 'aot'
+      excludes << 'native'
+      if GC.heap_stats.values.none?(Hash)
+        excludes << 'native-g1'
+      end
     else
       excludes << 'jvm'
     end

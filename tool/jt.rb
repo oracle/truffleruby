@@ -1630,20 +1630,21 @@ module Commands
   private def test_specs(command, *args)
     env_vars = {}
     options = []
+    tag = ENV['TAG'] || 'fails'
 
     case command
     when 'run'
       options += %w[--excl-tag fails]
     when 'tag'
-      options += %w[--add fails --fail --excl-tag fails]
+      options += %W[--add #{tag} --fail --excl-tag fails]
     when 'untag'
-      options += %w[--del fails --pass]
+      options += %W[--del #{tag} --pass]
       command = 'tag'
     when 'purge'
       options += %w[--purge]
       command = 'tag'
     when 'tag_all'
-      options += %w[--unguarded --all --dry-run --add fails]
+      options += %W[--unguarded --all --dry-run --add #{tag}]
       command = 'tag'
     else
       raise command
@@ -2234,7 +2235,7 @@ module Commands
         # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
         method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
         if truffleruby_native?
-          method_glob_pattern = "Isolated:_#{method_glob_pattern}"
+          method_glob_pattern = "{Isolated:_,}#{method_glob_pattern}"
         end
 
         dumps = Dir.glob('graal_dumps/*').select { |path| File.directory?(path) }.sort.last

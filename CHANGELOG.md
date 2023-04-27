@@ -2,6 +2,7 @@
 
 New features:
 
+* TruffleRuby Native on Oracle GraalVM on Linux now uses the G1 garbage collector which is much faster.
 
 Bug fixes:
 

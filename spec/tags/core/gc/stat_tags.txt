@@ -1,3 +1,5 @@
 slow:GC.stat increases count after GC is run
 slow:GC.stat increases major_gc_count after GC is run
 fails:GC.stat raises an error if an unknown key is given
+native-g1:GC.stat increases count after GC is run
+native-g1:GC.stat increases major_gc_count after GC is run
