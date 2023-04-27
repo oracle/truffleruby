@@ -1,3 +1,6 @@
+# Example:
+# ruby tool/extract_host_inlining.rb org.truffleruby.language.dispatch.RubyCallNode.execute host-inlining.txt
+
 simplify = ARGV.delete '--simplify'
 
 raise unless ARGV.size == 2
@@ -45,5 +48,11 @@ if simplify
     line.include?('DEAD') and line.include?('reason the invoke is dead code')
   }
 end
+
+# Reduce line width for unimportant information
+lines = lines.map { |line|
+  line.sub(/\[inlined\s.+?invoke\s+(true|false),/, '')
+      .sub(/,\s*incomplete\s+(true|false),/, ',')
+}
 
 puts lines.join
