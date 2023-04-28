@@ -1164,7 +1164,7 @@ class File < IO
       @path = nil
     else
       path = Truffle::Type.coerce_to_path path_or_fd
-      nmode, _binary, _external, _internal, _autoclose, perm = IO.normalize_options(mode, perm, options)
+      nmode, _binary, _external, _internal, _autoclose, perm = Truffle::IOOperations.normalize_options(mode, perm, options)
       fd = IO.sysopen(path, nmode, perm)
 
       @path = path

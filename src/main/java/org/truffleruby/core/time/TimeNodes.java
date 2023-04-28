@@ -511,6 +511,7 @@ public abstract class TimeNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
 
         @Specialization(guards = "(isutc || !isRubyDynamicObject(utcoffset)) || isNil(utcoffset)")
+        @TruffleBoundary
         protected RubyTime timeSFromArray(
                 RubyClass timeClass,
                 int sec,
@@ -524,29 +525,7 @@ public abstract class TimeNodes {
                 boolean isutc,
                 Object utcoffset) {
             final RubyLanguage language = getLanguage();
-            return buildTime(language, timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
-        }
 
-        @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        protected Object timeSFromArrayFallback(
-                RubyClass timeClass,
-                Object sec,
-                int min,
-                int hour,
-                int mday,
-                int month,
-                int year,
-                Object nsec,
-                int isdst,
-                boolean isutc,
-                Object utcoffset) {
-            return FAILURE;
-        }
-
-        @TruffleBoundary
-        private RubyTime buildTime(RubyLanguage language, RubyClass timeClass, int sec, int min, int hour, int mday,
-                int month,
-                int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (nsec < 0 || nsec > 999999999 ||
                     sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||

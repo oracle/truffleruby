@@ -143,7 +143,7 @@ class StringIO
       warn 'StringIO::new() does not take block; use StringIO::open() instead'
     end
 
-    mode, _binary, _external, _internal, _autoclose, _perm = IO.normalize_options(mode, nil, options)
+    mode, _binary, _external, _internal, _autoclose, _perm = Truffle::IOOperations.normalize_options(mode, nil, options)
 
     if Primitive.nil?(string)
       mode ||= IO::RDWR
