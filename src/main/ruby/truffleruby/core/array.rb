@@ -520,7 +520,7 @@ class Array
   def hash
     unless Primitive.array_can_contain_object?(self)
       # Primitive arrays do not need the recursion check
-      return hash_internal
+      return Primitive.hash_internal(self)
     end
 
     hash_val = size
@@ -544,7 +544,7 @@ class Array
       begin
         objects[id] = true
 
-        hash_val = hash_internal
+        hash_val = Primitive.hash_internal(self)
       ensure
         objects.delete id
       end
@@ -556,7 +556,7 @@ class Array
         objects[:__detect_outermost_recursion__] = true
         objects[id] = true
 
-        hash_val = hash_internal
+        hash_val = Primitive.hash_internal(self)
 
         # An inner version will raise to return back here, indicating that
         # the whole structure is recursive. In which case, abandon most of

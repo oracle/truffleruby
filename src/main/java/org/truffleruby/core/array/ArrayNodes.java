@@ -55,6 +55,7 @@ import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.pack.PackCompiler;
+import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
@@ -1049,9 +1050,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
-    @ReportPolymorphism
-    public abstract static class HashNode extends ArrayCoreMethodNode {
+    @Primitive(name = "hash_internal")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class HashNode extends PrimitiveArrayArgumentsNode {
 
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
@@ -1059,10 +1060,9 @@ public abstract class ArrayNodes {
         protected long hash(VirtualFrame frame, RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached DispatchNode toHashNode,
-                @Cached ToLongNode toLongNode,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached HashingNodes.ToHashByHashCode toHashByHashCode,
+                @Cached @Shared IntValueProfile arraySizeProfile,
+                @Cached @Shared LoopConditionProfile loopProfile) {
             final int size = arraySizeProfile.profile(array.size);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1071,8 +1071,7 @@ public abstract class ArrayNodes {
             try {
                 for (; loopProfile.inject(n < size); n++) {
                     final Object value = stores.read(store, n);
-                    final long valueHash = toLongNode.execute(toHashNode.call(value, "hash"));
-                    h = Hashing.update(h, valueHash);
+                    h = Hashing.update(h, toHashByHashCode.execute(value));
                     TruffleSafepoint.poll(this);
                 }
             } finally {
