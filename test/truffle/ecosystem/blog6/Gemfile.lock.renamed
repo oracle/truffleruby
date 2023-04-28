@@ -180,6 +180,3 @@ DEPENDENCIES
 
 RUBY VERSION
    ruby 2.4.4p0 (truffleruby 0.0-c3a45cc6)
-
-BUNDLED WITH
-   2.3.26

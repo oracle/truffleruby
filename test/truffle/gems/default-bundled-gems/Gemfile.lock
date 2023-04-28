@@ -211,6 +211,3 @@ DEPENDENCIES
   weakref (= 0.1.1)
   yaml (= 0.2.0)
   zlib (= 2.1.1)
-
-BUNDLED WITH
-   2.3.26
