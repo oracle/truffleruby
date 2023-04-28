@@ -695,7 +695,7 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile fileAndLineProfile,
                 @Cached ConditionProfile fileNoLineProfile) {
 
-            final Object[] args = RubyArguments.getPositionalArguments(rubyArgs, false);
+            final Object[] args = RubyArguments.getPositionalArguments(rubyArgs);
             final Object source = toStrNode.execute(args[0]);
 
             final RubyBinding binding;
@@ -1446,7 +1446,7 @@ public abstract class KernelNodes {
                 @Cached DispatchNode respondToMissingNode,
                 @Cached BooleanCastNode castMissingResultNode) {
             final Object name = RubyArguments.getArgument(rubyArgs, 0);
-            final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             final boolean includeProtectedAndPrivate = nArgs >= 2 &&
                     castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
 

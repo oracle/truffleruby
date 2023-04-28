@@ -308,7 +308,7 @@ public abstract class ProcNodes {
              * NB: In our case the arguments have already been destructured by the time this node is encountered. Thus,
              * we don't need to do the destructuring work that Rubinius would do and in the case that we receive
              * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
-            int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame, false);
+            int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame.getArguments());
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
                 return nil;
@@ -316,7 +316,7 @@ public abstract class ProcNodes {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);
                 } else {
-                    Object[] extractedArguments = RubyArguments.getPositionalArguments(frame.getArguments(), false);
+                    Object[] extractedArguments = RubyArguments.getPositionalArguments(frame.getArguments());
                     return createArray(extractedArguments, userArgumentCount);
                 }
             }

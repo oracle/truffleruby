@@ -294,6 +294,12 @@ public final class RubyArguments {
         }
     }
 
+    /** Get the number of positional user arguments inside the frame arguments. Assumes
+     * methodHasKeywordParameters=false. */
+    public static int getPositionalArgumentsCount(Object[] rubyArgs) {
+        return rubyArgs.length - RUNTIME_ARGUMENT_COUNT;
+    }
+
     /** Get the user argument at given index out of frame arguments */
     public static Object getArgument(Frame frame, int index) {
         assert index >= 0 && index < getRawArgumentsCount(frame);
@@ -331,9 +337,9 @@ public final class RubyArguments {
     }
 
     /** Get the positional user arguments out of frame arguments. Should only be used when strictly necessary,
-     * {@link #repack} or {@link #getArgument} avoid the extra allocation. */
-    public static Object[] getPositionalArguments(Object[] rubyArgs, boolean methodHasKeywordParameters) {
-        int count = getPositionalArgumentsCount(rubyArgs, methodHasKeywordParameters);
+     * {@link #repack} or {@link #getArgument} avoid the extra allocation. Assumes methodHasKeywordParameters=false. */
+    public static Object[] getPositionalArguments(Object[] rubyArgs) {
+        int count = getPositionalArgumentsCount(rubyArgs);
         return ArrayUtils.extractRange(rubyArgs, RUNTIME_ARGUMENT_COUNT, RUNTIME_ARGUMENT_COUNT + count);
     }
 

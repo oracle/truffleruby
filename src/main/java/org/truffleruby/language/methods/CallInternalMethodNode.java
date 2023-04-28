@@ -109,7 +109,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         }
 
         try {
-            int given = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            int given = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             if (!cachedArity.checkPositionalArguments(given)) {
                 checkArityProfile.enter();
                 throw RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);

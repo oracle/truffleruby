@@ -565,7 +565,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attr(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             final boolean setter;
-            Object[] names = RubyArguments.getPositionalArguments(rubyArgs, false);
+            Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
                 setter = (boolean) names[1];
@@ -592,7 +592,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrAccessor(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
-            Object[] names = RubyArguments.getPositionalArguments(rubyArgs, false);
+            Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
     }
@@ -602,7 +602,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrReader(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
-            Object[] names = RubyArguments.getPositionalArguments(rubyArgs, false);
+            Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
     }
@@ -612,7 +612,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrWriter(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
-            Object[] names = RubyArguments.getPositionalArguments(rubyArgs, false);
+            Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }
     }
@@ -711,7 +711,7 @@ public abstract class ModuleNodes {
         protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ClassExecBlockNode classExecNode) {
-            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count > 0) {
                 wrongNumberOfArgumentsProfile.enter();
@@ -734,7 +734,7 @@ public abstract class ModuleNodes {
             String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
             int line = 1;
 
-            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count == 0) {
                 wrongNumberOfArgumentsProfile.enter();
@@ -1518,7 +1518,7 @@ public abstract class ModuleNodes {
         }
 
         protected boolean isMethodParameterProvided(Object[] rubyArgs) {
-            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             return count >= 2;
         }
 
@@ -1697,7 +1697,7 @@ public abstract class ModuleNodes {
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached @Shared BranchProfile errorProfile) {
             checkNotClass(module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
@@ -1707,7 +1707,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached @Shared BranchProfile errorProfile,
                 @Cached LoopConditionProfile loopProfile,
@@ -1785,7 +1785,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#public with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
             return nil;
@@ -1793,7 +1793,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
@@ -1827,7 +1827,7 @@ public abstract class ModuleNodes {
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#private with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
             return nil;
@@ -1835,7 +1835,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
@@ -2132,7 +2132,7 @@ public abstract class ModuleNodes {
     public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names) {
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#protected with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
             return nil;
@@ -2140,7 +2140,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "names.length > 0")
         protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
-                @Bind("getPositionalArguments(rubyArgs, false)") Object[] names,
+                @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode) {
             for (Object name : names) {
