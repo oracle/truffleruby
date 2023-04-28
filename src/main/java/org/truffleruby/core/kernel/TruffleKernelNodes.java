@@ -231,9 +231,7 @@ public abstract class TruffleKernelNodes {
                 variables = SpecialVariableStorage.get(frame);
                 if (variables == nil) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = new SpecialVariableStorage();
-                    SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
-                    SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
+                    variables = initializeSpecialVariablesSlot(frame);
                 }
             } else {
                 Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
@@ -246,9 +244,7 @@ public abstract class TruffleKernelNodes {
                 variables = SpecialVariableStorage.get(storageFrame);
                 if (variables == nil) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = new SpecialVariableStorage();
-                    SpecialVariableStorage.set(storageFrame, (SpecialVariableStorage) variables);
-                    SpecialVariableStorage.getAssumption(storageFrame.getFrameDescriptor()).invalidate();
+                    variables = initializeSpecialVariablesSlot(storageFrame);
                 }
             }
             return (SpecialVariableStorage) variables;
@@ -264,11 +260,16 @@ public abstract class TruffleKernelNodes {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             Object variables = SpecialVariableStorage.get(frame);
             if (variables == Nil.INSTANCE) {
-                variables = new SpecialVariableStorage();
-                SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
-                SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
+                variables = initializeSpecialVariablesSlot(frame);
             }
             return (SpecialVariableStorage) variables;
+        }
+
+        private static Object initializeSpecialVariablesSlot(Frame storageFrame) {
+            var variables = new SpecialVariableStorage();
+            SpecialVariableStorage.set(storageFrame, variables);
+            SpecialVariableStorage.getAssumption(storageFrame.getFrameDescriptor()).invalidate();
+            return variables;
         }
 
         private static void noStorageFrameError(Frame frame, int declarationFrameDepth) {
