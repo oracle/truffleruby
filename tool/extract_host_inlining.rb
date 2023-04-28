@@ -6,21 +6,25 @@ simplify = ARGV.delete '--simplify'
 raise unless ARGV.size == 2
 method, file = ARGV
 
-lines = File.readlines(file)
-
+all_lines = File.readlines(file)
 
 method = "Root[#{method}]" unless method.start_with?('Root[')
 method = "            #{method.strip}\n"
 blank_line = "            \n"
 
-i = lines.index(method)
-raise "not found" unless i
-start = i - 1
+lines = []
+while i = all_lines.index(method)
+  start = i - 1
 
-# i += 1 until lines[i].strip.empty?
-i += 1 until lines[i] == blank_line
+  # i += 1 until lines[i].strip.empty?
+  i += 1 until all_lines[i] == blank_line
 
-lines = lines[start...i]
+  lines.concat all_lines[start...i]
+  lines << "\n"
+  all_lines = all_lines[i..-1]
+end
+raise "not found" if lines.empty?
+lines.pop # Remove last \n
 
 indent = lines.first[/^ +/]
 lines = lines.map { |line| line.sub(indent, '') }
