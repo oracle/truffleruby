@@ -144,10 +144,6 @@ public abstract class SingletonClassNode extends RubySourceNode {
         return getLanguage().options.CLASS_CACHE;
     }
 
-    protected int getIdentityCacheContextLimit() {
-        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
-    }
-
     abstract RubyNode getValueNode();
 
     @Override

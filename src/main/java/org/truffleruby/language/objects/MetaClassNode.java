@@ -132,8 +132,4 @@ public abstract class MetaClassNode extends RubyBaseNode {
     protected int getCacheLimit() {
         return getLanguage().options.CLASS_CACHE;
     }
-
-    protected int getIdentityCacheContextLimit() {
-        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
-    }
 }
