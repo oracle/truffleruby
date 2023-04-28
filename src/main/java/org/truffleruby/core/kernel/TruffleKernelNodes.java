@@ -226,26 +226,16 @@ public abstract class TruffleKernelNodes {
         protected SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
-            Object variables;
-            if (declarationFrameDepth == 0) {
-                variables = SpecialVariableStorage.get(frame);
-                if (variables == nil) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = initializeSpecialVariablesSlot(frame);
-                }
-            } else {
-                Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            if (storageFrame == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                noStorageFrameError(frame, declarationFrameDepth);
+            }
 
-                if (storageFrame == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    noStorageFrameError(frame, declarationFrameDepth);
-                }
-
-                variables = SpecialVariableStorage.get(storageFrame);
-                if (variables == nil) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = initializeSpecialVariablesSlot(storageFrame);
-                }
+            Object variables = SpecialVariableStorage.get(storageFrame);
+            if (variables == nil) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                variables = initializeSpecialVariablesSlot(storageFrame);
             }
             return (SpecialVariableStorage) variables;
         }
