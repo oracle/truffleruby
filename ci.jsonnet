@@ -611,7 +611,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-chunky-svm-graal-core": shared + chunky + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-chunky-svm-graal-enterprise": shared + chunky + svm_configurations["svm-graal-enterprise"],
 
-      local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "01:15:00" },
+      local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "01:30:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
       "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"],
