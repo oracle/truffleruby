@@ -26,6 +26,7 @@ Memory Footprint:
 
 * Replaced `RubyLibrary` with `FreezeNode` and `IsFrozenNode` (@horakivo).
 * Address many truffle-sharing warnings (@horakivo).
+* Address many truffle-inlining warnings (@horakivo).
 
 
 # 23.0.0
