@@ -9,13 +9,15 @@
  */
 package org.truffleruby.debug;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
 public class SingleElementArray implements TruffleObject {
@@ -38,11 +40,12 @@ public class SingleElementArray implements TruffleObject {
 
     @ExportMessage
     protected Object readArrayElement(long index,
-            @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
+            @Cached InlinedBranchProfile errorProfile,
+            @Bind("$node") Node node) throws InvalidArrayIndexException {
         if (isArrayElementReadable(index)) {
             return element;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(node);
             throw InvalidArrayIndexException.create(index);
         }
     }
