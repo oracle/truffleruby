@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
 
 Compatibility:
 

@@ -225,17 +225,17 @@ class Dir
       def process_directory(matches, parent, entry, glob_base_dir)
         raise 'invalid usage' if parent || entry
 
-        # Even though the recursive entry is zero width
-        # in this case, its left separator is still the
-        # dominant one, so we fix things up to use it.
-        if @separator
-        else
-          @next.process_entry '', Truffle::DirOperations::DT_DIR, matches, parent, glob_base_dir if glob_base_dir
-        end
-
         stack = [[nil, subdir_entries(glob_base_dir, nil)]]
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+
+        if glob_base_dir
+          if Primitive.is_a?(@next, DirectoriesOnly)
+            @next.process_entry '', Truffle::DirOperations::DT_DIR, matches, parent, glob_base_dir
+          else
+            @next.process_entry '.', Truffle::DirOperations::DT_DIR, matches, parent, glob_base_dir if allow_dots
+          end
+        end
 
         until stack.empty?
           path, dir_entries = *stack.pop
@@ -245,13 +245,15 @@ class Dir
             type = entry.type
 
             full = path_join(path, ent)
-            if (type == Truffle::DirOperations::DT_DIR) and (allow_dots or ent.getbyte(0) != 46) # ?.
-              @next.process_entry ent, type, matches, path, glob_base_dir
+            if (type == Truffle::DirOperations::DT_DIR)
+              if (allow_dots or ent.getbyte(0) != 46) # ?.
+                @next.process_entry ent, type, matches, path, glob_base_dir
 
-              stack << [path, dir_entries]
-              path = full
-              dir_entries = subdir_entries(glob_base_dir, full)
-            elsif (allow_dots or ent.getbyte(0) != 46) # ?.
+                stack << [path, dir_entries]
+                path = full
+                dir_entries = subdir_entries(glob_base_dir, full)
+              end
+            else
               @next.process_entry ent, type, matches, path, glob_base_dir
             end
           end

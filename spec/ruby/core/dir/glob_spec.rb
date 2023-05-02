@@ -182,6 +182,90 @@ describe "Dir.glob" do
     Dir.glob('**/**/**').should_not.empty?
   end
 
+  it "handles **/** with base keyword argument" do
+    Dir.glob('**/**', base: "dir").should == ["filename_ordering"]
+
+    expected = %w[
+      directory
+      directory/structure
+      directory/structure/bar
+      directory/structure/baz
+      directory/structure/file_one
+      directory/structure/file_one.ext
+      directory/structure/foo
+    ].sort
+
+    Dir.glob('**/**', base: "deeply/nested").sort.should == expected
+  end
+
+  it "handles **/ with base keyword argument" do
+    expected = %w[
+      /
+      directory/
+      directory/structure/
+    ]
+    Dir.glob('**/', base: "deeply/nested").sort.should == expected
+  end
+
+  # 2.7 and 3.0 include a "." entry for every dir: ["directory/.", "directory/structure/.", ...]
+  guard_not -> { ruby_version_is ''...'3.1' } do
+    it "handles **/.* with base keyword argument" do
+      expected = %w[
+        .dotfile.ext
+        directory/structure/.ext
+      ].sort
+
+      Dir.glob('**/.*', base: "deeply/nested").sort.should == expected
+    end
+
+    it "handles **/.* with base keyword argument and FNM_DOTMATCH" do
+      expected = %w[
+        .
+        .dotfile.ext
+        directory/structure/.ext
+      ].sort
+
+      Dir.glob('**/.*', File::FNM_DOTMATCH, base: "deeply/nested").sort.should == expected
+    end
+
+    it "handles **/** with base keyword argument and FNM_DOTMATCH" do
+      expected = %w[
+        .
+        .dotfile.ext
+        directory
+        directory/structure
+        directory/structure/.ext
+        directory/structure/bar
+        directory/structure/baz
+        directory/structure/file_one
+        directory/structure/file_one.ext
+        directory/structure/foo
+      ].sort
+
+      Dir.glob('**/**', File::FNM_DOTMATCH, base: "deeply/nested").sort.should == expected
+    end
+  end
+
+  it "handles **/*pattern* with base keyword argument and FNM_DOTMATCH" do
+    expected = %w[
+      .dotfile.ext
+      directory/structure/file_one
+      directory/structure/file_one.ext
+    ]
+
+    Dir.glob('**/*file*', File::FNM_DOTMATCH, base: "deeply/nested").sort.should == expected
+  end
+
+  it "handles **/glob with base keyword argument and FNM_EXTGLOB" do
+    expected = %w[
+      directory/structure/bar
+      directory/structure/file_one
+      directory/structure/file_one.ext
+    ]
+
+    Dir.glob('**/*{file,bar}*', File::FNM_EXTGLOB, base: "deeply/nested").sort.should == expected
+  end
+
   it "handles simple filename patterns" do
     Dir.glob('.dotfile').should == ['.dotfile']
   end
