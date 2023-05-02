@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -41,68 +42,72 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.getUncached();
     }
 
-    public abstract RubyClass execute(Object value);
+    public final RubyClass execute(Object value) {
+        return execute(value, coreLibrary());
+    }
+
+    protected abstract RubyClass execute(Object value, CoreLibrary coreLibrary);
 
     // Cover all primitives, nil and symbols
 
     @Specialization(guards = "value")
-    protected RubyClass metaClassTrue(boolean value) {
-        return coreLibrary().trueClass;
+    protected RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
+        return coreLibrary.trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass metaClassFalse(boolean value) {
-        return coreLibrary().falseClass;
+    protected RubyClass metaClassFalse(boolean value, CoreLibrary coreLibrary) {
+        return coreLibrary.falseClass;
     }
 
     @Specialization
-    protected RubyClass metaClassInt(int value) {
-        return coreLibrary().integerClass;
+    protected RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
+        return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassLong(long value) {
-        return coreLibrary().integerClass;
+    protected RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
+        return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassBignum(RubyBignum value) {
-        return coreLibrary().integerClass;
+    protected RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
+        return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassDouble(double value) {
-        return coreLibrary().floatClass;
+    protected RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
+        return coreLibrary.floatClass;
     }
 
     @Specialization
-    protected RubyClass metaClassNil(Nil value) {
-        return coreLibrary().nilClass;
+    protected RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
+        return coreLibrary.nilClass;
     }
 
     @Specialization
-    protected RubyClass metaClassSymbol(RubySymbol value) {
-        return coreLibrary().symbolClass;
+    protected RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
+        return coreLibrary.symbolClass;
     }
 
     @Specialization
-    protected RubyClass metaClassEncoding(RubyEncoding value) {
-        return coreLibrary().encodingClass;
+    protected RubyClass metaClassEncoding(RubyEncoding value, CoreLibrary coreLibrary) {
+        return coreLibrary.encodingClass;
     }
 
     @Specialization
-    protected RubyClass metaClassImmutableString(ImmutableRubyString value) {
-        return coreLibrary().stringClass;
+    protected RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
+        return coreLibrary.stringClass;
     }
 
     @Specialization
-    protected RubyClass metaClassRegexp(RubyRegexp value) {
-        return coreLibrary().regexpClass;
+    protected RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
+        return coreLibrary.regexpClass;
     }
 
     @Specialization
-    protected RubyClass metaClassIntRange(RubyIntOrLongRange value) {
-        return coreLibrary().rangeClass;
+    protected RubyClass metaClassIntRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
+        return coreLibrary.rangeClass;
     }
 
     // Cover all RubyDynamicObject cases with cached and uncached
@@ -110,21 +115,21 @@ public abstract class MetaClassNode extends RubyBaseNode {
     @Specialization(
             guards = { "object == cachedObject", "metaClass.isSingleton" },
             limit = "getIdentityCacheContextLimit()")
-    protected RubyClass singletonClassCached(RubyDynamicObject object,
+    protected RubyClass singletonClassCached(RubyDynamicObject object, CoreLibrary coreLibrary,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
         return metaClass;
     }
 
     @Specialization(replaces = "singletonClassCached")
-    protected RubyClass metaClassObject(RubyDynamicObject object) {
+    protected RubyClass metaClassObject(RubyDynamicObject object, CoreLibrary coreLibrary) {
         return object.getMetaClass();
     }
 
     // Foreign object
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass metaClassForeign(Object object,
+    protected RubyClass metaClassForeign(Object object, CoreLibrary coreLibrary,
             @Cached ForeignClassNode foreignClassNode) {
         return foreignClassNode.execute(object);
     }
