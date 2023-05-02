@@ -111,7 +111,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public final RubyContext getContext() {
-        return RubyContext.get(this);
+        return getContext(this);
+    }
+
+    public static RubyContext getContext(Node node) {
+        return RubyContext.get(node);
     }
 
     // Helpers methods for terseness. They are `final` so we ensure they are not needlessly redeclared in subclasses.
@@ -242,6 +246,10 @@ public abstract class RubyBaseNode extends Node {
 
     protected final CoreExceptions coreExceptions() {
         return getContext().getCoreExceptions();
+    }
+
+    protected static CoreExceptions coreExceptions(Node node) {
+        return getContext(node).getCoreExceptions();
     }
 
     protected final int getDefaultCacheLimit() {
