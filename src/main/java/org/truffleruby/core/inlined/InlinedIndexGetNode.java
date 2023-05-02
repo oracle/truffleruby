@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.inlined;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.RubyArray;
@@ -33,11 +35,12 @@ public abstract class InlinedIndexGetNode extends BinaryInlinedOperationNode {
             guards = "lookupNode.lookupProtected(frame, array, METHOD) == coreMethods().ARRAY_INDEX_GET",
             assumptions = "assumptions",
             limit = "1")
-    protected Object arrayRead(VirtualFrame frame, RubyArray array, int index,
+    protected static Object arrayRead(VirtualFrame frame, RubyArray array, int index,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached ArrayIndexNodes.ReadNormalizedNode readNormalizedNode,
-            @Cached ConditionProfile denormalized) {
-        if (denormalized.profile(index < 0)) {
+            @Cached InlinedConditionProfile denormalized,
+            @Bind("this") Node node) {
+        if (denormalized.profile(node, index < 0)) {
             index += array.size;
         }
         return readNormalizedNode.executeRead(array, index);

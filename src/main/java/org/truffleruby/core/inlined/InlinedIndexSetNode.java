@@ -10,6 +10,8 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayWriteNormalizedNode;
 import org.truffleruby.core.array.AssignableNode;
@@ -22,7 +24,6 @@ import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode implements AssignableNode {
 
@@ -40,10 +41,11 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
                     "normalizedIndex >= 0" },
             assumptions = "assumptions",
             limit = "1")
-    protected Object arrayWrite(VirtualFrame frame, RubyArray array, int index, Object value,
+    protected static Object arrayWrite(VirtualFrame frame, RubyArray array, int index, Object value,
             @Cached LookupMethodOnSelfNode lookupNode,
-            @Cached ConditionProfile denormalized,
-            @Bind("normalize(array, index, denormalized)") int normalizedIndex,
+            @Cached InlinedConditionProfile denormalized,
+            @Bind("this") Node node,
+            @Bind("normalize(node, array, index, denormalized)") int normalizedIndex,
             @Cached ArrayWriteNormalizedNode writeNode) {
         return writeNode.executeWrite(array, normalizedIndex, value);
     }
@@ -53,8 +55,8 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
         return rewriteAndCall(frame, a, b, c);
     }
 
-    protected int normalize(RubyArray array, int index, ConditionProfile denormalized) {
-        if (denormalized.profile(index < 0)) {
+    protected int normalize(Node node, RubyArray array, int index, InlinedConditionProfile denormalized) {
+        if (denormalized.profile(node, index < 0)) {
             index += array.size;
         }
         return index;
