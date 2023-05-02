@@ -113,7 +113,7 @@ public abstract class TruffleRubyNodes {
         @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object synchronize(RubyDynamicObject object, RubyProc block,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-                @Cached BranchProfile initializeLockProfile) {
+                @Cached(inline = false) BranchProfile initializeLockProfile) {
             final ReentrantLock lock = getLock(object, objectLibrary, initializeLockProfile);
 
             MutexOperations.lockInternal(getContext(), lock, this);

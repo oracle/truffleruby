@@ -11,7 +11,7 @@ package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
@@ -62,7 +62,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     @Specialization
     protected Object read(
             @Cached("new()") @Shared WarningNode warningNode,
-            @Cached ConditionProfile isDefinedProfile) {
+            @Cached InlinedConditionProfile isDefinedProfile) {
         if (lookupGlobalVariableStorageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupGlobalVariableStorageNode = insert(LookupGlobalVariableStorageNode.create(name));
@@ -74,7 +74,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
         // accessing volatile storage.value several times
         final Object rawValue = storage.getRawValue();
 
-        if (isDefinedProfile.profile(rawValue != GlobalVariableStorage.UNSET_VALUE)) {
+        if (isDefinedProfile.profile(this, rawValue != GlobalVariableStorage.UNSET_VALUE)) {
             return rawValue;
         } else {
             if (warningNode.shouldWarn()) {

@@ -11,7 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -68,7 +68,7 @@ public abstract class IsANode extends RubyBaseNode {
             limit = "getCacheLimit()")
     protected boolean isAClassCached(Object self, RubyClass klass,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached @Shared ConditionProfile isMetaClass,
+            @Cached @Shared InlinedConditionProfile isMetaClass,
             @Cached("klass") RubyClass cachedClass) {
         return isAClassUncached(self, klass, metaClassNode, isMetaClass);
     }
@@ -76,10 +76,10 @@ public abstract class IsANode extends RubyBaseNode {
     @Specialization(replaces = "isAClassCached")
     protected boolean isAClassUncached(Object self, RubyClass klass,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached @Shared ConditionProfile isMetaClass) {
+            @Cached @Shared InlinedConditionProfile isMetaClass) {
         final RubyClass metaclass = metaClassNode.execute(self);
 
-        if (isMetaClass.profile(metaclass == klass)) {
+        if (isMetaClass.profile(this, metaclass == klass)) {
             return true;
         }
 
