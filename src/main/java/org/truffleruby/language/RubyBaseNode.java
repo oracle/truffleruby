@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
@@ -41,6 +42,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import java.math.BigInteger;
 
 /** Base of all Ruby nodes */
+@GenerateInline(value = false, inherit = true)
 @TypeSystemReference(RubyTypes.class)
 @ImportStatic(RubyGuards.class)
 public abstract class RubyBaseNode extends Node {

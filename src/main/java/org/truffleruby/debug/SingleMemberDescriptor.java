@@ -9,13 +9,15 @@
  */
 package org.truffleruby.debug;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
 public class SingleMemberDescriptor implements TruffleObject {
@@ -45,11 +47,12 @@ public class SingleMemberDescriptor implements TruffleObject {
 
     @ExportMessage
     protected Object readMember(String member,
-            @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
+            @Cached InlinedBranchProfile errorProfile,
+            @Bind("$node") Node node) throws UnknownIdentifierException {
         if (isMemberReadable(member)) {
             return value;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(node);
             throw UnknownIdentifierException.create(member);
         }
     }
