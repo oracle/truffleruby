@@ -158,6 +158,9 @@ public class FiberManager {
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
             lastMessage = null;
+        } catch (ThreadDeath e) { // Context#close(true), handled by Truffle
+            lastMessage = null;
+            throw e;
         } catch (BreakException e) {
             final RubyException exception = context.getCoreExceptions().breakFromProcClosure(currentNode);
             lastMessage = new FiberExceptionMessage(new RaiseException(context, exception));
