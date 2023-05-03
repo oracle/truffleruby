@@ -107,7 +107,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public final RubyLanguage getLanguage() {
-        return RubyLanguage.get(this);
+        return getLanguage(this);
+    }
+
+    public static RubyLanguage getLanguage(Node node) {
+        return RubyLanguage.get(node);
     }
 
     public final RubyContext getContext() {
@@ -169,13 +173,17 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
+        return createString(this, tstring, encoding);
+    }
+
+    public static RubyString createString(Node node, TruffleString tstring, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
+                coreLibrary(node).stringClass,
+                getLanguage(node).stringShape,
                 false,
                 tstring,
                 encoding);
-        AllocationTracing.trace(instance, this);
+        AllocationTracing.trace(instance, node);
         return instance;
     }
 
@@ -241,7 +249,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final CoreLibrary coreLibrary() {
-        return getContext().getCoreLibrary();
+        return coreLibrary(this);
+    }
+
+    protected static CoreLibrary coreLibrary(Node node) {
+        return getContext(node).getCoreLibrary();
     }
 
     protected final CoreExceptions coreExceptions() {
