@@ -95,6 +95,11 @@ public abstract class RubyGuards {
         return value instanceof Boolean || value instanceof Integer || value instanceof Long || value instanceof Double;
     }
 
+    public static boolean isPrimitiveOrImmutable(Object value) {
+        assert assertIsValidRubyValue(value);
+        return isPrimitive(value) || value instanceof ImmutableRubyObject;
+    }
+
     @Idempotent
     public static boolean isPrimitiveClass(Class<?> clazz) {
         return clazz == Boolean.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class;
