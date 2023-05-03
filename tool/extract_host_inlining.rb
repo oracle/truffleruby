@@ -36,10 +36,6 @@ lines = lines.reject { |line|
 
 if simplify
   lines = lines.reject { |line|
-    line.include?(' org.truffleruby.language.RubyBaseNode.coreLibrary()')
-  }
-
-  lines = lines.reject { |line|
     line.include?('CUTOFF') and (
       line.include?('reason protected by inInterpreter()') or
       line.include?('reason dominated by transferToInterpreter()') or
