@@ -11,6 +11,7 @@ package org.truffleruby.core.thread;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +24,7 @@ import java.util.function.Supplier;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
+import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
@@ -605,6 +607,15 @@ public class ThreadManager {
                 safepoint.setAllowSideEffects(sideEffects);
             }
         }
+    }
+
+    /** Same as {@link TruffleContext#leaveAndEnter} but ensures it never returns null. Also the interruptible must
+     * never return null. */
+    public <T, R> R leaveAndEnter(Node node, Interrupter interrupter, InterruptibleFunction<T, R> interruptible,
+            T object) {
+        final TruffleContext truffleContext = context.getEnv().getContext();
+        R result = truffleContext.leaveAndEnter(node, interrupter, interruptible, object);
+        return Objects.requireNonNull(result);
     }
 
     @TruffleBoundary
