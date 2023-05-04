@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -38,9 +39,13 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     public abstract Object execute(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target);
 
     protected void needCallerFrame(Frame callerFrame, RootCallTarget target) {
+        needCallerFrame(getNode(), callerFrame, target);
+    }
+
+    protected static void needCallerFrame(Node node, Frame callerFrame, RootCallTarget target) {
         if (callerFrame == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw buildException(target);
+            throw buildException(node, target);
         }
 
         assert CallStackManager.isRubyFrame(callerFrame);
@@ -49,22 +54,22 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     protected void needCallerFrame(Frame callerFrame, String method) {
         if (callerFrame == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw buildException(method);
+            throw buildException(getNode(), method);
         }
 
         assert CallStackManager.isRubyFrame(callerFrame);
     }
 
     @TruffleBoundary
-    private RaiseException buildException(RootCallTarget target) {
-        return buildException(target.getRootNode().getName());
+    private static RaiseException buildException(Node node, RootCallTarget target) {
+        return buildException(node, target.getRootNode().getName());
     }
 
     @TruffleBoundary
-    private RaiseException buildException(String method) {
-        return new RaiseException(getContext(), coreExceptions().runtimeError(
+    private static RaiseException buildException(Node node, String method) {
+        return new RaiseException(getContext(node), coreExceptions(node).runtimeError(
                 method + " needs the caller frame but it was not passed (cannot be called directly from a foreign language)",
-                getNode()));
+                node));
     }
 
     public static boolean isBlockProvided(Object[] rubyArgs) {

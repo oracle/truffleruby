@@ -10,12 +10,13 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
@@ -263,9 +264,10 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(replaces = "objectIDSmallFixnumOverflow")
-        protected Object objectIDLong(long value,
-                @Cached CountingConditionProfile smallProfile) {
-            if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
+        protected static Object objectIDLong(long value,
+                @Cached InlinedCountingConditionProfile smallProfile,
+                @Bind("this") Node node) {
+            if (smallProfile.profile(node, ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
             } else {
                 return ObjectIDOperations.largeFixnumToID(value);
@@ -356,11 +358,11 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InstanceExecBlockNode instanceExecNode,
-                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile) {
+                @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count > 0) {
-                wrongNumberOfArgumentsProfile.enter();
+                wrongNumberOfArgumentsProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
             }
 
@@ -370,21 +372,22 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
-        protected Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached @Exclusive BranchProfile zeroNumberOfArguments,
+        protected static Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached @Exclusive InlinedBranchProfile zeroNumberOfArguments,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
-                @Cached IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode,
+                @Bind("this") Node node) {
             final Object sourceCode;
-            String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
+            String fileName = coreStrings(node).EVAL_FILENAME_STRING.toString();
             int line = 1;
             int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count == 0) {
-                zeroNumberOfArguments.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+                zeroNumberOfArguments.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
             }
 
             sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
@@ -398,8 +401,9 @@ public abstract class BasicObjectNodes {
                 line = toIntNode.execute(RubyArguments.getArgument(rubyArgs, 2));
             }
 
-            needCallerFrame(callerFrame, target);
+            needCallerFrame(node, callerFrame, target);
             return instanceEvalHelper(
+                    node,
                     callerFrame.materialize(),
                     self,
                     strings.getTString(sourceCode),
@@ -410,28 +414,29 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, AbstractTruffleString code,
+        private static Object instanceEvalHelper(Node node, MaterializedFrame callerFrame, Object receiver,
+                AbstractTruffleString code,
                 RubyEncoding encoding,
                 String fileNameString, int line, IndirectCallNode callNode) {
             final RubySource source = EvalLoader
-                    .createEvalSource(getContext(), code, encoding, "instance_eval", fileNameString, line, this);
+                    .createEvalSource(getContext(node), code, encoding, "instance_eval", fileNameString, line, node);
             final LexicalScope callerLexicalScope = RubyArguments.getMethod(callerFrame).getLexicalScope();
 
             LexicalScope lexicalScope = prependReceiverClassToScope(callerLexicalScope, receiver);
 
-            final RootCallTarget callTarget = getContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = getContext(node).getCodeLoader().parse(
                     source,
                     ParserContext.INSTANCE_EVAL,
                     callerFrame,
                     lexicalScope,
-                    this);
+                    node);
 
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     DeclarationContext.NO_REFINEMENTS);
 
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+            final CodeLoader.DeferredCall deferredCall = getContext(node).getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.INSTANCE_EVAL,
                     declarationContext,

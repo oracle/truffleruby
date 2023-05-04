@@ -145,7 +145,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final CoreStrings coreStrings() {
-        return getLanguage().coreStrings;
+        return coreStrings(this);
+    }
+
+    protected static CoreStrings coreStrings(Node node) {
+        return getLanguage(node).coreStrings;
     }
 
     protected final CoreSymbols coreSymbols() {
