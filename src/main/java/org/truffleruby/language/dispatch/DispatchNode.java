@@ -339,7 +339,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
                     ExceptionFormatter.NO_METHOD_ERROR,
                     receiver,
                     methodName,
-                    RubyArguments.getPositionalArguments(rubyArgs, false),
+                    RubyArguments.getPositionalArguments(rubyArgs),
                     this));
         }
 
@@ -352,7 +352,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
         final CallForeignMethodNode callForeignMethodNode = getCallForeignMethodNode();
 
         final Object block = RubyArguments.getBlock(rubyArgs);
-        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs, false);
+        final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs);
         return callForeignMethodNode.execute(receiver, methodName, block, arguments);
     }
 

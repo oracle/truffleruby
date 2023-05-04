@@ -13,14 +13,7 @@ import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.range.RubyIntOrLongRange;
-import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -43,64 +36,10 @@ public abstract class LogicalClassNode extends RubyBaseNode {
 
     public abstract RubyClass execute(Object value);
 
-    @Specialization(guards = "value")
-    protected RubyClass logicalClassTrue(boolean value) {
-        return coreLibrary().trueClass;
-    }
-
-    @Specialization(guards = "!value")
-    protected RubyClass logicalClassFalse(boolean value) {
-        return coreLibrary().falseClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassInt(int value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassLong(long value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassRubyBignum(RubyBignum value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassDouble(double value) {
-        return coreLibrary().floatClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassNil(Nil value) {
-        return coreLibrary().nilClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassSymbol(RubySymbol value) {
-        return coreLibrary().symbolClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassEncoding(RubyEncoding value) {
-        return coreLibrary().encodingClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalImmutableString(ImmutableRubyString value) {
-        return coreLibrary().stringClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassRegexp(RubyRegexp value) {
-        return coreLibrary().regexpClass;
-    }
-
-    @Specialization
-    protected RubyClass logicalClassIntRange(RubyIntOrLongRange value) {
-        return coreLibrary().rangeClass;
+    @Specialization(guards = "isPrimitiveOrImmutable(value)")
+    protected RubyClass logicalClassImmutable(Object value,
+            @Cached ImmutableClassNode immutableClassNode) {
+        return immutableClassNode.execute(this, value);
     }
 
     @Specialization

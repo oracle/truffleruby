@@ -357,7 +357,7 @@ public abstract class BasicObjectNodes {
         protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InstanceExecBlockNode instanceExecNode,
                 @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile) {
-            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count > 0) {
                 wrongNumberOfArgumentsProfile.enter();
@@ -380,7 +380,7 @@ public abstract class BasicObjectNodes {
             final Object sourceCode;
             String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
             int line = 1;
-            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs, false);
+            int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count == 0) {
                 zeroNumberOfArguments.enter();

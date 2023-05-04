@@ -27,7 +27,7 @@ public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final int count = RubyArguments.getPositionalArgumentsCount(frame, false);
+        final int count = RubyArguments.getPositionalArgumentsCount(frame.getArguments());
 
         if (remainingArguments.profile(start < count)) {
             return RubyArguments.getRawArguments(frame, start, count - start);

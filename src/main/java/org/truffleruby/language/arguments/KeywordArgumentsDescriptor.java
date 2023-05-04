@@ -14,7 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 /** An arguments descriptor that says that keyword arguments were passed (either foo(a: 1) or foo(**kw)). Note that
  * currently, if kw is empty, then this descriptor is used even though it is semantically the same as if no keyword
  * arguments were passed. The callee must handle that for now. */
-public class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
+public final class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
     @CompilationFinal(dimensions = 1) private final String[] keywords;
 

@@ -65,13 +65,14 @@ local part_definitions = {
         "*.log",
       ],
 
+      mx_options:: [],
       mx_build_options:: [],
     },
 
     build: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
-              jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
+              jt(["build", "--env", self.mx_env] + self.mx_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
               [
                 # make sure jt always uses what was just built
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
@@ -203,6 +204,14 @@ local part_definitions = {
         HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-enterprise",
       },
+    },
+    host_inlining_log: {
+      # Same as in mx.truffleruby/native-host-inlining
+      mx_options+:: [
+        "--extra-image-builder-argument=rubyvm:-H:Log=TruffleHostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase",
+        "--extra-image-builder-argument=rubyvm:-H:+TruffleHostInliningPrintExplored",
+        "--extra-image-builder-argument=rubyvm:-Dgraal.LogFile=host-inlining.txt",
+      ],
     },
   },
 
@@ -534,13 +543,13 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-compiler-graal-enterprise-17": $.platform.linux + $.jdk.v17 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-enterprise-20": $.platform.linux + $.jdk.v20 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-graal-core-linux-17":              $.platform.linux          + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-linux-17":              $.platform.linux          + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
       "ruby-test-svm-graal-core-linux-20":              $.platform.linux          + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-graal-core-darwin-amd64-17":       $.platform.darwin_amd64   + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests + darwin_amd64_enough_ram,
       "ruby-test-svm-graal-core-darwin-amd64-20":       $.platform.darwin_amd64   + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests + darwin_amd64_enough_ram,
       "ruby-test-svm-graal-core-darwin-aarch64-17":     $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-graal-core-darwin-aarch64-20":     $.platform.darwin_aarch64 + $.jdk.v20 + $.env.native    +                 gate + native_tests,
-      "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v17 + $.env.native_ee + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v17 + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
       "ruby-test-svm-graal-enterprise-darwin-aarch64 ": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native_ee +                 gate + native_tests,
     },
 

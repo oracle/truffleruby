@@ -226,41 +226,16 @@ public abstract class TruffleKernelNodes {
         protected SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
-            Object variables;
-            if (declarationFrameDepth == 0) {
-                variables = SpecialVariableStorage.get(frame);
-                if (variables == nil) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = new SpecialVariableStorage();
-                    SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
-                    SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
-                }
-            } else {
-                Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            if (storageFrame == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                noStorageFrameError(frame, declarationFrameDepth);
+            }
 
-                if (storageFrame == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    int depth = 0;
-                    MaterializedFrame currentFrame = RubyArguments.getDeclarationFrame(frame);
-                    while (currentFrame != null) {
-                        depth += 1;
-                        currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
-                    }
-
-                    String message = String.format(
-                            "Expected %d declaration frames but only found %d frames.",
-                            declarationFrameDepth,
-                            depth);
-                    throw CompilerDirectives.shouldNotReachHere(message);
-                }
-
-                variables = SpecialVariableStorage.get(storageFrame);
-                if (variables == nil) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    variables = new SpecialVariableStorage();
-                    SpecialVariableStorage.set(storageFrame, (SpecialVariableStorage) variables);
-                    SpecialVariableStorage.getAssumption(storageFrame.getFrameDescriptor()).invalidate();
-                }
+            Object variables = SpecialVariableStorage.get(storageFrame);
+            if (variables == nil) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                variables = initializeSpecialVariablesSlot(storageFrame);
             }
             return (SpecialVariableStorage) variables;
         }
@@ -275,11 +250,31 @@ public abstract class TruffleKernelNodes {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             Object variables = SpecialVariableStorage.get(frame);
             if (variables == Nil.INSTANCE) {
-                variables = new SpecialVariableStorage();
-                SpecialVariableStorage.set(frame, (SpecialVariableStorage) variables);
-                SpecialVariableStorage.getAssumption(frame.getFrameDescriptor()).invalidate();
+                variables = initializeSpecialVariablesSlot(frame);
             }
             return (SpecialVariableStorage) variables;
+        }
+
+        private static Object initializeSpecialVariablesSlot(Frame storageFrame) {
+            var variables = new SpecialVariableStorage();
+            SpecialVariableStorage.set(storageFrame, variables);
+            SpecialVariableStorage.getAssumption(storageFrame.getFrameDescriptor()).invalidate();
+            return variables;
+        }
+
+        private static void noStorageFrameError(Frame frame, int declarationFrameDepth) {
+            int depth = 0;
+            MaterializedFrame currentFrame = RubyArguments.getDeclarationFrame(frame);
+            while (currentFrame != null) {
+                depth += 1;
+                currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
+            }
+
+            String message = String.format(
+                    "Expected %d declaration frames but only found %d frames.",
+                    declarationFrameDepth,
+                    depth);
+            throw CompilerDirectives.shouldNotReachHere(message);
         }
 
     }

@@ -11,16 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.dsl.TypeSystemReference;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.range.RubyIntOrLongRange;
-import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -29,7 +20,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class MetaClassNode extends RubyBaseNode {
 
     @NeverDefault
@@ -43,66 +33,10 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     public abstract RubyClass execute(Object value);
 
-    // Cover all primitives, nil and symbols
-
-    @Specialization(guards = "value")
-    protected RubyClass metaClassTrue(boolean value) {
-        return coreLibrary().trueClass;
-    }
-
-    @Specialization(guards = "!value")
-    protected RubyClass metaClassFalse(boolean value) {
-        return coreLibrary().falseClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassInt(int value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassLong(long value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassBignum(RubyBignum value) {
-        return coreLibrary().integerClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassDouble(double value) {
-        return coreLibrary().floatClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassNil(Nil value) {
-        return coreLibrary().nilClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassSymbol(RubySymbol value) {
-        return coreLibrary().symbolClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassEncoding(RubyEncoding value) {
-        return coreLibrary().encodingClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassImmutableString(ImmutableRubyString value) {
-        return coreLibrary().stringClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassRegexp(RubyRegexp value) {
-        return coreLibrary().regexpClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassIntRange(RubyIntOrLongRange value) {
-        return coreLibrary().rangeClass;
+    @Specialization(guards = "isPrimitiveOrImmutable(value)")
+    protected RubyClass metaClassImmutable(Object value,
+            @Cached ImmutableClassNode immutableClassNode) {
+        return immutableClassNode.execute(this, value);
     }
 
     // Cover all RubyDynamicObject cases with cached and uncached
@@ -131,9 +65,5 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     protected int getCacheLimit() {
         return getLanguage().options.CLASS_CACHE;
-    }
-
-    protected int getIdentityCacheContextLimit() {
-        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 }

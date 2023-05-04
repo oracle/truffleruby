@@ -2277,9 +2277,8 @@ module Commands
   ruby2_keywords :cfg2asm if respond_to?(:ruby2_keywords, true)
 
   def igv
-    clone_enterprise
-    graal_enterprise = File.expand_path '../graal-enterprise/graal-enterprise', TRUFFLERUBY_DIR
-    mx('igv', chdir: graal_enterprise)
+    compiler = File.expand_path '../graal/compiler', TRUFFLERUBY_DIR
+    mx('igv', chdir: compiler)
   end
 
   def install(name, *options)
