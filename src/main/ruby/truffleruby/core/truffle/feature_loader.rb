@@ -198,6 +198,8 @@ module Truffle
     # MRI: loaded_feature_path
     # Search if $LOAD_PATH[i]/feature corresponds to loaded_feature.
     # Returns the $LOAD_PATH entry containing feature.
+    # This method is optimized to avoid unnecessary allocations, e.g., created by string interpolation.
+    # See https://github.com/oracle/truffleruby/pull/3010#discussion_r1172486950
     def self.feature_path_loaded?(loaded_feature, feature, load_path)
       name_ext = extension(loaded_feature)
 
