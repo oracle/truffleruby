@@ -35,8 +35,8 @@ public abstract class MetaClassNode extends RubyBaseNode {
     public abstract RubyClass execute(Object value);
 
     @Specialization(
-            guards = { "object == cachedObject", "metaClass.isSingleton" },
-            limit = "getIdentityCacheContextLimit()")
+            guards = { "isSingleContext()", "object == cachedObject", "metaClass.isSingleton" },
+            limit = "1")
     protected RubyClass singleton(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
