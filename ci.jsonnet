@@ -191,20 +191,23 @@ local part_definitions = {
         GDB_BIN: "$GDB/bin/gdb",
       },
     },
+    local darwin_amd64_enough_ram = { # GR-45839
+      capabilities+: (if self.os == "darwin" && self.arch == "amd64" then ["!macmini_late_2014_8gb"] else []),
+    },
     native: {
       mx_env:: "native",
       environment+: {
         HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-core",
       },
-    },
+    } + darwin_amd64_enough_ram,
     native_ee: {
       mx_env:: "native-ee",
       environment+: {
         HOST_VM: "svm",
         HOST_VM_CONFIG: "graal-enterprise",
       },
-    },
+    } + darwin_amd64_enough_ram,
   },
 
   jdk: {
@@ -521,7 +524,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local gate = gate_no_build + $.use.build,
       local native_config = $.run.generate_native_config + $.run.check_native_config,
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
-      local darwin_amd64_enough_ram = { capabilities+: ["!macmini_late_2014_8gb"] }, # GR-45839
 
       # Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
       "ruby-test-specs-linux-17":          $.platform.linux  + $.jdk.v17 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
@@ -540,8 +542,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-integration-linux":    $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.run.test_integration,
       "ruby-test-cexts-linux":          $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
       "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
-      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
-      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
+      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
+      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
       "ruby-test-gems-linux":           $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
@@ -555,8 +557,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-test-svm-graal-core-linux-17":              $.platform.linux          + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-graal-core-linux-20":              $.platform.linux          + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests,
-      "ruby-test-svm-graal-core-darwin-amd64-17":       $.platform.darwin_amd64   + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests + darwin_amd64_enough_ram,
-      "ruby-test-svm-graal-core-darwin-amd64-20":       $.platform.darwin_amd64   + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests + darwin_amd64_enough_ram,
+      "ruby-test-svm-graal-core-darwin-amd64-17":       $.platform.darwin_amd64   + $.jdk.v17 + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-graal-core-darwin-amd64-20":       $.platform.darwin_amd64   + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-graal-core-darwin-aarch64-17":     $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-graal-core-darwin-aarch64-20":     $.platform.darwin_aarch64 + $.jdk.v20 + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v17 + $.env.native_ee + $.env.gdb_svm + gate + native_tests,
