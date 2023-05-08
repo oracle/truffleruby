@@ -15,7 +15,6 @@ import java.util.concurrent.CountDownLatch;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -75,9 +74,8 @@ public class FiberManager {
         fiber.initializeNode = null;
 
         var sourceSection = block.getSharedMethodInfo().getSourceSection();
-        final TruffleContext truffleContext = context.getEnv().getContext();
 
-        truffleContext.leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT, (unused) -> {
+        context.getThreadManager().leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT, (unused) -> {
             Thread thread = context.getThreadManager().createFiberJavaThread(fiber, sourceSection,
                     () -> beforeEnter(fiber, initializeNode),
                     () -> fiberMain(context, fiber, block, initializeNode),
@@ -158,6 +156,9 @@ public class FiberManager {
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
             lastMessage = null;
+        } catch (ThreadDeath e) { // Context#close(true), handled by Truffle
+            lastMessage = null;
+            throw e;
         } catch (BreakException e) {
             final RubyException exception = context.getCoreExceptions().breakFromProcClosure(currentNode);
             lastMessage = new FiberExceptionMessage(new RaiseException(context, exception));
@@ -223,7 +224,7 @@ public class FiberManager {
     @TruffleBoundary
     private FiberMessage waitMessage(RubyFiber fiber, Node currentNode) throws InterruptedException {
         assertNotEntered("should have left context while waiting fiber message");
-        return fiber.messageQueue.take();
+        return Objects.requireNonNull(fiber.messageQueue.take());
     }
 
     private void assertNotEntered(String reason) {
@@ -314,8 +315,7 @@ public class FiberManager {
             context.fiberManager.createThreadToReceiveFirstMessage(toFiber, currentNode);
         }
 
-        final TruffleContext truffleContext = context.getEnv().getContext();
-        final FiberMessage message = truffleContext.leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT,
+        var message = context.getThreadManager().leaveAndEnter(currentNode, Interrupter.THREAD_INTERRUPT,
                 (unused) -> {
                     resume(fromFiber, toFiber, operation, descriptor, args);
                     return waitMessage(fromFiber, currentNode);
@@ -326,8 +326,7 @@ public class FiberManager {
 
     @TruffleBoundary
     public void safepoint(RubyFiber fromFiber, RubyFiber fiber, SafepointAction action, Node currentNode) {
-        final TruffleContext truffleContext = context.getEnv().getContext();
-        final FiberResumeMessage returnMessage = (FiberResumeMessage) truffleContext.leaveAndEnter(currentNode,
+        var returnMessage = (FiberResumeMessage) context.getThreadManager().leaveAndEnter(currentNode,
                 Interrupter.THREAD_INTERRUPT, (unused) -> {
                     addToMessageQueue(fiber, new FiberSafepointMessage(fromFiber, action));
                     return waitMessage(fromFiber, currentNode);
@@ -382,8 +381,7 @@ public class FiberManager {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
         boolean allowSideEffects = safepoint.setAllowSideEffects(false);
         try {
-            final TruffleContext truffleContext = context.getEnv().getContext();
-            truffleContext.leaveAndEnter(DummyNode.INSTANCE, Interrupter.THREAD_INTERRUPT, (unused) -> {
+            context.getThreadManager().leaveAndEnter(DummyNode.INSTANCE, Interrupter.THREAD_INTERRUPT, (unused) -> {
                 doKillOtherFibers(thread);
                 return BlockingAction.SUCCESS;
             }, null);

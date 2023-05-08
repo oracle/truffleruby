@@ -15,9 +15,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class MiscTest {
@@ -49,26 +47,43 @@ public class MiscTest {
         TestingThread thread = new TestingThread(() -> {
             try {
                 Thread.sleep(1000);
-                context.close(true);
             } catch (InterruptedException e) {
                 throw new Error(e);
-            } catch (PolyglotException e) {
-                if (e.isCancelled()) {
-                    assertTrue(e.isCancelled());
-                } else {
-                    throw e;
-                }
             }
+            context.close(true);
         });
 
         context.eval("ruby", "init = 1");
         thread.start();
         try {
             String maliciousCode = "while true; end";
-            context.eval("ruby", maliciousCode);
-            Assert.fail();
-        } catch (PolyglotException e) {
-            assertTrue(e.isCancelled());
+            RubyTest.assertThrows(() -> context.eval("ruby", maliciousCode),
+                    e -> assertTrue(e.isCancelled()));
+        } finally {
+            thread.join();
+        }
+    }
+
+    @Test
+    public void testCancellationWithFibers() throws Throwable {
+        Context context = RubyTest.createContext();
+
+        // schedule a timeout in 100ms
+        TestingThread thread = new TestingThread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new Error(e);
+            }
+            context.close(true);
+        });
+
+        context.eval("ruby", "init = 1");
+        thread.start();
+        try {
+            String code = "unstarted = Fiber.new {}; resumed = Fiber.new { Fiber.yield }.tap(&:resume); sleep 1";
+            RubyTest.assertThrows(() -> context.eval("ruby", code),
+                    e -> assertTrue(e.isCancelled()));
         } finally {
             thread.join();
         }
