@@ -16,4 +16,8 @@ spec/ruby/core/hash/shift_spec.rb
 spec/ruby/core/range/size_spec.rb
 
 spec/ruby/core/string/dedup_spec.rb
+
 spec/ruby/core/string/bytesplice_spec.rb
+
+spec/ruby/core/string/byteindex_spec.rb
+spec/ruby/core/string/byterindex_spec.rb

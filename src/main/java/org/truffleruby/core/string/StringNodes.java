@@ -3972,6 +3972,39 @@ public abstract class StringNodes {
         }
     }
 
+    /** Search pattern in string starting at offset bytes backwards, and return a byte index or nil */
+    @Primitive(name = "string_byte_reverse_index", lowerFixnum = 3)
+    public abstract static class StringByteReverseIndexNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object stringByteIndex(
+                Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int byteOffset,
+                @Cached RubyStringLibrary libString,
+                @Cached RubyStringLibrary libPattern,
+                @Cached TruffleString.LastByteIndexOfStringNode lastByteIndexOfStringNode,
+                @Cached InlinedConditionProfile indexOutOfBoundsProfile,
+                @Cached InlinedConditionProfile foundProfile) {
+            assert byteOffset >= 0;
+
+            var string = libString.getTString(rubyString);
+            int stringByteLength = libString.byteLength(rubyString);
+
+            var pattern = libPattern.getTString(rubyPattern);
+            int patternByteLength = libPattern.byteLength(rubyPattern);
+
+            if (indexOutOfBoundsProfile.profile(this, patternByteLength > stringByteLength)) {
+                return nil;
+            }
+
+            int found = lastByteIndexOfStringNode.execute(string, pattern, byteOffset, 0,
+                    compatibleEncoding.tencoding);
+            if (foundProfile.profile(this, found >= 0)) {
+                return found;
+            }
+
+            return nil;
+        }
+    }
+
     // Port of Rubinius's String::previous_byte_index.
     //
     // This method takes a byte index, finds the corresponding character the byte index belongs to, and then returns

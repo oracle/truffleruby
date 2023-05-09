@@ -68,6 +68,14 @@ module Polyglot
       to_s.b(...)
     end
 
+    def byteindex(...)
+      to_s.byteindex(...)
+    end
+
+    def byterindex(...)
+      to_s.byterindex(...)
+    end
+
     def bytes(...)
       to_s.bytes(...)
     end

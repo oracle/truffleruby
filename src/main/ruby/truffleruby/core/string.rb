@@ -77,7 +77,7 @@ class String
       raise TypeError, "wrong argument type #{Primitive.class(index_or_range)} (expected Range)" unless is_range
 
       start, len = Primitive.range_normalized_start_length(index_or_range, bytesize)
-      len = 0 if len < 0
+      len = Primitive.max(0, len)
     else
       start = Primitive.rb_to_int(index_or_range)
       start += bytesize if start < 0
@@ -98,7 +98,7 @@ class String
       end
     end
 
-    len = bytesize - start if len > bytesize - start
+    len = Primitive.min(bytesize - start, len)
     finish = start + len
 
     if start < bytesize && !Primitive.string_is_character_head?(encoding, self, start)
@@ -1138,6 +1138,71 @@ class String
     end
 
     nil
+  end
+
+  def byteindex(str, start = 0)
+    is_regex_pattern = Primitive.is_a?(str, Regexp)
+
+    start = Primitive.rb_to_int(start)
+
+    start += bytesize if start < 0
+    if start < 0 || start > bytesize
+      if is_regex_pattern
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
+      end
+
+      return nil
+    end
+
+    if start < bytesize && !Primitive.string_is_character_head?(encoding, self, start)
+      raise IndexError, "offset #{start} does not land on character boundary"
+    end
+
+    if is_regex_pattern
+      Primitive.encoding_ensure_compatible(self, str)
+
+      match = Truffle::RegexpOperations.match_from(str, self, start)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
+      return match ? Primitive.match_data_byte_begin(match, 0) : nil
+    end
+
+    str = StringValue(str)
+    return start if str.empty?
+    return nil if start + str.bytesize > bytesize
+
+    enc = Primitive.encoding_ensure_compatible_str(self, str)
+    Primitive.string_byte_index(self, str, enc, start)
+  end
+
+  def byterindex(str, finish = bytesize)
+    finish = Primitive.rb_to_int(finish)
+    finish += bytesize if finish < 0
+    return nil if finish < 0
+
+    finish = Primitive.min(finish, bytesize)
+
+    if finish < bytesize && !Primitive.string_is_character_head?(encoding, self, finish)
+      raise IndexError, "offset #{finish} does not land on character boundary"
+    end
+
+    if Primitive.is_a?(str, Regexp)
+      Primitive.encoding_ensure_compatible(self, str)
+
+      match = Truffle::RegexpOperations.search_region(str, self, 0, finish, false, true)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
+      return match ? Primitive.match_data_byte_begin(match, 0) : nil
+    end
+
+    str = StringValue(str)
+    return finish if str.empty?
+    return nil if str.bytesize > bytesize
+
+    # To compensate for `LastByteIndexOfStringNode` which does a reverse search with index pointing at the end of the
+    # pattern instead of the start.
+    finish = Primitive.min(bytesize, finish + str.bytesize)
+
+    enc = Primitive.encoding_ensure_compatible_str(self, str)
+    Primitive.string_byte_reverse_index(self, str, enc, finish)
   end
 
   def start_with?(*prefixes)

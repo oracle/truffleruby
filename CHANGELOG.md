@@ -18,6 +18,7 @@ Compatibility:
 * Alias `String#-@` to `String#dedup` (#3039, @itarato).
 * Fix `Pathname#relative_path_from` to convert string arguments to Pathname objects (@rwstauner).
 * Add `String#bytesplice` (#3039, @itarato).
+* Add `String#byteindex` and `String#byterindex` (#3039, @itarato).
 
 Performance:
 
