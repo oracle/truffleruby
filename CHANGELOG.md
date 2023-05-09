@@ -14,6 +14,7 @@ Compatibility:
 * Add support for array pattern matching. This is opt-in via `--pattern-matching` since pattern matching is not fully supported yet. (#2683, @razetime).
 * Fix `Array#[]` with `ArithmeticSequence` argument when step is negative (@itarato).
 * Fix `Range#size` and return `nil` for beginningless Range when end isn't Numeric (@rwstauner).
+* Alias `String#-@` to `String#dedup` (@itarato).
 
 Performance:
 

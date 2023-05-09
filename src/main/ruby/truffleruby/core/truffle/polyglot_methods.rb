@@ -148,6 +148,10 @@ module Polyglot
       to_s.crypt(...)
     end
 
+    def dedup(...)
+      to_s.dedup(...)
+    end
+
     def delete(...)
       to_s.delete(...)
     end
