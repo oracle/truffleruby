@@ -70,6 +70,49 @@ class String
     byteslice index, length
   end
 
+  def bytesplice(index_or_range, length = undefined, str)
+    is_range = Primitive.is_a?(index_or_range, Range)
+
+    if Primitive.undefined?(length)
+      raise TypeError, "wrong argument type #{Primitive.class(index_or_range)} (expected Range)" unless is_range
+
+      start, len = Primitive.range_normalized_start_length(index_or_range, bytesize)
+      len = 0 if len < 0
+    else
+      start = Primitive.rb_to_int(index_or_range)
+      start += bytesize if start < 0
+      len = Primitive.rb_to_int(length)
+    end
+
+    str = StringValue(str)
+
+    if len < 0
+      raise IndexError, "negative length #{len}"
+    end
+
+    if bytesize < start || start < 0
+      if is_range
+        raise RangeError, "#{index_or_range} out of range"
+      else
+        raise IndexError, "index #{index_or_range} out of string"
+      end
+    end
+
+    len = bytesize - start if len > bytesize - start
+    finish = start + len
+
+    if start < bytesize && !Primitive.string_is_character_head?(encoding, self, start)
+      raise IndexError, "offset #{start} does not land on character boundary"
+    end
+    if finish < bytesize && !Primitive.string_is_character_head?(encoding, self, finish)
+      raise IndexError, "offset #{finish} does not land on character boundary"
+    end
+
+    Primitive.check_mutable_string(self)
+    enc = Primitive.encoding_ensure_compatible_str(self, str)
+    Primitive.string_splice(self, str, start, len, enc)
+  end
+
   def self.try_convert(obj)
     Truffle::Type.try_convert obj, String, :to_str
   end

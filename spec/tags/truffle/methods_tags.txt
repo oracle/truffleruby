@@ -113,3 +113,4 @@ fails:Public methods on Thread should include native_thread_id
 fails:Public methods on UnboundMethod should include private?
 fails:Public methods on UnboundMethod should include protected?
 fails:Public methods on UnboundMethod should include public?
+fails:Public methods on String should not include bytesplice
