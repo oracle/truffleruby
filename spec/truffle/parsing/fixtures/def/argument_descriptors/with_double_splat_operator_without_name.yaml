@@ -1,0 +1,114 @@
+subject: "Def"
+description: "Argument descriptors / with double splat operator without variable name (**)"
+notes: >
+  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+    - ArgumentDescriptor(name = a, type = keyreq)
+    - ArgumentDescriptor(name = b, type = keyreq)
+    - ArgumentDescriptor(name = %kwrest, type = keyrest)
+  
+  So the rest keyword arguments are described as a `keyrest` variable with surrogate name `%kwrest`.
+# TODO: why not anonrest?
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(a:, b:, **)
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = keyrest)])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%kwrest, #3:%method_block_arg, #4:a, #5:b}
+                  instrumentationBits = 0
+                  keywordArguments = true
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = keyrest)])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 3
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 4
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :a
+                                                  children:
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 5
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :b
+                                                  children:
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2
+                                      children:
+                                          valueNode =
+                                              ReadKeywordRestArgumentNode
+                                                  attributes:
+                                                      excludedKeywords = [:a, :b]
+                                                      flags = 0
+                                                  children:
+                                                      hashes =
+                                                          HashStoreLibraryGen$CachedDispatchFirst
+                                                              attributes:
+                                                                  limit_ = 3
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                                          isImplicit = false
+                              ]

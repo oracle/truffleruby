@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "Integer literal with hexadecimal prefix"
+focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
+ruby: |
+  0x42
+ast: |
+  IntegerFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 66

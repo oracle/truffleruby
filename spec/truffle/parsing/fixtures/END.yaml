@@ -1,0 +1,113 @@
+subject: "END block"
+description: "END { ... }"
+notes: >
+  Is trasnalted into a `Truffle::KernelOperations.at_exit(false) { ... }` call.
+focused_on_node: "org.truffleruby.language.control.OnceNode"
+ruby: |
+  END {
+    1
+    2
+  }
+ast: |
+  OnceNode
+      attributes:
+          flags = 0
+          holder = org.truffleruby.language.control.OnceNode$Holder@...
+      children:
+          child =
+              CatchBreakNode
+                  attributes:
+                      breakID = org.truffleruby.language.control.BreakID@...
+                      flags = 0
+                      isWhile = false
+                  children:
+                      body =
+                          FrameOnStackNode
+                              attributes:
+                                  flags = 0
+                                  frameOnStackMarkerSlot = 2
+                              children:
+                                  child =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PROTECTED
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = false
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "at_exit"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              arguments = [
+                                                  BooleanLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = false
+                                              ]
+                                              block =
+                                                  BlockDefinitionNode
+                                                      attributes:
+                                                          breakID = org.truffleruby.language.control.BreakID@...
+                                                          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                          flags = 0
+                                                          frameOnStackMarkerSlot = 2
+                                                          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=5, characters=END {), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                          type = PROC
+                                                      children:
+                                                          readSpecialVariableStorageNode =
+                                                              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+                                                      call targets:
+                                                          RubyProcRootNode
+                                                              attributes:
+                                                                  callTarget = block in <top (required)>
+                                                                  frameDescriptor = FrameDescriptor@...{#0:(self)}
+                                                                  instrumentationBits = 0
+                                                                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                                  nextProfile = false
+                                                                  polyglotRef = org.truffleruby.RubyLanguage@...
+                                                                  redoProfile = false
+                                                                  retryProfile = false
+                                                                  returnID = org.truffleruby.language.control.ReturnID@...
+                                                                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=5, characters=END {), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=5, characters=END {)
+                                                                  split = HEURISTIC
+                                                              children:
+                                                                  body =
+                                                                      SequenceNode
+                                                                          attributes:
+                                                                              flags = 12
+                                                                          children:
+                                                                              body = [
+                                                                                  WriteLocalVariableNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          frameSlot = 0
+                                                                                      children:
+                                                                                          valueNode =
+                                                                                              ProfileArgumentNodeGen
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                  children:
+                                                                                                      childNode_ =
+                                                                                                          ReadSelfNode
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                  IntegerFixnumLiteralNode
+                                                                                      attributes:
+                                                                                          flags = 1
+                                                                                          value = 1
+                                                                                  IntegerFixnumLiteralNode
+                                                                                      attributes:
+                                                                                          flags = 1
+                                                                                          value = 2
+                                                                              ]
+                                              receiver =
+                                                  TruffleKernelOperationsModuleLiteralNode
+                                                      attributes:
+                                                          flags = 0

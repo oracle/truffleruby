@@ -105,9 +105,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
+import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
@@ -1417,6 +1419,36 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected boolean isMultiThreaded() {
             return getLanguage().isMultiThreaded();
+        }
+    }
+
+    @CoreMethod(names = "parse_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    public abstract static class ParseAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
+            String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
+
+            RubyRootNode rootNode = parse(sourceCodeString);
+            String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
+
+            return createString(fromJavaStringNode, output, Encodings.UTF_8);
+        }
+
+        private RubyRootNode parse(String sourceCode) {
+            Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
+            TranslatorEnvironment.resetTemporaryVariablesIndex();
+
+            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+                    new RubySource(source, source.getName()),
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    null);
+
+            return RubyRootNode.of(callTarget);
         }
     }
 

@@ -1,0 +1,27 @@
+subject: "Hash"
+description: "Hash literal with key-value pairs"
+notes: >
+  Choosing a specific class to represent not empty Hash is implementation detail.
+  There are the following options:
+  - PackedHashStoreLibrary$SmallHashLiteralNode
+  - BucketsHashStore$GenericHashLiteralNode
+focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
+ruby: |
+  {foo: 42}
+ast: |
+  PackedHashStoreLibrary$SmallHashLiteralNode
+      attributes:
+          flags = 0
+      children:
+          freezeHashKeyIfNeededNode =
+              FreezeHashKeyIfNeededNodeGen
+          keyValues = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :foo
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+          ]

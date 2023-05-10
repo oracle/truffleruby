@@ -1,0 +1,97 @@
+subject: "Ensure keyword"
+description: "ensure in a method"
+notes: >
+  Is represented with an EnsureNode node:
+  - a method body is represented with a `tryPart` child node.
+  - ensure branch is represented with an `ensurePart` child node.
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo
+    "foo"
+  ensure
+    bar
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=32, characters=def foo\n  "foo"\nensure\n  bar\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=32, characters=def foo\n  "foo"\nensure\n  bar\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=32, characters=def foo\n  "foo"\nensure\n  bar\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 2
+                                  EnsureNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          ensurePart =
+                                              RubyCallNode
+                                                  attributes:
+                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                      dispatchConfig = PRIVATE
+                                                      emptyKeywordsProfile = false
+                                                      flags = 1
+                                                      isAttrAssign = false
+                                                      isSafeNavigation = false
+                                                      isSplatted = false
+                                                      isVCall = true
+                                                      lastArgIsNotHashProfile = false
+                                                      methodName = "bar"
+                                                      notEmptyKeywordsProfile = false
+                                                      notRuby2KeywordsHashProfile = false
+                                                      ruby2KeywordsHashProfile = false
+                                                  children:
+                                                      receiver =
+                                                          SelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                          tryPart =
+                                              StringLiteralNode
+                                                  attributes:
+                                                      encoding = UTF-8
+                                                      flags = 1
+                                                      tstring = foo
+                              ]

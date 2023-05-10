@@ -1,0 +1,142 @@
+subject: "Rescue keyword"
+description: "exceptions list / with a splat operator, followed and preceded by list elements"
+notes: >
+  The rescue branch is represented as multiple independent rescue branches
+  with the same body.
+  
+  The simplified AST is the following:
+  
+    (TryNode
+      (RescueClassesNode
+        (ReadConstantWithLexicalScopeNode name = FOO)
+        (IntegerFixnumLiteralNode value = 42))
+    
+      (RescueSplatNode
+        (IntegerFixnumLiteralNode value = 42)
+        (SplatCastNodeGen
+          (ReadConstantWithLexicalScopeNode name = EXCEPTIONS_ARRAY)))
+    
+      (RescueClassesNode
+        (ReadConstantWithLexicalScopeNode name = BAR)
+        (IntegerFixnumLiteralNode value = 42))
+    
+      (StringLiteralNode tstring = foo))
+  
+  So it's equivalent to the following Ruby code:
+  
+  ```ruby
+  begin
+    "foo"
+  rescue FOO
+    42
+  rescue *EXCEPTIONS_ARRAY
+    42
+  rescue BAR
+    42
+  end
+  ```
+
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue FOO, *EXCEPTIONS_ARRAY, BAR
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "FOO"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+                      ]
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+              RescueSplatNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+                      splatCastNode =
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = false
+                                  flags = 0
+                                  nilBehavior = EMPTY_ARRAY
+                              children:
+                                  childNode_ =
+                                      ReadConstantWithLexicalScopeNode
+                                          attributes:
+                                              flags = 0
+                                              lexicalScope =  :: Object
+                                              name = "EXCEPTIONS_ARRAY"
+                                          children:
+                                              getConstantNode =
+                                                  GetConstantNodeGen
+                                              lookupConstantNode =
+                                                  LookupConstantWithLexicalScopeNodeGen
+                                                      attributes:
+                                                          lexicalScope =  :: Object
+                                                          name = "EXCEPTIONS_ARRAY"
+                      stores =
+                          ArrayStoreLibraryGen$CachedDispatchFirst
+                              attributes:
+                                  limit_ = 4
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "BAR"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "BAR"
+                      ]
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

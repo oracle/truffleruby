@@ -1,0 +1,14 @@
+subject: "Local variable"
+description: "reading a local variable"
+notes: >
+  Is represented with a ReadLocalVariableNode node.
+focused_on_node: "org.truffleruby.language.locals.ReadLocalVariableNode"
+ruby: |
+  foo = 1
+  foo
+ast: |
+  ReadLocalVariableNode
+      attributes:
+          flags = 1
+          frameSlot = 2
+          type = FRAME_LOCAL

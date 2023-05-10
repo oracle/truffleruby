@@ -1,0 +1,49 @@
+subject: "Method call"
+description: "Arguments/with keyword arguments"
+notes: |
+  Keyword arguments are represented with PackedHashStoreLibrary$SmallHashLiteralNode node.
+  The only difference between keyword arguments and a Hash literal argument is a descriptor attribute:
+    `descriptor = org.truffleruby.language.arguments.KeywordArgumentsDescriptor@...`
+
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo(bar: :baz)
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = KeywordArgumentsDescriptor(keywords = [bar])
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              PackedHashStoreLibrary$SmallHashLiteralNode
+                  attributes:
+                      flags = 0
+                  children:
+                      freezeHashKeyIfNeededNode =
+                          FreezeHashKeyIfNeededNodeGen
+                      keyValues = [
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :bar
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :baz
+                      ]
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

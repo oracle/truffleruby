@@ -1,0 +1,146 @@
+subject: "Def"
+description: "Arity / with optional keyword arguments"
+notes: >
+  Method parameters are described (as Arity object) in the following way:
+    - preRequired=0
+    - optional=0
+    - hasRest=false
+    - postRequired=0
+    - keywordArguments=[a, c, b, d]
+    - requiredKeywordArgumentsCount=2
+    - hasKeywordsRest=false
+  
+  So the optional keyword arguments are reflected in the `requiredKeywordArgumentsCount=2` attribute.
+  
+  Please note that in keywordArguments the required keywords (a and c) are put first and optional
+  keywords are at the end.
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(a:, b: 42, c:, d: 100500)
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=37, characters=def foo(a:, b: 42, c:, d: 100500)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:a, #4:b, #5:c, #6:d}
+                  instrumentationBits = 0
+                  keywordArguments = true
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=37, characters=def foo(a:, b: 42, c:, d: 100500)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=37, characters=def foo(a:, b: 42, c:, d: 100500)\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 2
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :a
+                                                  children:
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 4
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :b
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 42
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 5
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :c
+                                                  children:
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 6
+                                      children:
+                                          valueNode =
+                                              ReadKeywordArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      name = :d
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 100500
+                                                      readUserKeywordsHashNode =
+                                                          ReadUserKeywordsHashNode
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                                          isImplicit = false
+                              ]
+                  checkKeywordArityNode =
+                      CheckKeywordArityNode
+                          attributes:
+                              arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
+                          children:
+                              readUserKeywordsHashNode =
+                                  ReadUserKeywordsHashNode

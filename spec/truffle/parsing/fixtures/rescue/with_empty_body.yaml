@@ -1,0 +1,33 @@
+subject: "Rescue keyword"
+description: "with empty body"
+notes: >
+  An empty rescue body is represented with a NilLiteralNode node.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          NilLiteralNode
+                              attributes:
+                                  flags = 0
+                                  isImplicit = false
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

@@ -1,0 +1,129 @@
+subject: "case expression"
+description: "case expression with expression to match and `else` branch (case a when ... else ... end)"
+notes: >
+  The case expression is represented with multiple nested `if`s.
+  Matching in every branch is a `#===` method call (represented with InlinedCaseEqualNodeGen node).
+  A case expression to match is stored in a temporary variable (frameSlot = 2 in the example).
+  
+  So the example below is translated to the following expression:
+  
+    %case_1 = 42
+    if 42 === %case_1 
+      "forty two"
+    else 100500 === %case_1
+      "one hundred five hundred"
+    else
+      "other"
+    end
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  case 42
+  when 42
+    "forty two"
+  when 100500
+    "one hundred five hundred"
+  else
+    "other"
+  end
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 2
+                  children:
+                      valueNode =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+              IfElseNode
+                  attributes:
+                      flags = 0
+                  children:
+                      condition =
+                          BooleanCastNodeGen
+                              children:
+                                  valueNode_ =
+                                      InlinedCaseEqualNodeGen
+                                          attributes:
+                                              assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                              flags = 0
+                                              integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
+                                              parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                          children:
+                                              leftNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                              rightNode_ =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2
+                                                          type = FRAME_LOCAL
+                      elseBody =
+                          IfElseNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  condition =
+                                      BooleanCastNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  InlinedCaseEqualNodeGen
+                                                      attributes:
+                                                          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                                          flags = 0
+                                                          integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
+                                                          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                                      children:
+                                                          leftNode_ =
+                                                              IntegerFixnumLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      value = 100500
+                                                          rightNode_ =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2
+                                                                      type = FRAME_LOCAL
+                                  elseBody =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              tstring = other
+                                  thenBody =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              tstring = one hundred five hundred
+                      thenBody =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = forty two
+          ]

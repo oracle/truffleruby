@@ -1,0 +1,54 @@
+subject: "Multi-assignment"
+description: "When assigning local variables"
+notes: >
+  Multi-assigning is represented with MultipleAssignmentNode node.
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  a, b, c = 'foo', 'bar', 'baz'
+# TODO: investigate why `WriteFrameSlotNodeGen` is used here, not `WriteDeclarationVariableNode`/`WriteLocalVariableNode`
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 3
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 4
+          ]
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = bar
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = baz
+                      ]
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

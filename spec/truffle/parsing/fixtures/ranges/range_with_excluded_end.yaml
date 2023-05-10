@@ -1,0 +1,25 @@
+subject: "Range"
+description: "Range literal a...b (with excluded end)"
+focused_on_node: "org.truffleruby.core.range.RangeNodes$RangeLiteralNode"
+ruby: |
+  "a"..."z"
+ast: |
+  RangeNodes$RangeLiteralNode
+      attributes:
+          excludeEnd = true
+          flags = 1
+      children:
+          beginNode =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = a
+          endNode =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = z
+          newRangeNode =
+              RangeNodesFactory$NewRangeNodeGen

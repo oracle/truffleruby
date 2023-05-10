@@ -1,0 +1,11 @@
+subject: "String"
+description: "Ordinal literal"
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  "foobar"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = UTF-8
+          flags = 1
+          tstring = foobar

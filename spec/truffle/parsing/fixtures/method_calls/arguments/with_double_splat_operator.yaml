@@ -1,0 +1,55 @@
+subject: "Method call"
+description: "Arguments/with double splat operator (**kw)"
+notes: |
+  An argument is converted to kind-of "keyword arguments" with HashCastNodeGen node
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo(**bar)
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = KeywordArgumentsDescriptor(keywords = [])
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              HashCastNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      childNode_ =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "bar"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

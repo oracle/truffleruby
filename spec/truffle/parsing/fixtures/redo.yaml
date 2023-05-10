@@ -1,0 +1,13 @@
+subject: "Redo"
+description: "redo operator"
+notes: >
+  Operator is represented by RedoNode.
+focused_on_node: "org.truffleruby.language.control.RedoNode"
+ruby: |
+  while (true)
+    redo
+  end
+ast: |
+  RedoNode
+      attributes:
+          flags = 1

@@ -1,0 +1,10 @@
+subject: "Float"
+description: "Fixed-point format"
+focused_on_node: "org.truffleruby.language.literal.FloatLiteralNode"
+ruby: |
+  3.14
+ast: |
+  FloatLiteralNode
+      attributes:
+          flags = 1
+          value = 3.14

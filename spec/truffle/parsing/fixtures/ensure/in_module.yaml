@@ -1,0 +1,102 @@
+subject: "Ensure keyword"
+description: "ensure in a module"
+notes: >
+  Is represented with an EnsureNode node:
+  - a module body is represented with a `tryPart` child node.
+  - ensure branch is represented with an `ensurePart` child node.
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  module Foo
+    "foo"
+  ensure
+    bar
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=35, characters=module Foo\n  "foo"\nensure\n  bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineModuleNodeGen
+                  attributes:
+                      flags = 0
+                      name = "Foo"
+                  children:
+                      lexicalParentModuleNode_ =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <module:Foo>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=35, characters=module Foo\n  "foo"\nensure\n  bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=35, characters=module Foo\n  "foo"\nensure\n  bar\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              EnsureNode
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      ensurePart =
+                                                          RubyCallNode
+                                                              attributes:
+                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                  dispatchConfig = PRIVATE
+                                                                  emptyKeywordsProfile = false
+                                                                  flags = 1
+                                                                  isAttrAssign = false
+                                                                  isSafeNavigation = false
+                                                                  isSplatted = false
+                                                                  isVCall = true
+                                                                  lastArgIsNotHashProfile = false
+                                                                  methodName = "bar"
+                                                                  notEmptyKeywordsProfile = false
+                                                                  notRuby2KeywordsHashProfile = false
+                                                                  ruby2KeywordsHashProfile = false
+                                                              children:
+                                                                  receiver =
+                                                                      SelfNode
+                                                                          attributes:
+                                                                              flags = 0
+                                                      tryPart =
+                                                          StringLiteralNode
+                                                              attributes:
+                                                                  encoding = UTF-8
+                                                                  flags = 1
+                                                                  tstring = foo
+                              ]

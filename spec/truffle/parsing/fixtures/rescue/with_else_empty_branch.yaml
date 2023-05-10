@@ -1,0 +1,40 @@
+subject: "Rescue keyword"
+description: "rescue with empty else branch"
+notes: >
+  An empty else branch is represented with NilLiteralNode node.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    42
+  else
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          elsePart =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = true
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

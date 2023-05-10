@@ -1,0 +1,16 @@
+subject: "Global variable/Special Regexp-related variables"
+description: "reading the $& global variable"
+focused_on_node: "org.truffleruby.language.globals.ReadGlobalVariableNodeGen"
+ruby: |
+  $&
+ast: |
+  ReadGlobalVariableNodeGen
+      attributes:
+          flags = 1
+          name = "$&"
+      children:
+          lookupGlobalVariableStorageNode =
+              LookupGlobalVariableStorageNodeGen
+                  attributes:
+                      index = -1
+                      name = "$&"

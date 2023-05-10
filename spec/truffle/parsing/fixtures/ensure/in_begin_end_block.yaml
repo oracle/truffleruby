@@ -1,0 +1,65 @@
+subject: "Ensure keyword"
+description: "ensure in a begin/end block"
+notes: >
+  Is represented with an EnsureNode node:
+  - a block body is represented with a `tryPart` child node.
+  - ensure branch is represented with an `ensurePart` child node.
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  begin
+    "foo"
+  ensure
+    bar
+  end
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              EnsureNode
+                  attributes:
+                      flags = 1
+                  children:
+                      ensurePart =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "bar"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                      tryPart =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = foo
+          ]

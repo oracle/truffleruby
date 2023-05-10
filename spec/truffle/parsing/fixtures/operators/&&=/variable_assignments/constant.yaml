@@ -1,0 +1,48 @@
+subject: "&&="
+description: "Variable assignment/constant (A &&= b)"
+notes: >
+  `A &&= b` is translated into `A && A = b`
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  FOO &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "FOO"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+                      right =
+                          WriteConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "FOO"
+                              children:
+                                  moduleNode =
+                                      LexicalScopeNode
+                                          attributes:
+                                              flags = 0
+                                              lexicalScope =  :: Object
+                                  valueNode =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42

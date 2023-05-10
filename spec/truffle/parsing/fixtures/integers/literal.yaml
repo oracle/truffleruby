@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "Integer decimal literal"
+focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
+ruby: |
+  42
+ast: |
+  IntegerFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 42

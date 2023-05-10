@@ -1,0 +1,10 @@
+subject: "Regexp"
+description: "a literal with options (e.g. i, x, m, o)"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  /abc/ixmo
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = abc, options = RegexpOptions(kcode: NONE, extended, ignorecase, kcodeDefault, literal, multiline), encoding = US-ASCII)

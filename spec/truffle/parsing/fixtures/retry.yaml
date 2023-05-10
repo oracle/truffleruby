@@ -1,0 +1,9 @@
+subject: "retry"
+description: "retry control flow operator"
+focused_on_node: "org.truffleruby.language.control.RetryNode"
+ruby: |
+  retry
+ast: |
+  RetryNode
+      attributes:
+          flags = 1

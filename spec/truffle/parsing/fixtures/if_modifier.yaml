@@ -1,0 +1,23 @@
+subject: "if modifier"
+description: ""
+focused_on_node: "org.truffleruby.language.control.IfNode"
+ruby: |
+  42 if (true)
+ast: |
+  IfNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42

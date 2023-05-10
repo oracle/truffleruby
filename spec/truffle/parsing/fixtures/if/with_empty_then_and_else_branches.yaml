@@ -1,0 +1,27 @@
+subject: "if expression"
+description: >
+  when `if` expression with empty `then` and `else` branches
+  then it's represented as `nil` expression
+focused_on_node: "org.truffleruby.language.control.UnlessNode"
+ruby: |
+  if (true)
+  else
+  end
+ast: |
+  UnlessNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          thenBody =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = true

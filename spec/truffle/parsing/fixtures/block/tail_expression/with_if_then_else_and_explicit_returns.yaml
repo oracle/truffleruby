@@ -1,0 +1,96 @@
+subject: "Block"
+description: "Tail expression / with explicit return inside then/else branches of the `if` operator"
+notes: >
+  It doesn't replace `return` with its value.
+focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
+ruby: |
+  proc do
+    if true
+      return 42
+    else
+      return 100500
+    end
+  end
+ast: |
+  BlockDefinitionNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          flags = 0
+          frameOnStackMarkerSlot = 2
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          type = PROC
+      children:
+          readSpecialVariableStorageNode =
+              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+      call targets:
+          RubyProcRootNode
+              attributes:
+                  callTarget = block in <top (required)>
+                  frameDescriptor = FrameDescriptor@...{#0:(self)}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  nextProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  redoProfile = false
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  IfElseNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          condition =
+                                              BooleanCastNodeGen
+                                                  children:
+                                                      valueNode_ =
+                                                          BooleanLiteralNode
+                                                              attributes:
+                                                                  flags = 1
+                                                                  value = true
+                                          elseBody =
+                                              DynamicReturnNode
+                                                  attributes:
+                                                      flags = 1
+                                                      returnID = org.truffleruby.language.control.ReturnID@...
+                                                  children:
+                                                      value =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 100500
+                                          thenBody =
+                                              DynamicReturnNode
+                                                  attributes:
+                                                      flags = 1
+                                                      returnID = org.truffleruby.language.control.ReturnID@...
+                                                  children:
+                                                      value =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 42
+                              ]

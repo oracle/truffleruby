@@ -1,0 +1,77 @@
+subject: "Return"
+description: "return operator in a lambda"
+notes: >
+  Is represented by DynamicReturnNode node
+focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
+ruby: |
+  -> {
+    return 42
+  }
+ast: |
+  BlockDefinitionNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in <top (required)>, altCallTargetCompiler = null)
+          flags = 1
+          frameOnStackMarkerSlot = -1
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=4, characters=-> {), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          type = LAMBDA
+      children:
+          readSpecialVariableStorageNode =
+              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+      call targets:
+          RubyLambdaRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  breakID = org.truffleruby.language.control.BreakID@...
+                  callTarget = block in <top (required)>
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self)}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingBreakProfile = false
+                  matchingReturnProfile = false
+                  nextProfile = false
+                  nonMatchingBreakProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  redoProfile = false
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=4, characters=-> {), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=4, characters=-> {)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  DynamicReturnNode
+                                      attributes:
+                                          flags = 1
+                                          returnID = org.truffleruby.language.control.ReturnID@...
+                                      children:
+                                          value =
+                                              IntegerFixnumLiteralNode
+                                                  attributes:
+                                                      flags = 0
+                                                      value = 42
+                              ]

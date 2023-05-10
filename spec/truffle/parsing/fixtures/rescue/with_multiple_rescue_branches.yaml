@@ -1,0 +1,87 @@
+subject: "Rescue keyword"
+description: "with multiple rescue branches"
+notes: >
+  Multiple branches are represented with multiple elements
+  in the TryNode.rescueParts collections of child nodes.
+  
+  A simplified AST:
+  
+    (TryNode
+      (RescueClassesNode
+        (ReadConstantWithLexicalScopeNode name = RuntimeError)
+        (IntegerFixnumLiteralNode value = 42))
+      (RescueClassesNode
+        (ReadConstantWithLexicalScopeNode name = SyntaxError)
+        (IntegerFixnumLiteralNode value = 100500))
+      (StringLiteralNode tstring = foo))
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue RuntimeError
+    42
+  rescue SyntaxError
+    100500
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "RuntimeError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "RuntimeError"
+                      ]
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "SyntaxError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "SyntaxError"
+                      ]
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 100500
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

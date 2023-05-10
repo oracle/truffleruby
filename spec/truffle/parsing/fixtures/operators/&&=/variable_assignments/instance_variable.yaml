@@ -1,0 +1,44 @@
+subject: "&&="
+description: "Variable assignment/instance variable (@a &&= b)"
+notes: >
+  `@a &&= b` is translated into `@a && @a = b`
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  @foo &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          ReadInstanceVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@foo"
+                              children:
+                                  readSelfSlotNode =
+                                      ReadFrameSlotNodeGen
+                                          attributes:
+                                              frameSlot = 0
+                      right =
+                          WriteInstanceVariableNode
+                              attributes:
+                                  flags = 0
+                                  frozenProfile = false
+                                  name = "@foo"
+                              children:
+                                  readSelfSlotNode =
+                                      ReadFrameSlotNodeGen
+                                          attributes:
+                                              frameSlot = 0
+                                  rhs =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42

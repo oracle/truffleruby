@@ -1,0 +1,108 @@
+subject: "Block"
+description: "Destructuring array argument / when a rest parameter and optional positional parameters - it doesn't try to destructure"
+focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
+ruby: |
+  proc do |foo = 42, bar = 100500, *args|
+  end
+ast: |
+  BlockDefinitionNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          flags = 0
+          frameOnStackMarkerSlot = 2
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=39, characters=proc do |foo = 42, bar = 100500, *args|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+          type = PROC
+      children:
+          readSpecialVariableStorageNode =
+              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+      call targets:
+          RubyProcRootNode
+              attributes:
+                  callTarget = block in <top (required)>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:foo, #2:bar, #3:args}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  nextProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  redoProfile = false
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=39, characters=proc do |foo = 42, bar = 100500, *args|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=39, characters=proc do |foo = 42, bar = 100500, *args|)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 1
+                                      children:
+                                          valueNode =
+                                              ReadOptionalArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      index = 0
+                                                      keywordArguments = false
+                                                      minimum = 1
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 42
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2
+                                      children:
+                                          valueNode =
+                                              ReadOptionalArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      index = 1
+                                                      keywordArguments = false
+                                                      minimum = 2
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 100500
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3
+                                      children:
+                                          valueNode =
+                                              ReadRestArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      keywordArguments = false
+                                                      markKeywordHashWithFlag = false
+                                                      postArgumentsCount = 0
+                                                      startIndex = 2
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                                          isImplicit = false
+                              ]

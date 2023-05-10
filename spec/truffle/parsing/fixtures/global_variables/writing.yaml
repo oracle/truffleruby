@@ -1,0 +1,21 @@
+subject: "Global variable"
+description: "assigning a global variable new value"
+focused_on_node: "org.truffleruby.language.globals.WriteGlobalVariableNodeGen"
+ruby: |
+  $a = 1
+ast: |
+  WriteGlobalVariableNodeGen
+      attributes:
+          flags = 1
+          name = "$a"
+      children:
+          lookupGlobalVariableStorageNode =
+              LookupGlobalVariableStorageNodeGen
+                  attributes:
+                      index = -1
+                      name = "$a"
+          valueNode_ =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1

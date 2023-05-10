@@ -1,0 +1,20 @@
+subject: "Next"
+description: "next operator without returning value"
+notes: >
+  Operator is represented by NextNode.
+  Returned value is represented by NilLiteralNode.
+focused_on_node: "org.truffleruby.language.control.NextNode"
+ruby: |
+  while (true)
+    next
+  end
+ast: |
+  NextNode
+      attributes:
+          flags = 1
+      children:
+          child =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = false

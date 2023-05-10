@@ -1,0 +1,126 @@
+subject: "Flip-flop operator"
+description: "in a module body"
+notes: >
+  An additional node InitFlipFlopSlotNode is created
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  module Foo
+    x = 42
+    1 if (x) .. (x)
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 4], index=0, length=41, characters=module Foo\n  x = 42\n  1 if (x) .. (x)\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineModuleNodeGen
+                  attributes:
+                      flags = 0
+                      name = "Foo"
+                  children:
+                      lexicalParentModuleNode_ =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <module:Foo>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:x, #3:%flipflop_0}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 4], index=0, length=41, characters=module Foo\n  x = 42\n  1 if (x) .. (x)\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 4], index=0, length=41, characters=module Foo\n  x = 42\n  1 if (x) .. (x)\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InitFlipFlopSlotNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              SequenceNode
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      body = [
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 1
+                                                                  frameSlot = 2
+                                                              children:
+                                                                  valueNode =
+                                                                      IntegerFixnumLiteralNode
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              value = 42
+                                                          IfNode
+                                                              attributes:
+                                                                  flags = 0
+                                                              children:
+                                                                  condition =
+                                                                      BooleanCastNodeGen
+                                                                          children:
+                                                                              valueNode_ =
+                                                                                  FlipFlopNode
+                                                                                      attributes:
+                                                                                          exclusive = false
+                                                                                          flags = 1
+                                                                                          frameLevel = 0
+                                                                                          frameSlot = 3
+                                                                                      children:
+                                                                                          begin =
+                                                                                              BooleanCastNodeGen
+                                                                                                  children:
+                                                                                                      valueNode_ =
+                                                                                                          ReadLocalVariableNode
+                                                                                                              attributes:
+                                                                                                                  flags = 1
+                                                                                                                  frameSlot = 2
+                                                                                                                  type = FRAME_LOCAL
+                                                                                          end =
+                                                                                              BooleanCastNodeGen
+                                                                                                  children:
+                                                                                                      valueNode_ =
+                                                                                                          ReadLocalVariableNode
+                                                                                                              attributes:
+                                                                                                                  flags = 1
+                                                                                                                  frameSlot = 2
+                                                                                                                  type = FRAME_LOCAL
+                                                                  thenBody =
+                                                                      IntegerFixnumLiteralNode
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              value = 1
+                                                      ]
+                              ]

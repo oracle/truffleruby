@@ -1,0 +1,74 @@
+subject: "Multi-assignment"
+description: "When nested multi assignment (a, (b, c), d = ...)"
+notes: >
+  Nesting is representing with a nested MultipleAssignmentNode node (in postNodes/preNodes)
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  a, (b, c), d = 'foo', 'bar', 'baz', 'foobar'
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2
+              MultipleAssignmentNode
+                  attributes:
+                      flags = 0
+                  children:
+                      preNodes = [
+                          WriteFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 3
+                          WriteFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 4
+                      ]
+                      splatCastNode =
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_ary
+                                  copy = true
+                                  flags = 0
+                                  nilBehavior = ARRAY_WITH_NIL
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 5
+          ]
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = bar
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = baz
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foobar
+                      ]
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

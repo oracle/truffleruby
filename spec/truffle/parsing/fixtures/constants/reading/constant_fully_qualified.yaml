@@ -1,0 +1,15 @@
+subject: "Constant"
+description: "reading / a fully qualified constant (::A)"
+focused_on_node: "org.truffleruby.language.constants.ReadConstantNode"
+ruby: |
+  ::Foo
+ast: |
+  ReadConstantNode
+      attributes:
+          flags = 1
+          name = "Foo"
+      children:
+          moduleNode =
+              ObjectClassLiteralNode
+                  attributes:
+                      flags = 0

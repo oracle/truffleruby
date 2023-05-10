@@ -1,0 +1,32 @@
+subject: "||="
+description: "Variable assignment/local variable (a ||= b)"
+notes: >
+  `a ||= b` is translated into `a || a = b`
+focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
+ruby: |
+  foo ||= 42
+ast: |
+  OrLazyValueDefinedNode
+      attributes:
+          flags = 1
+          rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+      children:
+          left =
+              ReadLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 2
+                      type = FRAME_LOCAL
+          leftCast =
+              BooleanCastNodeGen
+          right =
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 2
+                  children:
+                      valueNode =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

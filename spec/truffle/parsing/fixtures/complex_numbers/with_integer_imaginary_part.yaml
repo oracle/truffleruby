@@ -1,0 +1,44 @@
+subject: "Complex number"
+description: >
+  Complex literal `bi` (without real part) where b is Integer
+  is represented with IntegerFixnumLiteralNode
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  42i
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "convert"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 0
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+          ]
+          receiver =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Complex"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

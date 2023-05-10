@@ -1,0 +1,150 @@
+subject: "Block"
+description: "Name / in a method"
+notes: >
+  A block name is "block in <method name>":
+  
+    parseName = block in Object#foo
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo
+    proc {}
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=21, characters=def foo\n  proc {}\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:%frame_on_stack_marker_0}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=21, characters=def foo\n  proc {}\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=21, characters=def foo\n  proc {}\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 2
+                                  CatchBreakNode
+                                      attributes:
+                                          breakID = org.truffleruby.language.control.BreakID@...
+                                          flags = 0
+                                          isWhile = false
+                                      children:
+                                          body =
+                                              FrameOnStackNode
+                                                  attributes:
+                                                      flags = 0
+                                                      frameOnStackMarkerSlot = 3
+                                                  children:
+                                                      child =
+                                                          RubyCallNode
+                                                              attributes:
+                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                  dispatchConfig = PRIVATE
+                                                                  emptyKeywordsProfile = false
+                                                                  flags = 0
+                                                                  isAttrAssign = false
+                                                                  isSafeNavigation = false
+                                                                  isSplatted = false
+                                                                  isVCall = false
+                                                                  lastArgIsNotHashProfile = false
+                                                                  methodName = "proc"
+                                                                  notEmptyKeywordsProfile = false
+                                                                  notRuby2KeywordsHashProfile = false
+                                                                  ruby2KeywordsHashProfile = false
+                                                              children:
+                                                                  block =
+                                                                      BlockDefinitionNode
+                                                                          attributes:
+                                                                              breakID = org.truffleruby.language.control.BreakID@...
+                                                                              callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                              flags = 0
+                                                                              frameOnStackMarkerSlot = 3
+                                                                              sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
+                                                                              type = PROC
+                                                                          children:
+                                                                              readSpecialVariableStorageNode =
+                                                                                  TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+                                                                          call targets:
+                                                                              RubyProcRootNode
+                                                                                  attributes:
+                                                                                      callTarget = block in Object#foo
+                                                                                      frameDescriptor = FrameDescriptor@...{#0:(self)}
+                                                                                      instrumentationBits = 0
+                                                                                      lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                                                      nextProfile = false
+                                                                                      polyglotRef = org.truffleruby.RubyLanguage@...
+                                                                                      redoProfile = false
+                                                                                      retryProfile = false
+                                                                                      returnID = org.truffleruby.language.control.ReturnID@...
+                                                                                      sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
+                                                                                      sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {})
+                                                                                      split = HEURISTIC
+                                                                                  children:
+                                                                                      body =
+                                                                                          SequenceNode
+                                                                                              attributes:
+                                                                                                  flags = 12
+                                                                                              children:
+                                                                                                  body = [
+                                                                                                      WriteLocalVariableNode
+                                                                                                          attributes:
+                                                                                                              flags = 0
+                                                                                                              frameSlot = 0
+                                                                                                          children:
+                                                                                                              valueNode =
+                                                                                                                  ProfileArgumentNodeGen
+                                                                                                                      attributes:
+                                                                                                                          flags = 0
+                                                                                                                      children:
+                                                                                                                          childNode_ =
+                                                                                                                              ReadSelfNode
+                                                                                                                                  attributes:
+                                                                                                                                      flags = 0
+                                                                                                      NilLiteralNode
+                                                                                                          attributes:
+                                                                                                              flags = 0
+                                                                                                              isImplicit = false
+                                                                                                  ]
+                                                                  receiver =
+                                                                      SelfNode
+                                                                          attributes:
+                                                                              flags = 0
+                              ]

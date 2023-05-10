@@ -1,0 +1,36 @@
+subject: "String"
+description: "Backtick literal (`echo 1`) to execute a shell command"
+notes: >
+  A `command` literal is represented as a "Kernel#`" method call
+  with a string literal argument.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  `echo 1`
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "`"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = echo 1
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

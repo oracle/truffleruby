@@ -1,0 +1,76 @@
+subject: "||="
+description: "Variable assignment/class variable (@@a ||= b)"
+notes: >
+  `@@a ||= b` is translated into `@@a || @@a = b`
+  To handle a case when a variable isn't yet defined a DefinedNode is used.
+focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
+ruby: |
+  @@foo ||= 42
+ast: |
+  OrLazyValueDefinedNode
+      attributes:
+          flags = 1
+          rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+      children:
+          left =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          DefinedNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  child =
+                                      ReadClassVariableNode
+                                          attributes:
+                                              flags = 0
+                                              name = "@@foo"
+                                          children:
+                                              lexicalScopeNode =
+                                                  ObjectLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          object =  :: Object
+                                              lookupClassVariableNode =
+                                                  LookupClassVariableNodeGen
+                                              resolveTargetModuleNode =
+                                                  ResolveTargetModuleForClassVariablesNodeGen
+                      right =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@foo"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+          leftCast =
+              BooleanCastNodeGen
+          right =
+              WriteClassVariableNode
+                  attributes:
+                      flags = 0
+                      name = "@@foo"
+                  children:
+                      lexicalScopeNode =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object =  :: Object
+                      resolveTargetModuleNode =
+                          ResolveTargetModuleForClassVariablesNodeGen
+                      rhs =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+                      setClassVariableNode =
+                          SetClassVariableNodeGen

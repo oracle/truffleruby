@@ -1,0 +1,21 @@
+subject: "Constant"
+description: "reading / a fully qualified constant with lexical parent (::A::B)"
+focused_on_node: "org.truffleruby.language.constants.ReadConstantNode"
+ruby: |
+  ::Foo::Bar
+ast: |
+  ReadConstantNode
+      attributes:
+          flags = 1
+          name = "Bar"
+      children:
+          moduleNode =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Foo"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

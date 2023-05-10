@@ -1,0 +1,33 @@
+subject: "Return"
+description: "return operator with splat operator (return *a)"
+notes: >
+  Argument is represented by SplatCastNodeGen node
+# Top level return is used for simplicity
+focused_on_node: "org.truffleruby.language.control.LocalReturnNode"
+ruby: |
+  return *[42]
+ast: |
+  LocalReturnNode
+      attributes:
+          flags = 1
+      children:
+          value =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_a
+                      copy = true
+                      flags = 0
+                      nilBehavior = CONVERT
+                  children:
+                      childNode_ =
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                              attributes:
+                                  flags = 0
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]

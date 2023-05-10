@@ -1,0 +1,45 @@
+subject: "Rational number"
+description: "with Integer value"
+notes: >
+  Rational literal with Integer value is represented by `Rational.convert(Integer, 1)`.
+  Integer value is represented by LongFixnumLiteralNode.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  42r
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "convert"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              LongFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+              LongFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1
+          ]
+          receiver =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Rational"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

@@ -1,0 +1,28 @@
+subject: "ternary if"
+description: "ternary `if` expression with both `then` and `else` branches"
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  (true) ? 42 : 100500
+ast: |
+  IfElseNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          elseBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 100500
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42

@@ -1,0 +1,51 @@
+subject: "Match"
+description: "=~ operator/with Regexp literal as a RHS"
+notes: >
+  Is represented as a method call `receiver.=~(/regexp/)`
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo =~ /bar/
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PROTECTED
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "=~"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = RubyRegexp(source = bar, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
+          ]
+          receiver =
+              RubyCallNode
+                  attributes:
+                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                      ruby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0

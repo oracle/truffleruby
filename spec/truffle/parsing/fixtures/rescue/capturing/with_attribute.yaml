@@ -1,0 +1,117 @@
+subject: "Rescue keyword"
+description: "capturing / with an attribute"
+notes: >
+  Capturing exception to a setter is represented as a `a.foo=()` method call.
+  
+  A local variable is represented with the following simplified AST:
+  
+    (RubyCallNode methodName = foo=
+      (ReadGlobalVariableNodeGen name = $!)
+      (RubyCallNode methodName = a            # receiver
+        (SelfNode)))                              # receiver
+  
+  that is equivalent to:
+  
+  ```ruby
+  a.foo = $!
+  ```
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue RuntimeError => a.foo
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "RuntimeError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "RuntimeError"
+                      ]
+                      rescueBody =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  body = [
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PROTECTED
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = true
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = false
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "foo="
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              arguments = [
+                                                  ReadGlobalVariableNodeGen
+                                                      attributes:
+                                                          flags = 0
+                                                          name = "$!"
+                                                      children:
+                                                          lookupGlobalVariableStorageNode =
+                                                              LookupGlobalVariableStorageNodeGen
+                                                                  attributes:
+                                                                      index = -1
+                                                                      name = "$!"
+                                              ]
+                                              receiver =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "a"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          ruby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 1
+                                              value = 42
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

@@ -1,0 +1,53 @@
+subject: "&&="
+description: "Variable assignment/class variable (@@a &&= b)"
+notes: >
+  `@@a &&= b` is translated into `@@a && @@a = b`
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  @@foo &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@foo"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+                      right =
+                          WriteClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@foo"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+                                  rhs =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  setClassVariableNode =
+                                      SetClassVariableNodeGen

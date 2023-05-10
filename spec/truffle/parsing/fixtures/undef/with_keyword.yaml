@@ -1,0 +1,10 @@
+subject: "Undef"
+description: "undef keyword"
+focused_on_node: "org.truffleruby.core.module.ModuleNodes$UndefKeywordNode"
+ruby: |
+  undef a
+ast: |
+  ModuleNodes$UndefKeywordNode
+      attributes:
+          flags = 1
+          name = :a

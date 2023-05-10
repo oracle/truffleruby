@@ -1,0 +1,117 @@
+subject: "Def"
+description: "Name / Non singleton / in an anonymous module"
+notes: >
+  Method name is prefixed with only "#":
+  
+    parseName = #foo
+focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
+ruby: |
+  Module.new do
+    def foo
+    end
+  end
+ast: |
+  BlockDefinitionNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          flags = 0
+          frameOnStackMarkerSlot = 2
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=13, characters=Module.new do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          type = PROC
+      children:
+          readSpecialVariableStorageNode =
+              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+      call targets:
+          RubyProcRootNode
+              attributes:
+                  callTarget = block in <top (required)>
+                  frameDescriptor = FrameDescriptor@...{#0:(self)}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  nextProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  redoProfile = false
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=13, characters=Module.new do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=13, characters=Module.new do)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  LiteralMethodDefinitionNode
+                                      attributes:
+                                          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+                                          flags = 1
+                                          isDefSingleton = false
+                                          name = "foo"
+                                          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=14, length=15, characters=  def foo\n  end), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = #foo, notes = null, argumentDescriptors = [])
+                                      call targets:
+                                          RubyMethodRootNode
+                                              attributes:
+                                                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                                                  callTarget = #foo
+                                                  checkArityProfile = false
+                                                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
+                                                  instrumentationBits = 0
+                                                  keywordArguments = false
+                                                  localReturnProfile = false
+                                                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                  matchingReturnProfile = false
+                                                  nonMatchingReturnProfile = false
+                                                  polyglotRef = org.truffleruby.RubyLanguage@...
+                                                  retryProfile = false
+                                                  returnID = org.truffleruby.language.control.ReturnID@...
+                                                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=14, length=15, characters=  def foo\n  end), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = #foo, notes = null, argumentDescriptors = [])
+                                                  sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=14, length=15, characters=  def foo\n  end)
+                                                  split = HEURISTIC
+                                              children:
+                                                  body =
+                                                      SequenceNode
+                                                          attributes:
+                                                              flags = 12
+                                                          children:
+                                                              body = [
+                                                                  WriteLocalVariableNode
+                                                                      attributes:
+                                                                          flags = 0
+                                                                          frameSlot = 0
+                                                                      children:
+                                                                          valueNode =
+                                                                              ProfileArgumentNodeGen
+                                                                                  attributes:
+                                                                                      flags = 0
+                                                                                  children:
+                                                                                      childNode_ =
+                                                                                          ReadSelfNode
+                                                                                              attributes:
+                                                                                                  flags = 0
+                                                                  SaveMethodBlockNode
+                                                                      attributes:
+                                                                          flags = 0
+                                                                          slot = 2
+                                                                  NilLiteralNode
+                                                                      attributes:
+                                                                          flags = 0
+                                                                          isImplicit = false
+                                                              ]
+                              ]

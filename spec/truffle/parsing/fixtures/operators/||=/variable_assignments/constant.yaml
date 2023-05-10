@@ -1,0 +1,70 @@
+subject: "||="
+description: "Variable assignment/constant (A ||= b)"
+notes: >
+  `A ||= b` is translated into `A || A = b`
+  To handle a case when a constant isn't yet defined a DefinedNode is used.
+focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
+ruby: |
+  FOO ||= 42
+ast: |
+  OrLazyValueDefinedNode
+      attributes:
+          flags = 1
+          rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+      children:
+          left =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          DefinedNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  child =
+                                      ReadConstantWithLexicalScopeNode
+                                          attributes:
+                                              flags = 0
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+                                          children:
+                                              getConstantNode =
+                                                  GetConstantNodeGen
+                                              lookupConstantNode =
+                                                  LookupConstantWithLexicalScopeNodeGen
+                                                      attributes:
+                                                          lexicalScope =  :: Object
+                                                          name = "FOO"
+                      right =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "FOO"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+          leftCast =
+              BooleanCastNodeGen
+          right =
+              WriteConstantNode
+                  attributes:
+                      flags = 0
+                      name = "FOO"
+                  children:
+                      moduleNode =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                      valueNode =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

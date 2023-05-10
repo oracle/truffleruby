@@ -77,6 +77,14 @@ public final class ProcCallTargets {
         return callTargetForLambda;
     }
 
+    public boolean hasCallTargetForProc() {
+        return callTargetForProc != null;
+    }
+
+    public boolean hasCallTargetForLambda() {
+        return callTargetForLambda != null;
+    }
+
     private void copySplit(RootCallTarget src, RootCallTarget dst) {
         RubyRootNode.of(dst).setSplit(RubyRootNode.of(src).getSplit());
     }

@@ -1,0 +1,77 @@
+subject: "Complex number"
+description: >
+  Complex literal `bri` (without real part) where b is Float
+  is represented as `Complext.convert(0, Rational.convert(b*100, 100))`
+  where 100 is some power of 10 to convert b to Integer
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  3.14ri
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "convert"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 0
+              RubyCallNode
+                  attributes:
+                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = false
+                      lastArgIsNotHashProfile = false
+                      methodName = "convert"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                      ruby2KeywordsHashProfile = false
+                  children:
+                      arguments = [
+                          LongFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 314
+                          LongFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 100
+                      ]
+                      receiver =
+                          ReadConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "Rational"
+                              children:
+                                  moduleNode =
+                                      ObjectClassLiteralNode
+                                          attributes:
+                                              flags = 0
+          ]
+          receiver =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Complex"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

@@ -1,0 +1,11 @@
+subject: "Alias"
+description: "alias global variables"
+focused_on_node: "org.truffleruby.language.globals.AliasGlobalVarNode"
+ruby: |
+  alias $a $b
+ast: |
+  AliasGlobalVarNode
+      attributes:
+          flags = 1
+          newName = "$a"
+          oldName = "$b"

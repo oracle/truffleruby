@@ -1,0 +1,91 @@
+subject: "Rescue keyword"
+description: "capturing / with a class variable"
+notes: >
+  A local variable is represented with the following simplified AST:
+  
+    (WriteClassVariableNode name = @@error
+      (ObjectLiteralNode object =  :: Object)
+      (ReadGlobalVariableNodeGen name = $!
+        (LookupGlobalVariableStorageNodeGen name = $!)))
+  
+  that is equivalent to:
+  
+  ```ruby
+  @@error = $!
+  ```
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue RuntimeError => @@error
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "RuntimeError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "RuntimeError"
+                      ]
+                      rescueBody =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  body = [
+                                      WriteClassVariableNode
+                                          attributes:
+                                              flags = 0
+                                              name = "@@error"
+                                          children:
+                                              lexicalScopeNode =
+                                                  ObjectLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          object =  :: Object
+                                              resolveTargetModuleNode =
+                                                  ResolveTargetModuleForClassVariablesNodeGen
+                                              rhs =
+                                                  ReadGlobalVariableNodeGen
+                                                      attributes:
+                                                          flags = 0
+                                                          name = "$!"
+                                                      children:
+                                                          lookupGlobalVariableStorageNode =
+                                                              LookupGlobalVariableStorageNodeGen
+                                                                  attributes:
+                                                                      index = -1
+                                                                      name = "$!"
+                                              setClassVariableNode =
+                                                  SetClassVariableNodeGen
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 1
+                                              value = 42
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

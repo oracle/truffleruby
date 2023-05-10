@@ -1,0 +1,10 @@
+subject: "Array"
+description: "Empty array literal"
+focused_on_node: "org.truffleruby.core.array.ArrayLiteralNode$UninitialisedArrayLiteralNode"
+ruby: |
+  []
+ast: |
+  ArrayLiteralNode$UninitialisedArrayLiteralNode
+      attributes:
+          flags = 1
+          language = org.truffleruby.RubyLanguage@...

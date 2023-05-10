@@ -1,0 +1,51 @@
+subject: "Method call"
+description: "Special cases/method #attr= (property assignment)"
+notes: >
+  Expression `a.attr = v` is represented a method call `attr=(v)`.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  a.foobar = 42
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PROTECTED
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = true
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foobar="
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+          ]
+          receiver =
+              RubyCallNode
+                  attributes:
+                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "a"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                      ruby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
