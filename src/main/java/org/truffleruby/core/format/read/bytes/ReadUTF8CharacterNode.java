@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
@@ -20,8 +22,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadUTF8CharacterNode extends FormatNode {
@@ -34,14 +34,14 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @Specialization
     protected Object read(VirtualFrame frame, byte[] source,
-            @Cached BranchProfile errorProfile,
-            @Cached ConditionProfile rangeProfile) {
+            @Cached InlinedBranchProfile errorProfile,
+            @Cached InlinedConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);
         final int end = getSourceEnd(frame);
 
         assert index != -1;
 
-        if (rangeProfile.profile(index >= end)) {
+        if (rangeProfile.profile(this, index >= end)) {
             return MissingValue.INSTANCE;
         }
 
@@ -72,7 +72,7 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
         }
 
         if (index + length > end) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new InvalidFormatException(formatError(index, end, length));
         }
 

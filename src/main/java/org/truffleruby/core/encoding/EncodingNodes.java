@@ -11,9 +11,13 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
@@ -47,8 +51,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
@@ -417,10 +419,10 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected Object isCompatible(Object first, Object second,
-                @Cached ConditionProfile noNegotiatedEncodingProfile) {
+                @Cached InlinedConditionProfile noNegotiatedEncodingProfile) {
             final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
-            if (noNegotiatedEncodingProfile.profile(negotiatedEncoding == null)) {
+            if (noNegotiatedEncodingProfile.profile(this, negotiatedEncoding == null)) {
                 return nil;
             }
 
@@ -441,12 +443,12 @@ public abstract class EncodingNodes {
                 @Cached RubyStringLibrary libFirst,
                 @Cached RubyStringLibrary libSecond,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
-                @Cached ConditionProfile noNegotiatedEncodingProfile) {
+                @Cached InlinedConditionProfile noNegotiatedEncodingProfile) {
             final RubyEncoding negotiatedEncoding = negotiateCompatibleStringEncodingNode.execute(
                     libFirst.getTString(first), libFirst.getEncoding(first),
                     libSecond.getTString(second), libSecond.getEncoding(second));
 
-            if (noNegotiatedEncodingProfile.profile(negotiatedEncoding == null)) {
+            if (noNegotiatedEncodingProfile.profile(this, negotiatedEncoding == null)) {
                 return nil;
             }
 
@@ -663,9 +665,9 @@ public abstract class EncodingNodes {
         @Specialization
         protected Object getObjectEncoding(Object object,
                 @Cached ToRubyEncodingNode toRubyEncodingNode,
-                @Cached ConditionProfile nullProfile) {
+                @Cached InlinedConditionProfile nullProfile) {
             var rubyEncoding = toRubyEncodingNode.executeToEncoding(object);
-            if (nullProfile.profile(rubyEncoding == null)) {
+            if (nullProfile.profile(this, rubyEncoding == null)) {
                 return nil;
             } else {
                 return rubyEncoding;
@@ -761,11 +763,12 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_ensure_compatible_str")
     public abstract static class CheckStringEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)", }, limit = "1")
-        protected RubyEncoding checkEncodingStringString(Object first, Object second,
+        protected static RubyEncoding checkEncodingStringString(Object first, Object second,
                 @Cached RubyStringLibrary libFirst,
                 @Cached RubyStringLibrary libSecond,
-                @Cached BranchProfile errorProfile,
-                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
+                @Bind("this") Node node) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(second);
 
@@ -773,9 +776,10 @@ public abstract class EncodingNodes {
                     .execute(libFirst.getTString(first), firstEncoding, libSecond.getTString(second), secondEncoding);
 
             if (negotiatedEncoding == null) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding, this));
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding,
+                                node));
             }
 
             return negotiatedEncoding;
@@ -799,13 +803,13 @@ public abstract class EncodingNodes {
                 RubyEncoding firstEncoding,
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding,
-                @Cached BranchProfile errorProfile,
+                @Cached InlinedBranchProfile errorProfile,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleEncodingNode) {
             var negotiatedEncoding = negotiateCompatibleEncodingNode.execute(first, firstEncoding, second,
                     secondEncoding);
 
             if (negotiatedEncoding == null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(),
                         coreExceptions().encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding, this));
             }
@@ -831,11 +835,11 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding checkEncoding(Object first, Object second,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final RubyEncoding negotiatedEncoding = executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 raiseException(first, second);
             }
 

@@ -14,7 +14,10 @@ package org.truffleruby.core.encoding;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
@@ -55,7 +58,6 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Encoding::Converter", isClass = true)
@@ -454,10 +456,11 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
-        protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
-                @Cached BranchProfile errorProfile,
+        protected static Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
+                @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
-                @Cached RubyStringLibrary libReplacement) {
+                @Cached RubyStringLibrary libReplacement,
+                @Bind("this") Node node) {
             var tstring = libReplacement.getTString(replacement);
             var encoding = libReplacement.getEncoding(replacement);
 
@@ -466,17 +469,17 @@ public abstract class EncodingConverterNodes {
                     byteArray.getLength(), encoding.jcoding.getName());
 
             if (ret == -1) {
-                errorProfile.enter();
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().encodingUndefinedConversionError(node));
             }
 
             return replacement;
         }
 
         @TruffleBoundary
-        private int setReplacement(EConv ec, byte[] bytes, int offset, int len, byte[] encodingName) {
+        private static int setReplacement(EConv ec, byte[] bytes, int offset, int len, byte[] encodingName) {
             return ec.setReplacement(bytes, offset, len, encodingName);
         }
 

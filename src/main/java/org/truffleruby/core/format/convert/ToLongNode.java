@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -72,14 +74,15 @@ public abstract class ToLongNode extends FormatNode {
 
     @Specialization(
             guards = { "!errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
-    protected long toLong(VirtualFrame frame, Object object,
+    protected static long toLong(VirtualFrame frame, Object object,
             @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toIntNode,
             @Cached("create(true)") ToLongNode redoNode,
-            @Cached BranchProfile noConversionAvailable) {
+            @Cached InlinedBranchProfile noConversionAvailable,
+            @Bind("this") Node node) {
 
         Object result = toIntNode.call(object, "to_int");
         if (result == DispatchNode.MISSING) {
-            noConversionAvailable.enter();
+            noConversionAvailable.enter(node);
             throw new CantConvertException("can't convert Object to Integer");
         }
         return redoNode.executeToLong(frame, result);
