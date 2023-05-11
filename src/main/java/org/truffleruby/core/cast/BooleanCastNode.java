@@ -9,7 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -24,8 +28,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Casts a value into a boolean. */
 @GenerateUncached
@@ -81,20 +83,21 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
-    protected boolean doForeignObject(Object object,
+    protected static boolean doForeignObject(Object object,
             @CachedLibrary("object") InteropLibrary objects,
-            @Cached ConditionProfile isNullProfile,
-            @Cached ConditionProfile isBooleanProfile,
-            @Cached BranchProfile failed) {
+            @Cached InlinedConditionProfile isNullProfile,
+            @Cached InlinedConditionProfile isBooleanProfile,
+            @Cached InlinedBranchProfile failed,
+            @Bind("this") Node node) {
 
-        if (isNullProfile.profile(objects.isNull(object))) {
+        if (isNullProfile.profile(node, objects.isNull(object))) {
             return false;
         } else {
-            if (isBooleanProfile.profile(objects.isBoolean(object))) {
+            if (isBooleanProfile.profile(node, objects.isBoolean(object))) {
                 try {
                     return objects.asBoolean(object);
                 } catch (UnsupportedMessageException e) {
-                    failed.enter();
+                    failed.enter(node);
                     // it concurrently stopped being boolean
                     return true;
                 }

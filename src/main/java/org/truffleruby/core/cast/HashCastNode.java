@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -20,7 +21,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Must be a RubyNode because it's used for ** in the translator. */
 @NodeChild(value = "childNode", type = RubyNode.class)
@@ -46,19 +46,19 @@ public abstract class HashCastNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyHash(object)")
     protected RubyHash cast(Object object,
-            @Cached BranchProfile errorProfile,
+            @Cached InlinedBranchProfile errorProfile,
             @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toHashNode) {
         final Object result = toHashNode.call(object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorNoImplicitConversion(object, "Hash", this));
         }
 
         if (!RubyGuards.isRubyHash(result)) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorCantConvertTo(object, "Hash", "to_hash", result, this));

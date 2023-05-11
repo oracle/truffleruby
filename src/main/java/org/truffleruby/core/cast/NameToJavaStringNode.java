@@ -9,8 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -24,7 +27,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
  * name. */
@@ -68,20 +70,21 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     }
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
-    protected String nameToJavaString(Object object,
-            @Cached BranchProfile errorProfile,
+    protected static String nameToJavaString(Object object,
+            @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStr,
             @Cached @Exclusive RubyStringLibrary libString,
-            @Cached @Exclusive ToJavaStringNode toJavaStringNode) {
+            @Cached @Exclusive ToJavaStringNode toJavaStringNode,
+            @Bind("this") Node node) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
-            errorProfile.enter();
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(getContext(), coreExceptions().typeError(
+            errorProfile.enter(node);
+            if (e.getException().getLogicalClass() == coreLibrary(node).noMethodErrorClass) {
+                throw new RaiseException(getContext(node), coreExceptions(node).typeError(
                         Utils.concat(object, " is not a symbol nor a string"),
-                        this));
+                        node));
             } else {
                 throw e;
             }
@@ -90,13 +93,13 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
         if (libString.isRubyString(coerced)) {
             return toJavaStringNode.executeToJavaString(coerced);
         } else {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(
+            errorProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).typeErrorBadCoercion(
                     object,
                     "String",
                     "to_str",
                     coerced,
-                    this));
+                    node));
         }
     }
 

@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.RootCallTarget;
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 import java.util.Map;
 
@@ -78,13 +78,13 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" }, replaces = "doRubySymbolASTInlined")
     protected RubyProc doObject(VirtualFrame frame, Object object,
             @Cached DispatchNode toProc,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedBranchProfile errorProfile) {
         // The semantics are to call #method_missing here
         final Object coerced;
         try {
             coerced = toProc.callWithFrame(frame, object, "to_proc");
         } catch (RaiseException e) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
@@ -97,7 +97,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
         if (coerced instanceof RubyProc) {
             return (RubyProc) coerced;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorBadCoercion(object, "Proc", "to_proc", coerced, this));

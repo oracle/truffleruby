@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
@@ -60,14 +60,14 @@ public abstract class ToLongNode extends RubyBaseNodeWithExecute {
 
     @Specialization
     protected long coerceDouble(double value,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedBranchProfile errorProfile) {
         // emulate MRI logic
         // We check for `value < MAX_VALUE` because casting Long.MAX_VALUE to double yields a double value of 2^63 which is >
         // Long.MAX_VALUE.
         if (Long.MIN_VALUE <= value && value < Long.MAX_VALUE) {
             return (long) value;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
