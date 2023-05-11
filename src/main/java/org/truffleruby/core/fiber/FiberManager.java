@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -40,7 +41,6 @@ import org.truffleruby.language.control.TerminationException;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
@@ -117,7 +117,7 @@ public class FiberManager {
         }
     }
 
-    private static final BranchProfile UNPROFILED = BranchProfile.getUncached();
+    private static final InlinedBranchProfile UNPROFILED = InlinedBranchProfile.getUncached();
 
     private void beforeEnter(RubyFiber fiber, Node currentNode) {
         assert !fiber.isRootFiber() : "Root Fibers execute threadMain() and not fiberMain()";
@@ -187,7 +187,7 @@ public class FiberManager {
         }
     }
 
-    public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, BranchProfile errorProfile) {
+    public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, InlinedBranchProfile errorProfile) {
         assert currentFiber.isActive();
 
         final RubyFiber rootFiber = currentFiber.rubyThread.getRootFiber();
@@ -200,7 +200,7 @@ public class FiberManager {
         } else {
 
             if (currentFiber == rootFiber) { // Note: this is always false for the fiberMain() caller
-                errorProfile.enter();
+                errorProfile.enter(currentNode);
                 throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
             }
 

@@ -19,7 +19,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.Layouts;
@@ -69,11 +68,12 @@ public final class SpecialVariableStorage implements TruffleObject {
     /** $_ */
     private ThreadAndFrameLocalStorage lastLine;
 
-    public Object getLastMatch(ConditionProfile unsetProfile, ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastMatch == null)) {
+    public Object getLastMatch(Node node, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastMatch == null)) {
             return Nil.INSTANCE;
         } else {
-            return lastMatch.get(sameThreadProfile);
+            return lastMatch.get(node, sameThreadProfile);
         }
     }
 
@@ -85,11 +85,12 @@ public final class SpecialVariableStorage implements TruffleObject {
         lastMatch.set(node, value, sameThreadProfile);
     }
 
-    public Object getLastLine(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
-        if (unsetProfile.profile(lastLine == null)) {
+    public Object getLastLine(Node node, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfilew) {
+        if (unsetProfile.profile(node, lastLine == null)) {
             return Nil.INSTANCE;
         } else {
-            return lastLine.get(sameThreadProfilew);
+            return lastLine.get(node, sameThreadProfilew);
         }
     }
 
@@ -105,11 +106,11 @@ public final class SpecialVariableStorage implements TruffleObject {
     @ExportMessage
     protected String toDisplayString(boolean allowSideEffects) {
         final InteropLibrary interop = InteropLibrary.getUncached();
-        final ConditionProfile profile = ConditionProfile.getUncached();
+        final InlinedConditionProfile profile = InlinedConditionProfile.getUncached();
         String result = "SpecialVariableStorage($~: ";
         if (lastMatch != null) {
             try {
-                result += interop.asString(interop.toDisplayString(lastMatch.get(profile), allowSideEffects));
+                result += interop.asString(interop.toDisplayString(lastMatch.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }
@@ -120,7 +121,7 @@ public final class SpecialVariableStorage implements TruffleObject {
         result += ", $_: ";
         if (lastLine != null) {
             try {
-                result += interop.asString(interop.toDisplayString(lastLine.get(profile), allowSideEffects));
+                result += interop.asString(interop.toDisplayString(lastLine.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }

@@ -16,7 +16,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ThreadAndFrameLocalStorage {
 
@@ -33,8 +32,8 @@ public class ThreadAndFrameLocalStorage {
         originalThreadValue = Nil.INSTANCE;
     }
 
-    public Object get(ConditionProfile sameThreadProfile) {
-        if (sameThreadProfile.profile(RubyLanguage.getThreadId(Thread.currentThread()) == originalThreadId)) {
+    public Object get(Node node, InlinedConditionProfile sameThreadProfile) {
+        if (sameThreadProfile.profile(node, RubyLanguage.getThreadId(Thread.currentThread()) == originalThreadId)) {
             return originalThreadValue;
         } else {
             return fallbackGet();

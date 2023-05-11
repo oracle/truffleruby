@@ -62,7 +62,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
@@ -298,9 +297,9 @@ public abstract class TruffleKernelNodes {
 
         @Specialization
         protected Object storage(VirtualFrame frame,
-                @Cached ConditionProfile nullProfile) {
+                @Cached InlinedConditionProfile nullProfile) {
             Object variables = callerVariablesNode.execute(frame);
-            if (nullProfile.profile(variables == null)) {
+            if (nullProfile.profile(this, variables == null)) {
                 return nil;
             } else {
                 return variables;
@@ -387,9 +386,9 @@ public abstract class TruffleKernelNodes {
 
         @Specialization
         protected Object getRegexpMatch(SpecialVariableStorage variables,
-                @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
-            return variables.getLastMatch(unsetProfile, sameThreadProfile);
+                @Cached InlinedConditionProfile unsetProfile,
+                @Cached InlinedConditionProfile sameThreadProfile) {
+            return variables.getLastMatch(this, unsetProfile, sameThreadProfile);
         }
     }
 
@@ -410,9 +409,9 @@ public abstract class TruffleKernelNodes {
 
         @Specialization
         protected Object getLastIO(SpecialVariableStorage storage,
-                @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
-            return storage.getLastLine(unsetProfile, sameThreadProfile);
+                @Cached InlinedConditionProfile unsetProfile,
+                @Cached InlinedConditionProfile sameThreadProfile) {
+            return storage.getLastLine(this, unsetProfile, sameThreadProfile);
         }
     }
 }
