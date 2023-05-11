@@ -1053,6 +1053,7 @@ public class CoreLibrary {
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb",
+            "/core/truffle/queue_operations.rb",
             POST_BOOT_FILE
     };
 

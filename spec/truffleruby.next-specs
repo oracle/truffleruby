@@ -21,3 +21,7 @@ spec/ruby/core/string/bytesplice_spec.rb
 
 spec/ruby/core/string/byteindex_spec.rb
 spec/ruby/core/string/byterindex_spec.rb
+
+spec/ruby/core/queue/deq_spec.rb
+spec/ruby/core/queue/pop_spec.rb
+spec/ruby/core/queue/shift_spec.rb

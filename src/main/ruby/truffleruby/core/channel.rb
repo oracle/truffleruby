@@ -50,7 +50,7 @@ module Truffle
     end
 
     def receive_timeout(duration)
-      @queue.__send__ :receive_timeout, duration
+      @queue.pop(timeout: duration)
     end
 
     def try_receive

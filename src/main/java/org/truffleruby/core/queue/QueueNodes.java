@@ -13,19 +13,17 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToANode;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -34,8 +32,6 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule(value = "Queue", isClass = true)
@@ -73,18 +69,11 @@ public abstract class QueueNodes {
 
     }
 
-    @CoreMethod(names = { "pop", "shift", "deq" }, optional = 1)
-    @NodeChild(value = "queue", type = RubyNode.class)
-    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PopNode extends CoreMethodNode {
-
-        @CreateCast("nonBlocking")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
-            return BooleanCastWithDefaultNode.create(false, nonBlocking);
-        }
+    @Primitive(name = "queue_pop")
+    public abstract static class PopNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubyQueue self, boolean nonBlocking,
+        protected Object popBlocking(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Exclusive @Cached InlinedBranchProfile closedProfile) {
             final UnsizedQueue queue = self.queue;
 
@@ -103,8 +92,38 @@ public abstract class QueueNodes {
             return getContext().getThreadManager().runUntilResult(this, queue::take);
         }
 
+        @Specialization(guards = "!nonBlocking")
+        protected Object popBlocking(RubyQueue self, boolean nonBlocking, long timeoutMilliseconds,
+                @Exclusive @Cached InlinedBranchProfile closedProfile) {
+            final UnsizedQueue queue = self.queue;
+            final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
+
+            var result = getContext().getThreadManager().runUntilResult(this, () -> {
+                final long currentTimeout = deadline - System.currentTimeMillis();
+                final Object value;
+
+                if (currentTimeout > 0) {
+                    value = queue.poll(currentTimeout);
+                } else {
+                    value = queue.poll();
+                }
+
+                if (value == UnsizedQueue.CLOSED) {
+                    closedProfile.enter(this);
+                    return nil;
+                } else {
+                    return value;
+                }
+            });
+
+            if (result == null) {
+                return nil;
+            }
+            return result;
+        }
+
         @Specialization(guards = "nonBlocking")
-        protected Object popNonBlock(RubyQueue self, boolean nonBlocking,
+        protected Object popNonBlock(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Exclusive @Cached InlinedBranchProfile errorProfile) {
             final UnsizedQueue queue = self.queue;
 
@@ -115,49 +134,6 @@ public abstract class QueueNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
             } else {
                 return value;
-            }
-        }
-
-    }
-
-    @NonStandard
-    @CoreMethod(names = "receive_timeout", required = 1, visibility = Visibility.PRIVATE, lowerFixnum = 1)
-    public abstract static class ReceiveTimeoutNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object receiveTimeout(RubyQueue self, int duration) {
-            return receiveTimeout(self, (double) duration);
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object receiveTimeout(RubyQueue self, double duration) {
-            final UnsizedQueue queue = self.queue;
-
-            final long durationInMillis = (long) (duration * 1000.0);
-            final long start = System.currentTimeMillis();
-
-            return getContext().getThreadManager().runUntilResult(this, () -> {
-                long now = System.currentTimeMillis();
-                long waited = now - start;
-                if (waited >= durationInMillis) {
-                    // Try again to make sure we at least tried once
-                    final Object result = queue.poll();
-                    return translateResult(result);
-                }
-
-                final Object result = queue.poll(durationInMillis);
-                return translateResult(result);
-            });
-        }
-
-        private Object translateResult(Object result) {
-            if (result == null) {
-                return false;
-            } else if (result == UnsizedQueue.CLOSED) {
-                return nil;
-            } else {
-                return result;
             }
         }
 

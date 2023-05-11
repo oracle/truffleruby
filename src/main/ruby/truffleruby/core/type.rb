@@ -145,8 +145,12 @@ module Truffle
         val.to_f
       elsif Primitive.is_a?(val, Rational)
         val.to_f
+      elsif Primitive.true?(val)
+        raise TypeError, 'no implicit conversion to float from true'
+      elsif Primitive.false?(val)
+        raise TypeError, 'no implicit conversion to float from false'
       elsif Primitive.is_a?(val, String)
-        raise TypeError, 'no implicit conversion from to float from string'
+        raise TypeError, 'no implicit conversion to float from string'
       else
         rb_num2dbl(rb_to_f(val))
       end
