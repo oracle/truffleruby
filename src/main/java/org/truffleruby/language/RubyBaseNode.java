@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
@@ -71,6 +72,13 @@ public abstract class RubyBaseNode extends Node {
     public static void profileAndReportLoopCount(Node node, LoopConditionProfile loopProfile, int count) {
         // Checkstyle: stop
         loopProfile.profileCounted(count);
+        LoopNode.reportLoopCount(node, count);
+        // Checkstyle: resume
+    }
+
+    public static void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, int count) {
+        // Checkstyle: stop
+        loopProfile.profileCounted(node, count);
         LoopNode.reportLoopCount(node, count);
         // Checkstyle: resume
     }
@@ -157,7 +165,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(Object store, int size) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store, size);
+        return createArray(this, store, size);
+    }
+
+    protected static RubyArray createArray(Node node, Object store, int size) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store, size);
     }
 
     protected final RubyArray createArray(int[] store) {
@@ -239,9 +251,14 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,
             AbstractTruffleString tstring, RubyEncoding encoding, int byteOffset, int byteLength) {
+        return createSubString(this, substringNode, tstring, encoding, byteOffset, byteLength);
+    }
+
+    protected static RubyString createSubString(Node node, TruffleString.SubstringByteIndexNode substringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding, int byteOffset, int byteLength) {
         final TruffleString substring = substringNode.execute(tstring, byteOffset, byteLength, encoding.tencoding,
                 true);
-        return createString(substring, encoding);
+        return createString(node, substring, encoding);
     }
 
     protected final RubyString createSubString(TruffleString.SubstringNode substringNode,

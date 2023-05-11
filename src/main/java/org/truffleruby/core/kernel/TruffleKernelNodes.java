@@ -14,6 +14,7 @@ import java.io.IOException;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
@@ -374,9 +375,9 @@ public abstract class TruffleKernelNodes {
 
         @Specialization
         protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
-                @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
-            variables.setLastMatch(lastMatch, getContext(), unsetProfile, sameThreadProfile);
+                @Cached InlinedConditionProfile unsetProfile,
+                @Cached InlinedConditionProfile sameThreadProfile) {
+            variables.setLastMatch(this, lastMatch, getContext(), unsetProfile, sameThreadProfile);
             return lastMatch;
         }
     }
@@ -397,9 +398,9 @@ public abstract class TruffleKernelNodes {
 
         @Specialization
         protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastIO,
-                @Cached ConditionProfile unsetProfile,
-                @Cached ConditionProfile sameThreadProfile) {
-            variables.setLastLine(lastIO, getContext(), unsetProfile, sameThreadProfile);
+                @Cached InlinedConditionProfile unsetProfile,
+                @Cached InlinedConditionProfile sameThreadProfile) {
+            variables.setLastLine(this, lastIO, getContext(), unsetProfile, sameThreadProfile);
             return lastIO;
         }
     }

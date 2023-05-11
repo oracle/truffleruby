@@ -18,8 +18,10 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
@@ -75,12 +77,12 @@ public final class SpecialVariableStorage implements TruffleObject {
         }
     }
 
-    public void setLastMatch(Object value, RubyContext context, ConditionProfile unsetProfile,
-            ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastMatch == null)) {
+    public void setLastMatch(Node node, Object value, RubyContext context, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastMatch == null)) {
             lastMatch = new ThreadAndFrameLocalStorage(context);
         }
-        lastMatch.set(value, sameThreadProfile);
+        lastMatch.set(node, value, sameThreadProfile);
     }
 
     public Object getLastLine(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
@@ -91,12 +93,12 @@ public final class SpecialVariableStorage implements TruffleObject {
         }
     }
 
-    public void setLastLine(Object value, RubyContext context, ConditionProfile unsetProfile,
-            ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastLine == null)) {
+    public void setLastLine(Node node, Object value, RubyContext context, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastLine == null)) {
             lastLine = new ThreadAndFrameLocalStorage(context);
         }
-        lastLine.set(value, sameThreadProfile);
+        lastLine.set(node, value, sameThreadProfile);
     }
 
     @TruffleBoundary

@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.threadlocal;
 
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
@@ -60,8 +62,8 @@ public class ThreadAndFrameLocalStorage {
         return getOtherThreadValues().get();
     }
 
-    public void set(Object value, ConditionProfile sameThreadProfile) {
-        if (sameThreadProfile.profile(RubyLanguage.getThreadId(Thread.currentThread()) == originalThreadId)) {
+    public void set(Node node, Object value, InlinedConditionProfile sameThreadProfile) {
+        if (sameThreadProfile.profile(node, RubyLanguage.getThreadId(Thread.currentThread()) == originalThreadId)) {
             originalThreadValue = value;
         } else {
             fallbackSet(value);

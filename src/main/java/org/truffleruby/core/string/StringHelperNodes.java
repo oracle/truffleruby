@@ -22,8 +22,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -72,9 +72,9 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected boolean isSingleByteOptimizable(AbstractTruffleString string, RubyEncoding encoding,
-                @Cached ConditionProfile asciiOnlyProfile,
+                @Cached InlinedConditionProfile asciiOnlyProfile,
                 @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
-            if (asciiOnlyProfile.profile(StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
+            if (asciiOnlyProfile.profile(this, StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
                 return true;
             } else {
                 return encoding.isSingleByte;
@@ -205,12 +205,12 @@ public abstract class StringHelperNodes {
 
         @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
-                @Cached BranchProfile errorProfile,
+                @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             if (tstringsWithEncs.length == 0) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
@@ -313,17 +313,18 @@ public abstract class StringHelperNodes {
                         "argsMatch(cachedArgs, args)",
                         "libString.getEncoding(string) == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
-        protected Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
+        protected static Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
                 @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
-                @Cached @Exclusive BranchProfile nullProfile) {
-            var processedTString = processStr(string, squeeze, compatEncoding, tables);
+                @Cached @Exclusive InlinedBranchProfile nullProfile,
+                @Bind("this") Node node) {
+            var processedTString = processStr(node, string, squeeze, compatEncoding, tables);
             if (processedTString == null) {
-                nullProfile.enter();
+                nullProfile.enter(node);
                 return nil;
             }
 
@@ -334,24 +335,25 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
         protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached @Exclusive BranchProfile errorProfile) {
+                @Cached @Exclusive InlinedBranchProfile errorProfile) {
             if (args.length == 0) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
             RubyEncoding enc = findEncoding(string.tstring, libString.getEncoding(string), args);
 
-            return deleteBangSlow(string, args, enc);
+            return deleteBangSlow(this, string, args, enc);
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(RubyString string, TStringWithEncoding[] tstringsWithEncs, RubyEncoding enc) {
+        private Object deleteBangSlow(Node node, RubyString string, TStringWithEncoding[] tstringsWithEncs,
+                RubyEncoding enc) {
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
 
             final StringSupport.TrTables tables = makeTables(tstringsWithEncs, squeeze, enc);
 
-            var processedTString = processStr(string, squeeze, enc, tables);
+            var processedTString = processStr(node, string, squeeze, enc, tables);
             if (processedTString == null) {
                 return nil;
             }
@@ -363,10 +365,10 @@ public abstract class StringHelperNodes {
         }
 
         @TruffleBoundary
-        private TruffleString processStr(RubyString string, boolean[] squeeze, RubyEncoding enc,
+        private static TruffleString processStr(Node node, RubyString string, boolean[] squeeze, RubyEncoding enc,
                 StringSupport.TrTables tables) {
             return StringSupport.delete_bangCommon19(
-                    new ATStringWithEncoding(string.tstring, string.getEncodingUncached()), squeeze, tables, enc, this);
+                    new ATStringWithEncoding(string.tstring, string.getEncodingUncached()), squeeze, tables, enc, node);
         }
     }
 
@@ -419,19 +421,19 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected int checkIndex(int index, int length,
-                @Cached ConditionProfile negativeIndexProfile,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedConditionProfile negativeIndexProfile,
+                @Cached InlinedBranchProfile errorProfile) {
             if (index >= length) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().indexErrorOutOfString(index, this));
             }
 
-            if (negativeIndexProfile.profile(index < 0)) {
+            if (negativeIndexProfile.profile(this, index < 0)) {
                 index += length;
                 if (index < 0) {
-                    errorProfile.enter();
+                    errorProfile.enter(this);
                     throw new RaiseException(
                             getContext(),
                             getContext().getCoreExceptions().indexErrorOutOfString(index, this));
@@ -454,8 +456,8 @@ public abstract class StringHelperNodes {
 
         @Specialization
         protected int normalizeIndex(int index, int length,
-                @Cached ConditionProfile negativeIndexProfile) {
-            if (negativeIndexProfile.profile(index < 0)) {
+                @Cached InlinedConditionProfile negativeIndexProfile) {
+            if (negativeIndexProfile.profile(this, index < 0)) {
                 return index + length;
             }
 
@@ -496,7 +498,7 @@ public abstract class StringHelperNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
-                @Cached BranchProfile caseSwapProfile) {
+                @Cached InlinedBranchProfile caseSwapProfile) {
             var tstring = string.tstring;
             var encoding = libString.getTEncoding(string);
 
@@ -508,7 +510,7 @@ public abstract class StringHelperNodes {
 
                 if ((lowerToUpper && StringSupport.isAsciiLowercase(c)) ||
                         (upperToLower && StringSupport.isAsciiUppercase(c))) {
-                    caseSwapProfile.enter();
+                    caseSwapProfile.enter(this);
 
                     if (modified == null) {
                         modified = copyToByteArrayNode.execute(tstring, encoding);
@@ -555,13 +557,13 @@ public abstract class StringHelperNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached ConditionProfile noopProfile) {
+                @Cached InlinedConditionProfile noopProfile) {
             var tencoding = libString.getTEncoding(string);
             var iterator = createCodePointIteratorNode.execute(string.tstring, tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             byte[] modified = invertNode.executeInvert(string, iterator, null);
 
-            if (noopProfile.profile(modified == null)) {
+            if (noopProfile.profile(this, modified == null)) {
                 return nil;
             } else {
                 string.setTString(fromByteArrayNode.execute(modified, tencoding, false)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
@@ -579,11 +581,11 @@ public abstract class StringHelperNodes {
         @Specialization
         protected int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
-                @Cached BranchProfile badCodePointProfile) {
+                @Cached InlinedBranchProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             if (codePoint == -1) {
-                badCodePointProfile.enter();
+                badCodePointProfile.enter(this);
                 throw new RaiseException(getContext(),
                         coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
             }
