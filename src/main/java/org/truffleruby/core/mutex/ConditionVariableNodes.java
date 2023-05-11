@@ -14,6 +14,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -31,7 +32,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "ConditionVariable", isClass = true)
@@ -60,7 +60,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
-                @Shared @Cached BranchProfile errorProfile) {
+                @Shared @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
@@ -71,7 +71,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
-                @Shared @Cached BranchProfile errorProfile) {
+                @Shared @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 

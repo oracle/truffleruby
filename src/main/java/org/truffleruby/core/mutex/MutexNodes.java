@@ -11,8 +11,8 @@ package org.truffleruby.core.mutex;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -49,11 +49,11 @@ public abstract class MutexNodes {
 
         @Specialization
         protected RubyMutex lock(RubyMutex mutex,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
 
             if (lock.isHeldByCurrentThread()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
@@ -87,11 +87,11 @@ public abstract class MutexNodes {
 
         @Specialization
         protected boolean tryLock(RubyMutex mutex,
-                @Cached ConditionProfile heldByCurrentThreadProfile) {
+                @Cached InlinedConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
 
-            if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
+            if (heldByCurrentThreadProfile.profile(this, lock.isHeldByCurrentThread())) {
                 return false;
             } else {
                 return MutexOperations.tryLock(lock, thread);
@@ -104,7 +104,7 @@ public abstract class MutexNodes {
 
         @Specialization
         protected RubyMutex unlock(RubyMutex mutex,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
 
@@ -120,12 +120,12 @@ public abstract class MutexNodes {
 
         @Specialization
         protected Object synchronize(RubyMutex mutex, RubyProc block,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
 
             if (lock.isHeldByCurrentThread()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
@@ -149,9 +149,9 @@ public abstract class MutexNodes {
         @Specialization
         protected long sleep(RubyMutex mutex, Object maybeDuration,
                 @Cached DurationToNanoSecondsNode durationToNanoSecondsNode,
-                @Cached ConditionProfile nilProfile,
-                @Cached BranchProfile errorProfile) {
-            if (nilProfile.profile(maybeDuration == nil)) {
+                @Cached InlinedConditionProfile nilProfile,
+                @Cached InlinedBranchProfile errorProfile) {
+            if (nilProfile.profile(this, maybeDuration == nil)) {
                 maybeDuration = NotProvided.INSTANCE;
             }
 

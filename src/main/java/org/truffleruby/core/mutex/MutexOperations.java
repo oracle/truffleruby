@@ -12,7 +12,7 @@ package org.truffleruby.core.mutex;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.thread.RubyThread;
@@ -126,9 +126,9 @@ public abstract class MutexOperations {
     }
 
     public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode,
-            BranchProfile errorProfile) {
+            InlinedBranchProfile errorProfile) {
         if (!lock.isHeldByCurrentThread()) {
-            errorProfile.enter();
+            errorProfile.enter(currentNode);
             if (!lock.isLocked()) {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
             } else {
