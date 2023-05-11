@@ -17,10 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -74,7 +77,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.LanguageInfo;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 
 /** Specs for these methods are in spec/truffle/interop/matrix_spec.rb and in spec/truffle/interop/methods_spec.rb */
@@ -1634,13 +1636,13 @@ public abstract class InteropNodes {
 
         @Specialization
         protected Object importObject(String name,
-                @Cached BranchProfile errorProfile,
+                @Cached InlinedBranchProfile errorProfile,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object value = doImport(name);
             if (value != null) {
                 return foreignToRubyNode.executeConvert(value);
             } else {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));
             }
         }
@@ -1901,15 +1903,16 @@ public abstract class InteropNodes {
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
     public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object metaObject(Object value,
+        protected static Object metaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached BranchProfile errorProfile,
-                @Cached LogicalClassNode logicalClassNode) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached LogicalClassNode logicalClassNode,
+                @Bind("this") Node node) {
             if (interop.hasMetaObject(value)) {
                 try {
                     return interop.getMetaObject(value);
                 } catch (UnsupportedMessageException e) {
-                    errorProfile.enter();
+                    errorProfile.enter(node);
                     return logicalClassNode.execute(value);
                 }
             } else {
