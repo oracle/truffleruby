@@ -44,6 +44,9 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.sun.management.ThreadMXBean;
 import org.truffleruby.RubyLanguage;
@@ -72,7 +75,6 @@ import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -102,15 +104,16 @@ public abstract class TruffleSystemNodes {
     public abstract static class JavaGetEnv extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(name)", limit = "1")
-        protected Object javaGetEnv(Object name,
+        protected static Object javaGetEnv(Object name,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
-                @Cached ConditionProfile nullValueProfile) {
+                @Cached InlinedConditionProfile nullValueProfile,
+                @Bind("this") Node node) {
             final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);
 
-            if (nullValueProfile.profile(value == null)) {
+            if (nullValueProfile.profile(node, value == null)) {
                 return nil;
             } else {
                 return fromJavaStringNode.executeFromJavaString(value);
@@ -118,7 +121,7 @@ public abstract class TruffleSystemNodes {
         }
 
         @TruffleBoundary
-        private String getEnv(String name) {
+        private static String getEnv(String name) {
             return System.getenv(name);
         }
 

@@ -10,6 +10,7 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.language.RubyBaseNode;
@@ -23,7 +24,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class MarkingServiceNodes {
 
@@ -41,8 +41,8 @@ public class MarkingServiceNodes {
         @Specialization(guards = "stack.hasSingleKeptObject()")
         protected void keepCreatingList(ValueWrapper object,
                 @Bind("getStack(object)") ExtensionCallStack stack,
-                @Cached ConditionProfile sameObjectProfile) {
-            if (sameObjectProfile.profile(object != stack.current.preservedObject)) {
+                @Cached InlinedConditionProfile sameObjectProfile) {
+            if (sameObjectProfile.profile(this, object != stack.current.preservedObject)) {
                 createKeptList(object, stack);
             }
         }

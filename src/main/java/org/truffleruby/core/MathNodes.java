@@ -38,6 +38,7 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -57,7 +58,6 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Math")
 public abstract class MathNodes {
@@ -550,14 +550,14 @@ public abstract class MathNodes {
 
         @Specialization
         protected int min(int a, int b,
-                @Shared @Cached ConditionProfile profile) {
-            return profile.profile(a < b) ? a : b;
+                @Shared @Cached InlinedConditionProfile profile) {
+            return profile.profile(this, a < b) ? a : b;
         }
 
         @Specialization
         protected long min(long a, long b,
-                @Shared @Cached ConditionProfile profile) {
-            return profile.profile(a < b) ? a : b;
+                @Shared @Cached InlinedConditionProfile profile) {
+            return profile.profile(this, a < b) ? a : b;
         }
 
     }

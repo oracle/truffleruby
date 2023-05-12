@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -21,6 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateUncached
 public abstract class ToRubyIntegerNode extends RubyBaseNode {
 
+    @NeverDefault
     public static ToRubyIntegerNode create() {
         return ToRubyIntegerNodeGen.create();
     }
