@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -19,7 +20,6 @@ import org.truffleruby.language.RubyConstant;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantBaseNode
         implements LookupConstantInterface {
@@ -53,9 +53,9 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
 
     @Specialization
     protected RubyConstant lookupConstantUncached(LexicalScope lexicalScope,
-            @Cached ConditionProfile isDeprecatedProfile) {
+            @Cached InlinedConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup(lexicalScope);
-        if (isDeprecatedProfile.profile(constant.isDeprecated())) {
+        if (isDeprecatedProfile.profile(this, constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), name);
         }
         return constant.getConstant();

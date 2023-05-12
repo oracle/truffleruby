@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -35,6 +36,11 @@ public class WarnNode extends RubyBaseNode {
     public boolean shouldWarn() {
         final Object verbosity = readVerboseNode.execute();
         return verbosity != nil;
+    }
+
+    @NeverDefault
+    public static WarnNode create() {
+        return new WarnNode();
     }
 
     public final boolean shouldWarnForDeprecation() {

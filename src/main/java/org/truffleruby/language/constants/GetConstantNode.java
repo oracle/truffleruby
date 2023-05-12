@@ -203,7 +203,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") RubySymbol symbolName,
-            @Cached ConditionProfile sameNameProfile) {
+            @Cached(inline = false) ConditionProfile sameNameProfile) {
         return doMissingConstant(module, name, symbolName);
     }
 

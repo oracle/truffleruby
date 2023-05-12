@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
@@ -29,18 +30,24 @@ public abstract class LookupConstantBaseNode extends RubyBaseNode {
         }
 
         if (warnNode.shouldWarnForDeprecation()) {
-            warnNode.warningMessage(getSection(), formatMessage(module, name));
+            warnNode.warningMessage(getSection(this), formatMessage(this, module, name));
+        }
+    }
+
+    protected static void warnDeprecatedConstant(Node node, WarnNode warnNode, RubyModule module, String name) {
+        if (warnNode.shouldWarnForDeprecation()) {
+            warnNode.warningMessage(getSection(node), formatMessage(node, module, name));
         }
     }
 
     @TruffleBoundary
-    private SourceSection getSection() {
-        return getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
+    private static SourceSection getSection(Node node) {
+        return getContext(node).getCallStack().getTopMostUserSourceSection(node.getEncapsulatingSourceSection());
     }
 
     @TruffleBoundary
-    private String formatMessage(RubyModule module, String name) {
-        return "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated";
+    private static String formatMessage(Node node, RubyModule module, String name) {
+        return "constant " + ModuleOperations.constantName(getContext(node), module, name) + " is deprecated";
     }
 
     protected int getCacheLimit() {

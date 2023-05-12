@@ -11,10 +11,14 @@ package org.truffleruby.language.constants;
 
 import java.util.ArrayList;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
@@ -24,7 +28,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Caches {@link ModuleOperations#lookupConstant} and checks visibility. */
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
@@ -53,52 +56,56 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
                     "isSingleContext()",
                     "module == cachedModule",
                     "checkName == cachedCheckName",
-                    "guardName(name, cachedName, sameNameProfile)" },
+                    "guardName(node, name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
+    protected static RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
             @Cached("module") RubyModule cachedModule,
             @Cached("name") String cachedName,
             @Cached("checkName") boolean cachedCheckName,
             @Cached("isValidName(cachedCheckName, cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
-            @Cached @Exclusive ConditionProfile sameNameProfile) {
+            @Cached @Exclusive InlinedConditionProfile sameNameProfile,
+            @Cached LazyWarnNode lazyWarnNode,
+            @Bind("this") Node node) {
         if (!isValidConstantName) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(cachedName, this));
+            throw new RaiseException(getContext(node),
+                    coreExceptions(node).nameErrorWrongConstantName(cachedName, node));
         } else if (!isVisible) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
+            throw new RaiseException(getContext(node),
+                    coreExceptions(node).nameErrorPrivateConstant(module, name, node));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(module, name);
+            warnDeprecatedConstant(node, lazyWarnNode.get(node), module, name);
         }
         return constant.getConstant();
     }
 
     @Specialization
     protected RubyConstant lookupConstantUncached(RubyModule module, String name, boolean checkName,
-            @Cached @Exclusive ConditionProfile isValidConstantNameProfile,
-            @Cached @Exclusive ConditionProfile isVisibleProfile,
-            @Cached @Exclusive ConditionProfile isDeprecatedProfile) {
+            @Cached @Exclusive InlinedConditionProfile isValidConstantNameProfile,
+            @Cached @Exclusive InlinedConditionProfile isVisibleProfile,
+            @Cached @Exclusive InlinedConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup(module, name);
         boolean isVisible = isVisible(module, constant);
 
-        if (!isValidConstantNameProfile.profile(isValidName(checkName, name))) {
+        if (!isValidConstantNameProfile.profile(this, isValidName(checkName, name))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(name, this));
-        } else if (isVisibleProfile.profile(!isVisible)) {
+        } else if (isVisibleProfile.profile(this, !isVisible)) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
-        if (isDeprecatedProfile.profile(constant.isDeprecated())) {
+        if (isDeprecatedProfile.profile(this, constant.isDeprecated())) {
             warnDeprecatedConstant(module, name);
         }
         return constant.getConstant();
     }
 
     @SuppressFBWarnings("ES")
-    protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {
+    protected boolean guardName(Node node, String name, String cachedName, InlinedConditionProfile sameNameProfile) {
         // This is likely as for literal constant lookup the name does not change and Symbols
         // always return the same String.
-        if (sameNameProfile.profile(name == cachedName)) {
+        if (sameNameProfile.profile(node, name == cachedName)) {
             return true;
         } else {
             return name.equals(cachedName);
