@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -34,7 +35,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Exception", isClass = true)
@@ -146,13 +146,13 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object backtrace(RubyException exception,
-                @Cached ConditionProfile hasCustomBacktraceProfile,
-                @Cached ConditionProfile hasBacktraceProfile) {
+                @Cached InlinedConditionProfile hasCustomBacktraceProfile,
+                @Cached InlinedConditionProfile hasBacktraceProfile) {
             final Object customBacktrace = exception.customBacktrace;
 
-            if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
+            if (hasCustomBacktraceProfile.profile(this, customBacktrace != null)) {
                 return customBacktrace;
-            } else if (hasBacktraceProfile.profile(exception.backtrace != null)) {
+            } else if (hasBacktraceProfile.profile(this, exception.backtrace != null)) {
                 RubyArray backtraceStringArray = exception.backtraceStringArray;
                 if (backtraceStringArray == null) {
                     backtraceStringArray = getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
@@ -173,11 +173,11 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object backtraceLocations(RubyException exception,
-                @Cached ConditionProfile hasBacktraceProfile,
-                @Cached ConditionProfile hasLocationsProfile) {
-            if (hasBacktraceProfile.profile(exception.backtrace != null)) {
+                @Cached InlinedConditionProfile hasBacktraceProfile,
+                @Cached InlinedConditionProfile hasLocationsProfile) {
+            if (hasBacktraceProfile.profile(this, exception.backtrace != null)) {
                 Object backtraceLocations = exception.backtraceLocations;
-                if (hasLocationsProfile.profile(backtraceLocations == null)) {
+                if (hasLocationsProfile.profile(this, backtraceLocations == null)) {
                     Backtrace backtrace = exception.backtrace;
                     backtraceLocations = backtrace
                             .getBacktraceLocations(getContext(), getLanguage(), GetBacktraceException.UNLIMITED, null);
