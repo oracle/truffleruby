@@ -13,6 +13,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -46,7 +47,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Proc", isClass = true)
@@ -178,14 +178,14 @@ public abstract class ProcNodes {
         @Specialization
         protected boolean equal(RubyProc self, Object otherObj,
                 @Cached LogicalClassNode logicalClassNode,
-                @Cached ConditionProfile classProfile,
-                @Cached ConditionProfile lambdaProfile) {
-            if (classProfile.profile(logicalClassNode.execute(self) != logicalClassNode.execute(otherObj))) {
+                @Cached InlinedConditionProfile classProfile,
+                @Cached InlinedConditionProfile lambdaProfile) {
+            if (classProfile.profile(this, logicalClassNode.execute(self) != logicalClassNode.execute(otherObj))) {
                 return false;
             }
             final RubyProc other = (RubyProc) otherObj;
 
-            if (lambdaProfile.profile(self.isLambda() != other.isLambda())) {
+            if (lambdaProfile.profile(this, self.isLambda() != other.isLambda())) {
                 return false;
             }
 
@@ -299,8 +299,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected Object singleBlockArg(VirtualFrame frame,
-                @Cached ConditionProfile emptyArgsProfile,
-                @Cached ConditionProfile singleArgProfile) {
+                @Cached InlinedConditionProfile emptyArgsProfile,
+                @Cached InlinedConditionProfile singleArgProfile) {
 
             /* In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
              * captures the values, and returns the first value in the list of values yielded to the block.
@@ -310,10 +310,10 @@ public abstract class ProcNodes {
              * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
             int userArgumentCount = RubyArguments.getPositionalArgumentsCount(frame.getArguments());
 
-            if (emptyArgsProfile.profile(userArgumentCount == 0)) {
+            if (emptyArgsProfile.profile(this, userArgumentCount == 0)) {
                 return nil;
             } else {
-                if (singleArgProfile.profile(userArgumentCount == 1)) {
+                if (singleArgProfile.profile(this, userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);
                 } else {
                     Object[] extractedArguments = RubyArguments.getPositionalArguments(frame.getArguments());
