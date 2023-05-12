@@ -29,6 +29,7 @@ Compatibility:
 * Add `Module#refinements` (#3039, @itarato).
 * Add `Refinement#refined_class` (#3039, @itarato).
 * Add `rb_hash_new_capa` function (#3039, @itarato).
+* Add `timeout` argument to `Thread::SizedQueue#push` (#3039, @itarato).
 
 Performance:
 

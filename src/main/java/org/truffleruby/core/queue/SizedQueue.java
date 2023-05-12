@@ -127,6 +127,37 @@ public final class SizedQueue {
         }
     }
 
+    @TruffleBoundary
+    public Object put(Object item, long timeoutMilliseconds) throws InterruptedException {
+        lock.lock();
+        try {
+            if (closed) {
+                return CLOSED;
+            }
+
+            final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
+
+            while (size == capacity) {
+                final long currentTimeout = deadline - System.currentTimeMillis();
+                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canAdd, currentTimeout,
+                        TimeUnit.MILLISECONDS);
+
+                if (!signalled) {
+                    return false;
+                }
+
+                if (closed) {
+                    return CLOSED;
+                }
+            }
+
+            doAdd(item);
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void doAdd(Object item) {
         items[addEnd] = item;
         addEnd++;
@@ -144,17 +175,20 @@ public final class SizedQueue {
         lock.lock();
 
         try {
-            if (size == 0) {
-                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
+            final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
+
+            while (size == 0) {
+                final long currentTimeout = deadline - System.currentTimeMillis();
+                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, currentTimeout,
                         TimeUnit.MILLISECONDS);
 
-                if (!signalled) { // timed out
+                if (!signalled) { // Timed out.
                     return null;
                 }
+            }
 
-                if (closed) {
-                    return CLOSED;
-                }
+            if (closed) {
+                return CLOSED;
             }
 
             return doTake();

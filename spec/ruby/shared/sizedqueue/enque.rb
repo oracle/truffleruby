@@ -108,6 +108,25 @@ describe :sizedqueue_enq, shared: true do
           "can't set a timeout if non_block is enabled",
         )
       end
+
+      it "raise ClosedQueueError when closed before enqueued" do
+        q = @object.call(1)
+        q.close
+        -> { q.send(@method, 2, timeout: 1) }.should raise_error(ClosedQueueError, "queue closed")
+      end
+
+      it "raise ClosedQueueError when getting closed during wait" do
+        q = @object.call(1)
+        q.push(1)
+
+        t = Thread.new {
+          -> { q.push(1, timeout: 0.1) }.should raise_error(ClosedQueueError, "queue closed")
+        }
+
+        sleep(0.05)
+        q.close
+        t.join
+      end
     end
   end
 end

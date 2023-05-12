@@ -110,17 +110,20 @@ public final class UnsizedQueue {
         lock.lock();
 
         try {
-            if (takeEnd == null) {
-                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
+            final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
+
+            while (takeEnd == null) {
+                final long currentTimeout = deadline - System.currentTimeMillis();
+                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, currentTimeout,
                         TimeUnit.MILLISECONDS);
 
-                if (!signalled) { // timed out
+                if (!signalled) { // Timed out.
                     return null;
                 }
+            }
 
-                if (closed) {
-                    return CLOSED;
-                }
+            if (closed) {
+                return CLOSED;
             }
 
             return doTake();

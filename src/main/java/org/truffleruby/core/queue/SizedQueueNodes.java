@@ -100,15 +100,16 @@ public abstract class SizedQueueNodes {
 
     }
 
-    @CoreMethod(names = { "push", "<<", "enq" }, required = 1, optional = 1)
-    public abstract static class SizedQueuePushNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "sized_queue_push")
+    public abstract static class SizedQueuePushNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubySizedQueue doPush(RubySizedQueue self, final Object value, Object maybeNonBlocking,
+        protected Object doPush(
+                RubySizedQueue self, final Object value, Object maybeNonBlocking, Object timeoutMilliseconds,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached PushNode pushNode) {
             final boolean nonBlocking = booleanCastWithDefaultNode.execute(this, maybeNonBlocking, false);
-            return pushNode.execute(this, self, value, nonBlocking);
+            return pushNode.execute(this, self, value, nonBlocking, timeoutMilliseconds);
         }
     }
 
@@ -116,11 +117,12 @@ public abstract class SizedQueueNodes {
     @GenerateCached(false)
     public abstract static class PushNode extends RubyBaseNode {
 
-        public abstract RubySizedQueue execute(Node node, RubySizedQueue self, final Object value, boolean nonBlocking);
+        public abstract Object execute(Node node, RubySizedQueue self, final Object value, boolean nonBlocking,
+                Object timeoutMilliseconds);
 
         @Specialization(guards = "!nonBlocking")
         protected static RubySizedQueue pushBlocking(
-                Node node, RubySizedQueue self, final Object value, boolean nonBlocking,
+                Node node, RubySizedQueue self, final Object value, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
 
@@ -141,9 +143,38 @@ public abstract class SizedQueueNodes {
             });
         }
 
+        @Specialization(guards = "!nonBlocking")
+        protected static Object pushBlocking(
+                Node node, RubySizedQueue self, final Object value, boolean nonBlocking, long timeoutMilliseconds,
+                @Cached @Shared PropagateSharingNode propagateSharingNode) {
+            final SizedQueue queue = self.queue;
+            propagateSharingNode.execute(node, self, value);
+            final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
+
+            var success = getContext(node).getThreadManager().runUntilResult(node, () -> {
+                final long currentTimeout = deadline - System.currentTimeMillis();
+                final Object result;
+
+                if (currentTimeout > 0) {
+                    result = queue.put(value, currentTimeout);
+                } else {
+                    result = queue.put(value, 0);
+                }
+
+                if (result == SizedQueue.CLOSED) {
+                    throw new RaiseException(getContext(node), coreExceptions(node).closedQueueError(node));
+                }
+                return result;
+            });
+            if ((boolean) success) {
+                return self;
+            }
+            return nil;
+        }
+
         @Specialization(guards = "nonBlocking")
         protected static RubySizedQueue pushNonBlock(
-                Node node, RubySizedQueue self, final Object value, boolean nonBlocking,
+                Node node, RubySizedQueue self, final Object value, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode,
                 @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
