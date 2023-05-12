@@ -26,8 +26,9 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.ByteIndexOfStringNode;
 import org.truffleruby.RubyContext;
@@ -415,9 +416,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object appendFeatures(RubyModule features, RubyModule target,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (features instanceof RubyClass) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("append_features must be called only on modules", this));
@@ -709,12 +710,12 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isBlockProvided(rubyArgs)")
         protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
-                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile,
+                @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ClassExecBlockNode classExecNode) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count > 0) {
-                wrongNumberOfArgumentsProfile.enter();
+                wrongNumberOfArgumentsProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentError(count, 0, this));
             }
 
@@ -724,21 +725,23 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
-        protected Object evalWithString(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
-                @Cached @Exclusive BranchProfile wrongNumberOfArgumentsProfile,
+        protected static Object evalWithString(
+                Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+                @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
-                @Cached IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode,
+                @Bind("this") Node node) {
             final Object sourceCode;
-            String fileName = coreStrings().EVAL_FILENAME_STRING.toString();
+            String fileName = coreStrings(node).EVAL_FILENAME_STRING.toString();
             int line = 1;
 
             int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
 
             if (count == 0) {
-                wrongNumberOfArgumentsProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+                wrongNumberOfArgumentsProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
             }
 
             sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
@@ -752,8 +755,9 @@ public abstract class ModuleNodes {
                 line = toIntNode.execute(RubyArguments.getArgument(rubyArgs, 2));
             }
 
-            needCallerFrame(callerFrame, target);
+            needCallerFrame(node, callerFrame, target);
             return classEvalSource(
+                    node,
                     callerFrame.materialize(),
                     self,
                     sourceCode,
@@ -763,30 +767,31 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private Object classEvalSource(MaterializedFrame callerFrame, RubyModule module, Object sourceCode, String file,
+        private static Object classEvalSource(Node node, MaterializedFrame callerFrame, RubyModule module,
+                Object sourceCode, String file,
                 int line,
                 IndirectCallNode callNode) {
             final RubySource source = EvalLoader.createEvalSource(
-                    getContext(),
+                    getContext(node),
                     RubyStringLibrary.getUncached().getTString(sourceCode),
                     RubyStringLibrary.getUncached().getEncoding(sourceCode),
                     "class/module_eval",
                     file,
                     line,
-                    this);
+                    node);
 
             final LexicalScope lexicalScope = new LexicalScope(
                     RubyArguments.getMethod(callerFrame).getLexicalScope(),
                     module);
 
-            final RootCallTarget callTarget = getContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = getContext(node).getCodeLoader().parse(
                     source,
                     ParserContext.MODULE,
                     callerFrame,
                     lexicalScope,
-                    this);
+                    node);
 
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+            final CodeLoader.DeferredCall deferredCall = getContext(node).getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.MODULE,
                     new DeclarationContext(
@@ -868,11 +873,11 @@ public abstract class ModuleNodes {
         protected Object getClassVariable(RubyModule module, String name,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode,
-                @Cached ConditionProfile undefinedProfile) {
+                @Cached InlinedConditionProfile undefinedProfile) {
             checkClassVariableNameNode.execute(module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
-            if (undefinedProfile.profile(value == null)) {
+            if (undefinedProfile.profile(this, value == null)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
@@ -1536,9 +1541,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyModule extendObject(RubyModule module, Object object,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (module instanceof RubyClass) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
@@ -1599,12 +1604,12 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object initializeCopyClass(RubyClass self, RubyClass from,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (from == coreLibrary().basicObjectClass) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().typeError("can't copy the root class", this));
             } else if (from.isSingleton) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().typeError("can't copy singleton class", this));
             }
 
@@ -1698,39 +1703,40 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
-                @Cached @Shared BranchProfile errorProfile) {
-            checkNotClass(module, errorProfile);
+                @Cached @Shared InlinedBranchProfile errorProfile) {
+            checkNotClass(this, module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
             return nil;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        protected static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached @Shared BranchProfile errorProfile,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached SingleValueCastNode singleValueCastNode) {
-            checkNotClass(module, errorProfile);
+                @Cached @Shared InlinedBranchProfile errorProfile,
+                @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached SingleValueCastNode singleValueCastNode,
+                @Bind("this") Node node) {
+            checkNotClass(node, module, errorProfile);
             int i = 0;
             try {
-                for (; loopProfile.inject(i < names.length); ++i) {
+                for (; loopProfile.inject(node, i < names.length); ++i) {
                     setMethodVisibilityNode.execute(module, names[i], Visibility.MODULE_FUNCTION);
-                    TruffleSafepoint.poll(this);
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, i);
+                profileAndReportLoopCount(node, loopProfile, i);
             }
             return singleValueCastNode.executeSingleValue(names);
         }
 
-        private void checkNotClass(RubyModule module, BranchProfile errorProfile) {
+        private static void checkNotClass(Node node, RubyModule module, InlinedBranchProfile errorProfile) {
             if (module instanceof RubyClass) {
-                errorProfile.enter();
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeError("module_function must be called for modules", this));
+                        getContext(node),
+                        coreExceptions(node).typeError("module_function must be called for modules", node));
             }
         }
     }
@@ -1850,9 +1856,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object prependFeatures(RubyModule features, RubyModule target,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (features instanceof RubyClass) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("prepend_features must be called only on modules", this));
@@ -1892,15 +1898,15 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
             if (method == null || method.isUndefined()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             } else if (method.getVisibility() != Visibility.PUBLIC) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
@@ -2057,7 +2063,7 @@ public abstract class ModuleNodes {
         protected RubyUnboundMethod instanceMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
@@ -2066,7 +2072,7 @@ public abstract class ModuleNodes {
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, declarationContext);
 
             if (method == null || method.isUndefined()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
@@ -2537,18 +2543,18 @@ public abstract class ModuleNodes {
     public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
         protected Object moduleUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);
             if (self != RubyArguments.getSelf(callerFrame)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("Module#using is not called on self", this));
             }
             final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
             if (!callerMethod.getSharedMethodInfo().isModuleBody()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("Module#using is not permitted in methods", this));
