@@ -97,6 +97,13 @@ public abstract class RubyBaseNode extends Node {
         // Checkstyle: resume
     }
 
+    protected void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, long count) {
+        // Checkstyle: stop
+        loopProfile.profileCounted(node, count);
+        reportLongLoopCount(count);
+        // Checkstyle: resume
+    }
+
     protected void reportLongLoopCount(long count) {
         assert count >= 0L;
         // Checkstyle: stop
