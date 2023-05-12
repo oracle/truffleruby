@@ -66,6 +66,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
@@ -90,8 +93,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
@@ -422,10 +423,10 @@ public abstract class IONodes {
 
         @Specialization
         protected Object ensureOpen(RubyIO io,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final int fd = io.getDescriptor();
             if (fd == RubyIO.CLOSED_FD) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().ioError("closed stream", this));
             } else {
                 assert fd >= 0;
@@ -510,19 +511,19 @@ public abstract class IONodes {
 
         @Specialization
         protected RubyPointer getThreadBuffer(long size,
-                @Cached ConditionProfile sizeProfile) {
+                @Cached InlinedConditionProfile sizeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     getLanguage().truffleFFIPointerShape,
-                    getBuffer(getContext(), thread, size, sizeProfile));
+                    getBuffer(this, getContext(), thread, size, sizeProfile));
             AllocationTracing.trace(instance, this);
             return instance;
         }
 
-        public static Pointer getBuffer(RubyContext context, RubyThread rubyThread, long size,
-                ConditionProfile sizeProfile) {
-            return rubyThread.getIoBuffer(context).allocate(context, rubyThread, size, sizeProfile);
+        public static Pointer getBuffer(Node node, RubyContext context, RubyThread rubyThread, long size,
+                InlinedConditionProfile sizeProfile) {
+            return rubyThread.getIoBuffer(context).allocate(node, context, rubyThread, size, sizeProfile);
         }
     }
 
@@ -531,9 +532,9 @@ public abstract class IONodes {
 
         @Specialization
         protected Object getThreadBuffer(RubyPointer pointer,
-                @Cached ConditionProfile freeProfile) {
+                @Cached InlinedConditionProfile freeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
-            thread.getIoBuffer(getContext()).free(thread, pointer.pointer, freeProfile);
+            thread.getIoBuffer(getContext()).free(this, thread, pointer.pointer, freeProfile);
             return nil;
         }
     }

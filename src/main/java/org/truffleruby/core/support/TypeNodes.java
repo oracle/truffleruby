@@ -16,7 +16,9 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -59,7 +61,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.HiddenKey;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** All nodes in this class should be Primitive for efficiency (avoiding an extra call and constant lookup) */
 @CoreModule("Truffle::Type")
@@ -137,10 +138,10 @@ public abstract class TypeNodes {
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Exclusive FreezeNode freezeMetaClasNode,
                 @Cached IsFrozenNode isFrozenMetaClassNode,
-                @Cached ConditionProfile singletonClassUnfrozenProfile,
+                @Cached InlinedConditionProfile singletonClassUnfrozenProfile,
                 @Cached @Shared MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
-            if (singletonClassUnfrozenProfile.profile(
+            if (singletonClassUnfrozenProfile.profile(this,
                     !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
                 freezeMetaClasNode.execute(metaClass);
             }
@@ -256,16 +257,17 @@ public abstract class TypeNodes {
         public abstract RubyArray executeGetIVars(Object self);
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected RubyArray instanceVariables(RubyDynamicObject object,
+        protected static RubyArray instanceVariables(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-                @Cached ConditionProfile noPropertiesProfile) {
+                @Cached InlinedConditionProfile noPropertiesProfile,
+                @Bind("this") Node node) {
             var shape = objectLibrary.getShape(object);
 
-            if (noPropertiesProfile.profile(shape.getPropertyCount() == 0)) {
-                return createEmptyArray();
+            if (noPropertiesProfile.profile(node, shape.getPropertyCount() == 0)) {
+                return createEmptyArray(node);
             }
 
-            return createIVarNameArray(objectLibrary.getKeyArray(object));
+            return createIVarNameArray(node, objectLibrary.getKeyArray(object));
         }
 
         @Specialization(guards = "!isRubyDynamicObject(object)")
@@ -274,7 +276,7 @@ public abstract class TypeNodes {
         }
 
         @TruffleBoundary
-        private RubyArray createIVarNameArray(Object[] keys) {
+        private static RubyArray createIVarNameArray(Node node, Object[] keys) {
             final List<String> names = new ArrayList<>(keys.length);
 
             for (Object name : keys) {
@@ -286,10 +288,10 @@ public abstract class TypeNodes {
             final int size = names.size();
             final Object[] nameSymbols = new Object[size];
             for (int i = 0; i < size; i++) {
-                nameSymbols[i] = getSymbol(names.get(i));
+                nameSymbols[i] = getSymbol(node, names.get(i));
             }
 
-            return createArray(nameSymbols);
+            return createArray(node, nameSymbols);
         }
 
     }
@@ -454,10 +456,10 @@ public abstract class TypeNodes {
         @Specialization
         protected Object check(Object value,
                 @Cached IsFrozenNode isFrozenNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
 
             if (isFrozenNode.execute(value)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
             }
 
@@ -487,13 +489,13 @@ public abstract class TypeNodes {
 
         @Specialization
         protected Object check(RubyString value,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (value.locked) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(),
                         coreExceptions().runtimeError("can't modify string; temporarily locked", this));
             } else if (value.frozen) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
             }
             return value;
@@ -524,12 +526,13 @@ public abstract class TypeNodes {
         }
 
         @Fallback
-        protected boolean other(Object value,
+        protected static boolean other(Object value,
                 @Cached IsANode isANode,
-                @Cached ConditionProfile numericProfile,
+                @Cached InlinedConditionProfile numericProfile,
                 @Cached DispatchNode isRealNode,
-                @Cached BooleanCastNode booleanCastNode) {
-            return numericProfile.profile(isANode.executeIsA(value, coreLibrary().numericClass)) &&
+                @Cached BooleanCastNode booleanCastNode,
+                @Bind("this") Node node) {
+            return numericProfile.profile(node, isANode.executeIsA(value, coreLibrary(node).numericClass)) &&
                     booleanCastNode.execute(isRealNode.call(value, "real?"));
         }
     }

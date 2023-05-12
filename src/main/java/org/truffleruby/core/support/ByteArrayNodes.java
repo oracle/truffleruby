@@ -11,6 +11,8 @@ package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -31,8 +33,6 @@ import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -110,10 +110,10 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected int setByte(RubyByteArray byteArray, int index, int value,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final byte[] bytes = byteArray.bytes;
             if (index < 0 || index >= bytes.length) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().indexError("index out of bounds", this));
             }
 
@@ -140,7 +140,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected Object fillFromPointer(
                 RubyByteArray byteArray, int dstStart, RubyPointer source, int srcStart, int length,
-                @Cached BranchProfile nullPointerProfile) {
+                @Cached InlinedBranchProfile nullPointerProfile) {
             assert length > 0;
 
             final Pointer ptr = source.pointer;
@@ -161,8 +161,8 @@ public abstract class ByteArrayNodes {
                 guards = "isSingleBytePattern(patternTString, patternEncoding)", limit = "1")
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.ReadByteNode readByteNode,
-                @Cached BranchProfile tooSmallStartProfile,
-                @Cached BranchProfile tooLargeStartProfile,
+                @Cached InlinedBranchProfile tooSmallStartProfile,
+                @Cached InlinedBranchProfile tooLargeStartProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
@@ -171,12 +171,12 @@ public abstract class ByteArrayNodes {
             int searchByte = readByteNode.execute(patternTString, 0, patternEncoding);
 
             if (start >= length) {
-                tooLargeStartProfile.enter();
+                tooLargeStartProfile.enter(this);
                 return nil;
             }
 
             if (start < 0) {
-                tooSmallStartProfile.enter();
+                tooSmallStartProfile.enter(this);
                 start = 0;
             }
 
@@ -190,19 +190,19 @@ public abstract class ByteArrayNodes {
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
-                @Cached ConditionProfile noCopyProfile,
-                @Cached ConditionProfile notFoundProfile,
+                @Cached InlinedConditionProfile noCopyProfile,
+                @Cached InlinedConditionProfile notFoundProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
                 @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
             // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.
             // Another possibility would be to create a MutableTruffleString for the RubyByteArray and use ByteIndexOfStringNode, but that would force computation of the coderange of the byte[]
-            final byte[] patternBytes = TStringUtils.getBytesOrCopy(patternTString, patternEncoding,
+            final byte[] patternBytes = TStringUtils.getBytesOrCopy(this, patternTString, patternEncoding,
                     getInternalByteArrayNode, noCopyProfile);
 
             final int index = ArrayUtils.indexOfWithOrMask(byteArray.bytes, start, length, patternBytes, null);
 
-            if (notFoundProfile.profile(index == -1)) {
+            if (notFoundProfile.profile(this, index == -1)) {
                 return nil;
             } else {
                 return index + codePointLengthNode.execute(patternTString, patternEncoding);

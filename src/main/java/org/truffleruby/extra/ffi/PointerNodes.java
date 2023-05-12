@@ -11,10 +11,12 @@ package org.truffleruby.extra.ffi;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
@@ -41,7 +43,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -51,10 +52,10 @@ public abstract class PointerNodes {
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
     public static void checkNull(
-            Pointer ptr, RubyContext context, Node currentNode, BranchProfile nullPointerProfile) {
+            Pointer ptr, RubyContext context, Node currentNode, InlinedBranchProfile nullPointerProfile) {
 
         if (ptr.isNull()) {
-            nullPointerProfile.enter();
+            nullPointerProfile.enter(currentNode);
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().ffiNullPointerError(
@@ -65,10 +66,8 @@ public abstract class PointerNodes {
 
     private abstract static class PointerPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
 
-        private final BranchProfile nullPointerProfile = BranchProfile.create();
-
-        protected void checkNull(Pointer ptr) {
-            PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
+        protected static void checkNull(Node node, Pointer ptr, InlinedBranchProfile nullPointerProfile) {
+            PointerNodes.checkNull(ptr, getContext(node), node, nullPointerProfile);
         }
 
     }
@@ -243,9 +242,10 @@ public abstract class PointerNodes {
     public abstract static class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object copyMemory(long to, long from, long size) {
+        protected Object copyMemory(long to, long from, long size,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), to);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeBytes(0, new Pointer(getContext(), from), 0, size);
             return nil;
         }
@@ -265,9 +265,10 @@ public abstract class PointerNodes {
         @Specialization(guards = "limit != 0")
         protected RubyString readStringToNull(long address, long limit,
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
-                @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+                @CachedLibrary(limit = "1") @Shared InteropLibrary interop,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0, limit);
             return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
@@ -275,9 +276,10 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyString readStringToNull(long address, Nil limit,
                 @CachedLibrary(limit = "1") @Shared InteropLibrary interop,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), interop, 0);
             return createString(fromByteArrayNode, bytes, Encodings.BINARY);
         }
@@ -289,13 +291,14 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
-                @Cached ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return nil;
             } else {
-                checkNull(ptr);
+                checkNull(this, ptr, nullPointerProfile);
                 final byte[] bytes = array.bytes;
                 ptr.readBytes(0, bytes, arrayOffset, length);
                 return nil;
@@ -310,13 +313,14 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
-                @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
             } else {
-                checkNull(ptr);
+                checkNull(this, ptr, nullPointerProfile);
                 final byte[] bytes = new byte[length];
                 ptr.readBytes(0, bytes, 0, length);
                 return createString(fromByteArrayNode, bytes, Encodings.BINARY);
@@ -329,11 +333,13 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-        protected Object writeBytes(long address, Object string, int index, int length,
+        protected static Object writeBytes(long address, Object string, int index, int length,
                 @Cached ConditionProfile nonZeroProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
-                @Cached RubyStringLibrary libString) {
-            Pointer ptr = new Pointer(getContext(), address);
+                @Cached RubyStringLibrary libString,
+                @Cached InlinedBranchProfile nullPointerProfile,
+                @Bind("this") Node node) {
+            Pointer ptr = new Pointer(getContext(node), address);
             var tstring = libString.getTString(string);
             var encoding = libString.getTEncoding(string);
 
@@ -341,7 +347,7 @@ public abstract class PointerNodes {
 
             if (nonZeroProfile.profile(length != 0)) {
                 // No need to check the pointer address if we write nothing
-                checkNull(ptr);
+                checkNull(node, ptr, nullPointerProfile);
 
                 copyToNativeMemoryNode.execute(tstring, index, ptr, 0, length, encoding);
             }
@@ -357,9 +363,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int readCharSigned(long address) {
+        protected int readCharSigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readByte(0);
         }
 
@@ -369,9 +376,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int readCharUnsigned(long address) {
+        protected int readCharUnsigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return Byte.toUnsignedInt(ptr.readByte(0));
         }
 
@@ -381,9 +389,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int readShortSigned(long address) {
+        protected int readShortSigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readShort(0);
         }
     }
@@ -392,9 +401,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int readShortUnsigned(long address) {
+        protected int readShortUnsigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return Short.toUnsignedInt(ptr.readShort(0));
         }
 
@@ -404,9 +414,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int readIntSigned(long address) {
+        protected int readIntSigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readInt(0);
         }
 
@@ -416,9 +427,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadUIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long readIntUnsigned(long address) {
+        protected long readIntUnsigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return Integer.toUnsignedLong(ptr.readInt(0));
         }
 
@@ -428,9 +440,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long readLongSigned(long address) {
+        protected long readLongSigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readLong(0);
         }
 
@@ -440,9 +453,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object readLongUnsigned(long address) {
+        protected Object readLongUnsigned(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return readUnsignedLong(ptr, 0);
         }
 
@@ -458,9 +472,10 @@ public abstract class PointerNodes {
 
         // must return double so Ruby nodes can deal with it
         @Specialization
-        protected double readFloat(long address) {
+        protected double readFloat(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readFloat(0);
         }
 
@@ -470,9 +485,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double readDouble(long address) {
+        protected double readDouble(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             return ptr.readDouble(0);
         }
 
@@ -482,9 +498,10 @@ public abstract class PointerNodes {
     public abstract static class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyPointer readPointer(long address) {
+        protected RubyPointer readPointer(long address,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             final Pointer readPointer = ptr.readPointer(getContext(), 0);
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
@@ -501,9 +518,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        protected Object writeChar(long address, int value) {
+        protected Object writeChar(long address, int value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
             return nil;
@@ -516,18 +534,20 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        protected Object writeChar(long address, int value) {
+        protected Object writeChar(long address, int value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
             return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 256" })
-        protected Object writeUnsignedChar(long address, int value) {
+        protected Object writeUnsignedChar(long address, int value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             byte signed = (byte) value; // Same as value - 2^8
             ptr.writeByte(0, signed);
             return nil;
@@ -540,9 +560,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        protected Object writeShort(long address, int value) {
+        protected Object writeShort(long address, int value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
             return nil;
@@ -555,18 +576,20 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        protected Object writeShort(long address, int value) {
+        protected Object writeShort(long address, int value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
             return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 65536" })
-        protected Object writeUnsignedSort(long address, int value) {
+        protected Object writeUnsignedSort(long address, int value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             short signed = (short) value; // Same as value - 2^16
             ptr.writeShort(0, signed);
             return nil;
@@ -578,9 +601,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object writeInt(long address, int value) {
+        protected Object writeInt(long address, int value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeInt(0, value);
             return nil;
         }
@@ -594,17 +618,19 @@ public abstract class PointerNodes {
         static final long MAX_UNSIGNED_INT_PLUS_ONE = 1L << Integer.SIZE;
 
         @Specialization(guards = "value >= 0")
-        protected Object writeInt(long address, int value) {
+        protected Object writeInt(long address, int value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeInt(0, value);
             return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < MAX_UNSIGNED_INT_PLUS_ONE" })
-        protected Object writeUnsignedInt(long address, long value) {
+        protected Object writeUnsignedInt(long address, long value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             int signed = (int) value; // Same as value - 2^32
             ptr.writeInt(0, signed);
             return nil;
@@ -616,9 +642,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object writeLong(long address, long value) {
+        protected Object writeLong(long address, long value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeLong(0, value);
             return nil;
         }
@@ -629,17 +656,19 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "value >= 0")
-        protected Object writeLong(long address, long value) {
+        protected Object writeLong(long address, long value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeLong(0, value);
             return nil;
         }
 
         @Specialization
-        protected Object writeUnsignedLong(long address, RubyBignum value) {
+        protected Object writeUnsignedLong(long address, RubyBignum value,
+                @Cached @Shared InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             writeUnsignedLong(ptr, 0, value);
             return nil;
         }
@@ -659,9 +688,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object writeFloat(long address, double value) {
+        protected Object writeFloat(long address, double value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeFloat(0, (float) value);
             return nil;
         }
@@ -672,9 +702,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object writeDouble(long address, double value) {
+        protected Object writeDouble(long address, double value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writeDouble(0, value);
             return nil;
         }
@@ -685,9 +716,10 @@ public abstract class PointerNodes {
     public abstract static class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object writePointer(long address, long value) {
+        protected Object writePointer(long address, long value,
+                @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            checkNull(ptr);
+            checkNull(this, ptr, nullPointerProfile);
             ptr.writePointer(0, value);
             return nil;
         }

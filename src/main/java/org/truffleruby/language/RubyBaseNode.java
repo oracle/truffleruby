@@ -148,7 +148,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubySymbol getSymbol(String name) {
-        return getLanguage().getSymbol(name);
+        return getSymbol(this, name);
+    }
+
+    protected static RubySymbol getSymbol(Node node, String name) {
+        return getLanguage(node).getSymbol(name);
     }
 
     protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
@@ -192,11 +196,19 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(Object[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
+    }
+
+    protected static RubyArray createArray(Node node, Object[] store) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
     protected final RubyArray createEmptyArray() {
-        return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+        return createEmptyArray(this);
+    }
+
+    protected static RubyArray createEmptyArray(Node node) {
+        return ArrayHelpers.createEmptyArray(getContext(node), getLanguage(node));
     }
 
     public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
