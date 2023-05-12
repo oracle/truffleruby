@@ -35,3 +35,6 @@ spec/ruby/core/module/undefined_instance_methods_spec.rb
 spec/ruby/core/refinement/refined_class_spec.rb
 spec/ruby/core/module/used_refinements_spec.rb
 spec/ruby/optional/capi/hash_spec.rb
+spec/ruby/core/sizedqueue/append_spec.rb
+spec/ruby/core/sizedqueue/enq_spec.rb
+spec/ruby/core/sizedqueue/push_spec.rb
