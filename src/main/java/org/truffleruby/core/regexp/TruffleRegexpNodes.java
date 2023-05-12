@@ -24,12 +24,14 @@ import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -65,6 +67,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
+import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
@@ -107,25 +110,25 @@ public class TruffleRegexpNodes {
     // MRI: rb_reg_prepare_enc
     public abstract static class PrepareRegexpEncodingNode extends RubyBaseNode {
 
-        @Child WarnNode warnNode;
-
         public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
 
         @Specialization(guards = "stringLibrary.isRubyString(matchString)", limit = "1")
-        protected RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
+        protected static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
                 @Cached RubyStringLibrary stringLibrary,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
-                @Cached BranchProfile asciiOnlyProfile,
-                @Cached BranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
-                @Cached BranchProfile asciiIncompatibleMatchStringEncodingProfile,
-                @Cached BranchProfile brokenMatchStringProfile,
-                @Cached BranchProfile defaultRegexEncodingProfile,
-                @Cached BranchProfile fallbackProcessingProfile,
-                @Cached BranchProfile fixedRegexpEncodingProfile,
-                @Cached BranchProfile returnMatchStringEncodingProfile,
-                @Cached BranchProfile sameEncodingProfile,
-                @Cached BranchProfile validBinaryMatchStringProfile,
-                @Cached BranchProfile validUtf8MatchStringProfile) {
+                @Cached InlinedBranchProfile asciiOnlyProfile,
+                @Cached InlinedBranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
+                @Cached InlinedBranchProfile asciiIncompatibleMatchStringEncodingProfile,
+                @Cached InlinedBranchProfile brokenMatchStringProfile,
+                @Cached InlinedBranchProfile defaultRegexEncodingProfile,
+                @Cached InlinedBranchProfile fallbackProcessingProfile,
+                @Cached InlinedBranchProfile fixedRegexpEncodingProfile,
+                @Cached InlinedBranchProfile returnMatchStringEncodingProfile,
+                @Cached InlinedBranchProfile sameEncodingProfile,
+                @Cached InlinedBranchProfile validBinaryMatchStringProfile,
+                @Cached InlinedBranchProfile validUtf8MatchStringProfile,
+                @Cached LazyWarnNode lazyWarnNode,
+                @Bind("this") Node node) {
             final RubyEncoding regexpEncoding = regexp.encoding;
             final RubyEncoding matchStringEncoding = stringLibrary.getEncoding(matchString);
             var tstring = stringLibrary.getTString(matchString);
@@ -133,11 +136,11 @@ public class TruffleRegexpNodes {
                     matchStringEncoding.tencoding);
 
             if (matchStringCodeRange == BROKEN) {
-                brokenMatchStringProfile.enter();
+                brokenMatchStringProfile.enter(node);
 
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorInvalidByteSequence(matchStringEncoding, this));
+                        getContext(node),
+                        coreExceptions(node).argumentErrorInvalidByteSequence(matchStringEncoding, node));
             }
 
             // This set of checks optimizes for the very common case where the regexp uses the default encoding and
@@ -145,23 +148,23 @@ public class TruffleRegexpNodes {
             // in MRI as of 3.0.2. While they permit an early return of the method, they do not conflict with any of
             // the branches in the fallback strategy.
             if (regexpEncoding == Encodings.US_ASCII && regexp.options.canAdaptEncoding()) {
-                defaultRegexEncodingProfile.enter();
+                defaultRegexEncodingProfile.enter(node);
 
                 // The default String encodings are UTF-8 for internal strings and ASCII-8BIT for external strings.
                 // Both encodings are ASCII-compatible and as such can either be CR_7BIT or CR_VALID at this point
                 // depending on the contents. CR_BROKEN strings are handled as a failure case earlier.
 
                 if (matchStringCodeRange == ASCII) {
-                    asciiOnlyProfile.enter();
+                    asciiOnlyProfile.enter(node);
 
                     return Encodings.US_ASCII;
                 } else if (matchStringEncoding == Encodings.UTF_8) {
-                    validUtf8MatchStringProfile.enter();
+                    validUtf8MatchStringProfile.enter(node);
                     assert matchStringCodeRange == VALID;
 
                     return Encodings.UTF_8;
                 } else if (matchStringEncoding == Encodings.BINARY) {
-                    validBinaryMatchStringProfile.enter();
+                    validBinaryMatchStringProfile.enter(node);
                     assert matchStringCodeRange == VALID;
 
                     return Encodings.BINARY;
@@ -171,37 +174,37 @@ public class TruffleRegexpNodes {
             // The following set of checks follow the logic in MRI's `rb_reg_prepare_enc`. The branch order is
             // generally significant, although some branches could be reordered because their conditions do not
             // conflict with those in other branches.
-            fallbackProcessingProfile.enter();
+            fallbackProcessingProfile.enter(node);
 
             if (regexpEncoding == matchStringEncoding) {
-                sameEncodingProfile.enter();
+                sameEncodingProfile.enter(node);
 
                 return regexpEncoding;
             } else if (matchStringCodeRange == ASCII && regexpEncoding == Encodings.US_ASCII) {
-                asciiOnlyProfile.enter();
+                asciiOnlyProfile.enter(node);
 
                 return Encodings.US_ASCII;
             } else if (!matchStringEncoding.isAsciiCompatible) {
-                asciiIncompatibleMatchStringEncodingProfile.enter();
+                asciiIncompatibleMatchStringEncodingProfile.enter(node);
 
-                return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
+                return raiseEncodingCompatibilityError(node, regexp, matchStringEncoding);
             } else if (regexp.options.isFixed()) {
-                fixedRegexpEncodingProfile.enter();
+                fixedRegexpEncodingProfile.enter(node);
 
                 if (!regexpEncoding.isAsciiCompatible || matchStringCodeRange != ASCII) {
-                    asciiIncompatibleFixedRegexpEncodingProfile.enter();
+                    asciiIncompatibleFixedRegexpEncodingProfile.enter(node);
 
-                    return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
+                    return raiseEncodingCompatibilityError(node, regexp, matchStringEncoding);
                 }
 
                 return regexpEncoding;
             } else {
-                returnMatchStringEncodingProfile.enter();
+                returnMatchStringEncodingProfile.enter(node);
 
                 if (regexp.options.isEncodingNone() && matchStringEncoding != Encodings.BINARY &&
                         matchStringCodeRange != ASCII) {
                     // profiled by lazy node
-                    warnHistoricalBinaryRegexpMatch(matchStringEncoding);
+                    warnHistoricalBinaryRegexpMatch(node, lazyWarnNode.get(node), matchStringEncoding);
                 }
 
                 return matchStringEncoding;
@@ -209,20 +212,17 @@ public class TruffleRegexpNodes {
         }
 
         // MRI: reg_enc_error
-        private RubyEncoding raiseEncodingCompatibilityError(RubyRegexp regexp, RubyEncoding matchStringEncoding) {
-            throw new RaiseException(getContext(), coreExceptions()
-                    .encodingCompatibilityErrorRegexpIncompatible(regexp.encoding, matchStringEncoding, this));
+        private static RubyEncoding raiseEncodingCompatibilityError(Node node, RubyRegexp regexp,
+                RubyEncoding matchStringEncoding) {
+            throw new RaiseException(getContext(node), coreExceptions(node)
+                    .encodingCompatibilityErrorRegexpIncompatible(regexp.encoding, matchStringEncoding, node));
         }
 
-        private void warnHistoricalBinaryRegexpMatch(RubyEncoding matchStringEncoding) {
-            if (warnNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarnNode());
-            }
-
+        private static void warnHistoricalBinaryRegexpMatch(Node node, WarnNode warnNode,
+                RubyEncoding matchStringEncoding) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(
-                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        getContext(node).getCallStack().getTopMostUserSourceSection(),
                         StringUtils.format(
                                 "historical binary regexp match /.../n against %s string",
                                 getEncodingName(matchStringEncoding)));
@@ -230,7 +230,7 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        private String getEncodingName(RubyEncoding matchStringEncoding) {
+        private static String getEncodingName(RubyEncoding matchStringEncoding) {
             return RubyGuards.getJavaString(matchStringEncoding.name);
         }
     }
@@ -287,18 +287,18 @@ public class TruffleRegexpNodes {
                 limit = "getDefaultCacheLimit()")
         protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Shared @Cached BranchProfile errorProfile,
+                @Cached @Shared InlinedBranchProfile errorProfile,
                 @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "fastUnion")
         protected Object slowUnion(RubyString str, Object sep, Object[] args,
-                @Shared @Cached BranchProfile errorProfile) {
+                @Shared @Cached InlinedBranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
 
-        public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args, BranchProfile errorProfile) {
+        public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args, InlinedBranchProfile errorProfile) {
             assert args.length > 0;
             RubyString regexpString = null;
             for (Object arg : args) {
@@ -314,7 +314,7 @@ public class TruffleRegexpNodes {
             try {
                 return createRegexp(truffleString, encoding);
             } catch (DeferredRaiseException dre) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw dre.getException(getContext());
             }
         }
@@ -779,7 +779,7 @@ public class TruffleRegexpNodes {
          * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
          *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-        protected Object matchInRegion(
+        protected static Object matchInRegion(
                 RubyRegexp regexp,
                 Object string,
                 int fromPos,
@@ -787,34 +787,35 @@ public class TruffleRegexpNodes {
                 boolean atStart,
                 int startPos,
                 boolean createMatchData,
-                @Cached ConditionProfile createMatchDataProfile,
-                @Cached ConditionProfile encodingMismatchProfile,
+                @Cached InlinedConditionProfile createMatchDataProfile,
+                @Cached InlinedConditionProfile encodingMismatchProfile,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
-                @Cached ConditionProfile zeroOffsetProfile,
+                @Cached InlinedConditionProfile zeroOffsetProfile,
                 @Cached MatchNode matchNode,
-                @Cached RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString,
+                @Bind("this") Node node) {
             Regex regex = regexp.regex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
 
-            if (encodingMismatchProfile.profile(regexp.encoding != negotiatedEncoding)) {
+            if (encodingMismatchProfile.profile(node, regexp.encoding != negotiatedEncoding)) {
                 final EncodingCache encodingCache = regexp.cachedEncodings;
                 regex = encodingCache
-                        .getOrCreate(negotiatedEncoding, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
+                        .getOrCreate(negotiatedEncoding, e -> makeRegexpForEncoding(getContext(node), regexp, e, node));
             }
 
             var tstring = libString.getTString(string);
             var byteArray = getInternalByteArrayNode.execute(tstring, libString.getTEncoding(string));
 
             final int offset;
-            if (zeroOffsetProfile.profile(byteArray.getOffset() == 0)) {
+            if (zeroOffsetProfile.profile(node, byteArray.getOffset() == 0)) {
                 offset = 0;
             } else {
                 offset = byteArray.getOffset();
             }
 
             final Matcher matcher;
-            if (createMatchDataProfile.profile(createMatchData)) {
+            if (createMatchDataProfile.profile(node, createMatchData)) {
                 matcher = getMatcher(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
             } else {
                 matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
@@ -846,18 +847,18 @@ public class TruffleRegexpNodes {
                 int startPos,
                 boolean createMatchData,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
-                @Cached ConditionProfile createMatchDataProfile,
-                @Cached ConditionProfile matchFoundProfile,
-                @Cached ConditionProfile tRegexCouldNotCompileProfile,
-                @Cached ConditionProfile tRegexIncompatibleProfile,
-                @Cached ConditionProfile startPosNotZeroProfile,
-                @Cached LoopConditionProfile loopProfile,
+                @Cached(inline = false) ConditionProfile createMatchDataProfile,
+                @Cached(inline = false) ConditionProfile matchFoundProfile,
+                @Cached(inline = false) ConditionProfile tRegexCouldNotCompileProfile,
+                @Cached(inline = false) ConditionProfile tRegexIncompatibleProfile,
+                @Cached(inline = false) ConditionProfile startPosNotZeroProfile,
+                @Cached(inline = false) LoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @Cached RubyStringLibrary libString,
-                @Cached IntValueProfile groupCountProfile) {
+                @Cached(inline = false) IntValueProfile groupCountProfile) {
             final Object tRegex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
@@ -1049,8 +1050,8 @@ public class TruffleRegexpNodes {
                 int range,
                 boolean onlyMatchAtStart,
                 boolean createMatchData,
-                @Cached ConditionProfile createMatchDataProfile,
-                @Cached ConditionProfile mismatchProfile) {
+                @Cached InlinedConditionProfile createMatchDataProfile,
+                @Cached InlinedConditionProfile mismatchProfile) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 TruffleRegexpNodes.instrumentMatch(
                         MATCHED_REGEXPS_JONI,
@@ -1062,8 +1063,8 @@ public class TruffleRegexpNodes {
 
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
 
-            if (createMatchDataProfile.profile(createMatchData)) {
-                if (mismatchProfile.profile(match == Matcher.FAILED)) {
+            if (createMatchDataProfile.profile(this, createMatchData)) {
+                if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
                     return nil;
                 }
 

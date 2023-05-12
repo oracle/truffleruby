@@ -12,7 +12,9 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.joni.NameEntry;
 import org.truffleruby.annotations.CoreMethod;
@@ -195,21 +197,22 @@ public abstract class RegexpNodes {
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libPattern.isRubyString(pattern)", limit = "1")
-        protected RubyRegexp initialize(Object pattern, int options,
-                @Cached BranchProfile errorProfile,
+        protected static RubyRegexp initialize(Object pattern, int options,
+                @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @Cached RubyStringLibrary libPattern) {
+                @Cached RubyStringLibrary libPattern,
+                @Bind("this") Node node) {
             var encoding = libPattern.getEncoding(pattern);
             try {
                 return RubyRegexp.create(
-                        getLanguage(),
+                        getLanguage(node),
                         asTruffleStringNode.execute(libPattern.getTString(pattern), encoding.tencoding),
                         encoding,
                         RegexpOptions.fromEmbeddedOptions(options),
-                        this);
+                        node);
             } catch (DeferredRaiseException dre) {
-                errorProfile.enter();
-                throw dre.getException(getContext());
+                errorProfile.enter(node);
+                throw dre.getException(getContext(node));
             }
         }
     }
