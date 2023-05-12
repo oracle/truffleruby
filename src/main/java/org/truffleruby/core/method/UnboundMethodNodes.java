@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -44,7 +45,6 @@ import org.truffleruby.utils.Utils;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "UnboundMethod", isClass = true)
@@ -83,12 +83,12 @@ public abstract class UnboundMethodNodes {
         protected RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final RubyClass objectMetaClass = metaClassNode.execute(object);
 
             if (!canBindMethodToModuleNode
                     .executeCanBindMethodToModule(unboundMethod.method, objectMetaClass)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 final RubyModule declaringModule = unboundMethod.method.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
