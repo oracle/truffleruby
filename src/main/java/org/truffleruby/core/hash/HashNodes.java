@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -324,12 +325,12 @@ public abstract class HashNodes {
         protected Object delete(RubyHash hash, Object key, Object maybeBlock,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes,
                 @Cached CallBlockNode yieldNode,
-                @Cached ConditionProfile hasValue,
-                @Cached ConditionProfile hasBlock) {
+                @Cached @Shared InlinedConditionProfile hasValue,
+                @Cached @Shared InlinedConditionProfile hasBlock) {
             final Object value = hashes.delete(hash.store, hash, key);
-            if (hasValue.profile(value != null)) {
+            if (hasValue.profile(this, value != null)) {
                 return value;
-            } else if (hasBlock.profile(maybeBlock != nil)) {
+            } else if (hasBlock.profile(this, maybeBlock != nil)) {
                 return yieldNode.yield((RubyProc) maybeBlock, key);
             } else {
                 return nil;
