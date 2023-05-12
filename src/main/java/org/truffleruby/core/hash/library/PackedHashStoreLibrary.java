@@ -12,6 +12,7 @@ package org.truffleruby.core.hash.library;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -25,8 +26,10 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -192,7 +195,8 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared PropagateSharingNode propagateSharingValue,
                 @Cached @Shared CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
-                @Cached ConditionProfile withinCapacity) {
+                @Cached InlinedConditionProfile withinCapacity,
+                @Bind("this") Node node) {
 
             assert verify(store, hash);
             final int size = hash.size;
@@ -213,7 +217,7 @@ public class PackedHashStoreLibrary {
                 }
             }
 
-            if (withinCapacity.profile(size < MAX_ENTRIES)) {
+            if (withinCapacity.profile(node, size < MAX_ENTRIES)) {
                 setHashedKeyValue(store, size, hashed, key2, value);
                 hash.size += 1;
                 return true;
@@ -448,10 +452,11 @@ public class PackedHashStoreLibrary {
         protected Object getPackedArray(
                 Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached CompareHashKeysNode compareHashKeys,
-                @Cached BranchProfile notInHashProfile,
-                @Cached ConditionProfile byIdentityProfile) {
+                @Cached InlinedBranchProfile notInHashProfile,
+                @Cached InlinedConditionProfile byIdentityProfile,
+                @Bind("$node") Node node) {
 
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+            final boolean compareByIdentity = byIdentityProfile.profile(node, hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
             for (int n = 0; n < MAX_ENTRIES; n++) {
@@ -464,7 +469,7 @@ public class PackedHashStoreLibrary {
                 }
             }
 
-            notInHashProfile.enter();
+            notInHashProfile.enter(node);
             return defaultValueNode.accept(frame, hash, key);
         }
 
