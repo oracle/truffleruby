@@ -25,3 +25,7 @@ spec/ruby/core/string/byterindex_spec.rb
 spec/ruby/core/queue/deq_spec.rb
 spec/ruby/core/queue/pop_spec.rb
 spec/ruby/core/queue/shift_spec.rb
+
+spec/ruby/core/sizedqueue/deq_spec.rb
+spec/ruby/core/sizedqueue/pop_spec.rb
+spec/ruby/core/sizedqueue/shift_spec.rb

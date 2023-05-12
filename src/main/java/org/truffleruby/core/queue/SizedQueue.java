@@ -11,6 +11,7 @@ package org.truffleruby.core.queue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -134,6 +135,40 @@ public class SizedQueue {
         size++;
         if (size >= 1) {
             canTake.signal();
+        }
+    }
+
+    @TruffleBoundary
+    public Object poll(long timeoutMilliseconds) throws InterruptedException {
+        lock.lock();
+
+        try {
+            if (size == 0) {
+                final boolean signalled = canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
+
+                /* We need to check the interrupted flag here, while holding the lock and after the await(). Otherwise,
+                 * if another thread does {@code th.raise(exc); q.push(1)} like in core/thread/handle_interrupt_spec.rb
+                 * then we might miss the ThreadLocalAction and instead return, which would incorrectly delay the
+                 * ThreadLocalAction if under {@code Thread.handle_interrupt(Object => :on_blocking)}. The other thread
+                 * cannot wait on the Future, as that might block arbitrary long when side-effects are disabled on this
+                 * thread. */
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
+
+                if (!signalled) {
+                    // Timed out.
+                    return null;
+                }
+
+                if (closed) {
+                    return CLOSED;
+                }
+            }
+
+            return doTake();
+        } finally {
+            lock.unlock();
         }
     }
 
