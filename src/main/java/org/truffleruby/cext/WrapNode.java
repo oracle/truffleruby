@@ -12,7 +12,10 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.Encodings;
@@ -30,7 +33,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 import java.lang.invoke.VarHandle;
 
@@ -46,9 +48,9 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     protected ValueWrapper wrapLong(long value,
-            @Cached @Exclusive BranchProfile smallFixnumProfile) {
+            @Cached @Exclusive InlinedBranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
-            smallFixnumProfile.enter();
+            smallFixnumProfile.enter(this);
             long val = (value << 1) | LONG_TAG;
             return new ValueWrapper(null, val, null);
         } else {
@@ -87,10 +89,10 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization(guards = "!isNil(value)")
     protected ValueWrapper wrapImmutable(ImmutableRubyObject value,
-            @Cached @Shared BranchProfile noHandleProfile) {
+            @Cached @Shared InlinedBranchProfile noHandleProfile) {
         ValueWrapper wrapper = value.getValueWrapper();
         if (wrapper == null) {
-            noHandleProfile.enter();
+            noHandleProfile.enter(this);
             synchronized (value) {
                 wrapper = value.getValueWrapper();
                 if (wrapper == null) {
@@ -106,12 +108,13 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(limit = "getDynamicObjectCacheLimit()")
-    protected ValueWrapper wrapValue(RubyDynamicObject value,
+    protected static ValueWrapper wrapValue(RubyDynamicObject value,
             @CachedLibrary("value") DynamicObjectLibrary objectLibrary,
-            @Cached @Shared BranchProfile noHandleProfile) {
+            @Cached @Shared InlinedBranchProfile noHandleProfile,
+            @Bind("this") Node node) {
         ValueWrapper wrapper = (ValueWrapper) objectLibrary.getOrDefault(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
-            noHandleProfile.enter();
+            noHandleProfile.enter(node);
             synchronized (value) {
                 wrapper = (ValueWrapper) objectLibrary.getOrDefault(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
                 if (wrapper == null) {

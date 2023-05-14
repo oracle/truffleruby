@@ -119,6 +119,7 @@ public class MarkingServiceNodes {
         }
 
 
+        @NeverDefault
         public static RunMarkOnExitNode create() {
             return MarkingServiceNodesFactory.RunMarkOnExitNodeGen.create();
         }

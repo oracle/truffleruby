@@ -18,6 +18,8 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -34,7 +36,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
 @ImportStatic(ValueWrapperManager.class)
@@ -73,12 +74,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedObject(handle)")
         protected Object unwrapTaggedObject(long handle,
-                @Cached BranchProfile noHandleProfile) {
+                @Cached InlinedBranchProfile noHandleProfile) {
             final ValueWrapper wrapper = getContext()
                     .getValueWrapperManager()
                     .getWrapperFromHandleMap(handle, getLanguage());
             if (wrapper == null) {
-                noHandleProfile.enter();
+                noHandleProfile.enter(this);
                 raiseError(handle);
             }
             return wrapper.getObject();
@@ -159,16 +160,17 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
-        protected ValueWrapper genericToWrapper(Object value,
+        protected static ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode,
-                @Cached BranchProfile unsupportedProfile) {
+                @Cached InlinedBranchProfile unsupportedProfile,
+                @Bind("this") Node node) {
             long handle;
             try {
                 handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                unsupportedProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node, e));
             }
             return nativeToWrapperNode.execute(handle);
         }
@@ -256,16 +258,17 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
-    protected Object unwrapGeneric(Object value,
+    protected static Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @Cached @Exclusive UnwrapNativeNode unwrapNativeNode,
-            @Cached BranchProfile unsupportedProfile) {
+            @Cached InlinedBranchProfile unsupportedProfile,
+            @Bind("this") Node node) {
         long handle;
         try {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {
-            unsupportedProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            unsupportedProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node, e));
         }
         return unwrapNativeNode.execute(handle);
     }
