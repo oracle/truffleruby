@@ -17,6 +17,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
@@ -43,7 +44,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::FFI::Pointer", isClass = true)
@@ -291,10 +291,10 @@ public abstract class PointerNodes {
 
         @Specialization
         protected Object readBytes(RubyByteArray array, int arrayOffset, long address, int length,
-                @Cached ConditionProfile zeroProfile,
+                @Cached InlinedConditionProfile zeroProfile,
                 @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            if (zeroProfile.profile(length == 0)) {
+            if (zeroProfile.profile(this, length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return nil;
             } else {
@@ -312,11 +312,11 @@ public abstract class PointerNodes {
 
         @Specialization
         protected RubyString readBytes(long address, int length,
-                @Cached ConditionProfile zeroProfile,
+                @Cached InlinedConditionProfile zeroProfile,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached InlinedBranchProfile nullPointerProfile) {
             final Pointer ptr = new Pointer(getContext(), address);
-            if (zeroProfile.profile(length == 0)) {
+            if (zeroProfile.profile(this, length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return createString(TStringConstants.EMPTY_BINARY, Encodings.BINARY);
             } else {
@@ -334,7 +334,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected static Object writeBytes(long address, Object string, int index, int length,
-                @Cached ConditionProfile nonZeroProfile,
+                @Cached InlinedConditionProfile nonZeroProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached RubyStringLibrary libString,
                 @Cached InlinedBranchProfile nullPointerProfile,
@@ -345,7 +345,7 @@ public abstract class PointerNodes {
 
             assert index + length <= tstring.byteLength(encoding);
 
-            if (nonZeroProfile.profile(length != 0)) {
+            if (nonZeroProfile.profile(node, length != 0)) {
                 // No need to check the pointer address if we write nothing
                 checkNull(node, ptr, nullPointerProfile);
 
