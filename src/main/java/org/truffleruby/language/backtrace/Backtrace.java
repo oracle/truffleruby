@@ -87,6 +87,14 @@ public final class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    /** For manually crafted backtraces. */
+    public Backtrace(Node location, int omitted, TruffleStackTraceElement[] stackTraceElements) {
+        this.location = location;
+        this.omitted = omitted;
+        this.javaThrowable = null;
+        this.stackTrace = stackTraceElements;
+    }
+
     /** Creates a backtrace for the given foreign exception, setting the {@link #getLocation() location} accordingly,
      * and computing the activations eagerly (since the exception itself is not retained). */
     public Backtrace(AbstractTruffleException exception) {
