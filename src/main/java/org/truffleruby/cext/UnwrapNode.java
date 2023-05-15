@@ -186,7 +186,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @ExplodeLoop
         @Specialization(
                 guards = { "size == cachedSize", "cachedSize <= MAX_EXPLODE_SIZE" },
-                limit = "getIdentityCacheLimit()")
+                limit = "1")
         protected Object[] unwrapCArrayExplode(Object cArray,
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,

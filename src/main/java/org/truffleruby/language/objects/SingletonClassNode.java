@@ -43,8 +43,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
 
     @Specialization(
             // no need to guard on the context, the rubyClass is context-specific
-            guards = { "rubyClass == cachedClass", "cachedSingletonClass != null" },
-            limit = "getIdentityCacheContextLimit()")
+            guards = { "isSingleContext()", "rubyClass == cachedClass", "cachedSingletonClass != null" },
+            limit = "1")
     protected RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
             @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
@@ -58,8 +58,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
 
     @Specialization(
             // no need to guard on the context, the RubyDynamicObject is context-specific
-            guards = { "object == cachedObject", "!isRubyClass(cachedObject)" },
-            limit = "getIdentityCacheContextLimit()")
+            guards = { "isSingleContext()", "object == cachedObject", "!isRubyClass(cachedObject)" },
+            limit = "1")
     protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("getSingletonClassForInstance(getContext(), object)") RubyClass cachedSingletonClass) {

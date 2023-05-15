@@ -87,7 +87,7 @@ public abstract class SymbolNodes {
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
         @Specialization(
                 guards = { "isSingleContext()", "symbol == cachedSymbol", "!preInitializing" },
-                limit = "getIdentityCacheContextLimit()")
+                limit = "1")
         protected long hashCached(RubySymbol symbol,
                 @Cached(value = "isPreInitializing(getContext())") boolean preInitializing,
                 @Cached(value = "symbol") RubySymbol cachedSymbol,
@@ -137,7 +137,7 @@ public abstract class SymbolNodes {
                         "isSingleContext()",
                         "symbol == cachedSymbol",
                         "getRefinements(callerFrame) == cachedRefinements" },
-                limit = "getIdentityCacheLimit()")
+                limit = "1")
         protected RubyProc toProcCached(Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRefinements(callerFrame)") Map<RubyModule, RubyModule[]> cachedRefinements,
@@ -150,7 +150,7 @@ public abstract class SymbolNodes {
                 guards = {
                         "symbol == cachedSymbol",
                         "getRefinements(callerFrame) == NO_REFINEMENTS" },
-                limit = "getIdentityCacheLimit()")
+                limit = "1")
         protected RubyProc toProcCachedNoRefinements(
                 Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,

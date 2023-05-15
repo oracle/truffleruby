@@ -244,14 +244,6 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getCoreExceptions();
     }
 
-    protected int getIdentityCacheContextLimit() {
-        return getLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
-    }
-
-    protected final int getIdentityCacheLimit() {
-        return getLanguage().options.IDENTITY_CACHE;
-    }
-
     protected final int getDefaultCacheLimit() {
         return getLanguage().options.DEFAULT_CACHE;
     }

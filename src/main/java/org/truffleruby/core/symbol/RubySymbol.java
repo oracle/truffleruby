@@ -134,7 +134,7 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     @ExportMessage
     public static class AsString {
-        @Specialization(guards = "symbol == cachedSymbol", limit = "getIdentityCacheLimit()")
+        @Specialization(guards = "symbol == cachedSymbol", limit = "1")
         protected static String asStringCached(RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("cachedSymbol.getString()") String cachedString) {
@@ -144,10 +144,6 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
         @Specialization(replaces = "asStringCached")
         protected static String asStringUncached(RubySymbol symbol) {
             return symbol.getString();
-        }
-
-        protected static int getIdentityCacheLimit() {
-            return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
         }
     }
     // endregion
