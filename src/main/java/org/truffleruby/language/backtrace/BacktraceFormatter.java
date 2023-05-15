@@ -337,7 +337,7 @@ public final class BacktraceFormatter {
 
     /** This logic should be kept in sync with
      * {@link org.truffleruby.debug.TruffleDebugNodes.IterateFrameBindingsNode} */
-    public SourceSection nextAvailableSourceSection(TruffleStackTraceElement[] stackTrace, int n) {
+    public static SourceSection nextAvailableSourceSection(TruffleStackTraceElement[] stackTrace, int n) {
         while (n < stackTrace.length) {
             final Node callNode = stackTrace[n].getLocation();
 

@@ -38,9 +38,7 @@ public abstract class ThreadBacktraceLocationNodes {
         final Backtrace backtrace = threadBacktraceLocation.backtrace;
         final int activationIndex = threadBacktraceLocation.activationIndex;
 
-        return context
-                .getUserBacktraceFormatter()
-                .nextAvailableSourceSection(backtrace.getStackTrace(), activationIndex);
+        return BacktraceFormatter.nextAvailableSourceSection(backtrace.getStackTrace(), activationIndex);
     }
 
     @CoreMethod(names = "absolute_path")

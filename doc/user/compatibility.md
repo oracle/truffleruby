@@ -167,6 +167,15 @@ It is not recommended to use exceptions for control flow on any implementation o
 
 To help alleviate this problem, backtraces are automatically disabled in cases where we can detect that they will not be used.
 
+### Caller locations
+
+Using `Kernel#caller_locations` or `Thread.each_caller_location` might contain engine specific location objects and/or
+paths. This is expected and should be filtered in application code where necessary.
+
+The enumerator returned by `Thread.to_enum(:each_caller_location)` is not supporting iteration with `.next`. In CRuby
+this raises a `StopIteration`, while in TruffleRuby it iterates on an undetermined (related to where and how `.next` is
+called) call stack. It is not recommended to use this in any circumstance (neither CRuby nor TruffleRuby).
+
 ## C Extension Compatibility
 
 ### Identifiers may be macros or functions

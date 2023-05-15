@@ -35,3 +35,5 @@ spec/ruby/core/module/undefined_instance_methods_spec.rb
 spec/ruby/core/refinement/refined_class_spec.rb
 spec/ruby/core/module/used_refinements_spec.rb
 spec/ruby/optional/capi/hash_spec.rb
+
+spec/ruby/core/thread/each_caller_location_spec.rb

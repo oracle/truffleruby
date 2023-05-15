@@ -32,6 +32,7 @@ Compatibility:
 * Add `rb_hash_new_capa` function (#3039, @itarato).
 * Fix `Encoding::Converter#primitive_convert` and raise `FrozenError` when a destination buffer argument is frozen (@andrykonchin).
 * Add `Module#undefined_instance_methods` (#3039, @itarato).
+* Add `Thread.each_caller_location` (#3039, @itarato).
 
 Performance:
 
