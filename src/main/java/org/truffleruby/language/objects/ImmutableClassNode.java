@@ -28,6 +28,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 
+// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateInline
 @GenerateCached(false)
 @GenerateUncached
@@ -40,7 +41,25 @@ public abstract class ImmutableClassNode extends RubyBaseNode {
 
     protected abstract RubyClass execute(Node node, Object value, CoreLibrary coreLibrary);
 
-    // Cover all primitives, nil and symbols
+    @Specialization
+    protected RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
+        return coreLibrary.integerClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
+        return coreLibrary.stringClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
+        return coreLibrary.symbolClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
+        return coreLibrary.nilClass;
+    }
 
     @Specialization(guards = "value")
     protected RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
@@ -53,33 +72,8 @@ public abstract class ImmutableClassNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
-        return coreLibrary.integerClass;
-    }
-
-    @Specialization
     protected RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
-        return coreLibrary.integerClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
-        return coreLibrary.floatClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
-        return coreLibrary.nilClass;
-    }
-
-    @Specialization
-    protected RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
-        return coreLibrary.symbolClass;
     }
 
     @Specialization
@@ -88,18 +82,23 @@ public abstract class ImmutableClassNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
-        return coreLibrary.stringClass;
-    }
-
-    @Specialization
     protected RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
         return coreLibrary.regexpClass;
     }
 
     @Specialization
-    protected RubyClass metaClassIntRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
+    protected RubyClass metaClassRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
         return coreLibrary.rangeClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
+        return coreLibrary.floatClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
+        return coreLibrary.integerClass;
     }
 
 }

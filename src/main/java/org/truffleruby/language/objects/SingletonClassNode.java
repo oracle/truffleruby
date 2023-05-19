@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
+// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 @NodeChild(value = "valueNode", type = RubyNode.class)
 public abstract class SingletonClassNode extends RubySourceNode {
@@ -39,6 +40,36 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     public abstract RubyClass executeSingletonClass(Object value);
+
+    @Specialization(
+            // no need to guard on the context, the rubyClass is context-specific
+            guards = { "rubyClass == cachedClass", "cachedSingletonClass != null" },
+            limit = "getIdentityCacheContextLimit()")
+    protected RubyClass singletonClassClassCached(RubyClass rubyClass,
+            @Cached("rubyClass") RubyClass cachedClass,
+            @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
+        return cachedSingletonClass;
+    }
+
+    @Specialization(replaces = "singletonClassClassCached")
+    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
+        return ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
+    }
+
+    @Specialization(
+            // no need to guard on the context, the RubyDynamicObject is context-specific
+            guards = { "object == cachedObject", "!isRubyClass(cachedObject)" },
+            limit = "getIdentityCacheContextLimit()")
+    protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
+            @Cached("object") RubyDynamicObject cachedObject,
+            @Cached("getSingletonClassForInstance(getContext(), object)") RubyClass cachedSingletonClass) {
+        return cachedSingletonClass;
+    }
+
+    @Specialization(guards = "!isRubyClass(object)", replaces = "singletonClassInstanceCached")
+    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
+        return getSingletonClassForInstance(getContext(), object);
+    }
 
     @Specialization(guards = "value")
     protected RubyClass singletonClassTrue(boolean value) {
@@ -73,36 +104,6 @@ public abstract class SingletonClassNode extends RubySourceNode {
     @Specialization(guards = "!isNil(value)")
     protected RubyClass singletonClassImmutableObject(ImmutableRubyObject value) {
         return noSingletonClass();
-    }
-
-    @Specialization(
-            // no need to guard on the context, the rubyClass is context-specific
-            guards = { "rubyClass == cachedClass", "cachedSingletonClass != null" },
-            limit = "getIdentityCacheContextLimit()")
-    protected RubyClass singletonClassClassCached(RubyClass rubyClass,
-            @Cached("rubyClass") RubyClass cachedClass,
-            @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
-        return cachedSingletonClass;
-    }
-
-    @Specialization(replaces = "singletonClassClassCached")
-    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
-    }
-
-    @Specialization(
-            // no need to guard on the context, the RubyDynamicObject is context-specific
-            guards = { "object == cachedObject", "!isRubyClass(cachedObject)" },
-            limit = "getIdentityCacheContextLimit()")
-    protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
-            @Cached("object") RubyDynamicObject cachedObject,
-            @Cached("getSingletonClassForInstance(getContext(), object)") RubyClass cachedSingletonClass) {
-        return cachedSingletonClass;
-    }
-
-    @Specialization(guards = "!isRubyClass(object)", replaces = "singletonClassInstanceCached")
-    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
-        return getSingletonClassForInstance(getContext(), object);
     }
 
     private RubyClass noSingletonClass() {
