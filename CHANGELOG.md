@@ -8,13 +8,13 @@ Bug fixes:
 
 Compatibility:
 
-* Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (@itarato).
+* Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (#3039, @itarato).
 * Make `Array#shuffle` produce the same results as CRuby (@rwstauner).
 * Add `Process.argv0` method (@andrykonchin).
 * Add support for array pattern matching. This is opt-in via `--pattern-matching` since pattern matching is not fully supported yet. (#2683, @razetime).
-* Fix `Array#[]` with `ArithmeticSequence` argument when step is negative (@itarato).
-* Fix `Range#size` and return `nil` for beginningless Range when end isn't Numeric (@rwstauner).
-* Alias `String#-@` to `String#dedup` (@itarato).
+* Fix `Array#[]` with `ArithmeticSequence` argument when step is negative (#3039, @itarato).
+* Fix `Range#size` and return `nil` for beginningless Range when end isn't Numeric (#3039, @rwstauner).
+* Alias `String#-@` to `String#dedup` (#3039, @itarato).
 
 Performance:
 
