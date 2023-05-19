@@ -21,6 +21,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 @TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class LogicalClassNode extends RubyBaseNode {
@@ -36,15 +37,15 @@ public abstract class LogicalClassNode extends RubyBaseNode {
 
     public abstract RubyClass execute(Object value);
 
+    @Specialization
+    protected RubyClass logicalClassObject(RubyDynamicObject object) {
+        return object.getLogicalClass();
+    }
+
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
     protected RubyClass logicalClassImmutable(Object value,
             @Cached ImmutableClassNode immutableClassNode) {
         return immutableClassNode.execute(this, value);
-    }
-
-    @Specialization
-    protected RubyClass logicalClassObject(RubyDynamicObject object) {
-        return object.getLogicalClass();
     }
 
     @InliningCutoff

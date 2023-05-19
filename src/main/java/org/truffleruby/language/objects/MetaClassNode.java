@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 public abstract class MetaClassNode extends RubyBaseNode {
 
@@ -33,32 +34,29 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     public abstract RubyClass execute(Object value);
 
-    @Specialization(guards = "isPrimitiveOrImmutable(value)")
-    protected RubyClass metaClassImmutable(Object value,
-            @Cached ImmutableClassNode immutableClassNode) {
-        return immutableClassNode.execute(this, value);
-    }
-
-    // Cover all RubyDynamicObject cases with cached and uncached
-
     @Specialization(
             guards = { "object == cachedObject", "metaClass.isSingleton" },
             limit = "getIdentityCacheContextLimit()")
-    protected RubyClass singletonClassCached(RubyDynamicObject object,
+    protected RubyClass singleton(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
         return metaClass;
     }
 
-    @Specialization(replaces = "singletonClassCached")
-    protected RubyClass metaClassObject(RubyDynamicObject object) {
+    @Specialization(replaces = "singleton")
+    protected RubyClass object(RubyDynamicObject object) {
         return object.getMetaClass();
     }
 
-    // Foreign object
+    @Specialization(guards = "isPrimitiveOrImmutable(value)")
+    protected RubyClass immutable(Object value,
+            @Cached ImmutableClassNode immutableClassNode) {
+        return immutableClassNode.execute(this, value);
+    }
+
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass metaClassForeign(Object object,
+    protected RubyClass foreign(Object object,
             @Cached ForeignClassNode foreignClassNode) {
         return foreignClassNode.execute(object);
     }
