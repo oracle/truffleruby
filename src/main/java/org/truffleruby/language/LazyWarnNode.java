@@ -19,11 +19,11 @@ import com.oracle.truffle.api.nodes.Node;
 @GenerateCached(false)
 public abstract class LazyWarnNode extends RubyBaseNode {
 
-    public abstract WarnNode execute(Node node);
-
     public final WarnNode get(Node node) {
         return execute(node);
     }
+
+    protected abstract WarnNode execute(Node node);
 
     @Specialization
     protected static WarnNode doLazy(
