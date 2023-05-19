@@ -176,16 +176,15 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
-        protected static Object callWithCExtLockAndFrame(
+        @Specialization
+        protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached InlinedConditionProfile ownedProfile,
-                @Cached RunMarkOnExitNode runMarksNode,
-                @Bind("this") Node node) {
-            final ExtensionCallStack extensionStack = getLanguage(node)
+                @Cached RunMarkOnExitNode runMarksNode) {
+            final ExtensionCallStack extensionStack = getLanguage()
                     .getCurrentThread()
                     .getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
@@ -193,12 +192,12 @@ public class CExtNodes {
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
-                if (getContext(node).getOptions().CEXT_LOCK) {
-                    final ReentrantLock lock = getContext(node).getCExtensionsLock();
-                    boolean owned = ownedProfile.profile(node, lock.isHeldByCurrentThread());
+                if (getContext().getOptions().CEXT_LOCK) {
+                    final ReentrantLock lock = getContext().getCExtensionsLock();
+                    boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                     if (!owned) {
-                        MutexOperations.lockInternal(getContext(node), lock, node);
+                        MutexOperations.lockInternal(getContext(), lock, this);
                     }
                     try {
                         return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
@@ -229,28 +228,27 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
-        protected static Object callWithCExtLockAndFrame(
+        @Specialization
+        protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached InlinedConditionProfile ownedProfile,
                 @Cached RunMarkOnExitNode runMarksNode,
-                @Cached UnwrapNode unwrapNode,
-                @Bind("this") Node node) {
-            final ExtensionCallStack extensionStack = getLanguage(node).getCurrentFiber().extensionCallStack;
+                @Cached UnwrapNode unwrapNode) {
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
-                if (getContext(node).getOptions().CEXT_LOCK) {
-                    final ReentrantLock lock = getContext(node).getCExtensionsLock();
-                    boolean owned = ownedProfile.profile(node, lock.isHeldByCurrentThread());
+                if (getContext().getOptions().CEXT_LOCK) {
+                    final ReentrantLock lock = getContext().getCExtensionsLock();
+                    boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                     if (!owned) {
-                        MutexOperations.lockInternal(getContext(node), lock, node);
+                        MutexOperations.lockInternal(getContext(), lock, this);
                     }
                     try {
                         return unwrapNode.execute(
@@ -285,21 +283,20 @@ public class CExtNodes {
 
         public abstract Object execute(Object receiver, RubyArray argsArray);
 
-        @Specialization(limit = "getCacheLimit()")
-        protected static Object callWithCExtLock(Object receiver, RubyArray argsArray,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+        @Specialization
+        protected Object callWithCExtLock(Object receiver, RubyArray argsArray,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached InlinedConditionProfile ownedProfile,
-                @Bind("this") Node node) {
+                @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
-            if (getContext(node).getOptions().CEXT_LOCK) {
-                final ReentrantLock lock = getContext(node).getCExtensionsLock();
-                boolean owned = ownedProfile.profile(node, lock.isHeldByCurrentThread());
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                 if (!owned) {
-                    MutexOperations.lockInternal(getContext(node), lock, node);
+                    MutexOperations.lockInternal(getContext(), lock, this);
                 }
                 try {
                     return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
