@@ -21,36 +21,37 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
 
 public class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
-    @Child private RubyNode receiver;
+    @Child private ReadFrameSlotNode readSelfSlotNode;
     @Child private IsFrozenNode isFrozenNode;
     @Child private RubyNode rhs;
     @Child private WriteObjectFieldNode writeNode;
 
     @CompilationFinal private boolean frozenProfile;
 
-    public WriteInstanceVariableNode(String name, RubyNode receiver, RubyNode rhs) {
+    public WriteInstanceVariableNode(String name, RubyNode rhs) {
         this.name = name;
-        this.receiver = receiver;
+        this.readSelfSlotNode = SelfNode.createReadSelfFrameSlotNode();
         this.rhs = rhs;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object object = receiver.execute(frame);
+        final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
         final Object value = rhs.execute(frame);
-        write(object, value);
+        write(self, value);
         return value;
     }
 
     @Override
     public void assign(VirtualFrame frame, Object value) {
-        final Object object = receiver.execute(frame);
-        write(object, value);
+        final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
+        write(self, value);
     }
 
     private void write(Object object, Object value) {
@@ -96,10 +97,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new WriteInstanceVariableNode(
-                name,
-                receiver.cloneUninitialized(),
-                cloneUninitialized(rhs));
+        var copy = new WriteInstanceVariableNode(name, cloneUninitialized(rhs));
         return copy.copyFlags(this);
     }
 
