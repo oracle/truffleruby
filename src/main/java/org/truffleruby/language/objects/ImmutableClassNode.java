@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -36,7 +37,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 public abstract class ImmutableClassNode extends RubyBaseNode {
 
     public final RubyClass execute(Node node, Object value) {
-        return execute(node, value, coreLibrary());
+        return execute(node, value, RubyContext.get(node).getCoreLibrary());
     }
 
     protected abstract RubyClass execute(Node node, Object value, CoreLibrary coreLibrary);
