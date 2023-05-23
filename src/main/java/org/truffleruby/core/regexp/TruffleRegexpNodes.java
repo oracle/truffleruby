@@ -26,7 +26,10 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -65,8 +68,8 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.interop.LazyTranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -83,6 +86,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.parser.RubyDeferredWarnings;
@@ -752,6 +756,7 @@ public class TruffleRegexpNodes {
     @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 5 })
     public abstract static class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
 
+        @NeverDefault
         public static MatchInRegionNode create() {
             return TruffleRegexpNodesFactory.MatchInRegionNodeFactory.create(null);
         }
@@ -826,16 +831,43 @@ public class TruffleRegexpNodes {
         }
     }
 
+    @GenerateCached(false)
+    @GenerateInline(inlineByDefault = true)
+    public abstract static class LazyMatchInRegionNode extends RubyBaseNode {
+
+        public final MatchInRegionNode get(Node node) {
+            return execute(node);
+        }
+
+        protected abstract MatchInRegionNode execute(Node node);
+
+        @Specialization
+        protected static MatchInRegionNode doLazy(
+                @Cached(inline = false) MatchInRegionNode matchInRegionNode) {
+            return matchInRegionNode;
+        }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline(inlineByDefault = true)
+    public abstract static class LazyTruffleStringSubstringByteIndexNode extends RubyBaseNode {
+
+        public final TruffleString.SubstringByteIndexNode get(Node node) {
+            return execute(node);
+        }
+
+        protected abstract TruffleString.SubstringByteIndexNode execute(Node node);
+
+        @Specialization
+        protected static TruffleString.SubstringByteIndexNode doLazy(
+                @Cached(inline = false) TruffleString.SubstringByteIndexNode substringByteIndexNode) {
+            return substringByteIndexNode;
+        }
+    }
+
     @Primitive(name = "regexp_match_in_region_tregex", lowerFixnum = { 2, 3, 5 })
     public abstract static class MatchInRegionTRegexNode extends PrimitiveArrayArgumentsNode {
 
-        @Child MatchInRegionNode fallbackMatchInRegionNode;
-        @Child DispatchNode warnOnFallbackNode;
-
-        @Child DispatchNode stringDupNode;
-        @Child TranslateInteropExceptionNode translateInteropExceptionNode;
-
-        @Child TruffleString.SubstringByteIndexNode substringByteIndexNode;
 
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
         protected Object matchInRegionTRegex(
@@ -858,7 +890,12 @@ public class TruffleRegexpNodes {
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @Cached RubyStringLibrary libString,
-                @Cached(inline = false) IntValueProfile groupCountProfile) {
+                @Cached(inline = false) IntValueProfile groupCountProfile,
+                @Cached LazyDispatchNode warnOnFallbackNode,
+                @Cached LazyDispatchNode stringDupNode,
+                @Cached LazyTranslateInteropExceptionNode lazyTranslateInteropExceptionNode,
+                @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
+                @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode) {
             final Object tRegex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
@@ -878,7 +915,9 @@ public class TruffleRegexpNodes {
                         toPos,
                         atStart,
                         startPos,
-                        createMatchData);
+                        createMatchData,
+                        warnOnFallbackNode.get(this),
+                        fallbackMatchInRegionNode.get(this));
             }
 
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
@@ -900,11 +939,7 @@ public class TruffleRegexpNodes {
                     assert fromPos == startPos;
                     fromIndex = 0;
 
-                    if (substringByteIndexNode == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        substringByteIndexNode = insert(TruffleString.SubstringByteIndexNode.create());
-                    }
-                    tstringToMatch = substringByteIndexNode.execute(tstring, startPos, toPos - startPos,
+                    tstringToMatch = substringByteIndexNode.get(this).execute(tstring, startPos, toPos - startPos,
                             negotiatedEncoding.tencoding, true);
                 } else {
                     tstringToMatch = tstring;
@@ -917,15 +952,17 @@ public class TruffleRegexpNodes {
                 tstringToMatch = tstring;
                 execMethod = "execBoolean";
             }
-
-            final Object result = invoke(regexInterop, tRegex, execMethod, tstringToMatch, fromIndex);
+            final Object result = invoke(regexInterop, tRegex, execMethod, lazyTranslateInteropExceptionNode.get(this),
+                    tstringToMatch, fromIndex);
 
             if (createMatchDataProfile.profile(createMatchData)) {
-                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
+                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch",
+                        lazyTranslateInteropExceptionNode.get(this));
 
                 if (matchFoundProfile.profile(isMatch)) {
                     final int groupCount = groupCountProfile
-                            .profile((int) readMember(regexInterop, tRegex, "groupCount"));
+                            .profile((int) readMember(regexInterop, tRegex, "groupCount",
+                                    lazyTranslateInteropExceptionNode.get(this)));
                     final Region region = new Region(groupCount);
 
                     try {
@@ -938,7 +975,7 @@ public class TruffleRegexpNodes {
                         profileAndReportLoopCount(loopProfile, groupCount);
                     }
 
-                    return createMatchData(regexp, dupString(string), region, result);
+                    return createMatchData(regexp, dupString(string, stringDupNode.get(this)), region, result);
                 } else {
                     return nil;
                 }
@@ -948,12 +985,9 @@ public class TruffleRegexpNodes {
         }
 
         private Object fallbackToJoni(RubyRegexp regexp, Object string, RubyEncoding encoding, int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData) {
+                boolean atStart, int startPos, boolean createMatchData, DispatchNode warnOnFallbackNode,
+                MatchInRegionNode fallbackMatchInRegionNode) {
             if (getContext().getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
-                if (warnOnFallbackNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    warnOnFallbackNode = insert(DispatchNode.create());
-                }
 
                 warnOnFallbackNode.call(
                         getContext().getCoreLibrary().truffleRegexpOperationsModule,
@@ -966,11 +1000,6 @@ public class TruffleRegexpNodes {
                                 toPos,
                                 atStart,
                                 startPos });
-            }
-
-            if (fallbackMatchInRegionNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackMatchInRegionNode = insert(MatchInRegionNode.create());
             }
 
             return fallbackMatchInRegionNode
@@ -989,36 +1018,25 @@ public class TruffleRegexpNodes {
             return matchData;
         }
 
-        private Object readMember(InteropLibrary interop, Object receiver, String name) {
+        private Object readMember(InteropLibrary interop, Object receiver, String name,
+                TranslateInteropExceptionNode translateInteropExceptionNode) {
             try {
                 return interop.readMember(receiver, name);
             } catch (InteropException e) {
-                if (translateInteropExceptionNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    translateInteropExceptionNode = insert(TranslateInteropExceptionNodeGen.create());
-                }
                 throw translateInteropExceptionNode.execute(e);
             }
         }
 
-        private Object invoke(InteropLibrary interop, Object receiver, String member, Object... args) {
+        private Object invoke(InteropLibrary interop, Object receiver, String member,
+                TranslateInteropExceptionNode translateInteropExceptionNode, Object... args) {
             try {
                 return interop.invokeMember(receiver, member, args);
             } catch (InteropException e) {
-                if (translateInteropExceptionNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    translateInteropExceptionNode = insert(TranslateInteropExceptionNodeGen.create());
-                }
                 throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
             }
         }
 
-        private Object dupString(Object string) {
-            if (stringDupNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                stringDupNode = insert(DispatchNode.create());
-            }
-
+        private Object dupString(Object string, DispatchNode stringDupNode) {
             return stringDupNode.call(string, "dup");
         }
     }

@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.dispatch;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateCached;
@@ -18,17 +18,17 @@ import org.truffleruby.language.RubyBaseNode;
 
 @GenerateCached(false)
 @GenerateInline(inlineByDefault = true)
-public abstract class LazyDispatchNode extends RubyBaseNode {
+public abstract class LazyTranslateInteropExceptionNode extends RubyBaseNode {
 
-    public final DispatchNode get(Node node) {
+    public final TranslateInteropExceptionNode get(Node node) {
         return execute(node);
     }
 
-    protected abstract DispatchNode execute(Node node);
+    protected abstract TranslateInteropExceptionNode execute(Node node);
 
     @Specialization
-    protected static DispatchNode doLazy(
-            @Cached(inline = false) DispatchNode dispatchNode) {
-        return dispatchNode;
+    protected static TranslateInteropExceptionNode doLazy(
+            @Cached(inline = false) TranslateInteropExceptionNode translateInteropExceptionNode) {
+        return translateInteropExceptionNode;
     }
 }
