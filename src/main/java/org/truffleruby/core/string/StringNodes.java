@@ -1402,28 +1402,30 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "libEncoding.isRubyString(newEncoding)", limit = "1")
-        protected RubyString forceEncodingString(RubyString string, Object newEncoding,
+        protected static RubyString forceEncodingString(RubyString string, Object newEncoding,
                 @Cached @Exclusive RubyStringLibrary libEncoding,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached(inline = false) BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached @Exclusive ForceEncodingNode forceEncodingNode,
+                @Bind("this") Node node) {
             final String stringName = toJavaStringNode.executeToJavaString(newEncoding);
-            final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(stringName);
+            final RubyEncoding rubyEncoding = getContext(node).getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
-                errorProfile.enter();
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError(Utils.concat("unknown encoding name - ", stringName),
-                                getNode()));
+                        getContext(node),
+                        coreExceptions(node).argumentError(Utils.concat("unknown encoding name - ", stringName),
+                                getNode(node)));
             }
 
-            return execute(string, rubyEncoding);
+            return forceEncodingNode.execute(string, rubyEncoding);
         }
 
         @Specialization(guards = { "!isRubyEncoding(newEncoding)", "isNotRubyString(newEncoding)" })
         protected RubyString forceEncoding(RubyString string, Object newEncoding,
                 @Cached ToStrNode toStrNode,
-                @Cached ForceEncodingNode forceEncodingNode) {
+                @Cached @Exclusive ForceEncodingNode forceEncodingNode) {
             return forceEncodingNode.execute(string, toStrNode.execute(newEncoding));
         }
     }
