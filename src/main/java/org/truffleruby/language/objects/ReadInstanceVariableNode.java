@@ -20,28 +20,29 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
 
 public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     private final String name;
 
-    @Child private RubyNode receiver;
+    @Child private ReadFrameSlotNode readSelfSlotNode;
     @Child private DynamicObjectLibrary objectLibrary;
 
     private final ConditionProfile objectProfile = ConditionProfile.create();
 
-    public ReadInstanceVariableNode(String name, RubyNode receiver) {
+    public ReadInstanceVariableNode(String name) {
         this.name = name;
-        this.receiver = receiver;
+        this.readSelfSlotNode = SelfNode.createReadSelfFrameSlotNode();
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object receiverObject = receiver.execute(frame);
+        final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
 
-        if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
+        if (objectProfile.profile(self instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
-            final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
+            final RubyDynamicObject dynamicObject = (RubyDynamicObject) self;
             return objectLibrary.getOrDefault(dynamicObject, name, nil);
         } else {
             return nil;
@@ -50,11 +51,11 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        final Object receiverObject = receiver.execute(frame);
+        final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
 
-        if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
+        if (objectProfile.profile(self instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
-            final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
+            final RubyDynamicObject dynamicObject = (RubyDynamicObject) self;
             if (objectLibrary.containsKey(dynamicObject, name)) {
                 return FrozenStrings.INSTANCE_VARIABLE;
             } else {
@@ -78,9 +79,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new ReadInstanceVariableNode(
-                name,
-                receiver.cloneUninitialized());
+        var copy = new ReadInstanceVariableNode(name);
         return copy.copyFlags(this);
     }
 

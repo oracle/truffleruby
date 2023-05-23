@@ -31,16 +31,23 @@ public class SelfNode extends RubyContextSourceNode {
     public SelfNode() {
     }
 
+    public static ReadFrameSlotNode createReadSelfFrameSlotNode() {
+        return ReadFrameSlotNodeGen.create(SELF_INDEX);
+    }
+
+    public static Object readSelf(VirtualFrame frame, ReadFrameSlotNode readSelfSlotNode) {
+        assert frame.getFrameDescriptor().getSlotName(SELF_INDEX) == SELF_IDENTIFIER;
+        return readSelfSlotNode.executeRead(frame);
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
-        assert frame.getFrameDescriptor().getSlotName(SELF_INDEX) == SELF_IDENTIFIER;
-
         if (readSelfSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readSelfSlotNode = insert(ReadFrameSlotNodeGen.create(SELF_INDEX));
+            readSelfSlotNode = insert(createReadSelfFrameSlotNode());
         }
 
-        return readSelfSlotNode.executeRead(frame);
+        return readSelf(frame, readSelfSlotNode);
     }
 
     @Override

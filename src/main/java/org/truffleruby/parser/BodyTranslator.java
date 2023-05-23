@@ -1837,8 +1837,7 @@ public class BodyTranslator extends BaseTranslator {
             rhs = node.getValueNode().accept(this);
         }
 
-        final RubyNode self = new SelfNode();
-        final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
+        final RubyNode ret = new WriteInstanceVariableNode(name, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -1847,11 +1846,7 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitInstVarNode(InstVarParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         final String name = node.getName();
-
-        // About every case will use a SelfParseNode, just don't it use more than once.
-        final SelfNode self = new SelfNode();
-
-        final RubyNode ret = new ReadInstanceVariableNode(name, self);
+        final RubyNode ret = new ReadInstanceVariableNode(name);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
