@@ -65,8 +65,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             guards = { "getDepth() < MAX_DEPTH", "value.getShape() == cachedShape", "!cachedShape.isShared()" },
             assumptions = "cachedShape.getValidAssumption()",
             // limit of 1 to avoid creating many nodes if the value's Shape is polymorphic.
-            // GR-36904: Not simply using "1" so the cached nodes are cleared when writeBarrierUncached() is activated.
-            limit = "getIdentityCacheLimit()")
+            limit = "1")
     protected void writeBarrierCached(RubyDynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
             @Cached("createShareObjectNode()") ShareObjectNode shareObjectNode) {
