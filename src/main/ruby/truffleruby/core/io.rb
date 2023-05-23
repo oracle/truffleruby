@@ -310,6 +310,8 @@ class IO
     end
   end
 
+  attr_reader :timeout
+
   private def mode_read_only?
     (@mode & FMODE_READWRITE) == FMODE_READABLE
   end
@@ -1663,6 +1665,19 @@ class IO
   def printf(fmt, *args)
     fmt = StringValue(fmt)
     write sprintf(fmt, *args)
+  end
+
+  def timeout=(new_timeout)
+    if Primitive.nil?(new_timeout)
+      self.nonblock = false
+    else
+      self.nonblock = true
+
+      # For validation.
+      Truffle::KernelOperations.convert_duration_to_milliseconds(new_timeout)
+    end
+
+    @timeout = new_timeout
   end
 
   def read(length = nil, buffer = nil)

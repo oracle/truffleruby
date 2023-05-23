@@ -398,10 +398,10 @@ module Truffle::POSIX
   # by IO#sysread
 
   def self.read_string_native(io, length)
-    fd = io.fileno
     buffer = Primitive.io_thread_buffer_allocate(length)
     begin
-      bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      bytes_read = execute_posix_read(io, buffer, length)
+
       if bytes_read < 0
         bytes_read, errno = bytes_read, Errno.errno
       elsif bytes_read == 0 # EOF
@@ -422,11 +422,58 @@ module Truffle::POSIX
     end
   end
 
-  def self.read_to_buffer_native(io, length)
+  def self.execute_posix_read(io, buffer, length)
+    return Truffle::POSIX.read(io.fileno, buffer, length) unless !io.nonblock? && io.timeout
+    execute_posix_read_with_timeout(io, buffer, length)
+  end
+
+  def self.execute_posix_read_with_timeout(io, buffer, length)
     fd = io.fileno
+    timeout_milliseconds = Truffle::KernelOperations.convert_duration_to_milliseconds(io.timeout)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) + timeout_milliseconds
+
+    while true
+      bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      return bytes_read if bytes_read >= 0
+      return bytes_read unless Errno.errno == Errno::EAGAIN::Errno
+
+      current_timeout = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+      raise IO::TimeoutError if current_timeout <= 0
+
+      poll_result = Truffle::IOOperations.poll_with_timeout(io, Truffle::IOOperations::POLLIN, current_timeout)
+      raise IO::TimeoutError if poll_result == 0
+      Errno.handle_errno(Errno.errno) if poll_result == -1
+    end
+  end
+
+  def self.execute_posix_write(io, buffer, length)
+    return Truffle::POSIX.write(io.fileno, buffer, length) unless !io.nonblock? && io.timeout
+    execute_posix_write_with_timeout(io, buffer, length)
+  end
+
+  def self.execute_posix_write_with_timeout(io, buffer, length)
+    fd = io.fileno
+    timeout_milliseconds = Truffle::KernelOperations.convert_duration_to_milliseconds(io.timeout)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) + timeout_milliseconds
+
+    while true
+      bytes_written = Truffle::POSIX.write(fd, buffer, length)
+      return bytes_written if bytes_written >= 0
+      return bytes_written unless Errno.errno == Errno::EAGAIN::Errno
+
+      current_timeout = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+      raise IO::TimeoutError if current_timeout <= 0
+
+      poll_result = Truffle::IOOperations.poll_with_timeout(io, Truffle::IOOperations::POLLOUT, current_timeout)
+      raise IO::TimeoutError if poll_result == 0
+      Errno.handle_errno(Errno.errno) if poll_result == -1
+    end
+  end
+
+  def self.read_to_buffer_native(io, length)
     buffer = Primitive.io_thread_buffer_allocate(length)
     begin
-      bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      bytes_read = execute_posix_read(io, buffer, length)
       if bytes_read < 0
         bytes_read, errno = bytes_read, Errno.errno
       elsif bytes_read == 0 # EOF
@@ -492,7 +539,7 @@ module Truffle::POSIX
 
       written = 0
       while written < length
-        ret = Truffle::POSIX.write(fd, buffer + written, length - written)
+        ret = execute_posix_write(io, buffer + written, length - written)
         if ret < 0
           errno = Errno.errno
           if errno == EAGAIN_ERRNO
@@ -537,12 +584,11 @@ module Truffle::POSIX
   # #write_string_nonblock_polylgot) is called by IO#write_nonblock
 
   def self.write_string_nonblock_native(io, string)
-    fd = io.fileno
     length = string.bytesize
     buffer = Primitive.io_thread_buffer_allocate(length)
     begin
       buffer.write_bytes string
-      written = Truffle::POSIX.write(fd, buffer, length)
+      written = execute_posix_write(io, buffer, length)
 
       if written < 0
         errno = Errno.errno

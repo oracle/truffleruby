@@ -89,8 +89,9 @@ fails:Public methods on Fiber should include storage=
 fails:Public methods on GC.singleton_class should include stat_heap
 fails:Public methods on IO should not include nread
 fails:Public methods on IO should not include ready?
-fails:Public methods on IO should include timeout
-fails:Public methods on IO should include timeout=
+fails:Public methods on IO should include path
+fails:Public methods on IO should include to_path
+fails:Public methods on Integer should include ceildiv
 fails:Public methods on Kernel should not include =~
 fails:Public methods on Method should not include private?
 fails:Public methods on Method should not include protected?
