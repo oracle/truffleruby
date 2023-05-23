@@ -55,6 +55,7 @@ import org.graalvm.shadowed.org.jline.terminal.Size;
 import org.graalvm.shadowed.org.jline.terminal.Terminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.DumbTerminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.ExecPty;
+import org.graalvm.shadowed.org.jline.terminal.spi.TerminalProvider;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.support.RubyIO;
@@ -124,7 +125,7 @@ public final class ConsoleHolder {
                 terminal = new PosixSysTerminalKeepSignalHandlers(
                         "TruffleRuby",
                         getType(),
-                        ExecPty.current(),
+                        ExecPty.current(TerminalProvider.Stream.Output),
                         StandardCharsets.UTF_8);
             } else {
                 try (Terminal inherit = new DumbTerminal(in.getIn(), out.getOut())) {
