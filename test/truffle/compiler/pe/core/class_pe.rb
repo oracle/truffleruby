@@ -12,6 +12,14 @@ module ClassPEFixtures
   AInstance = ClassPEFixtures::A.new
 end
 
+example "1.class", Integer
+example "1.2.class", Float
+example "true.class", TrueClass
+example "nil.class", NilClass
+example "/regexp/.class", Regexp
+example "(1..2).class", Range
+example ":symbol.class", Symbol
+
 example "ClassPEFixtures::B.superclass", ClassPEFixtures::A
 example "ClassPEFixtures::A.new.class", ClassPEFixtures::A
 
