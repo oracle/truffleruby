@@ -35,7 +35,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -1457,7 +1456,7 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
-    public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
+    public abstract static class CaptureExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object captureException(RubyProc block,
@@ -1465,7 +1464,7 @@ public class CExtNodes {
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached CallBlockNode yieldNode) {
             try {
-                callBlock(yieldNode, block);
+                yieldNode.yield(block);
                 noExceptionProfile.enter(this);
                 return nil;
             } catch (Throwable e) {
@@ -1476,7 +1475,7 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "store_exception", onSingleton = true, required = 1)
-    public abstract static class StoreException extends YieldingCoreMethodNode {
+    public abstract static class StoreException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object storeException(CapturedException captured) {
@@ -1487,7 +1486,7 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "retrieve_exception", onSingleton = true)
-    public abstract static class RetrieveException extends YieldingCoreMethodNode {
+    public abstract static class RetrieveException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected CapturedException retrieveException() {

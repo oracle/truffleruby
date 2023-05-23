@@ -60,7 +60,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
@@ -322,7 +321,7 @@ public abstract class ThreadNodes {
     }
 
     @CoreMethod(names = "handle_interrupt", required = 1, needsBlock = true, visibility = Visibility.PRIVATE)
-    public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
+    public abstract static class HandleInterruptNode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
@@ -346,7 +345,7 @@ public abstract class ThreadNodes {
                     runPendingSafepointActions("before");
                 }
 
-                return callBlock(yieldNode, block);
+                return yieldNode.yield(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
                 safepoint.setAllowSideEffects(prevSideEffects);

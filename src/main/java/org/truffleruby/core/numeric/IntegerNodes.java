@@ -29,7 +29,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
@@ -1980,7 +1979,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "downto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true)
-    public abstract static class DownToNode extends YieldingCoreMethodNode {
+    public abstract static class DownToNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode downtoInternalCall;
 
@@ -1991,7 +1990,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; loopProfile.inject(this, i >= to); i--) {
-                    callBlock(yieldNode, block, i);
+                    yieldNode.yield(block, i);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, from - i + 1);
@@ -2012,7 +2011,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i >= to; i--) {
-                    callBlock(yieldNode, block, i);
+                    yieldNode.yield(block, i);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, from - i + 1);
@@ -2059,7 +2058,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "upto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true)
-    public abstract static class UpToNode extends YieldingCoreMethodNode {
+    public abstract static class UpToNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode uptoInternalCall;
         private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
@@ -2070,7 +2069,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; loopProfile.inject(i <= to); i++) {
-                    callBlock(yieldNode, block, i);
+                    yieldNode.yield(block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);
@@ -2090,7 +2089,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i <= to; i++) {
-                    callBlock(yieldNode, block, i);
+                    yieldNode.yield(block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);

@@ -105,7 +105,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
@@ -1119,7 +1118,7 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
-    public abstract static class EachByteNode extends YieldingCoreMethodNode {
+    public abstract static class EachByteNode extends CoreMethodArrayArgumentsNode {
 
         @NeverDefault
         public static EachByteNode create() {
@@ -1142,7 +1141,7 @@ public abstract class StringNodes {
             materializeNode.execute(tstring, encoding);
             for (int i = 0; i < tstring.byteLength(encoding); i++) {
                 int singleByte = readByteNode.execute(tstring, i, encoding);
-                callBlock(yieldNode, block, singleByte);
+                yieldNode.yield(block, singleByte);
 
                 tstring = strings.getTString(string);
                 encoding = strings.getEncoding(string).tencoding;
@@ -1183,7 +1182,7 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "each_char", needsBlock = true, enumeratorSize = "size")
-    public abstract static class EachCharNode extends YieldingCoreMethodNode {
+    public abstract static class EachCharNode extends CoreMethodArrayArgumentsNode {
 
         @NeverDefault
         public static EachCharNode create() {
@@ -1208,7 +1207,7 @@ public abstract class StringNodes {
             int clen;
             for (int i = 0; i < byteLength; i += clen) {
                 clen = byteLengthOfCodePointNode.execute(tstring, i, tencoding);
-                callBlock(yieldNode, block, createSubString(substringNode, tstring, encoding, i, clen));
+                yieldNode.yield(block, createSubString(substringNode, tstring, encoding, i, clen));
             }
 
             return string;
@@ -1253,7 +1252,7 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "each_codepoint", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(StringGuards.class)
-    public abstract static class EachCodePointNode extends YieldingCoreMethodNode {
+    public abstract static class EachCodePointNode extends CoreMethodArrayArgumentsNode {
 
         @NeverDefault
         public static EachCodePointNode create() {
@@ -1285,7 +1284,7 @@ public abstract class StringNodes {
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
 
-                callBlock(yieldNode, block, codePoint);
+                yieldNode.yield(block, codePoint);
             }
 
             return string;
@@ -1295,7 +1294,7 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "codepoints", needsBlock = true)
     @ImportStatic({ StringGuards.class })
-    public abstract static class CodePointsNode extends YieldingCoreMethodNode {
+    public abstract static class CodePointsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object codePointsWithoutBlock(Object string, Nil unusedBlock,

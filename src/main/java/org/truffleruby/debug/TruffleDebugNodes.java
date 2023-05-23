@@ -43,7 +43,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -1299,7 +1298,7 @@ public abstract class TruffleDebugNodes {
     }
 
     @CoreMethod(names = "get_frame_bindings", onSingleton = true)
-    public abstract static class IterateFrameBindingsNode extends YieldingCoreMethodNode {
+    public abstract static class IterateFrameBindingsNode extends CoreMethodArrayArgumentsNode {
 
         /** This logic should be kept in sync with
          * {@link org.truffleruby.language.backtrace.BacktraceFormatter#nextAvailableSourceSection(TruffleStackTraceElement[], int) } */

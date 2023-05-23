@@ -16,7 +16,6 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -117,7 +116,7 @@ public abstract class MutexNodes {
     }
 
     @CoreMethod(names = "synchronize", needsBlock = true)
-    public abstract static class SynchronizeNode extends YieldingCoreMethodNode {
+    public abstract static class SynchronizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object synchronize(RubyMutex mutex, RubyProc block,
@@ -136,7 +135,7 @@ public abstract class MutexNodes {
              * locks list to be in consistent state at the end. */
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
-                return callBlock(yieldNode, block);
+                return yieldNode.yield(block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
                 MutexOperations.unlock(lock, thread);

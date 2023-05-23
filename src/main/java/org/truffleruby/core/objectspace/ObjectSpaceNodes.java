@@ -16,7 +16,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
@@ -128,7 +127,7 @@ public abstract class ObjectSpaceNodes {
             needsBlock = true,
             optional = 1,
             returnsEnumeratorIfNoBlock = true)
-    public abstract static class EachObjectNode extends YieldingCoreMethodNode {
+    public abstract static class EachObjectNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary // for the iterator
         @Specialization
@@ -138,7 +137,7 @@ public abstract class ObjectSpaceNodes {
 
             for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace.each_object", getContext(), this)) {
                 if (include(object)) {
-                    callBlock(yieldNode, block, object);
+                    yieldNode.yield(block, object);
                     count++;
                 }
             }
@@ -156,7 +155,7 @@ public abstract class ObjectSpaceNodes {
             final String reason = "ObjectSpace.each_object(" + ofClass + ")";
             for (Object object : ObjectGraph.stopAndGetAllObjects(reason, getContext(), this)) {
                 if (include(object) && isANode.executeIsA(object, ofClass)) {
-                    callBlock(yieldNode, block, object);
+                    yieldNode.yield(block, object);
                     count++;
                 }
             }

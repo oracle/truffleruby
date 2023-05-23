@@ -23,7 +23,6 @@ import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -108,7 +107,7 @@ public abstract class TruffleRubyNodes {
     }
 
     @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
-    public abstract static class SynchronizedNode extends YieldingCoreMethodNode {
+    public abstract static class SynchronizedNode extends CoreMethodArrayArgumentsNode {
 
         /** We must not allow to synchronize on boxed primitives as that would be misleading. We use a ReentrantLock and
          * not simply Java's {@code synchronized} here as we need to be able to interrupt for guest safepoints and it is
@@ -123,7 +122,7 @@ public abstract class TruffleRubyNodes {
 
             MutexOperations.lockInternal(getContext(node), lock, node);
             try {
-                return callBlock(yieldNode, block);
+                return yieldNode.yield(block);
             } finally {
                 MutexOperations.unlockInternal(lock);
             }

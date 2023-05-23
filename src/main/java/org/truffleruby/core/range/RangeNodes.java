@@ -23,7 +23,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -99,7 +98,7 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode eachInternalCall;
 
@@ -118,7 +117,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
-                    callBlock(yieldNode, block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n - range.begin);
@@ -143,7 +142,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; loopProfile.inject(node, n < exclusiveEnd); n++) {
-                    callBlock(yieldNode, block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 profileAndReportLoopCount(node, loopProfile, n - range.begin);
@@ -218,7 +217,7 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "step", needsBlock = true, optional = 1, lowerFixnum = 1)
-    public abstract static class StepNode extends YieldingCoreMethodNode {
+    public abstract static class StepNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode stepInternalCall;
 
@@ -236,7 +235,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(n < result); n += step) {
-                    callBlock(yieldNode, block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n - range.begin);
@@ -258,7 +257,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    callBlock(yieldNode, block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);
