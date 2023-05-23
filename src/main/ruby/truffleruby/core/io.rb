@@ -38,6 +38,8 @@ class IO
 
   include Enumerable
 
+  class TimeoutError < IOError; end
+
   module WaitReadable; end
   module WaitWritable; end
 
@@ -1646,6 +1648,21 @@ class IO
   def printf(fmt, *args)
     fmt = StringValue(fmt)
     write sprintf(fmt, *args)
+  end
+
+  attr_reader(:timeout)
+
+  def timeout=(new_timeout)
+    if Primitive.nil?(new_timeout)
+      self.nonblock = false
+    else
+      self.nonblock = true
+
+      # For validation.
+      Truffle::KernelOperations.convert_duration_to_milliseconds(new_timeout)
+    end
+
+    @timeout = new_timeout
   end
 
   def read(length = nil, buffer = nil)

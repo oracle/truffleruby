@@ -214,26 +214,53 @@ module Truffle
       end
 
       if timeout
-        unless Primitive.is_a? timeout, Numeric
-          raise TypeError, 'Timeout must be numeric'
-        end
-
+        raise TypeError, 'Timeout must be numeric' unless Primitive.is_a? timeout, Numeric
         raise ArgumentError, 'timeout must be positive' if timeout < 0
 
         # Milliseconds, rounded down
         timeout_ms = Primitive.rb_to_int((timeout * 1_000).to_i)
-        while timeout_ms > 2147483647 # INT_MAX
-          timeout_ms -= 2147483000
-          ret = poll(io, event_mask, 2147483)
-          return ret unless Primitive.false?(ret)
-        end
-
-        remaining_timeout = timeout_ms
-        start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
-        deadline = start + timeout_ms
-      else
-        remaining_timeout = -1
+        return poll_milliseconds(io, event_mask, timeout_ms)
       end
+
+      begin
+        remaining_timeout = -1
+        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), event_mask, remaining_timeout)
+        result =
+          if primitive_result < 0
+            errno = Errno.errno
+            if errno == Errno::EINTR::Errno
+              :retry
+            else
+              Errno.handle_errno(errno)
+            end
+          else
+            primitive_result
+          end
+      end while result == :retry
+
+      result
+    end
+
+    #
+    # Polling on an IO even with a (mandatory) provided millisecond timeout.
+    #
+    def self.poll_milliseconds(io, event_mask, timeout_milliseconds)
+      if (event_mask & POLLIN) != 0
+        return 1 unless io.__send__(:buffer_empty?)
+      end
+
+      raise TypeError, 'Timeout must be integer' unless Primitive.is_a? timeout_milliseconds, Integer
+      raise ArgumentError, 'timeout must be positive' if timeout_milliseconds < 0
+
+      while timeout_milliseconds > 2147483000 # INT_MAX rounded (down) to seconds.
+        timeout_milliseconds -= 2147483000
+        ret = poll_milliseconds(io, event_mask, 2147483)
+        return ret unless ret == 0
+      end
+
+      remaining_timeout = timeout_milliseconds
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+      deadline = start + timeout_milliseconds
 
       begin
         primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), event_mask, remaining_timeout)
@@ -241,16 +268,12 @@ module Truffle
           if primitive_result < 0
             errno = Errno.errno
             if errno == Errno::EINTR::Errno
-              if timeout_ms
-                # Update timeout
-                now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
-                if now >= deadline
-                  false # timeout
-                else
-                  remaining_timeout = deadline - now
-                  :retry
-                end
+              # Update timeout
+              now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+              if now >= deadline
+                0 # timeout
               else
+                remaining_timeout = deadline - now
                 :retry
               end
             else
