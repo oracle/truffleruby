@@ -2094,19 +2094,38 @@ module Commands
     Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
 
     time = Time.now.strftime('%Y%m%d-%H%M%S')
-    svg_filename = "#{PROFILES_DIR}/flamegraph_#{time}.svg"
+    suffix = "_#{ENV.fetch('JT_PROFILE_SUFFIX') { truffleruby? ? @ruby_name : 'cruby' } }"
+    flame_file_prefix = "#{PROFILES_DIR}/flamegraph_#{time}#{suffix}"
+    svg_filename = "#{flame_file_prefix}.svg"
 
     if stdin
       File.write(svg_filename, STDIN.read)
     else
       require 'benchmark'
       FileUtils.rm_f(svg_filename)
-      run_args = DEFAULT_PROFILE_OPTIONS + ["--cpusampler.OutputFile=#{svg_filename}"] + args
+      run_args = if truffleruby?
+                   DEFAULT_PROFILE_OPTIONS + ["--cpusampler.OutputFile=#{svg_filename}"] + args
+                 else
+                   flame_file = "#{flame_file_prefix}.html"
+                   flame_file_dump = "#{flame_file_prefix}.dump"
+                   ENV['STACKPROF_RAW'] = 'true'
+                   ENV['STACKPROF_OUT'] = flame_file_dump
+
+                   ['-rstackprof/autorun'] + args
+                 end
       puts Benchmark.measure {
         run_ruby(env, *run_args)
       }
     end
-    app_open svg_filename
+
+    if truffleruby?
+      app_open svg_filename
+    else
+      File.open(flame_file, 'w') do |f|
+        run_ruby(env, '-S', 'stackprof', '--d3-flamegraph', flame_file_dump, {:out => f})
+      end
+      app_open flame_file
+    end
   end
 
   def graph(*args)
