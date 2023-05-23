@@ -122,7 +122,7 @@ public abstract class RubyBaseNode extends Node {
         return getNode(this);
     }
 
-    private static Node getNode(Node node) {
+    protected static Node getNode(Node node) {
         boolean adoptable = node != null && node.isAdoptable();
         CompilerAsserts.partialEvaluationConstant(adoptable);
         if (adoptable) {
