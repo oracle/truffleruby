@@ -329,7 +329,8 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object handleInterrupt(RubyThread self, RubySymbol timing, RubyProc block,
                 @Cached InlinedBranchProfile beforeProfile,
-                @Cached InlinedBranchProfile afterProfile) {
+                @Cached InlinedBranchProfile afterProfile,
+                @Cached CallBlockNode yieldNode) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
             final boolean allowSideEffects = newInterruptMode == InterruptMode.IMMEDIATE;
@@ -345,7 +346,7 @@ public abstract class ThreadNodes {
                     runPendingSafepointActions("before");
                 }
 
-                return callBlock(block);
+                return callBlock(yieldNode, block);
             } finally {
                 self.interruptMode = oldInterruptMode;
                 safepoint.setAllowSideEffects(prevSideEffects);

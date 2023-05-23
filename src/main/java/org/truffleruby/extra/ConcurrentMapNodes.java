@@ -31,6 +31,7 @@ import org.truffleruby.extra.RubyConcurrentMap.Key;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -116,10 +117,11 @@ public class ConcurrentMapNodes {
     public abstract static class ComputeIfAbsentNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             final Object returnValue = ConcurrentOperations
-                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> callBlock(block));
+                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> callBlock(yieldNode, block));
             assert returnValue != null;
             return returnValue;
         }
@@ -130,12 +132,13 @@ public class ConcurrentMapNodes {
     public abstract static class ComputeIfPresentNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(
                     computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
                     // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
-                    nilToNull(callBlock(block, v))));
+                    nilToNull(callBlock(yieldNode, block, v))));
         }
 
         @TruffleBoundary
@@ -149,12 +152,13 @@ public class ConcurrentMapNodes {
     public abstract static class ComputeNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object compute(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(compute(
                     self.getMap(),
                     new Key(key, hashCode),
-                    (k, v) -> nilToNull(callBlock(block, nullToNil(v)))));
+                    (k, v) -> nilToNull(callBlock(yieldNode, block, nullToNil(v)))));
         }
 
         @TruffleBoundary
@@ -168,13 +172,14 @@ public class ConcurrentMapNodes {
     public abstract static class MergePairNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(merge(
                     self.getMap(),
                     new Key(key, hashCode),
                     value,
-                    (existingValue, newValue) -> nilToNull(callBlock(block, existingValue))));
+                    (existingValue, newValue) -> nilToNull(callBlock(yieldNode, block, existingValue))));
         }
 
         @TruffleBoundary
@@ -357,7 +362,8 @@ public class ConcurrentMapNodes {
     public abstract static class EachPairNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object eachPair(RubyConcurrentMap self, RubyProc block) {
+        protected Object eachPair(RubyConcurrentMap self, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final Iterator<Entry<Key, Object>> iterator = iterator(self.getMap());
 
             while (true) {
@@ -367,7 +373,7 @@ public class ConcurrentMapNodes {
                     break;
                 }
 
-                callBlock(block, pair.getKey().key, pair.getValue());
+                callBlock(yieldNode, block, pair.getKey().key, pair.getValue());
             }
 
             return self;

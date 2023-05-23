@@ -97,10 +97,17 @@ public abstract class RubyBaseNode extends Node {
         // Checkstyle: resume
     }
 
-    protected void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, long count) {
+    protected static void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, long count) {
         // Checkstyle: stop
         loopProfile.profileCounted(node, count);
-        reportLongLoopCount(count);
+        reportLongLoopCount(node, count);
+        // Checkstyle: resume
+    }
+
+    protected static void reportLongLoopCount(Node node, long count) {
+        assert count >= 0L;
+        // Checkstyle: stop
+        LoopNode.reportLoopCount(node, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
         // Checkstyle: resume
     }
 
@@ -112,14 +119,19 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected Node getNode() {
-        boolean adoptable = this.isAdoptable();
+        return getNode(this);
+    }
+
+    private static Node getNode(Node node) {
+        boolean adoptable = node != null && node.isAdoptable();
         CompilerAsserts.partialEvaluationConstant(adoptable);
         if (adoptable) {
-            return this;
+            return node;
         } else {
             return EncapsulatingNodeReference.getCurrent().get();
         }
     }
+
 
     public final RubyLanguage getLanguage() {
         return getLanguage(this);
@@ -188,7 +200,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(int[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
     }
 
     protected static RubyArray createArray(Node node, int[] store) {
@@ -305,7 +317,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final CoreExceptions coreExceptions() {
-        return getContext().getCoreExceptions();
+        return coreExceptions(this);
     }
 
     protected static CoreExceptions coreExceptions(Node node) {

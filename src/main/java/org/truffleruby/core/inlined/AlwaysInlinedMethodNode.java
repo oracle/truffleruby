@@ -69,7 +69,7 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     private static RaiseException buildException(Node node, String method) {
         return new RaiseException(getContext(node), coreExceptions(node).runtimeError(
                 method + " needs the caller frame but it was not passed (cannot be called directly from a foreign language)",
-                node));
+                getNode(node)));
     }
 
     public static boolean isBlockProvided(Object[] rubyArgs) {

@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
@@ -62,6 +63,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
@@ -1981,17 +1983,18 @@ public abstract class IntegerNodes {
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode downtoInternalCall;
-        private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
         @Specialization
-        protected Object downto(int from, int to, RubyProc block) {
+        protected Object downto(int from, int to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile) {
             int i = from;
             try {
-                for (; loopProfile.inject(i >= to); i--) {
-                    callBlock(block, i);
+                for (; loopProfile.inject(this, i >= to); i--) {
+                    callBlock(yieldNode, block, i);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, from - i + 1);
+                profileAndReportLoopCount(this, loopProfile, from - i + 1);
             }
 
             return nil;
@@ -2003,14 +2006,16 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object downto(long from, long to, RubyProc block) {
+        protected Object downto(long from, long to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile) {
             long i = from;
             try {
                 for (; i >= to; i--) {
-                    callBlock(block, i);
+                    callBlock(yieldNode, block, i);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, from - i + 1);
+                profileAndReportLoopCount(this, loopProfile, from - i + 1);
             }
 
             return nil;
@@ -2060,11 +2065,12 @@ public abstract class IntegerNodes {
         private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
         @Specialization
-        protected Object upto(int from, int to, RubyProc block) {
+        protected Object upto(int from, int to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
             int i = from;
             try {
                 for (; loopProfile.inject(i <= to); i++) {
-                    callBlock(block, i);
+                    callBlock(yieldNode, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);
@@ -2079,11 +2085,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object upto(long from, long to, RubyProc block) {
+        protected Object upto(long from, long to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
             long i = from;
             try {
                 for (; i <= to; i++) {
-                    callBlock(block, i);
+                    callBlock(yieldNode, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);

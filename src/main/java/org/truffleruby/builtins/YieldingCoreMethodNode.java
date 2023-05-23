@@ -14,10 +14,8 @@ import org.truffleruby.language.yield.CallBlockNode;
 
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-    @Child private CallBlockNode yieldNode = CallBlockNode.create();
-
     // Not called yield() because that warns in Java 13+
-    public Object callBlock(RubyProc block, Object... arguments) {
+    public static Object callBlock(CallBlockNode yieldNode, RubyProc block, Object... arguments) {
         return yieldNode.yield(block, arguments);
     }
 

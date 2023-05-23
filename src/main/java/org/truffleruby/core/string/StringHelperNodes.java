@@ -343,17 +343,17 @@ public abstract class StringHelperNodes {
 
             RubyEncoding enc = findEncoding(string.tstring, libString.getEncoding(string), args);
 
-            return deleteBangSlow(this, string, args, enc);
+            return deleteBangSlow(string, args, enc);
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(Node node, RubyString string, TStringWithEncoding[] tstringsWithEncs,
+        private Object deleteBangSlow(RubyString string, TStringWithEncoding[] tstringsWithEncs,
                 RubyEncoding enc) {
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
 
             final StringSupport.TrTables tables = makeTables(tstringsWithEncs, squeeze, enc);
 
-            var processedTString = processStr(node, string, squeeze, enc, tables);
+            var processedTString = processStr(this, string, squeeze, enc, tables);
             if (processedTString == null) {
                 return nil;
             }

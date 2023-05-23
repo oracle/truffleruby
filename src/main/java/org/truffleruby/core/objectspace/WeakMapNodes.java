@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.objectspace;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
@@ -28,6 +29,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.Collection;
 
@@ -112,9 +114,10 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             for (Object key : keys(map.storage)) {
-                callBlock(block, key);
+                callBlock(yieldNode, block, key);
             }
             return map;
         }
@@ -129,9 +132,10 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             for (Object value : values(map.storage)) {
-                callBlock(block, value);
+                callBlock(yieldNode, block, value);
             }
             return map;
         }
@@ -146,10 +150,11 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap each(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
 
             for (SimpleEntry<?, ?> entry : entries(map.storage)) {
-                callBlock(block, entry.getKey(), entry.getValue());
+                callBlock(yieldNode, block, entry.getKey(), entry.getValue());
             }
 
             return map;

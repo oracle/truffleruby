@@ -40,7 +40,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final RubyModule module = lexicalScope.getLiveModule();
-        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode, true);
     }
 
     @Override

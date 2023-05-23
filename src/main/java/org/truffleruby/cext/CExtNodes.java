@@ -118,6 +118,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.IdentifierType;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -975,7 +976,6 @@ public class CExtNodes {
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -983,9 +983,10 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGet(RubyModule module, String name) {
+        protected Object rbConstGet(RubyModule module, String name,
+                @Cached GetConstantNode getConstantNode) {
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
         }
 
     }
@@ -996,7 +997,6 @@ public class CExtNodes {
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -1004,9 +1004,10 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGetFrom(RubyModule module, String name) {
+        protected Object rbConstGetFrom(RubyModule module, String name,
+                @Cached GetConstantNode getConstantNode) {
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
         }
 
     }
@@ -1461,9 +1462,10 @@ public class CExtNodes {
         @Specialization
         protected Object captureException(RubyProc block,
                 @Cached InlinedBranchProfile exceptionProfile,
-                @Cached InlinedBranchProfile noExceptionProfile) {
+                @Cached InlinedBranchProfile noExceptionProfile,
+                @Cached CallBlockNode yieldNode) {
             try {
-                callBlock(block);
+                callBlock(yieldNode, block);
                 noExceptionProfile.enter(this);
                 return nil;
             } catch (Throwable e) {

@@ -1133,7 +1133,8 @@ public abstract class StringNodes {
         protected Object eachByte(Object string, RubyProc block,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
-                @Cached TruffleString.ReadByteNode readByteNode) {
+                @Cached TruffleString.ReadByteNode readByteNode,
+                @Cached CallBlockNode yieldNode) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
 
@@ -1141,7 +1142,7 @@ public abstract class StringNodes {
             materializeNode.execute(tstring, encoding);
             for (int i = 0; i < tstring.byteLength(encoding); i++) {
                 int singleByte = readByteNode.execute(tstring, i, encoding);
-                callBlock(block, singleByte);
+                callBlock(yieldNode, block, singleByte);
 
                 tstring = strings.getTString(string);
                 encoding = strings.getEncoding(string).tencoding;
@@ -1195,7 +1196,8 @@ public abstract class StringNodes {
         protected Object eachChar(Object string, RubyProc block,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
-                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
+                @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
+                @Cached CallBlockNode yieldNode) {
             // Unlike String#each_byte, String#each_char does not make
             // modifications to the string visible to the rest of the iteration.
             var tstring = strings.getTString(string);
@@ -1206,7 +1208,7 @@ public abstract class StringNodes {
             int clen;
             for (int i = 0; i < byteLength; i += clen) {
                 clen = byteLengthOfCodePointNode.execute(tstring, i, tencoding);
-                callBlock(block, createSubString(substringNode, tstring, encoding, i, clen));
+                callBlock(yieldNode, block, createSubString(substringNode, tstring, encoding, i, clen));
             }
 
             return string;
@@ -1265,7 +1267,8 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
-                @Cached InlinedBranchProfile invalidCodePointProfile) {
+                @Cached InlinedBranchProfile invalidCodePointProfile,
+                @Cached CallBlockNode yieldNode) {
             // Unlike String#each_byte, String#each_codepoint does not make
             // modifications to the string visible to the rest of the iteration.
             var tstring = strings.getTString(string);
@@ -1282,7 +1285,7 @@ public abstract class StringNodes {
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
 
-                callBlock(block, codePoint);
+                callBlock(yieldNode, block, codePoint);
             }
 
             return string;
@@ -1411,7 +1414,8 @@ public abstract class StringNodes {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().argumentError(Utils.concat("unknown encoding name - ", stringName), this));
+                        coreExceptions().argumentError(Utils.concat("unknown encoding name - ", stringName),
+                                getNode()));
             }
 
             return execute(string, rubyEncoding);

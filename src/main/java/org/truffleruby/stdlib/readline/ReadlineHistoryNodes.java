@@ -40,6 +40,7 @@
  */
 package org.truffleruby.stdlib.readline;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.History;
 import org.truffleruby.annotations.CoreMethod;
@@ -61,6 +62,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.io.IOException;
 
@@ -168,7 +170,8 @@ public abstract class ReadlineHistoryNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyBasicObject each(RubyBasicObject history, RubyProc block) {
+        protected RubyBasicObject each(RubyBasicObject history, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
@@ -176,7 +179,7 @@ public abstract class ReadlineHistoryNodes {
                         fromJavaStringNode,
                         historyEntryToString(e),
                         getLocaleEncoding());
-                callBlock(block, line);
+                callBlock(yieldNode, block, line);
             }
 
             return history;

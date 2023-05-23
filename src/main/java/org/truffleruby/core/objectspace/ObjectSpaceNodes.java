@@ -42,11 +42,13 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule("ObjectSpace")
 public abstract class ObjectSpaceNodes {
@@ -130,12 +132,13 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization
-        protected int eachObject(NotProvided ofClass, RubyProc block) {
+        protected int eachObject(NotProvided ofClass, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
             int count = 0;
 
             for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace.each_object", getContext(), this)) {
                 if (include(object)) {
-                    callBlock(block, object);
+                    callBlock(yieldNode, block, object);
                     count++;
                 }
             }
@@ -146,13 +149,14 @@ public abstract class ObjectSpaceNodes {
         @TruffleBoundary // for the iterator
         @Specialization
         protected int eachObject(RubyModule ofClass, RubyProc block,
-                @Cached IsANode isANode) {
+                @Cached IsANode isANode,
+                @Cached @Shared CallBlockNode yieldNode) {
             int count = 0;
 
             final String reason = "ObjectSpace.each_object(" + ofClass + ")";
             for (Object object : ObjectGraph.stopAndGetAllObjects(reason, getContext(), this)) {
                 if (include(object) && isANode.executeIsA(object, ofClass)) {
-                    callBlock(block, object);
+                    callBlock(yieldNode, block, object);
                     count++;
                 }
             }

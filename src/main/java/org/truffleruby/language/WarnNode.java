@@ -33,14 +33,14 @@ public class WarnNode extends RubyBaseNode {
     @Child private DispatchNode callWarnNode;
     @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
 
-    public boolean shouldWarn() {
-        final Object verbosity = readVerboseNode.execute();
-        return verbosity != nil;
-    }
-
     @NeverDefault
     public static WarnNode create() {
         return new WarnNode();
+    }
+
+    public boolean shouldWarn() {
+        final Object verbosity = readVerboseNode.execute();
+        return verbosity != nil;
     }
 
     public final boolean shouldWarnForDeprecation() {

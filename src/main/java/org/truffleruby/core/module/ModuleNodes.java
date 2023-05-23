@@ -1131,17 +1131,17 @@ public abstract class ModuleNodes {
             if (lookInObject) {
                 return getConstantNode
                         .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName,
-                                lookupConstantLookInObjectNode);
+                                lookupConstantLookInObjectNode, true);
             } else {
                 return getConstantNode
                         .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName,
-                                lookupConstantNode);
+                                lookupConstantNode, true);
             }
         }
 
         private Object getConstantNoInherit(RubyModule module, String name, boolean checkName) {
             final LookupConstantInterface lookup = this::lookupConstantNoInherit;
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookup);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookup, true);
         }
 
         @TruffleBoundary

@@ -24,13 +24,14 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     public interface ArrayElementConsumerNode extends NodeInterface {
-        void accept(RubyArray array, Object state, Object element, int index);
+        void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index);
     }
 
     @Child private ArrayEachIteratorNode recurseNode;
@@ -50,13 +51,14 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             // Checkstyle: resume
             @Cached LoopConditionProfile loopProfile,
             @Cached IntValueProfile arraySizeProfile,
-            @Cached ConditionProfile strategyMatchProfile) {
+            @Cached ConditionProfile strategyMatchProfile,
+            @Cached CallBlockNode yieldNode) {
         int i = startAt;
         try {
             for (; loopProfile.inject(i < arraySizeProfile.profile(array.size)); i++) {
                 Object store = array.getStore();
                 if (strategyMatchProfile.profile(stores.accepts(store))) {
-                    consumerNode.accept(array, state, stores.read(store, i), i);
+                    consumerNode.accept(yieldNode, array, state, stores.read(store, i), i);
                 } else {
                     return getRecurseNode().execute(array, state, i, consumerNode);
                 }

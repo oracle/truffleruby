@@ -26,6 +26,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -120,7 +121,8 @@ public abstract class MutexNodes {
 
         @Specialization
         protected Object synchronize(RubyMutex mutex, RubyProc block,
-                @Cached InlinedBranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached CallBlockNode yieldNode) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
 
@@ -134,7 +136,7 @@ public abstract class MutexNodes {
              * locks list to be in consistent state at the end. */
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
-                return callBlock(block);
+                return callBlock(yieldNode, block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
                 MutexOperations.unlock(lock, thread);

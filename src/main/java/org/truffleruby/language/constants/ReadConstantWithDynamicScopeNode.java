@@ -41,7 +41,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         final RubyModule module = lexicalScope.getLiveModule();
 
-        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode, true);
     }
 
     @Override

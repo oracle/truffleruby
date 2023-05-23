@@ -37,6 +37,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
@@ -121,10 +122,11 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object enable(RubyTracePoint tracePoint, RubyProc block) {
+        protected Object enable(RubyTracePoint tracePoint, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
-                return callBlock(block);
+                return callBlock(yieldNode, block);
             } finally {
                 if (setupDone) {
                     disposeEventBindings(tracePoint);
@@ -142,10 +144,11 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, RubyProc block) {
+        protected Object disable(RubyTracePoint tracePoint, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
-                return callBlock(block);
+                return callBlock(yieldNode, block);
             } finally {
                 if (wasEnabled) {
                     createEventBindings(getContext(), getLanguage(), tracePoint);

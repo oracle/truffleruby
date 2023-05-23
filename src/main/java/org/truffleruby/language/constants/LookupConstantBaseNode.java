@@ -42,7 +42,8 @@ public abstract class LookupConstantBaseNode extends RubyBaseNode {
 
     @TruffleBoundary
     private static SourceSection getSection(Node node) {
-        return getContext(node).getCallStack().getTopMostUserSourceSection(node.getEncapsulatingSourceSection());
+        return getContext(node).getCallStack()
+                .getTopMostUserSourceSection(getNode(node).getEncapsulatingSourceSection());
     }
 
     @TruffleBoundary
