@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
 @GenerateCached(false)
-@GenerateInline(inlineByDefault = true)
+@GenerateInline
 public abstract class LazyDispatchNode extends RubyBaseNode {
 
     public final DispatchNode get(Node node) {

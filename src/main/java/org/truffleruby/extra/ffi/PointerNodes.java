@@ -53,7 +53,7 @@ public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
-    @GenerateInline(inlineByDefault = true)
+    @GenerateInline
     @GenerateCached(false)
     public abstract static class CheckNullPointerNode extends RubyBaseNode {
 

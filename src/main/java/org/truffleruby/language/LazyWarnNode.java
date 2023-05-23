@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 
-@GenerateInline(inlineByDefault = true)
+@GenerateInline
 @GenerateCached(false)
 public abstract class LazyWarnNode extends RubyBaseNode {
 

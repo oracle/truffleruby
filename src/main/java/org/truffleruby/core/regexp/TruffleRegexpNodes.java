@@ -831,7 +831,7 @@ public class TruffleRegexpNodes {
     }
 
     @GenerateCached(false)
-    @GenerateInline(inlineByDefault = true)
+    @GenerateInline
     public abstract static class LazyMatchInRegionNode extends RubyBaseNode {
 
         public final MatchInRegionNode get(Node node) {
@@ -848,7 +848,7 @@ public class TruffleRegexpNodes {
     }
 
     @GenerateCached(false)
-    @GenerateInline(inlineByDefault = true)
+    @GenerateInline
     public abstract static class LazyTruffleStringSubstringByteIndexNode extends RubyBaseNode {
 
         public final TruffleString.SubstringByteIndexNode get(Node node) {

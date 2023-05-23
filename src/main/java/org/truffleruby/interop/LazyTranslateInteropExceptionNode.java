@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
 @GenerateCached(false)
-@GenerateInline(inlineByDefault = true)
+@GenerateInline
 public abstract class LazyTranslateInteropExceptionNode extends RubyBaseNode {
 
     public final TranslateInteropExceptionNode get(Node node) {
