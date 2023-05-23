@@ -14,3 +14,5 @@ spec/ruby/core/array/element_reference_spec.rb
 
 spec/ruby/core/hash/shift_spec.rb
 spec/ruby/core/range/size_spec.rb
+
+spec/ruby/core/string/dedup_spec.rb

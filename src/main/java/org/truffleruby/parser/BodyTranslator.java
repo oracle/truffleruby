@@ -491,7 +491,7 @@ public class BodyTranslator extends BaseTranslator {
         final String methodName = node.getName();
 
         if (receiver instanceof StrParseNode &&
-                (methodName.equals("freeze") || methodName.equals("-@"))) {
+                (methodName.equals("freeze") || methodName.equals("-@") || methodName.equals("dedup"))) {
             final StrParseNode strNode = (StrParseNode) receiver;
             final TruffleString tstring = strNode.getValue();
             final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, strNode.encoding);

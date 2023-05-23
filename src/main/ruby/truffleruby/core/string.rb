@@ -1232,6 +1232,7 @@ class String
       Primitive.string_intern(str)
     end
   end
+  alias_method :dedup, :-@
 
   def <=>(other)
     if Primitive.is_a?(other, String)
