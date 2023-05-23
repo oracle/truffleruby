@@ -140,13 +140,13 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected Object fillFromPointer(
                 RubyByteArray byteArray, int dstStart, RubyPointer source, int srcStart, int length,
-                @Cached InlinedBranchProfile nullPointerProfile) {
+                @Cached PointerNodes.CheckNullPointerNode checkNullPointerNode) {
             assert length > 0;
 
             final Pointer ptr = source.pointer;
             final byte[] bytes = byteArray.bytes;
 
-            PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
+            checkNullPointerNode.execute(this, ptr);
 
             ptr.readBytes(srcStart, bytes, dstStart, length);
             return source;
