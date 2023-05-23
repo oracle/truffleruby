@@ -917,7 +917,7 @@ public class TruffleRegexpNodes {
                         atStart,
                         startPos,
                         createMatchData,
-                        warnOnFallbackNode.get(node),
+                        warnOnFallbackNode,
                         fallbackMatchInRegionNode.get(node));
             }
 
@@ -987,11 +987,11 @@ public class TruffleRegexpNodes {
 
         private static Object fallbackToJoni(Node node, RubyRegexp regexp, Object string, RubyEncoding encoding,
                 int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData, DispatchNode warnOnFallbackNode,
+                boolean atStart, int startPos, boolean createMatchData, LazyDispatchNode warnOnFallbackNode,
                 MatchInRegionNode fallbackMatchInRegionNode) {
             if (getContext(node).getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
 
-                warnOnFallbackNode.call(
+                warnOnFallbackNode.get(node).call(
                         getContext(node).getCoreLibrary().truffleRegexpOperationsModule,
                         "warn_fallback",
                         new Object[]{
