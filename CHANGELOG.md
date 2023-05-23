@@ -32,6 +32,7 @@ Bug fixes:
 * Fix the exception type raised when type coercion raises a `NoMethodError` (#2903, @paracycle, @nirvdrum).
 * Fix `Method` and `Proc` `#parameters` method to return `_` parameter name without synthetic suffix when there are multiple `_` parameters (@paracycle).
 * Fixed errors in IRB when attempting to navigate beyond bounds in singleline mode (@rwstauner).
+* Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
 
 Compatibility:
 
