@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -127,13 +126,12 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected static RubyLongRange eachLong(RubyLongRange range, RubyProc block,
+        protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
                 @Shared @Cached InlinedConditionProfile excludedEndProfile,
                 @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode,
-                @Bind("this") Node node) {
+                @Cached @Shared CallBlockNode yieldNode) {
             final long exclusiveEnd;
-            if (excludedEndProfile.profile(node, range.excludedEnd)) {
+            if (excludedEndProfile.profile(this, range.excludedEnd)) {
                 exclusiveEnd = range.end;
             } else {
                 exclusiveEnd = range.end + 1;
@@ -141,11 +139,11 @@ public abstract class RangeNodes {
 
             long n = range.begin;
             try {
-                for (; loopProfile.inject(node, n < exclusiveEnd); n++) {
+                for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
                     yieldNode.yield(block, n);
                 }
             } finally {
-                profileAndReportLoopCount(node, loopProfile, n - range.begin);
+                profileAndReportLoopCount(this, loopProfile, n - range.begin);
             }
 
             return range;
