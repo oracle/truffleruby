@@ -2000,8 +2000,10 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object downto(int from, double to, RubyProc block) {
-            return downto(from, (int) Math.ceil(to), block);
+        protected Object downto(int from, double to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile) {
+            return downto(from, (int) Math.ceil(to), block, yieldNode, loopProfile);
         }
 
         @Specialization
@@ -2021,8 +2023,10 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object downto(long from, double to, RubyProc block) {
-            return downto(from, (long) Math.ceil(to), block);
+        protected Object downto(long from, double to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile) {
+            return downto(from, (long) Math.ceil(to), block, yieldNode, loopProfile);
         }
 
         @Specialization(guards = "isRubyBignum(from) || !isImplicitLongOrDouble(to)")
@@ -2079,8 +2083,9 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object upto(int from, double to, RubyProc block) {
-            return upto(from, (int) Math.floor(to), block);
+        protected Object upto(int from, double to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
+            return upto(from, (int) Math.floor(to), block, yieldNode);
         }
 
         @Specialization
@@ -2099,8 +2104,9 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object upto(long from, double to, RubyProc block) {
-            return upto(from, (long) Math.floor(to), block);
+        protected Object upto(long from, double to, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
+            return upto(from, (long) Math.floor(to), block, yieldNode);
         }
 
         @Specialization(guards = "isRubyBignum(from) || !isImplicitLongOrDouble(to)")
