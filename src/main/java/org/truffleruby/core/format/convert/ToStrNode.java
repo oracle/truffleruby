@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.convert;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -39,7 +39,7 @@ public abstract class ToStrNode extends FormatNode {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object coerceObject(Object object,
-            @Cached BranchProfile errorProfile,
+            @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @Cached RubyStringLibrary libString) {
         final Object coerced;
@@ -47,7 +47,7 @@ public abstract class ToStrNode extends FormatNode {
         try {
             coerced = toStrNode.call(object, "to_str");
         } catch (RaiseException e) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new NoImplicitConversionException(object, "String");
             } else {
@@ -58,7 +58,7 @@ public abstract class ToStrNode extends FormatNode {
         if (libString.isRubyString(coerced)) {
             return coerced;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));

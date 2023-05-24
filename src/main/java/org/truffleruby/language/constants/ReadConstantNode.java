@@ -47,12 +47,12 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     private Object lookupAndGetConstant(RubyModule module) {
         return getGetConstantNode()
-                .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
+                .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode(), true);
     }
 
     public Object getConstant(RubyModule module, RubyConstant constant) {
         return getGetConstantNode()
-                .executeGetConstant(LexicalScope.IGNORE, module, name, constant, getLookupConstantNode());
+                .executeGetConstant(LexicalScope.IGNORE, module, name, constant, getLookupConstantNode(), true);
     }
 
     private GetConstantNode getGetConstantNode() {

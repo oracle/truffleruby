@@ -14,7 +14,8 @@ package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Encoding;
 
@@ -83,11 +84,11 @@ public class TStringUtils {
     }
 
     // Should be avoided as much as feasible
-    public static byte[] getBytesOrCopy(AbstractTruffleString tstring, TruffleString.Encoding encoding,
+    public static byte[] getBytesOrCopy(Node node, AbstractTruffleString tstring, TruffleString.Encoding encoding,
             TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
-            ConditionProfile noCopyProfile) {
+            InlinedConditionProfile noCopyProfile) {
         var bytes = getInternalByteArrayNode.execute(tstring, encoding);
-        if (noCopyProfile.profile(tstring instanceof TruffleString && bytes.getOffset() == 0 &&
+        if (noCopyProfile.profile(node, tstring instanceof TruffleString && bytes.getOffset() == 0 &&
                 bytes.getLength() == bytes.getArray().length)) {
             return bytes.getArray();
         } else {

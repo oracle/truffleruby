@@ -9,6 +9,7 @@
  */
 package org.truffleruby.cext;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
 @ReportPolymorphism
@@ -36,8 +36,8 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     @Specialization(replaces = "getIDCached")
     protected Object getIDUncached(RubySymbol symbol,
             @Cached @Shared WrapNode wrapNode,
-            @Cached ConditionProfile staticSymbolProfile) {
-        if (staticSymbolProfile.profile(symbol.getId() != RubySymbol.UNASSIGNED_ID)) {
+            @Cached InlinedConditionProfile staticSymbolProfile) {
+        if (staticSymbolProfile.profile(this, symbol.getId() != RubySymbol.UNASSIGNED_ID)) {
             return symbol.getId();
         }
         return wrapNode.execute(symbol);

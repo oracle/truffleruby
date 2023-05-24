@@ -18,8 +18,9 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
@@ -67,47 +68,49 @@ public final class SpecialVariableStorage implements TruffleObject {
     /** $_ */
     private ThreadAndFrameLocalStorage lastLine;
 
-    public Object getLastMatch(ConditionProfile unsetProfile, ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastMatch == null)) {
+    public Object getLastMatch(Node node, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastMatch == null)) {
             return Nil.INSTANCE;
         } else {
-            return lastMatch.get(sameThreadProfile);
+            return lastMatch.get(node, sameThreadProfile);
         }
     }
 
-    public void setLastMatch(Object value, RubyContext context, ConditionProfile unsetProfile,
-            ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastMatch == null)) {
+    public void setLastMatch(Node node, Object value, RubyContext context, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastMatch == null)) {
             lastMatch = new ThreadAndFrameLocalStorage(context);
         }
-        lastMatch.set(value, sameThreadProfile);
+        lastMatch.set(node, value, sameThreadProfile);
     }
 
-    public Object getLastLine(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
-        if (unsetProfile.profile(lastLine == null)) {
+    public Object getLastLine(Node node, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfilew) {
+        if (unsetProfile.profile(node, lastLine == null)) {
             return Nil.INSTANCE;
         } else {
-            return lastLine.get(sameThreadProfilew);
+            return lastLine.get(node, sameThreadProfilew);
         }
     }
 
-    public void setLastLine(Object value, RubyContext context, ConditionProfile unsetProfile,
-            ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(lastLine == null)) {
+    public void setLastLine(Node node, Object value, RubyContext context, InlinedConditionProfile unsetProfile,
+            InlinedConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(node, lastLine == null)) {
             lastLine = new ThreadAndFrameLocalStorage(context);
         }
-        lastLine.set(value, sameThreadProfile);
+        lastLine.set(node, value, sameThreadProfile);
     }
 
     @TruffleBoundary
     @ExportMessage
     protected String toDisplayString(boolean allowSideEffects) {
         final InteropLibrary interop = InteropLibrary.getUncached();
-        final ConditionProfile profile = ConditionProfile.getUncached();
+        final InlinedConditionProfile profile = InlinedConditionProfile.getUncached();
         String result = "SpecialVariableStorage($~: ";
         if (lastMatch != null) {
             try {
-                result += interop.asString(interop.toDisplayString(lastMatch.get(profile), allowSideEffects));
+                result += interop.asString(interop.toDisplayString(lastMatch.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }
@@ -118,7 +121,7 @@ public final class SpecialVariableStorage implements TruffleObject {
         result += ", $_: ";
         if (lastLine != null) {
             try {
-                result += interop.asString(interop.toDisplayString(lastLine.get(profile), allowSideEffects));
+                result += interop.asString(interop.toDisplayString(lastLine.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }

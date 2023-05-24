@@ -48,7 +48,8 @@ import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
@@ -59,7 +60,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
@@ -306,10 +306,10 @@ public abstract class ThreadNodes {
     public abstract static class PendingInterruptNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean pendingInterrupt(RubyThread self,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final RubyThread currentThread = getLanguage().getCurrentThread();
             if (currentThread != self) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError(
@@ -321,14 +321,15 @@ public abstract class ThreadNodes {
     }
 
     @CoreMethod(names = "handle_interrupt", required = 1, needsBlock = true, visibility = Visibility.PRIVATE)
-    public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
+    public abstract static class HandleInterruptNode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
         protected Object handleInterrupt(RubyThread self, RubySymbol timing, RubyProc block,
-                @Cached BranchProfile beforeProfile,
-                @Cached BranchProfile afterProfile) {
+                @Cached InlinedBranchProfile beforeProfile,
+                @Cached InlinedBranchProfile afterProfile,
+                @Cached CallBlockNode yieldNode) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
             final boolean allowSideEffects = newInterruptMode == InterruptMode.IMMEDIATE;
@@ -340,17 +341,17 @@ public abstract class ThreadNodes {
             final boolean prevSideEffects = safepoint.setAllowSideEffects(allowSideEffects);
             try {
                 if (newInterruptMode == InterruptMode.IMMEDIATE) {
-                    beforeProfile.enter();
+                    beforeProfile.enter(this);
                     runPendingSafepointActions("before");
                 }
 
-                return callBlock(block);
+                return yieldNode.yield(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
                 safepoint.setAllowSideEffects(prevSideEffects);
 
                 if (oldInterruptMode != InterruptMode.NEVER) {
-                    afterProfile.enter();
+                    afterProfile.enter(this);
                     runPendingSafepointActions("after");
                 }
             }
@@ -788,9 +789,9 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected boolean detectRecursionSingle(Object obj, RubyProc block,
-                @Cached ConditionProfile insertedProfile) {
+                @Cached InlinedConditionProfile insertedProfile) {
             RubyHash objects = getLanguage().getCurrentThread().recursiveObjectsSingle;
-            if (insertedProfile.profile(add(objects, obj, true))) {
+            if (insertedProfile.profile(this, add(objects, obj, true))) {
                 try {
                     yieldNode.yield(block);
                 } finally {

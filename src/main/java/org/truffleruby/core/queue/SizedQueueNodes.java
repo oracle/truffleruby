@@ -14,7 +14,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -51,9 +51,9 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         protected RubySizedQueue initialize(RubySizedQueue self, int capacity,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (capacity <= 0) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError("queue size must be positive", this));
@@ -71,9 +71,9 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         protected int setMax(RubySizedQueue self, int newCapacity,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (newCapacity <= 0) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError("queue size must be positive", this));
@@ -133,7 +133,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "nonBlocking")
         protected RubySizedQueue pushNonBlock(RubySizedQueue self, final Object value, boolean nonBlocking,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 
             propagateSharingNode.executePropagate(self, value);
@@ -142,10 +142,10 @@ public abstract class SizedQueueNodes {
                 case SUCCESS:
                     return self;
                 case FULL:
-                    errorProfile.enter();
+                    errorProfile.enter(this);
                     throw new RaiseException(getContext(), coreExceptions().threadErrorQueueFull(this));
                 case CLOSED:
-                    errorProfile.enter();
+                    errorProfile.enter(this);
                     throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
             }
 
@@ -184,13 +184,13 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "nonBlocking")
         protected Object popNonBlock(RubySizedQueue self, boolean nonBlocking,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 
             final Object value = queue.poll();
 
             if (value == null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
             }
 

@@ -18,6 +18,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -26,7 +27,6 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -34,7 +34,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
 @ImportStatic(ValueWrapperManager.class)
@@ -73,12 +72,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedObject(handle)")
         protected Object unwrapTaggedObject(long handle,
-                @Cached BranchProfile noHandleProfile) {
+                @Cached InlinedBranchProfile noHandleProfile) {
             final ValueWrapper wrapper = getContext()
                     .getValueWrapperManager()
                     .getWrapperFromHandleMap(handle, getLanguage());
             if (wrapper == null) {
-                noHandleProfile.enter();
+                noHandleProfile.enter(this);
                 raiseError(handle);
             }
             return wrapper.getObject();
@@ -158,16 +157,16 @@ public abstract class UnwrapNode extends RubyBaseNode {
             return nativeToWrapperNode.execute(value);
         }
 
-        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
+        @Fallback
         protected ValueWrapper genericToWrapper(Object value,
-                @CachedLibrary("value") InteropLibrary values,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode,
-                @Cached BranchProfile unsupportedProfile) {
+                @Cached InlinedBranchProfile unsupportedProfile) {
             long handle;
             try {
                 handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter();
+                unsupportedProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
             return nativeToWrapperNode.execute(handle);
@@ -251,20 +250,20 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @Specialization
     protected Object longToWrapper(long value,
-            @Cached @Exclusive UnwrapNativeNode unwrapNode) {
-        return unwrapNode.execute(value);
+            @Cached @Shared UnwrapNativeNode unwrapNativeNode) {
+        return unwrapNativeNode.execute(value);
     }
 
-    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
+    @Specialization(guards = { "!isWrapper(value)", "!isImplicitLong(value)" })
     protected Object unwrapGeneric(Object value,
-            @CachedLibrary("value") InteropLibrary values,
-            @Cached @Exclusive UnwrapNativeNode unwrapNativeNode,
-            @Cached BranchProfile unsupportedProfile) {
+            @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
+            @Cached @Shared UnwrapNativeNode unwrapNativeNode,
+            @Cached InlinedBranchProfile unsupportedProfile) {
         long handle;
         try {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {
-            unsupportedProfile.enter();
+            unsupportedProfile.enter(this);
             throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
         }
         return unwrapNativeNode.execute(handle);

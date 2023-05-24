@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -55,7 +56,6 @@ import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -206,7 +206,7 @@ public class FeatureLoader {
         final int bufferSize = PATH_MAX;
         final RubyThread rubyThread = language.getCurrentThread();
         final Pointer buffer = IOThreadBufferAllocateNode
-                .getBuffer(context, rubyThread, bufferSize, ConditionProfile.getUncached());
+                .getBuffer(null, context, rubyThread, bufferSize, InlinedConditionProfile.getUncached());
         try {
             final long address;
             try {
@@ -224,7 +224,7 @@ public class FeatureLoader {
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {
-            rubyThread.getIoBuffer(context).free(rubyThread, buffer, ConditionProfile.getUncached());
+            rubyThread.getIoBuffer(context).free(null, rubyThread, buffer, InlinedConditionProfile.getUncached());
         }
     }
 

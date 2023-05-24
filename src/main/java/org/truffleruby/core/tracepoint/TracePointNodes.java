@@ -17,7 +17,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
@@ -37,6 +36,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
@@ -112,7 +112,7 @@ public abstract class TracePointNodes {
     }
 
     @CoreMethod(names = "enable", needsBlock = true)
-    public abstract static class EnableNode extends YieldingCoreMethodNode {
+    public abstract static class EnableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean enable(RubyTracePoint tracePoint, Nil block) {
@@ -121,10 +121,11 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object enable(RubyTracePoint tracePoint, RubyProc block) {
+        protected Object enable(RubyTracePoint tracePoint, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
-                return callBlock(block);
+                return yieldNode.yield(block);
             } finally {
                 if (setupDone) {
                     disposeEventBindings(tracePoint);
@@ -134,7 +135,7 @@ public abstract class TracePointNodes {
     }
 
     @CoreMethod(names = "disable", needsBlock = true)
-    public abstract static class DisableNode extends YieldingCoreMethodNode {
+    public abstract static class DisableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object disable(RubyTracePoint tracePoint, Nil block) {
@@ -142,10 +143,11 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, RubyProc block) {
+        protected Object disable(RubyTracePoint tracePoint, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
-                return callBlock(block);
+                return yieldNode.yield(block);
             } finally {
                 if (wasEnabled) {
                     createEventBindings(getContext(), getLanguage(), tracePoint);

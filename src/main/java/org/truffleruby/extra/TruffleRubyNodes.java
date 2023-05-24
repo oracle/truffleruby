@@ -9,10 +9,12 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -21,7 +23,6 @@ import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.lang.invoke.VarHandle;
 import java.util.concurrent.locks.ReentrantLock;
@@ -105,33 +107,35 @@ public abstract class TruffleRubyNodes {
     }
 
     @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
-    public abstract static class SynchronizedNode extends YieldingCoreMethodNode {
+    public abstract static class SynchronizedNode extends CoreMethodArrayArgumentsNode {
 
         /** We must not allow to synchronize on boxed primitives as that would be misleading. We use a ReentrantLock and
          * not simply Java's {@code synchronized} here as we need to be able to interrupt for guest safepoints and it is
          * not possible to interrupt Java's {@code synchronized (object) {}}. */
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object synchronize(RubyDynamicObject object, RubyProc block,
+        protected static Object synchronize(RubyDynamicObject object, RubyProc block,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-                @Cached BranchProfile initializeLockProfile) {
-            final ReentrantLock lock = getLock(object, objectLibrary, initializeLockProfile);
+                @Cached CallBlockNode yieldNode,
+                @Cached InlinedBranchProfile initializeLockProfile,
+                @Bind("this") Node node) {
+            final ReentrantLock lock = getLock(node, object, objectLibrary, initializeLockProfile);
 
-            MutexOperations.lockInternal(getContext(), lock, this);
+            MutexOperations.lockInternal(getContext(node), lock, node);
             try {
-                return callBlock(block);
+                return yieldNode.yield(block);
             } finally {
                 MutexOperations.unlockInternal(lock);
             }
         }
 
-        private ReentrantLock getLock(RubyDynamicObject object, DynamicObjectLibrary objectLibrary,
-                BranchProfile initializeLockProfile) {
+        private static ReentrantLock getLock(Node node, RubyDynamicObject object, DynamicObjectLibrary objectLibrary,
+                InlinedBranchProfile initializeLockProfile) {
             ReentrantLock lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
             if (lock != null) {
                 return lock;
             }
 
-            initializeLockProfile.enter();
+            initializeLockProfile.enter(node);
             synchronized (object) {
                 lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
                 if (lock != null) {

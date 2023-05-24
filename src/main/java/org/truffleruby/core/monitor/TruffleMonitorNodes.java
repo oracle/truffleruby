@@ -11,8 +11,8 @@ package org.truffleruby.core.monitor;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -33,7 +33,7 @@ public abstract class TruffleMonitorNodes {
 
         @Specialization
         protected Object synchronizeOnMutex(RubyMutex mutex, RubyProc block,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             /* Like Mutex#synchronize we must maintain the owned locks list here as the monitor might be exited inside
              * synchronize block and then re-entered again before the end, and we have to make sure the list of owned
              * locks remains consistent. */
@@ -79,7 +79,7 @@ public abstract class TruffleMonitorNodes {
 
         @Specialization
         protected Object exit(RubyMutex mutex,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);
             MutexOperations.unlock(mutex.lock, thread);

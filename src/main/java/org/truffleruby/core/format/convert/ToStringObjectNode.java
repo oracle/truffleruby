@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -19,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("value")
@@ -40,11 +40,11 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object toString(VirtualFrame frame, Object object,
-            @Cached ConditionProfile notStringProfile,
+            @Cached InlinedConditionProfile notStringProfile,
             @Cached ToStrNode toStrNode) {
         final Object value = toStrNode.execute(object);
 
-        if (notStringProfile.profile(RubyGuards.isNotRubyString(value))) {
+        if (notStringProfile.profile(this, RubyGuards.isNotRubyString(value))) {
             throw new NoImplicitConversionException(object, "String");
         }
 

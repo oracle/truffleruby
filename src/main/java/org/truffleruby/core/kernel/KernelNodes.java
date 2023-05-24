@@ -25,6 +25,8 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -263,7 +265,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
         protected Object findFile(Object featureString,
-                @Cached @Shared BranchProfile notFoundProfile,
+                @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
@@ -273,11 +275,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object findFileString(String featureString,
-                @Cached @Shared BranchProfile notFoundProfile,
+                @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
-                notFoundProfile.enter();
+                notFoundProfile.enter(this);
                 return nil;
             }
             return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
@@ -375,10 +377,10 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean blockGiven(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
-                @Cached ConditionProfile blockProfile) {
+                @Cached InlinedConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
+                    .profile(this, readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
     }
 
@@ -560,7 +562,7 @@ public abstract class KernelNodes {
                 @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
-                @Cached ConditionProfile isSingletonProfile,
+                @Cached InlinedConditionProfile isSingletonProfile,
                 @Cached HashingNodes.ToHashByHashCode hashNode,
                 @Cached IsFrozenNode isFrozenNode,
                 @Cached FreezeNode freezeNode) {
@@ -568,7 +570,7 @@ public abstract class KernelNodes {
 
             // Copy the singleton class if any.
             final RubyClass selfMetaClass = metaClassNode.execute(object);
-            if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
+            if (isSingletonProfile.profile(this, selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
@@ -644,10 +646,10 @@ public abstract class KernelNodes {
         @Specialization
         protected Object dup(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached IsCopyableObjectNode isCopyableObjectNode,
-                @Cached ConditionProfile isCopyableProfile,
+                @Cached InlinedConditionProfile isCopyableProfile,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeDupNode) {
-            if (isCopyableProfile.profile(isCopyableObjectNode.execute(self))) {
+            if (isCopyableProfile.profile(this, isCopyableObjectNode.execute(self))) {
                 final RubyDynamicObject copy = copyNode.executeCopy(self);
 
                 initializeDupNode.call(copy, "initialize_dup", self);
@@ -689,21 +691,21 @@ public abstract class KernelNodes {
         protected Object eval(Frame callerFrame, Object callerSelf, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
-                @Cached BranchProfile errorProfile,
-                @Cached ConditionProfile hasBindingArgument,
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached InlinedConditionProfile hasBindingArgument,
                 @Cached EvalInternalNode evalInternalNode,
-                @Cached ConditionProfile fileAndLineProfile,
-                @Cached ConditionProfile fileNoLineProfile) {
+                @Cached InlinedConditionProfile fileAndLineProfile,
+                @Cached InlinedConditionProfile fileNoLineProfile) {
 
             final Object[] args = RubyArguments.getPositionalArguments(rubyArgs);
             final Object source = toStrNode.execute(args[0]);
 
             final RubyBinding binding;
             final Object self;
-            if (hasBindingArgument.profile(args.length > 1 && args[1] != nil)) {
+            if (hasBindingArgument.profile(this, args.length > 1 && args[1] != nil)) {
                 final Object bindingArg = args[1];
                 if (!(bindingArg instanceof RubyBinding)) {
-                    errorProfile.enter();
+                    errorProfile.enter(this);
                     throw new RaiseException(
                             getContext(),
                             coreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", getNode()));
@@ -719,10 +721,10 @@ public abstract class KernelNodes {
             final Object file;
             final int line;
 
-            if (fileAndLineProfile.profile(args.length > 3 && args[3] != nil)) {
+            if (fileAndLineProfile.profile(this, args.length > 3 && args[3] != nil)) {
                 line = toIntNode.execute(args[3]);
                 file = toStrNode.execute(args[2]);
-            } else if (fileNoLineProfile.profile(args.length > 2 && args[2] != nil)) {
+            } else if (fileNoLineProfile.profile(this, args.length > 2 && args[2] != nil)) {
                 file = toStrNode.execute(args[2]);
                 line = 1;
             } else {
@@ -948,11 +950,11 @@ public abstract class KernelNodes {
                 @Cached CheckFrozenNode checkFrozenNode,
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             checkFrozenNode.execute(self);
 
             if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("initialize_copy should take same class object", this));
@@ -1117,12 +1119,13 @@ public abstract class KernelNodes {
     public abstract static class AnyInstanceVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected boolean any(RubyDynamicObject self,
+        protected static boolean any(RubyDynamicObject self,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary,
-                @Cached ConditionProfile noPropertiesProfile) {
+                @Cached InlinedConditionProfile noPropertiesProfile,
+                @Bind("this") Node node) {
             var shape = objectLibrary.getShape(self);
 
-            if (noPropertiesProfile.profile(shape.getPropertyCount() == 0)) {
+            if (noPropertiesProfile.profile(node, shape.getPropertyCount() == 0)) {
                 return false;
             }
 
@@ -1433,13 +1436,13 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean doesRespondTo(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile notSymbolOrStringProfile,
+                @Cached InlinedBranchProfile notSymbolOrStringProfile,
                 @Cached ToJavaStringNode toJavaString,
                 @Cached ToSymbolNode toSymbolNode,
                 @Cached BooleanCastNode castArgumentNode,
-                @Cached ConditionProfile ignoreVisibilityProfile,
-                @Cached ConditionProfile isTrueProfile,
-                @Cached ConditionProfile respondToMissingProfile,
+                @Cached InlinedConditionProfile ignoreVisibilityProfile,
+                @Cached InlinedConditionProfile isTrueProfile,
+                @Cached InlinedConditionProfile respondToMissingProfile,
                 @Cached(parameters = "PUBLIC") InternalRespondToNode dispatchPublic,
                 @Cached InternalRespondToNode dispatchPrivate,
                 @Cached InternalRespondToNode dispatchRespondToMissing,
@@ -1451,7 +1454,7 @@ public abstract class KernelNodes {
                     castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
 
             if (!RubyGuards.isRubySymbolOrString(name)) {
-                notSymbolOrStringProfile.enter();
+                notSymbolOrStringProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
@@ -1459,16 +1462,16 @@ public abstract class KernelNodes {
 
             final String methodName = toJavaString.executeToJavaString(name);
             final boolean found;
-            if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
+            if (ignoreVisibilityProfile.profile(this, includeProtectedAndPrivate)) {
                 found = dispatchPrivate.execute(callerFrame, self, methodName);
             } else {
                 found = dispatchPublic.execute(callerFrame, self, methodName);
             }
 
-            if (isTrueProfile.profile(found)) {
+            if (isTrueProfile.profile(this, found)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
+                    .profile(this, dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
                 return castMissingResultNode.execute(respondToMissingNode.call(self, "respond_to_missing?",
                         toSymbolNode.execute(name), includeProtectedAndPrivate));
             } else {
@@ -1530,14 +1533,14 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyMethod singletonMethod(Object self, String name,
-                @Cached BranchProfile errorProfile,
-                @Cached ConditionProfile singletonProfile,
-                @Cached ConditionProfile methodProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached InlinedConditionProfile singletonProfile,
+                @Cached InlinedConditionProfile methodProfile) {
             final RubyClass metaClass = metaClassNode.execute(self);
 
-            if (singletonProfile.profile(metaClass.isSingleton)) {
+            if (singletonProfile.profile(this, metaClass.isSingleton)) {
                 final InternalMethod method = metaClass.fields.getMethod(name);
-                if (methodProfile.profile(method != null && !method.isUndefined())) {
+                if (methodProfile.profile(this, method != null && !method.isUndefined())) {
                     final RubyMethod instance = new RubyMethod(
                             coreLibrary().methodClass,
                             getLanguage().methodShape,
@@ -1548,7 +1551,7 @@ public abstract class KernelNodes {
                 }
             }
 
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().nameErrorUndefinedSingletonMethod(name, self, this));

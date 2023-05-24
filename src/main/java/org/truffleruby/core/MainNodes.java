@@ -11,6 +11,7 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
@@ -25,7 +26,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "main", isClass = true)
 public abstract class MainNodes {
@@ -57,12 +57,12 @@ public abstract class MainNodes {
     public abstract static class MainUsingNode extends UsingNode {
         @Specialization
         protected Object mainUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);
             final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
             if (!isCalledFromTopLevel(callerMethod)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("main.using is permitted only at toplevel", this));

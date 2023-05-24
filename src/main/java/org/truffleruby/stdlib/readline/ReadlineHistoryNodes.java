@@ -40,13 +40,13 @@
  */
 package org.truffleruby.stdlib.readline;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.History;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.ToIntNode;
@@ -61,6 +61,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.io.IOException;
 
@@ -163,12 +164,13 @@ public abstract class ReadlineHistoryNodes {
     }
 
     @CoreMethod(names = "each", needsBlock = true)
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyBasicObject each(RubyBasicObject history, RubyProc block) {
+        protected RubyBasicObject each(RubyBasicObject history, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
@@ -176,7 +178,7 @@ public abstract class ReadlineHistoryNodes {
                         fromJavaStringNode,
                         historyEntryToString(e),
                         getLocaleEncoding());
-                callBlock(block, line);
+                yieldNode.yield(block, line);
             }
 
             return history;

@@ -19,7 +19,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
@@ -31,6 +30,7 @@ import org.truffleruby.extra.RubyConcurrentMap.Key;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -113,13 +113,14 @@ public class ConcurrentMapNodes {
     }
 
     @CoreMethod(names = "compute_if_absent", required = 1, needsBlock = true)
-    public abstract static class ComputeIfAbsentNode extends YieldingCoreMethodNode {
+    public abstract static class ComputeIfAbsentNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             final Object returnValue = ConcurrentOperations
-                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> callBlock(block));
+                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> yieldNode.yield(block));
             assert returnValue != null;
             return returnValue;
         }
@@ -127,15 +128,16 @@ public class ConcurrentMapNodes {
     }
 
     @CoreMethod(names = "compute_if_present", required = 1, needsBlock = true)
-    public abstract static class ComputeIfPresentNode extends YieldingCoreMethodNode {
+    public abstract static class ComputeIfPresentNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(
                     computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
                     // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
-                    nilToNull(callBlock(block, v))));
+                    nilToNull(yieldNode.yield(block, v))));
         }
 
         @TruffleBoundary
@@ -146,15 +148,16 @@ public class ConcurrentMapNodes {
     }
 
     @CoreMethod(names = "compute", required = 1, needsBlock = true)
-    public abstract static class ComputeNode extends YieldingCoreMethodNode {
+    public abstract static class ComputeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object compute(RubyConcurrentMap self, Object key, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(compute(
                     self.getMap(),
                     new Key(key, hashCode),
-                    (k, v) -> nilToNull(callBlock(block, nullToNil(v)))));
+                    (k, v) -> nilToNull(yieldNode.yield(block, nullToNil(v)))));
         }
 
         @TruffleBoundary
@@ -165,16 +168,17 @@ public class ConcurrentMapNodes {
     }
 
     @CoreMethod(names = "merge_pair", required = 2, needsBlock = true)
-    public abstract static class MergePairNode extends YieldingCoreMethodNode {
+    public abstract static class MergePairNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(merge(
                     self.getMap(),
                     new Key(key, hashCode),
                     value,
-                    (existingValue, newValue) -> nilToNull(callBlock(block, existingValue))));
+                    (existingValue, newValue) -> nilToNull(yieldNode.yield(block, existingValue))));
         }
 
         @TruffleBoundary
@@ -354,10 +358,11 @@ public class ConcurrentMapNodes {
     }
 
     @CoreMethod(names = "each_pair", needsBlock = true)
-    public abstract static class EachPairNode extends YieldingCoreMethodNode {
+    public abstract static class EachPairNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object eachPair(RubyConcurrentMap self, RubyProc block) {
+        protected Object eachPair(RubyConcurrentMap self, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final Iterator<Entry<Key, Object>> iterator = iterator(self.getMap());
 
             while (true) {
@@ -367,7 +372,7 @@ public class ConcurrentMapNodes {
                     break;
                 }
 
-                callBlock(block, pair.getKey().key, pair.getValue());
+                yieldNode.yield(block, pair.getKey().key, pair.getValue());
             }
 
             return self;

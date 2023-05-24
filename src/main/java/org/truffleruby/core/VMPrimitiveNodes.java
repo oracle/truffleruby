@@ -46,6 +46,8 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -97,8 +99,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import sun.misc.SignalHandler;
 
@@ -110,15 +110,15 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         protected Object doCatch(Object tag, RubyProc block,
-                @Cached BranchProfile catchProfile,
-                @Cached ConditionProfile matchProfile,
+                @Cached InlinedBranchProfile catchProfile,
+                @Cached InlinedConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode,
                 @Cached CallBlockNode yieldNode) {
             try {
                 return yieldNode.yield(block, tag);
             } catch (ThrowException e) {
-                catchProfile.enter();
-                if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
+                catchProfile.enter(this);
+                if (matchProfile.profile(this, referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
                     return e.getValue();
                 } else {
                     throw e;
@@ -146,10 +146,10 @@ public abstract class VMPrimitiveNodes {
         protected Object vmExtendedModules(Object object, RubyProc block,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CallBlockNode yieldNode,
-                @Cached ConditionProfile isSingletonProfile) {
+                @Cached InlinedConditionProfile isSingletonProfile) {
             final RubyClass metaClass = metaClassNode.execute(object);
 
-            if (isSingletonProfile.profile(metaClass.isSingleton)) {
+            if (isSingletonProfile.profile(this, metaClass.isSingleton)) {
                 for (RubyModule included : metaClass.fields.prependedAndIncludedModules()) {
                     yieldNode.yield(block, included);
                 }
@@ -215,10 +215,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         protected Object vmRaiseException(RubyException exception,
-                @Cached ConditionProfile reRaiseProfile) {
+                @Cached InlinedConditionProfile reRaiseProfile) {
             final Backtrace backtrace = exception.backtrace;
             RaiseException raiseException = null;
-            if (reRaiseProfile.profile(backtrace != null && (raiseException = backtrace.getRaiseException()) != null)) {
+            if (reRaiseProfile.profile(this,
+                    backtrace != null && (raiseException = backtrace.getRaiseException()) != null)) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
                 assert raiseException.getException() == exception;
@@ -471,15 +472,15 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "!isRubyNumber(salt)")
         protected Object startHashNotNumber(Object salt,
                 @Cached ToRubyIntegerNode toRubyInteger,
-                @Cached ConditionProfile isIntegerProfile,
-                @Cached ConditionProfile isLongProfile,
-                @Cached ConditionProfile isBignumProfile) {
+                @Cached InlinedConditionProfile isIntegerProfile,
+                @Cached InlinedConditionProfile isLongProfile,
+                @Cached InlinedConditionProfile isBignumProfile) {
             Object result = toRubyInteger.execute(salt);
-            if (isIntegerProfile.profile(result instanceof Integer)) {
+            if (isIntegerProfile.profile(this, result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
-            } else if (isLongProfile.profile(result instanceof Long)) {
+            } else if (isLongProfile.profile(this, result instanceof Long)) {
                 return getContext().getHashing(this).start((long) result);
-            } else if (isBignumProfile.profile(result instanceof RubyBignum)) {
+            } else if (isBignumProfile.profile(this, result instanceof RubyBignum)) {
                 return getContext().getHashing(this).start(BigIntegerOps.hashCode((RubyBignum) result));
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
@@ -504,15 +505,15 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
                 @Cached ToRubyIntegerNode toRubyInteger,
-                @Cached ConditionProfile isIntegerProfile,
-                @Cached ConditionProfile isLongProfile,
-                @Cached ConditionProfile isBignumProfile) {
+                @Cached InlinedConditionProfile isIntegerProfile,
+                @Cached InlinedConditionProfile isLongProfile,
+                @Cached InlinedConditionProfile isBignumProfile) {
             Object result = toRubyInteger.execute(value);
-            if (isIntegerProfile.profile(result instanceof Integer)) {
+            if (isIntegerProfile.profile(this, result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);
-            } else if (isLongProfile.profile(result instanceof Long)) {
+            } else if (isLongProfile.profile(this, result instanceof Long)) {
                 return Hashing.update(hash, (long) result);
-            } else if (isBignumProfile.profile(result instanceof RubyBignum)) {
+            } else if (isBignumProfile.profile(this, result instanceof RubyBignum)) {
                 return Hashing.update(hash, BigIntegerOps.hashCode((RubyBignum) result));
             } else {
                 throw CompilerDirectives.shouldNotReachHere();

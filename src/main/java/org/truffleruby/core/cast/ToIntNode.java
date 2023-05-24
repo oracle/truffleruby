@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -92,12 +92,12 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
 
     @Specialization
     protected int coerceDouble(double value,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedBranchProfile errorProfile) {
         // emulate MRI logic + additional 32 bit restriction
         if (CoreLibrary.fitsIntoInteger((long) value)) {
             return (int) value;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(getContext(), coreExceptions()
                     .rangeError(Utils.concat("float ", value, " out of range of integer"), this));
         }

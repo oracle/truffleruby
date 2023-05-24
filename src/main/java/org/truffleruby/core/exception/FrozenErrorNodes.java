@@ -11,7 +11,7 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -45,11 +45,11 @@ public abstract class FrozenErrorNodes {
 
         @Specialization
         protected Object receiver(RubyFrozenError self,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             final Object receiver = self.receiver;
 
             if (receiver == null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorNoReceiver(this));
             }
             return receiver;

@@ -14,8 +14,11 @@ import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -32,7 +35,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -79,6 +81,7 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -114,6 +117,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.IdentifierType;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -172,13 +176,13 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached ConditionProfile ownedProfile,
+                @Cached InlinedConditionProfile ownedProfile,
                 @Cached RunMarkOnExitNode runMarksNode) {
             final ExtensionCallStack extensionStack = getLanguage()
                     .getCurrentThread()
@@ -190,7 +194,7 @@ public class CExtNodes {
 
                 if (getContext().getOptions().CEXT_LOCK) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
-                    boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+                    boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                     if (!owned) {
                         MutexOperations.lockInternal(getContext(), lock, this);
@@ -224,13 +228,13 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization
         protected Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached ConditionProfile ownedProfile,
+                @Cached InlinedConditionProfile ownedProfile,
                 @Cached RunMarkOnExitNode runMarksNode,
                 @Cached UnwrapNode unwrapNode) {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
@@ -241,7 +245,7 @@ public class CExtNodes {
 
                 if (getContext().getOptions().CEXT_LOCK) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
-                    boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+                    boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                     if (!owned) {
                         MutexOperations.lockInternal(getContext(), lock, this);
@@ -279,17 +283,17 @@ public class CExtNodes {
 
         public abstract Object execute(Object receiver, RubyArray argsArray);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization
         protected Object callWithCExtLock(Object receiver, RubyArray argsArray,
-                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached ConditionProfile ownedProfile) {
+                @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+                boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                 if (!owned) {
                     MutexOperations.lockInternal(getContext(), lock, this);
@@ -315,10 +319,10 @@ public class CExtNodes {
     public abstract static class SendWithoutCExtLockBaseNode extends PrimitiveArrayArgumentsNode {
         public Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object block,
                 ArgumentsDescriptor descriptor, Object[] args,
-                DispatchNode dispatchNode, ConditionProfile ownedProfile) {
+                DispatchNode dispatchNode, InlinedConditionProfile ownedProfile) {
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+                boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
                 if (owned) {
                     MutexOperations.unlockInternal(lock);
@@ -344,7 +348,7 @@ public class CExtNodes {
                 VirtualFrame frame, Object receiver, RubySymbol method, RubyArray argsArray, Object block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached DispatchNode dispatchNode,
-                @Cached ConditionProfile ownedProfile) {
+                @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, ownedProfile);
@@ -359,7 +363,7 @@ public class CExtNodes {
                 VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached DispatchNode dispatchNode,
-                @Cached ConditionProfile ownedProfile) {
+                @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, ownedProfile);
@@ -373,14 +377,14 @@ public class CExtNodes {
                 VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached HashCastNode hashCastNode,
-                @Cached ConditionProfile emptyProfile,
+                @Cached InlinedConditionProfile emptyProfile,
                 @Cached DispatchNode dispatchNode,
-                @Cached ConditionProfile ownedProfile) {
+                @Cached InlinedConditionProfile ownedProfile) {
             Object[] args = unwrapCArrayNode.execute(argv);
 
             // Remove empty kwargs in the caller, so the callee does not need to care about this special case
             final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
-            if (emptyProfile.profile(keywords.empty())) {
+            if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                         dispatchNode, ownedProfile);
@@ -399,7 +403,7 @@ public class CExtNodes {
                 VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
-                @Cached ConditionProfile ownedProfile) {
+                @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, ownedProfile);
@@ -443,8 +447,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object ulong2num(long num,
-                @Cached ConditionProfile positiveProfile) {
-            if (positiveProfile.profile(num >= 0)) {
+                @Cached InlinedConditionProfile positiveProfile) {
+            if (positiveProfile.profile(this, num >= 0)) {
                 return num;
             } else {
                 return BignumOperations.createBignum(toUnsigned(num));
@@ -704,11 +708,12 @@ public class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected RubyArray rbEncCodePointLen(Object string,
+        protected static RubyArray rbEncCodePointLen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Bind("this") Node node) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             var tencoding = encoding.tencoding;
@@ -716,16 +721,16 @@ public class CExtNodes {
             final int r = byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
-                errorProfile.enter();
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                        getContext(node),
+                        coreExceptions(node).argumentErrorInvalidByteSequence(encoding, node));
             }
 
             int codePoint = codePointAtByteIndexNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
             assert codePoint != -1;
 
-            return createArray(new int[]{ StringSupport.MBCLEN_CHARFOUND_LEN(r), codePoint });
+            return createArray(node, new int[]{ StringSupport.MBCLEN_CHARFOUND_LEN(r), codePoint });
         }
     }
 
@@ -794,13 +799,13 @@ public class CExtNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
-                @Cached ConditionProfile minLengthOneProfile) {
+                @Cached InlinedConditionProfile minLengthOneProfile) {
             var pointer = stringToNativeNode.executeToNative(string);
 
             var encoding = libString.getEncoding(string);
             int minLength = encoding.jcoding.minLength();
             // Like MRI
-            if (minLengthOneProfile.profile(minLength == 1)) {
+            if (minLengthOneProfile.profile(this, minLength == 1)) {
                 pointer.writeByte(newByteLength, (byte) 0);
             } else if (minLength == 2) {
                 pointer.writeShort(newByteLength, (short) 0);
@@ -923,9 +928,9 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString rbStrLockTmp(RubyString string,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (string.locked) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(),
                         coreExceptions().runtimeError("temporal locking already locked string", this));
             }
@@ -946,9 +951,9 @@ public class CExtNodes {
 
         @Specialization
         protected RubyString rbStrUnlockTmp(RubyString string,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (!string.locked) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(),
                         coreExceptions().runtimeError("temporal unlocking already unlocked string", this));
             }
@@ -970,7 +975,6 @@ public class CExtNodes {
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -978,9 +982,10 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGet(RubyModule module, String name) {
+        protected Object rbConstGet(RubyModule module, String name,
+                @Cached GetConstantNode getConstantNode) {
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
         }
 
     }
@@ -991,7 +996,6 @@ public class CExtNodes {
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -999,9 +1003,10 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGetFrom(RubyModule module, String name) {
+        protected Object rbConstGetFrom(RubyModule module, String name,
+                @Cached GetConstantNode getConstantNode) {
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
         }
 
     }
@@ -1029,18 +1034,19 @@ public class CExtNodes {
     @ReportPolymorphism
     public abstract static class RbGvGetNode extends PrimitiveArrayArgumentsNode {
 
-        @Child WarnNode warnNode;
-
         @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-        protected Object rbGvGetCached(VirtualFrame frame, String name,
+        protected static Object rbGvGetCached(VirtualFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("create(cachedName)") ReadGlobalVariableNode readGlobalVariableNode,
-                @Cached BranchProfile notExistsProfile) {
-            boolean exists = getContext().getCoreLibrary().globalVariables.contains(cachedName);
+                @Cached InlinedBranchProfile notExistsProfile,
+                @Cached @Shared LazyWarnNode lazyWarnNode,
+                @Bind("this") Node node) {
+            boolean exists = getContext(node).getCoreLibrary().globalVariables.contains(cachedName);
 
             if (!exists) {
-                notExistsProfile.enter();
-                warn(StringUtils.format("global variable `%s' not initialized", cachedName));
+                notExistsProfile.enter(node);
+                warn(node, lazyWarnNode.get(node),
+                        StringUtils.format("global variable `%s' not initialized", cachedName));
 
                 return nil;
             }
@@ -1051,11 +1057,12 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected Object rbGvGetUncached(String name,
-                @Cached DispatchNode dispatchNode) {
+                @Cached DispatchNode dispatchNode,
+                @Cached @Shared LazyWarnNode lazyWarnNode) {
             boolean exists = getContext().getCoreLibrary().globalVariables.contains(name);
 
             if (!exists) {
-                warn(StringUtils.format("global variable `%s' not initialized", name));
+                warn(this, lazyWarnNode.get(this), StringUtils.format("global variable `%s' not initialized", name));
 
                 return nil;
             }
@@ -1063,15 +1070,10 @@ public class CExtNodes {
             return dispatchNode.call(coreLibrary().topLevelBinding, "eval", name);
         }
 
-        private void warn(String message) {
-            if (warnNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarnNode());
-            }
-
+        private static void warn(Node node, WarnNode warnNode, String message) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(
-                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        getContext(node).getCallStack().getTopMostUserSourceSection(),
                         message);
             }
         }
@@ -1320,7 +1322,7 @@ public class CExtNodes {
         @Specialization
         protected Pointer toNative(RubyString string,
                 @Cached RubyStringLibrary libString,
-                @Cached ConditionProfile convertProfile,
+                @Cached InlinedConditionProfile convertProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
@@ -1329,7 +1331,7 @@ public class CExtNodes {
 
             final Pointer pointer;
 
-            if (convertProfile.profile(tstring.isNative())) {
+            if (convertProfile.profile(this, tstring.isNative())) {
                 assert tstring.isMutable();
                 pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
             } else {
@@ -1454,25 +1456,26 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
-    public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
+    public abstract static class CaptureExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object captureException(RubyProc block,
-                @Cached BranchProfile exceptionProfile,
-                @Cached BranchProfile noExceptionProfile) {
+                @Cached InlinedBranchProfile exceptionProfile,
+                @Cached InlinedBranchProfile noExceptionProfile,
+                @Cached CallBlockNode yieldNode) {
             try {
-                callBlock(block);
-                noExceptionProfile.enter();
+                yieldNode.yield(block);
+                noExceptionProfile.enter(this);
                 return nil;
             } catch (Throwable e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 return new CapturedException(e);
             }
         }
     }
 
     @CoreMethod(names = "store_exception", onSingleton = true, required = 1)
-    public abstract static class StoreException extends YieldingCoreMethodNode {
+    public abstract static class StoreException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object storeException(CapturedException captured) {
@@ -1483,7 +1486,7 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "retrieve_exception", onSingleton = true)
-    public abstract static class RetrieveException extends YieldingCoreMethodNode {
+    public abstract static class RetrieveException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected CapturedException retrieveException() {
@@ -1497,9 +1500,9 @@ public class CExtNodes {
 
         @Specialization
         protected Object extractRubyException(CapturedException captured,
-                @Cached ConditionProfile rubyExceptionProfile) {
+                @Cached InlinedConditionProfile rubyExceptionProfile) {
             final Throwable e = captured.getException();
-            if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
+            if (rubyExceptionProfile.profile(this, e instanceof RaiseException)) {
                 return ((RaiseException) e).getException();
             } else {
                 return nil;
@@ -1573,12 +1576,12 @@ public class CExtNodes {
         /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
         protected Object raiseException(CapturedException captured,
-                @Cached ConditionProfile runtimeExceptionProfile,
-                @Cached ConditionProfile errorProfile) {
+                @Cached InlinedConditionProfile runtimeExceptionProfile,
+                @Cached InlinedConditionProfile errorProfile) {
             final Throwable e = captured.getException();
-            if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
+            if (runtimeExceptionProfile.profile(this, e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
-            } else if (errorProfile.profile(e instanceof Error)) {
+            } else if (errorProfile.profile(this, e instanceof Error)) {
                 throw (Error) e;
             } else {
                 throw CompilerDirectives.shouldNotReachHere("Checked Java Throwable rethrown", e);
@@ -1708,16 +1711,17 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 1)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected int rbEncMbcToCodepoint(Object string,
+        protected static int rbEncMbcToCodepoint(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Cached ConditionProfile brokenProfile) {
+                @Cached InlinedConditionProfile brokenProfile,
+                @Bind("this") Node node) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             int codepoint = codePointAtByteIndexNode.execute(tstring, 0, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
-            if (brokenProfile.profile(codepoint == -1)) {
+            if (brokenProfile.profile(node, codepoint == -1)) {
                 var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
                 return StringSupport.mbcToCode(encoding.jcoding, byteArray.getArray(), byteArray.getOffset(),
                         byteArray.getEnd());
@@ -1754,11 +1758,11 @@ public class CExtNodes {
 
         @Specialization
         protected Object unwrap(Object value,
-                @Cached BranchProfile exceptionProfile,
+                @Cached InlinedBranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
             if (object == null) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(value), this));
             } else {
                 return object;
@@ -1789,11 +1793,11 @@ public class CExtNodes {
 
         @Specialization
         protected Object addToMarkList(Object markedObject,
-                @Cached BranchProfile noExceptionProfile,
+                @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
             if (wrappedValue != null) {
-                noExceptionProfile.enter();
+                noExceptionProfile.enter(this);
                 getContext().getMarkingService()
                         .addMark(getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack, wrappedValue);
             }
@@ -1811,11 +1815,11 @@ public class CExtNodes {
         @Specialization
         protected Object addToMarkList(Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
-                @Cached BranchProfile noExceptionProfile,
+                @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
             if (wrappedValue != null) {
-                noExceptionProfile.enter();
+                noExceptionProfile.enter(this);
                 keepAliveNode.execute(wrappedValue);
             }
             return nil;

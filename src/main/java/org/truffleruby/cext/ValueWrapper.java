@@ -9,6 +9,9 @@
  */
 package org.truffleruby.cext;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
@@ -25,7 +28,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access methods to be set up
  * which convert these value wrappers to native pointers without affecting the semantics of the wrapped objects. */
@@ -102,9 +104,10 @@ public class ValueWrapper implements TruffleObject {
     @ExportMessage
     protected static void toNative(ValueWrapper wrapper,
             @Cached AllocateHandleNode createNativeHandleNode,
-            @Cached @Exclusive BranchProfile createHandleProfile) {
+            @Cached @Exclusive InlinedBranchProfile createHandleProfile,
+            @Bind("$node") Node node) {
         if (!wrapper.isPointer()) {
-            createHandleProfile.enter();
+            createHandleProfile.enter(node);
             createNativeHandleNode.execute(wrapper);
         }
     }
@@ -112,12 +115,13 @@ public class ValueWrapper implements TruffleObject {
     @ExportMessage
     protected static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
-            @Cached @Exclusive BranchProfile taggedObjectProfile) {
+            @Cached @Exclusive InlinedBranchProfile taggedObjectProfile,
+            @Bind("$node") Node node) {
         long handle = wrapper.getHandle();
         assert handle != ValueWrapperManager.UNSET_HANDLE;
 
         if (ValueWrapperManager.isTaggedObject(handle)) {
-            taggedObjectProfile.enter();
+            taggedObjectProfile.enter(node);
 
             keepAliveNode.execute(wrapper);
         }
@@ -142,11 +146,12 @@ public class ValueWrapper implements TruffleObject {
 
     @ExportMessage
     protected static Object readMember(ValueWrapper wrapper, String member,
-            @Cached @Exclusive BranchProfile errorProfile) throws UnknownIdentifierException {
+            @Cached @Exclusive InlinedBranchProfile errorProfile,
+            @Bind("$node") Node node) throws UnknownIdentifierException {
         if ("value".equals(member)) {
             return wrapper.object;
         } else {
-            errorProfile.enter();
+            errorProfile.enter(node);
             throw UnknownIdentifierException.create(member);
         }
     }

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
@@ -75,6 +76,13 @@ public abstract class RubyBaseNode extends Node {
         // Checkstyle: resume
     }
 
+    public static void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, int count) {
+        // Checkstyle: stop
+        loopProfile.profileCounted(node, count);
+        LoopNode.reportLoopCount(node, count);
+        // Checkstyle: resume
+    }
+
     protected void profileAndReportLoopCount(LoopConditionProfile loopProfile, int count) {
         // Checkstyle: stop
         loopProfile.profileCounted(count);
@@ -89,6 +97,20 @@ public abstract class RubyBaseNode extends Node {
         // Checkstyle: resume
     }
 
+    protected static void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, long count) {
+        // Checkstyle: stop
+        loopProfile.profileCounted(node, count);
+        reportLongLoopCount(node, count);
+        // Checkstyle: resume
+    }
+
+    protected static void reportLongLoopCount(Node node, long count) {
+        assert count >= 0L;
+        // Checkstyle: stop
+        LoopNode.reportLoopCount(node, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
+        // Checkstyle: resume
+    }
+
     protected void reportLongLoopCount(long count) {
         assert count >= 0L;
         // Checkstyle: stop
@@ -97,21 +119,34 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected Node getNode() {
-        boolean adoptable = this.isAdoptable();
+        return getNode(this);
+    }
+
+    protected static Node getNode(Node node) {
+        boolean adoptable = node != null && node.isAdoptable();
         CompilerAsserts.partialEvaluationConstant(adoptable);
         if (adoptable) {
-            return this;
+            return node;
         } else {
             return EncapsulatingNodeReference.getCurrent().get();
         }
     }
 
+
     public final RubyLanguage getLanguage() {
-        return RubyLanguage.get(this);
+        return getLanguage(this);
+    }
+
+    public static RubyLanguage getLanguage(Node node) {
+        return RubyLanguage.get(node);
     }
 
     public final RubyContext getContext() {
-        return RubyContext.get(this);
+        return getContext(this);
+    }
+
+    public static RubyContext getContext(Node node) {
+        return RubyContext.get(node);
     }
 
     // Helpers methods for terseness. They are `final` so we ensure they are not needlessly redeclared in subclasses.
@@ -125,7 +160,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubySymbol getSymbol(String name) {
-        return getLanguage().getSymbol(name);
+        return getSymbol(this, name);
+    }
+
+    protected static RubySymbol getSymbol(Node node, String name) {
+        return getLanguage(node).getSymbol(name);
     }
 
     protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
@@ -137,19 +176,35 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final CoreStrings coreStrings() {
-        return getLanguage().coreStrings;
+        return coreStrings(this);
+    }
+
+    protected static CoreStrings coreStrings(Node node) {
+        return getLanguage(node).coreStrings;
     }
 
     protected final CoreSymbols coreSymbols() {
-        return getLanguage().coreSymbols;
+        return coreSymbols(this);
+    }
+
+    protected static CoreSymbols coreSymbols(Node node) {
+        return getLanguage(node).coreSymbols;
     }
 
     protected final RubyArray createArray(Object store, int size) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store, size);
+        return createArray(this, store, size);
+    }
+
+    protected static RubyArray createArray(Node node, Object store, int size) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store, size);
     }
 
     protected final RubyArray createArray(int[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
+    }
+
+    protected static RubyArray createArray(Node node, int[] store) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
     protected final RubyArray createArray(long[] store) {
@@ -157,21 +212,33 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(Object[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
+    }
+
+    protected static RubyArray createArray(Node node, Object[] store) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
     protected final RubyArray createEmptyArray() {
-        return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+        return createEmptyArray(this);
+    }
+
+    protected static RubyArray createEmptyArray(Node node) {
+        return ArrayHelpers.createEmptyArray(getContext(node), getLanguage(node));
     }
 
     public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
+        return createString(this, tstring, encoding);
+    }
+
+    public static RubyString createString(Node node, TruffleString tstring, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
+                coreLibrary(node).stringClass,
+                getLanguage(node).stringShape,
                 false,
                 tstring,
                 encoding);
-        AllocationTracing.trace(instance, this);
+        AllocationTracing.trace(instance, node);
         return instance;
     }
 
@@ -223,9 +290,14 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,
             AbstractTruffleString tstring, RubyEncoding encoding, int byteOffset, int byteLength) {
+        return createSubString(this, substringNode, tstring, encoding, byteOffset, byteLength);
+    }
+
+    protected static RubyString createSubString(Node node, TruffleString.SubstringByteIndexNode substringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding, int byteOffset, int byteLength) {
         final TruffleString substring = substringNode.execute(tstring, byteOffset, byteLength, encoding.tencoding,
                 true);
-        return createString(substring, encoding);
+        return createString(node, substring, encoding);
     }
 
     protected final RubyString createSubString(TruffleString.SubstringNode substringNode,
@@ -237,11 +309,19 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final CoreLibrary coreLibrary() {
-        return getContext().getCoreLibrary();
+        return coreLibrary(this);
+    }
+
+    protected static CoreLibrary coreLibrary(Node node) {
+        return getContext(node).getCoreLibrary();
     }
 
     protected final CoreExceptions coreExceptions() {
-        return getContext().getCoreExceptions();
+        return coreExceptions(this);
+    }
+
+    protected static CoreExceptions coreExceptions(Node node) {
+        return getContext(node).getCoreExceptions();
     }
 
     protected final int getDefaultCacheLimit() {

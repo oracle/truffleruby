@@ -12,7 +12,7 @@ package org.truffleruby.language.objects.classvariables;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
@@ -31,9 +31,9 @@ public abstract class CheckClassVariableNameNode extends RubyBaseNode {
 
     @Specialization(replaces = "cached")
     protected void uncached(RubyDynamicObject object, String name,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedBranchProfile errorProfile) {
         if (!Identifiers.isValidClassVariableName(name)) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceNameNotAllowable(
                     name,
                     object,

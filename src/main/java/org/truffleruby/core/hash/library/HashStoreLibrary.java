@@ -21,7 +21,7 @@ import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashGuards;
@@ -129,10 +129,10 @@ public abstract class HashStoreLibrary extends Library {
         @Specialization
         protected Object yieldPair(RubyProc block, Object key, Object value,
                 @Cached CallBlockNode yieldNode,
-                @Cached ConditionProfile arityMoreThanOne) {
+                @Cached InlinedConditionProfile arityMoreThanOne) {
             // MRI behavior, see rb_hash_each_pair()
             // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
-            if (arityMoreThanOne.profile(block.arity.getMethodArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(this, block.arity.getMethodArityNumber() > 1)) {
                 return yieldNode.yield(block, key, value);
             } else {
                 return yieldNode.yield(block, createArray(new Object[]{ key, value }));

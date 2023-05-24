@@ -11,6 +11,7 @@ package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
@@ -27,7 +28,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
  * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
@@ -53,10 +53,10 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     @Specialization
     protected void shareCachedQueue(RubyQueue object,
-            @Cached ConditionProfile profileEmpty,
+            @Cached InlinedConditionProfile profileEmpty,
             @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = object.queue;
-        if (!profileEmpty.profile(queue.isEmpty())) {
+        if (!profileEmpty.profile(this, queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
                 writeBarrierNode.executeWriteBarrier(e);
             }

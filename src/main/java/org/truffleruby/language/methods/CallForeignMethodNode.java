@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -18,8 +19,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -51,19 +53,19 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
     protected Object call(Object receiver, String methodName, Object block, Object[] arguments,
             @Cached ForeignInvokeNode foreignInvokeNode,
             @Cached TranslateExceptionNode translateException,
-            @Cached ConditionProfile hasBlock,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedConditionProfile hasBlock,
+            @Cached InlinedBranchProfile errorProfile) {
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         Object[] newArguments = arguments;
-        if (hasBlock.profile(block != nil)) {
+        if (hasBlock.profile(this, block != nil)) {
             newArguments = ArrayUtils.append(arguments, block);
         }
 
         try {
             return foreignInvokeNode.execute(receiver, methodName, newArguments);
         } catch (Throwable t) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw translateException.executeTranslation(t);
         }
     }
@@ -90,16 +92,17 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         }
 
         @Specialization(guards = { "name == cachedName", "isAssignmentMethod(cachedName)" }, limit = "1")
-        protected Object assignmentMethod(Object receiver, String name, Object[] args,
+        protected static Object assignmentMethod(Object receiver, String name, Object[] args,
                 @Cached("name") String cachedName,
                 @Cached(value = "getPropertyFromName(cachedName)", allowUncached = true) String propertyName,
                 @Cached WriteMemberWithoutConversionNode writeMemberNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Bind("this") Node node) {
             if (args.length == 1) {
                 return writeMemberNode.execute(receiver, propertyName, args[0]);
             } else {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(args.length, 1, this));
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(args.length, 1, node));
             }
         }
 
@@ -127,13 +130,14 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         public abstract Object execute(Object receiver, String identifier, Object[] args);
 
         @Specialization(guards = "args.length == 0", limit = "getInteropCacheLimit()")
-        protected Object readOrInvoke(Object receiver, String name, Object[] args,
+        protected static Object readOrInvoke(Object receiver, String name, Object[] args,
                 @Cached ToSymbolNode toSymbolNode,
                 @Cached @Shared InvokeMemberNode invokeNode,
                 @Cached ReadMemberNode readNode,
-                @Cached ConditionProfile invocable,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            if (invocable.profile(receivers.isMemberInvocable(receiver, name))) {
+                @Cached InlinedConditionProfile invocable,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            if (invocable.profile(node, receivers.isMemberInvocable(receiver, name))) {
                 return invokeNode.execute(receiver, name, args);
             } else {
                 return readNode.execute(receiver, toSymbolNode.execute(name));

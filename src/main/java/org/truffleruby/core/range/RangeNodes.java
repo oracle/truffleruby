@@ -13,6 +13,8 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -20,7 +22,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -64,13 +65,13 @@ public abstract class RangeNodes {
         protected RubyArray map(RubyIntRange range, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached CallBlockNode yieldNode,
-                @Cached ConditionProfile noopProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached InlinedConditionProfile noopProfile,
+                @Cached InlinedLoopConditionProfile loopProfile) {
             final int begin = range.begin;
             final int end = range.end;
             final boolean excludedEnd = range.excludedEnd;
             int exclusiveEnd = excludedEnd ? end : end + 1;
-            if (noopProfile.profile(begin >= exclusiveEnd)) {
+            if (noopProfile.profile(this, begin >= exclusiveEnd)) {
                 return createEmptyArray();
             }
 
@@ -79,11 +80,11 @@ public abstract class RangeNodes {
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < length); n++) {
+                for (; loopProfile.inject(this, n < length); n++) {
                     arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(this, loopProfile, n);
             }
 
             return createArray(arrayBuilder.finish(state, length), length);
@@ -96,16 +97,17 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode eachInternalCall;
 
         @Specialization
         protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
-                @Shared @Cached ConditionProfile excludedEndProfile,
-                @Exclusive @Cached LoopConditionProfile loopProfile) {
+                @Shared @Cached InlinedConditionProfile excludedEndProfile,
+                @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached @Shared CallBlockNode yieldNode) {
             final int exclusiveEnd;
-            if (excludedEndProfile.profile(range.excludedEnd)) {
+            if (excludedEndProfile.profile(this, range.excludedEnd)) {
                 exclusiveEnd = range.end;
             } else {
                 exclusiveEnd = range.end + 1;
@@ -113,11 +115,11 @@ public abstract class RangeNodes {
 
             int n = range.begin;
             try {
-                for (; loopProfile.inject(n < exclusiveEnd); n++) {
-                    callBlock(block, n);
+                for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
+                    yieldNode.yield(block, n);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n - range.begin);
+                profileAndReportLoopCount(this, loopProfile, n - range.begin);
             }
 
             return range;
@@ -125,10 +127,11 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
-                @Shared @Cached ConditionProfile excludedEndProfile,
-                @Exclusive @Cached LoopConditionProfile loopProfile) {
+                @Shared @Cached InlinedConditionProfile excludedEndProfile,
+                @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached @Shared CallBlockNode yieldNode) {
             final long exclusiveEnd;
-            if (excludedEndProfile.profile(range.excludedEnd)) {
+            if (excludedEndProfile.profile(this, range.excludedEnd)) {
                 exclusiveEnd = range.end;
             } else {
                 exclusiveEnd = range.end + 1;
@@ -136,11 +139,11 @@ public abstract class RangeNodes {
 
             long n = range.begin;
             try {
-                for (; loopProfile.inject(n < exclusiveEnd); n++) {
-                    callBlock(block, n);
+                for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
+                    yieldNode.yield(block, n);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n - range.begin);
+                profileAndReportLoopCount(this, loopProfile, n - range.begin);
             }
 
             return range;
@@ -212,13 +215,14 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "step", needsBlock = true, optional = 1, lowerFixnum = 1)
-    public abstract static class StepNode extends YieldingCoreMethodNode {
+    public abstract static class StepNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode stepInternalCall;
 
         @Specialization(guards = "step > 0")
         protected Object stepInt(RubyIntRange range, int step, RubyProc block,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile,
+                @Cached @Shared CallBlockNode yieldNode) {
             int result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -229,7 +233,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(n < result); n += step) {
-                    callBlock(block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n - range.begin);
@@ -239,7 +243,8 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "step > 0")
-        protected Object stepLong(RubyLongRange range, int step, RubyProc block) {
+        protected Object stepLong(RubyLongRange range, int step, RubyProc block,
+                @Cached @Shared CallBlockNode yieldNode) {
             long result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -250,7 +255,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    callBlock(block, n);
+                    yieldNode.yield(block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);

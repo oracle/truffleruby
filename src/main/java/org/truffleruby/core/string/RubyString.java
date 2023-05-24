@@ -11,12 +11,14 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -144,9 +146,10 @@ public final class RubyString extends RubyDynamicObject {
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
-                @Cached ConditionProfile binaryNonAsciiProfile) {
+                @Cached InlinedConditionProfile binaryNonAsciiProfile,
+                @Bind("this") Node node) {
             var encoding = libString.getEncoding(string);
-            if (binaryNonAsciiProfile.profile(encoding == Encodings.BINARY &&
+            if (binaryNonAsciiProfile.profile(node, encoding == Encodings.BINARY &&
                     !StringGuards.is7Bit(string.tstring, encoding, codeRangeNode))) {
                 return getJavaStringBoundary(string);
             } else {

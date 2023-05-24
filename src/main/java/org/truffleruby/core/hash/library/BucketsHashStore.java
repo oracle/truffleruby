@@ -12,6 +12,7 @@ package org.truffleruby.core.hash.library;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -23,7 +24,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -218,12 +220,13 @@ public class BucketsHashStore {
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared LookupEntryNode lookup,
-            @Cached @Exclusive ConditionProfile found) {
+            @Cached @Exclusive InlinedConditionProfile found,
+            @Bind("$node") Node node) {
 
         final Entry[] entries = this.entries;
         final HashLookupResult hashLookupResult = lookup.execute(hash, entries, key);
 
-        if (found.profile(hashLookupResult.getEntry() != null)) {
+        if (found.profile(node, hashLookupResult.getEntry() != null)) {
             return hashLookupResult.getEntry().getValue();
         }
 
@@ -236,10 +239,11 @@ public class BucketsHashStore {
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared LookupEntryNode lookup,
-            @Cached @Exclusive ConditionProfile missing,
-            @Cached @Exclusive ConditionProfile bucketCollision,
-            @Cached @Exclusive ConditionProfile appending,
-            @Cached @Exclusive ConditionProfile resize) {
+            @Cached @Exclusive InlinedConditionProfile missing,
+            @Cached @Exclusive InlinedConditionProfile bucketCollision,
+            @Cached @Exclusive InlinedConditionProfile appending,
+            @Cached @Exclusive InlinedConditionProfile resize,
+            @Bind("$node") Node node) {
         assert verify(hash);
 
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
@@ -251,17 +255,17 @@ public class BucketsHashStore {
         final HashLookupResult result = lookup.execute(hash, entries, key2);
         final Entry entry = result.getEntry();
 
-        if (missing.profile(entry == null)) {
+        if (missing.profile(node, entry == null)) {
             final Entry newEntry = new Entry(result.getHashed(), key2, value);
 
-            if (bucketCollision.profile(result.getPreviousEntry() == null)) {
+            if (bucketCollision.profile(node, result.getPreviousEntry() == null)) {
                 entries[result.getIndex()] = newEntry;
             } else {
                 result.getPreviousEntry().setNextInLookup(newEntry);
             }
 
             final Entry lastInSequence = this.lastInSequence;
-            if (appending.profile(lastInSequence == null)) {
+            if (appending.profile(node, lastInSequence == null)) {
                 this.firstInSequence = newEntry;
             } else {
                 lastInSequence.setNextInSequence(newEntry);
@@ -272,7 +276,7 @@ public class BucketsHashStore {
             final int newSize = (hash.size += 1);
             assert verify(hash);
 
-            if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
+            if (resize.profile(node, newSize / (double) entries.length > LOAD_FACTOR)) {
                 resize(hash, newSize);
                 assert ((BucketsHashStore) hash.store).verify(hash); // store changed!
             }
@@ -287,14 +291,15 @@ public class BucketsHashStore {
     @ExportMessage
     protected Object delete(RubyHash hash, Object key,
             @Cached @Shared LookupEntryNode lookup,
-            @Cached @Exclusive ConditionProfile missing) {
+            @Cached @Exclusive InlinedConditionProfile missing,
+            @Bind("$node") Node node) {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
         final HashLookupResult lookupResult = lookup.execute(hash, entries, key);
         final Entry entry = lookupResult.getEntry();
 
-        if (missing.profile(entry == null)) {
+        if (missing.profile(node, entry == null)) {
             return null;
         }
 
@@ -307,7 +312,8 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected Object deleteLast(RubyHash hash, Object key,
-            @Cached @Exclusive ConditionProfile singleEntry) {
+            @Cached @Exclusive InlinedConditionProfile singleEntry,
+            @Bind("$node") Node node) {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
@@ -328,7 +334,7 @@ public class BucketsHashStore {
         }
         assert entry.getNextInSequence() == null;
 
-        if (singleEntry.profile(this.firstInSequence == entry)) {
+        if (singleEntry.profile(node, this.firstInSequence == entry)) {
             assert entry.getPreviousInSequence() == null;
             this.firstInSequence = null;
             this.lastInSequence = null;
@@ -571,8 +577,8 @@ public class BucketsHashStore {
         protected HashLookupResult lookup(RubyHash hash, Entry[] entries, Object key,
                 @Cached HashingNodes.ToHash hashNode,
                 @Cached CompareHashKeysNode compareHashKeysNode,
-                @Cached ConditionProfile byIdentityProfile) {
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+                @Cached InlinedConditionProfile byIdentityProfile) {
+            final boolean compareByIdentity = byIdentityProfile.profile(this, hash.compareByIdentity);
             int hashed = hashNode.execute(key, compareByIdentity);
 
             final int index = getBucketIndex(hashed, entries.length);

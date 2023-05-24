@@ -9,12 +9,14 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -84,28 +86,29 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
-    protected RubySymbol toStr(Object object,
-            @Cached BranchProfile errorProfile,
+    protected static RubySymbol toStr(Object object,
+            @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @Cached @Exclusive RubyStringLibrary strings,
-            @Cached ToSymbolNode toSymbolNode) {
+            @Cached ToSymbolNode toSymbolNode,
+            @Bind("this") Node node) {
         var coerced = toStrNode.call(
-                coreLibrary().truffleTypeModule,
+                coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",
                 object,
-                coreLibrary().stringClass,
-                coreSymbols().TO_STR);
+                coreLibrary(node).stringClass,
+                coreSymbols(node).TO_STR);
 
         if (strings.isRubyString(coerced)) {
             return toSymbolNode.execute(coerced);
         } else {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(
+            errorProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).typeErrorBadCoercion(
                     object,
                     "String",
                     "to_str",
                     coerced,
-                    this));
+                    node));
         }
     }
 

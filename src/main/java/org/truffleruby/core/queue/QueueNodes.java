@@ -11,6 +11,7 @@ package org.truffleruby.core.queue;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -36,7 +37,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "Queue", isClass = true)
 public abstract class QueueNodes {
@@ -85,13 +85,13 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         protected Object popBlocking(RubyQueue self, boolean nonBlocking,
-                @Exclusive @Cached BranchProfile closedProfile) {
+                @Exclusive @Cached InlinedBranchProfile closedProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = doPop(queue);
 
             if (value == UnsizedQueue.CLOSED) {
-                closedProfile.enter();
+                closedProfile.enter(this);
                 return nil;
             } else {
                 return value;
@@ -105,13 +105,13 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         protected Object popNonBlock(RubyQueue self, boolean nonBlocking,
-                @Exclusive @Cached BranchProfile errorProfile) {
+                @Exclusive @Cached InlinedBranchProfile errorProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = queue.poll();
 
             if (value == null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
             } else {
                 return value;

@@ -25,11 +25,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
-    @Child GetConstantNode getConstantNode = GetConstantNode.create(false);
+    @Child GetConstantNode getConstantNode = GetConstantNode.create();
 
     public Object lookupForExistingModule(VirtualFrame frame, String name, RubyModule lexicalParent) {
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-        return getConstantNode.lookupAndResolveConstant(lexicalScope, lexicalParent, name, this);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, lexicalParent, name, this, false);
     }
 
     @Override

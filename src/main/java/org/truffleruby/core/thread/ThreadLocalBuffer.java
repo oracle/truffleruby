@@ -10,8 +10,9 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.nodes.Node;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.extra.ffi.Pointer;
 
@@ -48,12 +49,12 @@ public final class ThreadLocalBuffer {
         start.freeNoAutorelease();
     }
 
-    public void free(RubyThread thread, Pointer ptr, ConditionProfile freeProfile) {
+    public void free(Node node, RubyThread thread, Pointer ptr, InlinedConditionProfile freeProfile) {
         assert ptr.getEndAddress() == cursor() : "free(" + Long.toHexString(ptr.getEndAddress()) +
                 ") but expected " + Long.toHexString(cursor()) + " to be free'd first";
         remaining += ptr.getSize();
         assert invariants();
-        if (freeProfile.profile(parent != null && isEmpty())) {
+        if (freeProfile.profile(node, parent != null && isEmpty())) {
             thread.ioBuffer = parent;
             freeMemory();
         }
@@ -68,7 +69,8 @@ public final class ThreadLocalBuffer {
         }
     }
 
-    public Pointer allocate(RubyContext context, RubyThread thread, long size, ConditionProfile allocationProfile) {
+    public Pointer allocate(Node node, RubyContext context, RubyThread thread, long size,
+            InlinedConditionProfile allocationProfile) {
         /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
@@ -76,7 +78,7 @@ public final class ThreadLocalBuffer {
         /* We ensure we allocate a non-zero number of bytes so we can track the allocation. This avoids returning null
          * or reallocating a buffer that we technically have a pointer to. */
         final long allocationSize = alignUp(size);
-        if (allocationProfile.profile(remaining >= allocationSize)) {
+        if (allocationProfile.profile(node, remaining >= allocationSize)) {
             final Pointer pointer = new Pointer(context, cursor(), allocationSize);
             remaining -= allocationSize;
             assert invariants();

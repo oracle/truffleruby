@@ -11,6 +11,7 @@ package org.truffleruby.cext;
 
 import static org.truffleruby.core.symbol.CoreSymbols.idToIndex;
 
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -21,7 +22,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
 @ReportPolymorphism
@@ -31,11 +31,11 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
 
     @Specialization(guards = "isStaticSymbol(value)")
     protected RubySymbol unwrapStaticSymbol(long value,
-            @Cached BranchProfile errorProfile) {
+            @Cached InlinedBranchProfile errorProfile) {
         final int index = idToIndex(value);
         final RubySymbol symbol = getLanguage().coreSymbols.STATIC_SYMBOLS[index];
         if (symbol == null) {
-            errorProfile.enter();
+            errorProfile.enter(this);
             throw new RaiseException(
                     getContext(),
                     coreExceptions().runtimeError(

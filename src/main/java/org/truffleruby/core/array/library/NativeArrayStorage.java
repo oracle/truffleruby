@@ -16,7 +16,9 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.cext.UnwrapNode;
@@ -99,9 +101,10 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     protected void write(int index, Object value,
             @CachedLibrary(limit = "1") InteropLibrary wrappers,
             @Cached WrapNode wrapNode,
-            @Cached ConditionProfile isPointerProfile) {
+            @Cached InlinedConditionProfile isPointerProfile,
+            @Bind("$node") Node node) {
         final ValueWrapper wrapper = wrapNode.execute(value);
-        if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {
+        if (!isPointerProfile.profile(node, wrappers.isPointer(wrapper))) {
             wrappers.toNative(wrapper);
         }
 

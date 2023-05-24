@@ -16,7 +16,7 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
@@ -35,9 +35,9 @@ public abstract class SetClassVariableNode extends RubyBaseNode {
     protected Object setClassVariableLocal(RubyModule module, String name, Object value,
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") @Shared DynamicObjectLibrary objectLibrary,
-            @Cached @Shared BranchProfile slowPath) {
+            @Cached @Shared InlinedBranchProfile slowPath) {
         if (!objectLibrary.putIfPresent(classVariableStorage, name, value)) {
-            slowPath.enter();
+            slowPath.enter(this);
             ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
         }
         return value;
@@ -48,13 +48,13 @@ public abstract class SetClassVariableNode extends RubyBaseNode {
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") @Shared DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
-            @Cached @Shared BranchProfile slowPath) {
+            @Cached @Shared InlinedBranchProfile slowPath) {
         // See WriteObjectFieldNode
         writeBarrierNode.executeWriteBarrier(value);
 
         final boolean set = classVariableStorage.putIfPresent(name, value, objectLibrary);
         if (!set) {
-            slowPath.enter();
+            slowPath.enter(this);
             ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
         }
         return value;

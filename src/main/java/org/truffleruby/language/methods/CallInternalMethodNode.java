@@ -11,13 +11,14 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
@@ -92,14 +93,15 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     "cachedMethod.alwaysInlined()" },
             assumptions = "getMethodAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
-    protected Object alwaysInlined(
+    protected static Object alwaysInlined(
             Frame frame, InternalMethod method, Object receiver, Object[] rubyArgs, LiteralCallNode literalCallNode,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
             @Cached("cachedMethod.getSharedMethodInfo().getArity()") Arity cachedArity,
-            @Cached BranchProfile checkArityProfile,
-            @Cached BranchProfile exceptionProfile) {
+            @Cached InlinedBranchProfile checkArityProfile,
+            @Cached InlinedBranchProfile exceptionProfile,
+            @Bind("this") Node node) {
         assert !cachedArity.acceptsKeywords()
                 : "AlwaysInlinedMethodNodes are currently assumed to not use keyword arguments, the arity check depends on this";
         assert RubyArguments.getSelf(rubyArgs) == receiver;
@@ -111,24 +113,24 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         try {
             int given = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             if (!cachedArity.checkPositionalArguments(given)) {
-                checkArityProfile.enter();
+                checkArityProfile.enter(node);
                 throw RubyCheckArityRootNode.checkArityError(cachedArity, given, alwaysInlinedNode);
             }
 
             return alwaysInlinedNode.execute(frame, receiver, RubyArguments.repackForCall(rubyArgs), cachedCallTarget);
         } catch (RaiseException e) {
-            exceptionProfile.enter();
-            return alwaysInlinedException(e, alwaysInlinedNode, cachedCallTarget);
+            exceptionProfile.enter(node);
+            return alwaysInlinedException(node, e, alwaysInlinedNode, cachedCallTarget);
         }
     }
 
     @InliningCutoff
-    private Object alwaysInlinedException(RaiseException e, AlwaysInlinedMethodNode alwaysInlinedNode,
+    private static Object alwaysInlinedException(Node node, RaiseException e, AlwaysInlinedMethodNode alwaysInlinedNode,
             RootCallTarget cachedCallTarget) {
         final Node location = e.getLocation();
         if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
             // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
-            return RubyContext.indirectCallWithCallNode(this, cachedCallTarget, e);
+            return RubyContext.indirectCallWithCallNode(node, cachedCallTarget, e);
         } else {
             throw e;
         }
@@ -167,8 +169,9 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     method,
                     getUncachedAlwaysInlinedMethodNode(method),
                     method.getSharedMethodInfo().getArity(),
-                    BranchProfile.getUncached(),
-                    BranchProfile.getUncached());
+                    InlinedBranchProfile.getUncached(),
+                    InlinedBranchProfile.getUncached(),
+                    this);
         } finally {
             if (cachedToUncached) {
                 encapsulating.set(prev);

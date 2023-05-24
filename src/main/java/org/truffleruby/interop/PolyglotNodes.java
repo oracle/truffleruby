@@ -12,7 +12,7 @@ package org.truffleruby.interop;
 import java.io.IOException;
 
 import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -238,7 +238,7 @@ public abstract class PolyglotNodes {
                 @Cached StringHelperNodes.EqualNode codeEqualNode,
                 @Cached StringHelperNodes.EqualNode filenameEqualNode,
                 @Shared @Cached ForeignToRubyNode foreignToRubyNode,
-                @Shared @Cached BranchProfile errorProfile) {
+                @Shared @Cached InlinedBranchProfile errorProfile) {
             return eval(rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
         }
 
@@ -253,7 +253,7 @@ public abstract class PolyglotNodes {
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached ToJavaStringNode toJavaStringFileNode,
                 @Shared @Cached ForeignToRubyNode foreignToRubyNode,
-                @Shared @Cached BranchProfile errorProfile) {
+                @Shared @Cached InlinedBranchProfile errorProfile) {
             final String idString = toJavaStringIDNode.executeToJavaString(langId);
             final String codeString = toJavaStringCodeNode.executeToJavaString(code);
             final String filenameString = toJavaStringFileNode.executeToJavaString(filename);
@@ -264,22 +264,22 @@ public abstract class PolyglotNodes {
         }
 
         private Object eval(RubyInnerContext rubyInnerContext, Source source,
-                ForeignToRubyNode foreignToRubyNode, BranchProfile errorProfile) {
+                ForeignToRubyNode foreignToRubyNode, InlinedBranchProfile errorProfile) {
             final Object result;
             try {
                 result = rubyInnerContext.innerContext.evalPublic(this, source);
             } catch (IllegalStateException closed) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("This Polyglot::InnerContext is closed", this));
             } catch (ThreadDeath closed) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().runtimeError("Polyglot::InnerContext was terminated forcefully", this));
             } catch (IllegalArgumentException unknownLanguage) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError(Utils.concat("Unknown language: ", source.getLanguage()), this));

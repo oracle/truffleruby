@@ -30,7 +30,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.SimpleStack;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
@@ -661,7 +660,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class DeleteNode extends YieldingCoreMethodNode {
+    public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
@@ -673,9 +672,11 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared LoopConditionProfile loopProfile) {
+                @Cached @Shared LoopConditionProfile loopProfile,
+                @Cached @Shared CallBlockNode yieldNode) {
 
-            return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile);
+            return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile,
+                    yieldNode);
         }
 
         @Specialization(
@@ -686,11 +687,12 @@ public abstract class ArrayNodes {
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared LoopConditionProfile loopProfile) {
+                @Cached @Shared LoopConditionProfile loopProfile,
+                @Cached @Shared CallBlockNode yieldNode) {
 
             final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(array.size));
             return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,
-                    loopProfile);
+                    loopProfile, yieldNode);
         }
 
         private Object delete(RubyArray array, Object value, Object maybeBlock,
@@ -700,7 +702,8 @@ public abstract class ArrayNodes {
                 ArrayStoreLibrary oldStores,
                 ArrayStoreLibrary newStores,
                 IntValueProfile arraySizeProfile,
-                LoopConditionProfile loopProfile) {
+                LoopConditionProfile loopProfile,
+                CallBlockNode yieldNode) {
 
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
@@ -739,7 +742,7 @@ public abstract class ArrayNodes {
                 if (maybeBlock == nil) {
                     return nil;
                 } else {
-                    return callBlock((RubyProc) maybeBlock, value);
+                    return yieldNode.yield((RubyProc) maybeBlock, value);
                 }
             }
         }
@@ -821,7 +824,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class EachNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
         @Specialization
         protected Object each(RubyArray array, RubyProc block,
@@ -830,9 +833,9 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object state, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
             RubyProc block = (RubyProc) state;
-            callBlock(block, element);
+            yieldNode.yield(block, element);
         }
 
     }
@@ -842,8 +845,6 @@ public abstract class ArrayNodes {
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode
             implements ArrayElementConsumerNode {
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
-
         @Specialization
         protected Object eachOther(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
@@ -851,7 +852,7 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object state, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
             RubyProc block = (RubyProc) state;
             yieldNode.yield(block, element, index);
         }
@@ -1123,7 +1124,7 @@ public abstract class ArrayNodes {
             lowerFixnum = 1,
             argumentNames = { "size_or_copy", "filling_value", "block" })
     @ImportStatic({ ArrayGuards.class, ArrayStoreLibrary.class })
-    public abstract static class InitializeNode extends YieldingCoreMethodNode {
+    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
         @Child private DispatchNode toAryNode;
@@ -1235,13 +1236,14 @@ public abstract class ArrayNodes {
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile,
-                @Cached @Exclusive LoopConditionProfile loopProfile) {
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @Cached CallBlockNode yieldNode) {
             BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; loopProfile.inject(n < size); n++) {
-                    final Object value = callBlock(block, n);
+                    final Object value = yieldNode.yield(block, n);
                     arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
@@ -1347,7 +1349,6 @@ public abstract class ArrayNodes {
         }
 
         @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         // Uses block and no Symbol
 
@@ -1390,10 +1391,9 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
             final State state = (State) stateObject;
-            final Object accumulator = yieldNode.yield(state.block, state.accumulator, element);
-            state.accumulator = accumulator;
+            state.accumulator = yieldNode.yield(state.block, state.accumulator, element);
         }
 
         // Uses Symbol and no block
@@ -1478,7 +1478,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
+    public abstract static class MapNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
         private static class State {
             final BuilderState builderState;
@@ -1506,10 +1506,10 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
             final State state = (State) stateObject;
 
-            Object value = callBlock(state.block, element);
+            Object value = yieldNode.yield(state.block, element);
             arrayBuilder.appendValue(state.builderState, index, value);
         }
 
@@ -1517,7 +1517,8 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map!", "collect!" }, needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapInPlaceNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
+    public abstract static class MapInPlaceNode extends CoreMethodArrayArgumentsNode
+            implements ArrayElementConsumerNode {
 
         @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
@@ -1528,9 +1529,9 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object state, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
             RubyProc block = (RubyProc) state;
-            writeNode.executeWrite(array, index, callBlock(block, element));
+            writeNode.executeWrite(array, index, yieldNode.yield(block, element));
         }
 
     }
@@ -1762,7 +1763,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class RejectNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
+    public abstract static class RejectNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
         private static class State {
             final BuilderState builderState;
@@ -1793,10 +1794,10 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
             final State state = (State) stateObject;
 
-            if (!booleanCastNode.execute(callBlock(state.block, element))) {
+            if (!booleanCastNode.execute(yieldNode.yield(state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.newArraySize, element);
                 state.newArraySize++;
             }
@@ -1975,7 +1976,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "select", "filter" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class SelectNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
+    public abstract static class SelectNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
         private static class State {
             final BuilderState builderState;
@@ -2006,10 +2007,10 @@ public abstract class ArrayNodes {
         }
 
         @Override
-        public void accept(RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
             final State state = (State) stateObject;
 
-            if (booleanCastNode.execute(callBlock(state.block, element))) {
+            if (booleanCastNode.execute(yieldNode.yield(state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.selectedSize, element);
                 state.selectedSize++;
             }

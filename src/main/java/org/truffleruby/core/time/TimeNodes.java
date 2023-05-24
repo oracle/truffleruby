@@ -11,12 +11,14 @@ package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
@@ -166,17 +168,17 @@ public abstract class TimeNodes {
 
         @Specialization
         protected RubyTime gmtime(RubyTime time,
-                @Cached BranchProfile errorProfile,
-                @Cached BranchProfile notModifiedProfile,
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached InlinedBranchProfile notModifiedProfile,
                 @Cached IsFrozenNode isFrozenNode) {
 
             if (time.isUtc) {
-                notModifiedProfile.enter();
+                notModifiedProfile.enter(this);
                 return time;
             }
 
             if (isFrozenNode.execute(time)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().frozenError(time, this));
             }
 
@@ -417,30 +419,30 @@ public abstract class TimeNodes {
     @Primitive(name = "time_strftime")
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
-
         @Specialization(
                 guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
-        protected RubyString timeStrftimeCached(RubyTime time, Object format,
+        protected static RubyString timeStrftimeCached(RubyTime time, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
-                @Cached ConditionProfile yearIsFastProfile,
+                @Cached InlinedConditionProfile yearIsFastProfile,
                 @Cached @Shared TruffleString.ConcatNode concatNode,
                 @Cached @Shared TruffleString.FromLongNode fromLongNode,
                 @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
-            if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared ErrnoErrorNode errnoErrorNode,
+                @Bind("this") Node node) {
+            if (canUseFast && yearIsFastProfile.profile(node, yearIsFast(time))) {
                 var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);
-                return createString(tstring, Encodings.UTF_8);
+                return createString(node, tstring, Encodings.UTF_8);
             } else {
-                final TStringBuilder tstringBuilder = formatTime(time, pattern);
-                return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), cachedEncoding);
+                final TStringBuilder tstringBuilder = formatTime(node, time, pattern, errnoErrorNode);
+                return createString(node, tstringBuilder.toTStringUnsafe(fromByteArrayNode), cachedEncoding);
             }
         }
 
@@ -451,7 +453,8 @@ public abstract class TimeNodes {
                 @Cached @Shared TruffleString.ConcatNode concatNode,
                 @Cached @Shared TruffleString.FromLongNode fromLongNode,
                 @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared ErrnoErrorNode errnoErrorNode) {
             final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
             final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
@@ -459,7 +462,7 @@ public abstract class TimeNodes {
                         codePointLengthNode);
                 return createString(tstring, Encodings.UTF_8);
             } else {
-                final TStringBuilder tstringBuilder = formatTime(time, pattern);
+                final TStringBuilder tstringBuilder = formatTime(this, time, pattern, errnoErrorNode);
                 return createString(tstringBuilder.toTStringUnsafe(fromByteArrayNode), rubyEncoding);
             }
         }
@@ -468,7 +471,7 @@ public abstract class TimeNodes {
             return RubyDateFormatter.formatCanBeFast(pattern);
         }
 
-        protected boolean yearIsFast(RubyTime time) {
+        protected static boolean yearIsFast(RubyTime time) {
             // See formatCanBeFast
             final int year = time.dateTime.getYear();
             return year >= 1000 && year <= 9999;
@@ -480,15 +483,16 @@ public abstract class TimeNodes {
 
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
 
-        private TStringBuilder formatTime(RubyTime time, Token[] pattern) {
+        private static TStringBuilder formatTime(Node node, RubyTime time, Token[] pattern,
+                ErrnoErrorNode errnoErrorNode) {
             return RubyDateFormatter.formatToTStringBuilder(
                     pattern,
                     time.dateTime,
                     time.zone,
                     time.isUtc,
-                    getContext(),
-                    getLanguage(),
-                    this,
+                    getContext(node),
+                    getLanguage(node),
+                    node,
                     errnoErrorNode);
         }
 

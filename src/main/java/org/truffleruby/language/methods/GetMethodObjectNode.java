@@ -17,7 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -52,17 +52,17 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached ToSymbolNode toSymbolNode,
             @Cached DispatchNode respondToMissingNode,
             @Cached BooleanCastNode booleanCastNode,
-            @Cached ConditionProfile notFoundProfile,
-            @Cached ConditionProfile respondToMissingProfile,
+            @Cached InlinedConditionProfile notFoundProfile,
+            @Cached InlinedConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
         final String normalizedName = nameToJavaStringNode.execute(name);
         InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 
-        if (notFoundProfile.profile(method == null)) {
+        if (notFoundProfile.profile(this, method == null)) {
             final RubySymbol symbolName = toSymbolNode.execute(name);
             final Object respondToMissing = respondToMissingNode
                     .call(self, "respond_to_missing?", symbolName, dispatchConfig.ignoreVisibility);
-            if (respondToMissingProfile.profile(booleanCastNode.execute(respondToMissing))) {
+            if (respondToMissingProfile.profile(this, booleanCastNode.execute(respondToMissing))) {
                 // refinements should not affect BasicObject#method_missing: https://bugs.ruby-lang.org/issues/13129
                 final InternalMethod methodMissing = lookupMethodNode.execute(
                         frame,

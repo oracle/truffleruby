@@ -9,13 +9,13 @@
  */
 package org.truffleruby.core.objectspace;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareByRubyIdentityWrapper;
@@ -23,11 +23,13 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.Collection;
 
@@ -104,7 +106,7 @@ public abstract class WeakMapNodes {
     }
 
     @CoreMethod(names = { "each_key" }, needsBlock = true)
-    public abstract static class EachKeyNode extends YieldingCoreMethodNode {
+    public abstract static class EachKeyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyWeakMap eachKey(RubyWeakMap map, Nil block) {
@@ -112,16 +114,17 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             for (Object key : keys(map.storage)) {
-                callBlock(block, key);
+                yieldNode.yield(block, key);
             }
             return map;
         }
     }
 
     @CoreMethod(names = { "each_value" }, needsBlock = true)
-    public abstract static class EachValueNode extends YieldingCoreMethodNode {
+    public abstract static class EachValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyWeakMap eachValue(RubyWeakMap map, Nil block) {
@@ -129,16 +132,17 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             for (Object value : values(map.storage)) {
-                callBlock(block, value);
+                yieldNode.yield(block, value);
             }
             return map;
         }
     }
 
     @CoreMethod(names = { "each", "each_pair" }, needsBlock = true)
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyWeakMap each(RubyWeakMap map, Nil block) {
@@ -146,10 +150,11 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap each(RubyWeakMap map, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
 
             for (SimpleEntry<?, ?> entry : entries(map.storage)) {
-                callBlock(block, entry.getKey(), entry.getValue());
+                yieldNode.yield(block, entry.getKey(), entry.getValue());
             }
 
             return map;
@@ -183,7 +188,7 @@ public abstract class WeakMapNodes {
         return entries;
     }
 
-    private static RubyWeakMap eachNoBlockProvided(YieldingCoreMethodNode node, RubyWeakMap map) {
+    private static RubyWeakMap eachNoBlockProvided(RubyBaseNode node, RubyWeakMap map) {
         if (map.storage.size() == 0) {
             return map;
         }

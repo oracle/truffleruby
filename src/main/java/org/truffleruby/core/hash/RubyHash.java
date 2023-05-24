@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -23,9 +24,10 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.hash.library.BucketsHashStore;
@@ -148,10 +150,11 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public Object readHashValue(Object key,
             @CachedLibrary("this.store") HashStoreLibrary hashStores,
             @Cached @Shared ForeignToRubyNode toRuby,
-            @Cached ConditionProfile unknownKey)
+            @Cached InlinedConditionProfile unknownKey,
+            @Bind("$node") Node node)
             throws UnknownKeyException {
         final Object value = hashStores.lookupOrDefault(store, null, this, toRuby.executeConvert(key), NULL_PROVIDER);
-        if (unknownKey.profile(value == null)) {
+        if (unknownKey.profile(node, value == null)) {
             throw UnknownKeyException.create(key);
         }
         return value;

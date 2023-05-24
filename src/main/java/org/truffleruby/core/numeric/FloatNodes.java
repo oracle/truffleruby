@@ -18,9 +18,11 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.annotations.CoreMethod;
@@ -405,14 +407,14 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
         protected int compareDoubleDouble(double a, double b,
-                @Shared @Cached ConditionProfile equalProfile) {
-            return compareDoubles(a, b, equalProfile);
+                @Shared @Cached InlinedConditionProfile equalProfile) {
+            return compareDoubles(a, b, equalProfile, this);
         }
 
         @Specialization(guards = "!isNaN(a)")
         protected int compareDoubleLong(double a, long b,
-                @Shared @Cached ConditionProfile equalProfile) {
-            return compareDoubles(a, b, equalProfile);
+                @Shared @Cached InlinedConditionProfile equalProfile) {
+            return compareDoubles(a, b, equalProfile, this);
         }
 
         @Specialization(guards = "!isNaN(a)")
@@ -426,8 +428,8 @@ public abstract class FloatNodes {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
-        public static int compareDoubles(double a, double b, ConditionProfile equalProfile) {
-            if (equalProfile.profile(a == b)) {
+        public static int compareDoubles(double a, double b, InlinedConditionProfile equalProfile, Node node) {
+            if (equalProfile.profile(node, a == b)) {
                 return 0;
             } else {
                 return a > b ? 1 : -1;
@@ -643,14 +645,14 @@ public abstract class FloatNodes {
 
         @Specialization
         protected double roundNDecimal(double n, int ndigits,
-                @Cached ConditionProfile boundaryCase) {
+                @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
-            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+            if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
                 return findClosest(n, ndigits, s, d);
             } else if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
@@ -742,14 +744,14 @@ public abstract class FloatNodes {
 
         @Specialization
         protected double roundNDecimal(double n, int ndigits,
-                @Cached ConditionProfile boundaryCase) {
+                @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
-            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+            if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
                 return findClosest(n, ndigits, s, d);
             } else if (d > 0.5) {
@@ -806,14 +808,14 @@ public abstract class FloatNodes {
 
         @Specialization
         protected double roundNDecimal(double n, int ndigits,
-                @Cached ConditionProfile boundaryCase) {
+                @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
             double f = (n % 1) * s;
             long fInt = (long) f;
             double d = f % 1;
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
-            if (boundaryCase.profile((Math.getExponent(d) <= limit) ||
+            if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
                 return findClosest(n, ndigits, s, d);
             } else if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {

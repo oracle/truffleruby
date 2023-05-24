@@ -10,6 +10,8 @@
 package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
@@ -38,8 +40,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Fiber", isClass = true)
@@ -71,15 +71,15 @@ public abstract class FiberNodes {
                 FiberOperation operation,
                 ArgumentsDescriptor descriptor,
                 Object[] args,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
 
             if (toFiber.isTerminated()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().deadFiberCalledError(this));
             }
 
             if (toFiber.rubyThread != currentFiber.rubyThread) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("fiber called across threads", this));
@@ -147,24 +147,24 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] rawArgs,
-                @Cached ConditionProfile sameFiberProfile,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedConditionProfile sameFiberProfile,
+                @Cached InlinedBranchProfile errorProfile) {
 
             if (toFiber.resumingFiber != null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions()
                         .fiberError("attempt to transfer to a resuming fiber", this));
             }
 
             if (toFiber.yielding) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions()
                         .fiberError("attempt to transfer to a yielding fiber", this));
             }
 
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
 
-            if (sameFiberProfile.profile(currentFiber == toFiber)) {
+            if (sameFiberProfile.profile(this, currentFiber == toFiber)) {
                 // A Fiber can transfer to itself
                 return fiberTransferNode.singleValue(rawArgs);
             }
@@ -190,33 +190,33 @@ public abstract class FiberNodes {
         @Specialization
         protected Object resume(
                 FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
 
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
 
             if (toFiber.isTerminated()) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to resume a terminated fiber", this));
             } else if (toFiber == currentFiber) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to resume the current fiber", this));
             } else if (toFiber.lastResumedByFiber != null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to resume a resumed fiber (double resume)", this));
             } else if (toFiber.resumingFiber != null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to resume a resuming fiber", this));
             } else if (toFiber.lastResumedByFiber == null &&
                     (!toFiber.yielding && toFiber.status != FiberStatus.CREATED)) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to resume a transferring fiber", this));
@@ -236,14 +236,14 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object raise(RubyFiber fiber, RubyException exception,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             if (fiber.resumingFiber != null) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("attempt to raise a resuming fiber", this));
             } else if (fiber.status == FiberStatus.CREATED) {
-                errorProfile.enter();
+                errorProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
@@ -301,7 +301,7 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object fiberYield(VirtualFrame frame, Object[] rawArgs,
-                @Cached BranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
 
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
 

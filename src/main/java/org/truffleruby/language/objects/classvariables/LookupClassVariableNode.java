@@ -14,7 +14,7 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -30,11 +30,11 @@ public abstract class LookupClassVariableNode extends RubyBaseNode {
     @Specialization
     protected Object lookupClassVariable(RubyModule module, String name,
             @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
-            @Cached ConditionProfile noStorageProfile,
+            @Cached InlinedConditionProfile noStorageProfile,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
         final ClassVariableStorage classVariables = lookupClassVariableStorageNode.execute(module, name);
 
-        if (noStorageProfile.profile(classVariables == null)) {
+        if (noStorageProfile.profile(this, classVariables == null)) {
             return null;
         } else {
             return classVariables.read(name, objectLibrary);
