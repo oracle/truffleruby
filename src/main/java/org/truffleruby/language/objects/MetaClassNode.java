@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -50,7 +51,8 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
     protected RubyClass immutable(Object value,
-            @Cached ImmutableClassNode immutableClassNode) {
+            @Cached ImmutableClassNode immutableClassNode,
+            @Cached ConditionProfile p) {
         return immutableClassNode.execute(this, value);
     }
 
