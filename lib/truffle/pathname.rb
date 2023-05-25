@@ -763,6 +763,7 @@ class Pathname
   # This method has existed since 1.8.1.
   #
   def relative_path_from(base_directory)
+    base_directory = Pathname.new(base_directory) unless Primitive.is_a?(base_directory, Pathname)
     dest_directory = self.cleanpath.to_s
     base_directory = base_directory.cleanpath.to_s
     dest_prefix = dest_directory
