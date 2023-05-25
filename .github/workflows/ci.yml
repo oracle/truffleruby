@@ -30,6 +30,9 @@ jobs:
     - run: jt install eclipse
     - name: Install RuboCop
       run: gem install --no-document rubocop:0.66.0
+    - name: Build with --warning-as-error to ensure there are no non-deprecation warnings
+      # See comment in ci.jsonnet about --jdt
+      run: jt build -- --jdt builtin --warning-as-error --force-deprecation-as-warning
     - run: jt lint
 
   build:
