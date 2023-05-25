@@ -11,7 +11,10 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -27,6 +30,8 @@ import java.util.ArrayList;
 
 @ReportPolymorphism
 @GenerateUncached
+@GenerateCached(false)
+@GenerateInline(inlineByDefault = true)
 public abstract class ForeignClassNode extends RubyBaseNode {
 
     // Specs for traits are in
@@ -67,7 +72,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
         }
     }
 
-    public abstract RubyClass execute(Object value);
+    public abstract RubyClass execute(Node node, Object value);
 
     @Specialization(guards = "getTraits(object, interop) == cachedTraits", limit = "getInteropCacheLimit()")
     protected RubyClass cached(Object object,

@@ -67,9 +67,9 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass foreign(Object object,
+    protected static RubyClass foreign(Node node, Object object,
             @Cached ForeignClassNode foreignClassNode) {
-        return foreignClassNode.execute(object);
+        return foreignClassNode.execute(node, object);
     }
 
     protected int getCacheLimit() {
