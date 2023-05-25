@@ -99,7 +99,7 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyClass metaClass(Object object,
                 @Cached MetaClassNode metaClassNode) {
-            return metaClassNode.execute(object);
+            return metaClassNode.execute(this, object);
         }
     }
 
@@ -128,7 +128,7 @@ public abstract class TypeNodes {
         protected Object freezeNormalObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Shared MetaClassNode metaClassNode,
-                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
             freezeNode.execute(self);
             return self;
         }
@@ -140,7 +140,7 @@ public abstract class TypeNodes {
                 @Cached IsFrozenNode isFrozenMetaClassNode,
                 @Cached InlinedConditionProfile singletonClassUnfrozenProfile,
                 @Cached @Shared MetaClassNode metaClassNode,
-                @Bind("metaClassNode.execute(self)") RubyClass metaClass) {
+                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
             if (singletonClassUnfrozenProfile.profile(this,
                     !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
                 freezeMetaClasNode.execute(metaClass);

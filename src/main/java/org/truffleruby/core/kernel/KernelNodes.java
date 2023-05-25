@@ -569,7 +569,7 @@ public abstract class KernelNodes {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = metaClassNode.execute(object);
+            final RubyClass selfMetaClass = metaClassNode.execute(this, object);
             if (isSingletonProfile.profile(this, selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
@@ -1261,7 +1261,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "regular")
         protected RubyArray methodsRegular(Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyModule metaClass = metaClassNode.execute(self);
+            final RubyModule metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), regular, MethodFilter.PUBLIC_PROTECTED)
@@ -1311,8 +1311,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
         @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
@@ -1320,8 +1318,9 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray privateMethods(Object self, boolean includeAncestors) {
-            RubyClass metaClass = metaClassNode.execute(self);
+        protected RubyArray privateMethods(Object self, boolean includeAncestors,
+                @Cached MetaClassNode metaClassNode) {
+            RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PRIVATE)
@@ -1347,8 +1346,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
         @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
@@ -1356,8 +1353,9 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray protectedMethods(Object self, boolean includeAncestors) {
-            final RubyClass metaClass = metaClassNode.execute(self);
+        protected RubyArray protectedMethods(Object self, boolean includeAncestors,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PROTECTED)
@@ -1387,8 +1385,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
         @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
@@ -1396,8 +1392,9 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray publicMethods(Object self, boolean includeAncestors) {
-            final RubyModule metaClass = metaClassNode.execute(self);
+        protected RubyArray publicMethods(Object self, boolean includeAncestors,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyModule metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
@@ -1524,7 +1521,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
@@ -1535,8 +1531,9 @@ public abstract class KernelNodes {
         protected RubyMethod singletonMethod(Object self, String name,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached InlinedConditionProfile singletonProfile,
-                @Cached InlinedConditionProfile methodProfile) {
-            final RubyClass metaClass = metaClassNode.execute(self);
+                @Cached InlinedConditionProfile methodProfile,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass metaClass = metaClassNode.execute(this, self);
 
             if (singletonProfile.profile(this, metaClass.isSingleton)) {
                 final InternalMethod method = metaClass.fields.getMethod(name);
@@ -1580,7 +1577,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyArray singletonMethods(Object self, boolean includeAncestors,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(self);
+            final RubyClass metaClass = metaClassNode.execute(this, self);
 
             if (!metaClass.isSingleton) {
                 return createEmptyArray();
@@ -1601,7 +1598,7 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean hasSingletonMethods(Object self,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(self);
+            final RubyClass metaClass = metaClassNode.execute(this, self);
 
             if (!metaClass.isSingleton) {
                 return false;

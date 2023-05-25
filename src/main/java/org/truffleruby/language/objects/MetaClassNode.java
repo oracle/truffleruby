@@ -10,7 +10,9 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -21,6 +23,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 // Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
 public abstract class MetaClassNode extends RubyBaseNode {
 
     @NeverDefault
@@ -32,7 +35,15 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.getUncached();
     }
 
-    public abstract RubyClass execute(Object value);
+    public final RubyClass executeCached(Object value) {
+        return execute(this, value);
+    }
+
+    public final RubyClass executeUncached(Object value) {
+        return execute(null, value);
+    }
+
+    public abstract RubyClass execute(Node node, Object value);
 
     @Specialization(
             guards = { "isSingleContext()", "object == cachedObject", "metaClass.isSingleton" },
@@ -49,9 +60,9 @@ public abstract class MetaClassNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
-    protected RubyClass immutable(Object value,
+    protected static RubyClass immutable(Node node, Object value,
             @Cached ImmutableClassNode immutableClassNode) {
-        return immutableClassNode.execute(this, value);
+        return immutableClassNode.execute(node, value);
     }
 
     @InliningCutoff

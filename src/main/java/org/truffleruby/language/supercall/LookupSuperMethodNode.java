@@ -17,16 +17,14 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
 public abstract class LookupSuperMethodNode extends RubyBaseNode {
-
-    @Child private MetaClassNode metaClassNode;
 
     public abstract InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self);
 
@@ -40,20 +38,22 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
             guards = {
                     "isSingleContext()",
                     "getCurrentMethod(frame) == currentMethod",
-                    "metaClass(self) == selfMetaClass" },
+                    "metaClass(metaClassNode, self) == selfMetaClass" },
             assumptions = "superMethod.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
-            @Cached("metaClass(self)") RubyClass selfMetaClass,
+            @Cached @Shared MetaClassNode metaClassNode,
+            @Cached("metaClass(metaClassNode, self)") RubyClass selfMetaClass,
             @Cached("doLookup(currentMethod, selfMetaClass)") MethodLookupResult superMethod) {
         return superMethod.getMethod();
     }
 
     @Specialization
-    protected InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self) {
+    protected InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self,
+            @Cached @Shared MetaClassNode metaClassNode) {
         final InternalMethod currentMethod = getCurrentMethod(frame);
-        final RubyClass selfMetaClass = metaClass(self);
+        final RubyClass selfMetaClass = metaClass(metaClassNode, self);
         return doLookup(currentMethod, selfMetaClass).getMethod();
     }
 
@@ -61,12 +61,8 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
         return RubyArguments.getMethod(frame);
     }
 
-    protected RubyClass metaClass(Object object) {
-        if (metaClassNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            metaClassNode = insert(MetaClassNode.create());
-        }
-        return metaClassNode.execute(object);
+    protected RubyClass metaClass(MetaClassNode metaClassNode, Object object) {
+        return metaClassNode.execute(this, object);
     }
 
     @TruffleBoundary

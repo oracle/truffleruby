@@ -79,7 +79,7 @@ public class InternalRespondToNode extends RubyBaseNode {
             DispatchConfiguration config,
             MetaClassNode metaclassNode,
             LookupMethodNode methodLookup) {
-        final RubyClass metaclass = metaclassNode.execute(receiver);
+        final RubyClass metaclass = metaclassNode.executeCached(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
         return method != null && method.isDefined() && method.isImplemented();
     }

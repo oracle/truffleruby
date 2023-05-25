@@ -121,7 +121,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             if (noCallerMethodProfile.profile(this, callerMethod == null)) {
                 callerClass = coreLibrary().objectClass;
             } else {
-                callerClass = metaClassNode.execute(RubyArguments.getSelf(frame));
+                callerClass = metaClassNode.execute(this, RubyArguments.getSelf(frame));
             }
 
             if (!isVisibleProfile.profile(this, method.isProtectedMethodVisibleTo(callerClass))) {
@@ -177,7 +177,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         if (callerMethod == null) {
             return context.getCoreLibrary().objectClass;
         } else {
-            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callingFrame));
+            return MetaClassNode.getUncached().executeUncached(RubyArguments.getSelf(callingFrame));
         }
     }
 
