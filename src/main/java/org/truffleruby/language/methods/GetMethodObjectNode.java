@@ -106,7 +106,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                 ReturnID.INVALID);
         final RootCallTarget newCallTarget = newRootNode.getCallTarget();
 
-        final RubyClass module = MetaClassNode.getUncached().executeUncached(self);
+        final RubyClass module = MetaClassNode.executeUncached(self);
         return new InternalMethod(
                 getContext(),
                 info,

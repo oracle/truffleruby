@@ -624,7 +624,7 @@ public abstract class BasicObjectNodes {
                 FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);
             final InternalMethod method = ModuleOperations
-                    .lookupMethodUncached(MetaClassNode.getUncached().executeUncached(self), name, declarationContext);
+                    .lookupMethodUncached(MetaClassNode.executeUncached(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility() == Visibility.PRIVATE || method.getVisibility() == Visibility.PROTECTED;
                 return method.getVisibility();

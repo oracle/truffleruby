@@ -177,7 +177,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         if (callerMethod == null) {
             return context.getCoreLibrary().objectClass;
         } else {
-            return MetaClassNode.getUncached().executeUncached(RubyArguments.getSelf(callingFrame));
+            return MetaClassNode.executeUncached(RubyArguments.getSelf(callingFrame));
         }
     }
 
