@@ -110,6 +110,7 @@ Compatibility:
 * Add `rb_io_maybe_wait_readable`, `rb_io_maybe_wait_writable` and `rb_io_maybe_wait` functions (#2733, @andrykonchin).
 * `StringIO#set_encoding` should coerce the argument to an Encoding (#2954, @eregon).
 * Implement changes of Ruby 3.0 to `IO#wait` (#2953, @larskanis).
+* Fix `Pathname#relative_path_from` to convert string arguments to Pathname objects (@rwstauner).
 
 Performance:
 
