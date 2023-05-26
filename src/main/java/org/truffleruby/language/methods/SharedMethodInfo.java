@@ -220,8 +220,7 @@ public final class SharedMethodInfo {
             if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 descriptiveNameAndSource = descriptiveName;
             } else {
-                descriptiveNameAndSource = descriptiveName + " " +
-                        RubyLanguage.getPath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
+                descriptiveNameAndSource = descriptiveName + " " + RubyLanguage.fileLineRange(sourceSection);
             }
         }
 

@@ -27,6 +27,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.parser.RubySource;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
 public class ThreadBacktraceLocationNodes {
@@ -134,7 +135,7 @@ public class ThreadBacktraceLocationNodes {
         protected int lineno(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
-            return sourceSection.getStartLine();
+            return RubySource.getStartLineAdjusted(getContext(), sourceSection);
         }
 
     }
