@@ -80,6 +80,10 @@ module Polyglot
       to_s.byteslice(...)
     end
 
+    def bytesplice(...)
+      to_s.bytesplice(...)
+    end
+
     def capitalize(...)
       to_s.capitalize(...)
     end

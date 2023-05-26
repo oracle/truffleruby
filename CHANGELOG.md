@@ -17,6 +17,7 @@ Compatibility:
 * Fix `Range#size` and return `nil` for beginningless Range when end isn't Numeric (#3039, @rwstauner).
 * Alias `String#-@` to `String#dedup` (#3039, @itarato).
 * Fix `Pathname#relative_path_from` to convert string arguments to Pathname objects (@rwstauner).
+* Add `String#bytesplice` (#3039, @itarato).
 
 Performance:
 

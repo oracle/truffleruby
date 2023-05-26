@@ -4459,4 +4459,16 @@ public abstract class StringNodes {
 
     }
 
+    @Primitive(name = "string_is_character_head?", lowerFixnum = 2)
+    public abstract static class IsCharacterHeadPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isCharacterHead(RubyEncoding enc, Object string, int byteOffset,
+                @Cached RubyStringLibrary libString,
+                @Cached IsCharacterHeadNode isCharacterHeadNode) {
+            var tstring = libString.getTString(string);
+            return isCharacterHeadNode.execute(enc, tstring, byteOffset);
+        }
+    }
+
 }
