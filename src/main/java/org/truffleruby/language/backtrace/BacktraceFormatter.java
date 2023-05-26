@@ -289,10 +289,7 @@ public class BacktraceFormatter {
             if (sourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(language.getSourcePath(sourceSection.getSource()));
-                if (sourceSection.isAvailable()) {
-                    builder.append(":").append(sourceSection.getStartLine());
-                }
+                builder.append(context.fileLine(sourceSection));
             }
         }
 
@@ -357,6 +354,7 @@ public class BacktraceFormatter {
         return null;
     }
 
+    @TruffleBoundary
     public static boolean isAvailable(SourceSection sourceSection) {
         return sourceSection != null && sourceSection.isAvailable();
     }

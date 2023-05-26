@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -24,11 +25,9 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.UnboundMethodNodes.MethodRuby2KeywordsNode;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
@@ -226,18 +225,13 @@ public abstract class ProcNodes {
         @TruffleBoundary
         @Specialization
         protected Object sourceLocation(RubyProc proc) {
-            SourceSection sourceSection = proc.getSharedMethodInfo().getSourceSection();
+            var sourceSection = proc.getSharedMethodInfo().getSourceSection();
 
-            final String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
-            if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
+            var source = sourceSection.getSource();
+            if (!sourceSection.isAvailable() || RubyLanguage.getPath(source).endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
-                final RubyString file = createString(
-                        fromJavaStringNode,
-                        sourcePath,
-                        Encodings.UTF_8);
-
-                return createArray(new Object[]{ file, sourceSection.getStartLine() });
+                return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
             }
         }
 

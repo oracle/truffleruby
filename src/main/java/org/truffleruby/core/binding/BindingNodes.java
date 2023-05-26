@@ -33,9 +33,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
@@ -533,24 +531,14 @@ public abstract class BindingNodes {
         }
     }
 
-    // NOTE: Introduced in Ruby 2.6, but already useful for Binding#eval
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         protected Object sourceLocation(RubyBinding binding,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            final SourceSection sourceSection = binding.sourceSection;
-
-            if (sourceSection == null) {
-                return nil;
-            } else {
-                final RubyString file = createString(fromJavaStringNode,
-                        getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8);
-                return createArray(new Object[]{ file, sourceSection.getStartLine() });
-            }
+            var sourceSection = binding.sourceSection;
+            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
         }
     }
 

@@ -143,6 +143,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.parser.RubySource;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -1180,7 +1181,7 @@ public class CExtNodes {
         @Specialization
         protected int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
-            return sourceSection.getStartLine();
+            return RubySource.getStartLineAdjusted(getContext(), sourceSection);
         }
 
     }
