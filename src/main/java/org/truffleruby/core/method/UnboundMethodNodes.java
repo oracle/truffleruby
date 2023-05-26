@@ -21,12 +21,10 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToSymbolNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
@@ -45,7 +43,6 @@ import org.truffleruby.utils.Utils;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "UnboundMethod", isClass = true)
 public abstract class UnboundMethodNodes {
@@ -210,27 +207,12 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
-        @TruffleBoundary
         @Specialization
-        protected Object sourceLocation(RubyUnboundMethod unboundMethod) {
-            SourceSection sourceSection = unboundMethod.method
-                    .getSharedMethodInfo()
-                    .getSourceSection();
-
-            if (!sourceSection.isAvailable()) {
-                return nil;
-            } else {
-                RubyString file = createString(
-                        fromJavaStringNode,
-                        getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8);
-                Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
-                return createArray(objects);
-            }
+        protected Object sourceLocation(RubyUnboundMethod unboundMethod,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            var sourceSection = unboundMethod.method.getSharedMethodInfo().getSourceSection();
+            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
         }
-
     }
 
     @CoreMethod(names = "super_method")

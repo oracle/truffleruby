@@ -1253,11 +1253,7 @@ public abstract class ModuleNodes {
             if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 return createEmptyArray();
             } else {
-                final RubyString file = createString(
-                        fromJavaStringNode,
-                        getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8);
-                return createArray(new Object[]{ file, sourceSection.getStartLine() });
+                return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
             }
         }
 

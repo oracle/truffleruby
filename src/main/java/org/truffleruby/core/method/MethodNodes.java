@@ -20,7 +20,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -30,7 +29,6 @@ import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -56,7 +54,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Method", isClass = true)
 public abstract class MethodNodes {
@@ -229,30 +226,17 @@ public abstract class MethodNodes {
         protected Object receiver(RubyMethod method) {
             return method.receiver;
         }
-
     }
 
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
-        @TruffleBoundary
         @Specialization
-        protected Object sourceLocation(RubyMethod method) {
-            SourceSection sourceSection = method.method.getSharedMethodInfo().getSourceSection();
-
-            if (!sourceSection.isAvailable()) {
-                return nil;
-            } else {
-                RubyString file = createString(
-                        fromJavaStringNode,
-                        getLanguage().getSourcePath(sourceSection.getSource()),
-                        Encodings.UTF_8);
-                return createArray(new Object[]{ file, sourceSection.getStartLine() });
-            }
+        protected Object sourceLocation(RubyMethod method,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            var sourceSection = method.method.getSharedMethodInfo().getSourceSection();
+            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
         }
-
     }
 
     @CoreMethod(names = "super_method")

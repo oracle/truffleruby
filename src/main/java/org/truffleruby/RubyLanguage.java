@@ -44,6 +44,7 @@ import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.exception.RubyException;
@@ -99,12 +100,13 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.interop.RubySourceLocation;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -133,6 +135,8 @@ import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.stdlib.digest.RubyDigest;
+
+import static org.truffleruby.language.RubyBaseNode.nil;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -185,7 +189,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables. Any other
      * root nodes should should use
      * {@link TranslatorEnvironment#newFrameDescriptorBuilder(org.truffleruby.parser.ParentFrameDescriptor, boolean)}. */
-    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(Nil.INSTANCE);
+    public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(nil);
 
     private RubyThread getOrCreateForeignThread(RubyContext context, Thread thread) {
         RubyThread foreignThread = rubyThreadInitMap.remove(thread);
@@ -842,6 +846,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     /** {@link RubyLanguage#getPath(Source)} but also handles core library sources. Ideally this method would be static
      * but for now the core load path is an option and it also depends on the current working directory. Once we have
      * Source metadata in Truffle we could use that to identify core library sources without needing the language. */
+    @TruffleBoundary
     public String getSourcePath(Source source) {
         final String path = getPath(source);
         if (path.startsWith(coreLoadPath)) {
@@ -903,6 +908,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             } else {
                 return filename;
             }
+        }
+    }
+
+    public Object rubySourceLocation(RubyContext context, SourceSection section,
+            TruffleString.FromJavaStringNode fromJavaStringNode,
+            RubyBaseNode node) {
+        if (!BacktraceFormatter.isAvailable(section)) {
+            return nil;
+        } else {
+            var file = node.createString(fromJavaStringNode, getSourcePath(section.getSource()), Encodings.UTF_8);
+            Object[] objects = new Object[]{ file, RubySource.getStartLineAdjusted(context, section) };
+            return node.createArray(objects);
         }
     }
 

@@ -211,7 +211,7 @@ public abstract class RubyBaseNode extends Node {
         return ArrayHelpers.createArray(getContext(), getLanguage(), store);
     }
 
-    protected final RubyArray createArray(Object[] store) {
+    public final RubyArray createArray(Object[] store) {
         return createArray(this, store);
     }
 
@@ -276,7 +276,7 @@ public abstract class RubyBaseNode extends Node {
         return createString(tstring, encoding);
     }
 
-    protected final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,
+    public final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,
             RubyEncoding encoding) {
         var tstring = fromJavaStringNode.execute(javaString, encoding.tencoding);
         return createString(tstring, encoding);

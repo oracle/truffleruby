@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import java.util.Objects;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
@@ -89,6 +90,7 @@ public class RubySource {
         return lineOffset;
     }
 
+    @TruffleBoundary
     public static int getStartLineAdjusted(RubyContext context, SourceSection sourceSection) {
         final Integer lineOffset = context.getSourceLineOffsets().get(sourceSection.getSource());
         if (lineOffset != null) {
