@@ -48,7 +48,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     @Specialization(guards = "!isStaticSymbol(value)")
     protected RubySymbol unwrapDynamicSymbol(Object value,
             @Cached UnwrapNode unwrapNode) {
-        return (RubySymbol) unwrapNode.execute(value);
+        return (RubySymbol) unwrapNode.execute(this, value);
     }
 
     public static boolean isStaticSymbol(Object value) {

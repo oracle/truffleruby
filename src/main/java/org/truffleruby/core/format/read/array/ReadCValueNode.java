@@ -22,6 +22,6 @@ public abstract class ReadCValueNode extends FormatNode {
     @Specialization
     protected Object read(Object source,
             @Cached UnwrapNode unwrapNode) {
-        return unwrapNode.execute(source);
+        return unwrapNode.execute(this, source);
     }
 }

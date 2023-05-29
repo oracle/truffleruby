@@ -16,8 +16,11 @@ import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.NotProvided;
@@ -36,6 +39,8 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 @ImportStatic(ValueWrapperManager.class)
 public abstract class UnwrapNode extends RubyBaseNode {
 
@@ -194,7 +199,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             final Object[] store = new Object[cachedSize];
             for (int i = 0; i < cachedSize; i++) {
                 final Object cValue = readArrayElement(cArray, interop, i);
-                store[i] = unwrapNode.execute(cValue);
+                store[i] = unwrapNode.execute(this, cValue);
             }
             return store;
         }
@@ -210,7 +215,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             try {
                 for (; loopProfile.inject(i < size); i++) {
                     final Object cValue = readArrayElement(cArray, interop, i);
-                    store[i] = unwrapNode.execute(cValue);
+                    store[i] = unwrapNode.execute(this, cValue);
                     TruffleSafepoint.poll(this);
                 }
             } finally {
@@ -236,26 +241,26 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
-    public abstract Object execute(Object value);
+    public abstract Object execute(Node node, Object value);
 
     @Specialization(guards = "!isTaggedLong(value.getHandle())")
-    protected Object unwrapValueObject(ValueWrapper value) {
+    protected static Object unwrapValueObject(ValueWrapper value) {
         return value.getObject();
     }
 
     @Specialization(guards = "isTaggedLong(value.getHandle())")
-    protected long unwrapValueTaggedLong(ValueWrapper value) {
+    protected static long unwrapValueTaggedLong(ValueWrapper value) {
         return ValueWrapperManager.untagTaggedLong(value.getHandle());
     }
 
     @Specialization
-    protected Object longToWrapper(long value,
+    protected static Object longToWrapper(long value,
             @Cached @Shared UnwrapNativeNode unwrapNativeNode) {
         return unwrapNativeNode.execute(value);
     }
 
     @Specialization(guards = { "!isWrapper(value)", "!isImplicitLong(value)" })
-    protected Object unwrapGeneric(Object value,
+    protected static Object unwrapGeneric(Node node, Object value,
             @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
             @Cached @Shared UnwrapNativeNode unwrapNativeNode,
             @Cached InlinedBranchProfile unsupportedProfile) {
@@ -263,8 +268,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
         try {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {
-            unsupportedProfile.enter(this);
-            throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            unsupportedProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node, e));
         }
         return unwrapNativeNode.execute(handle);
     }

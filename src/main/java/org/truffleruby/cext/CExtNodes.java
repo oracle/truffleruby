@@ -252,7 +252,7 @@ public class CExtNodes {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                     try {
-                        return unwrapNode.execute(
+                        return unwrapNode.execute(this,
                                 InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
@@ -262,7 +262,7 @@ public class CExtNodes {
                     }
                 } else {
                     try {
-                        return unwrapNode.execute(
+                        return unwrapNode.execute(this,
                                 InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
@@ -1761,7 +1761,7 @@ public class CExtNodes {
         protected Object unwrap(Object value,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
-            Object object = unwrapNode.execute(value);
+            Object object = unwrapNode.execute(this, value);
             if (object == null) {
                 exceptionProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(value), this));
