@@ -240,7 +240,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'LLVM Runtime Core': ('lib/sulong', []),
         'LLVM Runtime Native': ('lib/sulong', []),
         'LLVM.org toolchain': ('lib/llvm-toolchain', []),
-        'TruffleRuby license files': ('', []),
+        'rbyl': ('', []), # Use short name for license to select by priority
     },
     truffle_jars=[
         # Distributions
