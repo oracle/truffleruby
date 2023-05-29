@@ -38,13 +38,13 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
             guards = {
                     "isSingleContext()",
                     "getCurrentMethod(frame) == currentMethod",
-                    "metaClass(metaClassNode, self) == selfMetaClass" },
+                    "metaClassNode.execute(this, self) == selfMetaClass" },
             assumptions = "superMethod.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached("metaClass(metaClassNode, self)") RubyClass selfMetaClass,
+            @Cached("metaClassNode.execute(this, self)") RubyClass selfMetaClass,
             @Cached("doLookup(currentMethod, selfMetaClass)") MethodLookupResult superMethod) {
         return superMethod.getMethod();
     }
@@ -53,7 +53,7 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
     protected InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self,
             @Cached @Shared MetaClassNode metaClassNode) {
         final InternalMethod currentMethod = getCurrentMethod(frame);
-        final RubyClass selfMetaClass = metaClass(metaClassNode, self);
+        final RubyClass selfMetaClass = metaClassNode.execute(this, self);
         return doLookup(currentMethod, selfMetaClass).getMethod();
     }
 
@@ -61,9 +61,6 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
         return RubyArguments.getMethod(frame);
     }
 
-    protected RubyClass metaClass(MetaClassNode metaClassNode, Object object) {
-        return metaClassNode.execute(this, object);
-    }
 
     @TruffleBoundary
     protected MethodLookupResult doLookup(InternalMethod currentMethod, RubyClass selfMetaClass) {
