@@ -154,24 +154,26 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     @ImportStatic(ValueWrapperManager.class)
     public abstract static class ToWrapperNode extends RubyBaseNode {
 
-        public abstract ValueWrapper execute(Object value);
+        public abstract ValueWrapper execute(Node node, Object value);
 
         @Specialization
-        protected ValueWrapper wrappedValueWrapper(ValueWrapper value) {
+        protected static ValueWrapper wrappedValueWrapper(ValueWrapper value) {
             return value;
         }
 
         @Specialization
-        protected ValueWrapper longToWrapper(long value,
+        protected static ValueWrapper longToWrapper(Node node, long value,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode) {
-            return nativeToWrapperNode.execute(this, value);
+            return nativeToWrapperNode.execute(node, value);
         }
 
         @Fallback
-        protected ValueWrapper genericToWrapper(Object value,
+        protected static ValueWrapper genericToWrapper(Node node, Object value,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode,
                 @Cached InlinedBranchProfile unsupportedProfile) {
@@ -179,10 +181,11 @@ public abstract class UnwrapNode extends RubyBaseNode {
             try {
                 handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                unsupportedProfile.enter(node);
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).argumentError(e.getMessage(), getNode(node), e));
             }
-            return nativeToWrapperNode.execute(this, handle);
+            return nativeToWrapperNode.execute(node, handle);
         }
 
         protected int getCacheLimit() {
