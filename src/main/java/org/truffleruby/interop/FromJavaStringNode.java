@@ -9,6 +9,9 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
@@ -19,34 +22,37 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateInline
+@GenerateCached(false)
 @GenerateUncached
 public abstract class FromJavaStringNode extends RubyBaseNode {
 
-    public abstract RubyString executeFromJavaString(String value);
+    public abstract RubyString executeFromJavaString(Node node, String value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    protected RubyString doCached(String value,
+    protected static RubyString doCached(Node node, String value,
             @Cached("value") String cachedValue,
-            @Shared @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode,
+            @Cached(inline = false) @Shared TruffleString.FromJavaStringNode tstringFromJavaStringNode,
             @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedTString) {
-        var rubyString = createString(cachedTString, Encodings.UTF_8);
+        var rubyString = createString(node, cachedTString, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }
 
     @Specialization(replaces = "doCached")
-    protected RubyString doGeneric(String value,
-            @Shared @Cached TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
-        var rubyString = createString(tstringFromJavaStringNode, value, Encodings.UTF_8);
+    protected static RubyString doGeneric(Node node, String value,
+            @Cached(inline = false) @Shared TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
+        var rubyString = createString(node, tstringFromJavaStringNode, value, Encodings.UTF_8);
         rubyString.freeze();
         return rubyString;
     }
 
-    protected boolean stringsEquals(String a, String b) {
+    protected static boolean stringsEquals(String a, String b) {
         return a.equals(b);
     }
 
-    protected TruffleString getTString(String value, TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
+    protected static TruffleString getTString(String value,
+            TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
         return tstringFromJavaStringNode.execute(value, TruffleString.Encoding.UTF_8);
     }
 

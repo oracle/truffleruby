@@ -278,8 +278,14 @@ public abstract class RubyBaseNode extends Node {
 
     public final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,
             RubyEncoding encoding) {
+        return createString(this, fromJavaStringNode, javaString, encoding);
+    }
+
+    public static RubyString createString(Node node, TruffleString.FromJavaStringNode fromJavaStringNode,
+            String javaString,
+            RubyEncoding encoding) {
         var tstring = fromJavaStringNode.execute(javaString, encoding.tencoding);
-        return createString(tstring, encoding);
+        return createString(node, tstring, encoding);
     }
 
     protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,

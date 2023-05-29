@@ -1396,7 +1396,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyArray primitiveNames() {
             var primitiveNames = getLanguage().primitiveManager.getPrimitiveNames().stream()
-                    .map(name -> FromJavaStringNodeGen.getUncached().executeFromJavaString(name));
+                    .map(name -> FromJavaStringNodeGen.getUncached().executeFromJavaString(this, name));
 
             return createArray(primitiveNames.toArray());
         }

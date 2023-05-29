@@ -1669,9 +1669,10 @@ public abstract class InteropNodes {
     public abstract static class GetLanguageNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object getLanguage(Object receiver,
+        protected static Object getLanguage(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached FromJavaStringNode fromJavaStringNode) {
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Bind("this") Node node) {
             if (!receivers.hasLanguage(receiver)) {
                 return nil;
             }
@@ -1684,11 +1685,11 @@ public abstract class InteropNodes {
             }
 
             final String name = languageClassToLanguageName(language);
-            return fromJavaStringNode.executeFromJavaString(name);
+            return fromJavaStringNode.executeFromJavaString(node, name);
         }
 
         @TruffleBoundary
-        private String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
+        private static String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
             String name = language.getSimpleName();
             if (name.endsWith("Language")) {
                 name = name.substring(0, name.length() - "Language".length());
