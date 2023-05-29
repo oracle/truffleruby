@@ -109,43 +109,45 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     @ImportStatic(ValueWrapperManager.class)
     public abstract static class NativeToWrapperNode extends RubyBaseNode {
 
-        public abstract ValueWrapper execute(long handle);
+        public abstract ValueWrapper execute(Node node, long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        protected ValueWrapper unwrapFalse(long handle) {
+        protected static ValueWrapper unwrapFalse(long handle) {
             return new ValueWrapper(false, FALSE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        protected ValueWrapper unwrapTrue(long handle) {
+        protected static ValueWrapper unwrapTrue(long handle) {
             return new ValueWrapper(true, TRUE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        protected ValueWrapper unwrapUndef(long handle) {
+        protected static ValueWrapper unwrapUndef(long handle) {
             return new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected ValueWrapper unwrapNil(long handle) {
+        protected static ValueWrapper unwrapNil(long handle) {
             return nil.getValueWrapper();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        protected ValueWrapper unwrapTaggedLong(long handle) {
+        protected static ValueWrapper unwrapTaggedLong(long handle) {
             return new ValueWrapper(null, handle, null);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected ValueWrapper unwrapTaggedObject(long handle) {
-            return getContext().getValueWrapperManager().getWrapperFromHandleMap(handle, getLanguage());
+        protected static ValueWrapper unwrapTaggedObject(Node node, long handle) {
+            return getContext(node).getValueWrapperManager().getWrapperFromHandleMap(handle, getLanguage(node));
         }
 
         @Fallback
-        protected ValueWrapper unWrapUnexpectedHandle(long handle) {
+        protected static ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
             return null;
@@ -165,7 +167,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @Specialization
         protected ValueWrapper longToWrapper(long value,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode) {
-            return nativeToWrapperNode.execute(value);
+            return nativeToWrapperNode.execute(this, value);
         }
 
         @Fallback
@@ -180,7 +182,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 unsupportedProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
-            return nativeToWrapperNode.execute(handle);
+            return nativeToWrapperNode.execute(this, handle);
         }
 
         protected int getCacheLimit() {
