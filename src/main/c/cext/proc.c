@@ -19,6 +19,10 @@ VALUE rb_proc_call(VALUE self, VALUE args) {
   return RUBY_CEXT_INVOKE("rb_proc_call", self, args);
 }
 
+VALUE rb_proc_call_kw(VALUE recv, VALUE args, int kw_splat) {
+  return rb_funcallv_kw(recv, rb_intern("call"), RARRAY_LENINT(args), RARRAY_PTR(args), kw_splat);
+}
+
 VALUE rb_proc_call_with_block(VALUE recv, int argc, const VALUE *argv, VALUE proc) {
   return rb_funcall_with_block(recv, rb_intern("call"), argc, argv, proc);
 }

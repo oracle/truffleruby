@@ -82,6 +82,25 @@ describe "C-API Proc function" do
     end
   end
 
+  describe "rb_proc_call_kw" do
+    it "passes keyword arguments to the proc" do
+      prc = proc { |*args, **kw| [args, kw] }
+
+      @p.rb_proc_call_kw(prc, [{}]).should == [[], {}]
+      @p.rb_proc_call_kw(prc, [{a: 1}]).should == [[], {a: 1}]
+      @p.rb_proc_call_kw(prc, [{b: 2}, {a: 1}]).should == [[{b: 2}], {a: 1}]
+      @p.rb_proc_call_kw(prc, [{b: 2}, {}]).should == [[{b: 2}], {}]
+    end
+
+    it "raises TypeError if the last argument is not a Hash" do
+      prc = proc { |*args, **kwargs| [args, kw] }
+
+      -> {
+        @p.rb_proc_call_kw(prc, [42])
+      }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
+    end
+  end
+
   describe "rb_proc_call_with_block" do
     it "calls the Proc and passes arguments and a block" do
       prc = Proc.new { |a, b, &block| block.call(a * b) }
