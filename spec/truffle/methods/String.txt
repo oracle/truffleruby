@@ -12,6 +12,8 @@
 []=
 ascii_only?
 b
+byteindex
+byterindex
 bytes
 bytesize
 byteslice

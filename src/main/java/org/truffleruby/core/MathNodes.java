@@ -562,6 +562,23 @@ public abstract class MathNodes {
 
     }
 
+    @Primitive(name = "max")
+    public abstract static class MaxNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int max(int a, int b,
+                @Shared @Cached InlinedConditionProfile profile) {
+            return profile.profile(this, a > b) ? a : b;
+        }
+
+        @Specialization
+        protected long max(long a, long b,
+                @Shared @Cached InlinedConditionProfile profile) {
+            return profile.profile(this, a > b) ? a : b;
+        }
+
+    }
+
     @CoreMethod(names = "sin", isModuleFunction = true, required = 1)
     public abstract static class SinNode extends SimpleMonadicMathNode {
 
