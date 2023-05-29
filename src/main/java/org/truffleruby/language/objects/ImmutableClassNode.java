@@ -12,7 +12,6 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
@@ -37,68 +36,68 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 public abstract class ImmutableClassNode extends RubyBaseNode {
 
     public final RubyClass execute(Node node, Object value) {
-        return execute(node, value, RubyContext.get(node).getCoreLibrary());
+        return execute(node, value, getContext(node).getCoreLibrary());
     }
 
     protected abstract RubyClass execute(Node node, Object value, CoreLibrary coreLibrary);
 
     @Specialization
-    protected RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
         return coreLibrary.stringClass;
     }
 
     @Specialization
-    protected RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
         return coreLibrary.symbolClass;
     }
 
     @Specialization
-    protected RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
         return coreLibrary.nilClass;
     }
 
     @Specialization(guards = "value")
-    protected RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
         return coreLibrary.trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass metaClassFalse(boolean value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassFalse(boolean value, CoreLibrary coreLibrary) {
         return coreLibrary.falseClass;
     }
 
     @Specialization
-    protected RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected RubyClass metaClassEncoding(RubyEncoding value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassEncoding(RubyEncoding value, CoreLibrary coreLibrary) {
         return coreLibrary.encodingClass;
     }
 
     @Specialization
-    protected RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
         return coreLibrary.regexpClass;
     }
 
     @Specialization
-    protected RubyClass metaClassRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
         return coreLibrary.rangeClass;
     }
 
     @Specialization
-    protected RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
         return coreLibrary.floatClass;
     }
 
     @Specialization
-    protected RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
+    protected static RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 
