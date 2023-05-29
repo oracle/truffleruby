@@ -81,7 +81,7 @@ public abstract class UnboundMethodNodes {
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
                 @Cached InlinedBranchProfile errorProfile) {
-            final RubyClass objectMetaClass = metaClassNode.execute(object);
+            final RubyClass objectMetaClass = metaClassNode.execute(this, object);
 
             if (!canBindMethodToModuleNode
                     .executeCanBindMethodToModule(unboundMethod.method, objectMetaClass)) {

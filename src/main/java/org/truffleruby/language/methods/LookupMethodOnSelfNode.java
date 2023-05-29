@@ -41,7 +41,7 @@ public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
     protected InternalMethod doLookup(Frame frame, Object self, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
             @Cached LookupMethodNode lookupMethod) {
-        final RubyClass metaclass = metaClassNode.execute(self);
+        final RubyClass metaclass = metaClassNode.execute(this, self);
         return lookupMethod.execute(frame, metaclass, name, config);
     }
 }

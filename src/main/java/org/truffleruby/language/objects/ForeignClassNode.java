@@ -11,7 +11,10 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -27,6 +30,8 @@ import java.util.ArrayList;
 
 @ReportPolymorphism
 @GenerateUncached
+@GenerateCached(false)
+@GenerateInline
 public abstract class ForeignClassNode extends RubyBaseNode {
 
     // Specs for traits are in
@@ -67,24 +72,24 @@ public abstract class ForeignClassNode extends RubyBaseNode {
         }
     }
 
-    public abstract RubyClass execute(Object value);
+    public abstract RubyClass execute(Node node, Object value);
 
     @Specialization(guards = "getTraits(object, interop) == cachedTraits", limit = "getInteropCacheLimit()")
-    protected RubyClass cached(Object object,
+    protected static RubyClass cached(Node node, Object object,
             @CachedLibrary("object") InteropLibrary interop,
             @Cached("getTraits(object, interop)") int cachedTraits) {
         assert RubyGuards.isForeignObject(object);
-        return classForTraits(cachedTraits);
+        return classForTraits(node, cachedTraits);
     }
 
     @Specialization(replaces = "cached", limit = "getInteropCacheLimit()")
-    protected RubyClass uncached(Object object,
+    protected static RubyClass uncached(Node node, Object object,
             @CachedLibrary("object") InteropLibrary interop) {
         assert RubyGuards.isForeignObject(object);
-        return classForTraits(getTraits(object, interop));
+        return classForTraits(node, getTraits(object, interop));
     }
 
-    protected int getTraits(Object object, InteropLibrary interop) {
+    protected static int getTraits(Object object, InteropLibrary interop) {
         return (interop.hasHashEntries(object) ? Trait.HASH.bit : 0) +
                 (interop.hasArrayElements(object) ? Trait.ARRAY.bit : 0) +
                 (interop.isException(object) ? Trait.EXCEPTION.bit : 0) +
@@ -99,25 +104,25 @@ public abstract class ForeignClassNode extends RubyBaseNode {
                 (interop.isString(object) ? Trait.STRING.bit : 0);
     }
 
-    private RubyClass classForTraits(int traits) {
-        RubyClass rubyClass = coreLibrary().polyglotForeignClasses[traits];
+    private static RubyClass classForTraits(Node node, int traits) {
+        RubyClass rubyClass = coreLibrary(node).polyglotForeignClasses[traits];
         if (rubyClass == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            rubyClass = resolvePolyglotForeignClass(traits);
-            coreLibrary().polyglotForeignClasses[traits] = rubyClass;
+            rubyClass = resolvePolyglotForeignClass(node, traits);
+            coreLibrary(node).polyglotForeignClasses[traits] = rubyClass;
         }
         return rubyClass;
     }
 
-    private RubyClass resolvePolyglotForeignClass(int traits) {
+    private static RubyClass resolvePolyglotForeignClass(Node node, int traits) {
         final ArrayList<RubySymbol> traitsList = new ArrayList<>();
         for (Trait trait : Trait.VALUES) {
             if (trait.isSet(traits)) {
-                traitsList.add(getSymbol(trait.name));
+                traitsList.add(getSymbol(node, trait.name));
             }
         }
         final Object[] traitSymbols = traitsList.toArray();
-        return (RubyClass) DispatchNode.getUncached().call(coreLibrary().truffleInteropOperationsModule,
+        return (RubyClass) DispatchNode.getUncached().call(coreLibrary(node).truffleInteropOperationsModule,
                 "resolve_polyglot_class", traitSymbols);
     }
 }

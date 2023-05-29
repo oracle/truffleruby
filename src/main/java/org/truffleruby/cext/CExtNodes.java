@@ -1220,14 +1220,14 @@ public class CExtNodes {
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode.create();
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        protected Object callSuper(VirtualFrame frame, Object[] args) {
+        protected Object callSuper(VirtualFrame frame, Object[] args,
+                @Cached MetaClassNode metaClassNode) {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
-            final RubyClass callingMetaclass = metaClassNode.execute(callingSelf);
+            final RubyClass callingMetaclass = metaClassNode.execute(this, callingSelf);
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();

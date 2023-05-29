@@ -297,7 +297,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
             CallInternalMethodNode callNode) {
         assert RubyArguments.getSelf(rubyArgs) == receiver;
 
-        final RubyClass metaclass = metaClassNode.execute(receiver);
+        final RubyClass metaclass = metaClassNode.executeCached(receiver);
         final InternalMethod method = lookupMethodNode.execute(frame, metaclass, methodName, config);
 
         if (methodMissingProfile.profile(method == null || method.isUndefined())) {

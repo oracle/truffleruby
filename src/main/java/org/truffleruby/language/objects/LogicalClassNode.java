@@ -52,7 +52,7 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     @Specialization(guards = "isForeignObject(object)")
     protected RubyClass logicalClassForeign(Object object,
             @Cached ForeignClassNode foreignClassNode) {
-        return foreignClassNode.execute(object);
+        return foreignClassNode.execute(this, object);
     }
 
     protected int getCacheLimit() {

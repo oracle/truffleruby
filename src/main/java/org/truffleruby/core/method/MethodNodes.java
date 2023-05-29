@@ -242,13 +242,12 @@ public abstract class MethodNodes {
     @CoreMethod(names = "super_method")
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
         @Specialization
-        protected Object superMethod(RubyMethod method) {
+        protected Object superMethod(RubyMethod method,
+                @Cached MetaClassNode metaClassNode) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
-            RubyClass selfMetaClass = metaClassNode.execute(receiver);
+            RubyClass selfMetaClass = metaClassNode.execute(this, receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
                 return nil;
@@ -268,11 +267,10 @@ public abstract class MethodNodes {
     @CoreMethod(names = "unbind")
     public abstract static class UnbindNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
         @Specialization
-        protected RubyUnboundMethod unbind(RubyMethod method) {
-            final RubyClass receiverClass = metaClassNode.execute(method.receiver);
+        protected RubyUnboundMethod unbind(RubyMethod method,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass receiverClass = metaClassNode.execute(this, method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     getLanguage().unboundMethodShape,

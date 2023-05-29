@@ -10,7 +10,9 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.HostCompilerDirectives.InliningCutoff;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -21,6 +23,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 // Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
 public abstract class MetaClassNode extends RubyBaseNode {
 
     @NeverDefault
@@ -28,37 +31,41 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.create();
     }
 
-    public static MetaClassNode getUncached() {
-        return MetaClassNodeGen.getUncached();
+    public static RubyClass executeUncached(Object value) {
+        return MetaClassNodeGen.getUncached().execute(null, value);
     }
 
-    public abstract RubyClass execute(Object value);
+    public final RubyClass executeCached(Object value) {
+        return execute(this, value);
+    }
+
+    public abstract RubyClass execute(Node node, Object value);
 
     @Specialization(
             guards = { "isSingleContext()", "object == cachedObject", "metaClass.isSingleton" },
             limit = "1")
-    protected RubyClass singleton(RubyDynamicObject object,
+    protected static RubyClass singleton(Node node, RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
         return metaClass;
     }
 
     @Specialization(replaces = "singleton")
-    protected RubyClass object(RubyDynamicObject object) {
+    protected static RubyClass object(RubyDynamicObject object) {
         return object.getMetaClass();
     }
 
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
-    protected RubyClass immutable(Object value,
+    protected static RubyClass immutable(Node node, Object value,
             @Cached ImmutableClassNode immutableClassNode) {
-        return immutableClassNode.execute(this, value);
+        return immutableClassNode.execute(node, value);
     }
 
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass foreign(Object object,
+    protected static RubyClass foreign(Node node, Object object,
             @Cached ForeignClassNode foreignClassNode) {
-        return foreignClassNode.execute(object);
+        return foreignClassNode.execute(node, object);
     }
 
     protected int getCacheLimit() {

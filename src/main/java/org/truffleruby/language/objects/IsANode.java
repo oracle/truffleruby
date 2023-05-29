@@ -40,13 +40,13 @@ public abstract class IsANode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "isSingleContext()",
-                    "metaClassNode.execute(self) == cachedMetaClass",
+                    "metaClassNode.execute(this, self) == cachedMetaClass",
                     "module == cachedModule" },
             assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
             limit = "getCacheLimit()")
     protected boolean isAMetaClassCached(Object self, RubyModule module,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached("metaClassNode.execute(self)") RubyClass cachedMetaClass,
+            @Cached("metaClassNode.execute(this, self)") RubyClass cachedMetaClass,
             @Cached("module") RubyModule cachedModule,
             @Cached("isA(cachedMetaClass, cachedModule)") boolean result) {
         return result;
@@ -77,7 +77,7 @@ public abstract class IsANode extends RubyBaseNode {
     protected boolean isAClassUncached(Object self, RubyClass klass,
             @Cached @Shared MetaClassNode metaClassNode,
             @Cached @Shared InlinedConditionProfile isMetaClass) {
-        final RubyClass metaclass = metaClassNode.execute(self);
+        final RubyClass metaclass = metaClassNode.execute(this, self);
 
         if (isMetaClass.profile(this, metaclass == klass)) {
             return true;
@@ -96,7 +96,7 @@ public abstract class IsANode extends RubyBaseNode {
     @Specialization(guards = "!isRubyClass(module)", replaces = "isAMetaClassCached")
     protected boolean isAUncached(Object self, RubyModule module,
             @Cached @Shared MetaClassNode metaClassNode) {
-        return isA(metaClassNode.execute(self), module);
+        return isA(metaClassNode.execute(this, self), module);
     }
 
     @TruffleBoundary
