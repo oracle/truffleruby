@@ -411,6 +411,32 @@ public class CExtNodes {
         }
     }
 
+    @Primitive(name = "public_send_argv_keywords_without_cext_lock")
+    public abstract static class PublicSendARGVKeywordsWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
+        @Specialization
+        protected Object sendWithoutCExtLock(
+                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+                @Cached UnwrapCArrayNode unwrapCArrayNode,
+                @Cached HashCastNode hashCastNode,
+                @Cached InlinedConditionProfile emptyProfile,
+                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached InlinedConditionProfile ownedProfile) {
+            Object[] args = unwrapCArrayNode.execute(argv);
+
+            // Remove empty kwargs in the caller, so the callee does not need to care about this special case
+            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            if (emptyProfile.profile(this, keywords.empty())) {
+                args = LiteralCallNode.removeEmptyKeywordArguments(args);
+                return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                        dispatchNode, ownedProfile);
+            } else {
+                return sendWithoutCExtLock(frame, receiver, method, block,
+                        KeywordArgumentsDescriptorManager.EMPTY, args,
+                        dispatchNode, ownedProfile);
+            }
+        }
+    }
+
     @Primitive(name = "cext_mark_object_on_call_exit")
     public abstract static class MarkObjectOnCallExit extends PrimitiveArrayArgumentsNode {
 

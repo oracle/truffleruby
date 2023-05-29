@@ -106,6 +106,18 @@ VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VAL
     rb_tr_unwrap(pass_procval)));
 }
 
+VALUE rb_funcall_with_block_kw(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE procval, int kw_splat) {
+  if (kw_splat && argc > 0) {
+    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_funcall_with_block_keywords",
+      rb_tr_unwrap(recv),
+      rb_tr_unwrap(ID2SYM(mid)),
+      polyglot_from_VALUE_array(argv, argc),
+      rb_tr_unwrap(procval)));
+  } else {
+    return rb_funcall_with_block(recv, mid, argc, argv, procval);
+  }
+}
+
 VALUE rb_yield_splat(VALUE values) {
   if (rb_block_given_p()) {
     return RUBY_CEXT_INVOKE("rb_yield_splat", values);
