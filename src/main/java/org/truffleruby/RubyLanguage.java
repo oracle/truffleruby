@@ -201,7 +201,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public final Map<Thread, RubyThread> rubyThreadInitMap = new ConcurrentHashMap<>();
-    private final ContextThreadLocal<RubyThread> rubyThread = createContextThreadLocal(
+    private final ContextThreadLocal<RubyThread> rubyThread = locals.createContextThreadLocal(
             (context, thread) -> {
                 if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
                     // Already initialized when creating the context
@@ -216,7 +216,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             });
 
     public final Map<Thread, RubyFiber> rubyFiberInitMap = new ConcurrentHashMap<>();
-    private final ContextThreadLocal<RubyFiber> rubyFiber = createContextThreadLocal(
+    private final ContextThreadLocal<RubyFiber> rubyFiber = locals.createContextThreadLocal(
             (context, thread) -> {
                 if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
                     // Already initialized when creating the context
