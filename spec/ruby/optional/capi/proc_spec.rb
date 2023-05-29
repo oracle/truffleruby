@@ -82,6 +82,18 @@ describe "C-API Proc function" do
     end
   end
 
+  describe "rb_proc_call_with_block" do
+    it "calls the Proc and passes arguments and a block" do
+      prc = Proc.new { |a, b, &block| block.call(a * b) }
+      @p.rb_proc_call_with_block(prc, [6, 7], proc { |n| n * 2 }).should == 6 * 7 * 2
+    end
+
+    it "calls the Proc and passes arguments when a block is nil" do
+      prc = Proc.new { |a, b| a * b }
+      @p.rb_proc_call_with_block(prc, [6, 7], nil).should == 6 * 7
+    end
+  end
+
   describe "rb_obj_is_proc" do
     it "returns true for Proc" do
       prc = Proc.new {|a,b| a * b }
