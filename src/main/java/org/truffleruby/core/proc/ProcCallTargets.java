@@ -39,7 +39,9 @@ public final class ProcCallTargets {
             RootCallTarget callTargetForProc,
             RootCallTarget callTargetForLambda,
             Supplier<RootCallTarget> altCallTargetCompiler) {
+        // both can be set for lambda {} if #lambda is not Kernel#lambda
         assert callTargetForProc != null || callTargetForLambda != null;
+
         assert callTargetForProc == null || validProcRootNode(callTargetForProc);
         assert callTargetForLambda == null || validLambdaRootNode(callTargetForLambda);
 
@@ -49,7 +51,7 @@ public final class ProcCallTargets {
     }
 
     public ProcCallTargets(RootCallTarget callTargetForLambda) {
-        this(callTargetForLambda, callTargetForLambda, null);
+        this(null, callTargetForLambda, null);
     }
 
     public RootCallTarget getCallTargetForProc() {
@@ -80,9 +82,7 @@ public final class ProcCallTargets {
 
     private boolean validProcRootNode(RootCallTarget callTarget) {
         final RootNode rootNode = callTarget.getRootNode();
-        assert rootNode instanceof RubyProcRootNode ||
-                // RubyLambdaRootNode is used for the ProcCallTargets(RootCallTarget callTargetForLambda) constructor
-                rootNode instanceof RubyLambdaRootNode : rootNode + " " + rootNode.getClass();
+        assert rootNode instanceof RubyProcRootNode : rootNode + " " + rootNode.getClass();
         return true;
     }
 
