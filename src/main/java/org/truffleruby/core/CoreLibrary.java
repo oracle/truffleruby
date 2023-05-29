@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.RubyContext;
@@ -47,7 +46,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.debug.BindingLocalVariablesObject;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
@@ -817,15 +815,7 @@ public class CoreLibrary {
         findGlobalVariableStorage();
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
-        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
-        RubyString dollarZeroValue = new RubyString(
-                stringClass,
-                language.stringShape,
-                false,
-                TruffleString.fromCodePointUncached('-', TruffleString.Encoding.US_ASCII),
-                Encodings.US_ASCII);
-        int index = language.getGlobalVariableIndex("$0");
-        context.getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
+        context.initializeMainScriptName("-");
 
         topLevelBinding = (RubyBinding) objectClass.fields
                 .getConstant("TOPLEVEL_BINDING")

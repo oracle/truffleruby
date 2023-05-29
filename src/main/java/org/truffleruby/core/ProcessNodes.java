@@ -14,7 +14,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -31,8 +31,8 @@ public abstract class ProcessNodes {
     public abstract static class Argv0Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString argv0() {
-            return getContext().getScriptName();
+        protected ImmutableRubyString argv0() {
+            return getContext().getMainScriptName();
         }
 
     }

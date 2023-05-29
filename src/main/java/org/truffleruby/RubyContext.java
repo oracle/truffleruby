@@ -47,6 +47,8 @@ import org.truffleruby.core.ReferenceProcessingService.ReferenceProcessor;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.PreInitializationManager;
@@ -58,7 +60,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -160,7 +162,7 @@ public class RubyContext {
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
-    private RubyString scriptName;
+    private ImmutableRubyString mainScriptName;
 
     private static final ContextReference<RubyContext> REFERENCE = ContextReference.create(RubyLanguage.class);
 
@@ -764,11 +766,17 @@ public class RubyContext {
         return globalVariablesArray.get(index);
     }
 
-    public void setScriptName(RubyString name) {
-        this.scriptName = name;
+    public void initializeMainScriptName(String mainScriptName) {
+        ImmutableRubyString mainScriptString = language.getFrozenStringLiteral(TStringUtils.utf8TString(mainScriptName),
+                Encodings.UTF_8);
+
+        int index = language.getGlobalVariableIndex("$0");
+        getGlobalVariableStorage(index).setValueInternal(mainScriptString);
+
+        this.mainScriptName = mainScriptString;
     }
 
-    public RubyString getScriptName() {
-        return this.scriptName;
+    public ImmutableRubyString getMainScriptName() {
+        return this.mainScriptName;
     }
 }

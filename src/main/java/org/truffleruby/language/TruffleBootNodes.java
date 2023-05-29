@@ -170,23 +170,23 @@ public abstract class TruffleBootNodes {
 
         private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
             final RubySource rubySource;
-            final RubyString dollarZeroValue;
+            final String mainScriptName;
             final MainLoader mainLoader = new MainLoader(getContext(), getLanguage());
             try {
                 switch (kind) {
                     case "FILE":
                         rubySource = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
-                        dollarZeroValue = utf8(toExecute);
+                        mainScriptName = toExecute;
                         break;
 
                     case "STDIN":
                         rubySource = mainLoader.loadFromStandardIn(this, "-");
-                        dollarZeroValue = utf8("-");
+                        mainScriptName = "-";
                         break;
 
                     case "INLINE":
                         rubySource = mainLoader.loadFromCommandLineArgument(toExecute);
-                        dollarZeroValue = utf8("-e");
+                        mainScriptName = "-e";
                         break;
 
                     default:
@@ -197,9 +197,7 @@ public abstract class TruffleBootNodes {
             }
             assert RubyLanguage.MIME_TYPE_MAIN_SCRIPT.equals(rubySource.getSource().getMimeType());
 
-            int index = getLanguage().getGlobalVariableIndex("$0");
-            getContext().getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
-            getContext().setScriptName(dollarZeroValue);
+            getContext().initializeMainScriptName(mainScriptName);
 
             return rubySource;
         }
