@@ -45,51 +45,57 @@ import com.oracle.truffle.api.library.CachedLibrary;
 public abstract class UnwrapNode extends RubyBaseNode {
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     @ImportStatic(ValueWrapperManager.class)
     public abstract static class UnwrapNativeNode extends RubyBaseNode {
 
-        public abstract Object execute(long handle);
+        public static Object executeUncached(long handle) {
+            return UnwrapNodeGen.UnwrapNativeNodeGen.getUncached().execute(null, handle);
+        }
+
+        public abstract Object execute(Node node, long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        protected boolean unwrapFalse(long handle) {
+        protected static boolean unwrapFalse(long handle) {
             return false;
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        protected boolean unwrapTrue(long handle) {
+        protected static boolean unwrapTrue(long handle) {
             return true;
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        protected NotProvided unwrapUndef(long handle) {
+        protected static NotProvided unwrapUndef(long handle) {
             return NotProvided.INSTANCE;
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected Object unwrapNil(long handle) {
+        protected static Object unwrapNil(long handle) {
             return nil;
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        protected long unwrapTaggedLong(long handle) {
+        protected static long unwrapTaggedLong(long handle) {
             return ValueWrapperManager.untagTaggedLong(handle);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected Object unwrapTaggedObject(long handle,
+        protected static Object unwrapTaggedObject(Node node, long handle,
                 @Cached InlinedBranchProfile noHandleProfile) {
-            final ValueWrapper wrapper = getContext()
+            final ValueWrapper wrapper = getContext(node)
                     .getValueWrapperManager()
-                    .getWrapperFromHandleMap(handle, getLanguage());
+                    .getWrapperFromHandleMap(handle, getLanguage(node));
             if (wrapper == null) {
-                noHandleProfile.enter(this);
+                noHandleProfile.enter(node);
                 raiseError(handle);
             }
             return wrapper.getObject();
         }
 
         @Fallback
-        protected ValueWrapper unWrapUnexpectedHandle(long handle) {
+        protected static ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -97,7 +103,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @TruffleBoundary
-        private void raiseError(long handle) {
+        private static void raiseError(long handle) {
             throw CompilerDirectives.shouldNotReachHere("dead handle 0x" + Long.toHexString(handle));
         }
     }
@@ -254,9 +260,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static Object longToWrapper(long value,
+    protected static Object longToWrapper(Node node, long value,
             @Cached @Shared UnwrapNativeNode unwrapNativeNode) {
-        return unwrapNativeNode.execute(value);
+        return unwrapNativeNode.execute(node, value);
     }
 
     @Specialization(guards = { "!isWrapper(value)", "!isImplicitLong(value)" })
@@ -271,7 +277,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             unsupportedProfile.enter(node);
             throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node, e));
         }
-        return unwrapNativeNode.execute(handle);
+        return unwrapNativeNode.execute(node, handle);
     }
 
     protected int getCacheLimit() {
