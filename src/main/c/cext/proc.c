@@ -27,6 +27,10 @@ VALUE rb_proc_call_with_block(VALUE recv, int argc, const VALUE *argv, VALUE pro
   return rb_funcall_with_block(recv, rb_intern("call"), argc, argv, proc);
 }
 
+VALUE rb_proc_call_with_block_kw(VALUE recv, int argc, const VALUE *argv, VALUE proc, int kw_splat) {
+  return rb_funcall_with_block_kw(recv, rb_intern("call"), argc, argv, proc, kw_splat);
+}
+
 int rb_proc_arity(VALUE self) {
   return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(self, "arity"));
 }

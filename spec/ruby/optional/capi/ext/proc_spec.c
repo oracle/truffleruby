@@ -84,6 +84,10 @@ VALUE proc_spec_rb_proc_call_with_block(VALUE self, VALUE prc, VALUE args, VALUE
   return rb_proc_call_with_block(prc, RARRAY_LENINT(args), RARRAY_PTR(args), block);
 }
 
+static VALUE proc_spec_rb_proc_call_with_block_kw(VALUE self, VALUE prc, VALUE args, VALUE block) {
+  return rb_proc_call_with_block_kw(prc, RARRAY_LENINT(args), RARRAY_PTR(args), block, RB_PASS_KEYWORDS);
+}
+
 VALUE proc_spec_rb_obj_is_proc(VALUE self, VALUE prc) {
   return rb_obj_is_proc(prc);
 }
@@ -133,6 +137,7 @@ void Init_proc_spec(void) {
   rb_define_method(cls, "rb_proc_call", proc_spec_rb_proc_call, 2);
   rb_define_method(cls, "rb_proc_call_kw", proc_spec_rb_proc_call_kw, 2);
   rb_define_method(cls, "rb_proc_call_with_block", proc_spec_rb_proc_call_with_block, 3);
+  rb_define_method(cls, "rb_proc_call_with_block_kw", proc_spec_rb_proc_call_with_block_kw, 3);
   rb_define_method(cls, "rb_Proc_new", proc_spec_rb_Proc_new, 1);
   rb_define_method(cls, "rb_obj_is_proc", proc_spec_rb_obj_is_proc, 1);
 }
