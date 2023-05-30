@@ -1254,6 +1254,10 @@ module Truffle::CExt
     Truffle::IOOperations.puts out, args
   end
 
+  def rb_io_descriptor(io)
+    Primitive.io_fd(io)
+  end
+
   def rb_equal(a, b)
     Primitive.same_or_equal?(a, b)
   end

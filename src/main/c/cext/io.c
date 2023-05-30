@@ -14,6 +14,14 @@
 
 // IO, rb_io_*
 
+int rb_io_descriptor(VALUE io) {
+  int fd = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_io_descriptor", io));
+  if (fd < 0) {
+    rb_raise(rb_eIOError, "closed stream");
+  }
+  return fd;
+}
+
 void rb_io_check_writable(rb_io_t *io) {
   if (!rb_tr_writable(io->mode)) {
     rb_raise(rb_eIOError, "not opened for writing");
