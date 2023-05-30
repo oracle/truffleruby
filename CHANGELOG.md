@@ -32,6 +32,7 @@ Bug fixes:
 * Fix the exception type raised when type coercion raises a `NoMethodError` (#2903, @paracycle, @nirvdrum).
 * Fix `Method` and `Proc` `#parameters` method to return `_` parameter name without synthetic suffix when there are multiple `_` parameters (@paracycle).
 * Fixed errors in IRB when attempting to navigate beyond bounds in singleline mode (@rwstauner).
+* Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
 
 Compatibility:
 
@@ -109,6 +110,8 @@ Compatibility:
 * Add `rb_io_maybe_wait_readable`, `rb_io_maybe_wait_writable` and `rb_io_maybe_wait` functions (#2733, @andrykonchin).
 * `StringIO#set_encoding` should coerce the argument to an Encoding (#2954, @eregon).
 * Implement changes of Ruby 3.0 to `IO#wait` (#2953, @larskanis).
+* Fix `Pathname#relative_path_from` to convert string arguments to Pathname objects (@rwstauner).
+* Implement `rb_io_descriptor()` (@eregon).
 
 Performance:
 

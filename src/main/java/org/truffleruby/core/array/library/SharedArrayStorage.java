@@ -67,12 +67,6 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static boolean accepts(SharedArrayStorage store,
-            @CachedLibrary("store.storage") ArrayStoreLibrary stores) {
-        return true;
-    }
-
-    @ExportMessage
     protected Object read(int index,
             @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
         return stores.read(storage, index);

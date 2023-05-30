@@ -271,7 +271,8 @@ local part_definitions = {
     darwin_amd64: common.darwin_amd64 + darwin_amd64_deps + {
       platform_name:: "DarwinAMD64",
       "$.cap":: {
-        normal_machine: ["darwin_mojave"],
+        # GR-45839, GR-46279: exclude macmini_late_2014_8gb, they are too slow, have too little RAM and cause various timeouts
+        normal_machine: ["darwin_mojave", "!macmini_late_2014_8gb"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
@@ -539,8 +540,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-integration-linux":    $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.run.test_integration,
       "ruby-test-cexts-linux":          $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
       "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
-      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
-      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
+      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
+      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
       "ruby-test-gems-linux":           $.platform.linux  + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.v17 + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
