@@ -12,6 +12,9 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.isMallocAligned;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -20,18 +23,20 @@ import com.oracle.truffle.api.dsl.Specialization;
 /** The IsNativeObjectNode is implemented to determine if a native pointer belongs to a natively allocated NODE* which
  * are used in Ripper. */
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 public abstract class IsNativeObjectNode extends RubyBaseNode {
 
     /** Returns true if handle was natively allocated. */
-    public abstract Object execute(Object handle);
+    public abstract Object execute(Node node, Object handle);
 
     @Specialization
-    protected boolean isNativeObjectTaggedObject(long handle) {
+    protected static boolean isNativeObjectTaggedObject(long handle) {
         return isMallocAligned(handle) && handle < ValueWrapperManager.ALLOCATION_BASE;
     }
 
     @Fallback
-    protected boolean isNativeObjectFallback(Object handle) {
+    protected static boolean isNativeObjectFallback(Object handle) {
         return false;
     }
 

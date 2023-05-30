@@ -465,8 +465,9 @@ public class ValueWrapperManager {
 
         @ExportMessage
         protected Object execute(Object[] arguments,
-                @Cached IsNativeObjectNode isNativeObjectNode) {
-            return isNativeObjectNode.execute(arguments[0]);
+                @Cached IsNativeObjectNode isNativeObjectNode,
+                @Bind("$node") Node node) {
+            return isNativeObjectNode.execute(node, arguments[0]);
         }
     }
 
