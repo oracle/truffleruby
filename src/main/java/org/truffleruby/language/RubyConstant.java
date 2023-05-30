@@ -42,7 +42,7 @@ public class RubyConstant implements ObjectGraphNode {
             String name,
             Object value,
             boolean isPrivate,
-            boolean autoload,
+            AutoloadConstant autoloadConstant,
             boolean isDeprecated,
             SourceSection sourceSection) {
         this(
@@ -50,7 +50,7 @@ public class RubyConstant implements ObjectGraphNode {
                 name,
                 value,
                 isPrivate,
-                autoload ? new AutoloadConstant(value) : null,
+                autoloadConstant,
                 false,
                 isDeprecated,
                 sourceSection);

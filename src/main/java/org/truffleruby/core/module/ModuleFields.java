@@ -39,6 +39,7 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.AutoloadConstant;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
@@ -174,7 +175,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 currentNode,
                 name,
                 rubyModule,
-                false);
+                null);
 
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
@@ -427,14 +428,15 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     name,
                     currentNode);
         } else {
-            return setConstantInternal(context, currentNode, name, value, false);
+            return setConstantInternal(context, currentNode, name, value, null);
         }
     }
 
     @TruffleBoundary
     public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename,
             String javaFilename) {
-        RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
+        RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, null,
+                new AutoloadConstant(filename));
         if (autoloadConstant == null) {
             return;
         }
@@ -458,14 +460,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value,
-            boolean autoload) {
+            AutoloadConstant autoloadConstant) {
         checkFrozen(context, currentNode);
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, value);
 
-        final String autoloadPath = autoload
-                ? RubyGuards.getJavaString(value)
-                : null;
+        final boolean autoload = autoloadConstant != null;
+        final String autoloadPath = autoload ? autoloadConstant.getAutoloadPath() : null;
+
         RubyConstant previous;
         RubyConstant newConstant;
         ConstantEntry previousEntry;
@@ -483,7 +485,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     return null;
                 }
             }
-            newConstant = newConstant(currentNode, name, value, autoload, previous);
+            newConstant = newConstant(currentNode, name, value, autoloadConstant, previous);
         } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 
         if (previousEntry != null) {
@@ -497,12 +499,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return autoload ? newConstant : previous;
     }
 
-    private RubyConstant newConstant(Node currentNode, String name, Object value, boolean autoload,
+    private RubyConstant newConstant(Node currentNode, String name, Object value, AutoloadConstant autoloadConstant,
             RubyConstant previous) {
         final boolean isPrivate = previous != null && previous.isPrivate();
         final boolean isDeprecated = previous != null && previous.isDeprecated();
         final SourceSection sourceSection = currentNode != null ? currentNode.getSourceSection() : null;
-        return new RubyConstant(rubyModule, name, value, isPrivate, autoload, isDeprecated, sourceSection);
+        return new RubyConstant(rubyModule, name, value, isPrivate, autoloadConstant, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
