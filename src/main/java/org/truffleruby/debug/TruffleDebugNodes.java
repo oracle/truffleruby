@@ -63,7 +63,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
-import org.truffleruby.interop.FromJavaStringNodeGen;
+import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -1396,7 +1396,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected RubyArray primitiveNames() {
             var primitiveNames = getLanguage().primitiveManager.getPrimitiveNames().stream()
-                    .map(name -> FromJavaStringNodeGen.getUncached().executeFromJavaString(this, name));
+                    .map(FromJavaStringNode::executeUncached);
 
             return createArray(primitiveNames.toArray());
         }

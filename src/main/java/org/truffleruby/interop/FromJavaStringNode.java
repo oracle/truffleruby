@@ -29,6 +29,10 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
 
     public abstract RubyString executeFromJavaString(Node node, String value);
 
+    public static RubyString executeUncached(String value) {
+        return FromJavaStringNodeGen.getUncached().executeFromJavaString(null, value);
+    }
+
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
     protected static RubyString doCached(Node node, String value,
             @Cached("value") String cachedValue,
