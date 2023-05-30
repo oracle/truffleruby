@@ -558,7 +558,7 @@ public class RubyContext {
     }
 
     /** Hashing for a RubyNode, the seed should only be used for a Ruby-level #hash method */
-    public Hashing getHashing(RubyBaseNode node) {
+    public Hashing getHashing(Node node) {
         return hashing;
     }
 

@@ -17,7 +17,10 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedIntValueProfile;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -1058,25 +1061,26 @@ public abstract class ArrayNodes {
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected long hash(VirtualFrame frame, RubyArray array,
+        protected static long hash(VirtualFrame frame, RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared LoopConditionProfile loopProfile) {
-            final int size = arraySizeProfile.profile(array.size);
-            long h = getContext().getHashing(this).start(size);
+                @Cached @Shared InlinedIntValueProfile arraySizeProfile,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile,
+                @Bind("this") Node node) {
+            final int size = arraySizeProfile.profile(node, array.size);
+            long h = getContext(node).getHashing(node).start(size);
             h = Hashing.update(h, CLASS_SALT);
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < size); n++) {
+                for (; loopProfile.inject(node, n < size); n++) {
                     final Object value = stores.read(store, n);
-                    h = Hashing.update(h, toHashByHashCode.execute(value));
-                    TruffleSafepoint.poll(this);
+                    h = Hashing.update(h, toHashByHashCode.execute(node, value));
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(node, loopProfile, n);
             }
 
             return Hashing.end(h);

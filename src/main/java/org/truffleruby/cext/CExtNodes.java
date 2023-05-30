@@ -1333,7 +1333,7 @@ public class CExtNodes {
         @Specialization
         protected int rbHash(Object object,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode) {
-            return toHashByHashCode.execute(object);
+            return toHashByHashCode.execute(this, object);
         }
     }
 

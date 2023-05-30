@@ -605,7 +605,7 @@ public abstract class KernelNodes {
             final RubySymbol key = coreSymbols().FREEZE;
 
             final Object[] newStore = PackedHashStoreLibrary.createStore();
-            final int hashed = hashNode.execute(key);
+            final int hashed = hashNode.execute(this, key);
             PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, freeze);
 
             return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1, false);

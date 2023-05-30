@@ -10,13 +10,13 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.RubyBaseNode;
 
 import java.util.Map;
 import java.util.Optional;
@@ -55,19 +55,19 @@ public abstract class HashOperations {
     public static final int INTEGER_CLASS_SALT = 1028093337;
     public static final int DOUBLE_CLASS_SALT = -1611229937;
 
-    public static long hashBoolean(boolean value, RubyContext context, RubyBaseNode node) {
+    public static long hashBoolean(boolean value, RubyContext context, Node node) {
         return context.getHashing(node).hash(BOOLEAN_CLASS_SALT, Boolean.hashCode(value));
     }
 
-    public static long hashLong(long value, RubyContext context, RubyBaseNode node) {
+    public static long hashLong(long value, RubyContext context, Node node) {
         return context.getHashing(node).hash(INTEGER_CLASS_SALT, value);
     }
 
-    public static long hashDouble(double value, RubyContext context, RubyBaseNode node) {
+    public static long hashDouble(double value, RubyContext context, Node node) {
         return context.getHashing(node).hash(DOUBLE_CLASS_SALT, Double.doubleToRawLongBits(value));
     }
 
-    public static long hashBignum(RubyBignum value, RubyContext context, RubyBaseNode node) {
+    public static long hashBignum(RubyBignum value, RubyContext context, Node node) {
         return context.getHashing(node).hash(INTEGER_CLASS_SALT, BigIntegerOps.hashCode(value));
     }
 }
