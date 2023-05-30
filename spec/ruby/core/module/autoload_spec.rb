@@ -792,14 +792,12 @@ describe "Module#autoload" do
     -> { ModuleSpecs.autoload "a name", @non_existent }.should raise_error(NameError)
   end
 
-  it "shares the autoload request across dup'ed copies of modules" do
-    require fixture(__FILE__, "autoload_s.rb")
-    @remove << :S
+  it "does not share the autoload request internals across dup'ed copies of modules" do
     filename = fixture(__FILE__, "autoload_t.rb")
     mod1 = Module.new { autoload :T, filename }
-    -> {
-      ModuleSpecs::Autoload::S = mod1
-    }.should complain(/already initialized constant/)
+    ModuleSpecs::Autoload::S = mod1
+    @remove << :S
+
     mod2 = mod1.dup
 
     mod1.autoload?(:T).should == filename

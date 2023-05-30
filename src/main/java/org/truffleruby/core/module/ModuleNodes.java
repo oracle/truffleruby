@@ -653,8 +653,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final String javaStringFilename = RubyGuards.getJavaString(filename);
-            module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
+            module.fields.setAutoloadConstant(getContext(), this, name, filename);
             return nil;
         }
     }
@@ -1589,11 +1588,11 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "!isRubyClass(self)", "!isRubyClass(from)" })
         protected Object initializeCopyModule(RubyModule self, RubyModule from) {
-            self.fields.initCopy(from);
+            self.fields.initCopy(getContext(), from, this);
 
             final RubyClass selfMetaClass = getSingletonClass(self);
             final RubyClass fromMetaClass = getSingletonClass(from);
-            selfMetaClass.fields.initCopy(fromMetaClass);
+            selfMetaClass.fields.initCopy(getContext(), fromMetaClass, this);
 
             return nil;
         }
@@ -1609,7 +1608,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().typeError("can't copy singleton class", this));
             }
 
-            self.fields.initCopy(from);
+            self.fields.initCopy(getContext(), from, this);
 
             final RubyClass selfMetaClass = getSingletonClass(self);
             final RubyClass fromMetaClass = from.getMetaClass();
@@ -1617,7 +1616,7 @@ public abstract class ModuleNodes {
             assert fromMetaClass.isSingleton;
             assert self.getMetaClass().isSingleton;
 
-            selfMetaClass.fields.initCopy(fromMetaClass); // copy class methods
+            selfMetaClass.fields.initCopy(getContext(), fromMetaClass, this); // copy class methods
 
             return nil;
         }

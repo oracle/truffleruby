@@ -77,6 +77,11 @@ public class RubyConstant implements ObjectGraphNode {
         this.sourceSection = sourceSection;
     }
 
+    public RubyConstant copy(RubyModule declaringModule) {
+        assert !isAutoload();
+        return new RubyConstant(declaringModule, name, value, isPrivate, null, undefined, isDeprecated, sourceSection);
+    }
+
     public RubyModule getDeclaringModule() {
         return declaringModule;
     }

@@ -229,7 +229,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void initCopy(RubyModule from) {
+    public void initCopy(RubyContext context, RubyModule from, Node node) {
         // Do not copy name, the copy is an anonymous module
         final ModuleFields fromFields = from.fields;
 
@@ -246,7 +246,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         for (Entry<String, ConstantEntry> entry : fromFields.constants.entrySet()) {
             final RubyConstant constant = entry.getValue().getConstant();
             if (constant != null) {
-                this.constants.put(entry.getKey(), new ConstantEntry(constant));
+                if (constant.isAutoload()) {
+                    var autoloadConstant = constant.getAutoloadConstant();
+                    setAutoloadConstant(context, node, constant.getName(), autoloadConstant.getFeature());
+                } else {
+                    this.constants.put(entry.getKey(), new ConstantEntry(constant.copy(rubyModule)));
+                }
             }
         }
 
@@ -439,11 +444,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename,
-            String javaFilename) {
-        RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, null,
-                new AutoloadConstant(filename));
-        if (autoloadConstant == null) {
+    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename) {
+        RubyConstant constant = setConstantInternal(context, currentNode, name, null, new AutoloadConstant(filename));
+        if (constant == null) {
             return;
         }
 
@@ -451,18 +454,18 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
                     context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
-                    autoloadConstant,
+                    constant,
                     filename));
         }
         final ReentrantLockFreeingMap<String> fileLocks = context.getFeatureLoader().getFileLocks();
-        final ReentrantLock lock = fileLocks.get(javaFilename);
+        final ReentrantLock lock = fileLocks.get(constant.getAutoloadConstant().getAutoloadPath());
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
-            GetConstantNode.autoloadConstantStart(context, autoloadConstant, currentNode);
+            GetConstantNode.autoloadConstantStart(context, constant, currentNode);
         }
 
-        context.getFeatureLoader().addAutoload(autoloadConstant);
+        context.getFeatureLoader().addAutoload(constant);
     }
 
     private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value,
