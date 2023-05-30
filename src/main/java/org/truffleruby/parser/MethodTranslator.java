@@ -171,7 +171,7 @@ public class MethodTranslator extends BodyTranslator {
         final ProcCallTargets callTargets;
         if (isStabbyLambda) {
             final RootCallTarget callTarget = lambdaCompiler.get();
-            callTargets = new ProcCallTargets(callTarget, callTarget, null);
+            callTargets = new ProcCallTargets(callTarget);
         } else if (methodNameForBlock.equals("lambda")) {
             callTargets = new ProcCallTargets(null, lambdaCompiler.get(), procCompiler);
         } else {
