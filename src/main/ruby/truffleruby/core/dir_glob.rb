@@ -230,7 +230,7 @@ class Dir
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
         if glob_base_dir
-          if Primitive.is_a?(@next, DirectoriesOnly)
+          if Primitive.object_kind_of?(@next, DirectoriesOnly)
             @next.process_entry '', Truffle::DirOperations::DT_DIR, matches, parent, glob_base_dir
           else
             @next.process_entry '.', Truffle::DirOperations::DT_DIR, matches, parent, glob_base_dir if allow_dots
