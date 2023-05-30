@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -35,11 +37,12 @@ public abstract class StringToPointerNode extends FormatNode {
 
     @SuppressWarnings("unchecked")
     @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-    protected long toPointer(VirtualFrame frame, Object string,
+    protected static long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
-            @Cached RubyStringLibrary strings) {
+            @Cached RubyStringLibrary strings,
+            @Bind("this") Node node) {
 
-        final Pointer pointer = stringToNativeNode.executeToNative(string);
+        final Pointer pointer = stringToNativeNode.executeToNative(node, string);
 
         List<Pointer> associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 
