@@ -130,7 +130,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
                 callRequireNode.call(coreLibrary().mainObject, "require", feature);
             } finally {
                 if (autoloadConstant.hasUnpublishedValue()) {
-                    autoloadConstant.publish(getContext(), constant, this);
+                    autoloadConstant.publish(getContext(), constant);
                 }
             }
 

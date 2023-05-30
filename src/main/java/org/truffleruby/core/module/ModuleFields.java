@@ -498,7 +498,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 } else {
                     if (previous.isAutoload() && previous.getAutoloadConstant().isAutoloadingThread() &&
                             !previous.getAutoloadConstant().isPublished()) {
-                        previous.getAutoloadConstant().setUnpublishedValue(value);
+                        previous.getAutoloadConstant().setUnpublishedValue(value, currentNode);
                         return previous;
                     }
                 }

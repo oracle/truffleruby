@@ -23,6 +23,7 @@ public final class AutoloadConstant {
     private final String autoloadPath;
     private volatile ReentrantLock autoloadLock;
     private Object unpublishedValue = null;
+    private Node unpublishedValueNode = null;
     private boolean published = false;
 
     public AutoloadConstant(Object feature) {
@@ -80,10 +81,11 @@ public final class AutoloadConstant {
         return unpublishedValue;
     }
 
-    public void setUnpublishedValue(Object unpublishedValue) {
+    public void setUnpublishedValue(Object unpublishedValue, Node currentNode) {
         assert isAutoloadingThread();
         assert RubyGuards.assertIsValidRubyValue(unpublishedValue);
         this.unpublishedValue = unpublishedValue;
+        this.unpublishedValueNode = currentNode;
     }
 
     public boolean isPublished() {
@@ -91,10 +93,11 @@ public final class AutoloadConstant {
         return published;
     }
 
-    public void publish(RubyContext context, RubyConstant constant, Node node) {
+    public void publish(RubyContext context, RubyConstant constant) {
         assert isAutoloadingThread();
         assert hasUnpublishedValue();
         this.published = true;
-        constant.getDeclaringModule().fields.setConstant(context, node, constant.getName(), getUnpublishedValue());
+        constant.getDeclaringModule().fields.setConstant(context, unpublishedValueNode, constant.getName(),
+                unpublishedValue);
     }
 }
