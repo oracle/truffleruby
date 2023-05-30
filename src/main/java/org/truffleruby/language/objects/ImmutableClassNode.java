@@ -36,7 +36,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 public abstract class ImmutableClassNode extends RubyBaseNode {
 
     public final RubyClass execute(Node node, Object value) {
-        return execute(node, value, getContext(node).getCoreLibrary());
+        return execute(node, value, coreLibrary(node));
     }
 
     protected abstract RubyClass execute(Node node, Object value, CoreLibrary coreLibrary);

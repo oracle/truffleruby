@@ -280,7 +280,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {
             unsupportedProfile.enter(node);
-            throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node, e));
+            throw new RaiseException(getContext(node),
+                    coreExceptions(node).argumentError(e.getMessage(), getNode(node), e));
         }
         return unwrapNativeNode.execute(node, handle);
     }

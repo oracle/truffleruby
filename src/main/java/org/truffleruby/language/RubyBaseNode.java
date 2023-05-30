@@ -282,8 +282,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public static RubyString createString(Node node, TruffleString.FromJavaStringNode fromJavaStringNode,
-            String javaString,
-            RubyEncoding encoding) {
+            String javaString, RubyEncoding encoding) {
         var tstring = fromJavaStringNode.execute(javaString, encoding.tencoding);
         return createString(node, tstring, encoding);
     }
