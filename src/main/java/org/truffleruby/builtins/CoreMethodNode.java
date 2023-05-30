@@ -10,12 +10,14 @@
 package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import org.truffleruby.language.RubyNode;
 
 @GenerateNodeFactory
+@GenerateInline(value = false, inherit = true)
 public abstract class CoreMethodNode extends RubyContextSourceNode {
 
     @Override
