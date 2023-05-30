@@ -1540,56 +1540,58 @@ public class CExtNodes {
         @Specialization
         protected int extractRubyTag(CapturedException captured,
                 @Cached ExtractRubyTagHelperNode helperNode) {
-            return helperNode.execute(captured.getException());
+            return helperNode.execute(this, captured.getException());
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class ExtractRubyTagHelperNode extends RubyBaseNode {
 
-        public abstract int execute(Throwable e);
+        public abstract int execute(Node node, Throwable e);
 
         @Specialization
-        protected int dynamicReturnTag(DynamicReturnException e) {
+        protected static int dynamicReturnTag(DynamicReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected int localReturnTag(LocalReturnException e) {
+        protected static int localReturnTag(LocalReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected int breakTag(BreakException e) {
+        protected static int breakTag(BreakException e) {
             return RUBY_TAG_BREAK;
         }
 
         @Specialization
-        protected int nextTag(NextException e) {
+        protected static int nextTag(NextException e) {
             return RUBY_TAG_NEXT;
         }
 
         @Specialization
-        protected int retryTag(RetryException e) {
+        protected static int retryTag(RetryException e) {
             return RUBY_TAG_RETRY;
         }
 
         @Specialization
-        protected int redoTag(RedoException e) {
+        protected static int redoTag(RedoException e) {
             return RUBY_TAG_REDO;
         }
 
         @Specialization
-        protected int raiseTag(RaiseException e) {
+        protected static int raiseTag(RaiseException e) {
             return RUBY_TAG_RAISE;
         }
 
         @Specialization
-        protected int throwTag(ThrowException e) {
+        protected static int throwTag(ThrowException e) {
             return RUBY_TAG_THROW;
         }
 
         @Fallback
-        protected int noTag(Throwable e) {
+        protected static int noTag(Throwable e) {
             return 0;
         }
     }
