@@ -129,7 +129,7 @@ public abstract class RequireNode extends RubyBaseNode {
             final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
             for (RubyConstant constant : releasedConstants) {
                 if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
-                    if (constant.getAutoloadConstant().hasUnpublishedValue()) {
+                    if (constant.getAutoloadConstant().shouldPublish()) {
                         constant.getAutoloadConstant().publish(getContext(), constant);
                     }
 

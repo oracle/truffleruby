@@ -71,7 +71,11 @@ public final class AutoloadConstant {
         return isAutoloadingThread() && !hasUnpublishedValue();
     }
 
-    public boolean hasUnpublishedValue() {
+    public boolean shouldPublish() {
+        return hasUnpublishedValue() && !isPublished();
+    }
+
+    private boolean hasUnpublishedValue() {
         assert isAutoloadingThread();
         return unpublishedValue != null;
     }
