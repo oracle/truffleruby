@@ -538,7 +538,7 @@ public class PackedHashStoreLibrary {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 hashNode = insert(HashingNodes.ToHashByHashCode.create());
             }
-            return hashNode.execute(this, key);
+            return hashNode.executeCached(key);
         }
 
         private boolean callEqual(Object receiver, Object key) {
