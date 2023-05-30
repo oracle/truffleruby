@@ -22,7 +22,8 @@ public class ConstantLookupResult {
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     public ConstantLookupResult(RubyConstant constant, Assumption... assumptions) {
-        assert constant == null || !(constant.isAutoload() && constant.getAutoloadConstant().isAutoloadingThread());
+        assert constant == null ||
+                !(constant.isAutoload() && constant.getAutoloadConstant().isAutoloadingThreadAndUnset());
         this.constant = constant;
         this.assumptions = assumptions;
     }

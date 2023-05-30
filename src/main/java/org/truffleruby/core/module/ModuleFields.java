@@ -480,17 +480,27 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         do {
             previousEntry = constants.get(name);
             previous = previousEntry != null ? previousEntry.getConstant() : null;
-            if (autoload && previous != null) {
-                if (previous.hasValue()) {
-                    // abort, do not set an autoload constant, the constant already has a value
-                    return null;
-                } else if (previous.isAutoload() &&
-                        previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
-                    // already an autoload constant with the same path,
-                    // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
-                    return null;
+
+            if (previous != null) {
+                if (autoload) {
+                    if (previous.hasValue()) {
+                        // abort, do not set an autoload constant, the constant already has a value
+                        return null;
+                    } else if (previous.isAutoload() &&
+                            previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
+                        // already an autoload constant with the same path,
+                        // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
+                        return null;
+                    }
+                } else {
+                    if (previous.isAutoload() && previous.getAutoloadConstant().isAutoloadingThread() &&
+                            !previous.getAutoloadConstant().isPublished()) {
+                        previous.getAutoloadConstant().setUnpublishedValue(value);
+                        return previous;
+                    }
                 }
             }
+
             newConstant = newConstant(currentNode, name, value, autoloadConstant, previous);
         } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 

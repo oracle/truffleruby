@@ -104,7 +104,6 @@ public abstract class RequireNode extends RubyBaseNode {
                 }
             }
 
-
             if (getContext().getOptions().LOG_AUTOLOAD && !toAutoload.isEmpty()) {
                 String info = toAutoload
                         .stream()
@@ -130,6 +129,10 @@ public abstract class RequireNode extends RubyBaseNode {
             final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
             for (RubyConstant constant : releasedConstants) {
                 if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
+                    if (constant.getAutoloadConstant().hasUnpublishedValue()) {
+                        constant.getAutoloadConstant().publish(getContext(), constant, this);
+                    }
+
                     final boolean undefined = GetConstantNode.autoloadUndefineConstantIfStillAutoload(constant);
                     GetConstantNode.logAutoloadResult(getContext(), constant, undefined);
                     GetConstantNode.autoloadConstantStop(constant);
