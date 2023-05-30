@@ -163,19 +163,24 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         getName();
     }
 
-    public RubyConstant getAdoptedByLexicalParent(
-            RubyContext context,
-            RubyModule lexicalParent,
-            String name,
+    public RubyConstant getAdoptedByLexicalParent(RubyContext context, RubyModule lexicalParent, String name,
             Node currentNode) {
+        return getAdoptedByLexicalParent(context, lexicalParent, name, currentNode, true);
+    }
+
+    private RubyConstant getAdoptedByLexicalParent(RubyContext context, RubyModule lexicalParent, String name,
+            Node currentNode, boolean setConstant) {
         assert name != null;
 
-        RubyConstant previous = lexicalParent.fields.setConstantInternal(
-                context,
-                currentNode,
-                name,
-                rubyModule,
-                null);
+        RubyConstant previous = null;
+        if (setConstant) {
+            previous = lexicalParent.fields.setConstantInternal(
+                    context,
+                    currentNode,
+                    name,
+                    rubyModule,
+                    null);
+        }
 
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
@@ -208,7 +213,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                             context,
                             rubyModule,
                             entry.getKey(),
-                            null);
+                            null,
+                            false);
                 }
             }
         }
