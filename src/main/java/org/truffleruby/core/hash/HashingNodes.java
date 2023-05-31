@@ -111,14 +111,14 @@ public abstract class HashingNodes {
         }
 
         @Specialization
-        protected static int hashSymbol(RubySymbol value,
+        protected static int hashSymbol(Node node, RubySymbol value,
                 @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
-            return (int) symbolHashNode.execute(value);
+            return (int) symbolHashNode.execute(node, value);
         }
 
         @Fallback
         protected static int hashOther(Node node, Object value,
-                @Cached DispatchNode callHash,
+                @Cached(inline = false) DispatchNode callHash,
                 @Cached HashCastResultNode cast) {
             return cast.execute(node, callHash.call(value, "hash"));
         }

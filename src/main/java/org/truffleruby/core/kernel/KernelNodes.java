@@ -896,7 +896,7 @@ public abstract class KernelNodes {
         @Specialization
         protected long hashSymbol(RubySymbol value,
                 @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
-            return symbolHashNode.execute(value);
+            return symbolHashNode.execute(this, value);
         }
 
         // Default hash for Kernel#hash, can be overwritten by defining a #hash method
