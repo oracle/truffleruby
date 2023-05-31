@@ -549,7 +549,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-graal-core-darwin-amd64-20":       $.platform.darwin_amd64   + $.jdk.v20 + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-graal-core-darwin-aarch64-17":     $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-graal-core-darwin-aarch64-20":     $.platform.darwin_aarch64 + $.jdk.v20 + $.env.native    +                 gate + native_tests,
-      "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v17 + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
+      "ruby-test-svm-graal-enterprise-linux":           $.platform.linux          + $.jdk.v17 + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log + { timelimit: "01:30:00" },
       "ruby-test-svm-graal-enterprise-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.v17 + $.env.native_ee +                 gate + native_tests,
     },
 
