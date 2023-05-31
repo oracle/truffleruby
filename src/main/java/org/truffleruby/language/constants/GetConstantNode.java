@@ -125,13 +125,14 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
         // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
         autoloadConstantStart(getContext(), constant, this);
+        // TODO return early for other threads if the constant has been set
         try {
             try {
                 callRequireNode.call(coreLibrary().mainObject, "require", feature);
             } finally {
                 if (autoloadConstant.shouldPublish()) {
                     autoloadConstant.publish(getContext(), constant);
-                }
+                } // TODO else remove the constant
             }
 
             // This needs to run while the autoload is marked as isAutoloading(), to avoid infinite recursion
@@ -149,6 +150,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
+        // TODO skip if already has unpublishedValue
         autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
     }
 
