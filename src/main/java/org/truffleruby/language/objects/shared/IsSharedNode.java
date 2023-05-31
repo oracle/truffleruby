@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -21,30 +23,32 @@ import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
 public abstract class IsSharedNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
-    public abstract boolean executeIsShared(RubyDynamicObject object);
+    public abstract boolean executeIsShared(Node node, RubyDynamicObject object);
 
     @Specialization(
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
-    protected boolean isShareCached(RubyDynamicObject object,
+    protected static boolean isShareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("cachedShape.isShared()") boolean shared) {
         return shared;
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected boolean updateShapeAndIsShared(RubyDynamicObject object) {
-        return executeIsShared(object);
+    protected static boolean updateShapeAndIsShared(Node node, RubyDynamicObject object,
+            @Cached(inline = false) IsSharedNode isSharedNode) {
+        return isSharedNode.executeIsShared(node, object);
     }
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
-    protected boolean isSharedUncached(RubyDynamicObject object) {
-        return getLanguage().options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
+    protected static boolean isSharedUncached(Node node, RubyDynamicObject object) {
+        return getLanguage(node).options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
     }
 
 }

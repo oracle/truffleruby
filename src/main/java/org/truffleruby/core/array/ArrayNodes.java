@@ -480,7 +480,7 @@ public abstract class ArrayNodes {
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile) {
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))),
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
                     0);
             return array;
         }
@@ -1142,7 +1142,8 @@ public abstract class ArrayNodes {
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile) {
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
+                    0);
             return array;
         }
 
@@ -1158,7 +1159,8 @@ public abstract class ArrayNodes {
             }
 
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(array))), 0);
+                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
+                    0);
             return array;
         }
 
@@ -1190,7 +1192,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores) {
             final Object store;
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+            if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
                 store = new SharedArrayStorage(new Object[size]);
             } else {
                 store = new Object[size];
@@ -1253,7 +1255,7 @@ public abstract class ArrayNodes {
             } finally {
                 profileAndReportLoopCount(loopProfile, n);
                 Object store = arrayBuilder.finish(state, n);
-                if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+                if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
                     store = stores.makeShared(store, n);
                 }
                 setStoreAndSize(array, store, n);
@@ -1836,7 +1838,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
-            if (sharedProfile.profile(isSharedNode.executeIsShared(array))) {
+            if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
                 store = stores.makeShared(store, size);
             }
             setStoreAndSize(array, store, size);
@@ -2297,9 +2299,7 @@ public abstract class ArrayNodes {
         protected RubyArray storeToNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached IsSharedNode isSharedNode,
-                @Cached ConditionProfile sharedProfile) {
+                @Cached IntValueProfile arraySizeProfile) {
             final int size = arraySizeProfile.profile(array.size);
             Pointer pointer = Pointer.mallocAutoRelease(getLanguage(), getContext(), size * Pointer.SIZE);
             Object newStore = new NativeArrayStorage(pointer, size);
