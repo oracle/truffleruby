@@ -134,6 +134,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsCopyableObjectNode;
 import org.truffleruby.language.objects.IsCopyableObjectNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.LazySingletonClassNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -554,24 +555,24 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends PrimitiveArrayArgumentsNode {
 
         @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
-        @Child SingletonClassNode singletonClassNode;
-        private final BranchProfile cantUnfreezeErrorProfile = BranchProfile.create();
 
         @Specialization(guards = "isCopyableObjectNode.execute(object)")
-        protected RubyDynamicObject copyable(Object object, Object freeze,
+        protected static RubyDynamicObject copyable(Object object, Object freeze,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
                 @Cached InlinedConditionProfile isSingletonProfile,
                 @Cached HashingNodes.ToHashByHashCode hashNode,
                 @Cached IsFrozenNode isFrozenNode,
-                @Cached FreezeNode freezeNode) {
+                @Cached FreezeNode freezeNode,
+                @Cached LazySingletonClassNode lazySingletonClassNode,
+                @Bind("this") Node node) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = metaClassNode.execute(this, object);
-            if (isSingletonProfile.profile(this, selfMetaClass.isSingleton)) {
-                final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
+            final RubyClass selfMetaClass = metaClassNode.execute(node, object);
+            if (isSingletonProfile.profile(node, selfMetaClass.isSingleton)) {
+                final RubyClass newObjectMetaClass = lazySingletonClassNode.get(node).executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
@@ -581,7 +582,7 @@ public abstract class KernelNodes {
                 initializeCloneNode.call(newObject, "initialize_clone", object);
             } else {
                 // pass :freeze keyword argument to #initialize_clone
-                final RubyHash keywordArguments = createFreezeBooleanHash((boolean) freeze, hashNode);
+                final RubyHash keywordArguments = createFreezeBooleanHash(node, (boolean) freeze, hashNode);
                 initializeCloneNode.callWithKeywords(newObject, "initialize_clone", object, keywordArguments);
             }
 
@@ -594,24 +595,27 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isCopyableObjectNode.execute(object)")
-        protected Object notCopyable(Object object, Object freeze) {
+        protected Object notCopyable(Object object, Object freeze,
+                @Cached InlinedBranchProfile cantUnfreezeErrorProfile) {
             if (forceNotFrozen(freeze)) {
-                raiseCantUnfreezeError(object);
+                raiseCantUnfreezeError(cantUnfreezeErrorProfile, object);
             }
             return object;
         }
 
-        private RubyHash createFreezeBooleanHash(boolean freeze, HashingNodes.ToHashByHashCode hashNode) {
-            final RubySymbol key = coreSymbols().FREEZE;
+        private static RubyHash createFreezeBooleanHash(Node node, boolean freeze,
+                HashingNodes.ToHashByHashCode hashNode) {
+            final RubySymbol key = coreSymbols(node).FREEZE;
 
             final Object[] newStore = PackedHashStoreLibrary.createStore();
-            final int hashed = hashNode.execute(this, key);
+            final int hashed = hashNode.execute(node, key);
             PackedHashStoreLibrary.setHashedKeyValue(newStore, 0, hashed, key, freeze);
 
-            return new RubyHash(coreLibrary().hashClass, getLanguage().hashShape, getContext(), newStore, 1, false);
+            return new RubyHash(coreLibrary(node).hashClass, getLanguage(node).hashShape, getContext(node), newStore, 1,
+                    false);
         }
 
-        private boolean forceFrozen(Object freeze) {
+        private static boolean forceFrozen(Object freeze) {
             return freeze instanceof Boolean && (boolean) freeze;
 
         }
@@ -620,20 +624,10 @@ public abstract class KernelNodes {
             return freeze instanceof Boolean && !(boolean) freeze;
         }
 
-        private void raiseCantUnfreezeError(Object object) {
-            cantUnfreezeErrorProfile.enter();
+        private void raiseCantUnfreezeError(InlinedBranchProfile cantUnfreezeErrorProfile, Object object) {
+            cantUnfreezeErrorProfile.enter(this);
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(object, this));
         }
-
-        private RubyClass executeSingletonClass(RubyDynamicObject newObject) {
-            if (singletonClassNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                singletonClassNode = insert(SingletonClassNode.create());
-            }
-
-            return singletonClassNode.executeSingletonClass(newObject);
-        }
-
     }
 
     // Worth always splitting to have monomorphic #__allocate__, Shape, #initialize_dup and #initialize_copy.
@@ -886,15 +880,17 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected long hashString(RubyString value,
-                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode) {
-            return stringHashNode.execute(value);
+        protected static long hashString(RubyString value,
+                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
+                @Bind("this") Node node) {
+            return stringHashNode.execute(node, value);
         }
 
         @Specialization
-        protected long hashImmutableString(ImmutableRubyString value,
-                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode) {
-            return stringHashNode.execute(value);
+        protected static long hashImmutableString(ImmutableRubyString value,
+                @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
+                @Bind("this") Node node) {
+            return stringHashNode.execute(node, value);
         }
 
         @Specialization

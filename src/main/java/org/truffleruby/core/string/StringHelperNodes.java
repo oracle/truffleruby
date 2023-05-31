@@ -14,6 +14,8 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -373,23 +375,20 @@ public abstract class StringHelperNodes {
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class HashStringNode extends RubyBaseNode {
 
         protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
-        @NeverDefault
-        public static HashStringNode create() {
-            return StringHelperNodesFactory.HashStringNodeGen.create();
-        }
-
-        public abstract long execute(Object string);
+        public abstract long execute(Node node, Object string);
 
         @Specialization
-        protected long hash(Object string,
+        protected static long hash(Node node, Object string,
                 @Cached RubyStringLibrary strings,
-                @Cached TruffleString.HashCodeNode hashCodeNode) {
+                @Cached(inline = false) TruffleString.HashCodeNode hashCodeNode) {
             int hashCode = hashCodeNode.execute(strings.getTString(string), strings.getTEncoding(string));
-            return getContext().getHashing(this).hash(CLASS_SALT, hashCode);
+            return getContext(node).getHashing(node).hash(CLASS_SALT, hashCode);
         }
     }
 

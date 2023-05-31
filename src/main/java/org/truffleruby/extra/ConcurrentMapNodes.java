@@ -10,9 +10,11 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
@@ -214,9 +216,10 @@ public class ConcurrentMapNodes {
         }
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Exclusive @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(this, key);
+        protected static boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                @Exclusive @Cached ToHashByHashCode hashNode,
+                @Bind("this") Node node) {
+            final int hashCode = hashNode.execute(node, key);
             return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
         }
 
@@ -251,9 +254,10 @@ public class ConcurrentMapNodes {
         }
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Exclusive @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(this, key);
+        protected static boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
+                @Exclusive @Cached ToHashByHashCode hashNode,
+                @Bind("this") Node node) {
+            final int hashCode = hashNode.execute(node, key);
             return remove(self.getMap(), new Key(key, hashCode), expectedValue);
         }
 

@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -35,6 +36,7 @@ public abstract class SingletonClassNode extends RubySourceNode {
         return SingletonClassNodeGen.getUncached();
     }
 
+    @NeverDefault
     public static SingletonClassNode create() {
         return SingletonClassNodeGen.create(null);
     }
