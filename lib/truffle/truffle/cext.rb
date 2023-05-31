@@ -903,6 +903,10 @@ module Truffle::CExt
     Primitive.public_send_argv_without_cext_lock(recv, meth, argv, block)
   end
 
+  def rb_funcall_with_block_keywords(recv, meth, argv, block)
+    Primitive.public_send_argv_keywords_without_cext_lock(recv, meth, argv, block)
+  end
+
   def rb_funcallv_public(recv, meth, argv)
     Primitive.public_send_argv_without_cext_lock(recv, meth, argv, nil)
   end

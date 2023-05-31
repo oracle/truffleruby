@@ -1,4 +1,5 @@
 require_relative 'spec_helper'
+require_relative 'fixtures/kernel'
 
 kernel_path = load_extension("kernel")
 
@@ -597,6 +598,16 @@ describe "C-API Kernel function" do
       @s.rb_funcallv(self, :empty, []).should == 42
       @s.rb_funcallv(self, :sum, [1, 2]).should == 3
     end
+
+    it "calls a private method" do
+      object = CApiKernelSpecs::ClassWithPrivateMethod.new
+      @s.rb_funcallv(object, :private_method, []).should == 0
+    end
+
+    it "calls a protected method" do
+      object = CApiKernelSpecs::ClassWithProtectedMethod.new
+      @s.rb_funcallv(object, :protected_method, []).should == 0
+    end
   end
 
   ruby_version_is "3.0" do
@@ -620,6 +631,16 @@ describe "C-API Kernel function" do
         -> {
           @s.rb_funcallv_kw(self, :m, [42])
         }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
+      end
+
+      it "calls a private method" do
+        object = CApiKernelSpecs::ClassWithPrivateMethod.new
+        @s.rb_funcallv_kw(object, :private_method, [{}]).should == 0
+      end
+
+      it "calls a protected method" do
+        object = CApiKernelSpecs::ClassWithProtectedMethod.new
+        @s.rb_funcallv_kw(object, :protected_method, [{}]).should == 0
       end
     end
 
@@ -676,21 +697,56 @@ describe "C-API Kernel function" do
   end
 
   describe 'rb_funcall_with_block' do
-    before :each do
+    it "calls a method with block" do
       @obj = Object.new
       class << @obj
-        def method_public; yield end
-        def method_private; yield end
-        private :method_private
+        def method_public(*args); [args, yield] end
       end
-    end
 
-    it "calls a method with block" do
-      @s.rb_funcall_with_block(@obj, :method_public, proc { :result }).should == :result
+      @s.rb_funcall_with_block(@obj, :method_public, [1, 2], proc { :result }).should == [[1, 2], :result]
     end
 
     it "does not call a private method" do
-      -> { @s.rb_funcall_with_block(@obj, :method_private, proc { :result }) }.should raise_error(NoMethodError, /private/)
+      object = CApiKernelSpecs::ClassWithPrivateMethod.new
+
+      -> {
+        @s.rb_funcall_with_block(object, :private_method, [], proc { })
+      }.should raise_error(NoMethodError, /private/)
+    end
+
+    it "does not call a protected method" do
+      object = CApiKernelSpecs::ClassWithProtectedMethod.new
+
+      -> {
+        @s.rb_funcall_with_block(object, :protected_method, [], proc { })
+      }.should raise_error(NoMethodError, /protected/)
+    end
+  end
+
+  describe 'rb_funcall_with_block_kw' do
+    it "calls a method with keyword arguments and a block" do
+      @obj = Object.new
+      class << @obj
+        def method_public(*args, **kw, &block); [args, kw, block.call] end
+      end
+
+      @s.rb_funcall_with_block_kw(@obj, :method_public, [1, 2, {a: 2}], proc { :result }).should == [[1, 2], {a: 2}, :result]
+    end
+
+    it "does not call a private method" do
+      object = CApiKernelSpecs::ClassWithPrivateMethod.new
+
+      -> {
+        @s.rb_funcall_with_block_kw(object, :private_method, [{}], proc { })
+      }.should raise_error(NoMethodError, /private/)
+    end
+
+    it "does not call a protected method" do
+      object = CApiKernelSpecs::ClassWithProtectedMethod.new
+
+      -> {
+        @s.rb_funcall_with_block_kw(object, :protected_method, [{}], proc { })
+      }.should raise_error(NoMethodError, /protected/)
     end
   end
 end
