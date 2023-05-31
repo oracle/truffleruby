@@ -120,7 +120,7 @@ public abstract class TypeNodes {
         @Specialization(guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
                 @Cached @Exclusive FreezeNode freezeNode) {
-            freezeNode.execute(self);
+            freezeNode.execute(this, self);
             return self;
         }
 
@@ -129,23 +129,24 @@ public abstract class TypeNodes {
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Shared MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
-            freezeNode.execute(self);
+            freezeNode.execute(this, self);
             return self;
         }
 
         @Specialization(guards = "metaClass.isSingleton", limit = "1")
-        protected Object freezeSingletonObject(RubyDynamicObject self,
+        protected static Object freezeSingletonObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Exclusive FreezeNode freezeMetaClasNode,
                 @Cached IsFrozenNode isFrozenMetaClassNode,
                 @Cached InlinedConditionProfile singletonClassUnfrozenProfile,
                 @Cached @Shared MetaClassNode metaClassNode,
-                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
-            if (singletonClassUnfrozenProfile.profile(this,
+                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass,
+                @Bind("this") Node node) {
+            if (singletonClassUnfrozenProfile.profile(node,
                     !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
-                freezeMetaClasNode.execute(metaClass);
+                freezeMetaClasNode.execute(node, metaClass);
             }
-            freezeNode.execute(self);
+            freezeNode.execute(node, self);
             return self;
         }
     }

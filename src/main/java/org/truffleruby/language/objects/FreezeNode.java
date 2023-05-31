@@ -9,9 +9,12 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.string.RubyString;
@@ -23,18 +26,24 @@ import static org.truffleruby.Layouts.FROZEN_FLAG;
 
 // Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 public abstract class FreezeNode extends RubyBaseNode {
 
-    public abstract Object execute(Object object);
+    public abstract Object execute(Node node, Object object);
+
+    public static Object executeUncached(Object object) {
+        return FreezeNodeGen.getUncached().execute(null, object);
+    }
 
     @Specialization
-    protected Object freezeRubyString(RubyString object) {
+    protected static Object freezeRubyString(RubyString object) {
         return object.frozen = true;
     }
 
     @Specialization(guards = { "!isRubyObjectRange(object)", "isNotRubyString(object)" },
             limit = "getDynamicObjectCacheLimit()")
-    protected Object freeze(RubyDynamicObject object,
+    protected static Object freeze(Node node, RubyDynamicObject object,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         if (objectLibrary.isShared(object)) {
             synchronized (object) {
@@ -48,32 +57,32 @@ public abstract class FreezeNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected Object freezeRubyObjectRange(RubyObjectRange object) {
+    protected static Object freezeRubyObjectRange(RubyObjectRange object) {
         return object.frozen = true;
     }
 
     @Specialization
-    protected Object freeze(ImmutableRubyObject object) {
+    protected static Object freeze(ImmutableRubyObject object) {
         return object;
     }
 
     @Specialization
-    protected Object freeze(boolean object) {
+    protected static Object freeze(boolean object) {
         return object;
     }
 
     @Specialization
-    protected Object freeze(int object) {
+    protected static Object freeze(int object) {
         return object;
     }
 
     @Specialization
-    protected Object freeze(long object) {
+    protected static Object freeze(long object) {
         return object;
     }
 
     @Specialization
-    protected Object freeze(double object) {
+    protected static Object freeze(double object) {
         return object;
     }
 

@@ -588,7 +588,7 @@ public abstract class KernelNodes {
 
             // Default behavior - is just to copy the frozen state of the original object
             if (forceFrozen(freeze) || (copyFrozen && isFrozenNode.execute(object))) { // Profiled through lazy usage of rubyLibraryFreeze
-                freezeNode.execute(newObject);
+                freezeNode.execute(node, newObject);
             }
 
             return newObject;

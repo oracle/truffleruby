@@ -133,7 +133,7 @@ public abstract class SingletonClassNode extends RubySourceNode {
                     object);
 
             if (IsFrozenNodeGen.getUncached().execute(object)) {
-                FreezeNodeGen.getUncached().execute(singletonClass);
+                FreezeNode.executeUncached(singletonClass);
             }
 
             SharedObjects.propagate(context.getLanguageSlow(), object, singletonClass);
