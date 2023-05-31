@@ -3,6 +3,7 @@
 
 #include "yarp/defines.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,21 +33,9 @@ yp_buffer_append_str(yp_buffer_t *buffer, const char *value, size_t length);
 void
 yp_buffer_append_u8(yp_buffer_t *buffer, uint8_t value);
 
-// Append a 16-bit unsigned integer to the buffer.
-void
-yp_buffer_append_u16(yp_buffer_t *buffer, uint16_t value);
-
 // Append a 32-bit unsigned integer to the buffer.
 void
 yp_buffer_append_u32(yp_buffer_t *buffer, uint32_t value);
-
-// Append a 64-bit unsigned integer to the buffer.
-void
-yp_buffer_append_u64(yp_buffer_t *buffer, uint64_t value);
-
-// Append an integer to the buffer.
-void
-yp_buffer_append_int(yp_buffer_t *buffer, int value);
 
 // Free the memory associated with the buffer.
 __attribute__ ((__visibility__("default"))) extern void

@@ -250,43 +250,43 @@ typedef enum {
   YP_NODE_INTERPOLATED_STRING_NODE = 46,
   YP_NODE_INTERPOLATED_SYMBOL_NODE = 47,
   YP_NODE_INTERPOLATED_X_STRING_NODE = 48,
-  YP_NODE_KEYWORD_PARAMETER_NODE = 49,
-  YP_NODE_KEYWORD_REST_PARAMETER_NODE = 50,
-  YP_NODE_LAMBDA_NODE = 51,
-  YP_NODE_LOCAL_VARIABLE_READ_NODE = 52,
-  YP_NODE_LOCAL_VARIABLE_WRITE_NODE = 53,
-  YP_NODE_MATCH_PREDICATE_NODE = 54,
-  YP_NODE_MATCH_REQUIRED_NODE = 55,
-  YP_NODE_MISSING_NODE = 56,
-  YP_NODE_MODULE_NODE = 57,
-  YP_NODE_MULTI_WRITE_NODE = 58,
-  YP_NODE_NEXT_NODE = 59,
-  YP_NODE_NIL_NODE = 60,
-  YP_NODE_NO_KEYWORDS_PARAMETER_NODE = 61,
-  YP_NODE_OPERATOR_AND_ASSIGNMENT_NODE = 62,
-  YP_NODE_OPERATOR_ASSIGNMENT_NODE = 63,
-  YP_NODE_OPERATOR_OR_ASSIGNMENT_NODE = 64,
-  YP_NODE_OPTIONAL_PARAMETER_NODE = 65,
-  YP_NODE_OR_NODE = 66,
-  YP_NODE_PARAMETERS_NODE = 67,
-  YP_NODE_PARENTHESES_NODE = 68,
-  YP_NODE_PINNED_EXPRESSION_NODE = 69,
-  YP_NODE_PINNED_VARIABLE_NODE = 70,
-  YP_NODE_POST_EXECUTION_NODE = 71,
-  YP_NODE_PRE_EXECUTION_NODE = 72,
-  YP_NODE_PROGRAM_NODE = 73,
-  YP_NODE_RANGE_NODE = 74,
-  YP_NODE_RATIONAL_NODE = 75,
-  YP_NODE_REDO_NODE = 76,
-  YP_NODE_REGULAR_EXPRESSION_NODE = 77,
-  YP_NODE_REQUIRED_DESTRUCTURED_PARAMETER_NODE = 78,
-  YP_NODE_REQUIRED_PARAMETER_NODE = 79,
-  YP_NODE_RESCUE_MODIFIER_NODE = 80,
-  YP_NODE_RESCUE_NODE = 81,
-  YP_NODE_REST_PARAMETER_NODE = 82,
-  YP_NODE_RETRY_NODE = 83,
-  YP_NODE_RETURN_NODE = 84,
-  YP_NODE_SCOPE_NODE = 85,
+  YP_NODE_KEYWORD_HASH_NODE = 49,
+  YP_NODE_KEYWORD_PARAMETER_NODE = 50,
+  YP_NODE_KEYWORD_REST_PARAMETER_NODE = 51,
+  YP_NODE_LAMBDA_NODE = 52,
+  YP_NODE_LOCAL_VARIABLE_READ_NODE = 53,
+  YP_NODE_LOCAL_VARIABLE_WRITE_NODE = 54,
+  YP_NODE_MATCH_PREDICATE_NODE = 55,
+  YP_NODE_MATCH_REQUIRED_NODE = 56,
+  YP_NODE_MISSING_NODE = 57,
+  YP_NODE_MODULE_NODE = 58,
+  YP_NODE_MULTI_WRITE_NODE = 59,
+  YP_NODE_NEXT_NODE = 60,
+  YP_NODE_NIL_NODE = 61,
+  YP_NODE_NO_KEYWORDS_PARAMETER_NODE = 62,
+  YP_NODE_OPERATOR_AND_ASSIGNMENT_NODE = 63,
+  YP_NODE_OPERATOR_ASSIGNMENT_NODE = 64,
+  YP_NODE_OPERATOR_OR_ASSIGNMENT_NODE = 65,
+  YP_NODE_OPTIONAL_PARAMETER_NODE = 66,
+  YP_NODE_OR_NODE = 67,
+  YP_NODE_PARAMETERS_NODE = 68,
+  YP_NODE_PARENTHESES_NODE = 69,
+  YP_NODE_PINNED_EXPRESSION_NODE = 70,
+  YP_NODE_PINNED_VARIABLE_NODE = 71,
+  YP_NODE_POST_EXECUTION_NODE = 72,
+  YP_NODE_PRE_EXECUTION_NODE = 73,
+  YP_NODE_PROGRAM_NODE = 74,
+  YP_NODE_RANGE_NODE = 75,
+  YP_NODE_RATIONAL_NODE = 76,
+  YP_NODE_REDO_NODE = 77,
+  YP_NODE_REGULAR_EXPRESSION_NODE = 78,
+  YP_NODE_REQUIRED_DESTRUCTURED_PARAMETER_NODE = 79,
+  YP_NODE_REQUIRED_PARAMETER_NODE = 80,
+  YP_NODE_RESCUE_MODIFIER_NODE = 81,
+  YP_NODE_RESCUE_NODE = 82,
+  YP_NODE_REST_PARAMETER_NODE = 83,
+  YP_NODE_RETRY_NODE = 84,
+  YP_NODE_RETURN_NODE = 85,
   YP_NODE_SELF_NODE = 86,
   YP_NODE_SINGLETON_CLASS_NODE = 87,
   YP_NODE_SOURCE_ENCODING_NODE = 88,
@@ -412,7 +412,7 @@ typedef struct yp_block_argument_node {
 // BlockNode
 typedef struct yp_block_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   struct yp_block_parameters_node *parameters;
   struct yp_node *statements;
   yp_location_t opening_loc;
@@ -476,7 +476,7 @@ typedef struct yp_case_node {
 // ClassNode
 typedef struct yp_class_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   yp_token_t class_keyword;
   struct yp_node *constant_path;
   yp_token_t inheritance_operator;
@@ -526,7 +526,7 @@ typedef struct yp_def_node {
   struct yp_node *receiver;
   struct yp_parameters_node *parameters;
   struct yp_node *statements;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   yp_location_t def_keyword_loc;
   yp_location_t operator_loc;
   yp_location_t lparen_loc;
@@ -716,6 +716,12 @@ typedef struct yp_interpolated_x_string_node {
   yp_token_t closing;
 } yp_interpolated_x_string_node_t;
 
+// KeywordHashNode
+typedef struct yp_keyword_hash_node {
+  yp_node_t base;
+  struct yp_node_list elements;
+} yp_keyword_hash_node_t;
+
 // KeywordParameterNode
 typedef struct yp_keyword_parameter_node {
   yp_node_t base;
@@ -733,7 +739,7 @@ typedef struct yp_keyword_rest_parameter_node {
 // LambdaNode
 typedef struct yp_lambda_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   yp_token_t opening;
   struct yp_block_parameters_node *parameters;
   struct yp_node *statements;
@@ -742,7 +748,7 @@ typedef struct yp_lambda_node {
 // LocalVariableReadNode
 typedef struct yp_local_variable_read_node {
   yp_node_t base;
-  int depth;
+  uint32_t depth;
 } yp_local_variable_read_node_t;
 
 // LocalVariableWriteNode
@@ -751,7 +757,7 @@ typedef struct yp_local_variable_write_node {
   yp_location_t name_loc;
   struct yp_node *value;
   yp_location_t operator_loc;
-  int depth;
+  uint32_t depth;
 } yp_local_variable_write_node_t;
 
 // MatchPredicateNode
@@ -778,7 +784,7 @@ typedef struct yp_missing_node {
 // ModuleNode
 typedef struct yp_module_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   yp_token_t module_keyword;
   struct yp_node *constant_path;
   struct yp_node *statements;
@@ -911,7 +917,7 @@ typedef struct yp_pre_execution_node {
 // ProgramNode
 typedef struct yp_program_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   struct yp_statements_node *statements;
 } yp_program_node_t;
 
@@ -994,12 +1000,6 @@ typedef struct yp_return_node {
   struct yp_arguments_node *arguments;
 } yp_return_node_t;
 
-// ScopeNode
-typedef struct yp_scope_node {
-  yp_node_t base;
-  yp_token_list_t locals;
-} yp_scope_node_t;
-
 // SelfNode
 typedef struct yp_self_node {
   yp_node_t base;
@@ -1008,7 +1008,7 @@ typedef struct yp_self_node {
 // SingletonClassNode
 typedef struct yp_singleton_class_node {
   yp_node_t base;
-  struct yp_scope_node *scope;
+  yp_token_list_t locals;
   yp_token_t class_keyword;
   yp_token_t operator;
   struct yp_node *expression;

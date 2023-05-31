@@ -204,6 +204,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitKeywordHashNode(Nodes.KeywordHashNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitKeywordParameterNode(Nodes.KeywordParameterNode node) {
         return defaultVisit(node);
     }
@@ -345,10 +349,6 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     public T visitReturnNode(Nodes.ReturnNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitScopeNode(Nodes.ScopeNode node) {
         return defaultVisit(node);
     }
 

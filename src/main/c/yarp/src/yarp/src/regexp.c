@@ -343,12 +343,12 @@ yp_regexp_parse_group(yp_regexp_parser_t *parser) {
 
     switch (*parser->cursor) {
       case '#': { // inline comments
-	bool found = yp_regexp_char_find(parser, ')');
-	// the close paren we found is escaped, we need to find another
-	while (parser->start <= parser->cursor - 2 && *(parser->cursor - 2) == '\\') {
-	  found = yp_regexp_char_find(parser, ')');
-	}
-	return found;
+        bool found = yp_regexp_char_find(parser, ')');
+        // the close paren we found is escaped, we need to find another
+        while (parser->start <= parser->cursor - 2 && *(parser->cursor - 2) == '\\') {
+          found = yp_regexp_char_find(parser, ')');
+        }
+        return found;
       }
       case ':': // non-capturing group
       case '=': // positive lookahead

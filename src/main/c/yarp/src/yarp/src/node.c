@@ -81,16 +81,12 @@ yp_node_list_memsize(yp_node_list_t *node_list, yp_memsize_t *memsize) {
 
 // Append a new node onto the end of the node list.
 void
-yp_node_list_append(__attribute__((unused)) yp_parser_t *parser, yp_node_t *parent, yp_node_list_t *list, yp_node_t *node) {
+yp_node_list_append(yp_node_list_t *list, yp_node_t *node) {
   if (list->size == list->capacity) {
     list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
     list->nodes = realloc(list->nodes, list->capacity * sizeof(yp_node_t *));
   }
-
   list->nodes[list->size++] = node;
-
-  if (list->size == 1) parent->location.start = node->location.start;
-  parent->location.end = node->location.end;
 }
 
 __attribute__((__visibility__("default"))) void
@@ -173,7 +169,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
       }
       break;
     case YP_NODE_BLOCK_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_block_node_t *)node)->scope);
+      yp_token_list_free(&((yp_block_node_t *)node)->locals);
       if (((yp_block_node_t *)node)->parameters != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_block_node_t *)node)->parameters);
       }
@@ -220,7 +216,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
       }
       break;
     case YP_NODE_CLASS_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->scope);
+      yp_token_list_free(&((yp_class_node_t *)node)->locals);
       yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->constant_path);
       if (((yp_class_node_t *)node)->superclass != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->superclass);
@@ -260,7 +256,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
       if (((yp_def_node_t *)node)->statements != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_def_node_t *)node)->statements);
       }
-      yp_node_destroy(parser, (yp_node_t *)((yp_def_node_t *)node)->scope);
+      yp_token_list_free(&((yp_def_node_t *)node)->locals);
       break;
     case YP_NODE_DEFINED_NODE:
       yp_node_destroy(parser, (yp_node_t *)((yp_defined_node_t *)node)->value);
@@ -361,6 +357,9 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
     case YP_NODE_INTERPOLATED_X_STRING_NODE:
       yp_node_list_free(parser, &((yp_interpolated_x_string_node_t *)node)->parts);
       break;
+    case YP_NODE_KEYWORD_HASH_NODE:
+      yp_node_list_free(parser, &((yp_keyword_hash_node_t *)node)->elements);
+      break;
     case YP_NODE_KEYWORD_PARAMETER_NODE:
       if (((yp_keyword_parameter_node_t *)node)->value != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_keyword_parameter_node_t *)node)->value);
@@ -369,7 +368,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
     case YP_NODE_KEYWORD_REST_PARAMETER_NODE:
       break;
     case YP_NODE_LAMBDA_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_lambda_node_t *)node)->scope);
+      yp_token_list_free(&((yp_lambda_node_t *)node)->locals);
       if (((yp_lambda_node_t *)node)->parameters != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_lambda_node_t *)node)->parameters);
       }
@@ -395,7 +394,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
     case YP_NODE_MISSING_NODE:
       break;
     case YP_NODE_MODULE_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->scope);
+      yp_token_list_free(&((yp_module_node_t *)node)->locals);
       yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->constant_path);
       if (((yp_module_node_t *)node)->statements != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->statements);
@@ -468,7 +467,7 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
       yp_node_destroy(parser, (yp_node_t *)((yp_pre_execution_node_t *)node)->statements);
       break;
     case YP_NODE_PROGRAM_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_program_node_t *)node)->scope);
+      yp_token_list_free(&((yp_program_node_t *)node)->locals);
       yp_node_destroy(parser, (yp_node_t *)((yp_program_node_t *)node)->statements);
       break;
     case YP_NODE_RANGE_NODE:
@@ -517,13 +516,10 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
         yp_node_destroy(parser, (yp_node_t *)((yp_return_node_t *)node)->arguments);
       }
       break;
-    case YP_NODE_SCOPE_NODE:
-      yp_token_list_free(&((yp_scope_node_t *)node)->locals);
-      break;
     case YP_NODE_SELF_NODE:
       break;
     case YP_NODE_SINGLETON_CLASS_NODE:
-      yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->scope);
+      yp_token_list_free(&((yp_singleton_class_node_t *)node)->locals);
       yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->expression);
       if (((yp_singleton_class_node_t *)node)->statements != NULL) {
         yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->statements);
@@ -705,7 +701,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_BLOCK_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_block_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_block_node_t *)node)->locals);
       if (((yp_block_node_t *)node)->parameters != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_block_node_t *)node)->parameters, memsize);
       }
@@ -775,7 +771,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_CLASS_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_class_node_t *)node)->locals);
       yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->constant_path, memsize);
       if (((yp_class_node_t *)node)->superclass != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->superclass, memsize);
@@ -830,7 +826,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
       if (((yp_def_node_t *)node)->statements != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_def_node_t *)node)->statements, memsize);
       }
-      yp_node_memsize_node((yp_node_t *)((yp_def_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_def_node_t *)node)->locals);
       memsize->memsize += sizeof(yp_location_t);
       memsize->memsize += sizeof(yp_location_t);
       memsize->memsize += sizeof(yp_location_t);
@@ -999,6 +995,11 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
       yp_node_list_memsize(&((yp_interpolated_x_string_node_t *)node)->parts, memsize);
       break;
     }
+    case YP_NODE_KEYWORD_HASH_NODE: {
+      memsize->memsize += sizeof(yp_node_t);
+      yp_node_list_memsize(&((yp_keyword_hash_node_t *)node)->elements, memsize);
+      break;
+    }
     case YP_NODE_KEYWORD_PARAMETER_NODE: {
       memsize->memsize += sizeof(yp_node_t);
       if (((yp_keyword_parameter_node_t *)node)->value != NULL) {
@@ -1012,7 +1013,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_LAMBDA_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_lambda_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_lambda_node_t *)node)->locals);
       if (((yp_lambda_node_t *)node)->parameters != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_lambda_node_t *)node)->parameters, memsize);
       }
@@ -1023,7 +1024,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_LOCAL_VARIABLE_READ_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      memsize->memsize += sizeof(int);
+      memsize->memsize += sizeof(uint32_t);
       break;
     }
     case YP_NODE_LOCAL_VARIABLE_WRITE_NODE: {
@@ -1033,7 +1034,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         yp_node_memsize_node((yp_node_t *)((yp_local_variable_write_node_t *)node)->value, memsize);
       }
       memsize->memsize += sizeof(yp_location_t);
-      memsize->memsize += sizeof(int);
+      memsize->memsize += sizeof(uint32_t);
       break;
     }
     case YP_NODE_MATCH_PREDICATE_NODE: {
@@ -1056,7 +1057,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_MODULE_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_module_node_t *)node)->locals);
       yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->constant_path, memsize);
       if (((yp_module_node_t *)node)->statements != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->statements, memsize);
@@ -1181,7 +1182,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
     }
     case YP_NODE_PROGRAM_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_program_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_program_node_t *)node)->locals);
       yp_node_memsize_node((yp_node_t *)((yp_program_node_t *)node)->statements, memsize);
       break;
     }
@@ -1254,18 +1255,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
       }
       break;
     }
-    case YP_NODE_SCOPE_NODE: {
-      memsize->memsize += sizeof(yp_node_t);
-      memsize->memsize += yp_token_list_memsize(&((yp_scope_node_t *)node)->locals);
-      break;
-    }
     case YP_NODE_SELF_NODE: {
       memsize->memsize += sizeof(yp_node_t);
       break;
     }
     case YP_NODE_SINGLETON_CLASS_NODE: {
       memsize->memsize += sizeof(yp_node_t);
-      yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->scope, memsize);
+      memsize->memsize += yp_token_list_memsize(&((yp_singleton_class_node_t *)node)->locals);
       yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->expression, memsize);
       if (((yp_singleton_class_node_t *)node)->statements != NULL) {
         yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->statements, memsize);
