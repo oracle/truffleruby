@@ -12,6 +12,7 @@ package org.truffleruby.core.inlined;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
@@ -33,6 +34,7 @@ import org.truffleruby.language.control.RaiseException;
  * Such a core method should not emit significantly more Graal nodes than a non-inlined call, as Truffle cannot decide
  * to not inline it, and that could lead to too big methods to compile. */
 @GenerateNodeFactory
+@GenerateInline(value = false, inherit = true)
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
     /** Ensure that self == RubyArguments.getSelf(rubyArgs) */

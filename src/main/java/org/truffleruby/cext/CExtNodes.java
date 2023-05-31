@@ -252,7 +252,7 @@ public class CExtNodes {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                     try {
-                        return unwrapNode.execute(
+                        return unwrapNode.execute(this,
                                 InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
@@ -262,7 +262,7 @@ public class CExtNodes {
                     }
                 } else {
                     try {
-                        return unwrapNode.execute(
+                        return unwrapNode.execute(this,
                                 InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
@@ -1787,7 +1787,7 @@ public class CExtNodes {
         protected Object unwrap(Object value,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
-            Object object = unwrapNode.execute(value);
+            Object object = unwrapNode.execute(this, value);
             if (object == null) {
                 exceptionProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(value), this));
@@ -1822,7 +1822,7 @@ public class CExtNodes {
         protected Object addToMarkList(Object markedObject,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
-            ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
+            ValueWrapper wrappedValue = toWrapperNode.execute(this, markedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter(this);
                 getContext().getMarkingService()
@@ -1844,7 +1844,7 @@ public class CExtNodes {
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
-            ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
+            ValueWrapper wrappedValue = toWrapperNode.execute(this, guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter(this);
                 keepAliveNode.execute(wrappedValue);

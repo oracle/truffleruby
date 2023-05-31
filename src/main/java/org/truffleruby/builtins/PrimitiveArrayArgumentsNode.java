@@ -9,12 +9,14 @@
  */
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.dsl.GenerateInline;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 
 @NodeChild(value = "argumentNodes", type = RubyNode[].class)
+@GenerateInline(value = false, inherit = true)
 public abstract class PrimitiveArrayArgumentsNode extends PrimitiveNode {
 
     public abstract RubyNode[] getArgumentNodes();

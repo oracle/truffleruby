@@ -116,7 +116,7 @@ public abstract class TruffleSystemNodes {
             if (nullValueProfile.profile(node, value == null)) {
                 return nil;
             } else {
-                return fromJavaStringNode.executeFromJavaString(value);
+                return fromJavaStringNode.executeFromJavaString(node, value);
             }
         }
 

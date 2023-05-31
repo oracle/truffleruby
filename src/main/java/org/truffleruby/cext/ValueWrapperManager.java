@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -396,8 +398,9 @@ public class ValueWrapperManager {
 
         @ExportMessage
         protected Object execute(Object[] arguments,
-                @Cached UnwrapNode unwrapNode) {
-            return unwrapNode.execute(arguments[0]);
+                @Cached UnwrapNode unwrapNode,
+                @Bind("$node") Node node) {
+            return unwrapNode.execute(node, arguments[0]);
         }
     }
 
@@ -429,8 +432,9 @@ public class ValueWrapperManager {
         @ExportMessage
         public Object execute(Object[] arguments,
                 @Cached UnwrapNode unwrapNode,
-                @Cached SymbolToIDNode symbolTOIDNode) {
-            return symbolTOIDNode.execute(unwrapNode.execute(arguments[0]));
+                @Cached SymbolToIDNode symbolTOIDNode,
+                @Bind("$node") Node node) {
+            return symbolTOIDNode.execute(unwrapNode.execute(node, arguments[0]));
         }
     }
 
