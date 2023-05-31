@@ -72,8 +72,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitCallNode(Nodes.CallNode node) {
         var methodName = new String(node.name, StandardCharsets.UTF_8);
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
-        var argumentsNode = (Nodes.ArgumentsNode) node.arguments;
-        var arguments = argumentsNode.arguments;
+        var arguments = node.arguments.arguments;
         var translatedArguments = new RubyNode[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             translatedArguments[i] = arguments[i].accept(this);
