@@ -1644,7 +1644,7 @@ module Commands
       options += %w[--excl-tag slow]
     end
 
-    options += %w[--format specdoc] if ci?
+    options += %w[--timeout 300] if ci?
 
     args, ruby_args = args_split(args)
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
