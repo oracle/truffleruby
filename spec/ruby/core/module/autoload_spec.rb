@@ -903,6 +903,20 @@ describe "Module#autoload" do
       t2_exc.should be_nil
     end
 
+    it "blocks other threads until the file is done loading so no partial modules are seen" do
+      ModuleSpecs::Autoload.autoload :ThreadSafe, fixture(__FILE__, "autoload_thread_safe.rb")
+      barrier = ModuleSpecs::CyclicBarrier.new 2
+      ScratchPad.record(barrier)
+
+      thread = Thread.new { # starts the autoload
+        ModuleSpecs::Autoload::ThreadSafe.foo.should == 42
+      }
+      barrier.await
+      ModuleSpecs::Autoload::ThreadSafe.foo.should == 42 # ThreadSafe should only be published once the whole file is loaded
+
+      thread.join
+    end
+
     # https://bugs.ruby-lang.org/issues/10892
     it "blocks others threads while doing an autoload" do
       file_path     = fixture(__FILE__, "repeated_concurrent_autoload.rb")
