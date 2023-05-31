@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -29,7 +30,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.extra.AtomicReferenceNodes.CompareAndSetReferenceNode;
 import org.truffleruby.extra.RubyConcurrentMap.Key;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+
+import static org.truffleruby.language.RubyGuards.isPrimitive;
 
 @CoreModule(value = "TruffleRuby::ConcurrentMap", isClass = true)
 public class ConcurrentMapNodes {
@@ -192,19 +194,29 @@ public class ConcurrentMapNodes {
 
     @CoreMethod(names = "replace_pair", required = 3)
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
-        /** See {@link CompareAndSetReferenceNode} */
-        @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean replacePairPrimitive(
-                RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Cached ReferenceEqualNode equalNode) {
+
+        @Specialization
+        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode,
+                @Cached InlinedConditionProfile isPrimitiveProfile) {
             final int hashCode = hashNode.execute(this, key);
+
+            if (isPrimitiveProfile.profile(this, isPrimitive(expectedValue))) {
+                return replacePairPrimitive(self, key, expectedValue, newValue, hashCode, equalNode);
+            } else {
+                return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
+            }
+        }
+
+        private boolean replacePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                int hashCode, ReferenceEqualNode equalNode) {
             final Key keyWrapper = new Key(key, hashCode);
 
             while (true) {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
-                if (RubyGuards.isPrimitive(currentValue) &&
+                if (isPrimitive(currentValue) &&
                         equalNode.execute(expectedValue, currentValue)) {
                     if (replace(self.getMap(), keyWrapper, currentValue, newValue)) {
                         return true;
@@ -213,14 +225,6 @@ public class ConcurrentMapNodes {
                     return false;
                 }
             }
-        }
-
-        @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected static boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Bind("this") Node node) {
-            final int hashCode = hashNode.execute(node, key);
-            return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
         }
 
         @TruffleBoundary
