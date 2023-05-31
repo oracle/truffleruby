@@ -426,11 +426,11 @@ public abstract class TypeNodes {
 
     @Primitive(name = "rb_to_int")
     public abstract static class RbToIntNode extends PrimitiveArrayArgumentsNode {
-        @Child private ToRubyIntegerNode toRubyInteger = ToRubyIntegerNode.create();
 
         @Specialization
-        protected Object toRubyInteger(Object value) {
-            return toRubyInteger.execute(value);
+        protected Object toRubyInteger(Object value,
+                @Cached ToRubyIntegerNode toRubyInteger) {
+            return toRubyInteger.execute(this, value);
         }
     }
 

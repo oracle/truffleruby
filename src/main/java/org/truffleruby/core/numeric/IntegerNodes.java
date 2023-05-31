@@ -13,11 +13,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
@@ -1261,10 +1263,11 @@ public abstract class IntegerNodes {
         // Coercion
 
         @Specialization(guards = "!isRubyInteger(b)")
-        protected Object leftShiftCoerced(Object a, Object b,
+        protected static Object leftShiftCoerced(Object a, Object b,
                 @Cached ToRubyIntegerNode toRubyIntNode,
-                @Cached LeftShiftNode leftShiftNode) {
-            return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(b));
+                @Cached LeftShiftNode leftShiftNode,
+                @Bind("this") Node node) {
+            return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(node, b));
         }
 
         private Object negateAndRightShift(Object a, Object b) {
@@ -1380,10 +1383,11 @@ public abstract class IntegerNodes {
         // Coercion
 
         @Specialization(guards = "!isRubyInteger(b)")
-        protected Object rightShiftCoerced(Object a, Object b,
+        protected static Object rightShiftCoerced(Object a, Object b,
                 @Cached ToRubyIntegerNode toRubyIntNode,
-                @Cached RightShiftNode rightShiftNode) {
-            return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(b));
+                @Cached RightShiftNode rightShiftNode,
+                @Bind("this") Node node) {
+            return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(node, b));
         }
 
         private Object negateAndLeftShift(Object a, Object b) {
