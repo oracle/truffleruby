@@ -137,6 +137,10 @@ module FFI
       @native_wrapper = nil
     end
 
+    private def type
+      @function_info
+    end
+
     private def convert_ruby_to_native(type, value, enums)
       if Primitive.is_a?(type, FFI::Type::Mapped)
         type.to_native(value, nil)
@@ -207,6 +211,8 @@ module FFI
   end
 
   class VariadicInvoker
+    attr_reader :return_type
+
     def initialize(function, args_types, return_type, options)
       @function = function
       @return_type = return_type
