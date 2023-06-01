@@ -25,7 +25,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -48,7 +47,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -123,93 +121,15 @@ public abstract class BasicObjectNodes {
     /** This node is not trivial because primitives must be compared by value and never by identity. Also, this node
      * must consider (byte) n and (short) n and (int) n and (long) n equal, as well as (float) n and (double) n. So even
      * if a and b have different classes they might still be equal if they are primitives. */
-    @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "equal?", "==" }, required = 1)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class ReferenceEqualNode extends RubySourceNode {
+    public abstract static class BasicObjectEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @NeverDefault
-        public static ReferenceEqualNode create() {
-            return ReferenceEqualNodeFactory.create(null);
-        }
-
-        public static ReferenceEqualNode create(RubyNode[] argumentNodes) {
-            return ReferenceEqualNodeFactory.create(argumentNodes);
-        }
-
-        public static ReferenceEqualNode getUncached() {
-            return ReferenceEqualNodeFactory.getUncached();
-        }
-
-        public abstract boolean executeReferenceEqual(Object a, Object b);
-
-        abstract RubyNode[] getArgumentNodes();
 
         @Specialization
-        protected boolean equal(boolean a, boolean b) {
-            return a == b;
-        }
-
-        @Specialization
-        protected boolean equal(int a, int b) {
-            return a == b;
-        }
-
-        @Specialization
-        protected boolean equal(long a, long b) {
-            return a == b;
-        }
-
-        @Specialization
-        protected boolean equal(double a, double b) {
-            return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
-        }
-
-        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
-        protected boolean equalRubyObjects(Object a, Object b) {
-            return a == b;
-        }
-
-        @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
-        protected boolean rubyObjectPrimitive(Object a, Object b) {
-            return false;
-        }
-
-        @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
-        protected boolean primitiveRubyObject(Object a, Object b) {
-            return false;
-        }
-
-        @Specialization(guards = { "isPrimitive(a)", "isPrimitive(b)", "!comparablePrimitives(a, b)" })
-        protected boolean nonComparablePrimitives(Object a, Object b) {
-            return false;
-        }
-
-        @Specialization(guards = "isForeignObject(a) || isForeignObject(b)", limit = "getInteropCacheLimit()")
-        protected boolean equalForeign(Object a, Object b,
-                @CachedLibrary("a") InteropLibrary lhsInterop,
-                @CachedLibrary("b") InteropLibrary rhsInterop) {
-            if (lhsInterop.hasIdentity(a)) {
-                return lhsInterop.isIdentical(a, b, rhsInterop);
-            } else {
-                return a == b;
-            }
-        }
-
-        protected static boolean isNonPrimitiveRubyObject(Object object) {
-            return object instanceof RubyDynamicObject || object instanceof ImmutableRubyObject;
-        }
-
-        protected static boolean comparablePrimitives(Object a, Object b) {
-            return (a instanceof Boolean && b instanceof Boolean) ||
-                    (RubyGuards.isImplicitLong(a) && RubyGuards.isImplicitLong(b)) ||
-                    (RubyGuards.isDouble(a) && RubyGuards.isDouble(b));
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
+        protected boolean equal(Object a, Object b,
+                @Cached ReferenceEqualNode referenceEqualNode) {
+            return referenceEqualNode.execute(a, b);
         }
     }
 

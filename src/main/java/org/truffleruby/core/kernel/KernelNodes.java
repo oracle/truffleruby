@@ -43,7 +43,7 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -195,7 +195,7 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean sameOrEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
+            if (sameProfile.profile(referenceEqualNode.execute(a, b))) {
                 return true;
             } else {
                 return areEqual(a, b);
@@ -245,7 +245,7 @@ public abstract class KernelNodes {
 
         public abstract boolean execute(Object a, Object b);
 
-        @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)", limit = "1")
+        @Specialization(guards = "referenceEqual.execute(a, b)", limit = "1")
         protected boolean refEqual(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
@@ -256,7 +256,7 @@ public abstract class KernelNodes {
                 @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
+            return referenceEqual.execute(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
         }
     }
 
@@ -936,14 +936,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "equalNode.executeReferenceEqual(self, from)", limit = "1")
+        @Specialization(guards = "equalNode.execute(self, from)", limit = "1")
         protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode) {
             return self;
         }
 
-        @Specialization(guards = "!equalNode.executeReferenceEqual(self, from)", limit = "1")
+        @Specialization(guards = "!equalNode.execute(self, from)", limit = "1")
         protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode,

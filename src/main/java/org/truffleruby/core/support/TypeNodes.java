@@ -23,7 +23,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
@@ -108,7 +108,7 @@ public abstract class TypeNodes {
         @Specialization
         protected boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            return referenceEqualNode.executeReferenceEqual(a, b);
+            return referenceEqualNode.execute(a, b);
         }
     }
 

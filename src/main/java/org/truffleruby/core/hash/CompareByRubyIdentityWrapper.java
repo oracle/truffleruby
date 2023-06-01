@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNodeGen;
 import org.truffleruby.core.hash.HashingNodes.ToHashByIdentity;
 
 /** Wraps a value so that it will compared and hashed according to Ruby identity semantics. These semantics differ from
@@ -31,8 +31,8 @@ public final class CompareByRubyIdentityWrapper {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof CompareByRubyIdentityWrapper &&
-                ReferenceEqualNode
+                ReferenceEqualNodeGen
                         .getUncached()
-                        .executeReferenceEqual(value, ((CompareByRubyIdentityWrapper) obj).value);
+                        .execute(value, ((CompareByRubyIdentityWrapper) obj).value);
     }
 }
