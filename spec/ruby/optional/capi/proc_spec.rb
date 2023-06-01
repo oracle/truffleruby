@@ -93,10 +93,8 @@ describe "C-API Proc function" do
     end
 
     it "raises TypeError if the last argument is not a Hash" do
-      prc = proc { |*args, **kwargs| [args, kw] }
-
       -> {
-        @p.rb_proc_call_kw(prc, [42])
+        @p.rb_proc_call_kw(proc {}, [42])
       }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
     end
   end
@@ -125,10 +123,8 @@ describe "C-API Proc function" do
     end
 
     it "raises TypeError if the last argument is not a Hash" do
-      prc = proc { |*args, **kwargs, &block| [args, kw, block.call(42)] }
-
       -> {
-        @p.rb_proc_call_with_block_kw(prc, [42], proc {})
+        @p.rb_proc_call_with_block_kw(proc {}, [42], proc {})
       }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
     end
 
