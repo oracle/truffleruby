@@ -37,7 +37,7 @@ public abstract class FreezeNode extends RubyBaseNode {
     protected Object freeze(RubyDynamicObject object,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         if (objectLibrary.isShared(object)) {
-            synchronized (this) {
+            synchronized (object) {
                 objectLibrary.setShapeFlags(object, objectLibrary.getShapeFlags(object) | FROZEN_FLAG);
             }
         } else {
