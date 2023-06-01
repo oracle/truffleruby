@@ -1665,8 +1665,8 @@ module Commands
   end
 
   def gem_test_pack?
-    return true if ci?
-    Dir.exist?(File.expand_path('truffleruby-gem-test-pack', TRUFFLERUBY_DIR))
+    return true if Dir.exist?(File.expand_path('truffleruby-gem-test-pack', TRUFFLERUBY_DIR))
+    ci? or Remotes.bitbucket
   end
 
   def gem_test_pack
