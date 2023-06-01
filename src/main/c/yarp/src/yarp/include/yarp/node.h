@@ -24,7 +24,7 @@ yp_node_list_init(yp_node_list_t *node_list);
 
 // Append a new node onto the end of the node list.
 void
-yp_node_list_append(yp_parser_t *parser, yp_node_t *parent, yp_node_list_t *list, yp_node_t *node);
+yp_node_list_append(yp_node_list_t *list, yp_node_t *node);
 
 // Clear the node but preserves the location.
 void

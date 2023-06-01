@@ -154,7 +154,7 @@ typedef struct yp_lex_mode {
       const char *start;
       const char *end;
     } numeric;
-    
+
     struct {
       // These pointers point to the beginning and end of the heredoc
       // identifier.
@@ -195,6 +195,7 @@ typedef enum {
   YP_CONTEXT_CLASS,          // a class declaration
   YP_CONTEXT_DEF,            // a method definition
   YP_CONTEXT_DEF_PARAMS,     // a method definition's parameters
+  YP_CONTEXT_DEFAULT_PARAMS, // a method definition's default parameter
   YP_CONTEXT_ELSE,           // an else clause
   YP_CONTEXT_ELSIF,          // an elsif clause
   YP_CONTEXT_EMBEXPR,        // an interpolated expression
@@ -280,9 +281,8 @@ typedef struct {
 // This struct represents a node in a linked list of scopes. Some scopes can see
 // into their parent scopes, while others cannot.
 typedef struct yp_scope {
-  // A pointer to the node that holds the tokens that correspond to the locals
-  // in the given scope.
-  yp_scope_node_t *node;
+  // Locals in the given scope.
+  yp_token_list_t locals;
 
   // A boolean indicating whether or not this scope can see into its parent. If
   // top is true, then the scope cannot see into its parent.

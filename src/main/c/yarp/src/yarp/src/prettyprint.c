@@ -188,7 +188,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_BLOCK_NODE: {
       yp_buffer_append_str(buffer, "BlockNode(", 10);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_block_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_block_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_block_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      if (((yp_block_node_t *)node)->parameters == NULL) {
         yp_buffer_append_str(buffer, "nil", 3);
       } else {
@@ -324,7 +327,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_CLASS_NODE: {
       yp_buffer_append_str(buffer, "ClassNode(", 10);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_class_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_class_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_class_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_class_node_t *)node)->class_keyword);
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_node(buffer, parser, (yp_node_t *)((yp_class_node_t *)node)->constant_path);
       yp_buffer_append_str(buffer, ", ", 2);      if (((yp_class_node_t *)node)->inheritance_operator.type == YP_TOKEN_NOT_PROVIDED) {
@@ -418,7 +424,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
       } else {
         prettyprint_node(buffer, parser, (yp_node_t *)((yp_def_node_t *)node)->statements);
       }
-      yp_buffer_append_str(buffer, ", ", 2);      prettyprint_node(buffer, parser, (yp_node_t *)((yp_def_node_t *)node)->scope);
+      yp_buffer_append_str(buffer, ", ", 2);      for (uint32_t index = 0; index < ((yp_def_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_def_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_location(buffer, parser, &((yp_def_node_t *)node)->def_keyword_loc);
       yp_buffer_append_str(buffer, ", ", 2);      if (((yp_def_node_t *)node)->operator_loc.start == NULL) {
         yp_buffer_append_str(buffer, "nil", 3);
@@ -593,20 +602,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_HASH_NODE: {
       yp_buffer_append_str(buffer, "HashNode(", 9);
-            if (((yp_hash_node_t *)node)->opening.type == YP_TOKEN_NOT_PROVIDED) {
-        yp_buffer_append_str(buffer, "nil", 3);
-      } else {
-        prettyprint_token(buffer, &((yp_hash_node_t *)node)->opening);
-      }
+            prettyprint_token(buffer, &((yp_hash_node_t *)node)->opening);
       yp_buffer_append_str(buffer, ", ", 2);      for (uint32_t index = 0; index < ((yp_hash_node_t *)node)->elements.size; index++) {
         if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
         prettyprint_node(buffer, parser, (yp_node_t *) ((yp_hash_node_t *) node)->elements.nodes[index]);
       }
-      yp_buffer_append_str(buffer, ", ", 2);      if (((yp_hash_node_t *)node)->closing.type == YP_TOKEN_NOT_PROVIDED) {
-        yp_buffer_append_str(buffer, "nil", 3);
-      } else {
-        prettyprint_token(buffer, &((yp_hash_node_t *)node)->closing);
-      }
+      yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_hash_node_t *)node)->closing);
       yp_buffer_append_str(buffer, ")", 1);
       break;
     }
@@ -770,6 +771,15 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
       yp_buffer_append_str(buffer, ")", 1);
       break;
     }
+    case YP_NODE_KEYWORD_HASH_NODE: {
+      yp_buffer_append_str(buffer, "KeywordHashNode(", 16);
+            for (uint32_t index = 0; index < ((yp_keyword_hash_node_t *)node)->elements.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_node(buffer, parser, (yp_node_t *) ((yp_keyword_hash_node_t *) node)->elements.nodes[index]);
+      }
+      yp_buffer_append_str(buffer, ")", 1);
+      break;
+    }
     case YP_NODE_KEYWORD_PARAMETER_NODE: {
       yp_buffer_append_str(buffer, "KeywordParameterNode(", 21);
             prettyprint_token(buffer, &((yp_keyword_parameter_node_t *)node)->name);
@@ -794,7 +804,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_LAMBDA_NODE: {
       yp_buffer_append_str(buffer, "LambdaNode(", 11);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_lambda_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_lambda_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_lambda_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_lambda_node_t *)node)->opening);
       yp_buffer_append_str(buffer, ", ", 2);      if (((yp_lambda_node_t *)node)->parameters == NULL) {
         yp_buffer_append_str(buffer, "nil", 3);
@@ -813,9 +826,6 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
       yp_buffer_append_str(buffer, "LocalVariableReadNode(", 22);
             char depth_buffer[12];
       snprintf(depth_buffer, 12, "+%d", ((yp_local_variable_read_node_t *)node)->depth);
-      if (((yp_local_variable_read_node_t *)node)->depth < 0) {
-        depth_buffer[0] = '-';
-      }
       yp_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
       yp_buffer_append_str(buffer, ")", 1);
       break;
@@ -835,9 +845,6 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
       }
       yp_buffer_append_str(buffer, ", ", 2);      char depth_buffer[12];
       snprintf(depth_buffer, 12, "+%d", ((yp_local_variable_write_node_t *)node)->depth);
-      if (((yp_local_variable_write_node_t *)node)->depth < 0) {
-        depth_buffer[0] = '-';
-      }
       yp_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
       yp_buffer_append_str(buffer, ")", 1);
       break;
@@ -865,7 +872,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_MODULE_NODE: {
       yp_buffer_append_str(buffer, "ModuleNode(", 11);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_module_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_module_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_module_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_module_node_t *)node)->module_keyword);
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_node(buffer, parser, (yp_node_t *)((yp_module_node_t *)node)->constant_path);
       yp_buffer_append_str(buffer, ", ", 2);      if (((yp_module_node_t *)node)->statements == NULL) {
@@ -1053,7 +1063,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_PROGRAM_NODE: {
       yp_buffer_append_str(buffer, "ProgramNode(", 12);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_program_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_program_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_program_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_node(buffer, parser, (yp_node_t *)((yp_program_node_t *)node)->statements);
       yp_buffer_append_str(buffer, ")", 1);
       break;
@@ -1177,15 +1190,6 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
       yp_buffer_append_str(buffer, ")", 1);
       break;
     }
-    case YP_NODE_SCOPE_NODE: {
-      yp_buffer_append_str(buffer, "ScopeNode(", 10);
-            for (uint32_t index = 0; index < ((yp_scope_node_t *)node)->locals.size; index++) {
-        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
-        prettyprint_token(buffer, &((yp_scope_node_t *)node)->locals.tokens[index]);
-      }
-      yp_buffer_append_str(buffer, ")", 1);
-      break;
-    }
     case YP_NODE_SELF_NODE: {
       yp_buffer_append_str(buffer, "SelfNode(", 9);
       yp_buffer_append_str(buffer, ")", 1);
@@ -1193,7 +1197,10 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     }
     case YP_NODE_SINGLETON_CLASS_NODE: {
       yp_buffer_append_str(buffer, "SingletonClassNode(", 19);
-            prettyprint_node(buffer, parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->scope);
+            for (uint32_t index = 0; index < ((yp_singleton_class_node_t *)node)->locals.size; index++) {
+        if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+        prettyprint_token(buffer, &((yp_singleton_class_node_t *)node)->locals.tokens[index]);
+      }
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_singleton_class_node_t *)node)->class_keyword);
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_token(buffer, &((yp_singleton_class_node_t *)node)->operator);
       yp_buffer_append_str(buffer, ", ", 2);      prettyprint_node(buffer, parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->expression);

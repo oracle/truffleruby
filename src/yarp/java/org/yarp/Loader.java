@@ -47,7 +47,7 @@ public class Loader {
     }
 
     private byte[] loadString() {
-        int length = buffer.getInt();
+        int length = loadVarInt();
         byte[] string = new byte[length];
         buffer.get(string);
         return string;
@@ -72,7 +72,7 @@ public class Loader {
     }
 
     private Nodes.Token[] loadTokens() {
-        int length = buffer.getInt();
+        int length = loadVarInt();
         Nodes.Token[] tokens = new Nodes.Token[length];
         for (int i = 0; i < length; i++) {
             tokens[i] = loadToken();
@@ -81,7 +81,7 @@ public class Loader {
     }
 
     private Nodes.Node[] loadNodes() {
-        int length = buffer.getInt();
+        int length = loadVarInt();
         Nodes.Node[] nodes = new Nodes.Node[length];
         for (int i = 0; i < length; i++) {
             nodes[i] = loadNode();
@@ -91,16 +91,18 @@ public class Loader {
 
     private Nodes.Token loadToken() {
         int type = buffer.get() & 0xFF;
-        int startOffset = buffer.getInt();
-        int endOffset = buffer.getInt();
+        int startOffset = loadVarInt();
+        int length = loadVarInt();
+        int endOffset = startOffset + length;
 
         final Nodes.TokenType tokenType = Nodes.TOKEN_TYPES[type];
         return new Nodes.Token(tokenType, startOffset, endOffset);
     }
 
     private Nodes.Location loadLocation() {
-        int startOffset = buffer.getInt();
-        int endOffset = buffer.getInt();
+        int startOffset = loadVarInt();
+        int length = loadVarInt();
+        int endOffset = startOffset + length;
         return new Nodes.Location(startOffset, endOffset);
     }
 
@@ -112,15 +114,29 @@ public class Loader {
         }
     }
 
-    private int loadInteger() {
-        return buffer.getInt();
+    // From https://github.com/protocolbuffers/protobuf/blob/v23.1/java/core/src/main/java/com/google/protobuf/BinaryReader.java#L1507
+    private int loadVarInt() {
+        int x;
+        if ((x = buffer.get()) >= 0) {
+            return x;
+        } else if ((x ^= (buffer.get() << 7)) < 0) {
+            x ^= (~0 << 7);
+        } else if ((x ^= (buffer.get() << 14)) >= 0) {
+            x ^= (~0 << 7) ^ (~0 << 14);
+        } else if ((x ^= (buffer.get() << 21)) < 0) {
+            x ^= (~0 << 7) ^ (~0 << 14) ^ (~0 << 21);
+        } else {
+            x ^= buffer.get() << 28;
+            x ^= (~0 << 7) ^ (~0 << 14) ^ (~0 << 21) ^ (~0 << 28);
+        }
+        return x;
     }
 
     private Nodes.Node loadNode() {
         int type = buffer.get() & 0xFF;
-        int length = buffer.getInt();
-        int startOffset = buffer.getInt();
-        int endOffset = buffer.getInt();
+        int startOffset = loadVarInt();
+        int length = loadVarInt();
+        int endOffset = startOffset + length;
 
         switch (type) {
             case 1:
@@ -140,25 +156,25 @@ public class Loader {
             case 8:
                 return new Nodes.AssocSplatNode(loadOptionalNode(), loadLocation(), startOffset, endOffset);
             case 9:
-                return new Nodes.BeginNode(loadOptionalToken(), loadOptionalNode(), loadOptionalNode(), loadOptionalNode(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.BeginNode(loadOptionalToken(), (Nodes.StatementsNode) loadOptionalNode(), (Nodes.RescueNode) loadOptionalNode(), (Nodes.ElseNode) loadOptionalNode(), (Nodes.EnsureNode) loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
             case 10:
                 return new Nodes.BlockArgumentNode(loadOptionalNode(), loadLocation(), startOffset, endOffset);
             case 11:
-                return new Nodes.BlockNode(loadNode(), loadOptionalNode(), loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.BlockNode(loadTokens(), (Nodes.BlockParametersNode) loadOptionalNode(), loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 12:
                 return new Nodes.BlockParameterNode(loadOptionalToken(), loadLocation(), startOffset, endOffset);
             case 13:
-                return new Nodes.BlockParametersNode(loadOptionalNode(), loadTokens(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
+                return new Nodes.BlockParametersNode((Nodes.ParametersNode) loadOptionalNode(), loadTokens(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
             case 14:
-                return new Nodes.BreakNode(loadOptionalNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.BreakNode((Nodes.ArgumentsNode) loadOptionalNode(), loadLocation(), startOffset, endOffset);
             case 15:
-                return new Nodes.CallNode(loadOptionalNode(), loadOptionalToken(), loadOptionalToken(), loadOptionalToken(), loadOptionalNode(), loadOptionalToken(), loadOptionalNode(), loadString(), startOffset, endOffset);
+                return new Nodes.CallNode(loadOptionalNode(), loadOptionalToken(), loadOptionalToken(), loadOptionalToken(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalToken(), (Nodes.BlockNode) loadOptionalNode(), loadString(), startOffset, endOffset);
             case 16:
                 return new Nodes.CapturePatternNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 17:
-                return new Nodes.CaseNode(loadOptionalNode(), loadNodes(), loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.CaseNode(loadOptionalNode(), loadNodes(), (Nodes.ElseNode) loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 18:
-                return new Nodes.ClassNode(loadNode(), loadToken(), loadNode(), loadOptionalToken(), loadOptionalNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
+                return new Nodes.ClassNode(loadTokens(), loadToken(), loadNode(), loadOptionalToken(), loadOptionalNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
             case 19:
                 return new Nodes.ClassVariableReadNode(startOffset, endOffset);
             case 20:
@@ -170,13 +186,13 @@ public class Loader {
             case 23:
                 return new Nodes.ConstantReadNode(startOffset, endOffset);
             case 24:
-                return new Nodes.DefNode(loadToken(), loadOptionalNode(), loadOptionalNode(), loadOptionalNode(), loadNode(), loadLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
+                return new Nodes.DefNode(buffer.getInt(), loadToken(), loadOptionalNode(), (Nodes.ParametersNode) loadOptionalNode(), loadOptionalNode(), loadTokens(), loadLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
             case 25:
                 return new Nodes.DefinedNode(loadOptionalToken(), loadNode(), loadOptionalToken(), loadLocation(), startOffset, endOffset);
             case 26:
-                return new Nodes.ElseNode(loadToken(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.ElseNode(loadToken(), (Nodes.StatementsNode) loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
             case 27:
-                return new Nodes.EnsureNode(loadToken(), loadOptionalNode(), loadToken(), startOffset, endOffset);
+                return new Nodes.EnsureNode(loadToken(), (Nodes.StatementsNode) loadOptionalNode(), loadToken(), startOffset, endOffset);
             case 28:
                 return new Nodes.FalseNode(startOffset, endOffset);
             case 29:
@@ -184,27 +200,27 @@ public class Loader {
             case 30:
                 return new Nodes.FloatNode(startOffset, endOffset);
             case 31:
-                return new Nodes.ForNode(loadNode(), loadNode(), loadOptionalNode(), loadLocation(), loadLocation(), loadOptionalLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.ForNode(loadNode(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), loadLocation(), loadLocation(), loadOptionalLocation(), loadLocation(), startOffset, endOffset);
             case 32:
                 return new Nodes.ForwardingArgumentsNode(startOffset, endOffset);
             case 33:
                 return new Nodes.ForwardingParameterNode(startOffset, endOffset);
             case 34:
-                return new Nodes.ForwardingSuperNode(loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.ForwardingSuperNode((Nodes.BlockNode) loadOptionalNode(), startOffset, endOffset);
             case 35:
                 return new Nodes.GlobalVariableReadNode(loadToken(), startOffset, endOffset);
             case 36:
                 return new Nodes.GlobalVariableWriteNode(loadToken(), loadOptionalToken(), loadOptionalNode(), startOffset, endOffset);
             case 37:
-                return new Nodes.HashNode(loadOptionalToken(), loadNodes(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.HashNode(loadToken(), loadNodes(), loadToken(), startOffset, endOffset);
             case 38:
                 return new Nodes.HashPatternNode(loadOptionalNode(), loadNodes(), loadOptionalNode(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
             case 39:
-                return new Nodes.IfNode(loadToken(), loadNode(), loadOptionalNode(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.IfNode(loadToken(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
             case 40:
                 return new Nodes.ImaginaryNode(loadNode(), startOffset, endOffset);
             case 41:
-                return new Nodes.InNode(loadNode(), loadOptionalNode(), loadLocation(), loadOptionalLocation(), startOffset, endOffset);
+                return new Nodes.InNode(loadNode(), (Nodes.StatementsNode) loadOptionalNode(), loadLocation(), loadOptionalLocation(), startOffset, endOffset);
             case 42:
                 return new Nodes.InstanceVariableReadNode(startOffset, endOffset);
             case 43:
@@ -220,83 +236,83 @@ public class Loader {
             case 48:
                 return new Nodes.InterpolatedXStringNode(loadToken(), loadNodes(), loadToken(), startOffset, endOffset);
             case 49:
-                return new Nodes.KeywordParameterNode(loadToken(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.KeywordHashNode(loadNodes(), startOffset, endOffset);
             case 50:
-                return new Nodes.KeywordRestParameterNode(loadToken(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.KeywordParameterNode(loadToken(), loadOptionalNode(), startOffset, endOffset);
             case 51:
-                return new Nodes.LambdaNode(loadNode(), loadToken(), loadOptionalNode(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.KeywordRestParameterNode(loadToken(), loadOptionalToken(), startOffset, endOffset);
             case 52:
-                return new Nodes.LocalVariableReadNode(loadInteger(), startOffset, endOffset);
+                return new Nodes.LambdaNode(loadTokens(), loadToken(), (Nodes.BlockParametersNode) loadOptionalNode(), loadOptionalNode(), startOffset, endOffset);
             case 53:
-                return new Nodes.LocalVariableWriteNode(loadLocation(), loadOptionalNode(), loadOptionalLocation(), loadInteger(), startOffset, endOffset);
+                return new Nodes.LocalVariableReadNode(loadVarInt(), startOffset, endOffset);
             case 54:
-                return new Nodes.MatchPredicateNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.LocalVariableWriteNode(loadLocation(), loadOptionalNode(), loadOptionalLocation(), loadVarInt(), startOffset, endOffset);
             case 55:
-                return new Nodes.MatchRequiredNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.MatchPredicateNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 56:
-                return new Nodes.MissingNode(startOffset, endOffset);
+                return new Nodes.MatchRequiredNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 57:
-                return new Nodes.ModuleNode(loadNode(), loadToken(), loadNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
+                return new Nodes.MissingNode(startOffset, endOffset);
             case 58:
-                return new Nodes.MultiWriteNode(loadNodes(), loadOptionalToken(), loadOptionalNode(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
+                return new Nodes.ModuleNode(loadTokens(), loadToken(), loadNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
             case 59:
-                return new Nodes.NextNode(loadOptionalNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.MultiWriteNode(loadNodes(), loadOptionalToken(), loadOptionalNode(), loadOptionalLocation(), loadOptionalLocation(), startOffset, endOffset);
             case 60:
-                return new Nodes.NilNode(startOffset, endOffset);
+                return new Nodes.NextNode((Nodes.ArgumentsNode) loadOptionalNode(), loadLocation(), startOffset, endOffset);
             case 61:
-                return new Nodes.NoKeywordsParameterNode(loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.NilNode(startOffset, endOffset);
             case 62:
-                return new Nodes.OperatorAndAssignmentNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.NoKeywordsParameterNode(loadLocation(), loadLocation(), startOffset, endOffset);
             case 63:
-                return new Nodes.OperatorAssignmentNode(loadNode(), loadToken(), loadNode(), startOffset, endOffset);
+                return new Nodes.OperatorAndAssignmentNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 64:
-                return new Nodes.OperatorOrAssignmentNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.OperatorAssignmentNode(loadNode(), loadToken(), loadNode(), startOffset, endOffset);
             case 65:
-                return new Nodes.OptionalParameterNode(loadToken(), loadToken(), loadNode(), startOffset, endOffset);
+                return new Nodes.OperatorOrAssignmentNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 66:
-                return new Nodes.OrNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.OptionalParameterNode(loadToken(), loadToken(), loadNode(), startOffset, endOffset);
             case 67:
-                return new Nodes.ParametersNode(loadNodes(), loadNodes(), loadNodes(), loadOptionalNode(), loadNodes(), loadOptionalNode(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.OrNode(loadNode(), loadNode(), loadLocation(), startOffset, endOffset);
             case 68:
-                return new Nodes.ParenthesesNode(loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.ParametersNode(loadNodes(), loadNodes(), loadNodes(), (Nodes.RestParameterNode) loadOptionalNode(), loadNodes(), loadOptionalNode(), (Nodes.BlockParameterNode) loadOptionalNode(), startOffset, endOffset);
             case 69:
-                return new Nodes.PinnedExpressionNode(loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.ParenthesesNode(loadOptionalNode(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 70:
-                return new Nodes.PinnedVariableNode(loadNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.PinnedExpressionNode(loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 71:
-                return new Nodes.PostExecutionNode(loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.PinnedVariableNode(loadNode(), loadLocation(), startOffset, endOffset);
             case 72:
-                return new Nodes.PreExecutionNode(loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
+                return new Nodes.PostExecutionNode((Nodes.StatementsNode) loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 73:
-                return new Nodes.ProgramNode(loadNode(), loadNode(), startOffset, endOffset);
+                return new Nodes.PreExecutionNode((Nodes.StatementsNode) loadNode(), loadLocation(), loadLocation(), loadLocation(), startOffset, endOffset);
             case 74:
-                return new Nodes.RangeNode(loadOptionalNode(), loadOptionalNode(), loadLocation(), startOffset, endOffset);
+                return new Nodes.ProgramNode(loadTokens(), (Nodes.StatementsNode) loadNode(), startOffset, endOffset);
             case 75:
-                return new Nodes.RationalNode(loadNode(), startOffset, endOffset);
+                return new Nodes.RangeNode(loadOptionalNode(), loadOptionalNode(), loadLocation(), startOffset, endOffset);
             case 76:
-                return new Nodes.RedoNode(startOffset, endOffset);
+                return new Nodes.RationalNode(loadNode(), startOffset, endOffset);
             case 77:
-                return new Nodes.RegularExpressionNode(loadToken(), loadToken(), loadToken(), loadString(), startOffset, endOffset);
+                return new Nodes.RedoNode(startOffset, endOffset);
             case 78:
-                return new Nodes.RequiredDestructuredParameterNode(loadNodes(), loadToken(), loadToken(), startOffset, endOffset);
+                return new Nodes.RegularExpressionNode(loadToken(), loadToken(), loadToken(), loadString(), startOffset, endOffset);
             case 79:
-                return new Nodes.RequiredParameterNode(startOffset, endOffset);
+                return new Nodes.RequiredDestructuredParameterNode(loadNodes(), loadToken(), loadToken(), startOffset, endOffset);
             case 80:
-                return new Nodes.RescueModifierNode(loadNode(), loadToken(), loadNode(), startOffset, endOffset);
+                return new Nodes.RequiredParameterNode(startOffset, endOffset);
             case 81:
-                return new Nodes.RescueNode(loadToken(), loadNodes(), loadOptionalToken(), loadOptionalNode(), loadOptionalNode(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.RescueModifierNode(loadNode(), loadToken(), loadNode(), startOffset, endOffset);
             case 82:
-                return new Nodes.RestParameterNode(loadToken(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.RescueNode(loadToken(), loadNodes(), loadOptionalToken(), loadOptionalNode(), (Nodes.StatementsNode) loadOptionalNode(), (Nodes.RescueNode) loadOptionalNode(), startOffset, endOffset);
             case 83:
-                return new Nodes.RetryNode(startOffset, endOffset);
+                return new Nodes.RestParameterNode(loadToken(), loadOptionalToken(), startOffset, endOffset);
             case 84:
-                return new Nodes.ReturnNode(loadToken(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.RetryNode(startOffset, endOffset);
             case 85:
-                return new Nodes.ScopeNode(loadTokens(), startOffset, endOffset);
+                return new Nodes.ReturnNode(loadToken(), (Nodes.ArgumentsNode) loadOptionalNode(), startOffset, endOffset);
             case 86:
                 return new Nodes.SelfNode(startOffset, endOffset);
             case 87:
-                return new Nodes.SingletonClassNode(loadNode(), loadToken(), loadToken(), loadNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
+                return new Nodes.SingletonClassNode(loadTokens(), loadToken(), loadToken(), loadNode(), loadOptionalNode(), loadToken(), startOffset, endOffset);
             case 88:
                 return new Nodes.SourceEncodingNode(startOffset, endOffset);
             case 89:
@@ -310,11 +326,11 @@ public class Loader {
             case 93:
                 return new Nodes.StringConcatNode(loadNode(), loadNode(), startOffset, endOffset);
             case 94:
-                return new Nodes.StringInterpolatedNode(loadToken(), loadOptionalNode(), loadToken(), startOffset, endOffset);
+                return new Nodes.StringInterpolatedNode(loadToken(), (Nodes.StatementsNode) loadOptionalNode(), loadToken(), startOffset, endOffset);
             case 95:
                 return new Nodes.StringNode(loadOptionalToken(), loadToken(), loadOptionalToken(), loadString(), startOffset, endOffset);
             case 96:
-                return new Nodes.SuperNode(loadToken(), loadOptionalToken(), loadOptionalNode(), loadOptionalToken(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.SuperNode(loadToken(), loadOptionalToken(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalToken(), (Nodes.BlockNode) loadOptionalNode(), startOffset, endOffset);
             case 97:
                 return new Nodes.SymbolNode(loadOptionalToken(), loadToken(), loadOptionalToken(), loadString(), startOffset, endOffset);
             case 98:
@@ -322,17 +338,17 @@ public class Loader {
             case 99:
                 return new Nodes.UndefNode(loadNodes(), loadLocation(), startOffset, endOffset);
             case 100:
-                return new Nodes.UnlessNode(loadToken(), loadNode(), loadOptionalNode(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.UnlessNode(loadToken(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), (Nodes.ElseNode) loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
             case 101:
-                return new Nodes.UntilNode(loadToken(), loadNode(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.UntilNode(loadToken(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), startOffset, endOffset);
             case 102:
-                return new Nodes.WhenNode(loadToken(), loadNodes(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.WhenNode(loadToken(), loadNodes(), (Nodes.StatementsNode) loadOptionalNode(), startOffset, endOffset);
             case 103:
-                return new Nodes.WhileNode(loadToken(), loadNode(), loadOptionalNode(), startOffset, endOffset);
+                return new Nodes.WhileNode(loadToken(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), startOffset, endOffset);
             case 104:
                 return new Nodes.XStringNode(loadToken(), loadToken(), loadToken(), loadString(), startOffset, endOffset);
             case 105:
-                return new Nodes.YieldNode(loadToken(), loadOptionalToken(), loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
+                return new Nodes.YieldNode(loadToken(), loadOptionalToken(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalToken(), startOffset, endOffset);
             default:
                 throw new Error("Unknown node type: " + type);
         }

@@ -58,7 +58,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
-        var location = new SourceIndexLength(node.startOffset, node.endOffset - node.startOffset);
+        var location = new SourceIndexLength(node.startOffset, node.length());
 
         var body = node.body;
         var translated = new RubyNode[body.length];
@@ -72,8 +72,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitCallNode(Nodes.CallNode node) {
         var methodName = new String(node.name, StandardCharsets.UTF_8);
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
-        var argumentsNode = (Nodes.ArgumentsNode) node.arguments;
-        var arguments = argumentsNode.arguments;
+        var arguments = node.arguments.arguments;
         var translatedArguments = new RubyNode[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             translatedArguments[i] = arguments[i].accept(this);
@@ -86,8 +85,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
-        String string = new String(source, node.startOffset, node.endOffset - node.startOffset,
-                StandardCharsets.US_ASCII);
+        String string = new String(source, node.startOffset, node.length(), StandardCharsets.US_ASCII);
         int value = Integer.parseInt(string);
         return new IntegerFixnumLiteralNode(value);
     }

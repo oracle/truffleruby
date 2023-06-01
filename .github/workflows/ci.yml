@@ -1,7 +1,10 @@
 # NOTE: This is only a small subset of the CI which runs on GitHub Actions.
 # Most of the CI is defined in ci.jsonnet.
 name: CI
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [master]
 permissions:
   contents: read
 
