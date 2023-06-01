@@ -2121,9 +2121,7 @@ module Commands
     if truffleruby?
       app_open svg_filename
     else
-      File.open(flame_file, 'w') do |f|
-        run_ruby(env, '-S', 'stackprof', '--d3-flamegraph', flame_file_dump, {:out => f})
-      end
+      run_ruby(env, '-S', 'stackprof', '--d3-flamegraph', flame_file_dump, out: flame_file)
       app_open flame_file
     end
   end
