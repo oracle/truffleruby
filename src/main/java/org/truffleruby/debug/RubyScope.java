@@ -27,6 +27,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.LocalVariableGetNode;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
@@ -125,7 +126,7 @@ public class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         protected static Object read(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode)
+                @Cached @Exclusive LocalVariableGetNode localVariableGetNode)
                 throws UnknownIdentifierException {
             try {
                 return localVariableGetNode.execute(scope.binding, member);
