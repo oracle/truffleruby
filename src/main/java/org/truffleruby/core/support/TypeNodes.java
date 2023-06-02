@@ -49,6 +49,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -100,6 +101,15 @@ public abstract class TypeNodes {
         protected RubyClass metaClass(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.execute(this, object);
+        }
+    }
+
+    @Primitive(name = "singleton_class")
+    public abstract static class SingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyClass singletonClass(Object object,
+                @Cached SingletonClassNode singletonClassNode) {
+            return singletonClassNode.executeSingletonClass(object);
         }
     }
 

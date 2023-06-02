@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -35,6 +36,7 @@ public abstract class SingletonClassNode extends RubySourceNode {
         return SingletonClassNodeGen.getUncached();
     }
 
+    @NeverDefault
     public static SingletonClassNode create() {
         return SingletonClassNodeGen.create(null);
     }
@@ -58,7 +60,11 @@ public abstract class SingletonClassNode extends RubySourceNode {
 
     @Specialization(
             // no need to guard on the context, the RubyDynamicObject is context-specific
-            guards = { "isSingleContext()", "object == cachedObject", "!isRubyClass(cachedObject)" },
+            guards = {
+                    "isSingleContext()",
+                    "object == cachedObject",
+                    "!isRubyClass(cachedObject)",
+                    "!isRubyIO(cachedObject)" },
             limit = "1")
     protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,

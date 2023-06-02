@@ -68,11 +68,11 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -423,9 +423,10 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_set_class")
     public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
+        /** Only support it on IO for IO#reopen since this is the only case which needs it */
         @TruffleBoundary
         @Specialization
-        protected RubyDynamicObject setClass(RubyDynamicObject object, RubyClass newClass) {
+        protected RubyIO setClass(RubyIO object, RubyClass newClass) {
             SharedObjects.propagate(getLanguage(), object, newClass);
             synchronized (object) {
                 object.setMetaClass(newClass);

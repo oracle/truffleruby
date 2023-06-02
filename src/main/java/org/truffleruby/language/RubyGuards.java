@@ -33,6 +33,7 @@ import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -135,6 +136,11 @@ public abstract class RubyGuards {
 
     public static boolean isRubyModule(Object value) {
         return value instanceof RubyModule;
+    }
+
+    @Idempotent
+    public static boolean isRubyIO(Object value) {
+        return value instanceof RubyIO;
     }
 
     public static boolean isRubyRegexp(Object value) {
