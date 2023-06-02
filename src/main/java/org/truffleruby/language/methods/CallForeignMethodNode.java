@@ -26,7 +26,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.interop.InteropNodes.InvokeMemberNode;
+import org.truffleruby.interop.InvokeMemberNode;
 import org.truffleruby.interop.InteropNodes.ReadMemberNode;
 import org.truffleruby.interop.InteropNodes.WriteMemberWithoutConversionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;

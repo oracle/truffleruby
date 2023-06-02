@@ -92,15 +92,6 @@ public abstract class InteropNodes {
         }
     }
 
-    public static Object invoke(InteropLibrary receivers, Object receiver, String member, Object[] args,
-            TranslateInteropExceptionNode translateInteropExceptionNode) {
-        try {
-            return receivers.invokeMember(receiver, member, args);
-        } catch (InteropException e) {
-            throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
-        }
-    }
-
     public static Object readMember(InteropLibrary interop, Object receiver, String name,
             TranslateInteropExceptionNode translateInteropException) {
         try {
@@ -1468,41 +1459,15 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class InvokeMemberNode extends RubySourceNode {
+    public abstract static class InteropInvokeMemberNode extends CoreMethodArrayArgumentsNode {
 
-        @NeverDefault
-        public static InvokeMemberNode create() {
-            return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
+        @Specialization
+        protected Object invokeMember(Object receiver, Object identifier, Object[] args,
+                @Cached InvokeMemberNode invokeMemberNode) {
+            return invokeMemberNode.execute(receiver, identifier, args);
         }
-
-        public static InvokeMemberNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.InvokeMemberNodeFactory.create(argumentNodes);
-        }
-
-        public abstract Object execute(Object receiver, Object identifier, Object[] args);
-
-        abstract RubyNode[] getArgumentNodes();
-
-        @Specialization(limit = "getInteropCacheLimit()")
-        protected Object invokeCached(Object receiver, Object identifier, Object[] args,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
-            final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
