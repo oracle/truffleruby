@@ -227,6 +227,12 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     stability="experimental",
 ))
 
+standalone_dependencies_common = {
+    'LLVM Runtime Core': ('lib/sulong', []),
+    'LLVM Runtime Native': ('lib/sulong', []),
+    'LLVM.org toolchain': ('lib/llvm-toolchain', []),
+}
+
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
@@ -235,13 +241,15 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
-    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain', 'TRegex'],
-    standalone_dependencies={
-        'LLVM Runtime Core': ('lib/sulong', []),
-        'LLVM Runtime Native': ('lib/sulong', []),
-        'LLVM.org toolchain': ('lib/llvm-toolchain', []),
-        'rbyl': ('', []), # Use short name for license to select by priority
-    },
+    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain', 'TRegex'],  # Use short name for license to select by priority
+    standalone_dependencies={**standalone_dependencies_common, **{
+        'TruffleRuby license files': ('', []),
+    }},
+    standalone_dependencies_enterprise={**standalone_dependencies_common, **{
+        'LLVM Runtime Enterprise': ('lib/sulong', []),
+        'LLVM Runtime Native Enterprise': ('lib/sulong', []),
+        'TruffleRuby license files EE': ('', []),
+    }},
     truffle_jars=[
         # Distributions
         'truffleruby:TRUFFLERUBY',
