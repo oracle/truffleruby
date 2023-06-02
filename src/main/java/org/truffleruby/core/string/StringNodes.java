@@ -155,7 +155,6 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -167,7 +166,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -182,40 +180,24 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
 
-    @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class AllocateNode extends RubySourceNode {
-
-        @NeverDefault
-        public static AllocateNode create() {
-            return StringNodesFactory.AllocateNodeFactory.create(null);
-        }
-
-        public static AllocateNode create(RubyNode rubyClassNode) {
-            return StringNodesFactory.AllocateNodeFactory.create(rubyClassNode);
-        }
-
-        public abstract RubyString execute(RubyClass rubyClass);
+    public abstract static class StringAllocateNode extends RubySourceNode {
 
         abstract RubyNode getRubyClassNode();
 
         @Specialization
-        protected RubyString allocate(RubyClass rubyClass) {
-            final RubyString string = new RubyString(
-                    rubyClass,
-                    getLanguage().stringShape,
-                    false,
-                    EMPTY_BINARY,
-                    Encodings.BINARY);
-            AllocationTracing.trace(string, this);
-            return string;
+        protected RubyString allocate(RubyClass rubyClass,
+                @Cached AllocateNode allocateNode) {
+            return allocateNode.execute(rubyClass);
         }
+
 
         @Override
         public RubyNode cloneUninitialized() {
-            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
+            return StringNodesFactory.StringAllocateNodeFactory.create(getRubyClassNode().cloneUninitialized())
+                    .copyFlags(this);
         }
 
     }
