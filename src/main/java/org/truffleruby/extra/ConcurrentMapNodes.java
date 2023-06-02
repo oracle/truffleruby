@@ -21,7 +21,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.SimpleEntry;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.hash.HashingNodes.ToHashByHashCode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -203,7 +203,7 @@ public class ConcurrentMapNodes {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
+                        equalNode.execute(expectedValue, currentValue)) {
                     if (replace(self.getMap(), keyWrapper, currentValue, newValue)) {
                         return true;
                     }
@@ -240,7 +240,7 @@ public class ConcurrentMapNodes {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
+                        equalNode.execute(expectedValue, currentValue)) {
                     if (remove(self.getMap(), keyWrapper, currentValue)) {
                         return true;
                     }

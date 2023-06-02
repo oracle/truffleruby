@@ -55,7 +55,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -118,7 +118,7 @@ public abstract class VMPrimitiveNodes {
                 return yieldNode.yield(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter(this);
-                if (matchProfile.profile(this, referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
+                if (matchProfile.profile(this, referenceEqualNode.execute(e.getTag(), tag))) {
                     return e.getValue();
                 } else {
                     throw e;

@@ -10,7 +10,7 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     protected final String name;
-    @Child protected ReferenceEqualNode referenceEqualNode = ReferenceEqualNode.create();
     @Child protected WriteBarrierNode writeBarrierNode = WriteBarrierNode.create();
 
     @NeverDefault
@@ -38,12 +37,13 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "isSingleContext()",
-                    "referenceEqualNode.executeReferenceEqual(value, previousValue)" },
+                    "referenceEqualNode.execute(value, previousValue)" },
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" },
             limit = "1")
     protected Object writeTryToKeepConstant(Object value,
+            @Cached ReferenceEqualNode referenceEqualNode,
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {

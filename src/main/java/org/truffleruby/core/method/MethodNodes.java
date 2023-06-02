@@ -19,7 +19,7 @@ import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -103,7 +103,7 @@ public abstract class MethodNodes {
         protected boolean equal(RubyMethod a, RubyMethod b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode
-                    .executeReferenceEqual(a.receiver, b.receiver) &&
+                    .execute(a.receiver, b.receiver) &&
                     a.method.getDeclaringModule() == b.method.getDeclaringModule() &&
                     MethodNodes.areInternalMethodEqual(a.method, b.method);
         }

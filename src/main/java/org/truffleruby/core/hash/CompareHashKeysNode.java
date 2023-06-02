@@ -12,7 +12,7 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -31,14 +31,14 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
     public static boolean referenceEqualKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
             int hashed, Object otherKey, int otherHashed) {
         return compareByIdentity
-                ? refEqual.executeReferenceEqual(key, otherKey)
-                : hashed == otherHashed && refEqual.executeReferenceEqual(key, otherKey);
+                ? refEqual.execute(key, otherKey)
+                : hashed == otherHashed && refEqual.execute(key, otherKey);
     }
 
     @Specialization(guards = "compareByIdentity")
     protected boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached ReferenceEqualNode refEqual) {
-        return refEqual.executeReferenceEqual(key, otherKey);
+        return refEqual.execute(key, otherKey);
     }
 
     @Specialization(guards = "!compareByIdentity")

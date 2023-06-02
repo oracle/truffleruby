@@ -15,7 +15,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -100,7 +100,7 @@ public abstract class AtomicReferenceNodes {
                 final Object currentValue = self.value.get();
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
+                        equalNode.execute(expectedValue, currentValue)) {
                     if (self.value.compareAndSet(currentValue, newValue)) {
                         return true;
                     }
