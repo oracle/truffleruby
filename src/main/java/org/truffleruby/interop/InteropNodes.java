@@ -1183,35 +1183,15 @@ public abstract class InteropNodes {
     // endregion
 
     // region Null
-    @GenerateUncached
     @GenerateNodeFactory
     @CoreMethod(names = "null?", onSingleton = true, required = 1)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class IsNullNode extends RubySourceNode {
-
-        public static IsNullNode create() {
-            return InteropNodesFactory.IsNullNodeFactory.create(null);
-        }
-
-        public static IsNullNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.IsNullNodeFactory.create(argumentNodes);
-        }
-
-        abstract Object execute(Object receiver);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class IsNullNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isNull(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
     // endregion
 
