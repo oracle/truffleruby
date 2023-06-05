@@ -1330,23 +1330,8 @@ public abstract class InteropNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "write_member", onSingleton = true, required = 3)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class WriteMemberNode extends RubySourceNode {
-
-        public static WriteMemberNode create() {
-            return InteropNodesFactory.WriteMemberNodeFactory.create(null);
-        }
-
-        public static WriteMemberNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.WriteMemberNodeFactory.create(argumentNodes);
-        }
-
-        public abstract Object execute(Object receiver, Object identifier, Object value);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class WriteMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
@@ -1362,12 +1347,6 @@ public abstract class InteropNodes {
 
             return value;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
