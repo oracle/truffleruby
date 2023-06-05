@@ -29,6 +29,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -282,11 +283,7 @@ public abstract class BindingNodes {
     @NodeChild(value = "bindingNode", type = RubyNode.class)
     @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(BindingNodes.class)
-    public abstract static class BindingLocalVariableGetNode extends RubySourceNode {
-
-        abstract RubyNode getBindingNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
+    public abstract static class BindingLocalVariableGetNode extends CoreMethodNode {
 
         @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
@@ -297,17 +294,6 @@ public abstract class BindingNodes {
         protected Object localVariableGet(RubyBinding binding, String name,
                 @Cached LocalVariableGetNode localVariableGetNode) {
             return localVariableGetNode.execute(binding, name);
-        }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return BindingNodesFactory.BindingLocalVariableGetNodeFactory.create(
-                    getBindingNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized()).copyFlags(this);
         }
     }
 
@@ -345,13 +331,7 @@ public abstract class BindingNodes {
     @NodeChild(value = "bindingNode", type = RubyNode.class)
     @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class BindingLocalVariableSetNode extends RubySourceNode {
-
-        abstract RubyNode getBindingNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyNode getValueNode();
+    public abstract static class BindingLocalVariableSetNode extends CoreMethodNode {
 
         @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
@@ -362,18 +342,6 @@ public abstract class BindingNodes {
         protected Object localVariableSet(RubyBinding binding, String name, Object value,
                 @Cached LocalVariableSetNode localVariableSetNode) {
             return localVariableSetNode.execute(binding, name, value);
-        }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return BindingNodesFactory.BindingLocalVariableSetNodeFactory.create(
-                    getBindingNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
-                    getValueNode().cloneUninitialized()).copyFlags(this);
         }
     }
 
@@ -394,7 +362,7 @@ public abstract class BindingNodes {
         protected Object localVariableSetCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
-                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FindDeclarationVariableNodes.FrameSlotAndDepth cachedFrameSlot,
+                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("createWriteNode(cachedFrameSlot.slot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = RubyArguments
                     .getDeclarationFrame(binding.getFrame(), cachedFrameSlot.depth);

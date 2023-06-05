@@ -150,7 +150,6 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -186,23 +185,13 @@ public abstract class StringNodes {
     @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class StringAllocateNode extends RubySourceNode {
-
-        abstract RubyNode getRubyClassNode();
+    public abstract static class StringAllocateNode extends CoreMethodNode {
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass,
                 @Cached AllocateNode allocateNode) {
             return allocateNode.execute(rubyClass);
         }
-
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return StringNodesFactory.StringAllocateNodeFactory.create(getRubyClassNode().cloneUninitialized())
-                    .copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
