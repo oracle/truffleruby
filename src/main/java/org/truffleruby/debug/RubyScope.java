@@ -27,8 +27,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.binding.LocalVariableGetNode;
-import org.truffleruby.core.binding.LocalVariableSetNode;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
@@ -127,7 +125,7 @@ public class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         protected static Object read(RubyScope scope, String member,
-                @Cached @Exclusive LocalVariableGetNode localVariableGetNode)
+                @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode)
                 throws UnknownIdentifierException {
             try {
                 return localVariableGetNode.execute(scope.binding, member);
@@ -178,7 +176,7 @@ public class RubyScope implements TruffleObject {
         @Specialization
         protected static void writeMember(RubyScope scope, String member, Object value,
                 @CachedLibrary("scope") InteropLibrary interopLibrary,
-                @Cached LocalVariableSetNode localVariableSetNode) throws UnknownIdentifierException {
+                @Cached BindingNodes.LocalVariableSetNode localVariableSetNode) throws UnknownIdentifierException {
             if (interopLibrary.isMemberModifiable(scope, member)) {
                 localVariableSetNode.execute(scope.binding, member, value);
             } else {

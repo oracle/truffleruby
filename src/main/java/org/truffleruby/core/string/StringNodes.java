@@ -76,6 +76,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -145,6 +146,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -155,6 +157,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -200,6 +203,24 @@ public abstract class StringNodes {
                     .copyFlags(this);
         }
 
+    }
+
+    @GenerateUncached
+    public abstract static class AllocateNode extends RubyBaseNode {
+
+        public abstract RubyString execute(RubyClass rubyClass);
+
+        @Specialization
+        protected RubyString allocate(RubyClass rubyClass) {
+            final RubyString string = new RubyString(
+                    rubyClass,
+                    getLanguage().stringShape,
+                    false,
+                    EMPTY_BINARY,
+                    Encodings.BINARY);
+            AllocationTracing.trace(string, this);
+            return string;
+        }
     }
 
     @CoreMethod(names = "encoding")

@@ -82,9 +82,9 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.range.RubyIntOrLongRange;
-import org.truffleruby.core.string.AllocateNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
@@ -539,7 +539,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyDynamicObject copy(ImmutableRubyString string,
-                @Cached AllocateNode allocateStringNode) {
+                @Cached StringNodes.AllocateNode allocateStringNode) {
             return allocateStringNode.execute(coreLibrary().stringClass);
         }
 

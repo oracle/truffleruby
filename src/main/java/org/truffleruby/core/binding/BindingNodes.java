@@ -57,6 +57,8 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.locals.WriteFrameSlotNode;
+import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import org.truffleruby.parser.ParentFrameDescriptor;
 import org.truffleruby.parser.TranslatorEnvironment;
 
@@ -309,6 +311,34 @@ public abstract class BindingNodes {
         }
     }
 
+    @GenerateUncached
+    @ImportStatic(BindingNodes.class)
+    public abstract static class LocalVariableGetNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyBinding binding, String name);
+
+        @Specialization(guards = "!isHiddenVariable(name)")
+        protected Object localVariableGet(RubyBinding binding, String name,
+                @Cached FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
+            MaterializedFrame frame = binding.getFrame();
+            Object result = readNode.execute(frame, name, null);
+            if (result == null) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
+            }
+            return result;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isHiddenVariable(name)")
+        protected Object localVariableGetLastLine(RubyBinding binding, String name) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+        }
+    }
+
     @ReportPolymorphism
     @GenerateNodeFactory
     @CoreMethod(names = "local_variable_set", required = 2)
@@ -344,6 +374,88 @@ public abstract class BindingNodes {
                     getBindingNode().cloneUninitialized(),
                     getNameNodeBeforeCasting().cloneUninitialized(),
                     getValueNode().cloneUninitialized()).copyFlags(this);
+        }
+    }
+
+
+    @GenerateUncached
+    @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
+    public abstract static class LocalVariableSetNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyBinding binding, String name, Object value);
+
+        @Specialization(
+                guards = {
+                        "name == cachedName",
+                        "!isHiddenVariable(cachedName)",
+                        "getFrameDescriptor(binding) == cachedFrameDescriptor",
+                        "cachedFrameSlot != null" },
+                limit = "getCacheLimit()")
+        protected Object localVariableSetCached(RubyBinding binding, String name, Object value,
+                @Cached("name") String cachedName,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
+                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FindDeclarationVariableNodes.FrameSlotAndDepth cachedFrameSlot,
+                @Cached("createWriteNode(cachedFrameSlot.slot)") WriteFrameSlotNode writeLocalVariableNode) {
+            final MaterializedFrame frame = RubyArguments
+                    .getDeclarationFrame(binding.getFrame(), cachedFrameSlot.depth);
+            writeLocalVariableNode.executeWrite(frame, value);
+            return value;
+        }
+
+        @Specialization(
+                guards = {
+                        "name == cachedName",
+                        "!isHiddenVariable(cachedName)",
+                        "getFrameDescriptor(binding) == cachedFrameDescriptor",
+                        "cachedFrameSlot == null" },
+                limit = "getCacheLimit()")
+        protected Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
+                @Cached("name") String cachedName,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
+                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FindDeclarationVariableNodes.FrameSlotAndDepth cachedFrameSlot,
+                @Cached("newFrameDescriptor(cachedFrameDescriptor, name)") FrameDescriptor newDescriptor,
+                @Cached("createWriteNode(NEW_VAR_INDEX)") WriteFrameSlotNode writeLocalVariableNode) {
+            final MaterializedFrame frame = newFrame(binding, newDescriptor);
+            writeLocalVariableNode.executeWrite(frame, value);
+            return value;
+        }
+
+        @TruffleBoundary
+        @Specialization(
+                guards = "!isHiddenVariable(name)",
+                replaces = { "localVariableSetCached", "localVariableSetNewCached" })
+        protected Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
+            MaterializedFrame frame = binding.getFrame();
+            final FindDeclarationVariableNodes.FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes
+                    .findFrameSlotOrNull(name, frame);
+            final int slot;
+            if (frameSlot != null) {
+                frame = RubyArguments.getDeclarationFrame(frame, frameSlot.depth);
+                slot = frameSlot.slot;
+            } else {
+                var newDescriptor = newFrameDescriptor(getFrameDescriptor(binding), name);
+                frame = newFrame(binding, newDescriptor);
+                assert newDescriptor.getSlotName(NEW_VAR_INDEX) == name;
+                slot = NEW_VAR_INDEX;
+            }
+            frame.setObject(slot, value);
+            return value;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isHiddenVariable(name)")
+        protected Object localVariableSetLastLine(RubyBinding binding, String name, Object value) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+        }
+
+        protected WriteFrameSlotNode createWriteNode(int frameSlot) {
+            return WriteFrameSlotNodeGen.create(frameSlot);
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
     }
 

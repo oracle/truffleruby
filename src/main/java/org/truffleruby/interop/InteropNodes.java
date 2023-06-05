@@ -47,6 +47,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
@@ -1449,6 +1450,33 @@ public abstract class InteropNodes {
             return invokeMemberNode.execute(receiver, identifier, args);
         }
     }
+
+    @GenerateUncached
+    public abstract static class InvokeMemberNode extends RubyBaseNode {
+
+        private static Object invoke(InteropLibrary receivers, Object receiver, String member, Object[] args,
+                TranslateInteropExceptionNode translateInteropExceptionNode) {
+            try {
+                return receivers.invokeMember(receiver, member, args);
+            } catch (InteropException e) {
+                throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
+            }
+        }
+
+        public abstract Object execute(Object receiver, Object identifier, Object[] args);
+
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected Object invokeCached(Object receiver, Object identifier, Object[] args,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
+            return foreignToRubyNode.executeConvert(foreign);
+        }
+    }
+
 
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends CoreMethodArrayArgumentsNode {

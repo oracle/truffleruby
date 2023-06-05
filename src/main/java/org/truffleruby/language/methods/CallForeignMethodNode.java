@@ -26,7 +26,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.interop.InvokeMemberNode;
+import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.InteropNodes.ReadMemberNode;
 import org.truffleruby.interop.InteropNodes.WriteMemberWithoutConversionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
@@ -132,7 +132,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         @Specialization(guards = "args.length == 0", limit = "getInteropCacheLimit()")
         protected static Object readOrInvoke(Object receiver, String name, Object[] args,
                 @Cached ToSymbolNode toSymbolNode,
-                @Cached @Shared InvokeMemberNode invokeNode,
+                @Cached @Shared InteropNodes.InvokeMemberNode invokeNode,
                 @Cached ReadMemberNode readNode,
                 @Cached InlinedConditionProfile invocable,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -146,7 +146,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
 
         @Specialization(guards = "args.length != 0")
         protected Object invoke(Object receiver, String name, Object[] args,
-                @Cached @Shared InvokeMemberNode invokeNode) {
+                @Cached @Shared InteropNodes.InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
     }
@@ -237,7 +237,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         protected Object call(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached InvokeMemberNode invokeNode) {
+                @Cached InteropNodes.InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
     }
