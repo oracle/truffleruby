@@ -22,6 +22,7 @@ Compatibility:
 * Add `String#byteindex` and `String#byterindex` (#3039, @itarato).
 * Add implementations of `rb_proc_call_with_block`, `rb_proc_call_kw`, `rb_proc_call_with_block_kw` and `rb_funcall_with_block_kw` (#3068, @andrykonchin).
 * Add optional `timeout` argument to `Thread::Queue#pop` (#3039, @itarato).
+* Add `Refinement#refined_class` (#3039, @itarato).
 
 Performance:
 
