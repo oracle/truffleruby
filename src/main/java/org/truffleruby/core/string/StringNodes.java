@@ -75,7 +75,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
@@ -182,7 +181,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
 
-    @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
     public abstract static class StringAllocateNode extends CoreMethodNode {

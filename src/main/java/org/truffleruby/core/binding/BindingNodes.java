@@ -278,7 +278,6 @@ public abstract class BindingNodes {
 
     }
 
-    @GenerateNodeFactory
     @CoreMethod(names = "local_variable_get", required = 1)
     @NodeChild(value = "bindingNode", type = RubyNode.class)
     @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
@@ -326,7 +325,6 @@ public abstract class BindingNodes {
     }
 
     @ReportPolymorphism
-    @GenerateNodeFactory
     @CoreMethod(names = "local_variable_set", required = 2)
     @NodeChild(value = "bindingNode", type = RubyNode.class)
     @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)

@@ -1184,7 +1184,6 @@ public abstract class InteropNodes {
     // endregion
 
     // region Null
-    @GenerateNodeFactory
     @CoreMethod(names = "null?", onSingleton = true, required = 1)
     public abstract static class IsNullNode extends CoreMethodArrayArgumentsNode {
 
@@ -1440,7 +1439,6 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateNodeFactory
     @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
     public abstract static class InteropInvokeMemberNode extends CoreMethodArrayArgumentsNode {
 
