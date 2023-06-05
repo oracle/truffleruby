@@ -93,12 +93,11 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubyQueue self, boolean nonBlocking, long timeoutMilliseconds,
-                @Exclusive @Cached InlinedBranchProfile closedProfile) {
+        protected Object popBlocking(RubyQueue self, boolean nonBlocking, long timeoutMilliseconds) {
             final UnsizedQueue queue = self.queue;
             final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
 
-            var result = getContext().getThreadManager().runUntilResult(this, () -> {
+            return getContext().getThreadManager().runUntilResult(this, () -> {
                 final long currentTimeout = deadline - System.currentTimeMillis();
                 final Object value;
 
@@ -108,18 +107,12 @@ public abstract class QueueNodes {
                     value = queue.poll();
                 }
 
-                if (value == UnsizedQueue.CLOSED) {
-                    closedProfile.enter(this);
+                if (value == UnsizedQueue.CLOSED || value == null) {
                     return nil;
                 } else {
                     return value;
                 }
             });
-
-            if (result == null) {
-                return nil;
-            }
-            return result;
         }
 
         @Specialization(guards = "nonBlocking")
