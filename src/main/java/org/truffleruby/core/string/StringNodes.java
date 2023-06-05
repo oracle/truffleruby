@@ -1470,7 +1470,7 @@ public abstract class StringNodes {
         @Specialization
         protected long hash(Object string,
                 @Cached StringHelperNodes.HashStringNode hash) {
-            return hash.execute(string);
+            return hash.execute(this, string);
         }
     }
 

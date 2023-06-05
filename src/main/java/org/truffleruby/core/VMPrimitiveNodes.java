@@ -475,7 +475,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached InlinedConditionProfile isIntegerProfile,
                 @Cached InlinedConditionProfile isLongProfile,
                 @Cached InlinedConditionProfile isBignumProfile) {
-            Object result = toRubyInteger.execute(salt);
+            Object result = toRubyInteger.execute(this, salt);
             if (isIntegerProfile.profile(this, result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
             } else if (isLongProfile.profile(this, result instanceof Long)) {
@@ -508,7 +508,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached InlinedConditionProfile isIntegerProfile,
                 @Cached InlinedConditionProfile isLongProfile,
                 @Cached InlinedConditionProfile isBignumProfile) {
-            Object result = toRubyInteger.execute(value);
+            Object result = toRubyInteger.execute(this, value);
             if (isIntegerProfile.profile(this, result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);
             } else if (isLongProfile.profile(this, result instanceof Long)) {

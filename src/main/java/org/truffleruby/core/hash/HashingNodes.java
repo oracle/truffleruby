@@ -12,10 +12,12 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -42,7 +44,7 @@ public abstract class HashingNodes {
         @Specialization(guards = "!compareByIdentity")
         protected int hash(Object key, boolean compareByIdentity,
                 @Cached ToHashByHashCode toHashByHashCode) {
-            return toHashByHashCode.execute(key);
+            return toHashByHashCode.execute(this, key);
         }
 
 
@@ -56,6 +58,7 @@ public abstract class HashingNodes {
     // MRI: any_hash
     /** Keep consistent with {@link org.truffleruby.core.kernel.KernelNodes.HashNode} */
     @GenerateUncached
+    @GenerateInline(inlineByDefault = true)
     @ReportPolymorphism
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
@@ -64,56 +67,60 @@ public abstract class HashingNodes {
             return HashingNodesFactory.ToHashByHashCodeNodeGen.create();
         }
 
-        public abstract int execute(Object key);
+        public abstract int execute(Node node, Object key);
 
-        @Specialization
-        protected int hashBoolean(boolean value) {
-            return (int) HashOperations.hashBoolean(value, getContext(), this);
+        public final int executeCached(Object key) {
+            return execute(this, key);
         }
 
         @Specialization
-        protected int hashInt(int value) {
-            return (int) HashOperations.hashLong(value, getContext(), this);
+        protected static int hashBoolean(Node node, boolean value) {
+            return (int) HashOperations.hashBoolean(value, getContext(node), node);
         }
 
         @Specialization
-        protected int hashLong(long value) {
-            return (int) HashOperations.hashLong(value, getContext(), this);
+        protected static int hashInt(Node node, int value) {
+            return (int) HashOperations.hashLong(value, getContext(node), node);
         }
 
         @Specialization
-        protected int hashDouble(double value) {
-            return (int) HashOperations.hashDouble(value, getContext(), this);
+        protected static int hashLong(Node node, long value) {
+            return (int) HashOperations.hashLong(value, getContext(node), node);
         }
 
         @Specialization
-        protected int hashBignum(RubyBignum value) {
-            return (int) HashOperations.hashBignum(value, getContext(), this);
+        protected static int hashDouble(Node node, double value) {
+            return (int) HashOperations.hashDouble(value, getContext(node), node);
         }
 
         @Specialization
-        protected int hashString(RubyString value,
+        protected static int hashBignum(Node node, RubyBignum value) {
+            return (int) HashOperations.hashBignum(value, getContext(node), node);
+        }
+
+        @Specialization
+        protected static int hashString(Node node, RubyString value,
                 @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
-            return (int) stringHashNode.execute(value);
+            return (int) stringHashNode.execute(node, value);
         }
 
         @Specialization
-        protected int hashImmutableString(ImmutableRubyString value,
+        protected static int hashImmutableString(Node node, ImmutableRubyString value,
                 @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
-            return (int) stringHashNode.execute(value);
+            return (int) stringHashNode.execute(node, value);
         }
 
         @Specialization
-        protected int hashSymbol(RubySymbol value,
+        protected static int hashSymbol(Node node, RubySymbol value,
                 @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
-            return (int) symbolHashNode.execute(value);
+            return (int) symbolHashNode.execute(node, value);
         }
 
         @Fallback
-        protected int hashOther(Object value,
-                @Cached DispatchNode callHash,
+        protected static int hashOther(Node node, Object value,
+                @Cached(inline = false) DispatchNode callHash,
                 @Cached HashCastResultNode cast) {
-            return cast.execute(callHash.call(value, "hash"));
+            return cast.execute(node, callHash.call(value, "hash"));
         }
     }
 
@@ -130,35 +137,41 @@ public abstract class HashingNodes {
         protected int toHashByIdentity(Object hashed,
                 @Cached ObjectIDNode objectIDNode,
                 @Cached HashCastResultNode hashCastResultNode) {
-            return hashCastResultNode.execute(objectIDNode.execute(hashed));
+            return hashCastResultNode.execute(this, objectIDNode.execute(hashed));
         }
     }
 
     @GenerateUncached
+    @GenerateInline(inlineByDefault = true)
     public abstract static class HashCastResultNode extends RubyBaseNode {
 
-        public abstract int execute(Object key);
+        public abstract int execute(Node node, Object key);
+
+        public final int executeCached(Object key) {
+            return execute(null, key);
+        }
 
         @Specialization
-        protected int castInt(int hashed) {
+        protected static int castInt(int hashed) {
             return hashed;
         }
 
         @Specialization
-        protected int castLong(long hashed) {
+        protected static int castLong(long hashed) {
             return (int) hashed;
         }
 
         @Specialization
-        protected int castBignum(RubyBignum hashed) {
+        protected static int castBignum(RubyBignum hashed) {
             return BigIntegerOps.hashCode(hashed);
         }
 
         @Specialization(guards = "!isRubyInteger(hashed)")
-        protected int castOther(Object hashed,
+        protected static int castOther(Node node, Object hashed,
                 @Cached ToRubyIntegerNode toRubyInteger,
-                @Cached HashCastResultNode hashCastResult) {
-            return hashCastResult.execute(toRubyInteger.execute(hashed));
+                // recursive inlining is not supported
+                @Cached(inline = false) HashCastResultNode hashCastResult) {
+            return hashCastResult.executeCached(toRubyInteger.execute(node, hashed));
         }
     }
 }

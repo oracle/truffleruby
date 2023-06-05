@@ -15,7 +15,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -35,7 +36,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
@@ -713,7 +713,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString clearCodeRange(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            stringToNativeNode.executeToNative(string);
+            stringToNativeNode.executeToNative(this, string);
             string.clearCodeRange();
 
             return string;
@@ -814,7 +814,7 @@ public class CExtNodes {
         @Specialization
         protected long capacity(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            return getNativeStringCapacity(stringToNativeNode.executeToNative(string));
+            return getNativeStringCapacity(stringToNativeNode.executeToNative(this, string));
         }
     }
 
@@ -827,7 +827,7 @@ public class CExtNodes {
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Cached InlinedConditionProfile minLengthOneProfile) {
-            var pointer = stringToNativeNode.executeToNative(string);
+            var pointer = stringToNativeNode.executeToNative(this, string);
 
             var encoding = libString.getEncoding(string);
             int minLength = encoding.jcoding.minLength();
@@ -857,7 +857,7 @@ public class CExtNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            var pointer = stringToNativeNode.executeToNative(string);
+            var pointer = stringToNativeNode.executeToNative(this, string);
             var tencoding = libString.getTEncoding(string);
             int byteLength = string.tstring.byteLength(tencoding);
 
@@ -886,7 +886,7 @@ public class CExtNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            var pointer = stringToNativeNode.executeToNative(string);
+            var pointer = stringToNativeNode.executeToNative(this, string);
             var tencoding = libString.getTEncoding(string);
 
             if (getNativeStringCapacity(pointer) == newCapacity) {
@@ -1333,37 +1333,34 @@ public class CExtNodes {
         @Specialization
         protected int rbHash(Object object,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode) {
-            return toHashByHashCode.execute(object);
+            return toHashByHashCode.execute(this, object);
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class StringToNativeNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static StringToNativeNode create() {
-            return StringToNativeNodeGen.create();
-        }
-
-        public abstract Pointer executeToNative(Object string);
+        public abstract Pointer executeToNative(Node node, Object string);
 
         @Specialization
-        protected Pointer toNative(RubyString string,
+        protected static Pointer toNative(Node node, RubyString string,
                 @Cached RubyStringLibrary libString,
                 @Cached InlinedConditionProfile convertProfile,
-                @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
-                @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
-                @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
+                @Cached(inline = false) TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
+                @Cached(inline = false) MutableTruffleString.FromNativePointerNode fromNativePointerNode,
+                @Cached(inline = false) TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
             var tstring = string.tstring;
             var tencoding = libString.getTEncoding(string);
 
             final Pointer pointer;
 
-            if (convertProfile.profile(this, tstring.isNative())) {
+            if (convertProfile.profile(node, tstring.isNative())) {
                 assert tstring.isMutable();
                 pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
             } else {
                 int byteLength = tstring.byteLength(tencoding);
-                pointer = allocateAndCopyToNative(getLanguage(), getContext(), tstring, tencoding, byteLength,
+                pointer = allocateAndCopyToNative(getLanguage(node), getContext(node), tstring, tencoding, byteLength,
                         copyToNativeMemoryNode);
 
                 var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
@@ -1374,8 +1371,8 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Pointer toNativeImmutable(ImmutableRubyString string) {
-            return string.getNativeString(getLanguage());
+        protected static Pointer toNativeImmutable(Node node, ImmutableRubyString string) {
+            return string.getNativeString(getLanguage(node));
         }
 
         public static Pointer allocateAndCopyToNative(RubyLanguage language, RubyContext context,
@@ -1394,7 +1391,7 @@ public class CExtNodes {
         @Specialization
         protected long toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            return stringToNativeNode.executeToNative(string).getAddress();
+            return stringToNativeNode.executeToNative(this, string).getAddress();
         }
     }
 
@@ -1404,7 +1401,7 @@ public class CExtNodes {
         @Specialization
         protected RubyPointer toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            var pointer = stringToNativeNode.executeToNative(string);
+            var pointer = stringToNativeNode.executeToNative(this, string);
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
@@ -1543,56 +1540,58 @@ public class CExtNodes {
         @Specialization
         protected int extractRubyTag(CapturedException captured,
                 @Cached ExtractRubyTagHelperNode helperNode) {
-            return helperNode.execute(captured.getException());
+            return helperNode.execute(this, captured.getException());
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class ExtractRubyTagHelperNode extends RubyBaseNode {
 
-        public abstract int execute(Throwable e);
+        public abstract int execute(Node node, Throwable e);
 
         @Specialization
-        protected int dynamicReturnTag(DynamicReturnException e) {
+        protected static int dynamicReturnTag(DynamicReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected int localReturnTag(LocalReturnException e) {
+        protected static int localReturnTag(LocalReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected int breakTag(BreakException e) {
+        protected static int breakTag(BreakException e) {
             return RUBY_TAG_BREAK;
         }
 
         @Specialization
-        protected int nextTag(NextException e) {
+        protected static int nextTag(NextException e) {
             return RUBY_TAG_NEXT;
         }
 
         @Specialization
-        protected int retryTag(RetryException e) {
+        protected static int retryTag(RetryException e) {
             return RUBY_TAG_RETRY;
         }
 
         @Specialization
-        protected int redoTag(RedoException e) {
+        protected static int redoTag(RedoException e) {
             return RUBY_TAG_REDO;
         }
 
         @Specialization
-        protected int raiseTag(RaiseException e) {
+        protected static int raiseTag(RaiseException e) {
             return RUBY_TAG_RAISE;
         }
 
         @Specialization
-        protected int throwTag(ThrowException e) {
+        protected static int throwTag(ThrowException e) {
             return RUBY_TAG_THROW;
         }
 
         @Fallback
-        protected int noTag(Throwable e) {
+        protected static int noTag(Throwable e) {
             return 0;
         }
     }

@@ -9,9 +9,12 @@
  */
 package org.truffleruby.core.symbol;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.Node;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -80,24 +83,26 @@ public abstract class SymbolNodes {
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class HashSymbolNode extends RubyBaseNode {
 
-        public abstract long execute(RubySymbol rubySymbol);
+        public abstract long execute(Node node, RubySymbol rubySymbol);
 
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
         @Specialization(
                 guards = { "isSingleContext()", "symbol == cachedSymbol", "!preInitializing" },
                 limit = "1")
-        protected long hashCached(RubySymbol symbol,
+        protected static long hashCached(Node node, RubySymbol symbol,
                 @Cached(value = "isPreInitializing(getContext())") boolean preInitializing,
                 @Cached(value = "symbol") RubySymbol cachedSymbol,
-                @Cached(value = "hash(cachedSymbol)") long cachedHash) {
+                @Cached(value = "hash(node, cachedSymbol)") long cachedHash) {
             return cachedHash;
         }
 
         @Specialization(replaces = "hashCached")
-        protected long hash(RubySymbol symbol) {
-            return symbol.computeHashCode(getContext().getHashing());
+        protected static long hash(Node node, RubySymbol symbol) {
+            return symbol.computeHashCode(getContext(node).getHashing());
         }
 
         protected boolean isPreInitializing(RubyContext context) {
@@ -117,7 +122,7 @@ public abstract class SymbolNodes {
         @Specialization
         protected long hash(RubySymbol symbol,
                 @Cached HashSymbolNode hash) {
-            return hash.execute(symbol);
+            return hash.execute(this, symbol);
         }
     }
 

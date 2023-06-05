@@ -11,9 +11,9 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -27,8 +27,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.extra.AtomicReferenceNodes.CompareAndSetReferenceNode;
 import org.truffleruby.extra.RubyConcurrentMap.Key;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -91,7 +91,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object getIndex(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(get(self.getMap(), new Key(key, hashCode)));
         }
     }
@@ -101,7 +101,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object setIndex(RubyConcurrentMap self, Object key, Object value,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             put(self.getMap(), new Key(key, hashCode), value);
             return value;
         }
@@ -118,7 +118,7 @@ public class ConcurrentMapNodes {
         protected Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             final Object returnValue = ConcurrentOperations
                     .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> yieldNode.yield(block));
             assert returnValue != null;
@@ -133,7 +133,7 @@ public class ConcurrentMapNodes {
         protected Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(
                     computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
                     // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
@@ -153,7 +153,7 @@ public class ConcurrentMapNodes {
         protected Object compute(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(compute(
                     self.getMap(),
                     new Key(key, hashCode),
@@ -173,7 +173,7 @@ public class ConcurrentMapNodes {
         protected Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(merge(
                     self.getMap(),
                     new Key(key, hashCode),
@@ -190,13 +190,23 @@ public class ConcurrentMapNodes {
 
     @CoreMethod(names = "replace_pair", required = 3)
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
-        /** See {@link CompareAndSetReferenceNode} */
-        @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean replacePairPrimitive(
-                RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Cached ReferenceEqualNode equalNode) {
-            final int hashCode = hashNode.execute(key);
+
+        @Specialization
+        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode,
+                @Cached InlinedConditionProfile isPrimitiveProfile) {
+            final int hashCode = hashNode.execute(this, key);
+
+            if (isPrimitiveProfile.profile(this, RubyGuards.isPrimitive(expectedValue))) {
+                return replacePairPrimitive(self, key, expectedValue, newValue, hashCode, equalNode);
+            } else {
+                return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
+            }
+        }
+
+        private boolean replacePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                int hashCode, ReferenceEqualNode equalNode) {
             final Key keyWrapper = new Key(key, hashCode);
 
             while (true) {
@@ -213,13 +223,6 @@ public class ConcurrentMapNodes {
             }
         }
 
-        @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
-                @Exclusive @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
-            return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
-        }
-
         @TruffleBoundary
         private static boolean replace(ConcurrentHashMap<Key, Object> map, Key key, Object oldValue, Object newValue) {
             return map.replace(key, oldValue, newValue);
@@ -229,11 +232,23 @@ public class ConcurrentMapNodes {
     @CoreMethod(names = "delete_pair", required = 2)
     public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
         /** See {@link CompareAndSetReferenceNode} */
-        @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Cached ReferenceEqualNode equalNode) {
-            final int hashCode = hashNode.execute(key);
+        @Specialization
+        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode,
+                @Cached InlinedConditionProfile isPrimitiveProfile) {
+
+            final int hashCode = hashNode.execute(this, key);
+
+            if (isPrimitiveProfile.profile(this, RubyGuards.isPrimitive(expectedValue))) {
+                return deletePairPrimitive(self, key, expectedValue, hashCode, equalNode);
+            } else {
+                return remove(self.getMap(), new Key(key, hashCode), expectedValue);
+            }
+        }
+
+        private boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue, int hashCode,
+                ReferenceEqualNode equalNode) {
             final Key keyWrapper = new Key(key, hashCode);
 
             while (true) {
@@ -250,13 +265,6 @@ public class ConcurrentMapNodes {
             }
         }
 
-        @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Exclusive @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
-            return remove(self.getMap(), new Key(key, hashCode), expectedValue);
-        }
-
         @TruffleBoundary
         private static boolean remove(ConcurrentHashMap<Key, Object> map, Key key, Object expectedValue) {
             return map.remove(key, expectedValue);
@@ -268,7 +276,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object replaceIfExists(RubyConcurrentMap self, Object key, Object newValue,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(replace(self.getMap(), new Key(key, hashCode), newValue));
         }
 
@@ -283,7 +291,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object getAndSet(RubyConcurrentMap self, Object key, Object value,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(put(self.getMap(), new Key(key, hashCode), value));
         }
 
@@ -298,7 +306,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected boolean key(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return containsKey(self.getMap(), new Key(key, hashCode));
         }
 
@@ -313,7 +321,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object delete(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return nullToNil(remove(self.getMap(), new Key(key, hashCode)));
         }
 
@@ -347,7 +355,7 @@ public class ConcurrentMapNodes {
         @Specialization
         protected Object getOrDefault(RubyConcurrentMap self, Object key, Object defaultValue,
                 @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
+            final int hashCode = hashNode.execute(this, key);
             return getOrDefault(self.getMap(), new Key(key, hashCode), defaultValue);
         }
 

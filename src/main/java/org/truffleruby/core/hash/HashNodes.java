@@ -109,7 +109,7 @@ public abstract class HashNodes {
                     final Object key = pairObjectStore[0];
                     final Object value = pairObjectStore[1];
 
-                    final int hashed = hashNode.execute(key);
+                    final int hashed = hashNode.execute(this, key);
 
                     PackedHashStoreLibrary.setHashedKeyValue(newStore, n, hashed, key, value);
                 }
