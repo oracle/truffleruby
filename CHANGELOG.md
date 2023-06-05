@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
+* Fix class lookup after an object's class has been replaced by `IO#reopen` (@itarato, @eregon).
 
 Compatibility:
 
