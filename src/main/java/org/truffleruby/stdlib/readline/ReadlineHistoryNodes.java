@@ -53,6 +53,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -71,12 +72,12 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = { "push", "<<" }, rest = true)
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
+        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create();
 
         @Specialization
         protected RubyBasicObject push(RubyBasicObject history, Object... lines) {
             for (Object line : lines) {
-                final String asString = toJavaStringNode.executeToJavaString(line);
+                final String asString = toJavaStringNode.execute(line);
                 addToHistory(asString);
             }
 
@@ -226,20 +227,17 @@ public abstract class ReadlineHistoryNodes {
             return ToIntNode.create(index);
         }
 
-        @CreateCast("line")
-        protected RubyNode coerceLineToJavaString(RubyNode line) {
-            return ToJavaStringNode.create(line);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected Object setIndex(int index, String line) {
+        protected Object setIndex(int index, Object line,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final var lineAsString = toJavaStringNode.execute(line);
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
 
             try {
-                consoleHolder.getHistory().set(normalizedIndex, line);
+                consoleHolder.getHistory().set(normalizedIndex, lineAsString);
                 return nil;
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));

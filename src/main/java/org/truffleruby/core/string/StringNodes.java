@@ -1398,7 +1398,7 @@ public abstract class StringNodes {
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Exclusive ForceEncodingNode forceEncodingNode,
                 @Bind("this") Node node) {
-            final String stringName = toJavaStringNode.executeToJavaString(newEncoding);
+            final String stringName = toJavaStringNode.execute(newEncoding);
             final RubyEncoding rubyEncoding = getContext(node).getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
@@ -2904,7 +2904,7 @@ public abstract class StringNodes {
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        compileFormat(toJavaStringNode.executeToJavaString(format)),
+                        compileFormat(toJavaStringNode.execute(format)),
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),

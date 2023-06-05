@@ -183,7 +183,7 @@ public abstract class TruffleGraalNodes {
         protected Object bailout(Object message,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
+            CompilerDirectives.bailout(toJavaStringNode.execute(message));
             return nil;
         }
     }

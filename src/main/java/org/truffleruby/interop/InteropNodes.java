@@ -257,8 +257,8 @@ public abstract class InteropNodes {
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(toJavaStringMimeNode.executeToJavaString(mimeType),
-                    toJavaStringSourceNode.executeToJavaString(source)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(toJavaStringMimeNode.execute(mimeType),
+                    toJavaStringSourceNode.execute(source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -1294,7 +1294,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
@@ -1329,7 +1329,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
 
@@ -1363,7 +1363,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             try {
                 receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
@@ -1403,7 +1403,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             try {
                 receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
@@ -1428,7 +1428,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             try {
                 receivers.removeMember(receiver, name);
             } catch (InteropException e) {
@@ -1469,7 +1469,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final String name = toJavaStringNode.execute(identifier);
             final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
@@ -1482,7 +1482,7 @@ public abstract class InteropNodes {
         protected boolean isMemberReadable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberReadable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberReadable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1492,7 +1492,7 @@ public abstract class InteropNodes {
         protected boolean isMemberModifiable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberModifiable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberModifiable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1502,7 +1502,7 @@ public abstract class InteropNodes {
         protected boolean isMemberInsertable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInsertable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberInsertable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1512,7 +1512,7 @@ public abstract class InteropNodes {
         protected boolean isMemberRemovable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberRemovable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberRemovable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1522,7 +1522,7 @@ public abstract class InteropNodes {
         protected boolean isMemberInvocable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInvocable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberInvocable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1532,7 +1532,7 @@ public abstract class InteropNodes {
         protected boolean isMemberInternal(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInternal(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberInternal(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1542,7 +1542,7 @@ public abstract class InteropNodes {
         protected boolean isMemberWritable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberWritable(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberWritable(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1552,7 +1552,7 @@ public abstract class InteropNodes {
         protected boolean isMemberExisting(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberExisting(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.isMemberExisting(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1562,7 +1562,7 @@ public abstract class InteropNodes {
         protected boolean hasMemberReadSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.execute(name));
         }
     }
 
@@ -1572,7 +1572,7 @@ public abstract class InteropNodes {
         protected boolean hasMemberWriteSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
+            return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.execute(name));
         }
     }
     // endregion
@@ -1583,15 +1583,12 @@ public abstract class InteropNodes {
     @NodeChild(value = "object", type = RubyNode.class)
     public abstract static class ExportNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyNode coerceNameToString(RubyNode name) {
-            return ToJavaStringNode.create(name);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected Object export(String name, Object object) {
-            getContext().getEnv().exportSymbol(name, object);
+        protected Object export(Object name, Object object,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final var nameAsString = toJavaStringNode.execute(name);
+            getContext().getEnv().exportSymbol(nameAsString, object);
             return object;
         }
     }
@@ -1600,21 +1597,18 @@ public abstract class InteropNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class ImportNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyNode coerceNameToString(RubyNode name) {
-            return ToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object importObject(String name,
+        protected Object importObject(Object name,
                 @Cached InlinedBranchProfile errorProfile,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
-            final Object value = doImport(name);
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final var nameAsString = toJavaStringNode.execute(name);
+            final Object value = doImport(nameAsString);
             if (value != null) {
                 return foreignToRubyNode.executeConvert(value);
             } else {
                 errorProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(nameAsString, this));
             }
         }
 
@@ -1763,7 +1757,7 @@ public abstract class InteropNodes {
         @Specialization
         protected String toJavaString(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            return toJavaStringNode.executeToJavaString(value);
+            return toJavaStringNode.execute(value);
         }
     }
 
@@ -1813,7 +1807,7 @@ public abstract class InteropNodes {
         @Specialization
         protected Object javaType(Object name,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            return lookupJavaType(toJavaStringNode.executeToJavaString(name));
+            return lookupJavaType(toJavaStringNode.execute(name));
         }
 
         @TruffleBoundary

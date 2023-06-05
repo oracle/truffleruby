@@ -270,7 +270,7 @@ public abstract class KernelNodes {
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            String feature = toJavaStringNode.executeToJavaString(featureString);
+            String feature = toJavaStringNode.execute(featureString);
             return findFileString(feature, notFoundProfile, fromJavaStringNode);
         }
 
@@ -337,7 +337,7 @@ public abstract class KernelNodes {
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             return requireNode.executeRequire(
-                    toJavaStringNode.executeToJavaString(featureString),
+                    toJavaStringNode.execute(featureString),
                     expandedPathString);
         }
 
@@ -773,7 +773,7 @@ public abstract class KernelNodes {
                 @Cached ToJavaStringNode toJavaStringNode) {
 
             var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
-                    toJavaStringNode.executeToJavaString(file), line);
+                    toJavaStringNode.execute(file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
@@ -1453,7 +1453,7 @@ public abstract class KernelNodes {
                         coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
             }
 
-            final String methodName = toJavaString.executeToJavaString(name);
+            final String methodName = toJavaString.execute(name);
             final boolean found;
             if (ignoreVisibilityProfile.profile(this, includeProtectedAndPrivate)) {
                 found = dispatchPrivate.execute(callerFrame, self, methodName);

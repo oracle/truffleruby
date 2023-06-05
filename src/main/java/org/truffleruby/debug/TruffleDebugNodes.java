@@ -498,7 +498,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object logWarning(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            warning(toJavaStringNode.executeToJavaString(value));
+            warning(toJavaStringNode.execute(value));
             return nil;
         }
 
@@ -515,7 +515,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object logInfo(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            info(toJavaStringNode.executeToJavaString(value));
+            info(toJavaStringNode.execute(value));
             return nil;
         }
 
@@ -532,7 +532,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object logConfig(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            config(toJavaStringNode.executeToJavaString(value));
+            config(toJavaStringNode.execute(value));
             return nil;
         }
 

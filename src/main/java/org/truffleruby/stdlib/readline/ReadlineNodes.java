@@ -193,18 +193,14 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "text", type = RubyNode.class)
     public abstract static class InsertTextNode extends CoreMethodNode {
 
-        @CreateCast("text")
-        protected RubyNode coerceTextToString(RubyNode text) {
-            return ToJavaStringNode.create(text);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyBasicObject insertText(RubyBasicObject readline, String text) {
-            getContext().getConsoleHolder().getReadline().getBuffer().write(text);
+        protected RubyBasicObject insertText(RubyBasicObject readline, Object text,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final var testAsString = toJavaStringNode.execute(text);
+            getContext().getConsoleHolder().getReadline().getBuffer().write(testAsString);
             return readline;
         }
-
     }
 
     @CoreMethod(names = "delete_text", constructor = true)

@@ -126,7 +126,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -1003,16 +1002,14 @@ public class CExtNodes {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
 
-        @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object rbConstGet(RubyModule module, String name,
+        protected Object rbConstGet(RubyModule module, Object name,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
+            final var nameAsString = toJavaStringNode.execute(name);
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, nameAsString, false, lookupConstantNode,
+                            true);
         }
 
     }
@@ -1024,16 +1021,14 @@ public class CExtNodes {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
 
-        @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object rbConstGetFrom(RubyModule module, String name,
+        protected Object rbConstGetFrom(RubyModule module, Object name,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
+            final var nameAsString = toJavaStringNode.execute(name);
             return getConstantNode
-                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode, true);
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, nameAsString, false, lookupConstantNode,
+                            true);
         }
 
     }
@@ -1044,17 +1039,14 @@ public class CExtNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class RbConstSetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNode.create(name);
-        }
 
         @Specialization
-        protected Object rbConstSet(RubyModule module, String name, Object value,
+        protected Object rbConstSet(RubyModule module, Object name, Object value,
+                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ConstSetUncheckedNode constSetUncheckedNode) {
-            return constSetUncheckedNode.execute(module, name, value);
+            final var nameAsString = toJavaStringNode.execute(name);
+            return constSetUncheckedNode.execute(module, nameAsString, value);
         }
-
     }
 
     @Primitive(name = "rb_gv_get")

@@ -748,7 +748,7 @@ public abstract class ModuleNodes {
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {
@@ -1106,7 +1106,7 @@ public abstract class ModuleNodes {
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstant(module, toJavaStringNode.executeToJavaString(name), checkName, lookInObject);
+            return getConstant(module, toJavaStringNode.execute(name), checkName, lookInObject);
         }
 
         @Specialization(
@@ -1115,7 +1115,7 @@ public abstract class ModuleNodes {
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstantNoInherit(module, toJavaStringNode.executeToJavaString(name), checkName);
+            return getConstantNoInherit(module, toJavaStringNode.execute(name), checkName);
         }
 
         // Scoped String

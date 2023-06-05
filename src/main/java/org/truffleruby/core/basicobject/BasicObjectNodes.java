@@ -314,7 +314,7 @@ public abstract class BasicObjectNodes {
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {

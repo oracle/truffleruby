@@ -697,7 +697,7 @@ public abstract class EncodingNodes {
         protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.executeToJavaString(nameObject);
+            final String name = toJavaStringNode.execute(nameObject);
 
             final RubyEncoding newEncoding = replicate(name, object);
             return setIndexOrRaiseError(name, newEncoding);
@@ -717,7 +717,7 @@ public abstract class EncodingNodes {
         protected RubyArray createDummyEncoding(Object nameObject,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.executeToJavaString(nameObject);
+            final String name = toJavaStringNode.execute(nameObject);
 
             final RubyEncoding newEncoding = createDummy(name);
             return setIndexOrRaiseError(name, newEncoding);
