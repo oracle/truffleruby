@@ -1835,6 +1835,21 @@ class TestRefinement < Test::Unit::TestCase
     assert_equal [ref::RefB, ref::RefA], ref::Combined::USED_MODS
   end
 
+  def test_refinements
+    int_refinement = nil
+    str_refinement = nil
+    m = Module.new {
+      refine Integer do
+        int_refinement = self
+      end
+
+      refine String do
+        str_refinement = self
+      end
+    }
+    assert_equal([int_refinement, str_refinement], m.refinements)
+  end
+
   def test_warn_setconst_in_refinmenet
     bug10103 = '[ruby-core:64143] [Bug #10103]'
     warnings = [
