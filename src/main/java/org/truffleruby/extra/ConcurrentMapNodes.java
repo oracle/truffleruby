@@ -10,11 +10,8 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
@@ -31,6 +28,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.extra.AtomicReferenceNodes.CompareAndSetReferenceNode;
 import org.truffleruby.extra.RubyConcurrentMap.Key;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -38,8 +36,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
-
-import static org.truffleruby.language.RubyGuards.isPrimitive;
 
 @CoreModule(value = "TruffleRuby::ConcurrentMap", isClass = true)
 public class ConcurrentMapNodes {
@@ -202,7 +198,7 @@ public class ConcurrentMapNodes {
                 @Cached InlinedConditionProfile isPrimitiveProfile) {
             final int hashCode = hashNode.execute(this, key);
 
-            if (isPrimitiveProfile.profile(this, isPrimitive(expectedValue))) {
+            if (isPrimitiveProfile.profile(this, RubyGuards.isPrimitive(expectedValue))) {
                 return replacePairPrimitive(self, key, expectedValue, newValue, hashCode, equalNode);
             } else {
                 return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
@@ -216,7 +212,7 @@ public class ConcurrentMapNodes {
             while (true) {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
-                if (isPrimitive(currentValue) &&
+                if (RubyGuards.isPrimitive(currentValue) &&
                         equalNode.execute(expectedValue, currentValue)) {
                     if (replace(self.getMap(), keyWrapper, currentValue, newValue)) {
                         return true;
@@ -236,11 +232,23 @@ public class ConcurrentMapNodes {
     @CoreMethod(names = "delete_pair", required = 2)
     public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
         /** See {@link CompareAndSetReferenceNode} */
-        @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Cached ReferenceEqualNode equalNode) {
+        @Specialization
+        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode,
+                @Cached InlinedConditionProfile isPrimitiveProfile) {
+
             final int hashCode = hashNode.execute(this, key);
+
+            if (isPrimitiveProfile.profile(this, RubyGuards.isPrimitive(expectedValue))) {
+                return deletePairPrimitive(self, key, expectedValue, hashCode, equalNode);
+            } else {
+                return remove(self.getMap(), new Key(key, hashCode), expectedValue);
+            }
+        }
+
+        private boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue, int hashCode,
+                ReferenceEqualNode equalNode) {
             final Key keyWrapper = new Key(key, hashCode);
 
             while (true) {
@@ -255,14 +263,6 @@ public class ConcurrentMapNodes {
                     return false;
                 }
             }
-        }
-
-        @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected static boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
-                @Exclusive @Cached ToHashByHashCode hashNode,
-                @Bind("this") Node node) {
-            final int hashCode = hashNode.execute(node, key);
-            return remove(self.getMap(), new Key(key, hashCode), expectedValue);
         }
 
         @TruffleBoundary

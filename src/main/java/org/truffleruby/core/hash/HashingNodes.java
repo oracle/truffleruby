@@ -169,7 +169,7 @@ public abstract class HashingNodes {
         @Specialization(guards = "!isRubyInteger(hashed)")
         protected static int castOther(Node node, Object hashed,
                 @Cached ToRubyIntegerNode toRubyInteger,
-                //recursive inlining is not supported
+                // recursive inlining is not supported
                 @Cached(inline = false) HashCastResultNode hashCastResult) {
             return hashCastResult.executeCached(toRubyInteger.execute(node, hashed));
         }
