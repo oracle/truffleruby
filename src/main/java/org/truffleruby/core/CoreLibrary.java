@@ -946,7 +946,6 @@ public class CoreLibrary {
             "/core/pre.rb",
             "/core/basic_object.rb",
             "/core/array.rb",
-            "/core/channel.rb",
             "/core/configuration.rb",
             "/core/false.rb",
             "/core/fiber.rb",
