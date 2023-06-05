@@ -42,6 +42,7 @@ import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 
@@ -304,7 +305,7 @@ public abstract class BindingNodes {
 
         @Specialization(guards = "!isHiddenVariable(name)")
         protected Object localVariableGet(RubyBinding binding, String name,
-                @Cached FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
+                @Cached FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = binding.getFrame();
             Object result = readNode.execute(frame, name, null);
             if (result == null) {
@@ -378,7 +379,7 @@ public abstract class BindingNodes {
         protected Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
-                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FindDeclarationVariableNodes.FrameSlotAndDepth cachedFrameSlot,
+                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("newFrameDescriptor(cachedFrameDescriptor, name)") FrameDescriptor newDescriptor,
                 @Cached("createWriteNode(NEW_VAR_INDEX)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newFrame(binding, newDescriptor);
@@ -392,8 +393,7 @@ public abstract class BindingNodes {
                 replaces = { "localVariableSetCached", "localVariableSetNewCached" })
         protected Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
             MaterializedFrame frame = binding.getFrame();
-            final FindDeclarationVariableNodes.FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes
-                    .findFrameSlotOrNull(name, frame);
+            final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
             final int slot;
             if (frameSlot != null) {
                 frame = RubyArguments.getDeclarationFrame(frame, frameSlot.depth);
