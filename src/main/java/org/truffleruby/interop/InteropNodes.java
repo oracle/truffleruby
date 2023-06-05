@@ -1269,24 +1269,20 @@ public abstract class InteropNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "read_member", onSingleton = true, required = 2)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class ReadMemberNode extends RubySourceNode {
+    public abstract static class InteropReadMemberNode extends CoreMethodArrayArgumentsNode {
 
-        @NeverDefault
-        public static ReadMemberNode create() {
-            return InteropNodesFactory.ReadMemberNodeFactory.create(null);
+        @Specialization
+        protected Object readMember(Object receiver, Object identifier,
+                @Cached ReadMemberNode readMemberNode) {
+            return readMemberNode.execute(receiver, identifier);
         }
+    }
 
-        public static ReadMemberNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.ReadMemberNodeFactory.create(argumentNodes);
-        }
+    @GenerateUncached
+    public abstract static class ReadMemberNode extends RubyBaseNode {
 
         public abstract Object execute(Object receiver, Object identifier);
-
-        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
@@ -1298,12 +1294,6 @@ public abstract class InteropNodes {
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
