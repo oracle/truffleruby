@@ -1349,23 +1349,20 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class WriteMemberWithoutConversionNode extends RubySourceNode {
+    public abstract static class InteropWriteMemberWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
-        public static WriteMemberWithoutConversionNode create() {
-            return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(null);
+        @Specialization
+        protected Object write(Object receiver, Object identifier, Object value,
+                @Cached WriteMemberWithoutConversionNode writeMemberWithoutConversionNode) {
+            return writeMemberWithoutConversionNode.execute(receiver, identifier, value);
         }
+    }
 
-        public static WriteMemberWithoutConversionNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(argumentNodes);
-        }
+    @GenerateUncached
+    public abstract static class WriteMemberWithoutConversionNode extends RubyBaseNode {
 
         public abstract Object execute(Object receiver, Object identifier, Object value);
-
-        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
@@ -1381,12 +1378,6 @@ public abstract class InteropNodes {
 
             return value;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
