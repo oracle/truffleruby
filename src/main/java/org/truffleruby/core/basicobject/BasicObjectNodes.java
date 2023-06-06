@@ -11,7 +11,6 @@ package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
@@ -24,6 +23,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -48,7 +48,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -133,30 +132,27 @@ public abstract class BasicObjectNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "__id__")
     @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class ObjectIDNode extends RubySourceNode {
+    public abstract static class BasicObjectObjectIDNode extends CoreMethodNode {
 
-        @NeverDefault
-        public static ObjectIDNode create() {
-            return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
+        @Specialization
+        protected Object objectIDNode(Object value,
+                @Cached ObjectIDNode objectIDNode) {
+            return objectIDNode.execute(value);
         }
+    }
 
-        public static ObjectIDNode create(RubyNode valueNode) {
-            return BasicObjectNodesFactory.ObjectIDNodeFactory.create(valueNode);
-        }
+    @GenerateUncached
+    public abstract static class ObjectIDNode extends RubyBaseNode {
 
         public static ObjectIDNode getUncached() {
-            return BasicObjectNodesFactory.ObjectIDNodeFactory.getUncached();
+            return BasicObjectNodesFactory.ObjectIDNodeGen.getUncached();
         }
 
         public abstract Object execute(Object value);
 
         public abstract long execute(RubyDynamicObject value);
-
-        abstract RubyNode getValueNode();
 
         @Specialization
         protected long objectIDNil(Nil nil) {
@@ -254,11 +250,6 @@ public abstract class BasicObjectNodes {
             } else {
                 return System.identityHashCode(value);
             }
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized()).copyFlags(this);
         }
     }
 
