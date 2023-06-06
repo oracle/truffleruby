@@ -606,23 +606,8 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class WriteArrayElementNode extends RubySourceNode {
-
-        public static WriteArrayElementNode create() {
-            return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
-        }
-
-        public static WriteArrayElementNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.WriteArrayElementNodeFactory.create(argumentNodes);
-        }
-
-        abstract Object execute(Object receiver, Object identifier, Object value);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class WriteArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, long identifier, Object value,
@@ -636,12 +621,6 @@ public abstract class InteropNodes {
 
             return value;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
