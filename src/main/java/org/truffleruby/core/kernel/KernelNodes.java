@@ -1826,28 +1826,26 @@ public abstract class KernelNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @NodeChild(value = "valueNode", type = RubyNode.class)
     @Primitive(name = "kernel_to_hex")
-    public abstract static class ToHexStringNode extends RubySourceNode {
+    public abstract static class KernelToHexStringNode extends PrimitiveNode {
 
-        @NeverDefault
-        public static ToHexStringNode create() {
-            return KernelNodesFactory.ToHexStringNodeFactory.create(null);
+        @Specialization
+        protected String toHexString(Object value,
+                @Cached ToHexStringNode toHexStringNode) {
+            return toHexStringNode.execute(value);
         }
+    }
 
-        public static ToHexStringNode create(RubyNode valueNode) {
-            return KernelNodesFactory.ToHexStringNodeFactory.create(valueNode);
-        }
+
+    @GenerateUncached
+    public abstract static class ToHexStringNode extends RubyBaseNode {
 
         public static ToHexStringNode getUncached() {
-            return KernelNodesFactory.ToHexStringNodeFactory.getUncached();
+            return KernelNodesFactory.ToHexStringNodeGen.getUncached();
         }
 
-        public abstract String executeToHexString(Object value);
-
-        abstract RubyNode getValueNode();
+        public abstract String execute(Object value);
 
         @Specialization
         protected String toHexString(int value) {
@@ -1864,12 +1862,6 @@ public abstract class KernelNodes {
         protected String toHexString(RubyBignum value) {
             return BigIntegerOps.toString(value.value, 16);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @GenerateUncached
@@ -1899,7 +1891,7 @@ public abstract class KernelNodes {
                 @Cached ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
-            String hexID = toHexStringNode.executeToHexString(id);
+            String hexID = toHexStringNode.execute(id);
 
             String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
 
@@ -1913,7 +1905,7 @@ public abstract class KernelNodes {
         public static String uncachedBasicToS(Object self) {
             String className = LogicalClassNode.getUncached().execute(self).fields.getName();
             Object id = ObjectIDNode.getUncached().execute(self);
-            String hexID = ToHexStringNode.getUncached().executeToHexString(id);
+            String hexID = ToHexStringNode.getUncached().execute(id);
 
             return "#<" + className + ":0x" + hexID + ">";
         }
