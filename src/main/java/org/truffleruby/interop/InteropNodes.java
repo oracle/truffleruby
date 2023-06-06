@@ -644,23 +644,8 @@ public abstract class InteropNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class RemoveArrayElementNode extends RubySourceNode {
-
-        public static RemoveArrayElementNode create() {
-            return InteropNodesFactory.RemoveArrayElementNodeFactory.create(null);
-        }
-
-        public static RemoveArrayElementNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.RemoveArrayElementNodeFactory.create(argumentNodes);
-        }
-
-        abstract Nil execute(Object receiver, Object identifier);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class RemoveArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Nil readArrayElement(Object receiver, long identifier,
@@ -674,12 +659,6 @@ public abstract class InteropNodes {
 
             return Nil.INSTANCE;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
