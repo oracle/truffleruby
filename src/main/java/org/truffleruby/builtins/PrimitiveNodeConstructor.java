@@ -52,7 +52,7 @@ public class PrimitiveNodeConstructor {
                 arguments[n] = FixnumLowerNodeGen.create(arguments[n]);
             }
             if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
-                arguments[n] = TypeNodes.CheckFrozenNode.create(arguments[n]);
+                arguments[n] = TypeNodes.TypeCheckFrozenNode.create(arguments[n]);
             }
             if (ArrayUtils.contains(annotation.raiseIfNotMutable(), n)) {
                 arguments[n] = TypeNodes.CheckMutableStringNode.create(arguments[n]);

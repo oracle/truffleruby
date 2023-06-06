@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
@@ -22,6 +21,7 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -41,7 +41,6 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.FreezeNode;
@@ -445,27 +444,36 @@ public abstract class TypeNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @Primitive(name = "check_frozen")
     @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class CheckFrozenNode extends RubySourceNode {
+    public abstract static class TypeCheckFrozenNode extends PrimitiveNode {
+
+        @NeverDefault
+        public static TypeCheckFrozenNode create(RubyNode rubyNode) {
+            return TypeNodesFactory.TypeCheckFrozenNodeFactory.create(rubyNode);
+        }
+
+        @Specialization
+        protected Object check(Object value,
+                @Cached CheckFrozenNode checkFrozenNode) {
+            checkFrozenNode.execute(value);
+
+            return value;
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class CheckFrozenNode extends RubyBaseNode {
 
         @NeverDefault
         public static CheckFrozenNode create() {
-            return create(null);
-        }
-
-        public static CheckFrozenNode create(RubyNode node) {
-            return TypeNodesFactory.CheckFrozenNodeFactory.create(node);
+            return TypeNodesFactory.CheckFrozenNodeGen.create();
         }
 
         public abstract void execute(Object object);
 
-        abstract RubyNode getValueNode();
-
         @Specialization
-        protected Object check(Object value,
+        protected void check(Object value,
                 @Cached IsFrozenNode isFrozenNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
@@ -473,16 +481,9 @@ public abstract class TypeNodes {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
             }
-
-            return value;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
+
 
     @Primitive(name = "check_mutable_string")
     public abstract static class CheckMutableStringNode extends PrimitiveArrayArgumentsNode {
