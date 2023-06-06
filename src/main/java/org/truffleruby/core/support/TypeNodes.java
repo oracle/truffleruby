@@ -402,7 +402,7 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyString toS(Object obj,
                 @Cached ToSNode kernelToSNode) {
-            return kernelToSNode.executeToS(obj);
+            return kernelToSNode.execute(obj);
         }
     }
 

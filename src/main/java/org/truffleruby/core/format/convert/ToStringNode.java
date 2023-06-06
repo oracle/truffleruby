@@ -154,7 +154,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return inspectNode.executeToS(object);
+            return inspectNode.execute(object);
         } else {
             throw new NoImplicitConversionException(object, "String");
         }

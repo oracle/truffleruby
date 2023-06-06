@@ -107,7 +107,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -1864,24 +1863,27 @@ public abstract class KernelNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
     @NodeChild(value = "selfNode", type = RubyNode.class)
-    public abstract static class ToSNode extends RubySourceNode {
+    public abstract static class KernelToSNode extends CoreMethodNode {
+
+        @Specialization
+        protected RubyString toS(Object self,
+                @Cached ToSNode toSNode) {
+            return toSNode.execute(self);
+
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class ToSNode extends RubyBaseNode {
 
         @NeverDefault
         public static ToSNode create() {
-            return KernelNodesFactory.ToSNodeFactory.create(null);
+            return KernelNodesFactory.ToSNodeGen.create();
         }
 
-        public static ToSNode create(RubyNode selfNode) {
-            return KernelNodesFactory.ToSNodeFactory.create(selfNode);
-        }
-
-        public abstract RubyString executeToS(Object self);
-
-        abstract RubyNode getSelfNode();
+        public abstract RubyString execute(Object self);
 
         @Specialization
         protected RubyString toS(Object self,
@@ -1918,12 +1920,6 @@ public abstract class KernelNodes {
 
             return "#<" + className + ":0x" + hexID + ">";
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getSelfNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "untaint")

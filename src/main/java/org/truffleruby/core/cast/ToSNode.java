@@ -61,7 +61,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             kernelToSNode = insert(KernelNodes.ToSNode.create());
         }
-        return kernelToSNode.executeToS(object);
+        return kernelToSNode.execute(object);
     }
 
     @Override
