@@ -117,9 +117,13 @@ jobs:
 
       - name: Create archive
         run: |
-          cd $(dirname $(jt -u native graalvm-home))
-          mv $(basename $(jt -u native graalvm-home)) truffleruby-native
+          df -h
+          mv "$(jt -u native graalvm-home)" "${{ github.workspace }}/truffleruby-native"
+          rm -r mxbuild ../graal/sdk/mxbuild
+          df -h
+          cd ${{ github.workspace }}
           tar cf ${{ github.workspace }}/truffleruby-native.tar truffleruby-native
+          ls -lh ${{ github.workspace }}/truffleruby-native.tar
       - uses: actions/upload-artifact@v2
         with:
           name: truffleruby-native
