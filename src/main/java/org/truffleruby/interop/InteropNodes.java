@@ -1296,23 +1296,8 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "read_member_without_conversion", onSingleton = true, required = 2)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class ReadMemberWithoutConversionNode extends RubySourceNode {
-
-        public static ReadMemberWithoutConversionNode create() {
-            return InteropNodesFactory.ReadMemberWithoutConversionNodeFactory.create(null);
-        }
-
-        public static ReadMemberWithoutConversionNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.ReadMemberWithoutConversionNodeFactory.create(argumentNodes);
-        }
-
-        abstract Object execute(Object receiver, Object identifier);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class ReadMemberWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
@@ -1322,12 +1307,6 @@ public abstract class InteropNodes {
             final String name = toJavaStringNode.execute(identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "write_member", onSingleton = true, required = 3)
