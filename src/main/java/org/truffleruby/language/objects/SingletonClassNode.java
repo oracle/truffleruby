@@ -10,16 +10,17 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -29,19 +30,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 // Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
-@NodeChild(value = "valueNode", type = RubyNode.class)
-public abstract class SingletonClassNode extends RubySourceNode {
+public abstract class SingletonClassNode extends RubyBaseNode {
 
     public static SingletonClassNode getUncached() {
         return SingletonClassNodeGen.getUncached();
     }
 
-    @NeverDefault
-    public static SingletonClassNode create() {
-        return SingletonClassNodeGen.create(null);
-    }
-
-    public abstract RubyClass executeSingletonClass(Object value);
+    public abstract RubyClass execute(Object value);
 
     @Specialization(
             // no need to guard on the context, the rubyClass is context-specific
@@ -147,14 +142,21 @@ public abstract class SingletonClassNode extends RubySourceNode {
         }
     }
 
-    protected int getCacheLimit() {
-        return getLanguage().options.CLASS_CACHE;
+    @NodeChild(value = "valueNode", type = RubyNode.class)
+    public abstract static class SingletonClassASTNode extends RubyContextSourceNode {
+
+        @Specialization
+        protected Object singletonClass(Object value,
+                @Cached SingletonClassNode singletonClassNode) {
+            return singletonClassNode.execute(value);
+        }
+
+        abstract RubyNode getValueNode();
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return SingletonClassASTNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
+        }
     }
 
-    abstract RubyNode getValueNode();
-
-    @Override
-    public RubyNode cloneUninitialized() {
-        return SingletonClassNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
-    }
 }

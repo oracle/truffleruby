@@ -108,7 +108,7 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyClass singletonClass(Object object,
                 @Cached SingletonClassNode singletonClassNode) {
-            return singletonClassNode.executeSingletonClass(object);
+            return singletonClassNode.execute(object);
         }
     }
 

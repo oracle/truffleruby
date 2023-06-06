@@ -608,7 +608,7 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context);
         coreMethodNodeManager.loadCoreMethodNodes();
 
-        truffleBootMainInfo = getMethod(node.executeSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
+        truffleBootMainInfo = getMethod(node.execute(truffleBootModule), "main").getSharedMethodInfo();
     }
 
     private InternalMethod getMethod(RubyModule module, String name) {

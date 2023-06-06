@@ -364,7 +364,7 @@ public abstract class BasicObjectNodes {
             LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, logicalClass, true);
 
             if (CanHaveSingletonClassNode.getUncached().execute(receiver)) {
-                final RubyClass singletonClass = SingletonClassNode.getUncached().executeSingletonClass(receiver);
+                final RubyClass singletonClass = SingletonClassNode.getUncached().execute(receiver);
 
                 // For true/false/nil Ruby objects #singleton_class (and SingletonClassNode as well) returns
                 // a logical class (e.g. TrueClass etc). Ignore duplicate in this case.

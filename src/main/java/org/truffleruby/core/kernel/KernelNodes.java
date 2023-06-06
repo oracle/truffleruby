@@ -571,7 +571,7 @@ public abstract class KernelNodes {
             // Copy the singleton class if any.
             final RubyClass selfMetaClass = metaClassNode.execute(node, object);
             if (isSingletonProfile.profile(node, selfMetaClass.isSingleton)) {
-                final RubyClass newObjectMetaClass = lazySingletonClassNode.get(node).executeSingletonClass(newObject);
+                final RubyClass newObjectMetaClass = lazySingletonClassNode.get(node).execute(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
@@ -1500,13 +1500,12 @@ public abstract class KernelNodes {
     @CoreMethod(names = "singleton_class")
     public abstract static class SingletonClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-
         public abstract RubyClass executeSingletonClass(Object self);
 
         @Specialization
-        protected RubyClass singletonClass(Object self) {
-            return singletonClassNode.executeSingletonClass(self);
+        protected RubyClass singletonClass(Object self,
+                @Cached SingletonClassNode singletonClassNode) {
+            return singletonClassNode.execute(self);
         }
 
     }

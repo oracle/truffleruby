@@ -120,7 +120,7 @@ public class CoreMethodNodeManager {
     }
 
     private RubyClass getSingletonClass(Object object) {
-        return SingletonClassNode.getUncached().executeSingletonClass(object);
+        return SingletonClassNode.getUncached().execute(object);
     }
 
     private Split effectiveSplit(Split split, boolean needsBlock) {

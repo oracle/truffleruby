@@ -138,8 +138,8 @@ import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.RunModuleDefinitionNode;
 import org.truffleruby.language.objects.SelfNode;
-import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
+import org.truffleruby.language.objects.SingletonClassNode.SingletonClassASTNode;
+import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
@@ -1304,7 +1304,7 @@ public class BodyTranslator extends BaseTranslator {
         final boolean isReceiverSelf = node.getReceiverNode() instanceof SelfParseNode;
         final RubyNode objectNode = node.getReceiverNode().accept(this);
 
-        final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(objectNode);
+        final SingletonClassASTNode singletonClassNode = SingletonClassASTNodeGen.create(objectNode);
         singletonClassNode.unsafeSetSourceSection(sourceSection);
 
         final RubyNode ret = translateMethodDefinition(
@@ -2749,7 +2749,7 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode receiverNode = node.getReceiverNode().accept(this);
-        final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
+        final SingletonClassASTNode singletonClassNode = SingletonClassASTNodeGen.create(receiverNode);
         singletonClassNode.unsafeSetSourceSection(sourceSection);
 
         boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
