@@ -75,7 +75,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -145,10 +145,10 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -167,7 +167,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -182,24 +181,21 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class AllocateNode extends RubySourceNode {
+    public abstract static class StringAllocateNode extends CoreMethodNode {
 
-        @NeverDefault
-        public static AllocateNode create() {
-            return StringNodesFactory.AllocateNodeFactory.create(null);
+        @Specialization
+        protected RubyString allocate(RubyClass rubyClass,
+                @Cached AllocateNode allocateNode) {
+            return allocateNode.execute(rubyClass);
         }
+    }
 
-        public static AllocateNode create(RubyNode rubyClassNode) {
-            return StringNodesFactory.AllocateNodeFactory.create(rubyClassNode);
-        }
+    @GenerateUncached
+    public abstract static class AllocateNode extends RubyBaseNode {
 
         public abstract RubyString execute(RubyClass rubyClass);
-
-        abstract RubyNode getRubyClassNode();
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass) {
@@ -212,12 +208,6 @@ public abstract class StringNodes {
             AllocationTracing.trace(string, this);
             return string;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "encoding")

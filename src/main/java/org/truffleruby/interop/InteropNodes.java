@@ -47,6 +47,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
@@ -89,15 +90,6 @@ public abstract class InteropNodes {
             return receivers.execute(receiver, args);
         } catch (InteropException e) {
             throw translateInteropExceptionNode.execute(e);
-        }
-    }
-
-    public static Object invoke(InteropLibrary receivers, Object receiver, String member, Object[] args,
-            TranslateInteropExceptionNode translateInteropExceptionNode) {
-        try {
-            return receivers.invokeMember(receiver, member, args);
-        } catch (InteropException e) {
-            throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
         }
     }
 
@@ -1192,35 +1184,14 @@ public abstract class InteropNodes {
     // endregion
 
     // region Null
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "null?", onSingleton = true, required = 1)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class IsNullNode extends RubySourceNode {
-
-        public static IsNullNode create() {
-            return InteropNodesFactory.IsNullNodeFactory.create(null);
-        }
-
-        public static IsNullNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.IsNullNodeFactory.create(argumentNodes);
-        }
-
-        abstract Object execute(Object receiver);
-
-        abstract RubyNode[] getArgumentNodes();
+    public abstract static class IsNullNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isNull(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
     // endregion
 
@@ -1468,24 +1439,29 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
-    @NodeChild(value = "argumentNodes", type = RubyNode[].class)
-    public abstract static class InvokeMemberNode extends RubySourceNode {
+    public abstract static class InteropInvokeMemberNode extends CoreMethodArrayArgumentsNode {
 
-        @NeverDefault
-        public static InvokeMemberNode create() {
-            return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
+        @Specialization
+        protected Object invokeMember(Object receiver, Object identifier, Object[] args,
+                @Cached InvokeMemberNode invokeMemberNode) {
+            return invokeMemberNode.execute(receiver, identifier, args);
         }
+    }
 
-        public static InvokeMemberNode create(RubyNode[] argumentNodes) {
-            return InteropNodesFactory.InvokeMemberNodeFactory.create(argumentNodes);
+    @GenerateUncached
+    public abstract static class InvokeMemberNode extends RubyBaseNode {
+
+        private static Object invoke(InteropLibrary receivers, Object receiver, String member, Object[] args,
+                TranslateInteropExceptionNode translateInteropExceptionNode) {
+            try {
+                return receivers.invokeMember(receiver, member, args);
+            } catch (InteropException e) {
+                throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
+            }
         }
 
         public abstract Object execute(Object receiver, Object identifier, Object[] args);
-
-        abstract RubyNode[] getArgumentNodes();
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
@@ -1497,13 +1473,8 @@ public abstract class InteropNodes {
             final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(cloneUninitialized(getArgumentNodes())).copyFlags(this);
-        }
-
     }
+
 
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends CoreMethodArrayArgumentsNode {
