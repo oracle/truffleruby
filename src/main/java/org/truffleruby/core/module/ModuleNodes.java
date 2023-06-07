@@ -51,7 +51,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToPathNodeGen;
+import org.truffleruby.core.cast.ToPathNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
@@ -630,15 +630,12 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("filename")
-        protected RubyBaseNodeWithExecute coerceFilenameToPath(RubyBaseNodeWithExecute filename) {
-            return ToPathNodeGen.create(filename);
-        }
-
         @TruffleBoundary
         @Specialization(guards = "libFilename.isRubyString(filename)", limit = "1")
         protected Object autoload(RubyModule module, String name, Object filename,
+                @Cached ToPathNode toPathNode,
                 @Cached RubyStringLibrary libFilename) {
+            final var filenameAsPath = toPathNode.execute(filename);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -649,12 +646,12 @@ public abstract class ModuleNodes {
                                 this));
             }
 
-            if (libFilename.getTString(filename).isEmpty()) {
+            if (libFilename.getTString(filenameAsPath).isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final String javaStringFilename = RubyGuards.getJavaString(filename);
-            module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
+            final String javaStringFilename = RubyGuards.getJavaString(filenameAsPath);
+            module.fields.setAutoloadConstant(getContext(), this, name, filenameAsPath, javaStringFilename);
             return nil;
         }
     }
