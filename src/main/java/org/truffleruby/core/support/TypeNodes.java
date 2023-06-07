@@ -21,7 +21,6 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -56,7 +55,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -445,12 +443,11 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "check_frozen")
-    @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class TypeCheckFrozenNode extends PrimitiveNode {
+    public abstract static class TypeCheckFrozenNode extends PrimitiveArrayArgumentsNode {
 
         @NeverDefault
         public static TypeCheckFrozenNode create(RubyNode rubyNode) {
-            return TypeNodesFactory.TypeCheckFrozenNodeFactory.create(rubyNode);
+            return TypeNodesFactory.TypeCheckFrozenNodeFactory.create(new RubyNode[]{ rubyNode });
         }
 
         @Specialization
