@@ -9,35 +9,23 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.core.cast.HashCastNodeGen.HashCastASTNodeGen;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-/** Must be a RubyNode because it's used for ** in the translator. */
-@NodeChild(value = "childNode", type = RubyNode.class)
-public abstract class HashCastNode extends RubyContextSourceNode {
-
-    @NeverDefault
-    public static HashCastNode create() {
-        return HashCastNodeGen.create(null);
-    }
-
-    public static HashCastNode create(RubyNode child) {
-        return HashCastNodeGen.create(child);
-    }
+public abstract class HashCastNode extends RubyBaseNode {
 
     public abstract RubyHash execute(Object value);
-
-    protected abstract RubyNode getChildNode();
 
     @Specialization
     protected RubyHash castHash(RubyHash hash) {
@@ -67,15 +55,28 @@ public abstract class HashCastNode extends RubyContextSourceNode {
         return (RubyHash) result;
     }
 
-    @Override
-    public void doExecuteVoid(VirtualFrame frame) {
-        getChildNode().doExecuteVoid(frame);
-    }
+    /** Must be a RubyNode because it's used for ** in the translator. */
+    @NodeChild(value = "childNode", type = RubyNode.class)
+    public abstract static class HashCastASTNode extends RubyContextSourceNode {
 
-    @Override
-    public RubyNode cloneUninitialized() {
-        var copy = create(getChildNode().cloneUninitialized());
-        return copy.copyFlags(this);
-    }
+        protected abstract RubyNode getChildNode();
 
+        @Specialization
+        protected RubyHash cast(Object object,
+                @Cached HashCastNode hashCastNode) {
+            return hashCastNode.execute(object);
+
+        }
+
+        @Override
+        public void doExecuteVoid(VirtualFrame frame) {
+            getChildNode().doExecuteVoid(frame);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = HashCastASTNodeGen.create(getChildNode().cloneUninitialized());
+            return copy.copyFlags(this);
+        }
+    }
 }

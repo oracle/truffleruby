@@ -27,7 +27,7 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.MultipleAssignmentNode;
 import org.truffleruby.core.array.NoopAssignableNode;
-import org.truffleruby.core.cast.HashCastNodeGen;
+import org.truffleruby.core.cast.HashCastNodeGen.HashCastASTNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.cast.StringToSymbolNodeGen;
@@ -1765,7 +1765,7 @@ public class BodyTranslator extends BaseTranslator {
                             .create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
                     hashConcats.add(hashLiteralSoFar);
                 }
-                hashConcats.add(HashCastNodeGen.create(pair.getValue().accept(this)));
+                hashConcats.add(HashCastASTNodeGen.create(pair.getValue().accept(this)));
                 keyValues.clear();
             } else {
                 keyValues.add(pair.getKey().accept(this));
