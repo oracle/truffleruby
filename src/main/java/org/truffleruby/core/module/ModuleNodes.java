@@ -338,18 +338,11 @@ public abstract class ModuleNodes {
     @NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
-        @CreateCast("newName")
-        protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
-            return ToSymbolNode.create(newName);
-        }
-
-        @CreateCast("oldName")
-        protected RubyBaseNodeWithExecute coerceOldNameToSymbol(RubyBaseNodeWithExecute oldName) {
-            return ToSymbolNode.create(oldName);
-        }
-
         @Specialization
-        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
+        protected RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
+                @Cached ToSymbolNode toSymbolNode) {
+            final var newName = toSymbolNode.execute(newNameObject);
+            final var oldName = toSymbolNode.execute(oldNameObject);
             return aliasMethod(module, newName, oldName, this);
         }
 
