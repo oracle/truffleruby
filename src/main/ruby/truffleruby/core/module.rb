@@ -105,6 +105,9 @@ class Module
     self
   end
 
+  private def const_added(name)
+  end
+
   def const_defined?(name, inherit = true)
     Primitive.module_const_defined?(self, name, inherit, true)
   end

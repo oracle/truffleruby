@@ -30,6 +30,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.ConcurrentWeakSet;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -492,6 +493,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (includedBy != null) {
             invalidateConstantIncludedBy(name);
+        }
+
+        final CoreLibrary coreLibrary = context.getCoreLibrary();
+        if (currentNode != null && coreLibrary != null && coreLibrary.isLoaded()) {
+            final RubySymbol constSymbol = context.getLanguageSlow().getSymbol(name);
+            RubyContext.send(currentNode, rubyModule, "const_added", constSymbol);
         }
 
         return autoload ? newConstant : previous;
