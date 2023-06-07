@@ -485,16 +485,9 @@ public abstract class TypeNodes {
     @Primitive(name = "check_mutable_string")
     public abstract static class CheckMutableStringNode extends PrimitiveArrayArgumentsNode {
 
-        public static CheckMutableStringNode create() {
-            return create(null);
-        }
-
         public static CheckMutableStringNode create(RubyNode node) {
             return TypeNodesFactory.CheckMutableStringNodeFactory.create(new RubyNode[]{ node });
         }
-
-        public abstract void execute(Object object);
-
 
         @Specialization
         protected Object check(RubyString value,
