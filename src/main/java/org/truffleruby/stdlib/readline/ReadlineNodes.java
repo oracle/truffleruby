@@ -197,8 +197,8 @@ public abstract class ReadlineNodes {
         @Specialization
         protected RubyBasicObject insertText(RubyBasicObject readline, Object text,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final var testAsString = toJavaStringNode.execute(text);
-            getContext().getConsoleHolder().getReadline().getBuffer().write(testAsString);
+            final var textAsString = toJavaStringNode.execute(text);
+            getContext().getConsoleHolder().getReadline().getBuffer().write(textAsString);
             return readline;
         }
     }

@@ -1824,9 +1824,8 @@ public abstract class KernelNodes {
 
     }
 
-    @NodeChild(value = "valueNode", type = RubyNode.class)
     @Primitive(name = "kernel_to_hex")
-    public abstract static class KernelToHexStringNode extends PrimitiveNode {
+    public abstract static class KernelToHexStringNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected String toHexString(Object value,
@@ -1874,6 +1873,7 @@ public abstract class KernelNodes {
         }
     }
 
+    // MRI: rb_any_to_s
     @GenerateUncached
     public abstract static class ToSNode extends RubyBaseNode {
 
