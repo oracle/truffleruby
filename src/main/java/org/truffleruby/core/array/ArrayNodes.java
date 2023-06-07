@@ -47,7 +47,6 @@ import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
-import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
@@ -137,14 +136,11 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
-        @CreateCast("b")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
-            return ToAryNodeGen.create(other);
-        }
-
         @Specialization(
                 limit = "storageStrategyLimit()")
-        protected RubyArray addGeneralize(RubyArray a, RubyArray b,
+        protected RubyArray addGeneralize(RubyArray a, Object bObject,
+                @Cached ToAryNode toAryNode,
+                @Bind("toAryNode.execute(bObject)") RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary as,
@@ -599,7 +595,7 @@ public abstract class ArrayNodes {
         protected RubyArray concatOne(RubyArray array, Object first, Object[] rest,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode) {
-            appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             return array;
         }
 
@@ -619,11 +615,11 @@ public abstract class ArrayNodes {
                 @Cached @Shared ConditionProfile selfArgProfile) {
             int size = array.size;
             RubyArray copy = createArray(cowNode.execute(array, 0, size), size);
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             for (int i = 0; i < cachedLength; ++i) {
                 final RubyArray argOrCopy = selfArgProfile.profile(rest[i] == array)
                         ? copy
-                        : toAryNode.executeToAry(rest[i]);
+                        : toAryNode.execute(rest[i]);
                 result = appendManyNode.executeAppendMany(array, argOrCopy);
             }
             return result;
@@ -642,7 +638,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             Object store = cowNode.execute(array, 0, size);
 
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             int i = 0;
             try {
                 for (; loopProfile.inject(i < rest.length); i++) {
@@ -650,7 +646,7 @@ public abstract class ArrayNodes {
                     if (selfArgProfile.profile(arg == array)) {
                         result = appendManyNode.executeAppendMany(array, createArray(store, size));
                     } else {
-                        result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
+                        result = appendManyNode.executeAppendMany(array, toAryNode.execute(arg));
                     }
                     TruffleSafepoint.poll(this);
                 }
@@ -1323,14 +1319,11 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
-        @CreateCast("from")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
-            return ToAryNodeGen.create(other);
-        }
-
         @Specialization
-        protected RubyArray initializeCopy(RubyArray self, RubyArray from,
+        protected RubyArray initializeCopy(RubyArray self, Object fromObject,
+                @Cached ToAryNode toAryNode,
                 @Cached ReplaceNode replaceNode) {
+            final var from = toAryNode.execute(fromObject);
             if (self == from) {
                 return self;
             }
@@ -1825,17 +1818,14 @@ public abstract class ArrayNodes {
 
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
-        @CreateCast("other")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute index) {
-            return ToAryNodeGen.create(index);
-        }
-
         @Specialization
-        protected RubyArray replace(RubyArray array, RubyArray other,
+        protected RubyArray replace(RubyArray array, Object otherObject,
+                @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+            final var other = toAryNode.execute(otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
             if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
