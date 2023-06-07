@@ -120,7 +120,7 @@ public class CoreMethodNodeManager {
     }
 
     private RubyClass getSingletonClass(Object object) {
-        return SingletonClassNode.getUncached().executeSingletonClass(object);
+        return SingletonClassNode.getUncached().execute(object);
     }
 
     private Split effectiveSplit(Split split, boolean needsBlock) {
@@ -439,7 +439,7 @@ public class CoreMethodNodeManager {
         }
 
         if (n == 0 && method.raiseIfFrozenSelf()) {
-            argument = TypeNodes.CheckFrozenNode.create(argument);
+            argument = TypeNodes.TypeCheckFrozenNode.create(argument);
         } else if (n == 0 && method.raiseIfNotMutableSelf()) {
             argument = TypeNodes.CheckMutableStringNode.create(argument);
         }

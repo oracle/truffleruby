@@ -116,6 +116,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.SingletonClassNode;
+import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -748,7 +749,7 @@ public abstract class ModuleNodes {
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .executeToJavaString(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {
@@ -1106,7 +1107,7 @@ public abstract class ModuleNodes {
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstant(module, toJavaStringNode.executeToJavaString(name), checkName, lookInObject);
+            return getConstant(module, toJavaStringNode.execute(name), checkName, lookInObject);
         }
 
         @Specialization(
@@ -1115,7 +1116,7 @@ public abstract class ModuleNodes {
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstantNoInherit(module, toJavaStringNode.executeToJavaString(name), checkName);
+            return getConstantNoInherit(module, toJavaStringNode.execute(name), checkName);
         }
 
         // Scoped String
@@ -1533,10 +1534,9 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "extend_object", required = 1, visibility = Visibility.PRIVATE)
     public abstract static class ExtendObjectNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-
         @Specialization
         protected RubyModule extendObject(RubyModule module, Object object,
+                @Cached SingletonClassNode singletonClassNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (module instanceof RubyClass) {
                 errorProfile.enter(this);
@@ -1545,7 +1545,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
             }
 
-            singletonClassNode.executeSingletonClass(object).fields
+            singletonClassNode.execute(object).fields
                     .include(getContext(), this, module);
             return module;
         }
@@ -1625,10 +1625,10 @@ public abstract class ModuleNodes {
         protected RubyClass getSingletonClass(RubyModule object) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                singletonClassNode = insert(SingletonClassNode.create());
+                singletonClassNode = insert(SingletonClassNodeGen.create());
             }
 
-            return singletonClassNode.executeSingletonClass(object);
+            return singletonClassNode.execute(object);
         }
 
     }
@@ -1808,12 +1808,12 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public_class_method", rest = true)
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
-        protected RubyModule publicClassMethod(RubyModule module, Object[] names) {
-            final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
+        protected RubyModule publicClassMethod(RubyModule module, Object[] names,
+                @Cached SingletonClassNode singletonClassNode) {
+            final RubyClass singletonClass = singletonClassNode.execute(module);
 
             for (Object name : names) {
                 setMethodVisibilityNode.execute(singletonClass, name, Visibility.PUBLIC);
@@ -1867,12 +1867,12 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_class_method", rest = true)
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
-        protected RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names) {
-            final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
+        protected RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names,
+                @Cached SingletonClassNode singletonClassNode) {
+            final RubyClass singletonClass = singletonClassNode.execute(module);
 
             for (Object name : names) {
                 setMethodVisibilityNode.execute(singletonClass, name, Visibility.PRIVATE);

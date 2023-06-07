@@ -116,10 +116,10 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (libString.isRubyString(inspect)) {
                 return inspect;
             } else {
-                return kernelToSNode.executeToS(this);
+                return kernelToSNode.execute(this);
             }
         } else {
-            return kernelToSNode.executeToS(this);
+            return kernelToSNode.execute(this);
         }
 
     }

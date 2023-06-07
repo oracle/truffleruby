@@ -37,7 +37,7 @@ public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode 
     @Specialization(guards = "wasProvided(value)")
     protected String doProvided(Object value,
             @Cached ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(value);
+        return toJavaStringNode.execute(value);
     }
 
     @Override

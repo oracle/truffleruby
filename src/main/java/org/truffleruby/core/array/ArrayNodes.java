@@ -1431,7 +1431,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.executeToJavaString(initialOrSymbol),
+                    toJavaString.execute(initialOrSymbol),
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1455,7 +1455,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.executeToJavaString(symbol),
+                    toJavaString.execute(symbol),
                     stores,
                     store,
                     initialOrSymbol,
@@ -1588,7 +1588,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final String formatString = toJavaStringNode.executeToJavaString(format);
+            final String formatString = toJavaStringNode.execute(format);
 
             final BytesResult result;
             try {

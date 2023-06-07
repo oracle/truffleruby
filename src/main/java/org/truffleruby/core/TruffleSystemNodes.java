@@ -110,7 +110,7 @@ public abstract class TruffleSystemNodes {
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached InlinedConditionProfile nullValueProfile,
                 @Bind("this") Node node) {
-            final String javaName = toJavaStringNode.executeToJavaString(name);
+            final String javaName = toJavaStringNode.execute(name);
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(node, value == null)) {
@@ -191,7 +191,7 @@ public abstract class TruffleSystemNodes {
         protected Object getJavaProperty(Object property,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            String value = getProperty(toJavaStringNode.executeToJavaString(property));
+            String value = getProperty(toJavaStringNode.execute(property));
             if (value == null) {
                 return nil;
             } else {
@@ -238,7 +238,7 @@ public abstract class TruffleSystemNodes {
                 @Shared @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, toJavaStringNode.executeToJavaString(message));
+            log(javaLevel, toJavaStringNode.execute(message));
             return nil;
         }
 
@@ -246,7 +246,7 @@ public abstract class TruffleSystemNodes {
         protected Object log(RubySymbol level, Object message,
                 @Shared @Cached RubyStringLibrary strings,
                 @Shared @Cached ToJavaStringNode toJavaStringNode) {
-            log(getLevel(level), toJavaStringNode.executeToJavaString(message));
+            log(getLevel(level), toJavaStringNode.execute(message));
             return nil;
         }
 

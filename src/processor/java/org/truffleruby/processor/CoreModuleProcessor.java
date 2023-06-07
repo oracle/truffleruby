@@ -98,7 +98,6 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     TypeMirror primitiveNodeType;
     TypeMirror coreMethodNodeType;
     TypeMirror alwaysInlinedMethodNodeType;
-    TypeMirror rubySourceNodeType;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
@@ -115,7 +114,6 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         coreMethodNodeType = elementUtils.getTypeElement("org.truffleruby.builtins.CoreMethodNode").asType();
         alwaysInlinedMethodNodeType = elementUtils
                 .getTypeElement("org.truffleruby.core.inlined.AlwaysInlinedMethodNode").asType();
-        rubySourceNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubySourceNode").asType();
 
 
         if (!annotations.isEmpty()) {
@@ -200,10 +198,9 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                                             : null;
                             coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             if (!inherits(e.asType(), coreMethodNodeType) &&
-                                    !inherits(e.asType(), alwaysInlinedMethodNodeType) &&
-                                    !inherits(e.asType(), rubySourceNodeType)) {
+                                    !inherits(e.asType(), alwaysInlinedMethodNodeType)) {
                                 error(e +
-                                        " should inherit from CoreMethodArrayArgumentsNode, CoreMethodNode, AlwaysInlinedMethodNode or RubySourceNode",
+                                        " should inherit from CoreMethodArrayArgumentsNode, CoreMethodNode, AlwaysInlinedMethodNode",
                                         e);
                             }
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
@@ -225,9 +222,9 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
                             coreModuleChecks.checks(primitive.lowerFixnum(), null, klass, true);
-                            if (!inherits(e.asType(), primitiveNodeType) && !inherits(e.asType(), rubySourceNodeType)) {
+                            if (!inherits(e.asType(), primitiveNodeType)) {
                                 error(e +
-                                        " should inherit from PrimitiveArrayArgumentsNode, PrimitiveNode or RubySourceNode",
+                                        " should inherit from PrimitiveArrayArgumentsNode, PrimitiveNode",
                                         e);
                             }
                         }

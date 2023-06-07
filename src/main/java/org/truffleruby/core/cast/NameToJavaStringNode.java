@@ -55,13 +55,13 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
     protected String stringNameToJavaString(Object value,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(value);
+        return toJavaStringNode.execute(value);
     }
 
     @Specialization
     protected String symbolNameToJavaString(RubySymbol value,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(value);
+        return toJavaStringNode.execute(value);
     }
 
     @Specialization
@@ -91,7 +91,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
         }
 
         if (libString.isRubyString(coerced)) {
-            return toJavaStringNode.executeToJavaString(coerced);
+            return toJavaStringNode.execute(coerced);
         } else {
             errorProfile.enter(node);
             throw new RaiseException(getContext(node), coreExceptions(node).typeErrorBadCoercion(

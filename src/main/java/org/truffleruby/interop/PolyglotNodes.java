@@ -80,8 +80,8 @@ public abstract class PolyglotNodes {
                 @Cached ToJavaStringNode toJavaStringLandNode,
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(toJavaStringLandNode.executeToJavaString(langId),
-                    toJavaStringCodeNode.executeToJavaString(code)), EMPTY_ARGUMENTS);
+            return callNode.call(parse(toJavaStringLandNode.execute(langId),
+                    toJavaStringCodeNode.execute(code)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -254,9 +254,9 @@ public abstract class PolyglotNodes {
                 @Cached ToJavaStringNode toJavaStringFileNode,
                 @Shared @Cached ForeignToRubyNode foreignToRubyNode,
                 @Shared @Cached InlinedBranchProfile errorProfile) {
-            final String idString = toJavaStringIDNode.executeToJavaString(langId);
-            final String codeString = toJavaStringCodeNode.executeToJavaString(code);
-            final String filenameString = toJavaStringFileNode.executeToJavaString(filename);
+            final String idString = toJavaStringIDNode.execute(langId);
+            final String codeString = toJavaStringCodeNode.execute(code);
+            final String filenameString = toJavaStringFileNode.execute(filename);
 
             final Source source = createSource(idString, codeString, filenameString);
 

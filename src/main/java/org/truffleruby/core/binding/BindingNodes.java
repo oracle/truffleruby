@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -38,7 +37,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
@@ -213,22 +211,10 @@ public abstract class BindingNodes {
     }
 
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = "local_variable_defined?", required = 1)
     @NodeChild(value = "bindingNode", type = RubyNode.class)
     @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class LocalVariableDefinedNode extends RubySourceNode {
-
-        public static LocalVariableDefinedNode create(RubyNode bindingNode, RubyBaseNodeWithExecute nameNode) {
-            return BindingNodesFactory.LocalVariableDefinedNodeFactory.create(bindingNode, nameNode);
-        }
-
-        public abstract boolean execute(RubyBinding binding, String name);
-
-        abstract RubyNode getBindingNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
+    public abstract static class LocalVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("nameNode")
         protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
@@ -265,18 +251,6 @@ public abstract class BindingNodes {
         protected int getCacheLimit() {
             return getLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
         }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(
-                    getBindingNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "local_variable_get", required = 1)

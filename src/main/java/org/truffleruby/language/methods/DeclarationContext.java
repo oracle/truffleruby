@@ -51,7 +51,7 @@ public class DeclarationContext {
         }
 
         public RubyModule getModuleToDefineMethods() {
-            return SingletonClassNode.getUncached().executeSingletonClass(self);
+            return SingletonClassNode.getUncached().execute(self);
         }
     }
 

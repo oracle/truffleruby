@@ -10,7 +10,6 @@
 package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -34,7 +33,6 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -467,22 +465,19 @@ public abstract class RangeNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class AllocateNode extends RubySourceNode {
+    public abstract static class RangeAllocateNode extends CoreMethodNode {
 
-        @NeverDefault
-        public static AllocateNode create() {
-            return RangeNodesFactory.AllocateNodeFactory.create(null);
+        @Specialization
+        protected RubyObjectRange allocate(RubyClass rubyClass,
+                @Cached AllocateNode allocateNode) {
+            return allocateNode.execute(rubyClass);
         }
+    }
 
-        public static AllocateNode create(RubyNode rubyClassNode) {
-            return RangeNodesFactory.AllocateNodeFactory.create(rubyClassNode);
-        }
-
-        abstract RubyNode getRubyClassNode();
+    @GenerateUncached
+    public abstract static class AllocateNode extends RubyBaseNode {
 
         public abstract RubyObjectRange execute(RubyClass rubyClass);
 
@@ -493,12 +488,6 @@ public abstract class RangeNodes {
             AllocationTracing.trace(range, this);
             return range;
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getRubyClassNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)

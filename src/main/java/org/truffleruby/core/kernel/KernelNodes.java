@@ -107,7 +107,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -270,7 +269,7 @@ public abstract class KernelNodes {
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            String feature = toJavaStringNode.executeToJavaString(featureString);
+            String feature = toJavaStringNode.execute(featureString);
             return findFileString(feature, notFoundProfile, fromJavaStringNode);
         }
 
@@ -337,7 +336,7 @@ public abstract class KernelNodes {
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode) {
             return requireNode.executeRequire(
-                    toJavaStringNode.executeToJavaString(featureString),
+                    toJavaStringNode.execute(featureString),
                     expandedPathString);
         }
 
@@ -572,7 +571,7 @@ public abstract class KernelNodes {
             // Copy the singleton class if any.
             final RubyClass selfMetaClass = metaClassNode.execute(node, object);
             if (isSingletonProfile.profile(node, selfMetaClass.isSingleton)) {
-                final RubyClass newObjectMetaClass = lazySingletonClassNode.get(node).executeSingletonClass(newObject);
+                final RubyClass newObjectMetaClass = lazySingletonClassNode.get(node).execute(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
@@ -773,7 +772,7 @@ public abstract class KernelNodes {
                 @Cached ToJavaStringNode toJavaStringNode) {
 
             var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
-                    toJavaStringNode.executeToJavaString(file), line);
+                    toJavaStringNode.execute(file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
             Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
@@ -1453,7 +1452,7 @@ public abstract class KernelNodes {
                         coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
             }
 
-            final String methodName = toJavaString.executeToJavaString(name);
+            final String methodName = toJavaString.execute(name);
             final boolean found;
             if (ignoreVisibilityProfile.profile(this, includeProtectedAndPrivate)) {
                 found = dispatchPrivate.execute(callerFrame, self, methodName);
@@ -1501,13 +1500,12 @@ public abstract class KernelNodes {
     @CoreMethod(names = "singleton_class")
     public abstract static class SingletonClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-
         public abstract RubyClass executeSingletonClass(Object self);
 
         @Specialization
-        protected RubyClass singletonClass(Object self) {
-            return singletonClassNode.executeSingletonClass(self);
+        protected RubyClass singletonClass(Object self,
+                @Cached SingletonClassNode singletonClassNode) {
+            return singletonClassNode.execute(self);
         }
 
     }
@@ -1826,28 +1824,25 @@ public abstract class KernelNodes {
 
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "valueNode", type = RubyNode.class)
     @Primitive(name = "kernel_to_hex")
-    public abstract static class ToHexStringNode extends RubySourceNode {
+    public abstract static class KernelToHexStringNode extends PrimitiveArrayArgumentsNode {
 
-        @NeverDefault
-        public static ToHexStringNode create() {
-            return KernelNodesFactory.ToHexStringNodeFactory.create(null);
+        @Specialization
+        protected String toHexString(Object value,
+                @Cached ToHexStringNode toHexStringNode) {
+            return toHexStringNode.execute(value);
         }
+    }
 
-        public static ToHexStringNode create(RubyNode valueNode) {
-            return KernelNodesFactory.ToHexStringNodeFactory.create(valueNode);
-        }
+
+    @GenerateUncached
+    public abstract static class ToHexStringNode extends RubyBaseNode {
 
         public static ToHexStringNode getUncached() {
-            return KernelNodesFactory.ToHexStringNodeFactory.getUncached();
+            return KernelNodesFactory.ToHexStringNodeGen.getUncached();
         }
 
-        public abstract String executeToHexString(Object value);
-
-        abstract RubyNode getValueNode();
+        public abstract String execute(Object value);
 
         @Specialization
         protected String toHexString(int value) {
@@ -1864,32 +1859,30 @@ public abstract class KernelNodes {
         protected String toHexString(RubyBignum value) {
             return BigIntegerOps.toString(value.value, 16);
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getValueNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
     @NodeChild(value = "selfNode", type = RubyNode.class)
-    public abstract static class ToSNode extends RubySourceNode {
+    public abstract static class KernelToSNode extends CoreMethodNode {
+
+        @Specialization
+        protected RubyString toS(Object self,
+                @Cached ToSNode toSNode) {
+            return toSNode.execute(self);
+
+        }
+    }
+
+    // MRI: rb_any_to_s
+    @GenerateUncached
+    public abstract static class ToSNode extends RubyBaseNode {
 
         @NeverDefault
         public static ToSNode create() {
-            return KernelNodesFactory.ToSNodeFactory.create(null);
+            return KernelNodesFactory.ToSNodeGen.create();
         }
 
-        public static ToSNode create(RubyNode selfNode) {
-            return KernelNodesFactory.ToSNodeFactory.create(selfNode);
-        }
-
-        public abstract RubyString executeToS(Object self);
-
-        abstract RubyNode getSelfNode();
+        public abstract RubyString execute(Object self);
 
         @Specialization
         protected RubyString toS(Object self,
@@ -1899,7 +1892,7 @@ public abstract class KernelNodes {
                 @Cached ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
-            String hexID = toHexStringNode.executeToHexString(id);
+            String hexID = toHexStringNode.execute(id);
 
             String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
 
@@ -1913,7 +1906,7 @@ public abstract class KernelNodes {
         public static String uncachedBasicToS(Object self) {
             String className = LogicalClassNode.getUncached().execute(self).fields.getName();
             Object id = ObjectIDNode.getUncached().execute(self);
-            String hexID = ToHexStringNode.getUncached().executeToHexString(id);
+            String hexID = ToHexStringNode.getUncached().execute(id);
 
             return "#<" + className + ":0x" + hexID + ">";
         }
@@ -1926,12 +1919,6 @@ public abstract class KernelNodes {
 
             return "#<" + className + ":0x" + hexID + ">";
         }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            return create(getSelfNode().cloneUninitialized()).copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "untaint")

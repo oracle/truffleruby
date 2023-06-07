@@ -9,35 +9,20 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.control.RaiseException;
 
 @GenerateUncached
-@NodeChild(value = "valueNode", type = RubyNode.class)
-public abstract class ToJavaStringNode extends RubySourceNode {
+public abstract class ToJavaStringNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static ToJavaStringNode create() {
-        return ToJavaStringNodeGen.create(null);
-    }
-
-    public static ToJavaStringNode create(RubyNode string) {
-        return ToJavaStringNodeGen.create(string);
-    }
-
-    public abstract String executeToJavaString(Object name);
-
-    abstract RubyNode getValueNode();
+    public abstract String execute(Object name);
 
     @Specialization(guards = "interopLibrary.isString(value)", limit = "getLimit()")
     protected String interopString(Object value,
@@ -62,10 +47,4 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     protected int getLimit() {
         return getLanguage().options.INTEROP_CONVERT_CACHE;
     }
-
-    @Override
-    public RubyNode cloneUninitialized() {
-        return ToJavaStringNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
-    }
-
 }

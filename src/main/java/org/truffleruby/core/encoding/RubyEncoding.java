@@ -107,7 +107,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
         if (allowSideEffects) {
             return dispatchNode.call(this, "inspect");
         } else {
-            return kernelToSNode.executeToS(this);
+            return kernelToSNode.execute(this);
         }
     }
 
