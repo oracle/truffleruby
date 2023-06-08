@@ -2355,4 +2355,22 @@ public abstract class ModuleNodes {
             return rubyClass.isSingleton;
         }
     }
+
+    @CoreMethod(names = "undefined_instance_methods")
+    public abstract static class UndefinedInstanceMethodsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        protected RubyArray undefinedInstanceMethods(RubyModule module) {
+            List<RubySymbol> methodNames = new ArrayList<>();
+
+            for (InternalMethod methodEntry : module.fields.getMethods()) {
+                if (methodEntry != null && methodEntry.isUndefined()) {
+                    methodNames.add(getLanguage().getSymbol(methodEntry.getName()));
+                }
+            }
+
+            return createArray(methodNames.toArray());
+        }
+    }
 }
