@@ -754,12 +754,6 @@ public abstract class StringNodes {
     @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class CaseCmpNode extends PrimitiveNode {
 
-        @Child private NegotiateCompatibleStringEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleStringEncodingNode
-                .create();
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
-        private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
-        private final ConditionProfile sameProfile = ConditionProfile.create();
-
         public static CaseCmpNode create(RubyNode string, RubyBaseNodeWithExecute other) {
             return StringNodesFactory.CaseCmpNodeFactory.create(string, other);
         }
@@ -773,11 +767,16 @@ public abstract class StringNodes {
             return ToStrNodeGen.create(other);
         }
 
-        @Specialization(guards = "bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding)",
+        @Specialization(
+                guards = "bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
         protected Object caseCmpSingleByte(Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libOther,
+                @Cached @Shared InlinedConditionProfile incompatibleEncodingProfile,
+                @Cached @Shared InlinedConditionProfile sameProfile,
+                @Cached @Shared NegotiateCompatibleStringEncodingNode negotiateCompatibleEncodingNode,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("libString.getTString(string)") AbstractTruffleString selfTString,
                 @Bind("libString.getEncoding(string)") RubyEncoding selfEncoding,
                 @Bind("libOther.getTString(other)") AbstractTruffleString otherTString,
@@ -788,25 +787,30 @@ public abstract class StringNodes {
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
                     otherTString, otherEncoding);
-            if (incompatibleEncodingProfile.profile(encoding == null)) {
+            if (incompatibleEncodingProfile.profile(this, encoding == null)) {
                 return nil;
             }
 
             var selfByteArray = byteArraySelfNode.execute(selfTString, selfEncoding.tencoding);
             var otherByteArray = byteArrayOtherNode.execute(otherTString, otherEncoding.tencoding);
 
-            if (sameProfile.profile(selfTString == otherTString)) {
+            if (sameProfile.profile(this, selfTString == otherTString)) {
                 return 0;
             }
 
             return caseInsensitiveCmp(selfByteArray, otherByteArray);
         }
 
-        @Specialization(guards = "!bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding)",
+        @Specialization(
+                guards = "!bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
         protected Object caseCmp(Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libOther,
+                @Cached @Shared InlinedConditionProfile incompatibleEncodingProfile,
+                @Cached @Shared InlinedConditionProfile sameProfile,
+                @Cached @Shared NegotiateCompatibleStringEncodingNode negotiateCompatibleEncodingNode,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("libString.getTString(string)") AbstractTruffleString selfTString,
                 @Bind("libString.getEncoding(string)") RubyEncoding selfEncoding,
                 @Bind("libOther.getTString(other)") AbstractTruffleString otherTString,
@@ -816,11 +820,11 @@ public abstract class StringNodes {
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
                     otherTString, otherEncoding);
 
-            if (incompatibleEncodingProfile.profile(encoding == null)) {
+            if (incompatibleEncodingProfile.profile(this, encoding == null)) {
                 return nil;
             }
 
-            if (sameProfile.profile(selfTString == otherTString)) {
+            if (sameProfile.profile(this, selfTString == otherTString)) {
                 return 0;
             }
 
@@ -829,7 +833,8 @@ public abstract class StringNodes {
         }
 
         protected boolean bothSingleByteOptimizable(AbstractTruffleString string, RubyEncoding stringEncoding,
-                AbstractTruffleString other, RubyEncoding otherEncoding) {
+                AbstractTruffleString other, RubyEncoding otherEncoding,
+                SingleByteOptimizableNode singleByteOptimizableNode) {
             return singleByteOptimizableNode.execute(string, stringEncoding) &&
                     singleByteOptimizableNode.execute(other, otherEncoding);
         }
