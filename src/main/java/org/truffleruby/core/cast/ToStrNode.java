@@ -11,32 +11,18 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToStrNode extends RubyBaseNodeWithExecute {
-
-    @NeverDefault
-    public static ToStrNode create() {
-        return ToStrNodeGen.create(null);
-    }
-
-    public static ToStrNode create(RubyBaseNodeWithExecute child) {
-        return ToStrNodeGen.create(child);
-    }
+public abstract class ToStrNode extends RubyBaseNode {
 
     public abstract Object execute(Object object);
-
-    public abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyString coerceRubyString(RubyString string) {
@@ -57,10 +43,5 @@ public abstract class ToStrNode extends RubyBaseNodeWithExecute {
                 object,
                 coreLibrary().stringClass,
                 coreSymbols().TO_STR);
-    }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getChildNode().cloneUninitialized());
     }
 }

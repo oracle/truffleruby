@@ -35,7 +35,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
@@ -76,18 +75,15 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "characters", type = RubyBaseNodeWithExecute.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
-        @CreateCast("characters")
-        protected ToStrNode coerceCharactersToString(RubyBaseNodeWithExecute characters) {
-            return ToStrNodeGen.create(characters);
-        }
-
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(characters)", limit = "1")
         protected Object setBasicWordBreakCharacters(Object characters,
+                @Cached ToStrNode toStrNode,
                 @Cached RubyStringLibrary strings) {
-            final String delimiters = RubyGuards.getJavaString(characters);
+            final var charactersAsString = toStrNode.execute(characters);
+            final String delimiters = RubyGuards.getJavaString(charactersAsString);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
-            return characters;
+            return charactersAsString;
         }
 
     }

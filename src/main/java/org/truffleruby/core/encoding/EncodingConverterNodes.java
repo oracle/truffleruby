@@ -37,7 +37,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.EncodingUtils;
@@ -55,7 +54,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -450,19 +448,16 @@ public abstract class EncodingConverterNodes {
     @NodeChild(value = "replacement", type = RubyBaseNodeWithExecute.class)
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
-        @CreateCast("replacement")
-        protected ToStrNode coerceReplacementToString(RubyBaseNodeWithExecute replacement) {
-            return ToStrNodeGen.create(replacement);
-        }
-
         @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
         protected static Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
                 @Cached RubyStringLibrary libReplacement,
+                @Cached ToStrNode toStrNode,
                 @Bind("this") Node node) {
-            var tstring = libReplacement.getTString(replacement);
-            var encoding = libReplacement.getEncoding(replacement);
+            final var replacementAsString = toStrNode.execute(replacement);
+            var tstring = libReplacement.getTString(replacementAsString);
+            var encoding = libReplacement.getEncoding(replacementAsString);
 
             final InternalByteArray byteArray = bytesNode.execute(tstring, encoding.tencoding);
             int ret = setReplacement(encodingConverter.econv, byteArray.getArray(), byteArray.getOffset(),
@@ -475,7 +470,7 @@ public abstract class EncodingConverterNodes {
                         getContext(node).getCoreExceptions().encodingUndefinedConversionError(node));
             }
 
-            return replacement;
+            return replacementAsString;
         }
 
         @TruffleBoundary

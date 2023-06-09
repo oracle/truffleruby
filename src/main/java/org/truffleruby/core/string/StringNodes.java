@@ -75,6 +75,8 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
@@ -104,7 +106,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
@@ -113,7 +114,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleStringEncodingNode;
 import org.truffleruby.core.encoding.IsCharacterHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
@@ -225,15 +225,12 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class AddNode extends CoreMethodNode {
 
-        @CreateCast("other")
-        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
-            return ToStrNodeGen.create(other);
-        }
-
         @Specialization
         protected RubyString add(Object string, Object other,
+                @Cached ToStrNode toStrNode,
                 @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
-            return stringAppendNode.executeStringAppend(string, other);
+            final var otherAsString = toStrNode.execute(other);
+            return stringAppendNode.executeStringAppend(string, otherAsString);
         }
     }
 
@@ -750,27 +747,27 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_casecmp")
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class CaseCmpNode extends PrimitiveNode {
+    public abstract static class StringCaseCmpNode extends PrimitiveArrayArgumentsNode {
 
-        public static CaseCmpNode create(RubyNode string, RubyBaseNodeWithExecute other) {
-            return StringNodesFactory.CaseCmpNodeFactory.create(string, other);
+        @Specialization
+        protected Object caseCmp(Object string, Object other,
+                @Cached ToStrNode toStrNode,
+                @Cached CaseCmpNode caseCmpNode) {
+            final var otherAsString = toStrNode.execute(other);
+            return caseCmpNode.execute(this, string, otherAsString);
         }
+    }
 
-        abstract RubyNode getStringNode();
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class CaseCmpNode extends RubyBaseNode {
 
-        abstract RubyBaseNodeWithExecute getOtherNode();
-
-        @CreateCast("otherNode")
-        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
-            return ToStrNodeGen.create(other);
-        }
+        public abstract Object execute(Node node, Object string, Object other);
 
         @Specialization(
                 guards = "bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
-        protected Object caseCmpSingleByte(Object string, Object other,
+        protected static Object caseCmpSingleByte(Node node, Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libOther,
                 @Cached @Shared InlinedConditionProfile incompatibleEncodingProfile,
@@ -787,14 +784,14 @@ public abstract class StringNodes {
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
                     otherTString, otherEncoding);
-            if (incompatibleEncodingProfile.profile(this, encoding == null)) {
+            if (incompatibleEncodingProfile.profile(node, encoding == null)) {
                 return nil;
             }
 
             var selfByteArray = byteArraySelfNode.execute(selfTString, selfEncoding.tencoding);
             var otherByteArray = byteArrayOtherNode.execute(otherTString, otherEncoding.tencoding);
 
-            if (sameProfile.profile(this, selfTString == otherTString)) {
+            if (sameProfile.profile(node, selfTString == otherTString)) {
                 return 0;
             }
 
@@ -804,7 +801,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = "!bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
-        protected Object caseCmp(Object string, Object other,
+        protected static Object caseCmp(Node node, Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libOther,
                 @Cached @Shared InlinedConditionProfile incompatibleEncodingProfile,
@@ -820,11 +817,11 @@ public abstract class StringNodes {
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
                     otherTString, otherEncoding);
 
-            if (incompatibleEncodingProfile.profile(this, encoding == null)) {
+            if (incompatibleEncodingProfile.profile(node, encoding == null)) {
                 return nil;
             }
 
-            if (sameProfile.profile(this, selfTString == otherTString)) {
+            if (sameProfile.profile(node, selfTString == otherTString)) {
                 return 0;
             }
 
@@ -832,7 +829,7 @@ public abstract class StringNodes {
                     otherEncoding.tencoding);
         }
 
-        protected boolean bothSingleByteOptimizable(AbstractTruffleString string, RubyEncoding stringEncoding,
+        protected static boolean bothSingleByteOptimizable(AbstractTruffleString string, RubyEncoding stringEncoding,
                 AbstractTruffleString other, RubyEncoding otherEncoding,
                 SingleByteOptimizableNode singleByteOptimizableNode) {
             return singleByteOptimizableNode.execute(string, stringEncoding) &&
@@ -857,20 +854,6 @@ public abstract class StringNodes {
 
             return size == other.getLength() ? 0 : size == len ? -1 : 1;
         }
-
-
-        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
-            return ((ToStrNode) getOtherNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getOtherNodeBeforeCast().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     /** Returns true if the first bytes in string are equal to the bytes in prefix. */
@@ -951,7 +934,6 @@ public abstract class StringNodes {
     @CoreMethod(names = "count", rest = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStr = ToStrNode.create();
         @Child private StringHelperNodes.CountStringsNode countStringsNode = StringHelperNodes.CountStringsNode
                 .create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
@@ -961,19 +943,21 @@ public abstract class StringNodes {
                 guards = "args.length == size",
                 limit = "getDefaultCacheLimit()")
         protected int count(Object string, Object[] args,
+                @Cached @Shared ToStrNode toStrNode,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode);
             return countStringsNode.executeCount(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "count")
-        protected int countSlow(Object string, Object[] args) {
-            final TStringWithEncoding[] tstringsWithEncs = argTStringsSlow(args);
+        protected int countSlow(Object string, Object[] args,
+                @Cached @Shared ToStrNode toStrNode) {
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsSlow(args, toStrNode);
             return countStringsNode.executeCount(string, tstringsWithEncs);
         }
 
         @ExplodeLoop
-        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size) {
+        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -985,7 +969,7 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected TStringWithEncoding[] argTStringsSlow(Object[] args) {
+        protected TStringWithEncoding[] argTStringsSlow(Object[] args, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1002,7 +986,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStr = ToStrNode.create();
         @Child private DeleteBangStringsNode deleteBangStringsNode = DeleteBangStringsNode.create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
@@ -1016,19 +999,21 @@ public abstract class StringNodes {
 
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         protected Object deleteBang(RubyString string, Object[] args,
+                @Cached @Shared ToStrNode toStrNode,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode);
             return deleteBangStringsNode.executeDeleteBang(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
-        protected Object deleteBangSlow(RubyString string, Object[] args) {
-            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args);
+        protected Object deleteBangSlow(RubyString string, Object[] args,
+                @Cached @Shared ToStrNode toStrNode) {
+            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args, toStrNode);
             return deleteBangStringsNode.executeDeleteBang(string, tstrings);
         }
 
         @ExplodeLoop
-        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size) {
+        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[size];
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1040,7 +1025,7 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args) {
+        protected TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1714,32 +1699,33 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_replace", raiseIfNotMutable = 0)
-    @NodeChild(value = "stringNode", type = RubyNode.class)
-    @NodeChild(value = "otherNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ReplaceNode extends PrimitiveNode {
+    public abstract static class StringReplaceNode extends PrimitiveArrayArgumentsNode {
 
-        public static ReplaceNode create(RubyNode string, RubyBaseNodeWithExecute other) {
-            return StringNodesFactory.ReplaceNodeFactory.create(string, other);
+        @Specialization
+        protected Object replaceNode(RubyString string, Object other,
+                @Cached ToStrNode toStrNode,
+                @Cached ReplaceNode replaceNode) {
+            final var otherAsString = toStrNode.execute(other);
+            return replaceNode.execute(this, string, otherAsString);
         }
+    }
 
-        abstract RubyNode getStringNode();
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class ReplaceNode extends RubyBaseNode {
 
-        abstract RubyBaseNodeWithExecute getOtherNode();
+        public abstract RubyString execute(Node node, RubyString string, Object other);
 
-        @CreateCast("otherNode")
-        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
-            return ToStrNodeGen.create(other);
-        }
 
         @Specialization(guards = "string == other")
-        protected RubyString replaceStringIsSameAsOther(RubyString string, RubyString other) {
+        protected static RubyString replaceStringIsSameAsOther(RubyString string, RubyString other) {
             return string;
         }
 
         @Specialization(guards = { "string != other" })
-        protected RubyString replace(RubyString string, RubyString other,
+        protected static RubyString replace(RubyString string, RubyString other,
                 @Cached @Exclusive RubyStringLibrary libOther,
-                @Cached AsTruffleStringNode asTruffleStringNode) {
+                @Cached(inline = false) AsTruffleStringNode asTruffleStringNode) {
             var encoding = libOther.getEncoding(other);
             TruffleString immutableCopy = asTruffleStringNode.execute(other.tstring, encoding.tencoding);
             string.setTString(immutableCopy, encoding);
@@ -1747,24 +1733,11 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString replace(RubyString string, ImmutableRubyString other,
+        protected static RubyString replace(RubyString string, ImmutableRubyString other,
                 @Cached @Exclusive RubyStringLibrary libOther) {
             string.setTString(other.tstring, libOther.getEncoding(other));
             return string;
         }
-
-        private RubyBaseNodeWithExecute getOtherNodeBeforeCast() {
-            return ((ToStrNode) getOtherNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getStringNode().cloneUninitialized(),
-                    getOtherNodeBeforeCast().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "rstrip!", raiseIfNotMutableSelf = true)
@@ -2712,20 +2685,28 @@ public abstract class StringNodes {
     @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class TrBangNode extends CoreMethodNode {
+    public abstract static class StringTrBangNode extends CoreMethodNode {
 
-        @CreateCast("fromStr")
-        protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
-            return ToStrNodeGen.create(fromStr);
-        }
+        @Specialization
+        protected Object trBang(RubyString self, Object fromStr, Object toStr,
+                @Cached ToStrNode fromStrNode,
+                @Cached ToStrNode toStrNode,
+                @Cached TrBangNode trBangNode) {
+            final var fromStrAsString = fromStrNode.execute(fromStr);
+            final var toStrAsString = toStrNode.execute(toStr);
+            return trBangNode.execute(this, self, fromStrAsString, toStrAsString);
 
-        @CreateCast("toStr")
-        protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
-            return ToStrNodeGen.create(toStr);
         }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class TrBangNode extends RubyBaseNode {
+
+        public abstract Object execute(Node node, RubyString self, Object fromStr, Object toStr);
 
         @Specialization(guards = "self.tstring.isEmpty()")
-        protected Object trBangSelfEmpty(RubyString self, Object fromStr, Object toStr) {
+        protected static Object trBangSelfEmpty(RubyString self, Object fromStr, Object toStr) {
             return nil;
         }
 
@@ -2734,7 +2715,7 @@ public abstract class StringNodes {
                         "!self.tstring.isEmpty()",
                         "libToStr.getTString(toStr).isEmpty()" },
                 limit = "1")
-        protected Object trBangToEmpty(RubyString self, Object fromStr, Object toStr,
+        protected static Object trBangToEmpty(RubyString self, Object fromStr, Object toStr,
                 @Cached DeleteBangNode deleteBangNode,
                 @Cached @Shared RubyStringLibrary libToStr) {
             return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStr });
@@ -2746,11 +2727,10 @@ public abstract class StringNodes {
                         "!self.tstring.isEmpty()",
                         "!libToStr.getTString(toStr).isEmpty()" },
                 limit = "1")
-        protected static Object trBangNoEmpty(RubyString self, Object fromStr, Object toStr,
+        protected static Object trBangNoEmpty(Node node, RubyString self, Object fromStr, Object toStr,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached @Exclusive RubyStringLibrary libFromStr,
-                @Cached @Shared RubyStringLibrary libToStr,
-                @Bind("this") Node node) {
+                @Cached @Shared RubyStringLibrary libToStr) {
             return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr,
                     false);
         }
@@ -2762,16 +2742,6 @@ public abstract class StringNodes {
     @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
-
-        @CreateCast("fromStr")
-        protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
-            return ToStrNodeGen.create(fromStr);
-        }
-
-        @CreateCast("toStrNode")
-        protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
-            return ToStrNodeGen.create(toStr);
-        }
 
         @Specialization(
                 guards = { "self.tstring.isEmpty()" })
@@ -2786,16 +2756,21 @@ public abstract class StringNodes {
                         "!self.tstring.isEmpty()" },
                 limit = "1")
         protected static Object trSBang(RubyString self, Object fromStr, Object toStr,
+                @Cached ToStrNode fromStrNode,
+                @Cached ToStrNode toStrNode,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached DeleteBangNode deleteBangNode,
                 @Cached RubyStringLibrary libFromStr,
                 @Cached RubyStringLibrary libToStr,
                 @Bind("this") Node node) {
-            if (libToStr.getTString(toStr).isEmpty()) {
-                return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStr });
+            final var fromStrAsString = fromStrNode.execute(fromStr);
+            final var toStrAsString = toStrNode.execute(toStr);
+            if (libToStr.getTString(toStrAsString).isEmpty()) {
+                return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStrAsString });
             }
 
-            return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr,
+            return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStrAsString, libToStr,
+                    toStrAsString,
                     true);
         }
     }

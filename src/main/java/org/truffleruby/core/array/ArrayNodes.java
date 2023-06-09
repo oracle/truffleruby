@@ -52,7 +52,6 @@ import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -1546,11 +1545,6 @@ public abstract class ArrayNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
-        @CreateCast("format")
-        protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
-            return ToStrNodeGen.create(format);
-        }
-
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
@@ -1579,12 +1573,14 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
         protected RubyString packUncached(RubyArray array, Object format,
+                @Cached ToStrNode toStrNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final String formatString = toJavaStringNode.execute(format);
+            final var formatAsString = toStrNode.execute(format);
+            final String formatString = toJavaStringNode.execute(formatAsString);
 
             final BytesResult result;
             try {
@@ -1596,7 +1592,7 @@ public abstract class ArrayNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
+            int formatLength = libFormat.getTString(formatAsString).byteLength(libFormat.getTEncoding(formatAsString));
             return finishPack(formatLength, result, resizeProfile);
         }
 

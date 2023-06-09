@@ -58,7 +58,6 @@ public abstract class RegexpNodes {
     @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStrNode;
         @Child private QuoteNode quoteNode;
 
         public abstract RubyString execute(Object raw);
@@ -79,11 +78,8 @@ public abstract class RegexpNodes {
         }
 
         @Fallback
-        protected RubyString quote(Object raw) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNode.create());
-            }
+        protected RubyString quote(Object raw,
+                @Cached ToStrNode toStrNode) {
 
             return doQuoteString(toStrNode.execute(raw));
         }

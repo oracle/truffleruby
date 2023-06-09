@@ -53,7 +53,6 @@ import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -1659,22 +1658,19 @@ public abstract class KernelNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
 
-        @CreateCast("format")
-        protected ToStrNode coerceFormatToString(RubyBaseNodeWithExecute format) {
-            return ToStrNodeGen.create(format);
-        }
-
         @Specialization(
                 guards = {
-                        "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedTString, cachedEncoding)",
+                        "libFormat.isRubyString(formatAsString)",
+                        "equalNode.execute(libFormat, formatAsString, cachedTString, cachedEncoding)",
                         "isDebug(frame) == cachedIsDebug" },
                 limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
+                @Cached @Shared ToStrNode toStrNode,
+                @Bind("toStrNode.execute(format)") Object formatAsString,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
-                @Cached("asTruffleStringUncached(format)") TruffleString cachedTString,
-                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedTString,
+                @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
@@ -1694,12 +1690,14 @@ public abstract class KernelNodes {
                 guards = "libFormat.isRubyString(format)",
                 replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
+                @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
+            final var formatAsString = toStrNode.execute(format);
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.execute(frame);
-            var tstring = libFormat.getTString(format);
-            var encoding = libFormat.getEncoding(format);
+            var tstring = libFormat.getTString(formatAsString);
+            var encoding = libFormat.getEncoding(formatAsString);
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(tstring, encoding, arguments, isDebug),
