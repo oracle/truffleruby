@@ -24,6 +24,10 @@ VALUE rb_hash_new() {
   return RUBY_CEXT_INVOKE("rb_hash_new");
 }
 
+VALUE rb_hash_new_capa(long capacity) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_hash_new_capa", capacity));
+}
+
 VALUE rb_ident_hash_new() {
   return RUBY_CEXT_INVOKE("rb_ident_hash_new");
 }
