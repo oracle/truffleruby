@@ -41,7 +41,7 @@ public abstract class ToStrNode extends RubyBaseNode {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected static Object coerceObject(Node node, Object object,
-            @Cached DispatchNode toStrNode) {
+            @Cached(inline = false) DispatchNode toStrNode) {
         return toStrNode.call(
                 coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",

@@ -1013,7 +1013,7 @@ public abstract class StringNodes {
         @Specialization(replaces = "deleteBang")
         protected static Object deleteBangSlow(Node node, RubyString string, Object[] args,
                 @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
-                @Cached @Shared AsTruffleStringNode asTruffleStringNode,
+                @Cached(inline = false) @Shared AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached @Shared ToStrNode toStrNode) {
             final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(node, args, toStrNode, asTruffleStringNode,
