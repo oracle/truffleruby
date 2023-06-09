@@ -296,6 +296,7 @@ public abstract class StringHelperNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class DeleteBangStringsNode extends TrTableNode {
 
+        @NeverDefault
         public static DeleteBangStringsNode create() {
             return StringHelperNodesFactory.DeleteBangStringsNodeFactory.create(null);
         }

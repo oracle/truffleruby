@@ -135,7 +135,6 @@ import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.StringHelperNodes.DeleteBangStringsNode;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
-import org.truffleruby.core.string.StringNodesFactory.DeleteBangNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
@@ -984,36 +983,45 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "delete!", rest = true, raiseIfNotMutableSelf = true)
     @ImportStatic(StringGuards.class)
-    public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringDeleteBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DeleteBangStringsNode deleteBangStringsNode = DeleteBangStringsNode.create();
-        private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
-        @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
-
-        @NeverDefault
-        public static DeleteBangNode create() {
-            return DeleteBangNodeFactory.create(null);
+        @Specialization
+        protected Object deleteBang(RubyString string, Object[] args,
+                @Cached DeleteBangNode deleteBangNode) {
+            return deleteBangNode.execute(string, args);
         }
+    }
 
-        public abstract Object executeDeleteBang(RubyString string, Object[] args);
+    public abstract static class DeleteBangNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyString string, Object[] args);
 
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         protected Object deleteBang(RubyString string, Object[] args,
                 @Cached @Shared ToStrNode toStrNode,
+                @Cached @Shared AsTruffleStringNode asTruffleStringNode,
+                @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
+                @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode);
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode,
+                    asTruffleStringNode, rubyStringLibrary);
             return deleteBangStringsNode.executeDeleteBang(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
         protected Object deleteBangSlow(RubyString string, Object[] args,
+                @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
+                @Cached @Shared AsTruffleStringNode asTruffleStringNode,
+                @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached @Shared ToStrNode toStrNode) {
-            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args, toStrNode);
+            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args, toStrNode, asTruffleStringNode,
+                    rubyStringLibrary);
             return deleteBangStringsNode.executeDeleteBang(string, tstrings);
         }
 
         @ExplodeLoop
-        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr) {
+        protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr,
+                AsTruffleStringNode asTruffleStringNode, RubyStringLibrary rubyStringLibrary) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[size];
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -1025,7 +1033,8 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args, ToStrNode toStr) {
+        protected TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args, ToStrNode toStr,
+                AsTruffleStringNode asTruffleStringNode, RubyStringLibrary rubyStringLibrary) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
@@ -2718,7 +2727,7 @@ public abstract class StringNodes {
         protected static Object trBangToEmpty(RubyString self, Object fromStr, Object toStr,
                 @Cached DeleteBangNode deleteBangNode,
                 @Cached @Shared RubyStringLibrary libToStr) {
-            return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStr });
+            return deleteBangNode.execute(self, new Object[]{ fromStr });
         }
 
         @Specialization(
@@ -2766,7 +2775,7 @@ public abstract class StringNodes {
             final var fromStrAsString = fromStrNode.execute(fromStr);
             final var toStrAsString = toStrNode.execute(toStr);
             if (libToStr.getTString(toStrAsString).isEmpty()) {
-                return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStrAsString });
+                return deleteBangNode.execute(self, new Object[]{ fromStrAsString });
             }
 
             return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStrAsString, libToStr,
