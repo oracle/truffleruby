@@ -19,6 +19,8 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedIntValueProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -1544,9 +1546,6 @@ public abstract class ArrayNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
-
         @CreateCast("format")
         protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
@@ -1558,6 +1557,8 @@ public abstract class ArrayNodes {
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -1569,15 +1570,17 @@ public abstract class ArrayNodes {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(cachedFormatLength, result);
+            return finishPack(cachedFormatLength, result, resizeProfile);
         }
 
         @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
         protected RubyString packUncached(RubyArray array, Object format,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
@@ -1589,18 +1592,18 @@ public abstract class ArrayNodes {
                         compileFormat(formatString),
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
-            return finishPack(formatLength, result);
+            return finishPack(formatLength, result, resizeProfile);
         }
 
-        private RubyString finishPack(int formatLength, BytesResult result) {
+        private RubyString finishPack(int formatLength, BytesResult result, InlinedConditionProfile resizeProfile) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
