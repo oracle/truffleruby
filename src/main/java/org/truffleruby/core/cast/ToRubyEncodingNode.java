@@ -11,7 +11,8 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -24,44 +25,45 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
+
+@GenerateInline(inlineByDefault = true)
 public abstract class ToRubyEncodingNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static ToRubyEncodingNode create() {
-        return ToRubyEncodingNodeGen.create();
+    public abstract RubyEncoding execute(Node node, Object value);
+
+    public final RubyEncoding executeCached(Object value) {
+        return execute(this, value);
     }
 
-    public abstract RubyEncoding executeToEncoding(Object value);
-
     @Specialization
-    protected RubyEncoding stringToEncoding(RubyString value,
+    protected static RubyEncoding stringToEncoding(RubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 
     @Specialization
-    protected RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
+    protected static RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 
     @Specialization
-    protected RubyEncoding symbolToEncoding(RubySymbol value) {
+    protected static RubyEncoding symbolToEncoding(RubySymbol value) {
         return value.encoding;
     }
 
     @Specialization
-    protected RubyEncoding regexpToEncoding(RubyRegexp value) {
+    protected static RubyEncoding regexpToEncoding(RubyRegexp value) {
         return value.encoding;
     }
 
     @Specialization
-    protected RubyEncoding rubyEncodingToEncoding(RubyEncoding value) {
+    protected static RubyEncoding rubyEncodingToEncoding(RubyEncoding value) {
         return value;
     }
 
     @Fallback
-    protected RubyEncoding failure(Object value) {
+    protected static RubyEncoding failure(Object value) {
         return null;
     }
 }
