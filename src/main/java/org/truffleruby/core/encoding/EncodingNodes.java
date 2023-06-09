@@ -12,6 +12,8 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
@@ -30,7 +32,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToRubyEncodingNode;
-import org.truffleruby.core.cast.ToRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleStringEncodingNodeGen;
 import org.truffleruby.core.klass.RubyClass;
@@ -237,6 +238,7 @@ public abstract class EncodingNodes {
 
         @Child private TruffleString.GetByteCodeRangeNode codeRangeNode;
 
+        @NeverDefault
         public static NegotiateCompatibleEncodingNode create() {
             return NegotiateCompatibleEncodingNodeGen.create();
         }
@@ -831,51 +833,38 @@ public abstract class EncodingNodes {
 
     // MRI: rb_enc_check / rb_encoding_check
     @Primitive(name = "encoding_ensure_compatible")
-    public abstract static class CheckEncodingNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
-        @Child private ToRubyEncodingNode toRubyEncodingNode;
-
-        @NeverDefault
-        public static CheckEncodingNode create() {
-            return EncodingNodesFactory.CheckEncodingNodeFactory.create(null);
-        }
-
-        public abstract RubyEncoding executeCheckEncoding(Object first, Object second);
+    public abstract static class EncodingCheckEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyEncoding checkEncoding(Object first, Object second,
+                @Cached CheckEncodingNode checkEncodingNode) {
+            return checkEncodingNode.execute(this, first, second);
+        }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class CheckEncodingNode extends RubyBaseNode {
+
+        public abstract RubyEncoding execute(Node node, Object first, Object second);
+
+        @Specialization
+        protected static RubyEncoding checkEncoding(Node node, Object first, Object second,
+                @Cached ToRubyEncodingNode toRubyEncodingNode,
+                @Cached(inline = false) NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode,
                 @Cached InlinedBranchProfile errorProfile) {
-            final RubyEncoding negotiatedEncoding = executeNegotiate(first, second);
+            final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
-                errorProfile.enter(this);
-                raiseException(first, second);
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).encodingCompatibilityErrorIncompatible(
+                        toRubyEncodingNode.execute(node, first),
+                        toRubyEncodingNode.execute(node, second),
+                        node));
             }
 
             return negotiatedEncoding;
         }
-
-        private RubyEncoding executeNegotiate(Object first, Object second) {
-            if (negotiateCompatibleEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                negotiateCompatibleEncodingNode = insert(NegotiateCompatibleEncodingNode.create());
-            }
-            return negotiateCompatibleEncodingNode.executeNegotiate(first, second);
-        }
-
-        private void raiseException(Object first, Object second) {
-            if (toRubyEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toRubyEncodingNode = insert(ToRubyEncodingNodeGen.create());
-            }
-
-            throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                    toRubyEncodingNode.executeCached(first),
-                    toRubyEncodingNode.executeCached(second),
-                    this));
-        }
-
     }
 
     @Primitive(name = "encoding_unicode_version")

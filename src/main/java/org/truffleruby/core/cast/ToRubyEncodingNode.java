@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -26,14 +27,11 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
 
-@GenerateInline(inlineByDefault = true)
+@GenerateInline
+@GenerateCached(false)
 public abstract class ToRubyEncodingNode extends RubyBaseNode {
 
     public abstract RubyEncoding execute(Node node, Object value);
-
-    public final RubyEncoding executeCached(Object value) {
-        return execute(this, value);
-    }
 
     @Specialization
     protected static RubyEncoding stringToEncoding(RubyString value,

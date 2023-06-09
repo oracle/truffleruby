@@ -1002,6 +1002,7 @@ public abstract class StringNodes {
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
+        @NeverDefault
         public static DeleteBangNode create() {
             return DeleteBangNodeFactory.create(null);
         }
@@ -2338,8 +2339,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CheckEncodingNode checkEncodingNode;
-
         @Specialization(guards = "string.tstring.isEmpty()")
         protected Object squeezeBangEmptyString(RubyString string, Object[] args) {
             return nil;
@@ -2380,8 +2379,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!string.tstring.isEmpty()", "!noArguments(args)" })
-        protected Object squeezeBang(VirtualFrame frame, RubyString string, Object[] args,
-                @Cached ToStrNode toStrNode) {
+        protected static Object squeezeBang(VirtualFrame frame, RubyString string, Object[] args,
+                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached ToStrNode toStrNode,
+                @Bind("this") Node node) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             final Object[] otherStrings = new Object[args.length];
@@ -2390,22 +2391,19 @@ public abstract class StringNodes {
                 otherStrings[i] = toStrNode.execute(args[i]);
             }
 
-            return performSqueezeBang(string, otherStrings);
+            return performSqueezeBang(node, string, otherStrings, checkEncodingNode);
         }
 
         @TruffleBoundary
-        private Object performSqueezeBang(RubyString string, Object[] otherStrings) {
-            if (checkEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckEncodingNode.create());
-            }
+        private static Object performSqueezeBang(Node node, RubyString string, Object[] otherStrings,
+                CheckEncodingNode checkEncodingNode) {
 
             final TStringBuilder buffer = TStringBuilder.create(string);
 
             Object otherStr = otherStrings[0];
             var otherTString = RubyStringLibrary.getUncached().getTString(otherStr);
             var otherEncoding = RubyStringLibrary.getUncached().getEncoding(otherStr);
-            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
+            RubyEncoding enc = checkEncodingNode.execute(node, string, otherStr);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
 
             boolean singlebyte = TStringUtils.isSingleByteOptimizable(string.tstring, string.getEncodingUncached()) &&
@@ -2422,16 +2420,16 @@ public abstract class StringNodes {
             }
 
             StringSupport.TrTables tables = StringSupport
-                    .trSetupTable(otherTString, otherEncoding, squeeze, null, true, enc.jcoding, this);
+                    .trSetupTable(otherTString, otherEncoding, squeeze, null, true, enc.jcoding, node);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
                 otherTString = RubyStringLibrary.getUncached().getTString(otherStr);
                 otherEncoding = RubyStringLibrary.getUncached().getEncoding(otherStr);
-                enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
+                enc = checkEncodingNode.execute(node, string, otherStr);
                 singlebyte = singlebyte && TStringUtils.isSingleByteOptimizable(otherTString, otherEncoding);
                 tables = StringSupport.trSetupTable(otherTString, otherEncoding, squeeze, tables, false, enc.jcoding,
-                        this);
+                        node);
             }
 
             if (singlebyte) {
@@ -2443,7 +2441,7 @@ public abstract class StringNodes {
             } else {
                 var codeRange = string.tstring
                         .getByteCodeRangeUncached(RubyStringLibrary.getUncached().getTEncoding(string));
-                if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, tables, enc.jcoding, true, this)) {
+                if (!StringSupport.multiByteSqueeze(buffer, codeRange, squeeze, tables, enc.jcoding, true, node)) {
                     return nil;
                 } else {
                     string.setTString(buffer.toTString(), buffer.getRubyEncoding());
@@ -2711,9 +2709,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
-        @Child private CheckEncodingNode checkEncodingNode;
-        @Child private DeleteBangNode deleteBangNode;
-
         @CreateCast("fromStr")
         protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
             return ToStrNodeGen.create(fromStr);
@@ -2735,12 +2730,8 @@ public abstract class StringNodes {
                         "libToStr.getTString(toStr).isEmpty()" },
                 limit = "1")
         protected Object trBangToEmpty(RubyString self, Object fromStr, Object toStr,
+                @Cached DeleteBangNode deleteBangNode,
                 @Cached @Shared RubyStringLibrary libToStr) {
-            if (deleteBangNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                deleteBangNode = insert(DeleteBangNode.create());
-            }
-
             return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStr });
         }
 
@@ -2750,16 +2741,13 @@ public abstract class StringNodes {
                         "!self.tstring.isEmpty()",
                         "!libToStr.getTString(toStr).isEmpty()" },
                 limit = "1")
-        protected Object trBangNoEmpty(RubyString self, Object fromStr, Object toStr,
+        protected static Object trBangNoEmpty(RubyString self, Object fromStr, Object toStr,
+                @Cached CheckEncodingNode checkEncodingNode,
                 @Cached @Exclusive RubyStringLibrary libFromStr,
-                @Cached @Shared RubyStringLibrary libToStr) {
-            if (checkEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckEncodingNode.create());
-            }
-
-            return StringHelperNodes.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, false,
-                    this);
+                @Cached @Shared RubyStringLibrary libToStr,
+                @Bind("this") Node node) {
+            return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr,
+                    false);
         }
     }
 
@@ -2769,9 +2757,6 @@ public abstract class StringNodes {
     @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
-
-        @Child private CheckEncodingNode checkEncodingNode;
-        @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr")
         protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
@@ -2795,25 +2780,18 @@ public abstract class StringNodes {
                         "libToStr.isRubyString(toStr)",
                         "!self.tstring.isEmpty()" },
                 limit = "1")
-        protected Object trSBang(RubyString self, Object fromStr, Object toStr,
+        protected static Object trSBang(RubyString self, Object fromStr, Object toStr,
+                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached DeleteBangNode deleteBangNode,
                 @Cached RubyStringLibrary libFromStr,
-                @Cached RubyStringLibrary libToStr) {
+                @Cached RubyStringLibrary libToStr,
+                @Bind("this") Node node) {
             if (libToStr.getTString(toStr).isEmpty()) {
-                if (deleteBangNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    deleteBangNode = insert(DeleteBangNode.create());
-                }
-
                 return deleteBangNode.executeDeleteBang(self, new Object[]{ fromStr });
             }
 
-            if (checkEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(CheckEncodingNode.create());
-            }
-
-            return StringHelperNodes.trTransHelper(checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr, true,
-                    this);
+            return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr,
+                    true);
         }
     }
 
@@ -3810,29 +3788,30 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!patternTString.isEmpty()", limit = "1")
-        protected Object findStringByteIndex(Object rubyString, Object rubyPattern, int byteOffset,
+        protected static Object findStringByteIndex(Object rubyString, Object rubyPattern, int byteOffset,
                 @Cached @Exclusive RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libPattern,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached TruffleString.ByteIndexOfStringNode indexOfStringNode,
                 @Cached InlinedConditionProfile offsetTooLargeProfile,
                 @Cached InlinedConditionProfile notFoundProfile,
-                @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString patternTString) {
+                @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString patternTString,
+                @Bind("this") Node node) {
             assert byteOffset >= 0;
 
-            var compatibleEncoding = checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
+            var compatibleEncoding = checkEncodingNode.execute(node, rubyString, rubyPattern);
 
             var string = libString.getTString(rubyString);
             int stringByteLength = string.byteLength(libString.getTEncoding(rubyString));
 
-            if (offsetTooLargeProfile.profile(this, byteOffset >= stringByteLength)) {
+            if (offsetTooLargeProfile.profile(node, byteOffset >= stringByteLength)) {
                 return nil;
             }
 
             int patternByteIndex = indexOfStringNode.execute(string, patternTString, byteOffset, stringByteLength,
                     compatibleEncoding.tencoding);
 
-            if (notFoundProfile.profile(this, patternByteIndex < 0)) {
+            if (notFoundProfile.profile(node, patternByteIndex < 0)) {
                 return nil;
             }
 
@@ -4086,7 +4065,7 @@ public abstract class StringNodes {
             assert byteOffset >= 0;
 
             // Throw an exception if the encodings are not compatible.
-            var compatibleEncoding = checkEncodingNode.executeCheckEncoding(rubyString, rubyPattern);
+            var compatibleEncoding = checkEncodingNode.execute(this, rubyString, rubyPattern);
 
             var string = libString.getTString(rubyString);
             var stringEncoding = libString.getEncoding(rubyString).tencoding;

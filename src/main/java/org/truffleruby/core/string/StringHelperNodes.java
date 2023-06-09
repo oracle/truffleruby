@@ -43,12 +43,12 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public abstract class StringHelperNodes {
 
     @TruffleBoundary
-    static Object trTransHelper(EncodingNodes.CheckEncodingNode checkEncodingNode, RubyString self,
+    static Object trTransHelper(Node node, EncodingNodes.CheckEncodingNode checkEncodingNode, RubyString self,
             RubyStringLibrary libFromStr, Object fromStr,
-            RubyStringLibrary libToStr, Object toStr, boolean sFlag, Node node) {
-        final RubyEncoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
-        final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
-        final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
+            RubyStringLibrary libToStr, Object toStr, boolean sFlag) {
+        final RubyEncoding e1 = checkEncodingNode.execute(node, self, fromStr);
+        final RubyEncoding e2 = checkEncodingNode.execute(node, self, toStr);
+        final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.execute(node, fromStr, toStr);
 
         var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.getEncodingUncached());
         var fromStrTStringWithEnc = new ATStringWithEncoding(libFromStr, fromStr);
