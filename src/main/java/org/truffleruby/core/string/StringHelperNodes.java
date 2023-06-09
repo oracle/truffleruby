@@ -167,36 +167,45 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class CountStringsNode extends TrTableNode {
+    public abstract static class StringCountStringsNode extends CoreMethodArrayArgumentsNode {
 
-        public static CountStringsNode create() {
-            return StringHelperNodesFactory.CountStringsNodeFactory.create(null);
-        }
-
-        public abstract int executeCount(Object string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(guards = "libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, Object[] args,
-                @Cached @Shared RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString) {
             return 0;
         }
+
+        @Specialization
+        protected int countStrings(Object string, TStringWithEncoding[] args,
+                @Cached CountStringsNode countStringsNode) {
+            return countStringsNode.execute(string, args);
+        }
+    }
+
+    @ImportStatic(StringGuards.class)
+    public abstract static class CountStringsNode extends TrTableNode {
+
+        public abstract int execute(Object string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
                         "!tstring.isEmpty()",
                         "cachedArgs.length == args.length",
-                        "argsMatch(cachedArgs, args)",
+                        "argsMatch(cachedArgs, args, equalNode)",
                         "encoding == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
         protected int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
+                @Cached TruffleString.EqualNode equalNode,
                 @Cached @Shared RubyStringLibrary libString,
+                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Bind("libString.getTString(string)") AbstractTruffleString tstring,
                 @Bind("libString.getEncoding(string)") RubyEncoding encoding,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs, checkEncodingNode)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
@@ -208,6 +217,7 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
         protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
                 @Cached InlinedBranchProfile errorProfile,
+                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
@@ -221,7 +231,7 @@ public abstract class StringHelperNodes {
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
             var codeRange = getByteCodeRangeNode.execute(tstring, encoding.tencoding);
 
-            RubyEncoding enc = findEncoding(tstring, encoding, tstringsWithEncs);
+            RubyEncoding enc = findEncoding(tstring, encoding, tstringsWithEncs, checkEncodingNode);
             return countSlow(byteArray, codeRange, tstringsWithEncs, enc);
         }
 
@@ -234,17 +244,14 @@ public abstract class StringHelperNodes {
         }
     }
 
-    public abstract static class TrTableNode extends CoreMethodArrayArgumentsNode {
-        @Child protected EncodingNodes.CheckStringEncodingNode checkEncodingNode = EncodingNodes.CheckStringEncodingNode
-                .create();
-        @Child protected TruffleString.EqualNode equalNode = TruffleString.EqualNode.create();
+    public abstract static class TrTableNode extends RubyBaseNode {
 
         protected boolean[] squeeze() {
             return new boolean[StringSupport.TRANS_SIZE + 1];
         }
 
         protected RubyEncoding findEncoding(AbstractTruffleString tstring, RubyEncoding encoding,
-                TStringWithEncoding[] tstringsWithEncs) {
+                TStringWithEncoding[] tstringsWithEncs, EncodingNodes.CheckStringEncodingNode checkEncodingNode) {
             RubyEncoding enc = checkEncodingNode.executeCheckEncoding(tstring, encoding, tstringsWithEncs[0].tstring,
                     tstringsWithEncs[0].encoding);
             for (int i = 1; i < tstringsWithEncs.length; i++) {
@@ -279,7 +286,8 @@ public abstract class StringHelperNodes {
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(TStringWithEncoding[] cachedStrings, TStringWithEncoding[] strings) {
+        protected boolean argsMatch(TStringWithEncoding[] cachedStrings, TStringWithEncoding[] strings,
+                TruffleString.EqualNode equalNode) {
             for (int i = 0; i < cachedStrings.length; i++) {
                 if (cachedStrings[i].encoding != strings[i].encoding) {
                     return false;
@@ -294,34 +302,42 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class DeleteBangStringsNode extends TrTableNode {
-
-        @NeverDefault
-        public static DeleteBangStringsNode create() {
-            return StringHelperNodesFactory.DeleteBangStringsNodeFactory.create(null);
-        }
-
-        public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] tstringsWithEncs);
+    public abstract static class StringDeleteBangStringsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "string.tstring.isEmpty()")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
             return nil;
         }
 
+        @Specialization
+        protected Object deleteBangString(RubyString string, TStringWithEncoding[] args,
+                @Cached DeleteBangStringsNode deleteBangStringsNode) {
+            return deleteBangStringsNode.execute(string, args);
+        }
+    }
+
+
+    @ImportStatic(StringGuards.class)
+    public abstract static class DeleteBangStringsNode extends TrTableNode {
+
+        public abstract Object execute(RubyString string, TStringWithEncoding[] tstringsWithEncs);
+
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
                         "!string.tstring.isEmpty()",
                         "cachedArgs.length == args.length",
-                        "argsMatch(cachedArgs, args)",
+                        "argsMatch(cachedArgs, args, equalNode)",
                         "libString.getEncoding(string) == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
         protected static Object deleteBangFast(RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
+                @Cached TruffleString.EqualNode equalNode,
+                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(libString.getTString(string), libString.getEncoding(string), cachedArgs, checkEncodingNode)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached @Exclusive InlinedBranchProfile nullProfile,
                 @Bind("this") Node node) {
@@ -338,13 +354,14 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
         protected Object deleteBangSlow(RubyString string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString,
+                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Exclusive InlinedBranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            RubyEncoding enc = findEncoding(string.tstring, libString.getEncoding(string), args);
+            RubyEncoding enc = findEncoding(string.tstring, libString.getEncoding(string), args, checkEncodingNode);
 
             return deleteBangSlow(string, args, enc);
         }

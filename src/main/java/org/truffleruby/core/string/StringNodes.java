@@ -933,8 +933,6 @@ public abstract class StringNodes {
     @CoreMethod(names = "count", rest = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringHelperNodes.CountStringsNode countStringsNode = StringHelperNodes.CountStringsNode
-                .create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
@@ -942,17 +940,19 @@ public abstract class StringNodes {
                 guards = "args.length == size",
                 limit = "getDefaultCacheLimit()")
         protected int count(Object string, Object[] args,
+                @Cached @Shared StringHelperNodes.CountStringsNode countStringsNode,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached("args.length") int size) {
             final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode);
-            return countStringsNode.executeCount(string, tstringsWithEncs);
+            return countStringsNode.execute(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "count")
         protected int countSlow(Object string, Object[] args,
+                @Cached @Shared StringHelperNodes.CountStringsNode countStringsNode,
                 @Cached @Shared ToStrNode toStrNode) {
             final TStringWithEncoding[] tstringsWithEncs = argTStringsSlow(args, toStrNode);
-            return countStringsNode.executeCount(string, tstringsWithEncs);
+            return countStringsNode.execute(string, tstringsWithEncs);
         }
 
         @ExplodeLoop
@@ -1007,7 +1007,7 @@ public abstract class StringNodes {
                 @Cached("args.length") int size) {
             final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(node, args, size, toStrNode,
                     asTruffleStringNode, rubyStringLibrary);
-            return deleteBangStringsNode.executeDeleteBang(string, tstringsWithEncs);
+            return deleteBangStringsNode.execute(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
@@ -1018,7 +1018,7 @@ public abstract class StringNodes {
                 @Cached @Shared ToStrNode toStrNode) {
             final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(node, args, toStrNode, asTruffleStringNode,
                     rubyStringLibrary);
-            return deleteBangStringsNode.executeDeleteBang(string, tstrings);
+            return deleteBangStringsNode.execute(string, tstrings);
         }
 
         @ExplodeLoop
