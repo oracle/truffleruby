@@ -2799,12 +2799,12 @@ public abstract class StringNodes {
     @ReportPolymorphism
     public abstract static class UnpackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final BranchProfile negativeOffsetProfile = BranchProfile.create();
-        private final BranchProfile tooLargeOffsetProfile = BranchProfile.create();
 
         @Specialization(guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)", limit = "1")
         protected RubyArray unpackCached(Object string, Object format, Object offsetObject,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedBranchProfile negativeOffsetProfile,
+                @Cached @Shared InlinedBranchProfile tooLargeOffsetProfile,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
@@ -2819,7 +2819,7 @@ public abstract class StringNodes {
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
-                negativeOffsetProfile.enter();
+                negativeOffsetProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2827,7 +2827,7 @@ public abstract class StringNodes {
             }
 
             if (offset > byteArray.getLength()) {
-                tooLargeOffsetProfile.enter();
+                tooLargeOffsetProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2842,7 +2842,7 @@ public abstract class StringNodes {
                                 byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) }); // TODO impl associated for ImmutableRubyString
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
@@ -2853,6 +2853,9 @@ public abstract class StringNodes {
                 guards = "libFormat.isRubyString(format)",
                 replaces = "unpackCached", limit = "1")
         protected RubyArray unpackUncached(Object string, Object format, Object offsetObject,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedBranchProfile negativeOffsetProfile,
+                @Cached @Shared InlinedBranchProfile tooLargeOffsetProfile,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -2865,7 +2868,7 @@ public abstract class StringNodes {
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
-                negativeOffsetProfile.enter();
+                negativeOffsetProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2873,7 +2876,7 @@ public abstract class StringNodes {
             }
 
             if (offset > byteArray.getLength()) {
-                tooLargeOffsetProfile.enter();
+                tooLargeOffsetProfile.enter(this);
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().argumentError(
@@ -2889,7 +2892,7 @@ public abstract class StringNodes {
                                 byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
