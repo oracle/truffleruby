@@ -4,8 +4,8 @@ source test/truffle/common.sh.inc
 
 ruby_version=$(jt ruby -v)
 
-if [[ ! $ruby_version =~ "EE Native" ]]; then
-  echo EE Native not detected, no tests to run.
+if [[ ! $ruby_version =~ "Oracle GraalVM Native" ]]; then
+  echo Oracle GraalVM Native not detected, no tests to run.
   exit 0
 fi
 
