@@ -735,11 +735,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
             }
 
-            sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            sourceCode = toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 0));
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .execute(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {

@@ -80,8 +80,7 @@ public abstract class RegexpNodes {
         @Fallback
         protected RubyString quote(Object raw,
                 @Cached ToStrNode toStrNode) {
-
-            return doQuoteString(toStrNode.execute(raw));
+            return doQuoteString(toStrNode.execute(this, raw));
         }
 
         private RubyString doQuoteString(Object raw) {

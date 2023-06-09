@@ -10,7 +10,10 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
@@ -20,28 +23,30 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 public abstract class ToStrNode extends RubyBaseNode {
 
-    public abstract Object execute(Object object);
+    public abstract Object execute(Node node, Object object);
 
     @Specialization
-    protected RubyString coerceRubyString(RubyString string) {
+    protected static RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
+    protected static ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected Object coerceObject(Object object,
+    protected static Object coerceObject(Node node, Object object,
             @Cached DispatchNode toStrNode) {
         return toStrNode.call(
-                coreLibrary().truffleTypeModule,
+                coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",
                 object,
-                coreLibrary().stringClass,
-                coreSymbols().TO_STR);
+                coreLibrary(node).stringClass,
+                coreSymbols(node).TO_STR);
     }
 }

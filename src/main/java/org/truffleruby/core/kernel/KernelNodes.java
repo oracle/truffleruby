@@ -690,7 +690,7 @@ public abstract class KernelNodes {
                 @Cached InlinedConditionProfile fileNoLineProfile) {
 
             final Object[] args = RubyArguments.getPositionalArguments(rubyArgs);
-            final Object source = toStrNode.execute(args[0]);
+            final Object source = toStrNode.execute(this, args[0]);
 
             final RubyBinding binding;
             final Object self;
@@ -715,9 +715,9 @@ public abstract class KernelNodes {
 
             if (fileAndLineProfile.profile(this, args.length > 3 && args[3] != nil)) {
                 line = toIntNode.execute(args[3]);
-                file = toStrNode.execute(args[2]);
+                file = toStrNode.execute(this, args[2]);
             } else if (fileNoLineProfile.profile(this, args.length > 2 && args[2] != nil)) {
-                file = toStrNode.execute(args[2]);
+                file = toStrNode.execute(this, args[2]);
                 line = 1;
             } else {
                 file = coreStrings().EVAL_FILENAME_STRING.createInstance(getContext());
@@ -1666,7 +1666,7 @@ public abstract class KernelNodes {
                 limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
-                @Bind("toStrNode.execute(format)") Object formatAsString,
+                @Bind("toStrNode.execute(this, format)") Object formatAsString,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedTString,
@@ -1693,7 +1693,7 @@ public abstract class KernelNodes {
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
-            final var formatAsString = toStrNode.execute(format);
+            final var formatAsString = toStrNode.execute(this, format);
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.execute(frame);
             var tstring = libFormat.getTString(formatAsString);

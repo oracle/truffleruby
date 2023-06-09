@@ -1579,7 +1579,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final var formatAsString = toStrNode.execute(format);
+            final var formatAsString = toStrNode.execute(this, format);
             final String formatString = toJavaStringNode.execute(formatAsString);
 
             final BytesResult result;

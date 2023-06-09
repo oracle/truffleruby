@@ -455,7 +455,7 @@ public abstract class EncodingConverterNodes {
                 @Cached RubyStringLibrary libReplacement,
                 @Cached ToStrNode toStrNode,
                 @Bind("this") Node node) {
-            final var replacementAsString = toStrNode.execute(replacement);
+            final var replacementAsString = toStrNode.execute(node, replacement);
             var tstring = libReplacement.getTString(replacementAsString);
             var encoding = libReplacement.getEncoding(replacementAsString);
 

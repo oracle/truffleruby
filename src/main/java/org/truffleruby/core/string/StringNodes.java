@@ -228,7 +228,7 @@ public abstract class StringNodes {
         protected RubyString add(Object string, Object other,
                 @Cached ToStrNode toStrNode,
                 @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
-            final var otherAsString = toStrNode.execute(other);
+            final var otherAsString = toStrNode.execute(this, other);
             return stringAppendNode.executeStringAppend(string, otherAsString);
         }
     }
@@ -752,7 +752,7 @@ public abstract class StringNodes {
         protected Object caseCmp(Object string, Object other,
                 @Cached ToStrNode toStrNode,
                 @Cached CaseCmpNode caseCmpNode) {
-            final var otherAsString = toStrNode.execute(other);
+            final var otherAsString = toStrNode.execute(this, other);
             return caseCmpNode.execute(this, string, otherAsString);
         }
     }
@@ -959,7 +959,7 @@ public abstract class StringNodes {
         protected TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < size; i++) {
-                final Object string = toStr.execute(args[i]);
+                final Object string = toStr.execute(this, args[i]);
                 strs[i] = new TStringWithEncoding(
                         asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
@@ -971,7 +971,7 @@ public abstract class StringNodes {
         protected TStringWithEncoding[] argTStringsSlow(Object[] args, ToStrNode toStr) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
-                final Object string = toStr.execute(args[i]);
+                final Object string = toStr.execute(this, args[i]);
                 strs[i] = new TStringWithEncoding(
                         asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
@@ -999,34 +999,34 @@ public abstract class StringNodes {
         public abstract Object execute(Node node, RubyString string, Object[] args);
 
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
-        protected static Object deleteBang(RubyString string, Object[] args,
+        protected static Object deleteBang(Node node, RubyString string, Object[] args,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached @Shared AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
                 @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached("args.length") int size) {
-            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(args, size, toStrNode,
+            final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(node, args, size, toStrNode,
                     asTruffleStringNode, rubyStringLibrary);
             return deleteBangStringsNode.executeDeleteBang(string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
-        protected static Object deleteBangSlow(RubyString string, Object[] args,
+        protected static Object deleteBangSlow(Node node, RubyString string, Object[] args,
                 @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
                 @Cached @Shared AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached @Shared ToStrNode toStrNode) {
-            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(args, toStrNode, asTruffleStringNode,
+            final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(node, args, toStrNode, asTruffleStringNode,
                     rubyStringLibrary);
             return deleteBangStringsNode.executeDeleteBang(string, tstrings);
         }
 
         @ExplodeLoop
-        protected static TStringWithEncoding[] argTStringsWithEncs(Object[] args, int size, ToStrNode toStr,
+        protected static TStringWithEncoding[] argTStringsWithEncs(Node node, Object[] args, int size, ToStrNode toStr,
                 AsTruffleStringNode asTruffleStringNode, RubyStringLibrary rubyStringLibrary) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[size];
             for (int i = 0; i < size; i++) {
-                final Object string = toStr.execute(args[i]);
+                final Object string = toStr.execute(node, args[i]);
                 strs[i] = new TStringWithEncoding(
                         asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
@@ -1035,11 +1035,11 @@ public abstract class StringNodes {
             return strs;
         }
 
-        protected static TStringWithEncoding[] argTStringsWithEncsSlow(Object[] args, ToStrNode toStr,
+        protected static TStringWithEncoding[] argTStringsWithEncsSlow(Node node, Object[] args, ToStrNode toStr,
                 AsTruffleStringNode asTruffleStringNode, RubyStringLibrary rubyStringLibrary) {
             final TStringWithEncoding[] strs = new TStringWithEncoding[args.length];
             for (int i = 0; i < args.length; i++) {
-                final Object string = toStr.execute(args[i]);
+                final Object string = toStr.execute(node, args[i]);
                 strs[i] = new TStringWithEncoding(
                         asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
@@ -1415,10 +1415,11 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyEncoding(newEncoding)", "isNotRubyString(newEncoding)" })
-        protected RubyString forceEncoding(RubyString string, Object newEncoding,
+        protected static RubyString forceEncoding(RubyString string, Object newEncoding,
                 @Cached ToStrNode toStrNode,
-                @Cached @Exclusive ForceEncodingNode forceEncodingNode) {
-            return forceEncodingNode.execute(string, toStrNode.execute(newEncoding));
+                @Cached @Exclusive ForceEncodingNode forceEncodingNode,
+                @Bind("this") Node node) {
+            return forceEncodingNode.execute(string, toStrNode.execute(node, newEncoding));
         }
     }
 
@@ -1494,10 +1495,11 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isNotRubyString(from)", "!isString(from)" })
-        protected RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
+        protected static RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
                 @Cached @Exclusive RubyStringLibrary stringLibrary,
-                @Cached ToStrNode toStrNode) {
-            final Object stringFrom = toStrNode.execute(from);
+                @Cached ToStrNode toStrNode,
+                @Bind("this") Node node) {
+            final Object stringFrom = toStrNode.execute(node, from);
             string.setTString(stringLibrary.getTString(stringFrom), stringLibrary.getEncoding(stringFrom));
             return string;
         }
@@ -1716,7 +1718,7 @@ public abstract class StringNodes {
         protected Object replaceNode(RubyString string, Object other,
                 @Cached ToStrNode toStrNode,
                 @Cached ReplaceNode replaceNode) {
-            final var otherAsString = toStrNode.execute(other);
+            final var otherAsString = toStrNode.execute(this, other);
             return replaceNode.execute(this, string, otherAsString);
         }
     }
@@ -2377,7 +2379,7 @@ public abstract class StringNodes {
             final Object[] otherStrings = new Object[args.length];
 
             for (int i = 0; i < args.length; i++) {
-                otherStrings[i] = toStrNode.execute(args[i]);
+                otherStrings[i] = toStrNode.execute(node, args[i]);
             }
 
             return performSqueezeBang(node, string, otherStrings, checkEncodingNode);
@@ -2703,8 +2705,8 @@ public abstract class StringNodes {
                 @Cached ToStrNode fromStrNode,
                 @Cached ToStrNode toStrNode,
                 @Cached TrBangNode trBangNode) {
-            final var fromStrAsString = fromStrNode.execute(fromStr);
-            final var toStrAsString = toStrNode.execute(toStr);
+            final var fromStrAsString = fromStrNode.execute(this, fromStr);
+            final var toStrAsString = toStrNode.execute(this, toStr);
             return trBangNode.execute(this, self, fromStrAsString, toStrAsString);
 
         }
@@ -2774,8 +2776,8 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libFromStr,
                 @Cached RubyStringLibrary libToStr,
                 @Bind("this") Node node) {
-            final var fromStrAsString = fromStrNode.execute(fromStr);
-            final var toStrAsString = toStrNode.execute(toStr);
+            final var fromStrAsString = fromStrNode.execute(node, fromStr);
+            final var toStrAsString = toStrNode.execute(node, toStr);
             if (libToStr.getTString(toStrAsString).isEmpty()) {
                 return deleteBangNode.execute(node, self, new Object[]{ fromStrAsString });
             }
