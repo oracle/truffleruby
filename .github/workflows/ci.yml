@@ -107,12 +107,8 @@ jobs:
 
       - uses: ./build/.github/actions/setup-jvmci-graal
 
-      # [GR-29808] We build everything except native images first,
-      # so that we minimize the memory used by mx, etc when building native images.
-      - name: Build TruffleRuby (jars)
-        run: jt build --env native --native-images=none
       - run: free -m
-      - name: Build TruffleRuby (native images)
+      - name: Build TruffleRuby
         run: jt build --env native
 
       - name: Create archive
