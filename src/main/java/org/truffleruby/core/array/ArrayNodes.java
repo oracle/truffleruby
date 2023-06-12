@@ -1547,17 +1547,19 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = {
-                        "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
+                        "libFormat.isRubyString(formatAsString)",
+                        "equalNode.execute(libFormat, formatAsString, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
+                @Cached @Shared ToStrNode toStrNode,
+                @Bind("toStrNode.execute(this, format)") Object formatAsString,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
-                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callPackNode,
+                @Cached("create(compileFormat(getJavaString(formatAsString)))") DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
@@ -1571,15 +1573,15 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result, resizeProfile);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
+        @Specialization(guards = { "libFormat.isRubyString(formatAsString)" }, replaces = "packCached", limit = "1")
         protected RubyString packUncached(RubyArray array, Object format,
-                @Cached ToStrNode toStrNode,
+                @Cached @Shared ToStrNode toStrNode,
+                @Bind("toStrNode.execute(this, format)") Object formatAsString,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final var formatAsString = toStrNode.execute(this, format);
             final String formatString = toJavaStringNode.execute(formatAsString);
 
             final BytesResult result;
