@@ -792,14 +792,12 @@ describe "Module#autoload" do
     -> { ModuleSpecs.autoload "a name", @non_existent }.should raise_error(NameError)
   end
 
-  it "shares the autoload request across dup'ed copies of modules" do
-    require fixture(__FILE__, "autoload_s.rb")
-    @remove << :S
+  it "does not share the autoload request internals across dup'ed copies of modules" do
     filename = fixture(__FILE__, "autoload_t.rb")
     mod1 = Module.new { autoload :T, filename }
-    -> {
-      ModuleSpecs::Autoload::S = mod1
-    }.should complain(/already initialized constant/)
+    ModuleSpecs::Autoload::S = mod1
+    @remove << :S
+
     mod2 = mod1.dup
 
     mod1.autoload?(:T).should == filename
@@ -903,6 +901,20 @@ describe "Module#autoload" do
       t2_val.should == t1_val
 
       t2_exc.should be_nil
+    end
+
+    it "blocks other threads until the file is done loading so no partial modules are seen" do
+      ModuleSpecs::Autoload.autoload :ThreadSafe, fixture(__FILE__, "autoload_thread_safe.rb")
+      barrier = ModuleSpecs::CyclicBarrier.new 2
+      ScratchPad.record(barrier)
+
+      thread = Thread.new { # starts the autoload
+        ModuleSpecs::Autoload::ThreadSafe.foo.should == 42
+      }
+      barrier.await
+      ModuleSpecs::Autoload::ThreadSafe.foo.should == 42 # ThreadSafe should only be published once the whole file is loaded
+
+      thread.join
     end
 
     # https://bugs.ruby-lang.org/issues/10892

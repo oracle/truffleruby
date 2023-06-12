@@ -21,6 +21,7 @@ Compatibility:
 * Add `String#bytesplice` (#3039, @itarato).
 * Add `String#byteindex` and `String#byterindex` (#3039, @itarato).
 * Add implementations of `rb_proc_call_with_block`, `rb_proc_call_kw`, `rb_proc_call_with_block_kw` and `rb_funcall_with_block_kw` (#3068, @andrykonchin).
+* Make `autoload` thread-safe, that is only publish the autoloaded constant once the file is fully loaded (#2431, #3040, @eregon).
 
 Performance:
 

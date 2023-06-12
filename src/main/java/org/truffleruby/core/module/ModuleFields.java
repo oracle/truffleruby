@@ -39,6 +39,7 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.AutoloadConstant;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
@@ -162,19 +163,24 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         getName();
     }
 
-    public RubyConstant getAdoptedByLexicalParent(
-            RubyContext context,
-            RubyModule lexicalParent,
-            String name,
+    public RubyConstant getAdoptedByLexicalParent(RubyContext context, RubyModule lexicalParent, String name,
             Node currentNode) {
+        return getAdoptedByLexicalParent(context, lexicalParent, name, currentNode, true);
+    }
+
+    private RubyConstant getAdoptedByLexicalParent(RubyContext context, RubyModule lexicalParent, String name,
+            Node currentNode, boolean setConstant) {
         assert name != null;
 
-        RubyConstant previous = lexicalParent.fields.setConstantInternal(
-                context,
-                currentNode,
-                name,
-                rubyModule,
-                false);
+        RubyConstant previous = null;
+        if (setConstant) {
+            previous = lexicalParent.fields.setConstantInternal(
+                    context,
+                    currentNode,
+                    name,
+                    rubyModule,
+                    null);
+        }
 
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
@@ -207,7 +213,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                             context,
                             rubyModule,
                             entry.getKey(),
-                            null);
+                            null,
+                            false);
                 }
             }
         }
@@ -222,7 +229,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void initCopy(RubyModule from) {
+    public void initCopy(RubyContext context, RubyModule from, Node node) {
         // Do not copy name, the copy is an anonymous module
         final ModuleFields fromFields = from.fields;
 
@@ -239,7 +246,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         for (Entry<String, ConstantEntry> entry : fromFields.constants.entrySet()) {
             final RubyConstant constant = entry.getValue().getConstant();
             if (constant != null) {
-                this.constants.put(entry.getKey(), new ConstantEntry(constant));
+                if (constant.isAutoload()) {
+                    var autoloadConstant = constant.getAutoloadConstant();
+                    setAutoloadConstant(context, node, constant.getName(), autoloadConstant.getFeature());
+                } else {
+                    this.constants.put(entry.getKey(), new ConstantEntry(constant.copy(rubyModule)));
+                }
             }
         }
 
@@ -427,15 +439,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     name,
                     currentNode);
         } else {
-            return setConstantInternal(context, currentNode, name, value, false);
+            return setConstantInternal(context, currentNode, name, value, null);
         }
     }
 
     @TruffleBoundary
-    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename,
-            String javaFilename) {
-        RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
-        if (autoloadConstant == null) {
+    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename) {
+        RubyConstant constant = setConstantInternal(context, currentNode, name, null, new AutoloadConstant(filename));
+        if (constant == null) {
             return;
         }
 
@@ -443,47 +454,57 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
                     context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
-                    autoloadConstant,
+                    constant,
                     filename));
         }
         final ReentrantLockFreeingMap<String> fileLocks = context.getFeatureLoader().getFileLocks();
-        final ReentrantLock lock = fileLocks.get(javaFilename);
+        final ReentrantLock lock = fileLocks.get(constant.getAutoloadConstant().getAutoloadPath());
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
-            GetConstantNode.autoloadConstantStart(context, autoloadConstant, currentNode);
+            GetConstantNode.autoloadConstantStart(context, constant, currentNode);
         }
 
-        context.getFeatureLoader().addAutoload(autoloadConstant);
+        context.getFeatureLoader().addAutoload(constant);
     }
 
     private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value,
-            boolean autoload) {
+            AutoloadConstant autoloadConstant) {
         checkFrozen(context, currentNode);
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, value);
 
-        final String autoloadPath = autoload
-                ? RubyGuards.getJavaString(value)
-                : null;
+        final boolean autoload = autoloadConstant != null;
+        final String autoloadPath = autoload ? autoloadConstant.getAutoloadPath() : null;
+
         RubyConstant previous;
         RubyConstant newConstant;
         ConstantEntry previousEntry;
         do {
             previousEntry = constants.get(name);
             previous = previousEntry != null ? previousEntry.getConstant() : null;
-            if (autoload && previous != null) {
-                if (previous.hasValue()) {
-                    // abort, do not set an autoload constant, the constant already has a value
-                    return null;
-                } else if (previous.isAutoload() &&
-                        previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
-                    // already an autoload constant with the same path,
-                    // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
-                    return null;
+
+            if (previous != null) {
+                if (autoload) {
+                    if (previous.hasValue()) {
+                        // abort, do not set an autoload constant, the constant already has a value
+                        return null;
+                    } else if (previous.isAutoload() &&
+                            previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
+                        // already an autoload constant with the same path,
+                        // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
+                        return null;
+                    }
+                } else {
+                    if (previous.isAutoload() && previous.getAutoloadConstant().isAutoloadingThread() &&
+                            !previous.getAutoloadConstant().isPublished()) {
+                        previous.getAutoloadConstant().setUnpublishedValue(value, currentNode);
+                        return previous;
+                    }
                 }
             }
-            newConstant = newConstant(currentNode, name, value, autoload, previous);
+
+            newConstant = newConstant(currentNode, name, value, autoloadConstant, previous);
         } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 
         if (previousEntry != null) {
@@ -497,12 +518,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return autoload ? newConstant : previous;
     }
 
-    private RubyConstant newConstant(Node currentNode, String name, Object value, boolean autoload,
+    private RubyConstant newConstant(Node currentNode, String name, Object value, AutoloadConstant autoloadConstant,
             RubyConstant previous) {
         final boolean isPrivate = previous != null && previous.isPrivate();
         final boolean isDeprecated = previous != null && previous.isDeprecated();
         final SourceSection sourceSection = currentNode != null ? currentNode.getSourceSection() : null;
-        return new RubyConstant(rubyModule, name, value, isPrivate, autoload, isDeprecated, sourceSection);
+        return new RubyConstant(rubyModule, name, value, isPrivate, autoloadConstant, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary

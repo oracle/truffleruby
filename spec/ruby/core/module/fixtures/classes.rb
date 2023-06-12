@@ -475,7 +475,7 @@ module ModuleSpecs
   end
 
   class CyclicBarrier
-    def initialize(count = 1)
+    def initialize(count)
       @count = count
       @state = 0
       @mutex = Mutex.new

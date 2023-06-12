@@ -17,13 +17,16 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-public class AutoloadConstant {
+public final class AutoloadConstant {
 
     private final Object feature;
     private final String autoloadPath;
     private volatile ReentrantLock autoloadLock;
+    private Object unpublishedValue = null;
+    private Node unpublishedValueNode = null;
+    private boolean published = false;
 
-    AutoloadConstant(Object feature) {
+    public AutoloadConstant(Object feature) {
         assert RubyStringLibrary.getUncached().isRubyString(feature);
         this.feature = feature;
         this.autoloadPath = RubyGuards.getJavaString(this.feature);
@@ -64,4 +67,41 @@ public class AutoloadConstant {
         return autoloadLock != null && autoloadLock.isHeldByCurrentThread();
     }
 
+    public boolean isAutoloadingThreadAndUnset() {
+        return isAutoloadingThread() && !hasUnpublishedValue();
+    }
+
+    public boolean shouldPublish() {
+        return hasUnpublishedValue() && !isPublished();
+    }
+
+    private boolean hasUnpublishedValue() {
+        assert isAutoloadingThread();
+        return unpublishedValue != null;
+    }
+
+    public Object getUnpublishedValue() {
+        assert isAutoloadingThread();
+        return unpublishedValue;
+    }
+
+    public void setUnpublishedValue(Object unpublishedValue, Node currentNode) {
+        assert isAutoloadingThread();
+        assert RubyGuards.assertIsValidRubyValue(unpublishedValue);
+        this.unpublishedValue = unpublishedValue;
+        this.unpublishedValueNode = currentNode;
+    }
+
+    public boolean isPublished() {
+        assert isAutoloadingThread();
+        return published;
+    }
+
+    public void publish(RubyContext context, RubyConstant constant) {
+        assert isAutoloadingThread();
+        assert hasUnpublishedValue();
+        this.published = true;
+        constant.getDeclaringModule().fields.setConstant(context, unpublishedValueNode, constant.getName(),
+                unpublishedValue);
+    }
 }

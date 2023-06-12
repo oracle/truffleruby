@@ -21,6 +21,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.AutoloadConstant;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
@@ -71,27 +72,33 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
+    @Specialization(guards = { "constant != null", "constant.isAutoload()" })
     protected Object autoloadConstant(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,
-            RubyConstant autoloadConstant,
+            RubyConstant constant,
             LookupConstantInterface lookupConstantNode,
             boolean callConstMissing,
             @Cached @Shared LazyDispatchNode constMissingNode,
             @Cached DispatchNode callRequireNode) {
 
-        final Object feature = autoloadConstant.getAutoloadConstant().getFeature();
+        final AutoloadConstant autoloadConstant = constant.getAutoloadConstant();
+        final Object feature = autoloadConstant.getFeature();
 
-        if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
-            // Pretend the constant does not exist while it is autoloading
-            return doMissingConstant(module, name, getSymbol(name), callConstMissing, constMissingNode.get(this));
+        if (autoloadConstant.isAutoloadingThread()) {
+            var unpublishedValue = autoloadConstant.getUnpublishedValue();
+            if (unpublishedValue != null) {
+                return unpublishedValue;
+            } else {
+                // Pretend the constant does not exist while it is autoloading
+                return doMissingConstant(module, name, getSymbol(name), callConstMissing, constMissingNode.get(this));
+            }
         }
 
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final String expandedPath = featureLoader
-                .findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
+                .findFeature(autoloadConstant.getAutoloadPath());
         if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
             // We found an autoload constant while we are already require-ing the autoload file,
             // consider it missing to avoid circular require warnings and calling #require twice.
@@ -112,20 +119,27 @@ public abstract class GetConstantNode extends RubyBaseNode {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: autoloading %s with %s",
                     getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                    autoloadConstant,
-                    autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                    constant,
+                    autoloadConstant.getAutoloadPath()));
         }
 
         // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
-        autoloadConstantStart(getContext(), autoloadConstant, this);
+        autoloadConstantStart(getContext(), constant, this);
+        // TODO return early for other threads if the constant has been set
         try {
-            callRequireNode.call(coreLibrary().mainObject, "require", feature);
+            try {
+                callRequireNode.call(coreLibrary().mainObject, "require", feature);
+            } finally {
+                if (autoloadConstant.shouldPublish()) {
+                    autoloadConstant.publish(getContext(), constant);
+                } // TODO else remove the constant
+            }
 
             // This needs to run while the autoload is marked as isAutoloading(), to avoid infinite recursion
-            return autoloadResolveConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode,
+            return autoloadResolveConstant(lexicalScope, module, name, constant, lookupConstantNode,
                     callConstMissing);
         } finally {
-            autoloadConstantStop(autoloadConstant);
+            autoloadConstantStop(constant);
         }
     }
 
@@ -136,6 +150,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
+        // TODO skip if already has unpublishedValue
         autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
     }
 
