@@ -236,6 +236,7 @@ suite = {
                 "truffle:TRUFFLE_NFI",
                 "regex:TREGEX",
                 "sulong:SULONG_API",
+                "sulong:SULONG_NFI",
                 # Libraries, keep in sync with TRUFFLERUBY.exclude and truffle_jars (in mx_truffleruby.py)
                 "sdk:JLINE3",
                 "truffleruby:JCODINGS",
@@ -434,6 +435,7 @@ suite = {
                 "truffle:TRUFFLE_NFI",
                 "regex:TREGEX",
                 "sulong:SULONG_API",
+                "sulong:SULONG_NFI",
             ],
             "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
                 "sdk:JLINE3",
