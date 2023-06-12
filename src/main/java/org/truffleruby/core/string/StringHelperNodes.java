@@ -108,7 +108,7 @@ public abstract class StringHelperNodes {
         protected boolean equal(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
                 @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached StringEqualInternalNode stringEqualInternalNode) {
-            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(a, encA, b, encB);
+            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(this, a, encA, b, encB);
             return stringEqualInternalNode.executeInternal(a, b, compatibleEncoding);
         }
     }
@@ -308,9 +308,10 @@ public abstract class StringHelperNodes {
         }
 
         @Specialization
-        protected Object deleteBangString(RubyString string, TStringWithEncoding[] args,
-                @Cached DeleteBangStringsNode deleteBangStringsNode) {
-            return deleteBangStringsNode.execute(this, string, args);
+        protected static Object deleteBangString(RubyString string, TStringWithEncoding[] args,
+                @Cached DeleteBangStringsNode deleteBangStringsNode,
+                @Bind("this") Node node) {
+            return deleteBangStringsNode.execute(node, string, args);
         }
     }
 

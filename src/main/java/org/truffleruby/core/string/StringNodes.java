@@ -304,16 +304,18 @@ public abstract class StringNodes {
         @Child private BooleanCastNode booleanCastNode;
 
         @Specialization(guards = "libB.isRubyString(b)", limit = "1")
-        protected boolean equalString(Object a, Object b,
+        protected static boolean equalString(Object a, Object b,
                 @Cached RubyStringLibrary libA,
                 @Cached RubyStringLibrary libB,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
-                @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode) {
+                @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode,
+                @Bind("this") Node node) {
             var tstringA = libA.getTString(a);
             var encA = libA.getEncoding(a);
             var tstringB = libB.getTString(b);
             var encB = libB.getEncoding(b);
-            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(tstringA, encA, tstringB, encB);
+            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringA, encA, tstringB,
+                    encB);
             return stringEqualInternalNode.executeInternal(tstringA, tstringB, compatibleEncoding);
         }
 
@@ -781,7 +783,7 @@ public abstract class StringNodes {
                 @Cached(inline = false) TruffleString.GetInternalByteArrayNode byteArrayOtherNode) {
             // Taken from org.jruby.RubyString#casecmp19.
 
-            final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
+            final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(node, selfTString, selfEncoding,
                     otherTString, otherEncoding);
             if (incompatibleEncodingProfile.profile(node, encoding == null)) {
                 return nil;
@@ -813,7 +815,7 @@ public abstract class StringNodes {
                 @Bind("libOther.getEncoding(other)") RubyEncoding otherEncoding) {
             // Taken from org.jruby.RubyString#casecmp19
 
-            final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
+            final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(node, selfTString, selfEncoding,
                     otherTString, otherEncoding);
 
             if (incompatibleEncodingProfile.profile(node, encoding == null)) {
