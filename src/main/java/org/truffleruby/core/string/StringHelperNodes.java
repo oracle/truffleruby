@@ -63,20 +63,17 @@ public abstract class StringHelperNodes {
         return self;
     }
 
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static SingleByteOptimizableNode create() {
-            return StringHelperNodesFactory.SingleByteOptimizableNodeGen.create();
-        }
-
-        public abstract boolean execute(AbstractTruffleString string, RubyEncoding encoding);
+        public abstract boolean execute(Node node, AbstractTruffleString string, RubyEncoding encoding);
 
         @Specialization
-        protected boolean isSingleByteOptimizable(AbstractTruffleString string, RubyEncoding encoding,
+        protected static boolean isSingleByteOptimizable(Node node, AbstractTruffleString string, RubyEncoding encoding,
                 @Cached InlinedConditionProfile asciiOnlyProfile,
-                @Cached TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
-            if (asciiOnlyProfile.profile(this, StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
+                @Cached(inline = false) TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
+            if (asciiOnlyProfile.profile(node, StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
                 return true;
             } else {
                 return encoding.isSingleByte;

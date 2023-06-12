@@ -764,7 +764,7 @@ public abstract class StringNodes {
         public abstract Object execute(Node node, Object string, Object other);
 
         @Specialization(
-                guards = "bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
+                guards = "bothSingleByteOptimizable(node, selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
         protected static Object caseCmpSingleByte(Node node, Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
@@ -798,7 +798,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "!bothSingleByteOptimizable(selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
+                guards = "!bothSingleByteOptimizable(node, selfTString, selfEncoding, otherTString, otherEncoding, singleByteOptimizableNode)",
                 limit = "1")
         protected static Object caseCmp(Node node, Object string, Object other,
                 @Cached @Shared RubyStringLibrary libString,
@@ -828,11 +828,11 @@ public abstract class StringNodes {
                     otherEncoding.tencoding);
         }
 
-        protected static boolean bothSingleByteOptimizable(AbstractTruffleString string, RubyEncoding stringEncoding,
-                AbstractTruffleString other, RubyEncoding otherEncoding,
+        protected static boolean bothSingleByteOptimizable(Node node, AbstractTruffleString string,
+                RubyEncoding stringEncoding, AbstractTruffleString other, RubyEncoding otherEncoding,
                 SingleByteOptimizableNode singleByteOptimizableNode) {
-            return singleByteOptimizableNode.execute(string, stringEncoding) &&
-                    singleByteOptimizableNode.execute(other, otherEncoding);
+            return singleByteOptimizableNode.execute(node, string, stringEncoding) &&
+                    singleByteOptimizableNode.execute(node, other, otherEncoding);
         }
 
         @TruffleBoundary
@@ -1053,13 +1053,13 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
-                guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "!isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object downcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
@@ -1074,9 +1074,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object downcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
@@ -2005,13 +2006,13 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
-                guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "!isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object swapcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("createSwapCase()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
@@ -2026,9 +2027,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object swapcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
@@ -2348,7 +2350,7 @@ public abstract class StringNodes {
                 squeeze[i] = true;
             }
 
-            if (StringGuards.isSingleByteOptimizable(string.tstring, string.getEncodingUncached(),
+            if (StringGuards.isSingleByteOptimizable(this, string.tstring, string.getEncodingUncached(),
                     singleByteOptimizableNode)) {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
@@ -2624,7 +2626,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!reverseIsEqualToSelf(tstring, encoding, codePointLengthNode)",
-                        "isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)" },
+                        "isSingleByteOptimizable(this, tstring, encoding, singleByteOptimizableNode)" },
                 limit = "1")
         protected RubyString reverseSingleByteOptimizable(RubyString string,
                 @Cached @Shared RubyStringLibrary libString,
@@ -2649,7 +2651,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!reverseIsEqualToSelf(tstring, encoding, codePointLengthNode)",
-                        "!isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)" },
+                        "!isSingleByteOptimizable(this, tstring, encoding, singleByteOptimizableNode)" },
                 limit = "1")
         protected RubyString reverse(RubyString string,
                 @Cached @Shared RubyStringLibrary libString,
@@ -2915,13 +2917,13 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
 
         @Specialization(
-                guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "!isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object upcaseAsciiCodePoints(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("createLowerToUpper()") StringHelperNodes.InvertAsciiCaseNode invertAsciiCaseNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
@@ -2936,9 +2938,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object upcaseMultiByteComplex(RubyString string, int caseMappingOptions,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
@@ -2992,15 +2995,15 @@ public abstract class StringNodes {
         @Child private GetByteCodeRangeNode codeRangeNode;
         @Child private TruffleString.CopyToByteArrayNode copyToByteArrayNode;
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         private final ConditionProfile dummyEncodingProfile = ConditionProfile.create();
         private final ConditionProfile emptyStringProfile = ConditionProfile.create();
 
         @Specialization(
-                guards = "!isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "!isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object capitalizeAsciiCodePoints(RubyString string, int caseMappingOptions,
                 @Cached @Shared RubyStringLibrary libString,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached("createUpperToLower()") StringHelperNodes.InvertAsciiCaseHelperNode invertAsciiCaseNode,
                 @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
@@ -3040,10 +3043,11 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = "isComplexCaseMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
+                guards = "isComplexCaseMapping(this, tstring, encoding, caseMappingOptions, singleByteOptimizableNode)",
                 limit = "1")
         protected Object capitalizeMultiByteComplex(RubyString string, int caseMappingOptions,
                 @Cached @Shared RubyStringLibrary libString,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Cached @Exclusive InlinedConditionProfile modifiedProfile,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Bind("string.tstring") AbstractTruffleString tstring,
@@ -3621,7 +3625,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "!offsetTooLarge(strings.byteLength(string), offset)",
-                        "isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
+                        "isSingleByteOptimizable(this, strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
                 limit = "1")
         protected Object stringFindCharacterSingleByte(Object string, int offset,
                 @Cached @Shared RubyStringLibrary strings,
@@ -3635,7 +3639,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "!offsetTooLarge(strings.byteLength(string), offset)",
-                        "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
+                        "!isSingleByteOptimizable(this, strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
                 limit = "1")
         protected Object stringFindCharacter(Object string, int offset,
                 @Cached @Shared RubyStringLibrary strings,
@@ -3846,11 +3850,11 @@ public abstract class StringNodes {
 
         protected final RubyStringLibrary libString = RubyStringLibrary.create();
         protected final RubyStringLibrary libPattern = RubyStringLibrary.create();
-        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
-        @Specialization(guards = "singleByteOptimizableNode.execute(string, stringEncoding)")
+        @Specialization(guards = "singleByteOptimizableNode.execute(this, string, stringEncoding)", limit = "1")
         protected Object singleByteOptimizable(
                 Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int codePointOffset,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("libString.getTString(rubyString)") AbstractTruffleString string,
                 @Bind("libString.getEncoding(rubyString)") RubyEncoding stringEncoding,
                 @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString pattern,
@@ -3876,9 +3880,10 @@ public abstract class StringNodes {
             return nil;
         }
 
-        @Specialization(guards = "!singleByteOptimizableNode.execute(string, stringEncoding)")
+        @Specialization(guards = "!singleByteOptimizableNode.execute(this, string, stringEncoding)", limit = "1")
         protected Object multiByte(
                 Object rubyString, Object rubyPattern, RubyEncoding compatibleEncoding, int codePointOffset,
+                @Cached @Shared SingleByteOptimizableNode singleByteOptimizableNode,
                 @Bind("libString.getTString(rubyString)") AbstractTruffleString string,
                 @Bind("libString.getEncoding(rubyString)") RubyEncoding stringEncoding,
                 @Bind("libPattern.getTString(rubyPattern)") AbstractTruffleString pattern,
@@ -3990,7 +3995,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = {
                 "index > 0",
-                "isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
+                "isSingleByteOptimizable(this, strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)" },
                 limit = "1")
         protected int singleByteOptimizable(Object string, int index,
                 @Cached @Shared RubyStringLibrary strings,
@@ -4000,7 +4005,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = {
                 "index > 0",
-                "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
+                "!isSingleByteOptimizable(this, strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
                 "isFixedWidthEncoding(strings.getEncoding(string))" }, limit = "1")
         protected int fixedWidthEncoding(Object string, int index,
                 @Cached @Shared RubyStringLibrary strings,
@@ -4022,7 +4027,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = {
                 "index > 0",
-                "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
+                "!isSingleByteOptimizable(this, strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
                 "!isFixedWidthEncoding(strings.getEncoding(string))" }, limit = "1")
         @TruffleBoundary
         protected Object other(Object string, int index,
