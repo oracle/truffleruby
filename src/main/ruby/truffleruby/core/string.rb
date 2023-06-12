@@ -617,6 +617,8 @@ class String
       end
     else
       unless stop.size < size
+        Primitive.encoding_ensure_compatible(self.encoding, stop.encoding)
+
         after_stop = exclusive ? stop : stop.succ
         current = self
 
@@ -1071,7 +1073,7 @@ class String
     end
 
     if Primitive.is_a?(str, Regexp)
-      Primitive.encoding_ensure_compatible self, str
+      Primitive.regexp_check_encoding(str, self)
 
       start = Primitive.character_index_to_byte_index(self, start)
       if match = Truffle::RegexpOperations.match_from(str, self, start)
@@ -1115,7 +1117,7 @@ class String
     byte_finish = Primitive.character_index_to_byte_index(self, finish)
 
     if Primitive.is_a?(sub, Regexp)
-      Primitive.encoding_ensure_compatible self, sub
+      Primitive.regexp_check_encoding(sub, self)
 
       match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
@@ -1159,7 +1161,7 @@ class String
     end
 
     if is_regex_pattern
-      Primitive.encoding_ensure_compatible(self, str)
+      Primitive.regexp_check_encoding(str, self)
 
       match = Truffle::RegexpOperations.match_from(str, self, start)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
@@ -1186,7 +1188,7 @@ class String
     end
 
     if Primitive.is_a?(str, Regexp)
-      Primitive.encoding_ensure_compatible(self, str)
+      Primitive.regexp_check_encoding(str, self)
 
       match = Truffle::RegexpOperations.search_region(str, self, 0, finish, false, true)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)

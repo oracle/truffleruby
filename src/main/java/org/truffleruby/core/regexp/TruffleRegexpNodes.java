@@ -109,15 +109,28 @@ public abstract class TruffleRegexpNodes {
         }
     }
 
+    @Primitive(name = "regexp_check_encoding")
+    public abstract static class RegexpCheckEncodingNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object string,
+                @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
+                @Bind("this") Node node) {
+            return prepareRegexpEncodingNode.executePrepare(node, regexp, string);
+
+        }
+    }
+
     // MRI: rb_reg_prepare_enc
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class PrepareRegexpEncodingNode extends RubyBaseNode {
 
-        public abstract RubyEncoding executePrepare(RubyRegexp regexp, Object matchString);
+        public abstract RubyEncoding executePrepare(Node node, RubyRegexp regexp, Object matchString);
 
         @Specialization(guards = "stringLibrary.isRubyString(matchString)", limit = "1")
-        protected static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
+        protected static RubyEncoding regexpPrepareEncoding(Node node, RubyRegexp regexp, Object matchString,
                 @Cached RubyStringLibrary stringLibrary,
-                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
+                @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached InlinedBranchProfile asciiOnlyProfile,
                 @Cached InlinedBranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
                 @Cached InlinedBranchProfile asciiIncompatibleMatchStringEncodingProfile,
@@ -129,8 +142,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached InlinedBranchProfile sameEncodingProfile,
                 @Cached InlinedBranchProfile validBinaryMatchStringProfile,
                 @Cached InlinedBranchProfile validUtf8MatchStringProfile,
-                @Cached LazyWarnNode lazyWarnNode,
-                @Bind("this") Node node) {
+                @Cached LazyWarnNode lazyWarnNode) {
             final RubyEncoding regexpEncoding = regexp.encoding;
             final RubyEncoding matchStringEncoding = stringLibrary.getEncoding(matchString);
             var tstring = stringLibrary.getTString(matchString);
@@ -801,7 +813,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached RubyStringLibrary libString,
                 @Bind("this") Node node) {
             Regex regex = regexp.regex;
-            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
+            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
 
             if (encodingMismatchProfile.profile(node, regexp.encoding != negotiatedEncoding)) {
                 final EncodingCache encodingCache = regexp.cachedEncodings;
@@ -898,7 +910,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
                 @Bind("this") Node node) {
             final Object tRegex;
-            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(regexp, string);
+            final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
             final int byteLength = tstring.byteLength(negotiatedEncoding.tencoding);
 
