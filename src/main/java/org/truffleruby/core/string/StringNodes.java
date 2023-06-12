@@ -777,8 +777,8 @@ public abstract class StringNodes {
                 @Bind("libString.getEncoding(string)") RubyEncoding selfEncoding,
                 @Bind("libOther.getTString(other)") AbstractTruffleString otherTString,
                 @Bind("libOther.getEncoding(other)") RubyEncoding otherEncoding,
-                @Cached TruffleString.GetInternalByteArrayNode byteArraySelfNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayOtherNode) {
+                @Cached(inline = false) TruffleString.GetInternalByteArrayNode byteArraySelfNode,
+                @Cached(inline = false) TruffleString.GetInternalByteArrayNode byteArrayOtherNode) {
             // Taken from org.jruby.RubyString#casecmp19.
 
             final RubyEncoding encoding = negotiateCompatibleEncodingNode.execute(selfTString, selfEncoding,
@@ -1001,7 +1001,7 @@ public abstract class StringNodes {
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         protected static Object deleteBang(Node node, RubyString string, Object[] args,
                 @Cached @Shared ToStrNode toStrNode,
-                @Cached @Shared AsTruffleStringNode asTruffleStringNode,
+                @Cached(inline = false) @Shared AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared DeleteBangStringsNode deleteBangStringsNode,
                 @Cached @Shared RubyStringLibrary rubyStringLibrary,
                 @Cached("args.length") int size) {

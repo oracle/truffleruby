@@ -228,8 +228,6 @@ public abstract class EncodingNodes {
         protected boolean isStandardEncoding(RubyEncoding encoding) {
             return encoding == Encodings.UTF_8 || encoding == Encodings.US_ASCII || encoding == Encodings.BINARY;
         }
-
-
     }
 
     // MRI: enc_compatible_latter
@@ -799,18 +797,16 @@ public abstract class EncodingNodes {
     }
 
     // MRI: rb_enc_check_str / rb_encoding_check (with RopeWithEncoding arguments)
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class CheckStringEncodingNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static CheckStringEncodingNode create() {
-            return EncodingNodesFactory.CheckStringEncodingNodeGen.create();
-        }
-
-        public abstract RubyEncoding executeCheckEncoding(AbstractTruffleString first, RubyEncoding firstEncoding,
-                AbstractTruffleString second, RubyEncoding secondEncoding);
+        public abstract RubyEncoding executeCheckEncoding(Node node, AbstractTruffleString first,
+                RubyEncoding firstEncoding, AbstractTruffleString second, RubyEncoding secondEncoding);
 
         @Specialization
-        protected RubyEncoding checkEncoding(
+        protected static RubyEncoding checkEncoding(
+                Node node,
                 AbstractTruffleString first,
                 RubyEncoding firstEncoding,
                 AbstractTruffleString second,
@@ -821,9 +817,10 @@ public abstract class EncodingNodes {
                     secondEncoding);
 
             if (negotiatedEncoding == null) {
-                errorProfile.enter(this);
-                throw new RaiseException(getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding, this));
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).encodingCompatibilityErrorIncompatible(firstEncoding, secondEncoding,
+                                node));
             }
 
             return negotiatedEncoding;
