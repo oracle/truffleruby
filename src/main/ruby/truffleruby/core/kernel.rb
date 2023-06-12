@@ -202,8 +202,8 @@ module Kernel
   module_function :abort
 
   def autoload(name, file)
-    nesting = Primitive.caller_nesting
-    mod = nesting.first || Object
+    mod = Primitive.caller_declaration_context
+    mod = Primitive.class_non_singleton_class(mod) if Primitive.is_a?(mod, Class)
     if Primitive.equal?(mod, self)
       super(name, file) # Avoid recursion
     else
@@ -213,8 +213,7 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    nesting = Primitive.caller_nesting
-    mod = nesting.first || Object
+    mod = Primitive.caller_declaration_context
     if Primitive.equal?(mod, self)
       super(name) # Avoid recursion
     else

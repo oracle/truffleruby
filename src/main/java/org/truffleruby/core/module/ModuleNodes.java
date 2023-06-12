@@ -1744,6 +1744,20 @@ public abstract class ModuleNodes {
         }
     }
 
+    @Primitive(name = "caller_declaration_context")
+    public abstract static class CallerDeclarationContextNode extends PrimitiveNode {
+        @TruffleBoundary
+        @Specialization
+        protected RubyModule callerDeclarationContext() {
+            var frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
+            if (frame == null) {
+                return coreLibrary().objectClass;
+            }
+            DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame.getArguments());
+            return declarationContext.getModuleToDefineMethods();
+        }
+    }
+
     @Primitive(name = "caller_nesting")
     public abstract static class CallerNestingNode extends PrimitiveArrayArgumentsNode {
         @Specialization

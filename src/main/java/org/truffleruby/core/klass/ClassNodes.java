@@ -335,6 +335,14 @@ public abstract class ClassNodes {
         }
     }
 
+    @Primitive(name = "class_non_singleton_class")
+    public abstract static class NonSingletonClassNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyClass nonSingletonClass(RubyClass rubyClass) {
+            return rubyClass.nonSingletonClass;
+        }
+    }
+
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
