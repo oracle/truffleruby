@@ -126,11 +126,13 @@ public abstract class GetConstantNode extends RubyBaseNode {
         // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
         autoloadConstantStart(getContext(), constant, this);
         try {
-            try {
-                callRequireNode.call(coreLibrary().mainObject, "require", feature);
-            } finally {
-                if (autoloadConstant.shouldPublish()) {
-                    autoloadConstant.publish(getContext(), constant);
+            if (!constant.getAutoloadConstant().isPublished()) {
+                try {
+                    callRequireNode.call(coreLibrary().mainObject, "require", feature);
+                } finally {
+                    if (autoloadConstant.shouldPublish()) {
+                        autoloadConstant.publish(getContext(), constant);
+                    }
                 }
             }
 
