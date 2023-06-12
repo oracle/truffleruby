@@ -38,7 +38,7 @@ describe "Identifying features such as" do
 
   guard -> { !TruffleRuby.native? } do
     it "RUBY_DESCRIPTION indicates which VM TruffleRuby runs on and which edition" do
-      RUBY_DESCRIPTION.should =~ /\b(Interpreted|GraalVM CE|GraalVM EE|Oracle GraalVM) JVM\b/
+      RUBY_DESCRIPTION.should =~ /\b(Interpreted|GraalVM CE|Oracle GraalVM) JVM\b/
       RUBY_DESCRIPTION.should_not include("Native")
       RUBY_DESCRIPTION.should_not include("native")
     end
@@ -46,7 +46,7 @@ describe "Identifying features such as" do
 
   guard -> { TruffleRuby.native? } do
     it "RUBY_DESCRIPTION indicates TruffleRuby runs on SVM and which edition" do
-      RUBY_DESCRIPTION.should =~ /\b(GraalVM CE|GraalVM EE|Oracle GraalVM) Native\b/
+      RUBY_DESCRIPTION.should =~ /\b(GraalVM CE|Oracle GraalVM) Native\b/
       RUBY_DESCRIPTION.should_not include("JVM")
     end
   end

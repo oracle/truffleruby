@@ -23,9 +23,9 @@ are not needed or loops that contain no work.
 
 All of these issues make it hard to benchmark TruffleRuby. This is not a problem that is unique to us - it applies to many sophisticated virtual machines - but most Ruby implementations are not yet performing optimizations powerful enough to show these problems, so they may be new to some people in the Ruby community.
 
-## Using the Enterprise Edition of GraalVM
+## Using Oracle GraalVM
 
-To experiment with how fast TruffleRuby can be, we recommend using the [Enterprise Edition of GraalVM](installing-graalvm.md).
+To experiment with how fast TruffleRuby can be, use [Oracle GraalVM](installing-graalvm.md).
 
 ## Using the JVM Configuration
 

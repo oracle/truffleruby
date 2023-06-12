@@ -71,17 +71,23 @@ See the Contact section of this [README](../../README.md#contact) page.
 
 ### How do I know if I'm using a VM that has the GraalVM compiler?
 
-`ruby --version` will report `GraalVM CE` or `EE`.
+`ruby --version` will report `GraalVM CE` or `Oracle GraalVM`.
+TruffleRuby versions before 23.0 report `GraalVM EE` instead of `Oracle GraalVM`.
 
 Also, `TruffleRuby.jit?` will tell you if you are running with the GraalVM compiler.
+
+### What is Oracle GraalVM?
+
+Oracle GraalVM is the new GraalVM distribution from Oracle and the successor of GraalVM Enterprise Edition, which used to be reported as `GraalVM EE`.
 
 ### How do I know that I'm using the Community Edition of GraalVM?
 
 `ruby --version` will report `GraalVM CE`.
 
-### How do I know that I'm using the Enterprise Edition of GraalVM?
+### How do I know that I'm using Oracle GraalVM?
 
-`ruby --version` will report `GraalVM EE`.
+`ruby --version` will report `Oracle GraalVM`.
+TruffleRuby versions before 23.0 report `GraalVM EE` instead.
 
 ### How do I know that I'm using the native version of TruffleRuby?
 
@@ -114,7 +120,7 @@ Benchmarks that we haven't looked at yet may require new code paths to be specia
 Currently we've added specialization for the code paths in the benchmarks and applications that we've been using.
 Adding them is generally not complicated and over time we will have specializations to cover a broad range of applications.
 
-Make sure that you are using the [Enterprise Edition of GraalVM, and have rebuilt the executable images](installing-graalvm.md) for the best performance.
+Make sure that you are using [Oracle GraalVM, and have rebuilt the executable images](installing-graalvm.md) for the best performance.
 
 ### How is this related to `invokedynamic`?
 

@@ -12,9 +12,11 @@ This document lists the most important points to consider when benchmarking Truf
 
 We expect anyone publishing benchmark numbers about TruffleRuby to follow these guidelines.
 
-### Use TruffleRuby EE
+### Use Oracle GraalVM
 
-Use TruffleRuby EE, it is faster than CE overall and represents what TruffleRuby is capable of.
+Use [Oracle GraalVM](installing-graalvm.md) (before 23.0: GraalVM EE), it is faster than GraalVM CE overall and represents what TruffleRuby is capable of.
+
+Use `ruby --version` to ensure that you are running Oracle GraalVM.
 
 ### Use the Latest Release
 

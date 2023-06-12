@@ -14,9 +14,9 @@ Installing GraalVM enables you to run TruffleRuby both in the `--native` and `--
 
 [TruffleRuby's dependencies](../../README.md#dependencies) need to be installed for TruffleRuby to run correctly.
 
-## Community Edition and Enterprise Edition
+## GraalVM Community Edition and Oracle GraalVM
 
-GraalVM is available in a Community Edition, which is open-source, and an Enterprise Edition which has better performance and scalability.
+GraalVM is available in a Community Edition, which is open-source, and [Oracle GraalVM](https://www.oracle.com/graalvm/) which has better performance, footprint and scalability.
 See [the website](https://www.graalvm.org/downloads) for a comparison.
 
 ## Installing the Base Image
@@ -25,9 +25,9 @@ GraalVM starts with a base image which provides the platform for high-performanc
 
 The Community Edition base image can be installed [from GitHub](https://www.graalvm.org/downloads), under an open source licence.
 
-The Enterprise Edition base image can be installed from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) page by accepting the Oracle License Agreement.
+Install the Oracle GraalVM base image from the [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) page by accepting the Oracle License Agreement.
 
-Nightly builds of the GraalVM Community Edition are [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
+GraalVM Community Developer Builds are [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
 
 Whichever edition you choose, you will obtain a tarball which you can extract.
 There will be a `bin` directory (`Contents/Home/bin` on macOS) which you can add to your `$PATH` if you want to.
@@ -54,8 +54,8 @@ The path of the script will be:
 languages/ruby/lib/truffle/post_install_hook.sh
 ```
 
-You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest) (CE)
-or from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) (EE).
+You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest) for GraalVM CE
+or from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) for Oracle GraalVM.
 Then install it with `gu install --file path/to/ruby-installable-...`.
 
 ## Using a Ruby Manager

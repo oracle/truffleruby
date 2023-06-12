@@ -131,8 +131,8 @@ If you find any performance issue, please see [this guide](doc/user/reporting-pe
 
 TruffleRuby has the same version and is released at the same time as GraalVM.
 See the [release roadmap](https://www.graalvm.org/release-notes/version-roadmap/) for the release dates and information about how long releases are supported.
-GraalVM CE releases are supported at most one year.
-[Longer support](https://docs.oracle.com/en/graalvm/enterprise/22/docs/release-calendar/) is available for GraalVM EE.
+GraalVM Community Edition releases are supported at most one year.
+[Longer support](https://docs.oracle.com/en/graalvm/enterprise/22/docs/release-calendar/) is available for Oracle GraalVM.
 
 ## Migration from MRI
 
