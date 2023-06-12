@@ -299,25 +299,28 @@ describe "Module#autoload" do
         autoload :RequiredDirectlyNoConstant, fixture(__FILE__, "autoload_required_directly_no_constant.rb")
       end
       @path = fixture(__FILE__, "autoload_required_directly_no_constant.rb")
-      @remove << :RequiredDirectlyNoConstant
       @check = -> {
         [
             defined?(ModuleSpecs::Autoload::RequiredDirectlyNoConstant),
-            ModuleSpecs::Autoload.constants(false).include?(:RequiredDirectlyNoConstant),
             ModuleSpecs::Autoload.const_defined?(:RequiredDirectlyNoConstant),
             ModuleSpecs::Autoload.autoload?(:RequiredDirectlyNoConstant)
         ]
       }
       ScratchPad.record @check
-      @check.call.should == ["constant", true, true, @path]
+      @check.call.should == ["constant", true, @path]
       $:.push File.dirname(@path)
       begin
         require "autoload_required_directly_no_constant.rb"
       ensure
         $:.pop
       end
-      ScratchPad.recorded.should == [nil, true, false, nil]
-      @check.call.should == [nil, true, false, nil]
+      ScratchPad.recorded.should == [nil, false, nil]
+      @check.call.should == [nil, false, nil]
+
+      # undefined constant, CRuby 3.1 & 3.2 still do it here, but it is inconsistent, the constant should be removed
+      if ModuleSpecs::Autoload.constants(false).include?(:RequiredDirectlyNoConstant)
+        @remove << :RequiredDirectlyNoConstant
+      end
     end
   end
 
