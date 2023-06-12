@@ -203,7 +203,7 @@ module Kernel
 
   def autoload(name, file)
     nesting = Primitive.caller_nesting
-    mod = nesting.first || (Primitive.equal?(Kernel, self) ? Kernel : Object)
+    mod = nesting.first || Object
     if Primitive.equal?(mod, self)
       super(name, file) # Avoid recursion
     else
@@ -213,10 +213,12 @@ module Kernel
   module_function :autoload
 
   def autoload?(name)
-    if Primitive.equal?(Kernel, self)
+    nesting = Primitive.caller_nesting
+    mod = nesting.first || Object
+    if Primitive.equal?(mod, self)
       super(name) # Avoid recursion
     else
-      Object.autoload?(name)
+      mod.autoload?(name)
     end
   end
   module_function :autoload?
