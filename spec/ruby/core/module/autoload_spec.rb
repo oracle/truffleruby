@@ -568,10 +568,17 @@ describe "Module#autoload" do
           LexicalScope::DeclaredInParentDefinedInCurrent.should == :declared_in_parent_defined_in_current
         end
 
-        # Basically, the parent autoload constant remains in a "undefined" state
         self.autoload?(:DeclaredInParentDefinedInCurrent).should == nil
         const_defined?(:DeclaredInParentDefinedInCurrent).should == false
         -> { DeclaredInParentDefinedInCurrent }.should raise_error(NameError)
+        ruby_version_is ""..."3.1" do
+          # Basically, the parent autoload constant remains in a "undefined" state
+          self.should have_constant(:DeclaredInParentDefinedInCurrent)
+        end
+        ruby_version_is "3.1" do
+          # The autoload constant has been removed
+          self.should_not have_constant(:DeclaredInParentDefinedInCurrent)
+        end
 
         ModuleSpecs::Autoload::LexicalScope.send(:remove_const, :DeclaredInParentDefinedInCurrent)
       end
@@ -592,13 +599,11 @@ describe "Module#autoload" do
             -> {
               DeclaredInCurrentDefinedInParent
             }.should complain(
-              /Expected .*autoload_callback.rb to define ModuleSpecs::Autoload::DeclaredInCurrentDefinedInParent but it didn't/,
-              verbose: true,
-            )
+              /Expected .*autoload_callback.rb to define ModuleSpecs::Autoload::DeclaredInCurrentDefinedInParent but it didn't/, verbose: true)
 
             -> {
               DeclaredInCurrentDefinedInParent
-            }.should_not complain(/.*/, verbose: true)
+            }.should_not complain(verbose: true)
             self.autoload?(:DeclaredInCurrentDefinedInParent).should == nil
             const_defined?(:DeclaredInCurrentDefinedInParent).should == false
             ModuleSpecs.const_defined?(:DeclaredInCurrentDefinedInParent).should == true
@@ -607,8 +612,9 @@ describe "Module#autoload" do
       end
     end
 
+    # like net/https used to do `module Net; autoload :OpenSSL, 'openssl'; end` before https://github.com/ruby/net-http/commit/369c3fd708
     ruby_version_is "3.1" do
-      it "looks up in parent scope after failed autoload" do
+      it "looks up in parent scope when declared in current and defined in parent" do
         @remove << :DeclaredInCurrentDefinedInParent
         module ModuleSpecs::Autoload
           ScratchPad.record -> {
@@ -617,10 +623,11 @@ describe "Module#autoload" do
 
           class LexicalScope
             autoload :DeclaredInCurrentDefinedInParent, fixture(__FILE__, "autoload_callback.rb")
-            -> { DeclaredInCurrentDefinedInParent }.should_not raise_error(NameError)
-            # Basically, the autoload constant remains in a "undefined" state
+            DeclaredInCurrentDefinedInParent.should == :declared_in_current_defined_in_parent
+            # The autoload constant has been removed
             self.autoload?(:DeclaredInCurrentDefinedInParent).should == nil
             const_defined?(:DeclaredInCurrentDefinedInParent).should == false
+            self.should_not have_constant(:DeclaredInCurrentDefinedInParent)
             -> { const_get(:DeclaredInCurrentDefinedInParent) }.should raise_error(NameError)
           end
 
@@ -630,7 +637,7 @@ describe "Module#autoload" do
     end
 
     ruby_version_is ""..."3.1" do
-      it "and fails when finding the undefined autoload constant in the current scope when declared in current and defined in parent" do
+      it "fails when finding the undefined autoload constant in the current scope when declared in current and defined in parent" do
         @remove << :DeclaredInCurrentDefinedInParent
         module ModuleSpecs::Autoload
           ScratchPad.record -> {
