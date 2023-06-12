@@ -624,11 +624,11 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFilename.isRubyString(filename)", limit = "1")
+        @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
         protected Object autoload(RubyModule module, String name, Object filename,
                 @Cached ToPathNode toPathNode,
+                @Bind("toPathNode.execute(filename)") Object filenameAsPath,
                 @Cached RubyStringLibrary libFilename) {
-            final var filenameAsPath = toPathNode.execute(filename);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
