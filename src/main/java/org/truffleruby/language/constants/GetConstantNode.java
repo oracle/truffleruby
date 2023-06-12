@@ -137,8 +137,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             }
 
             // This needs to run while the autoload is marked as isAutoloading(), to avoid infinite recursion
-            return autoloadResolveConstant(lexicalScope, module, name, constant, lookupConstantNode,
-                    callConstMissing);
+            return autoloadResolveConstant(lexicalScope, module, name, constant, lookupConstantNode, callConstMissing);
         } finally {
             autoloadConstantStop(constant);
         }
