@@ -243,8 +243,8 @@ public class CoreExceptions {
         }
     }
 
-    public RubyException argumentErrorEmptyVarargs(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.createInstance(currentNode.getContext()),
+    public RubyException argumentErrorEmptyVarargs(Node currentNode) {
+        return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.createInstance(RubyContext.get(currentNode)),
                 currentNode, null);
     }
 

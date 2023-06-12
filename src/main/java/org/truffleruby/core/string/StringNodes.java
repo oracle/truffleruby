@@ -1007,7 +1007,7 @@ public abstract class StringNodes {
                 @Cached("args.length") int size) {
             final TStringWithEncoding[] tstringsWithEncs = argTStringsWithEncs(node, args, size, toStrNode,
                     asTruffleStringNode, rubyStringLibrary);
-            return deleteBangStringsNode.execute(string, tstringsWithEncs);
+            return deleteBangStringsNode.execute(node, string, tstringsWithEncs);
         }
 
         @Specialization(replaces = "deleteBang")
@@ -1018,7 +1018,7 @@ public abstract class StringNodes {
                 @Cached @Shared ToStrNode toStrNode) {
             final TStringWithEncoding[] tstrings = argTStringsWithEncsSlow(node, args, toStrNode, asTruffleStringNode,
                     rubyStringLibrary);
-            return deleteBangStringsNode.execute(string, tstrings);
+            return deleteBangStringsNode.execute(node, string, tstrings);
         }
 
         @ExplodeLoop
