@@ -573,11 +573,11 @@ describe "Module#autoload" do
         -> { DeclaredInParentDefinedInCurrent }.should raise_error(NameError)
         ruby_version_is ""..."3.1" do
           # Basically, the parent autoload constant remains in a "undefined" state
-          self.should have_constant(:DeclaredInParentDefinedInCurrent)
+          self.constants(false).should.include?(:DeclaredInParentDefinedInCurrent)
         end
         ruby_version_is "3.1" do
           # The autoload constant has been removed
-          self.should_not have_constant(:DeclaredInParentDefinedInCurrent)
+          self.constants(false).should_not.include?(:DeclaredInParentDefinedInCurrent)
         end
 
         ModuleSpecs::Autoload::LexicalScope.send(:remove_const, :DeclaredInParentDefinedInCurrent)
@@ -627,7 +627,7 @@ describe "Module#autoload" do
             # The autoload constant has been removed
             self.autoload?(:DeclaredInCurrentDefinedInParent).should == nil
             const_defined?(:DeclaredInCurrentDefinedInParent).should == false
-            self.should_not have_constant(:DeclaredInCurrentDefinedInParent)
+            self.constants(false).should_not.include?(:DeclaredInCurrentDefinedInParent)
             -> { const_get(:DeclaredInCurrentDefinedInParent) }.should raise_error(NameError)
           end
 
@@ -650,7 +650,7 @@ describe "Module#autoload" do
             # Basically, the autoload constant remains in a "undefined" state
             self.autoload?(:DeclaredInCurrentDefinedInParent).should == nil
             const_defined?(:DeclaredInCurrentDefinedInParent).should == false
-            self.should have_constant(:DeclaredInCurrentDefinedInParent)
+            self.constants(false).should.include?(:DeclaredInCurrentDefinedInParent)
             -> { const_get(:DeclaredInCurrentDefinedInParent) }.should raise_error(NameError)
           end
 

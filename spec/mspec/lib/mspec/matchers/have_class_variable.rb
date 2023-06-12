@@ -1,8 +1,11 @@
 require 'mspec/matchers/variable'
 
 class HaveClassVariableMatcher < VariableMatcher
-  self.variables_method = :class_variables
-  self.description      = 'class variable'
+  self.description = 'class variable'
+
+  private def check(object, variable)
+    object.class_variable_defined?(variable)
+  end
 end
 
 module MSpecMatchers

@@ -1,6 +1,6 @@
 class VariableMatcher
   class << self
-    attr_accessor :variables_method, :description
+    attr_accessor :description
   end
 
   def initialize(variable)
@@ -9,7 +9,7 @@ class VariableMatcher
 
   def matches?(object)
     @object = object
-    @object.send(self.class.variables_method).include? @variable
+    check(@object, @variable)
   end
 
   def failure_message

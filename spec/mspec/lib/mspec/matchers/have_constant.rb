@@ -1,8 +1,12 @@
 require 'mspec/matchers/variable'
 
 class HaveConstantMatcher < VariableMatcher
-  self.variables_method = :constants
-  self.description      = 'constant'
+  self.description = 'constant'
+
+  private def check(object, variable)
+    # Differs from object.const_defined?(variable, false) for undefined constants
+    object.constants(false).include?(variable)
+  end
 end
 
 module MSpecMatchers
