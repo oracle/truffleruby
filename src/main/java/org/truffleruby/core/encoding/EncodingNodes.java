@@ -333,7 +333,7 @@ public abstract class EncodingNodes {
                 @Bind("encodingNode.execute(this, first)") RubyEncoding firstEncoding,
                 @Bind("encodingNode.execute(this, second)") RubyEncoding secondEncoding,
                 @Cached @Shared RubyStringLibrary libSecond) {
-            return negotiateStringObjectUncached(second, first, encodingNode, firstEncoding, secondEncoding, libSecond);
+            return negotiateStringObjectUncached(second, first, encodingNode, secondEncoding, firstEncoding, libSecond);
         }
 
         @Specialization(
