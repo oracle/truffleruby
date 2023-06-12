@@ -17,10 +17,10 @@ describe "ObjectSpace.undefine_finalizer" do
   # See comment in define_finalizer_spec.rb
 
   it "successfully unregisters a finalizer" do
-    channel = Truffle::Channel.new
+    queue = Queue.new
     Object.new.tap do |object|
       finalizer = proc {
-        channel.send :finalized
+        queue << :finalized
       }
       ObjectSpace.define_finalizer object, finalizer
       ObjectSpace.reachable_objects_from(object).should include(finalizer)
@@ -29,7 +29,7 @@ describe "ObjectSpace.undefine_finalizer" do
     end
     Primitive.gc_force
     Truffle::Debug.drain_finalization_queue               # Not needed for correctness
-    channel.try_receive.should be_nil
+    queue.should.empty?
   end
 
 end

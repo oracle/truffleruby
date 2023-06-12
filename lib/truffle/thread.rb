@@ -29,4 +29,15 @@ end
 class Thread
   Queue = ::Queue
   SizedQueue = ::SizedQueue
+
+  class Queue
+    def pop(non_block = false, timeout: nil)
+      Primitive.queue_pop(
+        self,
+        Primitive.as_boolean(non_block),
+        Truffle::QueueOperations.validate_and_prepare_timeout(non_block, timeout))
+    end
+    alias_method :shift, :pop
+    alias_method :deq, :pop
+  end
 end

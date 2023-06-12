@@ -27,9 +27,9 @@ describe "ObjectSpace.define_finalizer" do
   #   The assumption is that this works as expected but is just hard to test.
 
   it "will call the finalizer" do
-    channel = Truffle::Channel.new
+    queue = Queue.new
     finalizer = proc {
-      channel.send :finalized
+      queue << :finalized
     }
     Object.new.tap do |object|
       ObjectSpace.define_finalizer object, finalizer
@@ -37,7 +37,7 @@ describe "ObjectSpace.define_finalizer" do
     end
     Primitive.gc_force
     Truffle::Debug.drain_finalization_queue   # Not needed for correctness
-    channel.receive_timeout(TIME_TOLERANCE).should == :finalized
+    queue.pop(timeout: TIME_TOLERANCE).should == :finalized
   end
 
 end

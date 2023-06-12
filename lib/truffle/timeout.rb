@@ -83,7 +83,7 @@ module Timeout
     end
   end
 
-  @chan = Truffle::Channel.new
+  @chan = Queue.new
 
   def self.watch_channel
     reqs = []
@@ -91,7 +91,7 @@ module Timeout
     loop do
       begin
         while reqs.empty?
-          req = @chan.receive
+          req = @chan.pop
           reqs << req if req
         end
 
@@ -101,7 +101,7 @@ module Timeout
         if min.left > 0
           before = Time.now
 
-          new_req = @chan.receive_timeout(min.left)
+          new_req = @chan.pop(timeout: min.left)
 
           slept_for = Time.now - before
         else
