@@ -31,9 +31,6 @@ public class RubyConstant implements ObjectGraphNode {
     private final boolean isDeprecated;
 
     private final AutoloadConstant autoloadConstant;
-    /** A autoload constant can become "undefined" after the autoload loads the file but the constant is not defined by
-     * the file */
-    private final boolean undefined;
 
     private final SourceSection sourceSection;
 
@@ -45,41 +42,18 @@ public class RubyConstant implements ObjectGraphNode {
             AutoloadConstant autoloadConstant,
             boolean isDeprecated,
             SourceSection sourceSection) {
-        this(
-                declaringModule,
-                name,
-                value,
-                isPrivate,
-                autoloadConstant,
-                false,
-                isDeprecated,
-                sourceSection);
-    }
-
-    private RubyConstant(
-            RubyModule declaringModule,
-            String name,
-            Object value,
-            boolean isPrivate,
-            AutoloadConstant autoloadConstant,
-            boolean undefined,
-            boolean isDeprecated,
-            SourceSection sourceSection) {
-        assert !undefined || autoloadConstant == null : "undefined and autoload are exclusive";
-
         this.declaringModule = declaringModule;
         this.name = name;
         this.value = value;
         this.isPrivate = isPrivate;
         this.isDeprecated = isDeprecated;
         this.autoloadConstant = autoloadConstant;
-        this.undefined = undefined;
         this.sourceSection = sourceSection;
     }
 
     public RubyConstant copy(RubyModule declaringModule) {
         assert !isAutoload();
-        return new RubyConstant(declaringModule, name, value, isPrivate, null, undefined, isDeprecated, sourceSection);
+        return new RubyConstant(declaringModule, name, value, isPrivate, null, isDeprecated, sourceSection);
     }
 
     public RubyModule getDeclaringModule() {
@@ -91,7 +65,7 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     public boolean hasValue() {
-        return !isAutoload() && !undefined;
+        return !isAutoload();
     }
 
     public Object getValue() {
@@ -121,7 +95,6 @@ public class RubyConstant implements ObjectGraphNode {
                     value,
                     isPrivate,
                     autoloadConstant,
-                    undefined,
                     isDeprecated,
                     sourceSection);
         }
@@ -137,15 +110,9 @@ public class RubyConstant implements ObjectGraphNode {
                     value,
                     isPrivate,
                     autoloadConstant,
-                    undefined,
                     true,
                     sourceSection);
         }
-    }
-
-    public RubyConstant undefined() {
-        assert isAutoload();
-        return new RubyConstant(declaringModule, name, null, isPrivate, null, true, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
@@ -181,10 +148,6 @@ public class RubyConstant implements ObjectGraphNode {
         }
 
         return false;
-    }
-
-    public boolean isUndefined() {
-        return undefined;
     }
 
     public boolean isAutoload() {

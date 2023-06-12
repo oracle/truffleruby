@@ -163,20 +163,18 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
     /** Subset of {@link #autoloadResolveConstant} which does not try to resolve the constant. */
     @TruffleBoundary
-    public static boolean autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+    public static boolean autoloadRemoveConstantIfStillAutoload(RubyConstant autoloadConstant) {
         final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = autoloadConstantModule.fields;
-        return fields.undefineConstantIfStillAutoload(autoloadConstant);
+        return fields.removeConstantIfStillAutoload(autoloadConstant);
     }
 
     @TruffleBoundary
-    public static void logAutoloadResult(RubyContext context, RubyConstant constant, boolean undefined) {
+    public static void logAutoloadResult(RubyContext context, RubyConstant constant, boolean removed) {
         if (context.getOptions().LOG_AUTOLOAD) {
             final SourceSection section = context.getCallStack().getTopMostUserSourceSection();
             final String message = context.fileLine(section) + ": " + constant + " " +
-                    (undefined
-                            ? "was marked as undefined as it was not assigned in "
-                            : "was successfully autoloaded from ") +
+                    (removed ? "was removed as it was not assigned in " : "was successfully autoloaded from ") +
                     constant.getAutoloadConstant().getAutoloadPath();
             RubyLanguage.LOGGER.info(message);
         }
@@ -197,11 +195,11 @@ public abstract class GetConstantNode extends RubyBaseNode {
             // all is good, just return that constant
             logAutoloadResult(getContext(), autoloadConstant, false);
         } else {
-            // If the autoload constant was not set in the ancestors, undefine the constant
-            boolean undefined = fields.undefineConstantIfStillAutoload(autoloadConstant);
-            logAutoloadResult(getContext(), autoloadConstant, undefined);
+            // If the autoload constant was not set in the ancestors, remove the constant
+            boolean removed = fields.removeConstantIfStillAutoload(autoloadConstant);
+            logAutoloadResult(getContext(), autoloadConstant, removed);
 
-            // redo lookup, to consider the undefined constant
+            // redo lookup, to consider the removed constant
             resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
         }
 
@@ -209,7 +207,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "isNullOrUndefined(constant)", "guardName(node, name, cachedName, sameNameProfile)" },
+            guards = { "constant == null", "guardName(node, name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
     protected static Object missingConstantCached(
             LexicalScope lexicalScope,
@@ -226,7 +224,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         return doMissingConstant(module, name, symbolName, callConstMissing, constMissingNode.get(node));
     }
 
-    @Specialization(guards = "isNullOrUndefined(constant)")
+    @Specialization(guards = "constant == null")
     protected Object missingConstantUncached(
             LexicalScope lexicalScope,
             RubyModule module,
@@ -246,10 +244,6 @@ public abstract class GetConstantNode extends RubyBaseNode {
         } else {
             return null;
         }
-    }
-
-    protected boolean isNullOrUndefined(Object constant) {
-        return constant == null || ((RubyConstant) constant).isUndefined();
     }
 
     @SuppressFBWarnings("ES")

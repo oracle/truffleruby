@@ -29,7 +29,7 @@ public class ConstantLookupResult {
     }
 
     public boolean isFound() {
-        return constant != null && !constant.isUndefined();
+        return constant != null;
     }
 
     public boolean isDeprecated() {

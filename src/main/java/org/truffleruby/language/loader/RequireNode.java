@@ -133,8 +133,8 @@ public abstract class RequireNode extends RubyBaseNode {
                         constant.getAutoloadConstant().publish(getContext(), constant);
                     }
 
-                    final boolean undefined = GetConstantNode.autoloadUndefineConstantIfStillAutoload(constant);
-                    GetConstantNode.logAutoloadResult(getContext(), constant, undefined);
+                    final boolean removed = GetConstantNode.autoloadRemoveConstantIfStillAutoload(constant);
+                    GetConstantNode.logAutoloadResult(getContext(), constant, removed);
                     GetConstantNode.autoloadConstantStop(constant);
                     featureLoader.removeAutoload(constant);
                 }

@@ -114,9 +114,8 @@ public abstract class ModuleOperations {
         return constants.entrySet();
     }
 
-    /** NOTE: This method returns false for an undefined RubyConstant */
     public static boolean isConstantDefined(RubyConstant constant) {
-        return constant != null && !constant.isUndefined() &&
+        return constant != null &&
                 !(constant.isAutoload() && constant.getAutoloadConstant().isAutoloadingThreadAndUnset());
     }
 

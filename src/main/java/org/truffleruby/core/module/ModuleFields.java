@@ -716,15 +716,11 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+    public boolean removeConstantIfStillAutoload(RubyConstant autoloadConstant) {
         final ConstantEntry constantEntry = constants.get(autoloadConstant.getName());
         final boolean replace = constantEntry != null && constantEntry.getConstant() == autoloadConstant;
-        if (replace &&
-                constants.replace(
-                        autoloadConstant.getName(),
-                        constantEntry,
-                        new ConstantEntry(autoloadConstant.undefined()))) {
-            constantEntry.invalidate("undefine if still autoload", rubyModule, autoloadConstant.getName());
+        if (replace && constants.remove(autoloadConstant.getName(), constantEntry)) {
+            constantEntry.invalidate("remove if still autoload", rubyModule, autoloadConstant.getName());
             return true;
         } else {
             return false;
