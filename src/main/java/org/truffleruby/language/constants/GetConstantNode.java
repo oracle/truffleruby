@@ -146,10 +146,12 @@ public abstract class GetConstantNode extends RubyBaseNode {
     public static void autoloadConstantStart(RubyContext context, RubyConstant autoloadConstant, Node currentNode) {
         autoloadConstant.getAutoloadConstant().startAutoLoad(context, currentNode);
 
-        // We need to notify cached lookup that we are autoloading the constant, as constant
-        // lookup changes based on whether an autoload constant is loading or not (constant
-        // lookup ignores being-autoloaded constants).
-        autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
+        if (!autoloadConstant.getAutoloadConstant().isPublished()) {
+            // We need to notify cached lookup that we are autoloading the constant, as constant
+            // lookup changes based on whether an autoload constant is loading or not (constant
+            // lookup ignores being-autoloaded constants).
+            autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
+        }
     }
 
     @TruffleBoundary
