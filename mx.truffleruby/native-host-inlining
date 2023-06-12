@@ -4,4 +4,4 @@ COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM,Native Image
 NATIVE_IMAGES=lib:rubyvm
 EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:Log=HostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase rubyvm:-H:+TruffleHostInliningPrintExplored rubyvm:-Dgraal.LogFile=host-inlining.txt
 # To also create the standalone
-DISABLE_INSTALLABLES=false
+INSTALLABLES=TruffleRuby
