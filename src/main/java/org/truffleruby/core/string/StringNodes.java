@@ -2768,20 +2768,20 @@ public abstract class StringNodes {
 
         @Specialization(
                 guards = {
-                        "libFromStr.isRubyString(fromStr)",
-                        "libToStr.isRubyString(toStr)",
+                        "libFromStr.isRubyString(fromStrAsString)",
+                        "libToStr.isRubyString(toStrAsString)",
                         "!self.tstring.isEmpty()" },
                 limit = "1")
         protected static Object trSBang(RubyString self, Object fromStr, Object toStr,
                 @Cached ToStrNode fromStrNode,
                 @Cached ToStrNode toStrNode,
+                @Bind("this") Node node,
+                @Bind("fromStrNode.execute(node, fromStr)") Object fromStrAsString,
+                @Bind("toStrNode.execute(node, toStr)") Object toStrAsString,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached DeleteBangNode deleteBangNode,
                 @Cached RubyStringLibrary libFromStr,
-                @Cached RubyStringLibrary libToStr,
-                @Bind("this") Node node) {
-            final var fromStrAsString = fromStrNode.execute(node, fromStr);
-            final var toStrAsString = toStrNode.execute(node, toStr);
+                @Cached RubyStringLibrary libToStr) {
             if (libToStr.getTString(toStrAsString).isEmpty()) {
                 return deleteBangNode.execute(node, self, new Object[]{ fromStrAsString });
             }
