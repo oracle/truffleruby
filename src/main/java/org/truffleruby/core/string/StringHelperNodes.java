@@ -164,26 +164,15 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public abstract static class StringCountStringsNode extends CoreMethodArrayArgumentsNode {
-
-
-        @Specialization(guards = "libString.getTString(string).isEmpty()", limit = "1")
-        protected int count(Object string, Object[] args,
-                @Cached RubyStringLibrary libString) {
-            return 0;
-        }
-
-        @Specialization
-        protected int countStrings(Object string, TStringWithEncoding[] args,
-                @Cached CountStringsNode countStringsNode) {
-            return countStringsNode.execute(string, args);
-        }
-    }
-
-    @ImportStatic(StringGuards.class)
     public abstract static class CountStringsNode extends TrTableNode {
 
         public abstract int execute(Object string, TStringWithEncoding[] tstringsWithEncs);
+
+        @Specialization(guards = "libString.getTString(string).isEmpty()", limit = "1")
+        protected int count(Object string, TStringWithEncoding[] args,
+                @Cached @Shared RubyStringLibrary libString) {
+            return 0;
+        }
 
         @Specialization(
                 guards = {
@@ -299,22 +288,6 @@ public abstract class StringHelperNodes {
         }
     }
 
-    @ImportStatic(StringGuards.class)
-    public abstract static class StringDeleteBangStringsNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "string.tstring.isEmpty()")
-        protected Object deleteBangEmpty(RubyString string, Object[] args) {
-            return nil;
-        }
-
-        @Specialization
-        protected static Object deleteBangString(RubyString string, TStringWithEncoding[] args,
-                @Cached DeleteBangStringsNode deleteBangStringsNode,
-                @Bind("this") Node node) {
-            return deleteBangStringsNode.execute(node, string, args);
-        }
-    }
-
 
     @ImportStatic(StringGuards.class)
     @GenerateCached(false)
@@ -322,6 +295,11 @@ public abstract class StringHelperNodes {
     public abstract static class DeleteBangStringsNode extends TrTableNode {
 
         public abstract Object execute(Node node, RubyString string, TStringWithEncoding[] tstringsWithEncs);
+
+        @Specialization(guards = "string.tstring.isEmpty()")
+        protected Object deleteBangEmpty(RubyString string, TStringWithEncoding[] args) {
+            return nil;
+        }
 
         @Specialization(
                 guards = {
