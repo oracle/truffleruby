@@ -111,7 +111,7 @@ describe "Kernel#autoload?" do
   end
 end
 
-Kernel.autoload :KSAutoloadBB, "no_autoload.rb"
+Kernel.autoload :KSAutoloadBB, "autoload_never_used.rb"
 
 describe "Kernel.autoload" do
   before :all do
@@ -133,8 +133,17 @@ describe "Kernel.autoload" do
     Kernel.autoload?(:KSAutoloadAA).should == @non_existent
   end
 
-  it "sets the autoload constant in Object's constant table" do
+  it "sets the autoload constant in the caller class's constant table" do
     Object.should have_constant(:KSAutoloadBB)
+    Kernel.should_not have_constant(:KSAutoloadBB)
+
+    module KernelSpecs
+      class AutoloadInCallerClass
+        Kernel.autoload :KSAutoloadCC, "autoload_never_used.rb"
+        AutoloadInCallerClass.should have_constant(:KSAutoloadCC)
+        Kernel.should_not have_constant(:KSAutoloadBB)
+      end
+    end
   end
 
   it "calls #to_path on non-String filenames" do
@@ -167,6 +176,9 @@ describe "Kernel.autoload?" do
   it "returns the name of the file that will be autoloaded" do
     Kernel.autoload :KSAutoload, "autoload.rb"
     Kernel.autoload?(:KSAutoload).should == "autoload.rb"
+    Kernel.should_not have_constant(:KSAutoload)
+    Object.should_not have_constant(:KSAutoload)
+    self.class.should have_constant(:KSAutoload)
   end
 
   it "returns nil if no file has been registered for a constant" do
