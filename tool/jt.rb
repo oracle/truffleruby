@@ -623,7 +623,11 @@ module Utilities
       # Make sure $JAVA_HOME is not set, as a wrong value causes mx to abort
       env['JAVA_HOME'] = nil
     else
-      mx_args.unshift '--java-home', java_home
+      if java_home.start_with?(JDKS_CACHE_DIR)
+        mx_args.unshift '--java-home', java_home[JDKS_CACHE_DIR.size+1..-1]
+      else
+        mx_args.unshift '--java-home', java_home
+      end
     end
 
     sh(env, find_mx, *mx_args, **options)
