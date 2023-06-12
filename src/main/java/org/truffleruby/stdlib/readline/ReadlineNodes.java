@@ -78,12 +78,12 @@ public abstract class ReadlineNodes {
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(characters)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(charactersAsString)", limit = "1")
         protected static Object setBasicWordBreakCharacters(Object characters,
                 @Cached ToStrNode toStrNode,
                 @Cached RubyStringLibrary strings,
-                @Bind("this") Node node) {
-            final var charactersAsString = toStrNode.execute(node, characters);
+                @Bind("this") Node node,
+                @Bind("toStrNode.execute(node, characters)") Object charactersAsString) {
             final String delimiters = RubyGuards.getJavaString(charactersAsString);
             getContext(node).getConsoleHolder().getParser().setDelimiters(delimiters);
             return charactersAsString;
