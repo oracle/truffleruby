@@ -32,7 +32,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.Nil;
