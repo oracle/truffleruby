@@ -41,16 +41,16 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "libString.isRubyString(value)", limit = "1")
-    protected static String stringNameToJavaString(Object value,
+    protected static String stringNameToJavaString(Node node, Object value,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.execute(value);
+        return toJavaStringNode.execute(node, value);
     }
 
     @Specialization
-    protected static String symbolNameToJavaString(RubySymbol value,
+    protected static String symbolNameToJavaString(Node node, RubySymbol value,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.execute(value);
+        return toJavaStringNode.execute(node, value);
     }
 
     @Specialization
@@ -79,7 +79,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
         }
 
         if (libString.isRubyString(coerced)) {
-            return toJavaStringNode.execute(coerced);
+            return toJavaStringNode.execute(node, coerced);
         } else {
             errorProfile.enter(node);
             throw new RaiseException(getContext(node), coreExceptions(node).typeErrorBadCoercion(

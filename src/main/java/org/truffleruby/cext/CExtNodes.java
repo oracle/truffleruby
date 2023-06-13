@@ -1006,7 +1006,7 @@ public class CExtNodes {
         protected Object rbConstGet(RubyModule module, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
-            final var nameAsString = toJavaStringNode.execute(name);
+            final var nameAsString = toJavaStringNode.execute(this, name);
             return getConstantNode
                     .lookupAndResolveConstant(LexicalScope.IGNORE, module, nameAsString, false, lookupConstantNode,
                             true);
@@ -1025,7 +1025,7 @@ public class CExtNodes {
         protected Object rbConstGetFrom(RubyModule module, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
-            final var nameAsString = toJavaStringNode.execute(name);
+            final var nameAsString = toJavaStringNode.execute(this, name);
             return getConstantNode
                     .lookupAndResolveConstant(LexicalScope.IGNORE, module, nameAsString, false, lookupConstantNode,
                             true);
@@ -1044,7 +1044,7 @@ public class CExtNodes {
         protected Object rbConstSet(RubyModule module, Object name, Object value,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ConstSetUncheckedNode constSetUncheckedNode) {
-            final var nameAsString = toJavaStringNode.execute(name);
+            final var nameAsString = toJavaStringNode.execute(this, name);
             return constSetUncheckedNode.execute(module, nameAsString, value);
         }
     }

@@ -237,7 +237,8 @@ public abstract class InteropNodes {
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
                 @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
-                @Cached("create(parse(getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
+                @Bind("this") Node node,
+                @Cached("create(parse(node, getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualNode mimeTypeEqualNode,
                 @Cached StringHelperNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
@@ -246,18 +247,19 @@ public abstract class InteropNodes {
         @Specialization(
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
                 replaces = "evalCached", limit = "1")
-        protected Object evalUncached(Object mimeType, RubyString source,
+        protected static Object evalUncached(Object mimeType, RubyString source,
                 @Shared @Cached RubyStringLibrary stringsMimeType,
                 @Shared @Cached RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
-                @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(toJavaStringMimeNode.execute(mimeType),
-                    toJavaStringSourceNode.execute(source)), EMPTY_ARGUMENTS);
+                @Cached IndirectCallNode callNode,
+                @Bind("this") Node node) {
+            return callNode.call(parse(node, toJavaStringMimeNode.execute(node, mimeType),
+                    toJavaStringSourceNode.execute(node, source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(String mimeTypeString, String codeString) {
+        protected static CallTarget parse(Node node, String mimeTypeString, String codeString) {
             String language = Source.findLanguage(mimeTypeString);
             if (language == null) {
                 // Give the original string to get the nice exception from Truffle
@@ -265,9 +267,9 @@ public abstract class InteropNodes {
             }
             final Source source = Source.newBuilder(language, codeString, "(eval)").build();
             try {
-                return getContext().getEnv().parsePublic(source);
+                return getContext(node).getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
         }
 
@@ -1238,12 +1240,13 @@ public abstract class InteropNodes {
         public abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object readMember(Object receiver, Object identifier,
+        protected static Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
@@ -1253,11 +1256,12 @@ public abstract class InteropNodes {
     public abstract static class ReadMemberWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object readMember(Object receiver, Object identifier,
+        protected static Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
     }
@@ -1266,11 +1270,12 @@ public abstract class InteropNodes {
     public abstract static class WriteMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object write(Object receiver, Object identifier, Object value,
+        protected static Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
@@ -1297,11 +1302,12 @@ public abstract class InteropNodes {
         public abstract Object execute(Object receiver, Object identifier, Object value);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object write(Object receiver, Object identifier, Object value,
+        protected static Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
@@ -1316,11 +1322,12 @@ public abstract class InteropNodes {
     public abstract static class RemoveMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
-        protected Nil remove(Object receiver, Object identifier,
+        protected static Nil remove(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.removeMember(receiver, name);
             } catch (InteropException e) {
@@ -1356,12 +1363,13 @@ public abstract class InteropNodes {
         public abstract Object execute(Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected Object invokeCached(Object receiver, Object identifier, Object[] args,
+        protected static Object invokeCached(Object receiver, Object identifier, Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.execute(identifier);
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = invoke(receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
@@ -1371,100 +1379,110 @@ public abstract class InteropNodes {
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberReadable(Object receiver, Object name,
+        protected static boolean isMemberReadable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberReadable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberReadable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsMemberModifiableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberModifiable(Object receiver, Object name,
+        protected static boolean isMemberModifiable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberModifiable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberModifiable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_insertable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInsertableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberInsertable(Object receiver, Object name,
+        protected static boolean isMemberInsertable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInsertable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberInsertable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_removable?", onSingleton = true, required = 2)
     public abstract static class IsMemberRemovableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberRemovable(Object receiver, Object name,
+        protected static boolean isMemberRemovable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberRemovable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberRemovable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_invocable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInvocableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberInvocable(Object receiver, Object name,
+        protected static boolean isMemberInvocable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInvocable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberInvocable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_internal?", onSingleton = true, required = 2)
     public abstract static class IsMemberInternalNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberInternal(Object receiver, Object name,
+        protected static boolean isMemberInternal(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberInternal(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberInternal(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_writable?", onSingleton = true, required = 2)
     public abstract static class IsMemberWritableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberWritable(Object receiver, Object name,
+        protected static boolean isMemberWritable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberWritable(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberWritable(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "member_existing?", onSingleton = true, required = 2)
     public abstract static class IsMemberExistingNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean isMemberExisting(Object receiver, Object name,
+        protected static boolean isMemberExisting(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isMemberExisting(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.isMemberExisting(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberReadSideEffectsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean hasMemberReadSideEffects(Object receiver, Object name,
+        protected static boolean hasMemberReadSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.execute(node, name));
         }
     }
 
     @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberWriteSideEffectsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
-        protected boolean hasMemberWriteSideEffects(Object receiver, Object name,
+        protected static boolean hasMemberWriteSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.execute(name));
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Bind("this") Node node) {
+            return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.execute(node, name));
         }
     }
     // endregion
@@ -1479,7 +1497,7 @@ public abstract class InteropNodes {
         @Specialization
         protected Object export(Object name, Object object,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final var nameAsString = toJavaStringNode.execute(name);
+            final var nameAsString = toJavaStringNode.execute(this, name);
             getContext().getEnv().exportSymbol(nameAsString, object);
             return object;
         }
@@ -1494,7 +1512,7 @@ public abstract class InteropNodes {
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            final var nameAsString = toJavaStringNode.execute(name);
+            final var nameAsString = toJavaStringNode.execute(this, name);
             final Object value = doImport(nameAsString);
             if (value != null) {
                 return foreignToRubyNode.executeConvert(value);
@@ -1649,7 +1667,7 @@ public abstract class InteropNodes {
         @Specialization
         protected String toJavaString(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            return toJavaStringNode.execute(value);
+            return toJavaStringNode.execute(this, value);
         }
     }
 
@@ -1699,7 +1717,7 @@ public abstract class InteropNodes {
         @Specialization
         protected Object javaType(Object name,
                 @Cached ToJavaStringNode toJavaStringNode) {
-            return lookupJavaType(toJavaStringNode.execute(name));
+            return lookupJavaType(toJavaStringNode.execute(this, name));
         }
 
         @TruffleBoundary

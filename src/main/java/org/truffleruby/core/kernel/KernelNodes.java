@@ -120,7 +120,6 @@ import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.RequireNode;
-import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -263,25 +262,27 @@ public abstract class KernelNodes {
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected Object findFile(Object featureString,
+        protected static Object findFile(Object featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            String feature = toJavaStringNode.execute(featureString);
-            return findFileString(feature, notFoundProfile, fromJavaStringNode);
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            String feature = toJavaStringNode.execute(node, featureString);
+            return findFileString(feature, notFoundProfile, fromJavaStringNode, node);
         }
 
         @Specialization
-        protected Object findFileString(String featureString,
+        protected static Object findFileString(String featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
-                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
-            final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Bind("this") Node node) {
+            final String expandedPath = getContext(node).getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
-                notFoundProfile.enter(this);
+                notFoundProfile.enter(node);
                 return nil;
             }
-            return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
+            return createString(node, fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -328,14 +329,14 @@ public abstract class KernelNodes {
     @Primitive(name = "load_feature")
     public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RequireNode requireNode = RequireNodeGen.create();
-
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected boolean loadFeature(Object featureString, Object expandedPathString,
+        protected static boolean loadFeature(Object featureString, Object expandedPathString,
                 @Cached RubyStringLibrary libFeatureString,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached RequireNode requireNode,
+                @Bind("this") Node node) {
             return requireNode.executeRequire(
-                    toJavaStringNode.execute(featureString),
+                    toJavaStringNode.execute(node, featureString),
                     expandedPathString);
         }
 
@@ -743,7 +744,7 @@ public abstract class KernelNodes {
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
+        protected static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached @Shared RubyStringLibrary libSource,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -752,39 +753,44 @@ public abstract class KernelNodes {
                 @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
+                @Bind("this") Node node,
+                @Cached("parse(node, cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualSameEncodingNode codeEqualNode,
                 @Cached StringHelperNodes.EqualNode fileEqualNode) {
-            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            Object[] rubyArgs = prepareEvalArgs(node, callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(rubyArgs);
         }
 
         @Specialization(
                 guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
                 replaces = "evalCached", limit = "1")
-        protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
+        protected static Object evalBindingUncached(
+                Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached @Shared RubyStringLibrary libSource,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
 
-            var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
-                    toJavaStringNode.execute(file), line);
+            var callTarget = parse(node, libSource.getTString(source), libSource.getEncoding(source),
+                    binding.getFrame(),
+                    toJavaStringNode.execute(node, file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
-            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            Object[] rubyArgs = prepareEvalArgs(node, callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(callTarget, rubyArgs);
         }
 
-        private Object[] prepareEvalArgs(RootCallTarget callTarget, boolean assignsNewUserVariables, Object self,
+        private static Object[] prepareEvalArgs(Node node, RootCallTarget callTarget, boolean assignsNewUserVariables,
+                Object self,
                 RubyBinding binding) {
             final MaterializedFrame parentFrame = Objects.requireNonNull(binding.getFrame());
 
             Object[] args = assignsNewUserVariables ? new Object[]{ binding } : RubyNode.EMPTY_ARGUMENTS;
 
-            return getContext().getCodeLoader().prepareArgs(callTarget,
+            return getContext(node).getCodeLoader().prepareArgs(callTarget,
                     ParserContext.EVAL,
                     RubyArguments.getDeclarationContext(parentFrame),
                     parentFrame,
@@ -794,23 +800,23 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget parse(AbstractTruffleString sourceText, RubyEncoding encoding,
+        protected static RootCallTarget parse(Node node, AbstractTruffleString sourceText, RubyEncoding encoding,
                 MaterializedFrame parentFrame, String file, int line) {
             //intern() to improve footprint
             final String sourceFile = file.intern();
-            final RubySource source = EvalLoader.createEvalSource(getContext(), sourceText, encoding, "eval",
-                    sourceFile, line, this);
+            final RubySource source = EvalLoader.createEvalSource(getContext(node), sourceText, encoding, "eval",
+                    sourceFile, line, node);
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
-            return getContext()
+            return getContext(node)
                     .getCodeLoader()
-                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, this);
+                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, node);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
             return BindingNodes.getFrameDescriptor(binding);
         }
 
-        protected FrameDescriptor getDescriptor(RootCallTarget callTarget) {
+        protected static FrameDescriptor getDescriptor(RootCallTarget callTarget) {
             return RubyRootNode.of(callTarget).getFrameDescriptor();
         }
 
@@ -1451,7 +1457,7 @@ public abstract class KernelNodes {
                         coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
             }
 
-            final String methodName = toJavaString.execute(name);
+            final String methodName = toJavaString.execute(this, name);
             final boolean found;
             if (ignoreVisibilityProfile.profile(this, includeProtectedAndPrivate)) {
                 found = dispatchPrivate.execute(callerFrame, self, methodName);

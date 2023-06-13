@@ -1427,7 +1427,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(initialOrSymbol),
+                    toJavaString.execute(this, initialOrSymbol),
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1451,7 +1451,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(symbol),
+                    toJavaString.execute(this, symbol),
                     stores,
                     store,
                     initialOrSymbol,
@@ -1596,7 +1596,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final String formatString = toJavaStringNode.execute(format);
+            final String formatString = toJavaStringNode.execute(node, format);
 
             final BytesResult result;
             try {

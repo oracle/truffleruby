@@ -1403,7 +1403,7 @@ public abstract class StringNodes {
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Exclusive ForceEncodingNode forceEncodingNode,
                 @Bind("this") Node node) {
-            final String stringName = toJavaStringNode.execute(newEncoding);
+            final String stringName = toJavaStringNode.execute(node, newEncoding);
             final RubyEncoding rubyEncoding = getContext(node).getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
@@ -2801,7 +2801,7 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
-                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callUnpackNode,
+                @Cached("create(compileFormat(this, getJavaString(format)))") DirectCallNode callUnpackNode,
                 @Cached StringHelperNodes.EqualNode equalNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode) {
@@ -2838,13 +2838,13 @@ public abstract class StringNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishUnpack(result);
+            return finishUnpack(this, result);
         }
 
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
                 replaces = "unpackCached", limit = "1")
-        protected RubyArray unpackUncached(Object string, Object format, Object offsetObject,
+        protected static RubyArray unpackUncached(Object string, Object format, Object offsetObject,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedBranchProfile negativeOffsetProfile,
                 @Cached @Shared InlinedBranchProfile tooLargeOffsetProfile,
@@ -2853,54 +2853,55 @@ public abstract class StringNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callUnpackNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
-                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Bind("this") Node node) {
             var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
-                negativeOffsetProfile.enter(this);
+                negativeOffsetProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(
-                                "offset can't be negative", this, null));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().argumentError(
+                                "offset can't be negative", node, null));
             }
 
             if (offset > byteArray.getLength()) {
-                tooLargeOffsetProfile.enter(this);
+                tooLargeOffsetProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(
-                                "offset outside of string", this, null));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().argumentError(
+                                "offset outside of string", node, null));
             }
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        compileFormat(toJavaStringNode.execute(format)),
+                        compileFormat(node, toJavaStringNode.execute(node, format)),
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishUnpack(result);
+            return finishUnpack(node, result);
         }
 
-        private RubyArray finishUnpack(ArrayResult result) {
-            return createArray(result.getOutput(), result.getOutputLength());
+        private static RubyArray finishUnpack(Node node, ArrayResult result) {
+            return createArray(node, result.getOutput(), result.getOutputLength());
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(String format) {
+        protected static RootCallTarget compileFormat(Node node, String format) {
             try {
-                return new UnpackCompiler(getLanguage(), this).compile(format);
+                return new UnpackCompiler(getLanguage(node), node).compile(format);
             } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
+                throw dre.getException(getContext(node));
             }
         }
 

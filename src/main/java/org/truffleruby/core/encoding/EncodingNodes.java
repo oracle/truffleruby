@@ -660,15 +660,15 @@ public abstract class EncodingNodes {
 
     public abstract static class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
 
-        public RubyArray setIndexOrRaiseError(String name, RubyEncoding newEncoding) {
+        public static RubyArray setIndexOrRaiseError(Node node, String name, RubyEncoding newEncoding) {
             if (newEncoding == null) {
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
+                        getContext(node),
+                        coreExceptions(node).argumentErrorEncodingAlreadyRegistered(name, node));
             }
 
             final int index = newEncoding.index;
-            return createArray(new Object[]{ newEncoding, index });
+            return createArray(node, new Object[]{ newEncoding, index });
         }
 
     }
@@ -677,18 +677,19 @@ public abstract class EncodingNodes {
     public abstract static class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)", limit = "1")
-        protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
+        protected static RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
                 @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.execute(nameObject);
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, nameObject);
 
-            final RubyEncoding newEncoding = replicate(name, object);
-            return setIndexOrRaiseError(name, newEncoding);
+            final RubyEncoding newEncoding = replicate(node, name, object);
+            return setIndexOrRaiseError(node, name, newEncoding);
         }
 
         @TruffleBoundary
-        private RubyEncoding replicate(String name, RubyEncoding encoding) {
-            return getContext().getEncodingManager().replicateEncoding(encoding, name);
+        private static RubyEncoding replicate(Node node, String name, RubyEncoding encoding) {
+            return getContext(node).getEncodingManager().replicateEncoding(encoding, name);
         }
 
     }
@@ -697,18 +698,19 @@ public abstract class EncodingNodes {
     public abstract static class DummyEncodingNode extends EncodingCreationNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)", limit = "1")
-        protected RubyArray createDummyEncoding(Object nameObject,
+        protected static RubyArray createDummyEncoding(Object nameObject,
                 @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            final String name = toJavaStringNode.execute(nameObject);
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            final String name = toJavaStringNode.execute(node, nameObject);
 
-            final RubyEncoding newEncoding = createDummy(name);
-            return setIndexOrRaiseError(name, newEncoding);
+            final RubyEncoding newEncoding = createDummy(node, name);
+            return setIndexOrRaiseError(node, name, newEncoding);
         }
 
         @TruffleBoundary
-        private RubyEncoding createDummy(String name) {
-            return getContext().getEncodingManager().createDummyEncoding(name);
+        private static RubyEncoding createDummy(Node node, String name) {
+            return getContext(node).getEncodingManager().createDummyEncoding(name);
         }
 
     }
