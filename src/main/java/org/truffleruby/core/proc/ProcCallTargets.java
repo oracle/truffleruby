@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.RootNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.RubyRootNode;
@@ -91,5 +92,14 @@ public final class ProcCallTargets {
         final RootNode rootNode = callTarget.getRootNode();
         assert rootNode instanceof RubyLambdaRootNode : rootNode + " " + rootNode.getClass();
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.format(
+                "ProcCallTargets(callTargetForProc = %s, callTargetForLambda = %s, altCallTargetCompiler = %s)",
+                callTargetForProc,
+                callTargetForLambda,
+                altCallTargetCompiler);
     }
 }

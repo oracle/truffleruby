@@ -26,6 +26,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
+import org.truffleruby.core.string.StringUtils;
+
 /** A description of a single argument in a Ruby argument list. */
 public final class ArgumentDescriptor {
     /** The type of the argument */
@@ -51,6 +53,11 @@ public final class ArgumentDescriptor {
 
     public ArgumentDescriptor(ArgumentType type) {
         this(type, null);
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.format("ArgumentDescriptor(name = %s, type = %s)", name, type);
     }
 
 }

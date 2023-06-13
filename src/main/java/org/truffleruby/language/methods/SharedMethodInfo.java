@@ -14,6 +14,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -24,11 +26,13 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.OpenModule;
 import org.truffleruby.parser.ParserContext;
 
+import java.util.Arrays;
+
 /** SharedMethodInfo represents static information from the parser for either a method definition or a block like its
  * name, SourceSection, etc. Such information is always "original" since it comes from the source as opposed to
  * "aliased" (e.g. the aliased name of a method). In contrast, {@link InternalMethod} are runtime objects containing
  * properties that change for a method. */
-public final class SharedMethodInfo {
+public final class SharedMethodInfo implements DetailedInspectingSupport {
 
     private final SourceSection sourceSection;
     /** LexicalScope if it can be determined statically at parse time, otherwise null */
@@ -239,6 +243,15 @@ public final class SharedMethodInfo {
     @Override
     public String toString() {
         return getDescriptiveNameAndSource();
+    }
+
+    @Override
+    public String toStringWithDetails() {
+        final String string = Arrays.deepToString(argumentDescriptors);
+
+        return StringUtils.format(
+                "SharedMethodInfo(sourceSection = %s, staticLexicalScope = %s, arity = %s, originName = %s, blockDepth = %s, parseName = %s, notes = %s, argumentDescriptors = %s)",
+                sourceSection, staticLexicalScope, arity, originalName, blockDepth, parseName, notes, string);
     }
 
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.annotations.Visibility;
@@ -83,6 +84,21 @@ public final class ModuleBodyDefinition {
         } else {
             return new LexicalScope(parentLexicalScope, module);
         }
+    }
+
+    public RootCallTarget getCallTarget() {
+        return callTarget;
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.format(
+                "ModuleBodyDefinition(name = %s, sharedMethodInfo = %s, callTarget = %s, staticLexicalScope = %s, dynamicLexicalScopes = %s)",
+                this.name,
+                this.sharedMethodInfo.toStringWithDetails(),
+                this.callTarget,
+                this.staticLexicalScope,
+                this.dynamicLexicalScopes);
     }
 
 }
