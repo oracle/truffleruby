@@ -76,7 +76,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         for (int i = 0; i < propertyGetters.length; i++) {
             final PropertyGetter propertyGetter = propertyGetters[i];
             final Object value = propertyGetter.get(object);
-            writeBarrierNodes[i].executeWriteBarrier(value);
+            writeBarrierNodes[i].executeCached(value, depth);
         }
 
         assert allFieldsAreShared(object);
@@ -119,7 +119,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
                 ? WriteBarrierNode.EMPTY_ARRAY
                 : new WriteBarrierNode[propertyGetters.length];
         for (int i = 0; i < nodes.length; i++) {
-            nodes[i] = WriteBarrierNodeGen.create(depth);
+            nodes[i] = WriteBarrierNodeGen.create();
         }
         return nodes;
     }

@@ -50,7 +50,7 @@ public abstract class SetClassVariableNode extends RubyBaseNode {
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached @Shared InlinedBranchProfile slowPath) {
         // See WriteObjectFieldNode
-        writeBarrierNode.executeWriteBarrier(value);
+        writeBarrierNode.execute(this, value);
 
         final boolean set = classVariableStorage.putIfPresent(name, value, objectLibrary);
         if (!set) {

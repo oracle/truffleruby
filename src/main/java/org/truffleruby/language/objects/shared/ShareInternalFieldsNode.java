@@ -9,8 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
@@ -54,11 +53,12 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     @Specialization
     protected void shareCachedQueue(RubyQueue object,
             @Cached InlinedConditionProfile profileEmpty,
-            @Cached("createWriteBarrierNode()") @Exclusive WriteBarrierNode writeBarrierNode) {
+            @Cached WriteBarrierNode writeBarrierNode,
+            @Bind("this") Node node) {
         final UnsizedQueue queue = object.queue;
         if (!profileEmpty.profile(this, queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
-                writeBarrierNode.executeWriteBarrier(e);
+                writeBarrierNode.execute(node, e, depth);
             }
         }
     }
@@ -75,11 +75,6 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
                     "shareCachedBasicObject" })
     protected void shareUncached(RubyDynamicObject object) {
         SharedObjects.shareInternalFields(object);
-    }
-
-    @NeverDefault
-    protected WriteBarrierNode createWriteBarrierNode() {
-        return WriteBarrierNodeGen.create(depth);
     }
 
 }

@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.Idempotent;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.language.RubyBaseNode;
@@ -23,89 +24,94 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
 @GenerateUncached
-@NodeField(name = "depth", type = int.class)
+@GenerateInline(inlineByDefault = true)
 public abstract class WriteBarrierNode extends RubyBaseNode {
 
     public static final WriteBarrierNode[] EMPTY_ARRAY = new WriteBarrierNode[0];
 
     protected static final int MAX_DEPTH = 3;
 
-    @NeverDefault
-    public static WriteBarrierNode create() {
-        return WriteBarrierNodeGen.create(0);
+    protected final void execute(Node node, Object value, int depth) {
+        CompilerAsserts.partialEvaluationConstant(depth);
+        executeInternal(node, value, depth);
     }
 
-    @Idempotent
-    protected abstract int getDepth();
+    public final void execute(Node node, Object value) {
+        execute(node, value, 0);
+    }
 
-    public abstract void executeWriteBarrier(Object value);
+    public final void executeCached(Object value, int depth) {
+        execute(this, value, depth);
+    }
+
+    protected abstract void executeInternal(Node node, Object value, int depth);
 
     @Specialization(guards = { "!isRubyDynamicObject(value)", "!isFinalizer(value)" })
-    protected void noWriteBarrier(Object value) {
+    protected static void noWriteBarrier(Node node, Object value, int depth) {
     }
 
     @Specialization(
             guards = { "value.getShape() == cachedShape", "cachedShape.isShared()" },
             limit = "1") // limit of 1 as the next specialization is cheap
-    protected void alreadySharedCached(RubyDynamicObject value,
+    protected static void alreadySharedCached(RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape) {
     }
 
     @Specialization(guards = "value.getShape().isShared()", replaces = "alreadySharedCached")
-    protected void alreadySharedUncached(RubyDynamicObject value) {
+    protected static void alreadySharedUncached(RubyDynamicObject value, int depth) {
     }
 
     @Specialization(
-            guards = { "getDepth() < MAX_DEPTH", "value.getShape() == cachedShape", "!cachedShape.isShared()" },
+            guards = { "depth < MAX_DEPTH", "value.getShape() == cachedShape", "!cachedShape.isShared()" },
             assumptions = "cachedShape.getValidAssumption()",
             // limit of 1 to avoid creating many nodes if the value's Shape is polymorphic.
             limit = "1")
-    protected void writeBarrierCached(RubyDynamicObject value,
+    protected static void writeBarrierCached(RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape,
-            @Cached("createShareObjectNode()") ShareObjectNode shareObjectNode) {
+            @Cached("createShareObjectNode(depth)") ShareObjectNode shareObjectNode) {
         shareObjectNode.executeShare(value);
     }
 
     @Specialization(guards = "updateShape(value)")
-    protected void updateShapeAndWriteBarrier(RubyDynamicObject value) {
-        executeWriteBarrier(value);
+    protected static void updateShapeAndWriteBarrier(RubyDynamicObject value, int depth,
+            @Cached(inline = false) WriteBarrierNode writeBarrierNode) {
+        writeBarrierNode.executeCached(value, depth);
     }
 
     @Specialization(guards = "!value.getShape().isShared()",
             replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
-    protected void writeBarrierUncached(RubyDynamicObject value) {
-        SharedObjects.writeBarrier(getLanguage(), value);
+    protected static void writeBarrierUncached(Node node, RubyDynamicObject value, int depth) {
+        SharedObjects.writeBarrier(getLanguage(node), value);
     }
 
     @Specialization
     @TruffleBoundary
-    protected void writeBarrierFinalizer(FinalizerReference ref) {
+    protected static void writeBarrierFinalizer(Node node, FinalizerReference ref, int depth) {
         ArrayList<Object> roots = new ArrayList<>();
         ref.collectRoots(roots);
         for (var root : roots) {
-            SharedObjects.writeBarrier(getLanguage(), root);
+            SharedObjects.writeBarrier(getLanguage(node), root);
         }
     }
 
 
     @Specialization
     @TruffleBoundary
-    protected void writeBarrierDataFinalizer(DataObjectFinalizerReference ref) {
-        SharedObjects.writeBarrier(getLanguage(), ref.dataHolder);
+    protected static void writeBarrierDataFinalizer(Node node, DataObjectFinalizerReference ref, int depth) {
+        SharedObjects.writeBarrier(getLanguage(node), ref.dataHolder);
     }
 
-    protected boolean isFinalizer(Object object) {
+    protected static boolean isFinalizer(Object object) {
         return object instanceof FinalizerReference || object instanceof DataObjectFinalizerReference;
     }
 
-    protected ShareObjectNode createShareObjectNode() {
-        return ShareObjectNodeGen.create(getDepth() + 1);
+    protected static ShareObjectNode createShareObjectNode(int depth) {
+        return ShareObjectNodeGen.create(depth + 1);
     }
 
 }

@@ -37,7 +37,6 @@ import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -47,6 +46,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule("ObjectSpace")
@@ -215,7 +215,7 @@ public abstract class ObjectSpaceNodes {
                     if (!getContext().getSharedObjects().isSharing()) {
                         startSharing();
                     }
-                    writeBarrierNode.executeWriteBarrier(finalizer);
+                    writeBarrierNode.execute(this, finalizer);
                 }
 
                 defineFinalizer(object, finalizer);
@@ -271,7 +271,7 @@ public abstract class ObjectSpaceNodes {
                 if (!getContext().getSharedObjects().isSharing()) {
                     startSharing();
                 }
-                writeBarrierNode.executeWriteBarrier(dataHolder);
+                writeBarrierNode.execute(this, dataHolder);
             }
 
             DataObjectFinalizerReference newRef = getContext()

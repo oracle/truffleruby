@@ -11,9 +11,11 @@ package org.truffleruby.core.array.library;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.language.RubyBaseNode;
@@ -21,7 +23,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,6 +33,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
@@ -75,16 +77,18 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected void write(int index, Object value,
             @Shared @Cached WriteBarrierNode writeBarrierNode,
-            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
-        writeBarrierNode.executeWriteBarrier(value);
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores,
+            @Bind("$node") Node node) {
+        writeBarrierNode.execute(node, value);
         stores.write(storage, index, value);
     }
 
     @ExportMessage
     protected void fill(int start, int length, Object value,
             @Shared @Cached WriteBarrierNode writeBarrierNode,
-            @CachedLibrary("this.storage") ArrayStoreLibrary stores) {
-        writeBarrierNode.executeWriteBarrier(value);
+            @CachedLibrary("this.storage") ArrayStoreLibrary stores,
+            @Bind("$node") Node node) {
+        writeBarrierNode.execute(node, value);
         stores.fill(storage, start, length, value);
     }
 
