@@ -272,8 +272,13 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyString createString(TruffleString.FromByteArrayNode fromByteArrayNode, byte[] bytes,
             RubyEncoding encoding) {
+        return createString(this, fromByteArrayNode, bytes, encoding);
+    }
+
+    protected static RubyString createString(Node node, TruffleString.FromByteArrayNode fromByteArrayNode, byte[] bytes,
+            RubyEncoding encoding) {
         var tstring = fromByteArrayNode.execute(bytes, encoding.tencoding, false);
-        return createString(tstring, encoding);
+        return createString(node, tstring, encoding);
     }
 
     public final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,

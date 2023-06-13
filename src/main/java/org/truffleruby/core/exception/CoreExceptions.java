@@ -134,8 +134,8 @@ public class CoreExceptions {
                 null);
     }
 
-    public RubyException argumentErrorTooFewArguments(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.createInstance(currentNode.getContext()), currentNode,
+    public RubyException argumentErrorTooFewArguments(Node currentNode) {
+        return argumentError(coreStrings().TOO_FEW_ARGUMENTS.createInstance(RubyContext.get(currentNode)), currentNode,
                 null);
     }
 
@@ -144,13 +144,15 @@ public class CoreExceptions {
                 currentNode, null);
     }
 
-    public RubyException argumentErrorXOutsideOfString(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.createInstance(currentNode.getContext()), currentNode,
+    public RubyException argumentErrorXOutsideOfString(Node currentNode) {
+        return argumentError(coreStrings().X_OUTSIDE_OF_STRING.createInstance(RubyContext.get(currentNode)),
+                currentNode,
                 null);
     }
 
-    public RubyException argumentErrorCantCompressNegativeNumbers(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.createInstance(currentNode.getContext()), currentNode,
+    public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
+        return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.createInstance(RubyContext.get(currentNode)),
+                currentNode,
                 null);
     }
 

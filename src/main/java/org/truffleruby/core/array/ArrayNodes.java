@@ -16,6 +16,8 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
@@ -1540,89 +1542,101 @@ public abstract class ArrayNodes {
     @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
     @ReportPolymorphism
-    public abstract static class PackNode extends CoreMethodNode {
+    public abstract static class ArrayPackNode extends CoreMethodNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
+        @Specialization
+        protected RubyString pack(RubyArray array, Object format,
+                @Cached ToStrNode toStrNode,
+                @Cached PackNode packNode) {
+            final var formatAsString = toStrNode.execute(this, format);
+            return packNode.execute(this, array, formatAsString);
+        }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class PackNode extends RubyBaseNode {
+
+        public abstract RubyString execute(Node node, RubyArray array, Object format);
 
         @Specialization(
                 guards = {
-                        "libFormat.isRubyString(formatAsString)",
-                        "equalNode.execute(libFormat, formatAsString, cachedFormat, cachedEncoding)" },
+                        "libFormat.isRubyString(format)",
+                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
-        protected RubyString packCached(RubyArray array, Object format,
-                @Cached @Shared ToStrNode toStrNode,
-                @Bind("toStrNode.execute(this, format)") Object formatAsString,
+        protected static RubyString packCached(Node node, RubyArray array, Object format,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
-                @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
+                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(getJavaString(formatAsString)))") DirectCallNode callPackNode,
+                @Cached("create(compileFormat(node, getJavaString(format)))") DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishPack(cachedFormatLength, result, resizeProfile, writeAssociatedNode);
+            return finishPack(node, cachedFormatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(formatAsString)" }, replaces = "packCached", limit = "1")
-        protected RubyString packUncached(RubyArray array, Object format,
-                @Cached @Shared ToStrNode toStrNode,
-                @Bind("toStrNode.execute(this, format)") Object formatAsString,
+        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
+        protected static RubyString packUncached(Node node, RubyArray array, Object format,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
-            final String formatString = toJavaStringNode.execute(formatAsString);
+            final String formatString = toJavaStringNode.execute(format);
 
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(formatString),
+                        compileFormat(node, formatString),
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            int formatLength = libFormat.getTString(formatAsString).byteLength(libFormat.getTEncoding(formatAsString));
-            return finishPack(formatLength, result, resizeProfile, writeAssociatedNode);
+            int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
+            return finishPack(node, formatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
-        private RubyString finishPack(int formatLength, BytesResult result, InlinedConditionProfile resizeProfile,
-                WriteObjectFieldNode writeAssociatedNode) {
+        private static RubyString finishPack(Node node, int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile,
+                WriteObjectFieldNode writeAssociatedNode, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding);
+            final RubyString string = createString(node, fromByteArrayNode, bytes, rubyEncoding);
 
             if (result.getAssociated() != null) {
-                writeAssociatedNode.execute(this, string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
+                writeAssociatedNode.execute(node, string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
             }
 
             return string;
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(String format) {
+        protected static RootCallTarget compileFormat(Node node, String format) {
             try {
-                return new PackCompiler(getLanguage(), this).compile(format);
+                return new PackCompiler(getLanguage(node), node).compile(format);
             } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
+                throw dre.getException(getContext(node));
             }
         }
 
