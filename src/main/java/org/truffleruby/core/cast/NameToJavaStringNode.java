@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -25,57 +25,45 @@ import org.truffleruby.utils.Utils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
  * name. */
 @GenerateUncached
-@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
-public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
+@GenerateCached(false)
+@GenerateInline
+public abstract class NameToJavaStringNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static NameToJavaStringNode create() {
-        return NameToJavaStringNodeGen.create(null);
+    public abstract String execute(Node node, Object name);
+
+    public static String executeUncached(Object name) {
+        return NameToJavaStringNodeGen.getUncached().execute(null, name);
     }
-
-    public static NameToJavaStringNode create(RubyBaseNodeWithExecute name) {
-        return NameToJavaStringNodeGen.create(name);
-    }
-
-    public static NameToJavaStringNode getUncached() {
-        return NameToJavaStringNodeGen.getUncached();
-    }
-
-    public abstract String execute(Object name);
-
-    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization(guards = "libString.isRubyString(value)", limit = "1")
-    protected String stringNameToJavaString(Object value,
+    protected static String stringNameToJavaString(Object value,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.execute(value);
     }
 
     @Specialization
-    protected String symbolNameToJavaString(RubySymbol value,
+    protected static String symbolNameToJavaString(RubySymbol value,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.execute(value);
     }
 
     @Specialization
-    protected String nameToJavaString(String value) {
+    protected static String nameToJavaString(String value) {
         return value;
     }
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
-    protected static String nameToJavaString(Object object,
+    protected static String nameToJavaString(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStr,
             @Cached @Exclusive RubyStringLibrary libString,
-            @Cached @Exclusive ToJavaStringNode toJavaStringNode,
-            @Bind("this") Node node) {
+            @Cached @Exclusive ToJavaStringNode toJavaStringNode) {
         final Object coerced;
         try {
             coerced = toStr.call(object, "to_str");
@@ -101,10 +89,5 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
                     coerced,
                     node));
         }
-    }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getValueNode().cloneUninitialized());
     }
 }

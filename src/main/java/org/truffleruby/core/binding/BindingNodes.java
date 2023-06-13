@@ -50,7 +50,6 @@ import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -223,7 +222,7 @@ public abstract class BindingNodes {
         protected boolean localVariableDefined(RubyBinding binding, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableDefinedNode localVariableDefinedNode) {
-            final var name = nameToJavaStringNode.execute(nameObject);
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             return localVariableDefinedNode.execute(this, binding, name);
         }
     }
@@ -274,14 +273,11 @@ public abstract class BindingNodes {
     @ImportStatic(BindingNodes.class)
     public abstract static class BindingLocalVariableGetNode extends CoreMethodNode {
 
-        @CreateCast("nameNode")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object localVariableGet(RubyBinding binding, String name,
+        protected Object localVariableGet(RubyBinding binding, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableGetNode localVariableGetNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             return localVariableGetNode.execute(binding, name);
         }
     }
@@ -321,14 +317,11 @@ public abstract class BindingNodes {
     @NodeChild(value = "valueNode", type = RubyNode.class)
     public abstract static class BindingLocalVariableSetNode extends CoreMethodNode {
 
-        @CreateCast("nameNode")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object localVariableSet(RubyBinding binding, String name, Object value,
+        protected Object localVariableSet(RubyBinding binding, Object nameObject, Object value,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableSetNode localVariableSetNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             return localVariableSetNode.execute(binding, name, value);
         }
     }

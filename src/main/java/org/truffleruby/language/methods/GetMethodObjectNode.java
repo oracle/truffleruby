@@ -55,7 +55,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached InlinedConditionProfile notFoundProfile,
             @Cached InlinedConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
-        final String normalizedName = nameToJavaStringNode.execute(name);
+        final String normalizedName = nameToJavaStringNode.execute(this, name);
         InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 
         if (notFoundProfile.profile(this, method == null)) {

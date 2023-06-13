@@ -492,7 +492,7 @@ public abstract class ModuleNodes {
             Object[] generatedMethods = accessor == BOTH ? new Object[names.length * 2] : new Object[names.length];
             int i = 0;
             for (Object nameObject : names) {
-                final String name = NameToJavaStringNode.getUncached().execute(nameObject);
+                final String name = NameToJavaStringNode.executeUncached(nameObject);
                 if (accessor == BOTH) {
                     generatedMethods[i++] = createAccessor(module, name, READER, visibility, sourceSection);
                     generatedMethods[i++] = createAccessor(module, name, WRITER, visibility, sourceSection);
@@ -618,33 +618,31 @@ public abstract class ModuleNodes {
     @NodeChild(value = "filename", type = RubyBaseNodeWithExecute.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceNameToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @TruffleBoundary
         @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
-        protected Object autoload(RubyModule module, String name, Object filename,
+        protected static Object autoload(RubyModule module, Object nameObject, Object filename,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
                 @Bind("toPathNode.execute(filename)") Object filenameAsPath,
-                @Cached RubyStringLibrary libFilename) {
+                @Cached RubyStringLibrary libFilename,
+                @Bind("this") Node node) {
+            final var name = nameToJavaStringNode.execute(node, nameObject);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameError(
+                        getContext(node),
+                        coreExceptions(node).nameError(
                                 StringUtils.format("autoload must be constant name: %s", name),
                                 module,
                                 name,
-                                this));
+                                node));
             }
 
             if (libFilename.getTString(filenameAsPath).isEmpty()) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError("empty file name", node));
             }
 
             final String javaStringFilename = RubyGuards.getJavaString(filenameAsPath);
-            module.fields.setAutoloadConstant(getContext(), this, name, filenameAsPath, javaStringFilename);
+            module.fields.setAutoloadConstant(getContext(node), node, name, filenameAsPath, javaStringFilename);
             return nil;
         }
     }
@@ -665,11 +663,6 @@ public abstract class ModuleNodes {
     @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class IsAutoloadNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
@@ -677,7 +670,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected Object isAutoload(RubyModule module, String name, boolean inherit) {
+        protected Object isAutoload(RubyModule module, Object nameObject, boolean inherit,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             final ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(
                     getContext(),
                     module,
@@ -835,15 +830,12 @@ public abstract class ModuleNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected boolean isClassVariableDefinedString(RubyModule module, String name,
+        protected boolean isClassVariableDefinedString(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             checkClassVariableNameNode.execute(module, name);
             return lookupClassVariableNode.execute(module, name) != null;
         }
@@ -855,16 +847,13 @@ public abstract class ModuleNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ClassVariableGetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object getClassVariable(RubyModule module, String name,
+        protected Object getClassVariable(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode,
                 @Cached InlinedConditionProfile undefinedProfile) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             checkClassVariableNameNode.execute(module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
@@ -885,15 +874,12 @@ public abstract class ModuleNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ClassVariableSetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object setClassVariable(RubyModule module, String name, Object value,
+        protected Object setClassVariable(RubyModule module, Object nameObject, Object value,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached SetClassVariableNode setClassVariableNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             checkClassVariableNameNode.execute(module, name);
             setClassVariableNode.execute(module, name, value);
             return value;
@@ -982,10 +968,6 @@ public abstract class ModuleNodes {
 
         abstract RubyNode getCheckNameNode();
 
-        @CreateCast("nameNode")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
 
         @CreateCast("inheritNode")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
@@ -994,14 +976,12 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isConstDefined(RubyModule module, String fullName, boolean inherit, boolean checkName) {
+        protected boolean isConstDefined(RubyModule module, Object fullNameObject, boolean inherit, boolean checkName,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var fullName = nameToJavaStringNode.execute(this, fullNameObject);
             final ConstantLookupResult constant = ModuleOperations
                     .lookupScopedConstant(getContext(), module, fullName, inherit, this, checkName);
             return constant.isFound();
-        }
-
-        private RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
         }
 
         private RubyBaseNodeWithExecute getInheritNodeBeforeCasting() {
@@ -1012,7 +992,7 @@ public abstract class ModuleNodes {
         public RubyNode cloneUninitialized() {
             var copy = create(
                     getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized(),
+                    getNameNode().cloneUninitialized(),
                     getInheritNodeBeforeCasting().cloneUninitialized(),
                     getCheckNameNode().cloneUninitialized());
             return copy.copyFlags(this);
@@ -1186,13 +1166,10 @@ public abstract class ModuleNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class ConstMissingNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object constMissing(RubyModule module, String name) {
+        protected Object constMissing(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, name, this));
         }
 
@@ -1262,14 +1239,11 @@ public abstract class ModuleNodes {
 
         @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected Object setConstant(RubyModule module, String name, Object value) {
+        protected Object setConstant(RubyModule module, Object nameObject, Object value,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -1337,7 +1311,7 @@ public abstract class ModuleNodes {
         protected RubySymbol defineMethodWithMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
             return addMethod(module, name, (RubyMethod) method);
@@ -1347,7 +1321,7 @@ public abstract class ModuleNodes {
         protected RubySymbol defineMethodWithProc(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
             needCallerFrame(callerFrame, target);
@@ -1359,7 +1333,7 @@ public abstract class ModuleNodes {
         protected RubySymbol defineMethodWithUnboundMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
             needCallerFrame(callerFrame, target);
@@ -1380,7 +1354,7 @@ public abstract class ModuleNodes {
         protected RubySymbol defineMethodWithBlock(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object block = RubyArguments.getBlock(rubyArgs);
 
             needCallerFrame(callerFrame, target);
@@ -1658,11 +1632,6 @@ public abstract class ModuleNodes {
     @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
@@ -1670,7 +1639,9 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isMethodDefined(RubyModule module, String name, boolean inherit) {
+        protected boolean isMethodDefined(RubyModule module, Object nameObject, boolean inherit,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             final InternalMethod method;
             if (inherit) {
                 method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1878,14 +1849,11 @@ public abstract class ModuleNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
+        protected RubyUnboundMethod publicInstanceMethod(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1973,11 +1941,6 @@ public abstract class ModuleNodes {
             this.visibility = visibility;
         }
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @CreateCast("inherit")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute inherit) {
             return BooleanCastWithDefaultNode.create(true, inherit);
@@ -1986,16 +1949,18 @@ public abstract class ModuleNodes {
         // NOTE(norswap): We considered caching the lookup here, but determined that the resulting complexity
         //   increase in LookupMethodNode wasn't worth it, as it would slow down the more common cases.
 
-        @Specialization(guards = "inherit")
-        protected boolean isMethodDefinedInherit(RubyModule module, String name, boolean inherit) {
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
-            return method != null && !method.isUndefined() && !method.isUnimplemented() &&
-                    method.getVisibility() == visibility;
-        }
+        @Specialization
+        protected boolean isMethodDefined(RubyModule module, Object nameObject, boolean inherit,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached InlinedConditionProfile inheritProfile) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
+            final InternalMethod method;
+            if (inheritProfile.profile(this, inherit)) {
+                method = ModuleOperations.lookupMethodUncached(module, name, null);
+            } else {
+                method = module.fields.getMethod(name);
+            }
 
-        @Specialization(guards = "!inherit")
-        protected boolean isMethodDefinedDontInherit(RubyModule module, String name, boolean inherit) {
-            final InternalMethod method = module.fields.getMethod(name);
             return method != null && !method.isUndefined() && !method.isUnimplemented() &&
                     method.getVisibility() == visibility;
         }
@@ -2053,7 +2018,7 @@ public abstract class ModuleNodes {
                 @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
-            final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
 
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, declarationContext);
@@ -2077,12 +2042,11 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_constant", rest = true)
     public abstract static class PrivateConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-
         @Specialization
-        protected RubyModule privateConstant(RubyModule module, Object[] args) {
+        protected RubyModule privateConstant(RubyModule module, Object[] args,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.execute(arg);
+                String name = nameToJavaStringNode.execute(this, arg);
                 module.fields.changeConstantVisibility(getContext(), this, name, true);
             }
             return module;
@@ -2092,12 +2056,11 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "deprecate_constant", rest = true, raiseIfFrozenSelf = true)
     public abstract static class DeprecateConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-
         @Specialization
-        protected RubyModule deprecateConstant(RubyModule module, Object[] args) {
+        protected RubyModule deprecateConstant(RubyModule module, Object[] args,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.execute(arg);
+                String name = nameToJavaStringNode.execute(this, arg);
                 module.fields.deprecateConstant(getContext(), this, name);
             }
             return module;
@@ -2107,12 +2070,11 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public_constant", rest = true)
     public abstract static class PublicConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-
         @Specialization
-        protected RubyModule publicConstant(RubyModule module, Object[] args) {
+        protected RubyModule publicConstant(RubyModule module, Object[] args,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.execute(arg);
+                String name = nameToJavaStringNode.execute(this, arg);
                 module.fields.changeConstantVisibility(getContext(), this, name, false);
             }
             return module;
@@ -2148,14 +2110,11 @@ public abstract class ModuleNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class RemoveClassVariableNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected Object removeClassVariableString(RubyModule module, String name,
+        protected Object removeClassVariableString(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             checkClassVariableNameNode.execute(module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
@@ -2163,25 +2122,12 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_remove_const")
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class RemoveConstNode extends PrimitiveNode {
-
-        public static RemoveConstNode create(RubyNode module, RubyBaseNodeWithExecute name) {
-            return ModuleNodesFactory.RemoveConstNodeFactory.create(module, name);
-        }
-
-        abstract RubyNode getModuleNode();
-
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        @CreateCast("nameNode")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
+    public abstract static class RemoveConstNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object removeConstant(RubyModule module, String name) {
+        protected Object removeConstant(RubyModule module, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyConstant oldConstant = module.fields.removeConstant(getContext(), this, name);
             if (oldConstant == null) {
                 throw new RaiseException(
@@ -2195,18 +2141,6 @@ public abstract class ModuleNodes {
                 }
             }
         }
-
-        RubyBaseNodeWithExecute getNameNodeBeforeCasting() {
-            return ((NameToJavaStringNode) getNameNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
     }
 
     @CoreMethod(names = "remove_method", rest = true)
@@ -2214,14 +2148,14 @@ public abstract class ModuleNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
         @Child private DispatchNode methodRemovedNode = DispatchNode.create();
 
         @Specialization
-        protected RubyModule removeMethods(RubyModule module, Object[] names) {
+        protected RubyModule removeMethods(RubyModule module, Object[] names,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                removeMethod(module, nameToJavaStringNode.execute(name));
+                removeMethod(module, nameToJavaStringNode.execute(this, name));
             }
             return module;
         }
@@ -2269,7 +2203,7 @@ public abstract class ModuleNodes {
         protected RubyModule undefMethods(RubyModule module, Object[] names,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                module.fields.undefMethod(getLanguage(), getContext(), this, nameToJavaStringNode.execute(name));
+                module.fields.undefMethod(getLanguage(), getContext(), this, nameToJavaStringNode.execute(this, name));
             }
             return module;
         }
@@ -2358,7 +2292,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "!isRubyArray(name)")
         protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String methodName = nameToJavaStringNode.execute(name);
+            final String methodName = nameToJavaStringNode.execute(this, name);
 
             final InternalMethod method = module.fields.deepMethodSearch(getContext(), methodName);
 

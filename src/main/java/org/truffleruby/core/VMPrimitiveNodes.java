@@ -194,7 +194,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LookupMethodOnSelfNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
-            final String normalizedName = nameToJavaStringNode.execute(name);
+            final String normalizedName = nameToJavaStringNode.execute(this, name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
             if (method == null) {
                 return nil;

@@ -990,7 +990,7 @@ public abstract class KernelNodes {
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return objectLibrary.containsKey(object, nameString);
         }
@@ -1009,7 +1009,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return objectLibrary.getOrDefault(object, nameString, nil);
         }
@@ -1018,7 +1018,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return nil;
         }
@@ -1033,7 +1033,7 @@ public abstract class KernelNodes {
                 @Cached WriteObjectFieldNode writeNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             raiseIfFrozenNode.execute(object);
             writeNode.execute(this, object, nameString, value);
@@ -1044,7 +1044,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name, Object value,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
@@ -1058,7 +1058,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             raiseIfFrozenNode.execute(object);
             return removeIVar(object, nameString);
@@ -1068,7 +1068,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
@@ -1408,7 +1408,7 @@ public abstract class KernelNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), newArgs);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name), newArgs);
         }
 
     }
@@ -1514,18 +1514,14 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected RubyMethod singletonMethod(Object self, String name,
+        protected RubyMethod singletonMethod(Object self, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached InlinedConditionProfile singletonProfile,
                 @Cached InlinedConditionProfile methodProfile,
                 @Cached MetaClassNode metaClassNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
             if (singletonProfile.profile(this, metaClass.isSingleton)) {
