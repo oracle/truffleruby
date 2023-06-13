@@ -10,50 +10,41 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import java.nio.ByteOrder;
 
-@NodeChild(value = "valueNode", type = RubyNode.class)
-public abstract class SymbolToByteOrderNode extends RubyContextSourceNode {
+@GenerateInline
+@GenerateCached(false)
+public abstract class SymbolToByteOrderNode extends RubyBaseNode {
 
-    public static SymbolToByteOrderNode create(RubyNode value) {
-        return SymbolToByteOrderNodeGen.create(value);
-    }
-
-    abstract RubyNode getValueNode();
+    public abstract ByteOrder execute(Node node, Object value);
 
     @Specialization(guards = "symbol == coreSymbols().BIG")
-    protected ByteOrder symbolToByteOrderBig(RubySymbol symbol) {
+    protected static ByteOrder symbolToByteOrderBig(RubySymbol symbol) {
         return ByteOrder.BIG_ENDIAN;
     }
 
     @Specialization(guards = "symbol == coreSymbols().LITTLE")
-    protected ByteOrder symbolToByteOrderLittle(RubySymbol symbol) {
+    protected static ByteOrder symbolToByteOrderLittle(RubySymbol symbol) {
         return ByteOrder.LITTLE_ENDIAN;
     }
 
     @Specialization(guards = "symbol == coreSymbols().NATIVE")
-    protected ByteOrder symbolToByteOrderNative(RubySymbol symbol) {
+    protected static ByteOrder symbolToByteOrderNative(RubySymbol symbol) {
         return ByteOrder.nativeOrder();
     }
 
     @Fallback
-    protected ByteOrder invalidByteOrder(Object value) {
+    protected static ByteOrder invalidByteOrder(Node node, Object value) {
         throw new RaiseException(
-                getContext(),
-                coreExceptions().argumentError("byte order must be :big, :little, or :native symbol", this));
+                getContext(node),
+                coreExceptions(node).argumentError("byte order must be :big, :little, or :native symbol", node));
     }
-
-    @Override
-    public RubyNode cloneUninitialized() {
-        var copy = SymbolToByteOrderNodeGen.create(getValueNode().cloneUninitialized());
-        return copy.copyFlags(this);
-    }
-
 }
