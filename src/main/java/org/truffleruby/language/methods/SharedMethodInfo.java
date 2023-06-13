@@ -94,18 +94,6 @@ public final class SharedMethodInfo implements DetailedInspectingSupport {
                 ArgumentDescriptor.ANY);
     }
 
-    public SharedMethodInfo withArity(Arity newArity) {
-        return new SharedMethodInfo(
-                sourceSection,
-                staticLexicalScope,
-                newArity,
-                originalName,
-                blockDepth,
-                parseName,
-                notes,
-                argumentDescriptors);
-    }
-
     public SourceSection getSourceSection() {
         return sourceSection;
     }
