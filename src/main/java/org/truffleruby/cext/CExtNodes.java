@@ -1854,6 +1854,7 @@ public class CExtNodes {
         protected Object setMarkList(RubyDynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.execute(
+                    this,
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
                     getContext().getMarkingService()

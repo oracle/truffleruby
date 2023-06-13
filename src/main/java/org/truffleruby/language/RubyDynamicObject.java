@@ -9,8 +9,10 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -588,7 +590,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared IsFrozenNode isFrozenNode,
             @Shared @Cached ConditionProfile dynamicProfile,
             @Shared @Cached TranslateInteropRubyExceptionNode translateRubyException,
-            @Shared @Cached BranchProfile errorProfile)
+            @Shared @Cached BranchProfile errorProfile,
+            @Bind("$node") Node node)
             throws UnknownIdentifierException, UnsupportedMessageException {
         Object dynamic;
         try {
@@ -603,7 +606,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
                 throw UnsupportedMessageException.create();
             }
             if (isIVar(name)) {
-                writeObjectFieldNode.execute(this, name, value);
+                writeObjectFieldNode.execute(node, this, name, value);
             } else {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);

@@ -1543,7 +1543,6 @@ public abstract class ArrayNodes {
     public abstract static class PackNode extends CoreMethodNode {
 
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
-        @Child private WriteObjectFieldNode writeAssociatedNode;
 
         @Specialization(
                 guards = {
@@ -1556,6 +1555,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
@@ -1570,7 +1570,7 @@ public abstract class ArrayNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(cachedFormatLength, result, resizeProfile);
+            return finishPack(cachedFormatLength, result, resizeProfile, writeAssociatedNode);
         }
 
         @Specialization(guards = { "libFormat.isRubyString(formatAsString)" }, replaces = "packCached", limit = "1")
@@ -1580,6 +1580,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
             final String formatString = toJavaStringNode.execute(formatAsString);
@@ -1595,10 +1596,11 @@ public abstract class ArrayNodes {
             }
 
             int formatLength = libFormat.getTString(formatAsString).byteLength(libFormat.getTEncoding(formatAsString));
-            return finishPack(formatLength, result, resizeProfile);
+            return finishPack(formatLength, result, resizeProfile, writeAssociatedNode);
         }
 
-        private RubyString finishPack(int formatLength, BytesResult result, InlinedConditionProfile resizeProfile) {
+        private RubyString finishPack(int formatLength, BytesResult result, InlinedConditionProfile resizeProfile,
+                WriteObjectFieldNode writeAssociatedNode) {
             byte[] bytes = result.getOutput();
 
             if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
@@ -1609,12 +1611,7 @@ public abstract class ArrayNodes {
             final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding);
 
             if (result.getAssociated() != null) {
-                if (writeAssociatedNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
-                }
-
-                writeAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
+                writeAssociatedNode.execute(this, string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
             }
 
             return string;

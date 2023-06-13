@@ -1532,8 +1532,6 @@ public abstract class StringNodes {
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfNotMutableSelf = true)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private WriteObjectFieldNode writeAssociatedNode; // for synchronization
-
         @Specialization(guards = "areEqual(self, from)")
         protected Object initializeCopySelfIsSameAsFrom(RubyString self, Object from) {
             return self;
@@ -1546,12 +1544,13 @@ public abstract class StringNodes {
                 "tstring.isImmutable()" }, limit = "1")
         protected Object initializeCopyImmutable(RubyString self, Object from,
                 @Cached @Shared RubyStringLibrary stringsFrom,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
                 @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
             self.setTString(tstring, stringsFrom.getEncoding(from));
 
             final Object associated = stringGetAssociatedNode.execute(from);
-            copyAssociated(self, associated);
+            copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
 
@@ -1562,6 +1561,7 @@ public abstract class StringNodes {
                 "tstring.isMutable()" }, limit = "1")
         protected Object initializeCopyMutable(RubyString self, Object from,
                 @Cached @Shared RubyStringLibrary stringsFrom,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached MutableTruffleString.SubstringByteIndexNode copyMutableTruffleStringNode,
                 @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
@@ -1573,7 +1573,7 @@ public abstract class StringNodes {
             self.setTString(copy, encoding);
 
             final Object associated = stringGetAssociatedNode.execute(from);
-            copyAssociated(self, associated);
+            copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
 
@@ -1581,6 +1581,7 @@ public abstract class StringNodes {
         protected Object initializeCopyNative(RubyString self, RubyString from,
                 @Cached @Shared RubyStringLibrary stringsFrom,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached TruffleString.GetInternalNativePointerNode getInternalNativePointerNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Bind("from.tstring") AbstractTruffleString tstring) {
@@ -1597,7 +1598,7 @@ public abstract class StringNodes {
             self.setTString(copy, encoding);
 
             final Object associated = stringGetAssociatedNode.execute(from);
-            copyAssociated(self, associated);
+            copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
 
@@ -1605,14 +1606,9 @@ public abstract class StringNodes {
             return one == two;
         }
 
-        private void copyAssociated(RubyString self, Object associated) {
+        private void copyAssociated(RubyString self, Object associated, WriteObjectFieldNode writeAssociatedNode) {
             if (associated != null) {
-                if (writeAssociatedNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
-                }
-
-                writeAssociatedNode.execute(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
+                writeAssociatedNode.execute(this, self, Layouts.ASSOCIATED_IDENTIFIER, associated);
             }
         }
     }

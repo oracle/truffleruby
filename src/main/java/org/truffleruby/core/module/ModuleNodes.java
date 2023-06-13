@@ -452,7 +452,7 @@ public abstract class ModuleNodes {
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
             final Object value = RubyArguments.getArgument(rubyArgs, 0);
-            writeObjectFieldNode.execute((RubyDynamicObject) self, ivarName, value);
+            writeObjectFieldNode.execute(this, (RubyDynamicObject) self, ivarName, value);
             return value;
         }
 

@@ -336,7 +336,7 @@ public abstract class TypeNodes {
         @Specialization
         protected Object ivarSet(RubyDynamicObject object, RubySymbol name, Object value,
                 @Cached WriteObjectFieldNode writeNode) {
-            writeNode.execute(object, name.getString(), value);
+            writeNode.execute(this, object, name.getString(), value);
             return value;
         }
     }
@@ -389,7 +389,7 @@ public abstract class TypeNodes {
         @Specialization
         protected Object objectHiddenVarSet(RubyDynamicObject object, Object identifier, Object value,
                 @Cached WriteObjectFieldNode writeNode) {
-            writeNode.execute(object, identifier, value);
+            writeNode.execute(this, object, identifier, value);
             return value;
         }
     }

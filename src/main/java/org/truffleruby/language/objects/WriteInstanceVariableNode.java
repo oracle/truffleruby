@@ -65,10 +65,10 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
 
         if (writeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            writeNode = insert(WriteObjectFieldNode.create());
+            writeNode = insert(WriteObjectFieldNodeGen.create());
         }
 
-        writeNode.execute((RubyDynamicObject) object, name, value);
+        writeNode.execute(this, (RubyDynamicObject) object, name, value);
     }
 
     @Override

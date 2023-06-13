@@ -1036,7 +1036,7 @@ public abstract class KernelNodes {
             final String nameString = nameToJavaStringNode.execute(name);
             checkIVarNameNode.execute(object, nameString, name);
             raiseIfFrozenNode.execute(object);
-            writeNode.execute(object, nameString, value);
+            writeNode.execute(this, object, nameString, value);
             return value;
         }
 
