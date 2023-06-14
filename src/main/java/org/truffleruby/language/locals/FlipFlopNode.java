@@ -9,21 +9,21 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.arguments.RubyArguments;
 
-public class FlipFlopNode extends RubyContextSourceNode {
+public abstract class FlipFlopNode extends RubyContextSourceNode {
 
+    @Child private RubyNode begin;
+    @Child private RubyNode end;
     private final boolean exclusive;
-
-    @Child private BooleanCastNode begin;
-    @Child private BooleanCastNode end;
     private final int frameLevel;
     private final int frameSlot;
 
@@ -33,37 +33,40 @@ public class FlipFlopNode extends RubyContextSourceNode {
             boolean exclusive,
             int frameLevel,
             int frameSlot) {
+        this.begin = begin;
+        this.end = end;
         this.exclusive = exclusive;
-        this.begin = BooleanCastNodeGen.create(begin);
-        this.end = BooleanCastNodeGen.create(end);
         this.frameLevel = frameLevel;
         this.frameSlot = frameSlot;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Specialization
+    protected Object doFlipFlop(VirtualFrame frame,
+            @Cached BooleanCastNode beginCast,
+            @Cached BooleanCastNode endCast) {
+
         if (exclusive) {
             if (getState(frame)) {
-                if (end.execute(frame)) {
+                if (endCast.execute(end.execute(frame))) {
                     setState(frame, false);
                 }
 
                 return true;
             } else {
-                final boolean newState = begin.execute(frame);
+                final boolean newState = beginCast.execute(begin.execute(frame));
                 setState(frame, newState);
                 return newState;
             }
         } else {
             if (getState(frame)) {
-                if (end.execute(frame)) {
+                if (endCast.execute(end.execute(frame))) {
                     setState(frame, false);
                 }
 
                 return true;
             } else {
-                if (begin.execute(frame)) {
-                    setState(frame, !end.execute(frame));
+                if (beginCast.execute(begin.execute(frame))) {
+                    setState(frame, !endCast.execute(end.execute(frame)));
                     return true;
                 }
 
@@ -84,9 +87,9 @@ public class FlipFlopNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new FlipFlopNode(
-                begin.getValueNode().cloneUninitialized(),
-                end.getValueNode().cloneUninitialized(),
+        var copy = FlipFlopNodeGen.create(
+                begin.cloneUninitialized(),
+                end.cloneUninitialized(),
                 exclusive,
                 frameLevel,
                 frameSlot);

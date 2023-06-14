@@ -116,7 +116,7 @@ import org.truffleruby.language.literal.StringLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.literal.TruffleKernelOperationsModuleLiteralNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
-import org.truffleruby.language.locals.FlipFlopNode;
+import org.truffleruby.language.locals.FlipFlopNodeGen;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
@@ -1503,7 +1503,8 @@ public class BodyTranslator extends BaseTranslator {
 
         final FrameSlotAndDepth slotAndDepth = createFlipFlopState(sourceSection, 0);
 
-        final RubyNode ret = new FlipFlopNode(begin, end, node.isExclusive(), slotAndDepth.depth, slotAndDepth.slot);
+        final RubyNode ret = FlipFlopNodeGen.create(begin, end, node.isExclusive(), slotAndDepth.depth,
+                slotAndDepth.slot);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
