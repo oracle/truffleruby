@@ -90,7 +90,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
                     "String",
                     "to_str",
                     coerced,
-                    node));
+                    getNode(node)));
         }
     }
 

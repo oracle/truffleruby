@@ -732,7 +732,7 @@ public abstract class ModuleNodes {
 
             if (count == 0) {
                 wrongNumberOfArgumentsProfile.enter(node);
-                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, getNode(node)));
             }
 
             sourceCode = toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 0));
