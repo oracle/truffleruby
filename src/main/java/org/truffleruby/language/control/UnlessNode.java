@@ -9,34 +9,30 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class UnlessNode extends RubyContextSourceNode {
+public abstract class UnlessNode extends RubyContextSourceNode {
 
-    @Child private BooleanCastNode condition;
+    @Child private RubyNode condition;
     @Child private RubyNode thenBody;
 
-    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
-
     public UnlessNode(RubyNode condition, RubyNode thenBody) {
-        this.condition = BooleanCastNodeGen.create(condition);
-        this.thenBody = thenBody;
-    }
-
-    public UnlessNode(BooleanCastNode condition, RubyNode thenBody) {
         this.condition = condition;
         this.thenBody = thenBody;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        if (!conditionProfile.profile(condition.execute(frame))) {
+    @Specialization
+    protected Object doUnless(VirtualFrame frame,
+            @Cached InlinedCountingConditionProfile conditionProfile,
+            @Cached BooleanCastNode booleanCastNode) {
+        if (!conditionProfile.profile(this, booleanCastNode.execute(condition.execute(frame)))) {
             return thenBody.execute(frame);
         } else {
             return nil;
@@ -55,16 +51,13 @@ public class UnlessNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode simplifyAsTailExpression() {
-        return new UnlessNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
+        return UnlessNodeGen.create(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
 
-    private RubyNode getConditionBeforeCasting() {
-        return condition.getValueNode();
-    }
 
     public RubyNode cloneUninitialized() {
-        var copy = new UnlessNode(
-                getConditionBeforeCasting().cloneUninitialized(),
+        var copy = UnlessNodeGen.create(
+                condition.cloneUninitialized(),
                 thenBody.cloneUninitialized());
         return copy.copyFlags(this);
     }

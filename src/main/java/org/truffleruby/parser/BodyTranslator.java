@@ -89,7 +89,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
 import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.control.UnlessNode;
+import org.truffleruby.language.control.UnlessNodeGen;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
@@ -1816,7 +1816,7 @@ public class BodyTranslator extends BaseTranslator {
             ret.unsafeSetSourceSection(sourceSection);
         } else if (elseBody != null) {
             final RubyNode elseBodyTranslated = elseBody.accept(this);
-            ret = new UnlessNode(condition, elseBodyTranslated);
+            ret = UnlessNodeGen.create(condition, elseBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = sequence(sourceSection, Arrays.asList(condition, new NilLiteralNode(true)));
