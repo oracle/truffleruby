@@ -11,6 +11,7 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
@@ -18,6 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashLiteralNode;
@@ -76,11 +78,12 @@ public final class EmptyHashStore {
 
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
-            @Cached PropagateSharingNode propagateSharing) {
+            @Cached PropagateSharingNode propagateSharing,
+            @Bind("$node") Node node) {
         if (hash == dest) {
             return;
         }
-        propagateSharing.executePropagate(dest, hash);
+        propagateSharing.execute(node, dest, hash);
         dest.store = EmptyHashStore.NULL_HASH_STORE;
         dest.size = 0;
         dest.defaultBlock = hash.defaultBlock;

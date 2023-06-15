@@ -385,7 +385,7 @@ public abstract class HashNodes {
                 @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
-            propagateSharingNode.executePropagate(hash, block);
+            propagateSharingNode.execute(this, hash, block);
             hash.defaultBlock = block;
             return hash;
         }
@@ -394,7 +394,7 @@ public abstract class HashNodes {
         protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
                 @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
-            propagateSharingNode.executePropagate(hash, defaultValue);
+            propagateSharingNode.execute(this, hash, defaultValue);
             hash.defaultValue = defaultValue;
             hash.defaultBlock = nil;
             return hash;
@@ -480,7 +480,7 @@ public abstract class HashNodes {
         @Specialization
         protected RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            propagateSharingNode.executePropagate(hash, defaultProc);
+            propagateSharingNode.execute(this, hash, defaultProc);
             hash.defaultValue = nil;
             hash.defaultBlock = defaultProc;
             return defaultProc;
@@ -500,7 +500,7 @@ public abstract class HashNodes {
         @Specialization
         protected Object setDefault(RubyHash hash, Object defaultValue,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            propagateSharingNode.executePropagate(hash, defaultValue);
+            propagateSharingNode.execute(this, hash, defaultValue);
 
             hash.defaultValue = defaultValue;
             hash.defaultBlock = nil;

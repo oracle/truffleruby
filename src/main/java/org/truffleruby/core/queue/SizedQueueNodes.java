@@ -131,7 +131,7 @@ public abstract class SizedQueueNodes {
                 @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
 
-            propagateSharingNode.executePropagate(self, value);
+            propagateSharingNode.execute(node, self, value);
             doPushBlocking(node, value, queue);
 
             return self;
@@ -155,7 +155,7 @@ public abstract class SizedQueueNodes {
                 @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 
-            propagateSharingNode.executePropagate(self, value);
+            propagateSharingNode.execute(node, self, value);
 
             switch (queue.offer(value)) {
                 case SUCCESS:

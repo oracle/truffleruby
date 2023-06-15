@@ -176,11 +176,12 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
                 @Cached @Shared HashingNodes.ToHash hashNode,
                 @Cached @Shared PropagateSharingNode propagateSharingKey,
-                @Cached @Shared PropagateSharingNode propagateSharingValue) {
+                @Cached @Shared PropagateSharingNode propagateSharingValue,
+                @Bind("this") Node node) {
 
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
-            propagateSharingKey.executePropagate(hash, key2);
-            propagateSharingValue.executePropagate(hash, value);
+            propagateSharingKey.execute(node, hash, key2);
+            propagateSharingValue.execute(node, hash, value);
             setHashedKeyValue(store, 0, hashNode.execute(key2, byIdentity), key2, value);
             hash.size = 1;
             assert verify(store, hash);
@@ -202,8 +203,8 @@ public class PackedHashStoreLibrary {
             final int size = hash.size;
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
             final int hashed = hashNode.execute(key2, byIdentity);
-            propagateSharingKey.executePropagate(hash, key2);
-            propagateSharingValue.executePropagate(hash, value);
+            propagateSharingKey.execute(node, hash, key2);
+            propagateSharingValue.execute(node, hash, value);
 
             // written very carefully to allow PE
             for (int n = 0; n < MAX_ENTRIES; n++) {
@@ -307,12 +308,13 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
-            @Cached @Exclusive PropagateSharingNode propagateSharing) {
+            @Cached @Exclusive PropagateSharingNode propagateSharing,
+            @Bind("$node") Node node) {
         if (hash == dest) {
             return;
         }
 
-        propagateSharing.executePropagate(dest, hash);
+        propagateSharing.execute(node, dest, hash);
 
         Object storeCopy = copyStore(store);
         int size = hash.size;
