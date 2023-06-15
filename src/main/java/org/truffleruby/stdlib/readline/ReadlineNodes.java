@@ -126,21 +126,17 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
         @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
             return ToJavaStringWithDefaultNodeGen.create("", prompt);
         }
 
-        @CreateCast("addToHistory")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute addToHistory) {
-            return BooleanCastWithDefaultNode.create(false, addToHistory);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected Object readline(String prompt, boolean addToHistory) {
+        protected Object readline(String prompt, Object maybeAddToHistory,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
+            final boolean addToHistory = booleanCastWithDefaultNode.execute(maybeAddToHistory, false);
             final LineReader readline = getContext().getConsoleHolder().getReadline();
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry

@@ -149,7 +149,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -1251,29 +1250,40 @@ public abstract class KernelNodes {
     @CoreMethod(names = "methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
-    public abstract static class MethodsNode extends CoreMethodNode {
+    public abstract static class KernelMethodsNode extends CoreMethodNode {
 
-        @CreateCast("regular")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute regular) {
-            return BooleanCastWithDefaultNode.create(true, regular);
+        @Specialization
+        protected RubyArray doMethods(Object self, Object maybeRegular,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
+                @Cached MethodsNode methodsNode) {
+            final boolean regular = booleanCastWithDefaultNode.execute(maybeRegular, true);
+            return methodsNode.execute(this, self, regular);
+
         }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class MethodsNode extends RubyBaseNode {
+
+        public abstract RubyArray execute(Node node, Object self, boolean regular);
 
         @TruffleBoundary
         @Specialization(guards = "regular")
-        protected RubyArray methodsRegular(Object self, boolean regular,
+        protected static RubyArray methodsRegular(Node node, Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyModule metaClass = metaClassNode.execute(this, self);
+            final RubyModule metaClass = metaClassNode.execute(node, self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getLanguage(), regular, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethodsOnObject(getLanguage(node), regular, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
-            return createArray(objects);
+            return createArray(node, objects);
         }
 
         @Specialization(guards = "!regular")
-        protected RubyArray methodsSingleton(Object self, boolean regular,
+        protected static RubyArray methodsSingleton(Node node, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
-            return singletonMethodsNode.execute(this, self, false);
+            return singletonMethodsNode.execute(node, self, false);
         }
 
     }
@@ -1312,15 +1322,12 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray privateMethods(Object self, boolean includeAncestors,
+        protected RubyArray privateMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
             RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1347,15 +1354,12 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray protectedMethods(Object self, boolean includeAncestors,
+        protected RubyArray protectedMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1386,16 +1390,13 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray publicMethods(Object self, boolean includeAncestors,
+        protected RubyArray publicMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final RubyModule metaClass = metaClassNode.execute(this, self);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
@@ -1557,14 +1558,11 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class KernelSingletonMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @Specialization
-        protected RubyArray singletonMethods(Object self, boolean includeAncestors,
+        protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
             return singletonMethodsNode.execute(this, self, includeAncestors);
         }
     }

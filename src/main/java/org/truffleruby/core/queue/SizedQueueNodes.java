@@ -11,9 +11,12 @@ package org.truffleruby.core.queue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.Primitive;
@@ -25,6 +28,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
@@ -104,38 +108,50 @@ public abstract class SizedQueueNodes {
     @NodeChild(value = "queue", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
     @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PushNode extends CoreMethodNode {
+    public abstract static class SizedQueuePushNode extends CoreMethodNode {
 
-        @Child PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
-        @CreateCast("nonBlocking")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute nonBlocking) {
-            return BooleanCastWithDefaultNode.create(false, nonBlocking);
+        @Specialization
+        protected RubySizedQueue doPush(RubySizedQueue self, final Object value, Object maybeNonBlocking,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
+                @Cached PushNode pushNode) {
+            final boolean nonBlocking = booleanCastWithDefaultNode.execute(maybeNonBlocking, false);
+            return pushNode.execute(this, self, value, nonBlocking);
         }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class PushNode extends RubyBaseNode {
+
+        public abstract RubySizedQueue execute(Node node, RubySizedQueue self, final Object value, boolean nonBlocking);
 
         @Specialization(guards = "!nonBlocking")
-        protected RubySizedQueue pushBlocking(RubySizedQueue self, final Object value, boolean nonBlocking) {
+        protected static RubySizedQueue pushBlocking(
+                Node node, RubySizedQueue self, final Object value, boolean nonBlocking,
+                @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
 
             propagateSharingNode.executePropagate(self, value);
-            doPushBlocking(value, queue);
+            doPushBlocking(node, value, queue);
 
             return self;
         }
 
         @TruffleBoundary
-        private void doPushBlocking(final Object value, final SizedQueue queue) {
-            getContext().getThreadManager().runUntilResult(this, () -> {
+        private static void doPushBlocking(Node node, final Object value, final SizedQueue queue) {
+            getContext(node).getThreadManager().runUntilResult(node, () -> {
                 if (queue.put(value)) {
                     return BlockingAction.SUCCESS;
                 } else {
-                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+                    throw new RaiseException(getContext(node), coreExceptions(node).closedQueueError(node));
                 }
             });
         }
 
         @Specialization(guards = "nonBlocking")
-        protected RubySizedQueue pushNonBlock(RubySizedQueue self, final Object value, boolean nonBlocking,
+        protected static RubySizedQueue pushNonBlock(
+                Node node, RubySizedQueue self, final Object value, boolean nonBlocking,
+                @Cached @Shared PropagateSharingNode propagateSharingNode,
                 @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 
@@ -145,11 +161,11 @@ public abstract class SizedQueueNodes {
                 case SUCCESS:
                     return self;
                 case FULL:
-                    errorProfile.enter(this);
-                    throw new RaiseException(getContext(), coreExceptions().threadErrorQueueFull(this));
+                    errorProfile.enter(node);
+                    throw new RaiseException(getContext(node), coreExceptions(node).threadErrorQueueFull(node));
                 case CLOSED:
-                    errorProfile.enter(this);
-                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+                    errorProfile.enter(node);
+                    throw new RaiseException(getContext(node), coreExceptions(node).closedQueueError(node));
             }
 
             return self;

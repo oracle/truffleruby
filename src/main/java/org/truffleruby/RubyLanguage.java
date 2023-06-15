@@ -100,7 +100,6 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.RubyInnerContext;
 import org.truffleruby.interop.RubySourceLocation;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
@@ -136,6 +135,8 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.stdlib.digest.RubyDigest;
 
+import static org.truffleruby.language.RubyBaseNode.createArray;
+import static org.truffleruby.language.RubyBaseNode.createString;
 import static org.truffleruby.language.RubyBaseNode.nil;
 
 @TruffleLanguage.Registration(
@@ -913,13 +914,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public Object rubySourceLocation(RubyContext context, SourceSection section,
             TruffleString.FromJavaStringNode fromJavaStringNode,
-            RubyBaseNode node) {
+            Node node) {
         if (!BacktraceFormatter.isAvailable(section)) {
             return nil;
         } else {
-            var file = node.createString(fromJavaStringNode, getSourcePath(section.getSource()), Encodings.UTF_8);
+            var file = createString(node, fromJavaStringNode, getSourcePath(section.getSource()), Encodings.UTF_8);
             Object[] objects = new Object[]{ file, RubySource.getStartLineAdjusted(context, section) };
-            return node.createArray(objects);
+            return createArray(node, objects);
         }
     }
 

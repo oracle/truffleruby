@@ -44,7 +44,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -387,14 +386,11 @@ public abstract class RangeNodes {
     @NodeChild(value = "excludeEndNode", type = RubyBaseNodeWithExecute.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        @CreateCast("excludeEndNode")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute excludeEnd) {
-            return BooleanCastWithDefaultNode.create(false, excludeEnd);
-        }
-
         @Specialization
-        protected Object newRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+        protected Object newRange(RubyClass rubyClass, Object begin, Object end, Object maybeExcludeEnd,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NewRangeNode newRangeNode) {
+            final boolean excludeEnd = booleanCastWithDefaultNode.execute(maybeExcludeEnd, false);
             return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
         }
     }
