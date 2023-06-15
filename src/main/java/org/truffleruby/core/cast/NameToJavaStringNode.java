@@ -84,7 +84,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
             if (e.getException().getLogicalClass() == coreLibrary(node).noMethodErrorClass) {
                 throw new RaiseException(getContext(node), coreExceptions(node).typeError(
                         Utils.concat(object, " is not a symbol nor a string"),
-                        getNode(node)));
+                        node));
             } else {
                 throw e;
             }
@@ -99,7 +99,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNodeWithExecute {
                     "String",
                     "to_str",
                     coerced,
-                    getNode(node)));
+                    node));
         }
     }
 

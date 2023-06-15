@@ -183,7 +183,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             } catch (UnsupportedMessageException e) {
                 unsupportedProfile.enter(node);
                 throw new RaiseException(getContext(node),
-                        coreExceptions(node).argumentError(e.getMessage(), getNode(node), e));
+                        coreExceptions(node).argumentError(e.getMessage(), node, e));
             }
             return nativeToWrapperNode.execute(node, handle);
         }
@@ -281,7 +281,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         } catch (UnsupportedMessageException e) {
             unsupportedProfile.enter(node);
             throw new RaiseException(getContext(node),
-                    coreExceptions(node).argumentError(e.getMessage(), getNode(node), e));
+                    coreExceptions(node).argumentError(e.getMessage(), node, e));
         }
         return unwrapNativeNode.execute(node, handle);
     }

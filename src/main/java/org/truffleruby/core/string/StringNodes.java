@@ -1410,8 +1410,7 @@ public abstract class StringNodes {
                 errorProfile.enter(node);
                 throw new RaiseException(
                         getContext(node),
-                        coreExceptions(node).argumentError(Utils.concat("unknown encoding name - ", stringName),
-                                getNode(node)));
+                        coreExceptions(node).argumentError(Utils.concat("unknown encoding name - ", stringName), node));
             }
 
             return forceEncodingNode.execute(string, rubyEncoding);

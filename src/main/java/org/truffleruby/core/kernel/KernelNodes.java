@@ -363,7 +363,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
-                        value = "getNode().getEncapsulatingSourceSection()",
+                        value = "getNode(this).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
@@ -700,7 +700,7 @@ public abstract class KernelNodes {
                     errorProfile.enter(this);
                     throw new RaiseException(
                             getContext(),
-                            coreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", getNode()));
+                            coreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", this));
                 }
                 binding = (RubyBinding) bindingArg;
                 self = RubyArguments.getSelf(binding.getFrame());

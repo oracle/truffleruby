@@ -128,7 +128,13 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     private static Object alwaysInlinedException(Node node, RaiseException e, AlwaysInlinedMethodNode alwaysInlinedNode,
             RootCallTarget cachedCallTarget) {
         final Node location = e.getLocation();
-        if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
+        final Node adoptedInlinedNode = getAdoptedNode(alwaysInlinedNode);
+        final var isErrorFromInlineNode = location != null && adoptedInlinedNode != null &&
+                location.getRootNode() == adoptedInlinedNode.getRootNode();
+        /* In the cached scenario the getAdoptedNode method call will have no effect. In the uncached scenario the
+         * alwaysInlinedNode is uncached, therefore no RootNode so that's why getAdoptedNode is called to determine
+         * whether the exception was thrown by the alwaysInlineNode. */
+        if (isErrorFromInlineNode) {
             // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
             return RubyContext.indirectCallWithCallNode(node, cachedCallTarget, e);
         } else {

@@ -227,7 +227,8 @@ public class CallStackManager {
             }
         }
 
-        return new Backtrace(currentNode, omit, javaThrowable);
+        var adoptableNode = RubyNode.getNode(currentNode);
+        return new Backtrace(adoptableNode, omit, javaThrowable);
     }
 
     @SuppressFBWarnings("ES")

@@ -481,7 +481,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private Object[] createAccessors(RubyModule module, Object[] names, Accessor accessor,
                 Visibility visibility) {
-            final Node currentNode = getNode();
+            final Node currentNode = getNode(this);
             final SourceSection sourceSection;
             if (currentNode != null) {
                 sourceSection = currentNode.getEncapsulatingSourceSection();
@@ -732,7 +732,7 @@ public abstract class ModuleNodes {
 
             if (count == 0) {
                 wrongNumberOfArgumentsProfile.enter(node);
-                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, getNode(node)));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
             }
 
             sourceCode = toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 0));
