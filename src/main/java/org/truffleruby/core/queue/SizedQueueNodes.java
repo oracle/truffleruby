@@ -114,7 +114,7 @@ public abstract class SizedQueueNodes {
         protected RubySizedQueue doPush(RubySizedQueue self, final Object value, Object maybeNonBlocking,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached PushNode pushNode) {
-            final boolean nonBlocking = booleanCastWithDefaultNode.execute(maybeNonBlocking, false);
+            final boolean nonBlocking = booleanCastWithDefaultNode.execute(this, maybeNonBlocking, false);
             return pushNode.execute(this, self, value, nonBlocking);
         }
     }

@@ -11,23 +11,28 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Casts a value into a boolean and defaults to the given value if not provided. */
+@GenerateCached(false)
+@GenerateInline
 public abstract class BooleanCastWithDefaultNode extends RubyBaseNode {
 
-    public abstract boolean execute(Object value, boolean defaultValue);
+    public abstract boolean execute(Node node, Object value, boolean defaultValue);
 
     @Specialization
-    protected boolean doDefault(NotProvided value, boolean defaultValue) {
+    protected static boolean doDefault(NotProvided value, boolean defaultValue) {
         return defaultValue;
     }
 
     @Fallback
-    protected boolean fallback(Object value, boolean defaultValue,
+    protected static boolean fallback(Object value, boolean defaultValue,
             @Cached BooleanCastNode booleanCastNode) {
         return booleanCastNode.execute(value);
     }

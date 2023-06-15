@@ -136,7 +136,7 @@ public abstract class ReadlineNodes {
         protected Object readline(String prompt, Object maybeAddToHistory,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
-            final boolean addToHistory = booleanCastWithDefaultNode.execute(maybeAddToHistory, false);
+            final boolean addToHistory = booleanCastWithDefaultNode.execute(this, maybeAddToHistory, false);
             final LineReader readline = getContext().getConsoleHolder().getReadline();
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry

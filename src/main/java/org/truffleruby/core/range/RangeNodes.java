@@ -390,7 +390,7 @@ public abstract class RangeNodes {
         protected Object newRange(RubyClass rubyClass, Object begin, Object end, Object maybeExcludeEnd,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NewRangeNode newRangeNode) {
-            final boolean excludeEnd = booleanCastWithDefaultNode.execute(maybeExcludeEnd, false);
+            final boolean excludeEnd = booleanCastWithDefaultNode.execute(this, maybeExcludeEnd, false);
             return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
         }
     }

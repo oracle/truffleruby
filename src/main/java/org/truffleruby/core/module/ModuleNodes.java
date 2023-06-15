@@ -671,7 +671,7 @@ public abstract class ModuleNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            final var inherit = booleanCastWithDefaultNode.execute(maybeInherit, true);
+            final var inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(
                     getContext(),
                     module,
@@ -895,7 +895,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyArray getClassVariables(RubyModule module, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
-            final boolean inherit = booleanCastWithDefaultNode.execute(maybeInherit, true);
+            final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final Set<Object> variables = new LinkedHashSet<>();
 
             ModuleOperations.classVariableLookup(module, inherit, m -> {
@@ -919,7 +919,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyArray constants(RubyModule module, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
-            final boolean inherit = booleanCastWithDefaultNode.execute(maybeInherit, true);
+            final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final List<RubySymbol> constantsArray = new ArrayList<>();
 
             final Iterable<Entry<String, ConstantEntry>> constants;
@@ -951,7 +951,7 @@ public abstract class ModuleNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var fullName = nameToJavaStringNode.execute(this, fullNameObject);
-            final boolean inherit = booleanCastWithDefaultNode.execute(inheritObject, true);
+            final boolean inherit = booleanCastWithDefaultNode.execute(this, inheritObject, true);
             final ConstantLookupResult constant = ModuleOperations
                     .lookupScopedConstant(getContext(), module, fullName, inherit, this, checkName);
             return constant.isFound();
@@ -1144,7 +1144,7 @@ public abstract class ModuleNodes {
                 @Cached ConstSourceLocationNode constSourceLocationNode,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode) {
-            final boolean inherit = booleanCastWithDefaultNode.execute(maybeInherit, true);
+            final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final var name = toStringOrSymbolNode.execute(nameObject);
             return constSourceLocationNode.execute(this, module, name, inherit);
         }
@@ -1605,7 +1605,7 @@ public abstract class ModuleNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            final var inherit = booleanCastWithDefaultNode.execute(maybeInherit, true);
+            final var inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final InternalMethod method;
             if (inherit) {
                 method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1854,7 +1854,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         protected RubyArray getInstanceMethods(RubyModule module, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             Object[] objects = module.fields
                     .filterMethods(getLanguage(), includeAncestors, MethodFilter.by(visibility))
                     .toArray();
@@ -1909,7 +1909,7 @@ public abstract class ModuleNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedConditionProfile inheritProfile) {
-            final var inherit = booleanCastWithDefaultNode.execute(maybeInheritObject, true);
+            final var inherit = booleanCastWithDefaultNode.execute(this, maybeInheritObject, true);
             final var name = nameToJavaStringNode.execute(this, nameObject);
             final InternalMethod method;
             if (inheritProfile.profile(this, inherit)) {
@@ -1953,7 +1953,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyArray instanceMethods(RubyModule module, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             Object[] objects = module.fields
                     .filterMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();

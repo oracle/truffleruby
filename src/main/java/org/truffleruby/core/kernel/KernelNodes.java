@@ -1256,7 +1256,7 @@ public abstract class KernelNodes {
         protected RubyArray doMethods(Object self, Object maybeRegular,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MethodsNode methodsNode) {
-            final boolean regular = booleanCastWithDefaultNode.execute(maybeRegular, true);
+            final boolean regular = booleanCastWithDefaultNode.execute(this, maybeRegular, true);
             return methodsNode.execute(this, self, regular);
 
         }
@@ -1327,7 +1327,7 @@ public abstract class KernelNodes {
         protected RubyArray privateMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1359,7 +1359,7 @@ public abstract class KernelNodes {
         protected RubyArray protectedMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1396,7 +1396,7 @@ public abstract class KernelNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final RubyModule metaClass = metaClassNode.execute(this, self);
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
@@ -1562,7 +1562,7 @@ public abstract class KernelNodes {
         protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
-            final boolean includeAncestors = booleanCastWithDefaultNode.execute(maybeIncludeAncestors, true);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             return singletonMethodsNode.execute(this, self, includeAncestors);
         }
     }
