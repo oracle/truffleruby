@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -69,7 +71,6 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -1270,9 +1271,9 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!regular")
-        protected RubyArray methodsSingleton(VirtualFrame frame, Object self, boolean regular,
+        protected RubyArray methodsSingleton(Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
-            return singletonMethodsNode.executeSingletonMethods(frame, self, false);
+            return singletonMethodsNode.execute(this, self, false);
         }
 
     }
@@ -1554,34 +1555,40 @@ public abstract class KernelNodes {
     @CoreMethod(names = "singleton_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SingletonMethodsNode extends CoreMethodNode {
-
-        @NeverDefault
-        public static SingletonMethodsNode create() {
-            return SingletonMethodsNodeFactory.create(null, null);
-        }
-
-        public abstract RubyArray executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
+    public abstract static class KernelSingletonMethodsNode extends CoreMethodNode {
 
         @CreateCast("includeAncestors")
         protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
             return BooleanCastWithDefaultNode.create(true, includeAncestors);
         }
 
-        @TruffleBoundary
         @Specialization
         protected RubyArray singletonMethods(Object self, boolean includeAncestors,
+                @Cached SingletonMethodsNode singletonMethodsNode) {
+            return singletonMethodsNode.execute(this, self, includeAncestors);
+        }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class SingletonMethodsNode extends RubyBaseNode {
+
+        public abstract RubyArray execute(Node node, Object self, boolean includeAncestors);
+
+        @TruffleBoundary
+        @Specialization
+        protected static RubyArray singletonMethods(Node node, Object self, boolean includeAncestors,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(this, self);
+            final RubyClass metaClass = metaClassNode.execute(node, self);
 
             if (!metaClass.isSingleton) {
-                return createEmptyArray();
+                return createEmptyArray(node);
             }
 
             Object[] objects = metaClass.fields
-                    .filterSingletonMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterSingletonMethods(getLanguage(node), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
-            return createArray(objects);
+            return createArray(node, objects);
         }
 
     }
