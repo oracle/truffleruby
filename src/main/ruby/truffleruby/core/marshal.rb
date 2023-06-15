@@ -1387,9 +1387,9 @@ module Marshal
   end
 
   class IOState < State
-    def consume(bytes)
-      string = @stream.read(bytes)
-      raise ArgumentError, 'marshal data too short' if string.bytesize < bytes
+    def consume(bytes_count)
+      string = @stream.read(bytes_count)
+      raise ArgumentError, 'marshal data too short' if string.bytesize < bytes_count
       string
     end
 
@@ -1413,11 +1413,11 @@ module Marshal
       "#<Marshal::StringState #{@stream[@consumed..-1].inspect}>"
     end
 
-    def consume(bytes)
-      raise ArgumentError, 'marshal data too short' if @consumed + bytes > @stream.bytesize
-      data = @stream.byteslice @consumed, bytes
-      @consumed += bytes
-      data
+    def consume(bytes_count)
+      raise ArgumentError, 'marshal data too short' if @consumed + bytes_count > @stream.bytesize
+      string = @stream.byteslice @consumed, bytes_count
+      @consumed += bytes_count
+      string
     end
 
     def consume_byte
