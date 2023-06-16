@@ -89,7 +89,7 @@ public class ValueWrapper implements TruffleObject {
             try {
                 return "VALUE: " + interop.asString(interop.toDisplayString(object, allowSideEffects));
             } catch (UnsupportedMessageException e) {
-                throw TranslateInteropExceptionNode.getUncached().execute(e);
+                throw TranslateInteropExceptionNode.executeUncached(e);
             }
         } else {
             return "VALUE: " + toString();

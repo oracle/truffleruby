@@ -30,13 +30,13 @@ public abstract class ToJavaStringNode extends RubyBaseNode {
     public abstract String execute(Node node, Object name);
 
     @Specialization(guards = "interopLibrary.isString(value)", limit = "getLimit()")
-    protected static String interopString(Object value,
+    protected static String interopString(Node node, Object value,
             @CachedLibrary("value") InteropLibrary interopLibrary,
             @Cached TranslateInteropExceptionNode translateInteropException) {
         try {
             return interopLibrary.asString(value);
         } catch (UnsupportedMessageException e) {
-            throw translateInteropException.execute(e);
+            throw translateInteropException.execute(node, e);
         }
     }
 

@@ -9,9 +9,12 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnknownKeyException;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -28,108 +31,113 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
  * {@link com.oracle.truffle.api.interop.InteropLibrary InteropLibrary}) into Ruby exceptions, so that the interop
  * messages may be sent from Ruby, using the methods in the {@code Truffle::Interop} module. */
 @GenerateUncached
+@GenerateInline
+@GenerateCached(value = false)
 public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
-    public static TranslateInteropExceptionNode getUncached() {
-        return TranslateInteropExceptionNodeGen.getUncached();
+
+    public final RuntimeException execute(Node node, InteropException exception) {
+        return execute(node, exception, false, null, null);
     }
 
-    public final RuntimeException execute(InteropException exception) {
-        return execute(exception, false, null, null);
+    public final RuntimeException executeInInvokeMember(Node node, InteropException exception, Object receiver,
+            Object[] args) {
+        return execute(node, exception, true, receiver, args);
     }
 
-    public final RuntimeException executeInInvokeMember(InteropException exception, Object receiver, Object[] args) {
-        return execute(exception, true, receiver, args);
+    public static RuntimeException executeUncached(InteropException exception) {
+        return TranslateInteropExceptionNodeGen.getUncached().execute(null, exception, false, null, null);
     }
 
     protected abstract RuntimeException execute(
+            Node node,
             InteropException exception,
             boolean inInvokeMember,
             Object receiver,
             Object[] args);
 
     @Specialization
-    protected RuntimeException handle(
-            UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().unsupportedMessageError(exception.getMessage(), this),
+                getContext(node),
+                coreExceptions(node).unsupportedMessageError(exception.getMessage(), node),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().indexErrorInvalidArrayIndexException(exception, this),
+                getContext(node),
+                coreExceptions(node).indexErrorInvalidArrayIndexException(exception, node),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().indexErrorInvalidBufferOffsetException(exception, this),
+                getContext(node),
+                coreExceptions(node).indexErrorInvalidBufferOffsetException(exception, node),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args) {
-        return new RaiseException(getContext(), coreExceptions().keyError(exception, this), exception);
+    protected static RuntimeException handle(
+            Node node, UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+        return new RaiseException(getContext(node), coreExceptions(node).keyError(exception, node), exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         if (inInvokeMember) {
             return new RaiseException(
-                    getContext(),
-                    coreExceptions().noMethodErrorUnknownIdentifier(
+                    getContext(node),
+                    coreExceptions(node).noMethodErrorUnknownIdentifier(
                             receiver,
                             exception.getUnknownIdentifier(),
                             args,
                             exception,
-                            this),
+                            node),
                     exception);
         } else {
             return new RaiseException(
-                    getContext(),
-                    coreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this),
+                    getContext(node),
+                    coreExceptions(node).nameErrorUnknownIdentifierException(exception, receiver, node),
                     exception);
         }
     }
 
     @Specialization
-    protected RuntimeException handle(
-            UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().typeErrorUnsupportedTypeException(exception, this),
+                getContext(node),
+                coreExceptions(node).typeErrorUnsupportedTypeException(exception, node),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            ArityException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, ArityException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().argumentErrorMinMaxArity(
+                getContext(node),
+                coreExceptions(node).argumentErrorMinMaxArity(
                         exception.getActualArity(),
                         exception.getExpectedMinArity(),
                         exception.getExpectedMaxArity(),
-                        this),
+                        node),
                 exception);
     }
 
     @Specialization
-    protected RuntimeException handle(
-            StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args) {
+    protected static RuntimeException handle(
+            Node node, StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
-                getContext(),
-                coreExceptions().stopIteration(exception.getMessage(), this),
+                getContext(node),
+                coreExceptions(node).stopIteration(exception.getMessage(), node),
                 exception);
     }
 

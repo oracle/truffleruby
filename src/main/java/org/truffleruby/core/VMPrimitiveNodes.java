@@ -42,6 +42,7 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -235,13 +236,14 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "!isRubyException(exception)", limit = "getInteropCacheLimit()")
-        protected Object foreignException(Object exception,
+        protected static Object foreignException(Object exception,
                 @CachedLibrary("exception") InteropLibrary interopLibrary,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Bind("this") Node node) {
             try {
                 throw interopLibrary.throwException(exception);
             } catch (UnsupportedMessageException e) {
-                throw translateInteropExceptionNode.execute(e);
+                throw translateInteropExceptionNode.execute(node, e);
             }
         }
 

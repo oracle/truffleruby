@@ -28,7 +28,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
-import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -294,10 +294,11 @@ public abstract class RequireNode extends RubyBaseNode {
         try {
             InteropNodes
                     .execute(
+                            null,
                             initFunction,
                             ArrayUtils.EMPTY_ARRAY,
                             initFunctionInteropLibrary,
-                            TranslateInteropExceptionNode.getUncached());
+                            TranslateInteropExceptionNodeGen.getUncached());
         } finally {
             try {
                 DispatchNode.getUncached().call(coreLibrary().truffleCExtModule, "resolve_registered_addresses");

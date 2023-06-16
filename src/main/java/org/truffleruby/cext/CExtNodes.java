@@ -200,7 +200,7 @@ public class CExtNodes {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                     try {
-                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                        return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
                         runMarksNode.execute(extensionStack);
                         if (!owned) {
@@ -209,7 +209,7 @@ public class CExtNodes {
                     }
                 } else {
                     try {
-                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                        return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
                         runMarksNode.execute(extensionStack);
                     }
@@ -252,7 +252,7 @@ public class CExtNodes {
                     }
                     try {
                         return unwrapNode.execute(this,
-                                InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                                InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
                         if (!owned) {
@@ -262,7 +262,7 @@ public class CExtNodes {
                 } else {
                     try {
                         return unwrapNode.execute(this,
-                                InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode));
+                                InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
                         runMarksNode.execute(extensionStack);
                     }
@@ -299,14 +299,14 @@ public class CExtNodes {
                     MutexOperations.lockInternal(getContext(), lock, this);
                 }
                 try {
-                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                    return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                 } finally {
                     if (!owned) {
                         MutexOperations.unlockInternal(lock);
                     }
                 }
             } else {
-                return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
             }
 
         }
@@ -1613,12 +1613,13 @@ public class CExtNodes {
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
-        protected Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
+        protected static Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
                 @Cached RubyStringLibrary strings,
                 @CachedLibrary("advance_p") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Bind("this") Node node) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             var bytes = TStringUtils.getBytesOrFail(tstring, encoding, byteArrayNode);
@@ -1629,7 +1630,7 @@ public class CExtNodes {
 
             final int resultLength = encoding.jcoding.mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
 
-            InteropNodes.execute(advance_p, new Object[]{ p, intHolder.value }, receivers,
+            InteropNodes.execute(node, advance_p, new Object[]{ p, intHolder.value }, receivers,
                     translateInteropExceptionNode);
 
             final byte[] result = new byte[resultLength];
@@ -1637,7 +1638,7 @@ public class CExtNodes {
                 System.arraycopy(to, 0, result, 0, resultLength);
             }
 
-            return createString(fromByteArrayNode, result, Encodings.US_ASCII);
+            return createString(node, fromByteArrayNode, result, Encodings.US_ASCII);
         }
 
         protected int getCacheLimit() {

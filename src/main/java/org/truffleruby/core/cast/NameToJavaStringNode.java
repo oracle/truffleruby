@@ -61,7 +61,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
     protected static String nameToJavaString(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
-            @Cached DispatchNode toStr,
+            @Cached(inline = false) DispatchNode toStr,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Exclusive ToJavaStringNode toJavaStringNode) {
         final Object coerced;

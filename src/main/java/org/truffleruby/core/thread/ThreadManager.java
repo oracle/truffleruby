@@ -525,10 +525,13 @@ public class ThreadManager {
 
         final InteropLibrary receivers;
         final TranslateInteropExceptionNode translateInteropExceptionNode;
+        final Node node;
 
         public BlockingCallInterruptible(
+                Node node,
                 InteropLibrary receivers,
                 TranslateInteropExceptionNode translateInteropExceptionNode) {
+            this.node = node;
             this.receivers = receivers;
             this.translateInteropExceptionNode = translateInteropExceptionNode;
         }
@@ -557,7 +560,8 @@ public class ThreadManager {
                 // NOTE: NFI uses CallTargets, so the TruffleSafepoint.poll() will happen before coming back from this call
                 CompilerAsserts.partialEvaluationConstant(receivers);
                 CompilerAsserts.partialEvaluationConstant(translateInteropExceptionNode);
-                return InteropNodes.execute(state.executable, state.args, receivers, translateInteropExceptionNode);
+                return InteropNodes.execute(node, state.executable, state.args, receivers,
+                        translateInteropExceptionNode);
             } finally {
                 thread.status = status;
             }

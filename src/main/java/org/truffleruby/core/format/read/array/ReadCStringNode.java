@@ -38,6 +38,7 @@ public abstract class ReadCStringNode extends FormatNode {
             @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
             @CachedLibrary("stringReader") InteropLibrary stringReaders) {
         Object string = unwrapNode.execute(this, InteropNodes.execute(
+                this,
                 stringReader,
                 new Object[]{ pointer },
                 stringReaders,

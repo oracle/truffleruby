@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -651,16 +652,18 @@ public abstract class ThreadNodes {
 
         @SuppressWarnings("truffle-neverdefault") // GR-43642
         @Specialization(limit = "getCacheLimit()")
-        protected Object call(RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
+        protected static Object call(
+                RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
                 @CachedLibrary("function") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
-            final ThreadManager threadManager = getContext().getThreadManager();
+                @Bind("this") Node node,
+                @Cached("new(node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
+            final ThreadManager threadManager = getContext(node).getThreadManager();
             final Interrupter interrupter;
             if (unblocker == nil) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
-                interrupter = makeInterrupter(getContext(), unblocker, unblockerArg);
+                interrupter = makeInterrupter(getContext(node), unblocker, unblockerArg);
             }
 
             final Object[] args = { arg };
@@ -670,7 +673,7 @@ public abstract class ThreadNodes {
                     function,
                     args,
                     blockingCallInterruptible,
-                    this);
+                    node);
         }
 
         @TruffleBoundary
@@ -1017,7 +1020,7 @@ public abstract class ThreadNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
+                @Cached("new(this, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             final RubyThread thread = getLanguage().getCurrentThread();

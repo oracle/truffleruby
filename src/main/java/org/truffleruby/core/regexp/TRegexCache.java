@@ -24,7 +24,7 @@ import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
-import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.DeferredRaiseException;
 
@@ -116,10 +116,11 @@ public final class TRegexCache {
 
     private static boolean isBacktracking(Object tregex) {
         return (boolean) InteropNodes.readMember(
+                null,
                 InteropLibrary.getUncached(),
                 tregex,
                 "isBacktracking",
-                TranslateInteropExceptionNode.getUncached());
+                TranslateInteropExceptionNodeGen.getUncached());
     }
 
     public static String toTRegexEncoding(RubyEncoding encoding) {

@@ -916,14 +916,15 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
-        protected int hashForeign(Object value,
+        protected static int hashForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
                 } catch (UnsupportedMessageException e) {
-                    throw translateInteropException.execute(e);
+                    throw translateInteropException.execute(node, e);
                 }
             } else {
                 return System.identityHashCode(value);
