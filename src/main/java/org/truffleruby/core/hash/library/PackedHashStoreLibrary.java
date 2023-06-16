@@ -27,7 +27,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -41,7 +40,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
-import org.truffleruby.core.hash.FreezeHashKeyIfNeededNodeGen;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashingNodes;
@@ -52,6 +50,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -481,21 +480,21 @@ public class PackedHashStoreLibrary {
         }
     }
 
-    public static class SmallHashLiteralNode extends HashLiteralNode {
+    public abstract static class SmallHashLiteralNode extends HashLiteralNode {
 
         @Child private HashingNodes.ToHashByHashCode hashNode;
         @Child private DispatchNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
-        @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
-        private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
         }
 
+        @Specialization
         @ExplodeLoop
-        @Override
-        public Object execute(VirtualFrame frame) {
+        protected Object doHash(VirtualFrame frame,
+                @Cached InlinedBranchProfile duplicateKeyProfile,
+                @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode) {
             final Object[] store = createStore();
             int size = 0;
 
@@ -512,7 +511,7 @@ public class PackedHashStoreLibrary {
                     if (i < size &&
                             hashed == getHashed(store, i) &&
                             callEqual(key, getKey(store, i))) {
-                        duplicateKeyProfile.enter();
+                        duplicateKeyProfile.enter(this);
                         setKey(store, i, key);
                         setValue(store, i, value);
                         duplicateKey = true;
@@ -559,7 +558,7 @@ public class PackedHashStoreLibrary {
 
         @Override
         public RubyNode cloneUninitialized() {
-            var copy = new SmallHashLiteralNode(cloneUninitialized(keyValues));
+            var copy = SmallHashLiteralNodeGen.create(cloneUninitialized(keyValues));
             return copy.copyFlags(this);
         }
 
