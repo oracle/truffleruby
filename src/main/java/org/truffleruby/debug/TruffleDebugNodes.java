@@ -1426,6 +1426,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ParseAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
+        @TruffleBoundary
         protected Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String sourceCodeString = RubyGuards.getJavaString(sourceCode);
