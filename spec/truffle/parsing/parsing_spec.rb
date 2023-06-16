@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -63,6 +65,25 @@ describe "Parsing" do
           raise "The file #{filename} wasn't updated with actual AST"
         end
       else
+        # the multi-context mode introduces some changes in the AST:
+        # - static lexical scopes aren't set
+        # - ReadConstantWithLexicalScopeNode is used instead of ReadConstantWithLexicalScopeNode
+        # - ReadClassVariableNode.lexicalScopeNode is GetDynamicLexicalScopeNode instead of (ObjectLiteralNode object =  :: Object)
+        # - WriteConstantNode.moduleNode uses DynamicLexicalScopeNode instead of (LexicalScopeNode lexicalScope =  :: Object)
+        # - WriteClassVariableNode.lexicalScopeNode uses GetDynamicLexicalScopeNode instead of (LexicalScopeNode lexicalScope =  :: Object)
+        if !Primitive.vm_single_context? &&
+          expected_ast.include?("staticLexicalScope") ||
+          expected_ast.include?("ReadConstantWithLexicalScopeNode") ||
+          expected_ast.include?("ReadClassVariableNode") ||
+          expected_ast.include?("WriteConstantNode") ||
+          expected_ast.include?("WriteClassVariableNode")
+          skip "Static lexical scopes are never set in multi context mode"
+        end
+
+        if TruffleRuby.jit?
+          skip "Don't run parsing specs when JIT is enabled because it affects AST"
+        end
+
         # actual test check
         actual_ast.should == expected_ast.strip
       end
