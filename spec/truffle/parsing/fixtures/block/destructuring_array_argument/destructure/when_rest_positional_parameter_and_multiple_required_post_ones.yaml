@@ -1,5 +1,5 @@
 subject: "Block"
-description: "Destructuring array argument / when rest positional parameter and multiple required terminating ones - it tries to destructure"
+description: "Destructuring array argument / when rest positional parameter and multiple required terminating ones - it tries to destruct"
 notes: >
   A simplified AST for array argument destructuring:
   

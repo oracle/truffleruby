@@ -1,5 +1,5 @@
 subject: "Block"
-description: "Destructuring array argument / when no rest positional parameter but one required parameter and one optional one - it tries to destructure"
+description: "Destructuring array argument / when no rest positional parameter but one required parameter and one optional one - it tries to destruct"
 notes: >
   A simplified AST for array argument destructuring:
 

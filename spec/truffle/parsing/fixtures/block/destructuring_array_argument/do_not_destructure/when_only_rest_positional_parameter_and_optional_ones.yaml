@@ -1,5 +1,5 @@
 subject: "Block"
-description: "Destructuring array argument / when a rest parameter and optional positional parameters - it doesn't try to destructure"
+description: "Destructuring array argument / when a rest parameter and optional positional parameters - it doesn't try to destruct"
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |foo = 42, bar = 100500, *args|
