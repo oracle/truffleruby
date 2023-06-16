@@ -78,7 +78,8 @@ Also, `TruffleRuby.jit?` will tell you if you are running with the GraalVM compi
 
 ### What is Oracle GraalVM?
 
-Oracle GraalVM is the new GraalVM distribution from Oracle and the successor of GraalVM Enterprise Edition, which used to be reported as `GraalVM EE`.
+Oracle GraalVM is the GraalVM distribution from Oracle available under the [GraalVM Free Terms and Conditions](https://medium.com/graalvm/161527df3d76).
+Oracle GraalVM provides the best TruffleRuby experience through being significantly faster and more memory-efficient than GraalVM Community Edition.
 
 ### How do I know that I'm using the Community Edition of GraalVM?
 
