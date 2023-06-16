@@ -664,7 +664,6 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
 
         @Specialization(
@@ -673,12 +672,13 @@ public abstract class ArrayNodes {
         protected Object delete(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared LoopConditionProfile loopProfile,
+                @Cached @Shared SameOrEqualNode sameOrEqualNode,
+                @Cached @Shared InlinedIntValueProfile arraySizeProfile,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
 
             return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile,
-                    yieldNode);
+                    yieldNode, sameOrEqualNode);
         }
 
         @Specialization(
@@ -688,13 +688,14 @@ public abstract class ArrayNodes {
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared LoopConditionProfile loopProfile,
+                @Cached @Shared SameOrEqualNode sameOrEqualNode,
+                @Cached @Shared InlinedIntValueProfile arraySizeProfile,
+                @Cached @Shared InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
 
-            final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(array.size));
+            final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(this, array.size));
             return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,
-                    loopProfile, yieldNode);
+                    loopProfile, yieldNode, sameOrEqualNode);
         }
 
         private Object delete(RubyArray array, Object value, Object maybeBlock,
@@ -703,22 +704,23 @@ public abstract class ArrayNodes {
                 Object newStore,
                 ArrayStoreLibrary oldStores,
                 ArrayStoreLibrary newStores,
-                IntValueProfile arraySizeProfile,
-                LoopConditionProfile loopProfile,
-                CallBlockNode yieldNode) {
+                InlinedIntValueProfile arraySizeProfile,
+                InlinedLoopConditionProfile loopProfile,
+                CallBlockNode yieldNode,
+                SameOrEqualNode sameOrEqualNode) {
 
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
-            final int size = arraySizeProfile.profile(array.size);
+            final int size = arraySizeProfile.profile(this, array.size);
             Object found = nil;
 
             int i = 0;
             int n = 0;
             try {
-                while (loopProfile.inject(n < size)) {
+                while (loopProfile.inject(this, n < size)) {
                     final Object stored = oldStores.read(oldStore, n);
 
-                    if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
+                    if (sameOrEqualNode.execute(this, stored, value)) {
                         checkFrozen(array);
                         found = stored;
                         n++;
@@ -731,7 +733,7 @@ public abstract class ArrayNodes {
                     TruffleSafepoint.poll(this);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(this, loopProfile, n);
             }
 
             if (i != n) {
@@ -865,45 +867,45 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization(
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
+        protected static boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
-                @Cached ConditionProfile sameProfile,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached ConditionProfile sameSizeProfile,
-                @Cached BranchProfile trueProfile,
-                @Cached BranchProfile falseProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached InlinedConditionProfile sameProfile,
+                @Cached InlinedIntValueProfile arraySizeProfile,
+                @Cached InlinedConditionProfile sameSizeProfile,
+                @Cached InlinedBranchProfile trueProfile,
+                @Cached InlinedBranchProfile falseProfile,
+                @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached SameOrEqualNode sameOrEqualNode,
+                @Bind("this") Node node) {
 
-            if (sameProfile.profile(a == b)) {
+            if (sameProfile.profile(node, a == b)) {
                 return true;
             }
 
-            final int size = arraySizeProfile.profile(a.size);
+            final int size = arraySizeProfile.profile(node, a.size);
 
-            if (!sameSizeProfile.profile(size == b.size)) {
+            if (!sameSizeProfile.profile(node, size == b.size)) {
                 return false;
             }
 
             int i = 0;
             try {
-                for (; loopProfile.inject(i < size); i++) {
-                    if (!sameOrEqualNode.executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
-                        falseProfile.enter();
+                for (; loopProfile.inject(node, i < size); i++) {
+                    if (!sameOrEqualNode.execute(node, stores.read(aStore, i), stores.read(bStore, i))) {
+                        falseProfile.enter(node);
                         return false;
                     }
-                    TruffleSafepoint.poll(this);
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, i);
+                profileAndReportLoopCount(node, loopProfile, i);
             }
-            trueProfile.enter();
+            trueProfile.enter(node);
             return true;
         }
 
@@ -1091,27 +1093,27 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization(limit = "storageStrategyLimit()")
-        protected boolean include(RubyArray array, Object value,
+        protected static boolean include(RubyArray array, Object value,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached SameOrEqualNode sameOrEqualNode,
+                @Cached InlinedIntValueProfile arraySizeProfile,
+                @Cached InlinedLoopConditionProfile loopProfile,
+                @Bind("this") Node node) {
 
             int n = 0;
             try {
-                for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
+                for (; loopProfile.inject(node, n < arraySizeProfile.profile(node, array.size)); n++) {
                     final Object stored = stores.read(store, n);
 
-                    if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
+                    if (sameOrEqualNode.execute(node, stored, value)) {
                         return true;
                     }
-                    TruffleSafepoint.poll(this);
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(node, loopProfile, n);
             }
 
             return false;

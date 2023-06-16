@@ -70,7 +70,6 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -116,6 +115,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
+import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -177,53 +177,44 @@ public abstract class KernelNodes {
     /** Check if operands are the same object or call #==. Known as rb_equal() in MRI. The fact Kernel#=== uses this is
      * pure coincidence. */
     @Primitive(name = "same_or_equal?")
-    public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private DispatchNode equalNode;
-        @Child private BooleanCastNode booleanCastNode;
-
-        private final ConditionProfile sameProfile = ConditionProfile.create();
-
-        public static SameOrEqualNode create() {
-            return SameOrEqualNodeFactory.create(null);
-        }
-
-        public abstract boolean executeSameOrEqual(Object a, Object b);
+    public abstract static class SameOrEqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean sameOrEqual(Object a, Object b,
+        protected boolean doSameOrEqual(Object a, Object b,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            return sameOrEqualNode.execute(this, a, b);
+
+        }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class SameOrEqualNode extends RubyBaseNode {
+
+        public abstract boolean execute(Node node, Object a, Object b);
+
+        @Specialization
+        protected static boolean sameOrEqual(Node node, Object a, Object b,
+                @Cached LazyDispatchNode lazyEqualNode,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached InlinedConditionProfile sameProfile,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            if (sameProfile.profile(referenceEqualNode.execute(a, b))) {
+            if (sameProfile.profile(node, referenceEqualNode.execute(a, b))) {
                 return true;
             } else {
-                return areEqual(a, b);
+                final var equalNode = lazyEqualNode.get(node);
+                return booleanCastNode.execute(equalNode.call(a, "==", b));
             }
         }
-
-        private boolean areEqual(Object left, Object right) {
-            if (equalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(DispatchNode.create());
-            }
-
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.execute(equalNode.call(left, "==", right));
-        }
-
     }
 
     @CoreMethod(names = "===", required = 1)
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization
-        protected boolean caseCmp(Object a, Object b) {
-            return sameOrEqualNode.executeSameOrEqual(a, b);
+        protected boolean caseCmp(Object a, Object b,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            return sameOrEqualNode.execute(this, a, b);
         }
 
     }
@@ -345,11 +336,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "<=>" }, required = 1)
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization
-        protected Object compare(Object self, Object other) {
-            if (sameOrEqualNode.executeSameOrEqual(self, other)) {
+        protected Object compare(Object self, Object other,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            if (sameOrEqualNode.execute(this, self, other)) {
                 return 0;
             } else {
                 return nil;

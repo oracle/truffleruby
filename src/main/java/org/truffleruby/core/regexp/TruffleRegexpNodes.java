@@ -279,18 +279,19 @@ public class TruffleRegexpNodes {
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child DispatchNode copyNode = DispatchNode.create();
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         private final RubyStringLibrary regexpStringLibrary = RubyStringLibrary.create();
 
         @Specialization(
-                guards = "argsMatch(frame, cachedArgs, args)",
+                guards = "argsMatch(node, frame, cachedArgs, args, sameOrEqualNode)",
                 limit = "getDefaultCacheLimit()")
-        protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+        protected static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+                @Cached DispatchNode copyNode,
+                @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached @Shared InlinedBranchProfile errorProfile,
-                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
+                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union,
+                @Bind("this") Node node) {
             return copyNode.call(union, "clone");
         }
 
@@ -332,12 +333,13 @@ public class TruffleRegexpNodes {
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(VirtualFrame frame, Object[] cachedArgs, Object[] args) {
+        protected static boolean argsMatch(Node node, VirtualFrame frame, Object[] cachedArgs, Object[] args,
+                SameOrEqualNode sameOrEqualNode) {
             if (cachedArgs.length != args.length) {
                 return false;
             } else {
                 for (int i = 0; i < cachedArgs.length; i++) {
-                    if (!sameOrEqualNode.executeSameOrEqual(cachedArgs[i], args[i])) {
+                    if (!sameOrEqualNode.execute(node, cachedArgs[i], args[i])) {
                         return false;
                     }
                 }
