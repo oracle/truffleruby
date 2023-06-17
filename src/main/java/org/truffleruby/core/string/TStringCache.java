@@ -69,20 +69,30 @@ public final class TStringCache {
         }
     }
 
-    public TruffleString getTString(TruffleString string, RubyEncoding encoding) {
-        return getTString(TStringUtils.getBytesOrCopy(string, encoding), encoding);
+    @TruffleBoundary
+    public TruffleString getTString(TruffleString string, RubyEncoding rubyEncoding) {
+        assert rubyEncoding != null;
+
+        var byteArray = string.getInternalByteArrayUncached(rubyEncoding.tencoding);
+        final TBytesKey key = new TBytesKey(byteArray, rubyEncoding);
+
+        return getTString(key);
     }
 
-    @TruffleBoundary
     public TruffleString getTString(byte[] bytes, RubyEncoding rubyEncoding) {
         assert rubyEncoding != null;
 
-        final TBytesKey key = new TBytesKey(bytes, rubyEncoding);
+        return getTString(new TBytesKey(bytes, rubyEncoding));
+    }
 
-        final TruffleString tstring = bytesToTString.get(key);
+    @TruffleBoundary
+    private TruffleString getTString(TBytesKey lookupKey) {
+        final TruffleString tstring = bytesToTString.get(lookupKey);
+        var rubyEncoding = lookupKey.getMatchedEncoding();
+
         if (tstring != null) {
             ++tstringsReusedCount;
-            tstringBytesSaved += tstring.byteLength(rubyEncoding.tencoding);
+            tstringBytesSaved += tstring.byteLength(lookupKey.getMatchedEncoding().tencoding);
 
             return tstring;
         }
@@ -92,7 +102,7 @@ public final class TStringCache {
         // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
         // we can make about the resulting TruffleString is that it would have the same logical byte[], but that's good enough
         // for our purposes.
-        TBytesKey keyNoEncoding = new TBytesKey(bytes, null);
+        TBytesKey keyNoEncoding = lookupKey.withNewEncoding(null);
         final TruffleString tstringWithSameBytesButDifferentEncoding = bytesToTString.get(keyNoEncoding);
 
         final TruffleString newTString;
@@ -104,12 +114,11 @@ public final class TStringCache {
             ++byteArrayReusedCount;
             tstringBytesSaved += newTString.byteLength(rubyEncoding.tencoding);
         } else {
-            newTString = TStringUtils.fromByteArray(bytes, rubyEncoding);
+            newTString = lookupKey.toTruffleString();
         }
 
         // Use the new TruffleString bytes in the cache, so we do not keep bytes alive unnecessarily.
-        final TBytesKey newKey = new TBytesKey(TStringUtils.getBytesOrCopy(newTString, rubyEncoding), rubyEncoding);
-        return bytesToTString.addInCacheIfAbsent(newKey, newTString);
+        return bytesToTString.addInCacheIfAbsent(lookupKey.makeCacheable(), newTString);
     }
 
     public boolean contains(TruffleString string, RubyEncoding encoding) {
