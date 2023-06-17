@@ -41,7 +41,16 @@ public final class FrozenStringLiterals {
             throw CompilerDirectives.shouldNotReachHere();
         }
 
-        return getFrozenStringLiteral(TStringUtils.getBytesOrCopy(tstring, encoding), encoding);
+        // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
+        var cachedTString = tstringCache.getTString(tstring, encoding);
+        var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
+
+        final ImmutableRubyString string = values.get(tstringWithEncoding);
+        if (string != null) {
+            return string;
+        } else {
+            return getFrozenStringLiteral(TStringUtils.getBytesOrCopy(tstring, encoding), encoding);
+        }
     }
 
     @TruffleBoundary

@@ -44,9 +44,13 @@ public final class TStringUtils {
     }
 
     public static TruffleString fromByteArray(byte[] bytes, TruffleString.Encoding tencoding) {
+        return fromByteArray(bytes, 0, bytes.length, tencoding);
+    }
+
+    public static TruffleString fromByteArray(byte[] bytes, int offset, int length, TruffleString.Encoding tencoding) {
         CompilerAsserts.neverPartOfCompilation(
                 "Use createString(TruffleString.FromByteArrayNode, byte[], RubyEncoding) instead");
-        return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, tencoding, false);
+        return TruffleString.fromByteArrayUncached(bytes, offset, length, tencoding, false);
     }
 
     public static TruffleString fromByteArray(byte[] bytes, RubyEncoding rubyEncoding) {

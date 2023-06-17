@@ -12,19 +12,34 @@ package org.truffleruby.core.string;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 
 public final class TBytesKey {
 
     private final byte[] bytes;
+    private final int offset;
+    private final int length;
     private RubyEncoding encoding;
     private final int bytesHashCode;
 
-    public TBytesKey(byte[] bytes, RubyEncoding encoding) {
+    public TBytesKey(byte[] bytes, int offset, int length, int bytesHashCode, RubyEncoding encoding) {
         this.bytes = bytes;
+        this.offset = offset;
+        this.length = length;
+        this.bytesHashCode = bytesHashCode;
         this.encoding = encoding;
-        this.bytesHashCode = Arrays.hashCode(bytes);
+    }
+
+    public TBytesKey(byte[] bytes, RubyEncoding encoding) {
+        this(bytes, 0, bytes.length, Arrays.hashCode(bytes), encoding);
+    }
+
+    public TBytesKey(InternalByteArray byteArray, RubyEncoding encoding) {
+        this(byteArray.getArray(), byteArray.getOffset(), byteArray.getLength(), hashCode(byteArray), encoding);
     }
 
     @Override
@@ -37,7 +52,7 @@ public final class TBytesKey {
         if (o instanceof TBytesKey) {
             final TBytesKey other = (TBytesKey) o;
             if (encoding == null) {
-                if (Arrays.equals(bytes, other.bytes)) {
+                if (equalBytes(this, other)) {
                     // For getMatchedEncoding()
                     this.encoding = Objects.requireNonNull(other.encoding);
                     return true;
@@ -45,7 +60,7 @@ public final class TBytesKey {
                     return false;
                 }
             } else {
-                return encoding == other.encoding && Arrays.equals(bytes, other.bytes);
+                return encoding == other.encoding && equalBytes(this, other);
             }
         }
 
@@ -60,6 +75,50 @@ public final class TBytesKey {
     public String toString() {
         var encoding = this.encoding != null ? this.encoding.tencoding : TruffleString.Encoding.BYTES;
         return TruffleString.fromByteArrayUncached(bytes, encoding, false).toString();
+    }
+
+    private static int hashCode(InternalByteArray byteArray) {
+        return hashCode(byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
+    }
+
+    // A variant of <code>Arrays.hashCode</code> that allows for selecting a range within the array.
+    private static int hashCode(byte[] bytes, int offset, int length) {
+        if (bytes == null) {
+            return 0;
+        }
+
+        int result = 1;
+        for (int i = offset; i < offset + length; i++) {
+            result = 31 * result + bytes[i];
+        }
+
+        return result;
+    }
+
+    private boolean equalBytes(TBytesKey a, TBytesKey b) {
+        return Arrays.equals(a.bytes, a.offset, a.offset + a.length, b.bytes, b.offset, b.offset + b.length);
+    }
+
+    private boolean isPerfectFit() {
+        return offset == 0 && length == bytes.length;
+    }
+
+    public TBytesKey makeCacheable() {
+        if (isPerfectFit()) {
+            // TODO (nirvdrum 2023-Jun-17): We can avoid cloning the key if we know the byte array came from an immutable string.
+            return new TBytesKey(bytes.clone(), encoding);
+        }
+
+        var simplified = ArrayUtils.extractRange(this.bytes, this.offset, this.offset + this.length);
+        return new TBytesKey(simplified, encoding);
+    }
+
+    public TBytesKey withNewEncoding(RubyEncoding encoding) {
+        return new TBytesKey(bytes, offset, length, bytesHashCode, encoding);
+    }
+
+    public TruffleString toTruffleString() {
+        return TStringUtils.fromByteArray(bytes, offset, length, encoding.tencoding);
     }
 
 }
