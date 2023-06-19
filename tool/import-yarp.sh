@@ -5,7 +5,7 @@ set -e
 
 # Create generated files
 pushd ../../yarp
-bundle exec rake
+bundle exec rake templates
 popd
 
 rm -rf src/main/c/yarp/src/yarp
