@@ -1,0 +1,39 @@
+subject: "Method call"
+description: "Arguments/with a &-deconstruction to a block argument (&bar)"
+notes: |
+  A block argument is represented with ToProcNodeGen node.
+  RubyCallNode is not wrapped into CatchBreakNode/FrameOnStackNode nodes
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo(&:symbol)
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          block =
+              ToProcNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      childNode_ =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :symbol
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

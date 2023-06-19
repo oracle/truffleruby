@@ -1,0 +1,82 @@
+subject: "Def"
+description: "Singleton method definition"
+notes: >
+  Singleton method has the following properties:
+  - its own attribute `isDefSingleton = true`
+  - a child node SingletonClassNodeGen (moduleNode)
+  - a method name is prefixed with "<singleton class>#" in SharedMethodInfo
+
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  bar = "bar"
+  def bar.foo
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = true
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=12, length=15, characters=def bar.foo\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = <singleton class>#foo, notes = null, argumentDescriptors = [])
+      children:
+          moduleNode =
+              SingletonClassNodeGen$SingletonClassASTNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      valueNode_ =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2
+                                  type = FRAME_LOCAL
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = <singleton class>#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=12, length=15, characters=def bar.foo\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = <singleton class>#foo, notes = null, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=12, length=15, characters=def bar.foo\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 2
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                                          isImplicit = false
+                              ]

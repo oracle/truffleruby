@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import org.truffleruby.core.string.StringUtils;
 
 public final class RubyLongRange extends RubyIntOrLongRange {
 
@@ -19,6 +20,12 @@ public final class RubyLongRange extends RubyIntOrLongRange {
         super(excludedEnd);
         this.begin = begin;
         this.end = end;
+    }
+
+    @Override
+    public String toString() {
+        String suffix = StringUtils.format("(begin = %s, end = %s, excludedEnd = %s)", begin, end, excludedEnd);
+        return super.toString() + suffix;
     }
 
 }

@@ -1,0 +1,60 @@
+subject: "Rescue keyword"
+description: "exceptions list / with a splat operator"
+notes: >
+  The rescue branch is represented as a RescueSplatNode node.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue *EXCEPTIONS_ARRAY
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueSplatNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+                      splatCastNode =
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = false
+                                  flags = 0
+                                  nilBehavior = EMPTY_ARRAY
+                              children:
+                                  childNode_ =
+                                      ReadConstantWithLexicalScopeNode
+                                          attributes:
+                                              flags = 0
+                                              lexicalScope =  :: Object
+                                              name = "EXCEPTIONS_ARRAY"
+                                          children:
+                                              getConstantNode =
+                                                  GetConstantNodeGen
+                                              lookupConstantNode =
+                                                  LookupConstantWithLexicalScopeNodeGen
+                                                      attributes:
+                                                          lexicalScope =  :: Object
+                                                          name = "EXCEPTIONS_ARRAY"
+                      stores =
+                          ArrayStoreLibraryGen$CachedDispatchFirst
+                              attributes:
+                                  limit_ = 4
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

@@ -1,0 +1,10 @@
+subject: "Encoding keyword"
+description: "__ENCODING__ keyword"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  __ENCODING__
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = UTF-8

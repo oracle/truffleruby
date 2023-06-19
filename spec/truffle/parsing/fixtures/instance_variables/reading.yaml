@@ -1,0 +1,15 @@
+subject: "Instance variable"
+description: "reading an instance variable"
+focused_on_node: "org.truffleruby.language.objects.ReadInstanceVariableNode"
+ruby: |
+  @foo
+ast: |
+  ReadInstanceVariableNode
+      attributes:
+          flags = 1
+          name = "@foo"
+      children:
+          readSelfSlotNode =
+              ReadFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 0

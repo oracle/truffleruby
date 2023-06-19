@@ -1,0 +1,56 @@
+subject: "Rescue keyword"
+description: "rescue in a begin/end block"
+notes: >
+  Is represented with a TryNode node:
+  - a block body is represented with a `tryPart` child node.
+  - rescue branch is represented with a `rescueParts` child nodes.
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    42
+  end
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              TryNode
+                  attributes:
+                      canOmitBacktrace = true
+                      flags = 1
+                  children:
+                      rescueParts = [
+                          RescueStandardErrorNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  rescueBody =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 1
+                                              value = 42
+                      ]
+                      tryPart =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = foo
+          ]

@@ -343,4 +343,10 @@ public class TranslatorEnvironment {
         }
         return methodParent;
     }
+
+    /** Used only in tests to make temporary variable names stable and not changed every time they are run. It shouldn't
+     * be used for anything except that purpose. */
+    public static void resetTemporaryVariablesIndex() {
+        tempIndex.set(0);
+    }
 }

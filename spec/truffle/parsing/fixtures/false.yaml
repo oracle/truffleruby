@@ -1,0 +1,10 @@
+subject: "False"
+description: "False literal"
+focused_on_node: "org.truffleruby.language.literal.BooleanLiteralNode"
+ruby: |
+  false
+ast: |
+  BooleanLiteralNode
+      attributes:
+          flags = 1
+          value = false

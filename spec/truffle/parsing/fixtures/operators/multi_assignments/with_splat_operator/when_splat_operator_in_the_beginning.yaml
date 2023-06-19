@@ -1,0 +1,57 @@
+subject: "Multi-assignment"
+description: "When splat operator/in the beginning of the LHS (*array, a = ...)"
+notes: >
+  Variables after a splat operator are stored in postNodes.
+  Variable with splat operator - restNode.
+  Please note that preNodes = [].
+
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  *a, b, c = 'foo', 'bar', 'baz'
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          postNodes = [
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 3
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 4
+          ]
+          restNode =
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = bar
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = baz
+                      ]
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

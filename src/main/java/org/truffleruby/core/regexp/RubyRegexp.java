@@ -26,13 +26,15 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ExportLibrary(InteropLibrary.class)
-public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements TruffleObject, Comparable<RubyRegexp> {
+public final class RubyRegexp extends ImmutableRubyObjectNotCopyable
+        implements TruffleObject, Comparable<RubyRegexp> {
 
     @TruffleBoundary
     public static RubyRegexp create(RubyLanguage language,
@@ -120,5 +122,12 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable implements 
         } else {
             return options.compareTo(o.options);
         }
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.format(
+                "RubyRegexp(source = %s, options = %s, encoding = %s)",
+                source, options, encoding);
     }
 }

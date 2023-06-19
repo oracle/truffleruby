@@ -1,0 +1,29 @@
+subject: "Method call"
+description: With safe navigation operator (&.)
+notes: >
+  Is represented as RubyCallNode's attribute `isSafeNavigation = true`
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  42&.foobar
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PROTECTED
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = true
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foobar"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          receiver =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42

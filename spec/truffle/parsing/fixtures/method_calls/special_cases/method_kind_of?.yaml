@@ -1,0 +1,31 @@
+subject: "Method call"
+description: "Special cases/method #kind_of?"
+focused_on_node: "org.truffleruby.core.inlined.InlinedKindOfNodeGen"
+ruby: |
+  1.kind_of?(Integer)
+ast: |
+  InlinedKindOfNodeGen
+      attributes:
+          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+          flags = 1
+          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+      children:
+          leftNode_ =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1
+          rightNode_ =
+              ReadConstantWithLexicalScopeNode
+                  attributes:
+                      flags = 0
+                      lexicalScope =  :: Object
+                      name = "Integer"
+                  children:
+                      getConstantNode =
+                          GetConstantNodeGen
+                      lookupConstantNode =
+                          LookupConstantWithLexicalScopeNodeGen
+                              attributes:
+                                  lexicalScope =  :: Object
+                                  name = "Integer"

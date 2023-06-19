@@ -1,0 +1,11 @@
+subject: "Alias"
+description: "alias keywords"
+focused_on_node: "org.truffleruby.core.module.ModuleNodes$AliasKeywordNode"
+ruby: |
+  alias a b
+ast: |
+  ModuleNodes$AliasKeywordNode
+      attributes:
+          flags = 1
+          newName = :a
+          oldName = :b

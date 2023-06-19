@@ -1,0 +1,24 @@
+subject: "Range"
+description: "Beginningless Range literal ..b"
+focused_on_node: "org.truffleruby.core.range.RangeNodes$RangeLiteralNode"
+ruby: |
+  .."z"
+ast: |
+  RangeNodes$RangeLiteralNode
+      attributes:
+          excludeEnd = false
+          flags = 1
+      children:
+          beginNode =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = true
+          endNode =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = z
+          newRangeNode =
+              RangeNodesFactory$NewRangeNodeGen

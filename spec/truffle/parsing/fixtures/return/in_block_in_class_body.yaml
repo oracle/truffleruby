@@ -1,0 +1,161 @@
+subject: "Return"
+description: "return operator in a block in a class definition body"
+notes: >
+  Is represented by InvalidReturnNode node
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  class Foo
+    1.times do
+      return 42
+    end
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=class Foo\n  1.times do\n    return 42\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Foo>, blockDepth = 0, parseName = <class:Foo>, notes = null, argumentDescriptors = null), callTarget = <class:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineClassNode
+                  attributes:
+                      flags = 0
+                      name = "Foo"
+                  children:
+                      lexicalParentModule =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <class:Foo>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%frame_on_stack_marker_0}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=class Foo\n  1.times do\n    return 42\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Foo>, blockDepth = 0, parseName = <class:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=class Foo\n  1.times do\n    return 42\n  end\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              CatchBreakNode
+                                                  attributes:
+                                                      breakID = org.truffleruby.language.control.BreakID@...
+                                                      flags = 1
+                                                      isWhile = false
+                                                  children:
+                                                      body =
+                                                          FrameOnStackNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameOnStackMarkerSlot = 2
+                                                              children:
+                                                                  child =
+                                                                      RubyCallNode
+                                                                          attributes:
+                                                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                              dispatchConfig = PROTECTED
+                                                                              emptyKeywordsProfile = false
+                                                                              flags = 0
+                                                                              isAttrAssign = false
+                                                                              isSafeNavigation = false
+                                                                              isSplatted = false
+                                                                              isVCall = false
+                                                                              lastArgIsNotHashProfile = false
+                                                                              methodName = "times"
+                                                                              notEmptyKeywordsProfile = false
+                                                                              notRuby2KeywordsHashProfile = false
+                                                                              ruby2KeywordsHashProfile = false
+                                                                          children:
+                                                                              block =
+                                                                                  BlockDefinitionNode
+                                                                                      attributes:
+                                                                                          breakID = org.truffleruby.language.control.BreakID@...
+                                                                                          callTargets = ProcCallTargets(callTargetForProc = block in <class:Foo>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                                          flags = 0
+                                                                                          frameOnStackMarkerSlot = 2
+                                                                                          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=10, length=12, characters=  1.times do), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
+                                                                                          type = PROC
+                                                                                      children:
+                                                                                          readSpecialVariableStorageNode =
+                                                                                              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
+                                                                                      call targets:
+                                                                                          RubyProcRootNode
+                                                                                              attributes:
+                                                                                                  callTarget = block in <class:Foo>
+                                                                                                  frameDescriptor = FrameDescriptor@...{#0:(self)}
+                                                                                                  instrumentationBits = 0
+                                                                                                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                                                                  nextProfile = false
+                                                                                                  polyglotRef = org.truffleruby.RubyLanguage@...
+                                                                                                  redoProfile = false
+                                                                                                  retryProfile = false
+                                                                                                  returnID = org.truffleruby.language.control.ReturnID@...
+                                                                                                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=10, length=12, characters=  1.times do), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
+                                                                                                  sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=10, length=12, characters=  1.times do)
+                                                                                                  split = HEURISTIC
+                                                                                              children:
+                                                                                                  body =
+                                                                                                      SequenceNode
+                                                                                                          attributes:
+                                                                                                              flags = 12
+                                                                                                          children:
+                                                                                                              body = [
+                                                                                                                  WriteLocalVariableNode
+                                                                                                                      attributes:
+                                                                                                                          flags = 0
+                                                                                                                          frameSlot = 0
+                                                                                                                      children:
+                                                                                                                          valueNode =
+                                                                                                                              ProfileArgumentNodeGen
+                                                                                                                                  attributes:
+                                                                                                                                      flags = 0
+                                                                                                                                  children:
+                                                                                                                                      childNode_ =
+                                                                                                                                          ReadSelfNode
+                                                                                                                                              attributes:
+                                                                                                                                                  flags = 0
+                                                                                                                  InvalidReturnNode
+                                                                                                                      attributes:
+                                                                                                                          flags = 1
+                                                                                                                      children:
+                                                                                                                          value =
+                                                                                                                              IntegerFixnumLiteralNode
+                                                                                                                                  attributes:
+                                                                                                                                      flags = 0
+                                                                                                                                      value = 42
+                                                                                                              ]
+                                                                              receiver =
+                                                                                  IntegerFixnumLiteralNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          value = 1
+                              ]

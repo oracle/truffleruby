@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "Integer literal with octal prefix"
+focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
+ruby: |
+  0o42
+ast: |
+  IntegerFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 34

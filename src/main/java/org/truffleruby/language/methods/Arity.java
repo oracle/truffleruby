@@ -196,12 +196,13 @@ public final class Arity {
     @Override
     public String toString() {
         return "Arity{" +
-                "preRequired=" + preRequired +
-                ", optional=" + optional +
-                ", hasRest=" + hasRest +
-                ", postRequired=" + postRequired +
-                ", keywordArguments=" + Arrays.toString(keywordArguments) +
-                ", hasKeywordsRest=" + hasKeywordsRest +
+                "preRequired = " + preRequired +
+                ", optional = " + optional +
+                ", hasRest = " + hasRest +
+                ", postRequired = " + postRequired +
+                ", keywordArguments = " + Arrays.toString(keywordArguments) +
+                ", requiredKeywordArgumentsCount = " + requiredKeywordArgumentsCount +
+                ", hasKeywordsRest = " + hasKeywordsRest +
                 '}';
     }
 }

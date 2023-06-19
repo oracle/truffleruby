@@ -31,10 +31,6 @@ public final class WhileNode extends RubyContextSourceNode {
         loopNode = Truffle.getRuntime().createLoopNode(repeatingNode);
     }
 
-    private WhileNode(LoopNode loopNode) {
-        this.loopNode = loopNode;
-    }
-
     @Override
     public Object execute(VirtualFrame frame) {
         loopNode.execute(frame);

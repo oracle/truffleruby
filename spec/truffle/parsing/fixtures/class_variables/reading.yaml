@@ -1,0 +1,20 @@
+subject: "Class variable"
+description: "reading a class variable"
+focused_on_node: "org.truffleruby.language.objects.classvariables.ReadClassVariableNode"
+ruby: |
+  @@foo
+ast: |
+  ReadClassVariableNode
+      attributes:
+          flags = 1
+          name = "@@foo"
+      children:
+          lexicalScopeNode =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object =  :: Object
+          lookupClassVariableNode =
+              LookupClassVariableNodeGen
+          resolveTargetModuleNode =
+              ResolveTargetModuleForClassVariablesNodeGen

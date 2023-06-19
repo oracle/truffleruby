@@ -1,0 +1,42 @@
+subject: "Symbol"
+description: "Literal with interpolation when expressions are arbitrary (not Strings)"
+focused_on_node: "org.truffleruby.core.cast.StringToSymbolNodeGen"
+ruby: |
+  :"ab#{ 42 }cd"
+ast: |
+  StringToSymbolNodeGen
+      attributes:
+          flags = 1
+      children:
+          stringNode_ =
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = ab
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 1
+                                              value = 42
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = cd
+                      ]

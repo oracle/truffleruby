@@ -1,0 +1,74 @@
+subject: "Multi-assignment"
+description: "When assigning instance variables"
+notes: >
+  Multi-assigning is represented with MultipleAssignmentNode node.
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  @a, @b, @c = 'foo', 'bar', 'baz'
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              WriteInstanceVariableNode
+                  attributes:
+                      flags = 0
+                      frozenProfile = false
+                      name = "@a"
+                  children:
+                      readSelfSlotNode =
+                          ReadFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 0
+              WriteInstanceVariableNode
+                  attributes:
+                      flags = 0
+                      frozenProfile = false
+                      name = "@b"
+                  children:
+                      readSelfSlotNode =
+                          ReadFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 0
+              WriteInstanceVariableNode
+                  attributes:
+                      flags = 0
+                      frozenProfile = false
+                      name = "@c"
+                  children:
+                      readSelfSlotNode =
+                          ReadFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 0
+          ]
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = bar
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = baz
+                      ]
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

@@ -1,0 +1,45 @@
+subject: "Rational number"
+description: "with Float value"
+notes: >
+  Rational literal with Float value is represented by `Rational.convert(numerator, denominator)`.
+  For instance 12.34 is represented as Rational.convert(1234, 100)
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  42.100500r
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "convert"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              LongFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42100500
+              LongFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1000000
+          ]
+          receiver =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Rational"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

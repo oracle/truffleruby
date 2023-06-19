@@ -1,0 +1,10 @@
+subject: "Range"
+description: "When Range boundaries are big Integer values (that don't fit into Java int, so > 2**32)"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  4294967296..4294967296
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = org.truffleruby.core.range.RubyLongRange@...(begin = 4294967296, end = 4294967296, excludedEnd = false)

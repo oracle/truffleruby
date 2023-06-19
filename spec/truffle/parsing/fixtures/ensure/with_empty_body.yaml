@@ -1,0 +1,36 @@
+subject: "Ensure keyword"
+description: "with empty body"
+notes: >
+  Is completely removed from the AST.
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  begin
+    "foo"
+  ensure
+  end
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo
+          ]

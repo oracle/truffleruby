@@ -1,0 +1,19 @@
+subject: "Method call"
+description: "Special cases/method #!"
+focused_on_node: "org.truffleruby.core.inlined.InlinedNotNodeGen"
+ruby: |
+  a = [0, 1, 2]
+  !a
+ast: |
+  InlinedNotNodeGen
+      attributes:
+          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+          flags = 1
+          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+      children:
+          selfNode_ =
+              ReadLocalVariableNode
+                  attributes:
+                      flags = 1
+                      frameSlot = 2
+                      type = FRAME_LOCAL

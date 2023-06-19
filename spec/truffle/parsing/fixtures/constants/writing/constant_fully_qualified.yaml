@@ -1,0 +1,20 @@
+subject: "Constant"
+description: "assigning / a fully qualified constant (::A)"
+focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
+ruby: |
+  ::FOO = 1
+ast: |
+  WriteConstantNode
+      attributes:
+          flags = 1
+          name = "FOO"
+      children:
+          moduleNode =
+              ObjectClassLiteralNode
+                  attributes:
+                      flags = 0
+          valueNode =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1

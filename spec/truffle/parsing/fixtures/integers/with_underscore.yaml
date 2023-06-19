@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "Integer literal with underscore"
+focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
+ruby: |
+  1_234
+ast: |
+  IntegerFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 1234

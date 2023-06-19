@@ -1,0 +1,80 @@
+subject: "class"
+description: "class definition with explicit lexical parent module (class Foo::Bar)"
+notes: >
+  Nesting into an outer lexical scope is represented by a `DefineClassNode.lexicalParentModule` node,
+  constant `Foo` in our example.
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  class Foo::Bar
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=18, characters=class Foo::Bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineClassNode
+                  attributes:
+                      flags = 0
+                      name = "Bar"
+                  children:
+                      lexicalParentModule =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "Foo"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "Foo"
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <class:Bar>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=18, characters=class Foo::Bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=18, characters=class Foo::Bar\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              NilLiteralNode
+                                                  attributes:
+                                                      flags = 0
+                                                      isImplicit = false
+                              ]

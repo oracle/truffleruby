@@ -1,0 +1,91 @@
+subject: "Method call"
+description: "Arguments/with positional argument and splat operator (a, *args)"
+notes: |
+  is represented by ArrayConcatNode and SplatCastNodeGen
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo(bar, *baz)
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = true
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              ArrayConcatNode
+                  attributes:
+                      flags = 0
+                  children:
+                      children = [
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                              attributes:
+                                  flags = 0
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "bar"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                                  ]
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = true
+                                  flags = 0
+                                  nilBehavior = CONVERT
+                              children:
+                                  childNode_ =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "baz"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                      ]
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

@@ -10,6 +10,10 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import org.truffleruby.core.string.StringUtils;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** An arguments descriptor that says that keyword arguments were passed (either foo(a: 1) or foo(**kw)). Note that
  * currently, if kw is empty, then this descriptor is used even though it is semantically the same as if no keyword
@@ -25,5 +29,11 @@ public final class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
     public String[] getKeywords() {
         return keywords;
+    }
+
+    @Override
+    public String toString() {
+        final String keywordsAsString = Stream.of(keywords).collect(Collectors.joining(", ", "[", "]"));
+        return StringUtils.format("KeywordArgumentsDescriptor(keywords = %s)", keywordsAsString);
     }
 }

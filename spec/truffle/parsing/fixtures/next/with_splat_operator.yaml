@@ -1,0 +1,34 @@
+subject: "Next"
+description: "next operator with splat operator (next *a)"
+notes: >
+  Argument is represented by SplatCastNodeGen node
+focused_on_node: "org.truffleruby.language.control.NextNode"
+ruby: |
+  while (true)
+    next *[42]
+  end
+ast: |
+  NextNode
+      attributes:
+          flags = 1
+      children:
+          child =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_a
+                      copy = true
+                      flags = 0
+                      nilBehavior = CONVERT
+                  children:
+                      childNode_ =
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                              attributes:
+                                  flags = 0
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]

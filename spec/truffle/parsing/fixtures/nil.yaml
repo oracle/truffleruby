@@ -1,0 +1,10 @@
+subject: "Nil"
+description: "nil literal"
+focused_on_node: "org.truffleruby.language.literal.NilLiteralNode"
+ruby: |
+  nil
+ast: |
+  NilLiteralNode
+      attributes:
+          flags = 1
+          isImplicit = false

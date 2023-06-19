@@ -1,0 +1,64 @@
+subject: "case expression"
+description: "case expression without expression to match and with multiple conditions in a `when` branch (case when a, b ... end)"
+notes: >
+  A list of conditions in a `when` expression is represented as multiple nested `if` statements
+  to evaluate each of conditions.
+  
+  So the example below is translated to the following expression:
+  
+    if (true)
+      "1st or 2d condition"
+    else (false)
+      "1st or 2d condition"
+    else
+      nil
+    end
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  case
+  when true, false
+    "1st or 2d condition"
+  end
+ast: |
+  IfElseNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = true
+          elseBody =
+              IfElseNode
+                  attributes:
+                      flags = 0
+                  children:
+                      condition =
+                          BooleanCastNodeGen
+                              children:
+                                  valueNode_ =
+                                      BooleanLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = false
+                      elseBody =
+                          NilLiteralNode
+                              attributes:
+                                  flags = 0
+                                  isImplicit = false
+                      thenBody =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = 1st or 2d condition
+          thenBody =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = 1st or 2d condition

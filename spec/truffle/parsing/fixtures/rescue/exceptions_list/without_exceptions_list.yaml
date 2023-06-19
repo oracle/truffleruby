@@ -1,0 +1,34 @@
+subject: "Rescue keyword"
+description: "exceptions list / without explicit exceptions list"
+notes: >
+  The rescue branch is represented as a RescueStandardErrorNode node.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

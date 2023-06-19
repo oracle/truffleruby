@@ -1,0 +1,31 @@
+subject: "Constant"
+description: "reading / a constant with lexical grandparent (A::B::C)"
+focused_on_node: "org.truffleruby.language.constants.ReadConstantNode"
+ruby: |
+  Foo::Bar::Baz
+ast: |
+  ReadConstantNode
+      attributes:
+          flags = 1
+          name = "Baz"
+      children:
+          moduleNode =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Bar"
+                  children:
+                      moduleNode =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "Foo"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "Foo"

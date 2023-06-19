@@ -1,0 +1,38 @@
+subject: "||="
+description: "Variable assignment/fully qualified constant (::A ||= b)"
+notes: >
+  `::A ||= b` is translated into `::A || ::A = b`
+focused_on_node: "org.truffleruby.language.constants.OrAssignConstantNode"
+ruby: |
+  ::FOO ||= 42
+ast: |
+  OrAssignConstantNode
+      attributes:
+          flags = 0
+          writeTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+      children:
+          readConstant =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "FOO"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0
+          writeConstant =
+              WriteConstantNode
+                  attributes:
+                      flags = 0
+                      name = "FOO"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0
+                      valueNode =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

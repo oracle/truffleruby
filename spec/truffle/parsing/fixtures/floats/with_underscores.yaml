@@ -1,0 +1,10 @@
+subject: "Float"
+description: "Float literal fixed-point format with underscores"
+focused_on_node: "org.truffleruby.language.literal.FloatLiteralNode"
+ruby: |
+  1_234.567_8
+ast: |
+  FloatLiteralNode
+      attributes:
+          flags = 1
+          value = 1234.5678

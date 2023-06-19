@@ -658,4 +658,13 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
+    @Primitive(name = "vm_single_context?")
+    public abstract static class VMSingleContext extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean singleContext() {
+            return isSingleContext();
+        }
+    }
+
 }

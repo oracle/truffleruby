@@ -1,0 +1,21 @@
+subject: "Instance variable"
+description: "assigning an instance variable new value"
+focused_on_node: "org.truffleruby.language.objects.WriteInstanceVariableNode"
+ruby: |
+  @foo = 42
+ast: |
+  WriteInstanceVariableNode
+      attributes:
+          flags = 1
+          frozenProfile = false
+          name = "@foo"
+      children:
+          readSelfSlotNode =
+              ReadFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 0
+          rhs =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42

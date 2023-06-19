@@ -1,0 +1,27 @@
+subject: "if expression"
+description: >
+  when `if` expression without `else` branch
+  then `elseBody` child node is missing
+focused_on_node: "org.truffleruby.language.control.IfNode"
+ruby: |
+  if (true)
+    100500
+  end
+ast: |
+  IfNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 100500

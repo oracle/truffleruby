@@ -1,0 +1,10 @@
+subject: "Symbol"
+description: "Literal in format :'string' (dynamic)"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  :"foobar"
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = :foobar

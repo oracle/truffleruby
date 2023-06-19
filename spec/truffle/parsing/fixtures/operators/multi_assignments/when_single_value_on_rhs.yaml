@@ -1,0 +1,33 @@
+subject: "Multi-assignment"
+description: "When RHS is a single value"
+notes: >
+  A single value on RHS is represented a corresponding single node.
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  a, b = 'foo'
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 3
+          ]
+          rhsNode =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

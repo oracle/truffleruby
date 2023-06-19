@@ -1,0 +1,57 @@
+subject: "Hash"
+description: "Double Splat operator/key-value pairs + double splat operator (`{a: 1, **{}}`)"
+notes: >
+  It's represented with ConcatHashLiteralNode that joins two Hash objects:
+  - a Hash with all the preceding key-value pairs
+  - **{}
+focused_on_node: "org.truffleruby.core.hash.ConcatHashLiteralNode"
+ruby: |
+  {foo: 1, **bar}
+ast: |
+  ConcatHashLiteralNode
+      attributes:
+          flags = 1
+      children:
+          children = [
+              PackedHashStoreLibrary$SmallHashLiteralNode
+                  attributes:
+                      flags = 0
+                  children:
+                      freezeHashKeyIfNeededNode =
+                          FreezeHashKeyIfNeededNodeGen
+                      keyValues = [
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :foo
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 1
+                      ]
+              HashCastNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      childNode_ =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "bar"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+          ]

@@ -1,0 +1,32 @@
+subject: "if expression"
+description: "`if` expression with both `then` and `else` branches"
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  if (true)
+    100500
+  else
+    42
+  end
+ast: |
+  IfElseNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          elseBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 42
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 100500

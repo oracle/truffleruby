@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "Bit Integer literal (that takes >= 64 bits)"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  18446744073709551617
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = 18446744073709551617

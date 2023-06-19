@@ -1,0 +1,13 @@
+subject: "Method call"
+description: "Special cases/method #freeze"
+notes: >
+  When called on a String literal it's represented as FrozenStringLiteralNode.
+focused_on_node: "org.truffleruby.language.literal.FrozenStringLiteralNode"
+ruby: |
+  "foobar".freeze
+ast: |
+  FrozenStringLiteralNode
+      attributes:
+          definition = method
+          flags = 1
+          frozenString = foobar

@@ -1,0 +1,109 @@
+subject: "||="
+description: "Assign an attribute of a local variable (a.b ||= c)"
+notes: >
+  `a.b ||= c` is translated into `a.b || a.b = c` in the following way:
+  
+  ```ruby
+  temp_receiver = a
+  temp_receiver.b || temp_receiver.b=(c)
+  ```
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  a.foo ||= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              SequenceNode
+                  attributes:
+                      flags = 0
+                  children:
+                      body = [
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2
+                              children:
+                                  valueNode =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "a"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                          OrNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  left =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PROTECTED
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = false
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "foo"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2
+                                                          type = FRAME_LOCAL
+                                  leftCast =
+                                      BooleanCastNodeGen
+                                  right =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PROTECTED
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = true
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = false
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "foo="
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              ruby2KeywordsHashProfile = false
+                                          children:
+                                              arguments = [
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                              ]
+                                              receiver =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2
+                                                          type = FRAME_LOCAL
+                      ]

@@ -1,0 +1,67 @@
+subject: "case expression"
+description: "case expression without expression to match (case when expr ... end)"
+notes: >
+  The case expression is represented with multiple nested `if`s.
+  Each `when`'s condition is casted to boolean with BooleanCastNodeGen node.
+  Missing `else` branch is represented with NilLiteralNode node.
+  
+  So the example below is translated to the following expression:
+  
+    if 42
+      "forty two"
+    else 100500
+      "one hundred five hundred"
+    else
+      nil
+    end
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  case
+  when 42
+    "forty two"
+  when 100500
+    "one hundred five hundred"
+  end
+ast: |
+  IfElseNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+          elseBody =
+              IfElseNode
+                  attributes:
+                      flags = 0
+                  children:
+                      condition =
+                          BooleanCastNodeGen
+                              children:
+                                  valueNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 100500
+                      elseBody =
+                          NilLiteralNode
+                              attributes:
+                                  flags = 0
+                                  isImplicit = false
+                      thenBody =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = one hundred five hundred
+          thenBody =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = forty two

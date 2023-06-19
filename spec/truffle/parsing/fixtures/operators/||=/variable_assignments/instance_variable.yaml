@@ -1,0 +1,41 @@
+subject: "||="
+description: "Variable assignment/instance variable (@a ||= b)"
+notes: >
+  `@a ||= b` is translated into `@a || @a = b`
+focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
+ruby: |
+  @foo ||= 42
+ast: |
+  OrLazyValueDefinedNode
+      attributes:
+          flags = 1
+          rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+      children:
+          left =
+              ReadInstanceVariableNode
+                  attributes:
+                      flags = 0
+                      name = "@foo"
+                  children:
+                      readSelfSlotNode =
+                          ReadFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 0
+          leftCast =
+              BooleanCastNodeGen
+          right =
+              WriteInstanceVariableNode
+                  attributes:
+                      flags = 0
+                      frozenProfile = false
+                      name = "@foo"
+                  children:
+                      readSelfSlotNode =
+                          ReadFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 0
+                      rhs =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

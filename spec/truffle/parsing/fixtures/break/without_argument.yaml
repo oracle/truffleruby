@@ -1,0 +1,21 @@
+subject: "Break"
+description: "break operator without argument"
+notes: >
+  Returning value is represented by NilLiteralNode
+focused_on_node: "org.truffleruby.language.control.BreakNode"
+ruby: |
+  while true
+    break
+  end
+ast: |
+  BreakNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          flags = 1
+          ignoreMarker = true
+      children:
+          child =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = false

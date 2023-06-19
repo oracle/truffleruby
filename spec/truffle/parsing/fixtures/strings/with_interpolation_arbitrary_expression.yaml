@@ -1,0 +1,37 @@
+subject: "String"
+description: "Literal with interpolation when expressions are arbitrary (not Strings)"
+focused_on_node: "org.truffleruby.core.string.InterpolatedStringNode"
+ruby: |
+  "ab#{ 123 }cd"
+ast: |
+  InterpolatedStringNode
+      attributes:
+          emptyTString = ""
+          encoding = UTF-8
+          flags = 1
+      children:
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = ab
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 123
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = cd
+          ]

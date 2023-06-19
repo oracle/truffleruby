@@ -1,0 +1,24 @@
+subject: "Range"
+description: "Endless Range literal a.."
+focused_on_node: "org.truffleruby.core.range.RangeNodes$RangeLiteralNode"
+ruby: |
+  "a"..
+ast: |
+  RangeNodes$RangeLiteralNode
+      attributes:
+          excludeEnd = false
+          flags = 1
+      children:
+          beginNode =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = a
+          endNode =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = true
+          newRangeNode =
+              RangeNodesFactory$NewRangeNodeGen

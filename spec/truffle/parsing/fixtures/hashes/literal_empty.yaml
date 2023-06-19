@@ -1,0 +1,9 @@
+subject: "Hash"
+description: "Empty Hash literal"
+focused_on_node: "org.truffleruby.core.hash.library.EmptyHashStore$EmptyHashLiteralNode"
+ruby: |
+  {}
+ast: |
+  EmptyHashStore$EmptyHashLiteralNode
+      attributes:
+          flags = 1

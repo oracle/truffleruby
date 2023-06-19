@@ -1,0 +1,43 @@
+subject: "&&="
+description: "Variable assignment/fully qualified constant (::A &&= b)"
+notes: >
+  `::A &&= b` is translated into `::A && ::A = b`
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  ::FOO &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          ReadConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "FOO"
+                              children:
+                                  moduleNode =
+                                      ObjectClassLiteralNode
+                                          attributes:
+                                              flags = 0
+                      right =
+                          WriteConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "FOO"
+                              children:
+                                  moduleNode =
+                                      ObjectClassLiteralNode
+                                          attributes:
+                                              flags = 0
+                                  valueNode =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42

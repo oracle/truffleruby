@@ -1,0 +1,15 @@
+subject: "defined?"
+description: "defined? keyword"
+focused_on_node: "org.truffleruby.language.defined.DefinedNode"
+ruby: |
+  defined? :foobar
+ast: |
+  DefinedNode
+      attributes:
+          flags = 1
+      children:
+          child =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :foobar

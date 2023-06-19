@@ -1,0 +1,39 @@
+subject: "if expression"
+description: >
+  when `if` expression with empty `then` branch and `else` branch contains multiple expressions
+  then these expressions are wrapped into a SequenceNode
+focused_on_node: "org.truffleruby.language.control.UnlessNode"
+ruby: |
+  if (true)
+  else
+    42
+    100500
+  end
+ast: |
+  UnlessNode
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = true
+          thenBody =
+              SequenceNode
+                  attributes:
+                      flags = 0
+                  children:
+                      body = [
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 100500
+                      ]

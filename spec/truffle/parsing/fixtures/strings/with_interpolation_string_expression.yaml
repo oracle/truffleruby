@@ -1,0 +1,11 @@
+subject: "String"
+description: "Literal with interpolation when expressions are Strings"
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  "ab#{ "123" }cd"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = UTF-8
+          flags = 1
+          tstring = ab123cd

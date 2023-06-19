@@ -1,0 +1,44 @@
+subject: "Rational number"
+description: "with big Integer value (>= 2^64)."
+notes: >
+  Big Integer value is represented by ObjectLiteralNode.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  18446744073709551617r
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "convert"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = 18446744073709551617
+              LongFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1
+          ]
+          receiver =
+              ReadConstantNode
+                  attributes:
+                      flags = 0
+                      name = "Rational"
+                  children:
+                      moduleNode =
+                          ObjectClassLiteralNode
+                              attributes:
+                                  flags = 0

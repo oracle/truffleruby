@@ -1,0 +1,20 @@
+subject: "AND operator"
+description: "Logical && operator"
+focused_on_node: "org.truffleruby.language.control.AndNode"
+ruby: |
+  1 && 2
+ast: |
+  AndNode
+      attributes:
+          flags = 1
+      children:
+          left =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1
+          right =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 2

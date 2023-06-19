@@ -1,0 +1,26 @@
+subject: "Method call"
+description: "Without arguments and parentheses"
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  foo
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = true
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

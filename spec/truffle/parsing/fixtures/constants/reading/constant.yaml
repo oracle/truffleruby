@@ -1,0 +1,19 @@
+subject: "Constant"
+description: "reading / a constant"
+focused_on_node: "org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode"
+ruby: |
+  Foo
+ast: |
+  ReadConstantWithLexicalScopeNode
+      attributes:
+          flags = 1
+          lexicalScope =  :: Object
+          name = "Foo"
+      children:
+          getConstantNode =
+              GetConstantNodeGen
+          lookupConstantNode =
+              LookupConstantWithLexicalScopeNodeGen
+                  attributes:
+                      lexicalScope =  :: Object
+                      name = "Foo"

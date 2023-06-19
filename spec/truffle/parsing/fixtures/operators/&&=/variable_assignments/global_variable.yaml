@@ -1,0 +1,45 @@
+subject: "&&="
+description: "Variable assignment/global variable ($a &&= b)"
+notes: >
+  `$a &&= b` is translated into `$a && $a = b`
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  $foo &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNode
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          ReadGlobalVariableNodeGen
+                              attributes:
+                                  flags = 0
+                                  name = "$foo"
+                              children:
+                                  lookupGlobalVariableStorageNode =
+                                      LookupGlobalVariableStorageNodeGen
+                                          attributes:
+                                              index = -1
+                                              name = "$foo"
+                      right =
+                          WriteGlobalVariableNodeGen
+                              attributes:
+                                  flags = 0
+                                  name = "$foo"
+                              children:
+                                  lookupGlobalVariableStorageNode =
+                                      LookupGlobalVariableStorageNodeGen
+                                          attributes:
+                                              index = -1
+                                              name = "$foo"
+                                  valueNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42

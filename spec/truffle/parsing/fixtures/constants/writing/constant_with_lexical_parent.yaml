@@ -1,0 +1,30 @@
+subject: "Constant"
+description: "assigning / a constant with lexical parent (A::B)"
+focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
+ruby: |
+  Foo::BAR = 1
+ast: |
+  WriteConstantNode
+      attributes:
+          flags = 1
+          name = "BAR"
+      children:
+          moduleNode =
+              ReadConstantWithLexicalScopeNode
+                  attributes:
+                      flags = 0
+                      lexicalScope =  :: Object
+                      name = "Foo"
+                  children:
+                      getConstantNode =
+                          GetConstantNodeGen
+                      lookupConstantNode =
+                          LookupConstantWithLexicalScopeNodeGen
+                              attributes:
+                                  lexicalScope =  :: Object
+                                  name = "Foo"
+          valueNode =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 1

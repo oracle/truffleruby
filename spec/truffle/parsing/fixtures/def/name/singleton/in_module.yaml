@@ -1,0 +1,156 @@
+subject: "Def"
+description: "Name / Singleton / in a module"
+notes: >
+  Method name is prefixed with a module name + ".":
+  
+    parseName = A.foo
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  module A
+    bar = "bar"
+    def bar.foo
+    end
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:A>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=module A\n  bar = "bar"\n  def bar.foo\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null), callTarget = <module:A>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineModuleNodeGen
+                  attributes:
+                      flags = 0
+                      name = "A"
+                  children:
+                      lexicalParentModuleNode_ =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <module:A>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:bar}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=module A\n  bar = "bar"\n  def bar.foo\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=module A\n  bar = "bar"\n  def bar.foo\n  end\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              SequenceNode
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      body = [
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 1
+                                                                  frameSlot = 2
+                                                              children:
+                                                                  valueNode =
+                                                                      StringLiteralNode
+                                                                          attributes:
+                                                                              encoding = UTF-8
+                                                                              flags = 0
+                                                                              tstring = bar
+                                                          LiteralMethodDefinitionNode
+                                                              attributes:
+                                                                  callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+                                                                  flags = 1
+                                                                  isDefSingleton = true
+                                                                  name = "foo"
+                                                                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [3 - 4], index=23, length=19, characters=  def bar.foo\n  end), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = A.foo, notes = null, argumentDescriptors = [])
+                                                              children:
+                                                                  moduleNode =
+                                                                      SingletonClassNodeGen$SingletonClassASTNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              valueNode_ =
+                                                                                  ReadLocalVariableNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          frameSlot = 2
+                                                                                          type = FRAME_LOCAL
+                                                              call targets:
+                                                                  RubyMethodRootNode
+                                                                      attributes:
+                                                                          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                                                                          callTarget = A.foo
+                                                                          checkArityProfile = false
+                                                                          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
+                                                                          instrumentationBits = 0
+                                                                          keywordArguments = false
+                                                                          localReturnProfile = false
+                                                                          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                                          matchingReturnProfile = false
+                                                                          nonMatchingReturnProfile = false
+                                                                          polyglotRef = org.truffleruby.RubyLanguage@...
+                                                                          retryProfile = false
+                                                                          returnID = org.truffleruby.language.control.ReturnID@...
+                                                                          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [3 - 4], index=23, length=19, characters=  def bar.foo\n  end), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = A.foo, notes = null, argumentDescriptors = [])
+                                                                          sourceSection = SourceSection(source=<parse_ast> [3 - 4], index=23, length=19, characters=  def bar.foo\n  end)
+                                                                          split = HEURISTIC
+                                                                      children:
+                                                                          body =
+                                                                              SequenceNode
+                                                                                  attributes:
+                                                                                      flags = 12
+                                                                                  children:
+                                                                                      body = [
+                                                                                          WriteLocalVariableNode
+                                                                                              attributes:
+                                                                                                  flags = 0
+                                                                                                  frameSlot = 0
+                                                                                              children:
+                                                                                                  valueNode =
+                                                                                                      ProfileArgumentNodeGen
+                                                                                                          attributes:
+                                                                                                              flags = 0
+                                                                                                          children:
+                                                                                                              childNode_ =
+                                                                                                                  ReadSelfNode
+                                                                                                                      attributes:
+                                                                                                                          flags = 0
+                                                                                          SaveMethodBlockNode
+                                                                                              attributes:
+                                                                                                  flags = 0
+                                                                                                  slot = 2
+                                                                                          NilLiteralNode
+                                                                                              attributes:
+                                                                                                  flags = 0
+                                                                                                  isImplicit = false
+                                                                                      ]
+                                                      ]
+                              ]

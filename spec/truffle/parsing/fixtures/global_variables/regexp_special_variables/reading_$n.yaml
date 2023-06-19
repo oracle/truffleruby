@@ -1,0 +1,22 @@
+subject: "Global variable/Special Regexp-related variables"
+description: "reading the $N global variables ($1, $2, etc)"
+focused_on_node: "org.truffleruby.language.globals.ReadMatchReferenceNodes$ReadNthMatchNode"
+ruby: |
+  $42
+ast: |
+  ReadMatchReferenceNodes$ReadNthMatchNode
+      attributes:
+          flags = 1
+          index = 42
+      children:
+          readMatchNode =
+              ReadGlobalVariableNodeGen
+                  attributes:
+                      flags = 0
+                      name = "$~"
+                  children:
+                      lookupGlobalVariableStorageNode =
+                          LookupGlobalVariableStorageNodeGen
+                              attributes:
+                                  index = -1
+                                  name = "$~"

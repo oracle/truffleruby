@@ -1,0 +1,10 @@
+subject: "Range"
+description: "When Range boundaries are Integer values"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  1..2
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = org.truffleruby.core.range.RubyIntRange@...(begin = 1, end = 2, excludedEnd = false)

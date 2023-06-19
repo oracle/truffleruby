@@ -1448,7 +1448,7 @@ public class CExtNodes {
                         builder.append(String.format("%02x", bytes[i]));
                     }
 
-                    representation = tstring.toString() + " (" + builder.toString() + ")";
+                    representation = tstring + " (" + builder + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
                     representation = object.toString() + " (" + RubyGuards.getJavaString(callToS(object)) + ")";
                 } else {

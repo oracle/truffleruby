@@ -1,0 +1,15 @@
+subject: "String"
+description: "Frozen literal"
+notes: >
+  When `frozen_string_literal: true` magic comment presents,
+  string literals are represented by FrozenStringLiteralNode node.
+focused_on_node: "org.truffleruby.language.literal.FrozenStringLiteralNode"
+ruby: |
+  # frozen_string_literal: true
+  "foobar"
+ast: |
+  FrozenStringLiteralNode
+      attributes:
+          definition = expression
+          flags = 1
+          frozenString = foobar

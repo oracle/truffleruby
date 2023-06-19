@@ -1,0 +1,36 @@
+subject: "Flip-flop operator"
+description: "Flop-flop operator - a range literal in boolean context"
+notes: >
+  The flop-flop operator is a condition of an `if` operator that is omitted for readability
+focused_on_node: "org.truffleruby.language.locals.FlipFlopNode"
+# Assigning `x = 42` forces the parser to interpret `x` as a local variable instead of a method call.
+# This way the AST debug output is shorter because RubyCallNode is big enough.
+ruby: |
+  x = 42
+  1 if (x) .. (x)
+ast: |
+  FlipFlopNode
+      attributes:
+          exclusive = false
+          flags = 1
+          frameLevel = 0
+          frameSlot = 3
+      children:
+          begin =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 1
+                                  frameSlot = 2
+                                  type = FRAME_LOCAL
+          end =
+              BooleanCastNodeGen
+                  children:
+                      valueNode_ =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 1
+                                  frameSlot = 2
+                                  type = FRAME_LOCAL

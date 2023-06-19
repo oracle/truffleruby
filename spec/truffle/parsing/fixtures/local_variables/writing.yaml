@@ -1,0 +1,19 @@
+subject: "Local variable"
+description: "assigning a local variable new value"
+notes: >
+  Is represented with a WriteLocalVariableNode node.
+focused_on_node: "org.truffleruby.language.locals.WriteLocalVariableNode"
+index: 1 # the first WriteLocalVariableNode sets self, so we need the second node (with index 1)
+ruby: |
+  foo = 42
+ast: |
+  WriteLocalVariableNode
+      attributes:
+          flags = 1
+          frameSlot = 2
+      children:
+          valueNode =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42

@@ -1,0 +1,56 @@
+subject: "Regexp"
+description: "a literal with interpolation but without expression (#{})"
+notes: >
+  An empty expression is represented as a frozen empty string with
+  (ObjectLiteralNode object = '') node.
+focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
+ruby: |
+  /a#{}c/
+ast: |
+  InterpolatedRegexpNode
+      attributes:
+          flags = 1
+          rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
+      children:
+          asTruffleStringNode =
+              TruffleStringFactory$AsTruffleStringNodeGen
+          builderNode =
+              InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
+                  attributes:
+                      options = RegexpOptions(kcode: NONE, kcodeDefault)
+                  children:
+                      equalNode =
+                          TruffleStringFactory$EqualNodeGen
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = ASCII-8BIT
+                                  flags = 0
+                                  tstring = ""
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = a
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = ""
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = c
+          ]

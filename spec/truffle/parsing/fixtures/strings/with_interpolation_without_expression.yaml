@@ -1,0 +1,40 @@
+subject: "String"
+description: "Literal with interpolation without expressions"
+notes: >
+  An empty expression is represented as a frozen empty string with
+  (ObjectLiteralNode object = '') node.
+focused_on_node: "org.truffleruby.core.string.InterpolatedStringNode"
+ruby: |
+  "ab#{ }cd"
+ast: |
+  InterpolatedStringNode
+      attributes:
+          emptyTString = ""
+          encoding = UTF-8
+          flags = 1
+      children:
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = ab
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = ""
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = cd
+          ]

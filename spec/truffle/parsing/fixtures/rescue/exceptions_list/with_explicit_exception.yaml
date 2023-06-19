@@ -1,0 +1,50 @@
+subject: "Rescue keyword"
+description: "exceptions list / with single explicit exception class"
+notes: >
+  The rescue branch is represented as a RescueClassesNode node
+  that contains a list of exception classes.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue RuntimeError
+    42
+  end
+ast: |
+  TryNode
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "RuntimeError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "RuntimeError"
+                      ]
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

@@ -1,0 +1,57 @@
+subject: "String"
+description: "Backtick literal (`echo 1`) with interpolation without expression (#{})"
+notes: >
+  A `command` literal is represented as a "Kernel#`" method call
+  with a InterpolatedStringNode argument.
+  
+  An empty expression is represented as a frozen empty string with
+  (ObjectLiteralNode object = '') node.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  `echo 1 #{ }`
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "`"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = echo 1 
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object = ""
+                      ]
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

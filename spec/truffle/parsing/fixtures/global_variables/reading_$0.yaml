@@ -1,0 +1,16 @@
+subject: "Global variable"
+description: "reading the $0 global variable (Ruby script name)"
+focused_on_node: "org.truffleruby.language.globals.ReadGlobalVariableNodeGen"
+ruby: |
+  $0
+ast: |
+  ReadGlobalVariableNodeGen
+      attributes:
+          flags = 1
+          name = "$0"
+      children:
+          lookupGlobalVariableStorageNode =
+              LookupGlobalVariableStorageNodeGen
+                  attributes:
+                      index = -1
+                      name = "$0"
