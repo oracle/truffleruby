@@ -117,8 +117,8 @@ public abstract class RubyBaseNode extends Node {
         LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
         // Checkstyle: resume
     }
-    
-    protected static Node getNode(Node node) {
+
+    protected static Node getAdoptedNode(Node node) {
         boolean adoptable = node != null && node.isAdoptable();
         CompilerAsserts.partialEvaluationConstant(adoptable);
         if (adoptable) {

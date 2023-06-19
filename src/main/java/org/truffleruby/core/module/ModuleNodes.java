@@ -481,7 +481,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private Object[] createAccessors(RubyModule module, Object[] names, Accessor accessor,
                 Visibility visibility) {
-            final Node currentNode = getNode(this);
+            final Node currentNode = getAdoptedNode(this);
             final SourceSection sourceSection;
             if (currentNode != null) {
                 sourceSection = currentNode.getEncapsulatingSourceSection();

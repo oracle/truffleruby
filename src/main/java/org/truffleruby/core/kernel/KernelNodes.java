@@ -363,7 +363,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
-                        value = "getNode(this).getEncapsulatingSourceSection()",
+                        value = "getAdoptedNode(this).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);

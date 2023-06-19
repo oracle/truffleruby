@@ -227,7 +227,7 @@ public class CallStackManager {
             }
         }
 
-        var adoptableNode = RubyNode.getNode(currentNode);
+        var adoptableNode = RubyNode.getAdoptedNode(currentNode);
         return new Backtrace(adoptableNode, omit, javaThrowable);
     }
 
