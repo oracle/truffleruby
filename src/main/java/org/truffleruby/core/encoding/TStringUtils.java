@@ -79,8 +79,7 @@ public final class TStringUtils {
     public static byte[] getBytesOrCopy(AbstractTruffleString tstring, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("uncached");
         var bytes = tstring.getInternalByteArrayUncached(encoding.tencoding);
-        if (tstring instanceof TruffleString && bytes.getOffset() == 0 &&
-                bytes.getLength() == bytes.getArray().length) {
+        if (tstring.isImmutable() && bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length) {
             return bytes.getArray();
         } else {
             return ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
@@ -92,8 +91,8 @@ public final class TStringUtils {
             TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
             InlinedConditionProfile noCopyProfile) {
         var bytes = getInternalByteArrayNode.execute(tstring, encoding);
-        if (noCopyProfile.profile(node, tstring instanceof TruffleString && bytes.getOffset() == 0 &&
-                bytes.getLength() == bytes.getArray().length)) {
+        if (noCopyProfile.profile(node,
+                tstring.isImmutable() && bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length)) {
             return bytes.getArray();
         } else {
             return ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
