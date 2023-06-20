@@ -71,14 +71,17 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             assumptions = "cachedShape.getValidAssumption()",
             // limit of 1 to avoid creating many nodes if the value's Shape is polymorphic.
             limit = "1")
-    protected static void writeBarrierCached(RubyDynamicObject value, int depth,
+    protected static void writeBarrierCached(Node node, RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape,
-            @Cached("createShareObjectNode(depth)") ShareObjectNode shareObjectNode) {
-        shareObjectNode.executeShare(value);
+            // Recursive inlining is not supported. ShareObjectNode contains cached parameter ShareInternalFieldsNode
+            // which contains again WriteBarrierNode
+            @Cached(inline = false) ShareObjectNode shareObjectNode) {
+        shareObjectNode.executeCached(value, depth + 1);
     }
 
     @Specialization(guards = "updateShape(value)")
     protected static void updateShapeAndWriteBarrier(RubyDynamicObject value, int depth,
+            // Recursive inlining is not supported.
             @Cached(inline = false) WriteBarrierNode writeBarrierNode) {
         writeBarrierNode.executeCached(value, depth);
     }
@@ -108,10 +111,6 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     protected static boolean isFinalizer(Object object) {
         return object instanceof FinalizerReference || object instanceof DataObjectFinalizerReference;
-    }
-
-    protected static ShareObjectNode createShareObjectNode(int depth) {
-        return ShareObjectNodeGen.create(depth + 1);
     }
 
 }

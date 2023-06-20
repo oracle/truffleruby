@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.PropertyGetter;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyBaseNode;
@@ -32,24 +35,28 @@ import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects}) */
 @ImportStatic(ShapeCachingGuards.class)
+@GenerateInline(inlineByDefault = true)
 public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
-    protected final int depth;
-
-    public ShareObjectNode(int depth) {
-        this.depth = depth;
+    public final void execute(Node node, RubyDynamicObject object, int depth) {
+        CompilerAsserts.partialEvaluationConstant(depth);
+        executeInternal(node, object, depth);
     }
 
-    public abstract void executeShare(RubyDynamicObject object);
+    public final void executeCached(RubyDynamicObject object, int depth) {
+        execute(this, object, depth);
+    }
+
+    protected abstract void executeInternal(Node node, RubyDynamicObject object, int depth);
 
     @ExplodeLoop
     @Specialization(
             guards = { "object.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
             assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
             limit = "CACHE_LIMIT")
-    protected void shareCached(RubyDynamicObject object,
+    protected static void shareCached(Node node, RubyDynamicObject object, int depth,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createSharedShape(cachedShape)") Shape sharedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
@@ -66,12 +73,12 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         // Note that the metaclass might refer to `object` via `attached`, so it is important to share the object first.
         if (!object.getMetaClass().getShape().isShared()) {
             shareMetaClassProfile.enter();
-            SharedObjects.writeBarrier(getLanguage(), object.getMetaClass());
+            SharedObjects.writeBarrier(getLanguage(node), object.getMetaClass());
         }
         assert SharedObjects
                 .isShared(object.getLogicalClass()) : "the logical class should have been shared by the metaclass";
 
-        shareInternalFieldsNode.execute(this, object, depth);
+        shareInternalFieldsNode.execute(node, object, depth);
 
         for (int i = 0; i < propertyGetters.length; i++) {
             final PropertyGetter propertyGetter = propertyGetters[i];
@@ -82,7 +89,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         assert allFieldsAreShared(object);
     }
 
-    private boolean allFieldsAreShared(RubyDynamicObject object) {
+    private static boolean allFieldsAreShared(RubyDynamicObject object) {
         for (Object value : ObjectGraph.getAdjacentObjects(object)) {
             assert SharedObjects.isShared(value) : "unshared field in shared object: " + value;
         }
@@ -91,13 +98,14 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected void updateShapeAndShare(RubyDynamicObject object) {
-        executeShare(object);
+    protected static void updateShapeAndShare(RubyDynamicObject object, int depth,
+            @Cached(inline = false) ShareObjectNode shareObjectNode) {
+        shareObjectNode.executeCached(object, depth);
     }
 
     @Specialization(replaces = { "shareCached", "updateShapeAndShare" })
-    protected void shareUncached(RubyDynamicObject object) {
-        SharedObjects.writeBarrier(getLanguage(), object);
+    protected static void shareUncached(Node node, RubyDynamicObject object, int depth) {
+        SharedObjects.writeBarrier(getLanguage(node), object);
     }
 
     protected static PropertyGetter[] getObjectProperties(Shape shape) {
@@ -110,7 +118,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         return objectProperties.toArray(KernelNodes.CopyInstanceVariablesNode.EMPTY_PROPERTY_GETTER_ARRAY);
     }
 
-    protected WriteBarrierNode[] createWriteBarrierNodes(PropertyGetter[] propertyGetters) {
+    protected static WriteBarrierNode[] createWriteBarrierNodes(PropertyGetter[] propertyGetters) {
         WriteBarrierNode[] nodes = propertyGetters.length == 0
                 ? WriteBarrierNode.EMPTY_ARRAY
                 : new WriteBarrierNode[propertyGetters.length];
@@ -120,7 +128,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         return nodes;
     }
 
-    protected Shape createSharedShape(Shape cachedShape) {
+    protected static Shape createSharedShape(Shape cachedShape) {
         if (cachedShape.isShared()) {
             throw new UnsupportedOperationException(
                     "Thread-safety bug: the object is already shared. This means another thread marked the object as shared concurrently.");
