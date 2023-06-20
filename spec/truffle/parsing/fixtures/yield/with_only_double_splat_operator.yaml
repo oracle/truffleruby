@@ -73,7 +73,7 @@ ast: |
                                           ruby2KeywordsHashProfile = false
                                       children:
                                           arguments = [
-                                              HashCastNodeGen
+                                              HashCastNodeGen$HashCastASTNodeGen
                                                   attributes:
                                                       flags = 0
                                                   children:

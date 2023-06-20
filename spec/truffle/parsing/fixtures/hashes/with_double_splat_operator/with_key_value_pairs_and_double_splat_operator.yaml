@@ -29,7 +29,7 @@ ast: |
                                   flags = 0
                                   value = 1
                       ]
-              HashCastNodeGen
+              HashCastNodeGen$HashCastASTNodeGen
                   attributes:
                       flags = 0
                   children:
