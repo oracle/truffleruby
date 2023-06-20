@@ -28,6 +28,11 @@ public class DefinedNode extends RubyContextSourceNode {
     }
 
     @Override
+    public void doExecuteVoid(VirtualFrame frame) {
+        // do nothing
+    }
+
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = new DefinedNode(child.cloneUninitialized());
         return copy.copyFlags(this);
