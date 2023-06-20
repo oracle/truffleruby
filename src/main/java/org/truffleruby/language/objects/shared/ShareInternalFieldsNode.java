@@ -9,6 +9,9 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.collections.BoundaryIterable;
@@ -31,32 +34,32 @@ import com.oracle.truffle.api.library.CachedLibrary;
 /** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
  * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
+@GenerateCached(false)
+@GenerateInline
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
-    protected final int depth;
-
-    public ShareInternalFieldsNode(int depth) {
-        this.depth = depth;
+    public final void execute(Node node, RubyDynamicObject object, int depth) {
+        CompilerAsserts.partialEvaluationConstant(depth);
+        executeInternal(node, object, depth);
     }
 
-    public abstract void executeShare(RubyDynamicObject object);
+    protected abstract void executeInternal(Node node, RubyDynamicObject object, int depth);
 
     @Specialization(limit = "CACHE_LIMIT")
-    protected void shareArray(RubyArray array,
+    protected static void shareArray(RubyArray array, int depth,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         array.setStore(stores.makeShared(store, array.size));
     }
 
     @Specialization
-    protected void shareCachedQueue(RubyQueue object,
+    protected static void shareCachedQueue(Node node, RubyQueue object, int depth,
             @Cached InlinedConditionProfile profileEmpty,
-            @Cached WriteBarrierNode writeBarrierNode,
-            @Bind("this") Node node) {
+            @Cached WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = object.queue;
-        if (!profileEmpty.profile(this, queue.isEmpty())) {
+        if (!profileEmpty.profile(node, queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
                 writeBarrierNode.execute(node, e, depth);
             }
@@ -64,7 +67,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected void shareCachedBasicObject(RubyBasicObject object) {
+    protected static void shareCachedBasicObject(RubyBasicObject object, int depth) {
         /* No extra Java fields for RubyBasicObject */
     }
 
@@ -73,7 +76,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
                     "shareArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
-    protected void shareUncached(RubyDynamicObject object) {
+    protected static void shareUncached(RubyDynamicObject object, int depth) {
         SharedObjects.shareInternalFields(object);
     }
 

@@ -54,7 +54,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
             @Cached("createSharedShape(cachedShape)") Shape sharedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
             @Cached("new()") RunTwiceBranchProfile shareMetaClassProfile,
-            @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
+            @Cached ShareInternalFieldsNode shareInternalFieldsNode,
             @Cached(value = "getObjectProperties(sharedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
             @Cached("createWriteBarrierNodes(propertyGetters)") WriteBarrierNode[] writeBarrierNodes) {
         // Mark the object as shared first to avoid recursion
@@ -71,7 +71,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         assert SharedObjects
                 .isShared(object.getLogicalClass()) : "the logical class should have been shared by the metaclass";
 
-        shareInternalFieldsNode.executeShare(object);
+        shareInternalFieldsNode.execute(this, object, depth);
 
         for (int i = 0; i < propertyGetters.length; i++) {
             final PropertyGetter propertyGetter = propertyGetters[i];
@@ -108,10 +108,6 @@ public abstract class ShareObjectNode extends RubyBaseNode {
             }
         }
         return objectProperties.toArray(KernelNodes.CopyInstanceVariablesNode.EMPTY_PROPERTY_GETTER_ARRAY);
-    }
-
-    protected ShareInternalFieldsNode createShareInternalFieldsNode() {
-        return ShareInternalFieldsNodeGen.create(depth);
     }
 
     protected WriteBarrierNode[] createWriteBarrierNodes(PropertyGetter[] propertyGetters) {
