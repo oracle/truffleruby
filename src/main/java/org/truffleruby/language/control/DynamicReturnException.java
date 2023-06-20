@@ -9,10 +9,9 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.nodes.ControlFlowException;
 
 @SuppressWarnings("serial")
-public final class DynamicReturnException extends ControlFlowException {
+public final class DynamicReturnException extends RubyControlFlowException {
 
     private final ReturnID returnID;
     private final Object value;

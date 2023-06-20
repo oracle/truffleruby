@@ -20,7 +20,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 /** A ControlFlowException holding a Ruby exception. */
 @SuppressWarnings("serial")
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "exception")
-public final class RaiseException extends AbstractTruffleException {
+public final class RaiseException extends AbstractTruffleException implements RubyThrowable {
 
     protected final RubyException exception;
 
