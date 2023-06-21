@@ -152,4 +152,10 @@ public final class TStringUtils {
             return tstring.toJavaStringUncached();
         }
     }
+
+    public static boolean hasImmutableInternalByteArray(AbstractTruffleString string) {
+        // Immutable strings trivially have immutable byte arrays.
+        // Native strings also have immutable byte arrays because we need to copy the data into Java.
+        return string.isImmutable() || string.isNative();
+    }
 }
