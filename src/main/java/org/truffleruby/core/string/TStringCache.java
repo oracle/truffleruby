@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.Encodings;
@@ -74,11 +75,20 @@ public final class TStringCache {
         assert rubyEncoding != null;
 
         var byteArray = string.getInternalByteArrayUncached(rubyEncoding.tencoding);
-        final TBytesKey key = new TBytesKey(byteArray, rubyEncoding);
+        final TBytesKey key = new TBytesKey(byteArray, TStringUtils.hasImmutableInternalByteArray(string),
+                rubyEncoding);
 
         return getTString(key);
     }
 
+    @TruffleBoundary
+    public TruffleString getTString(InternalByteArray byteArray, boolean isImmutable, RubyEncoding rubyEncoding) {
+        assert rubyEncoding != null;
+
+        return getTString(new TBytesKey(byteArray, isImmutable, rubyEncoding));
+    }
+
+    @TruffleBoundary
     public TruffleString getTString(byte[] bytes, RubyEncoding rubyEncoding) {
         assert rubyEncoding != null;
 
