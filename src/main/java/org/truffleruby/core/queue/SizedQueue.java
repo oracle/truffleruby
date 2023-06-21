@@ -148,8 +148,7 @@ public class SizedQueue {
                 final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
                         TimeUnit.MILLISECONDS);
 
-                if (!signalled) {
-                    // Timed out.
+                if (!signalled) { // timed out
                     return null;
                 }
 

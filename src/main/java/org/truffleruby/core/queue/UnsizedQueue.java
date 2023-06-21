@@ -114,7 +114,7 @@ public class UnsizedQueue {
                 final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
                         TimeUnit.MILLISECONDS);
 
-                if (!signalled) {
+                if (!signalled) { // timed out
                     return null;
                 }
 
