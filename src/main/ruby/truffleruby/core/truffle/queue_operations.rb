@@ -11,7 +11,7 @@
 module Truffle
   module QueueOperations
     def self.validate_and_prepare_timeout_in_milliseconds(non_block, timeout_seconds_or_nil)
-      return timeout_seconds_or_nil if Primitive.nil?(timeout_seconds_or_nil)
+      return nil if Primitive.nil?(timeout_seconds_or_nil)
       raise ArgumentError, "can't set a timeout if non_block is enabled" if non_block
 
       (Truffle::Type.rb_num2dbl(timeout_seconds_or_nil) * 1000).to_i
