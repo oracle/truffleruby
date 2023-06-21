@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.collections.ConcurrentOperations;
 
 public class UnsizedQueue {
 
@@ -95,17 +96,7 @@ public class UnsizedQueue {
                     return CLOSED;
                 }
 
-                canTake.await();
-
-                /* We need to check the interrupted flag here, while holding the lock and after the await(). Otherwise,
-                 * if another thread does {@code th.raise(exc); q.push(1)} like in core/thread/handle_interrupt_spec.rb
-                 * then we might miss the ThreadLocalAction and instead return, which would incorrectly delay the
-                 * ThreadLocalAction if under {@code Thread.handle_interrupt(Object => :on_blocking)}. The other thread
-                 * cannot wait on the Future, as that might block arbitrary long when side-effects are disabled on this
-                 * thread. */
-                if (Thread.interrupted()) {
-                    throw new InterruptedException();
-                }
+                ConcurrentOperations.awaitAndCheckInterrupt(canTake);
             }
 
             return doTake();
@@ -120,11 +111,8 @@ public class UnsizedQueue {
 
         try {
             if (takeEnd == null) {
-                final boolean signalled = canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
-
-                if (Thread.interrupted()) { // See comment of take()
-                    throw new InterruptedException();
-                }
+                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
+                        TimeUnit.MILLISECONDS);
 
                 if (!signalled) {
                     return null;

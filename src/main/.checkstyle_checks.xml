@@ -150,6 +150,10 @@
       <property name="message" value="Use ConcurrentOperations.getOrCompute() instead of ConcurrentHashMap.computeIfAbsent() which does not scale"/>
     </module>
     <module name="RegexpSinglelineJava">
+      <property name="format" value="\b(?!\w*[Ll]atch)\w+\.await\(.*\)"/>
+      <property name="message" value="Use ConcurrentOperations.awaitAndCheckInterrupt() instead"/>
+    </module>
+    <module name="RegexpSinglelineJava">
       <property name="format" value="@NodeChildren"/>
       <property name="message" value="Do not use @NodeChildren, use multiple @Child annotations directly"/>
     </module>
