@@ -11,10 +11,12 @@ package org.truffleruby.core.queue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.collections.ConcurrentOperations;
 
 public class SizedQueue {
 
@@ -111,7 +113,7 @@ public class SizedQueue {
                     return false;
                 }
 
-                canAdd.await();
+                ConcurrentOperations.awaitAndCheckInterrupt(canAdd);
             }
 
             if (closed) {
@@ -134,6 +136,30 @@ public class SizedQueue {
         size++;
         if (size >= 1) {
             canTake.signal();
+        }
+    }
+
+    @TruffleBoundary
+    public Object poll(long timeoutMilliseconds) throws InterruptedException {
+        lock.lock();
+
+        try {
+            if (size == 0) {
+                final boolean signalled = ConcurrentOperations.awaitAndCheckInterrupt(canTake, timeoutMilliseconds,
+                        TimeUnit.MILLISECONDS);
+
+                if (!signalled) { // timed out
+                    return null;
+                }
+
+                if (closed) {
+                    return CLOSED;
+                }
+            }
+
+            return doTake();
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -162,7 +188,7 @@ public class SizedQueue {
                     return CLOSED;
                 }
 
-                canTake.await();
+                ConcurrentOperations.awaitAndCheckInterrupt(canTake);
             }
 
             return doTake();

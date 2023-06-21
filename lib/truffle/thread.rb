@@ -35,7 +35,18 @@ class Thread
       Primitive.queue_pop(
         self,
         Primitive.as_boolean(non_block),
-        Truffle::QueueOperations.validate_and_prepare_timeout(non_block, timeout))
+        Truffle::QueueOperations.validate_and_prepare_timeout_in_milliseconds(non_block, timeout))
+    end
+    alias_method :shift, :pop
+    alias_method :deq, :pop
+  end
+
+  class SizedQueue
+    def pop(non_block = false, timeout: nil)
+      Primitive.sized_queue_pop(
+        self,
+        Primitive.as_boolean(non_block),
+        Truffle::QueueOperations.validate_and_prepare_timeout_in_milliseconds(non_block, timeout))
     end
     alias_method :shift, :pop
     alias_method :deq, :pop

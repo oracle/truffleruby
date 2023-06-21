@@ -13,6 +13,10 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 public abstract class ConcurrentOperations {
@@ -41,6 +45,42 @@ public abstract class ConcurrentOperations {
      * longer associated to <code>oldValue</code>. */
     public static <K, V> boolean replace(Map<K, V> map, K key, V oldValue, V newValue) {
         return oldValue == null ? map.putIfAbsent(key, newValue) == null : map.replace(key, oldValue, newValue);
+    }
+
+    /** {@link Condition#await()} might return and not throw InterruptedException if there was both a signal and an
+     * interrupt before the lock could be re-acquired by await(). We always want the InterruptedException if both a
+     * signal and an interrupt happen.
+     * <hr>
+     * {@link Condition#await()} when it sees both a signal and a {@link Thread#interrupt()} has to decide whether it
+     * prefers the signal or the interrupt. For a {@link ReentrantLock#newCondition()} condition, the implementation in
+     * {@link AbstractQueuedSynchronizer.ConditionObject#await()} sometimes throws InterruptedException and sometimes
+     * returns, depending on which happens first. Because await() needs to reacquire the lock, even if the
+     * InterruptedException happens before it might still become a situation of "both signal and interrupt". If it
+     * prefers the signal and just returns, it does {@code Thread.currentThread().interrupt()} to let us know there was
+     * an interrupt too. In any case, if there was any interrupt we want to throw InterruptedException, regardless of
+     * what the implementation prefers. */
+    public static void awaitAndCheckInterrupt(Condition condition) throws InterruptedException {
+        // Checkstyle: stop
+        condition.await();
+        // Checkstyle: resume
+
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+    }
+
+    /** See {@link ConcurrentOperations#awaitAndCheckInterrupt(java.util.concurrent.locks.Condition)} */
+    public static boolean awaitAndCheckInterrupt(Condition condition, long time, TimeUnit unit)
+            throws InterruptedException {
+        // Checkstyle: stop
+        boolean value = condition.await(time, unit);
+        // Checkstyle: resume
+
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+
+        return value;
     }
 
 }

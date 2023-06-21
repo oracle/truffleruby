@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.RubyThread;
@@ -98,7 +99,7 @@ public abstract class ConditionVariableNodes {
 
             // condLock must be locked before unlocking mutexLock, to avoid losing potential signals.
             // We must not change the Ruby Thread status and not consume a Java thread interrupt while locking condLock.
-            // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
+            // If there is an interrupt, it should be consumed by Condition#await() and the Ruby Thread sleep status
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
             int holdCount = 0; // can be > 1 for MonitorMixin
@@ -164,9 +165,10 @@ public abstract class ConditionVariableNodes {
                          * ReentrantLock exposed to Ruby, e.g., via a Ruby Mutex, as that could be held forever by
                          * another Ruby thread (which did {code mutex.lock} after the #wait), and we would never be able
                          * to interrupt both threads at the same time for a synchronous ThreadLocalAction). */
-                        condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
+                        ConcurrentOperations.awaitAndCheckInterrupt(condition, endNanoTime - currentTime,
+                                TimeUnit.NANOSECONDS);
                     } else {
-                        condition.await();
+                        ConcurrentOperations.awaitAndCheckInterrupt(condition);
                     }
                     if (consumeSignal(self)) {
                         return BlockingAction.SUCCESS;

@@ -568,7 +568,7 @@ public class ThreadManager {
      * given action should throw an {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise,
      * the {@link SafepointManager} will not be able to interrupt this action. See
      * {@link ThreadNodes.ThreadRunBlockingSystemCallNode} for blocking native calls. If the action throws an
-     * {@link InterruptedException}, it will be retried until it returns a non-null value.
+     * {@link InterruptedException}, it will be retried.
      *
      * @param action must not touch any Ruby state
      * @return the return value from {@code action} */
