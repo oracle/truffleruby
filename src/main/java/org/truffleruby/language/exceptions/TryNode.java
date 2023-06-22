@@ -9,11 +9,14 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -26,23 +29,16 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-public class TryNode extends RubyContextSourceNode {
+public abstract class TryNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
     @Children private final RescueNode[] rescueParts;
     @Child private RubyNode elsePart;
     @Child private TranslateExceptionNode translateExceptionNode;
     private final boolean canOmitBacktrace;
-
-    private final BranchProfile noExceptionProfile = BranchProfile.create();
-    private final BranchProfile killExceptionProfile = BranchProfile.create();
-    private final BranchProfile guestExceptionProfile = BranchProfile.create();
-    private final BranchProfile retryProfile = BranchProfile.create();
-    private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public TryNode(
             RubyNode tryPart,
@@ -56,23 +52,28 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode} */
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Specialization
+    protected Object doTry(VirtualFrame frame,
+            @Cached InlinedBranchProfile noExceptionProfile,
+            @Cached InlinedBranchProfile killExceptionProfile,
+            @Cached InlinedBranchProfile guestExceptionProfile,
+            @Cached InlinedBranchProfile retryProfile,
+            @Cached InlinedConditionProfile raiseExceptionProfile) {
         while (true) {
             Object result;
 
             try {
                 result = tryPart.execute(frame);
-                noExceptionProfile.enter();
+                noExceptionProfile.enter(this);
             } catch (KillException e) { // an AbstractTruffleException but must not set $! and cannot be rescue'd
-                killExceptionProfile.enter();
+                killExceptionProfile.enter(this);
                 throw e;
             } catch (AbstractTruffleException exception) {
-                guestExceptionProfile.enter();
+                guestExceptionProfile.enter(this);
                 try {
-                    return handleException(frame, exception);
+                    return handleException(frame, exception, raiseExceptionProfile);
                 } catch (RetryException e) {
-                    retryProfile.enter();
+                    retryProfile.enter(this);
                     TruffleSafepoint.poll(this);
                     continue;
                 }
@@ -93,8 +94,9 @@ public class TryNode extends RubyContextSourceNode {
     }
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
-    private Object handleException(VirtualFrame frame, AbstractTruffleException exception) {
-        final Object exceptionObject = ExceptionOperations.getExceptionObject(exception, raiseExceptionProfile);
+    private Object handleException(VirtualFrame frame, AbstractTruffleException exception,
+            InlinedConditionProfile raiseExceptionProfile) {
+        final Object exceptionObject = ExceptionOperations.getExceptionObject(this, exception, raiseExceptionProfile);
 
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exceptionObject)) {
@@ -142,7 +144,7 @@ public class TryNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new TryNode(
+        var copy = TryNodeGen.create(
                 tryPart.cloneUninitialized(),
                 cloneUninitialized(rescueParts),
                 cloneUninitialized(elsePart),

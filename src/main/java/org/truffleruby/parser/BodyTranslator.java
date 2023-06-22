@@ -99,7 +99,7 @@ import org.truffleruby.language.exceptions.RescueStandardErrorNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
 import org.truffleruby.language.exceptions.RescueNode;
 import org.truffleruby.language.exceptions.RescueSplatNode;
-import org.truffleruby.language.exceptions.TryNode;
+import org.truffleruby.language.exceptions.TryNodeGen;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
@@ -2669,7 +2669,7 @@ public class BodyTranslator extends BaseTranslator {
             elsePart = node.getElseNode().accept(this);
         }
 
-        final RubyNode ret = new TryNode(
+        final RubyNode ret = TryNodeGen.create(
                 tryPart,
                 rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
                 elsePart,
