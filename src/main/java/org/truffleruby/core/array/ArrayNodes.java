@@ -833,11 +833,12 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object each(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
-            return iteratorNode.execute(array, block, 0, this);
+            return iteratorNode.execute(this, array, block, 0, this);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
+                BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
             yieldNode.yield(block, element);
         }
@@ -852,11 +853,12 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object eachOther(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
-            return iteratorNode.execute(array, block, 0, this);
+            return iteratorNode.execute(this, array, block, 0, this);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
+                BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
             yieldNode.yield(block, element, index);
         }
@@ -1389,13 +1391,14 @@ public abstract class ArrayNodes {
             Object accumulator = initial;
             State iterationState = new State(accumulator, block);
 
-            iteratorNode.execute(array, iterationState, start, this);
+            iteratorNode.execute(this, array, iterationState, start, this);
 
             return iterationState.accumulator;
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element,
+                int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
             state.accumulator = yieldNode.yield(state.block, state.accumulator, element);
         }
@@ -1499,18 +1502,19 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object map(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
-                @Cached IntValueProfile arraySizeProfile) {
-            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+                @Cached InlinedIntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
             State iterationState = new State(builderState, block);
 
-            iteratorNode.execute(array, iterationState, 0, this);
+            iteratorNode.execute(this, array, iterationState, 0, this);
 
             final int size = array.size;
             return createArray(arrayBuilder.finish(iterationState.builderState, size), size);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element,
+                int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
             Object value = yieldNode.yield(state.block, element);
@@ -1529,11 +1533,12 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object map(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
-            return iteratorNode.execute(array, block, 0, this);
+            return iteratorNode.execute(this, array, block, 0, this);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
+                BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
             writeNode.executeWrite(array, index, yieldNode.yield(block, element));
         }
@@ -1796,18 +1801,19 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object reject(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
-                @Cached IntValueProfile arraySizeProfile) {
-            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+                @Cached InlinedIntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
             State iterationState = new State(builderState, 0, block);
 
-            iteratorNode.execute(array, iterationState, 0, this);
+            iteratorNode.execute(this, array, iterationState, 0, this);
 
             int actualSize = iterationState.newArraySize;
             return createArray(arrayBuilder.finish(builderState, actualSize), actualSize);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element,
+                int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
             if (!booleanCastNode.execute(yieldNode.yield(state.block, element))) {
@@ -2006,18 +2012,19 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object select(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
-                @Cached IntValueProfile arraySizeProfile) {
-            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(array.size));
+                @Cached InlinedIntValueProfile arraySizeProfile) {
+            BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
             State iterationState = new State(builderState, 0, block);
 
-            iteratorNode.execute(array, iterationState, 0, this);
+            iteratorNode.execute(this, array, iterationState, 0, this);
 
             int selectedSize = iterationState.selectedSize;
             return createArray(arrayBuilder.finish(builderState, selectedSize), selectedSize);
         }
 
         @Override
-        public void accept(CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element, int index) {
+        public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element,
+                int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
             if (booleanCastNode.execute(yieldNode.yield(state.block, element))) {
