@@ -17,6 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -58,6 +59,7 @@ public abstract class TryNode extends RubyContextSourceNode {
             @Cached InlinedBranchProfile killExceptionProfile,
             @Cached InlinedBranchProfile guestExceptionProfile,
             @Cached InlinedBranchProfile retryProfile,
+            @Cached BooleanCastNode booleanCastNode,
             @Cached InlinedConditionProfile raiseExceptionProfile) {
         while (true) {
             Object result;
@@ -71,7 +73,7 @@ public abstract class TryNode extends RubyContextSourceNode {
             } catch (AbstractTruffleException exception) {
                 guestExceptionProfile.enter(this);
                 try {
-                    return handleException(frame, exception, raiseExceptionProfile);
+                    return handleException(frame, exception, raiseExceptionProfile, booleanCastNode);
                 } catch (RetryException e) {
                     retryProfile.enter(this);
                     TruffleSafepoint.poll(this);
@@ -95,11 +97,11 @@ public abstract class TryNode extends RubyContextSourceNode {
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     private Object handleException(VirtualFrame frame, AbstractTruffleException exception,
-            InlinedConditionProfile raiseExceptionProfile) {
+            InlinedConditionProfile raiseExceptionProfile, BooleanCastNode booleanCastNode) {
         final Object exceptionObject = ExceptionOperations.getExceptionObject(this, exception, raiseExceptionProfile);
 
         for (RescueNode rescue : rescueParts) {
-            if (rescue.canHandle(frame, exceptionObject)) {
+            if (rescue.canHandle(frame, exceptionObject, booleanCastNode)) {
                 if (getContext().getOptions().BACKTRACE_ON_RESCUE) {
                     printBacktraceOnRescue(rescue, exception);
                 }

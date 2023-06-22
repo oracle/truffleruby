@@ -13,7 +13,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -32,7 +31,6 @@ public abstract class RescueNode extends RubyContextSourceNode {
     @Child private RubyNode rescueBody;
 
     @Child private DispatchNode callTripleEqualsNode;
-    @Child private BooleanCastNode booleanCastNode;
     @Child private InteropLibrary interopLibrary;
 
     private final BranchProfile errorProfile = BranchProfile.create();
@@ -46,14 +44,14 @@ public abstract class RescueNode extends RubyContextSourceNode {
         this.rescueBody = null;
     }
 
-    public abstract boolean canHandle(VirtualFrame frame, Object exceptionObject);
+    public abstract boolean canHandle(VirtualFrame frame, Object exceptionObject, BooleanCastNode booleanCastNode);
 
     @Override
     public Object execute(VirtualFrame frame) {
         return rescueBody.execute(frame);
     }
 
-    protected boolean matches(Object exceptionObject, Object handlingClass) {
+    protected boolean matches(Object exceptionObject, Object handlingClass, BooleanCastNode booleanCastNode) {
         if (!(handlingClass instanceof RubyModule)) {
             if (interopLibrary == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -69,10 +67,6 @@ public abstract class RescueNode extends RubyContextSourceNode {
         if (callTripleEqualsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTripleEqualsNode = insert(DispatchNode.create());
-        }
-        if (booleanCastNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
 
         final Object matches = callTripleEqualsNode.call(handlingClass, "===", exceptionObject);
