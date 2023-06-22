@@ -238,7 +238,8 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
-    standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
+    standalone_dir_name='truffleruby-community-<version>-<graalvm_os>-<arch>',
+    standalone_dir_name_enterprise='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
     dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain', 'TRegex'],  # Use short name for license to select by priority
