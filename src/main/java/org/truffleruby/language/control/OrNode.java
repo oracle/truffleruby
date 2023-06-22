@@ -9,32 +9,32 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class OrNode extends RubyContextSourceNode {
+public abstract class OrNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
     @Child private RubyNode right;
-
-    @Child private BooleanCastNode leftCast = BooleanCastNode.create();
-
-    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
 
     public OrNode(RubyNode left, RubyNode right) {
         this.left = left;
         this.right = right;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Specialization
+    protected Object doOr(VirtualFrame frame,
+            @Cached BooleanCastNode leftCast,
+            @Cached InlinedCountingConditionProfile conditionProfile) {
         final Object leftValue = left.execute(frame);
 
-        if (conditionProfile.profile(leftCast.execute(leftValue))) {
+        if (conditionProfile.profile(this, leftCast.execute(leftValue))) {
             return leftValue;
         } else {
             return right.execute(frame);
@@ -43,7 +43,7 @@ public class OrNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new OrNode(
+        var copy = OrNodeGen.create(
                 left.cloneUninitialized(),
                 right.cloneUninitialized());
         return copy.copyFlags(this);

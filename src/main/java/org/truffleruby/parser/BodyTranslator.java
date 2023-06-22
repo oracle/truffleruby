@@ -84,7 +84,7 @@ import org.truffleruby.language.control.NoMatchingPatternNodeGen;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrLazyValueDefinedNode;
-import org.truffleruby.language.control.OrNode;
+import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
@@ -2274,7 +2274,7 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
 
-            final RubyNode controlNode = isOrOperator ? new OrNode(lhs, rhs) : new AndNode(lhs, rhs);
+            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : new AndNode(lhs, rhs);
 
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
@@ -2494,7 +2494,7 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode x = translateNodeOrNil(sourceSection, node.getFirstNode());
         final RubyNode y = translateNodeOrNil(sourceSection, node.getSecondNode());
 
-        final RubyNode ret = new OrNode(x, y);
+        final RubyNode ret = OrNodeGen.create(x, y);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
