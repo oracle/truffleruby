@@ -17,7 +17,7 @@ import org.truffleruby.core.array.ArrayPatternLengthCheckNode;
 import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.ExecuteAndReturnTrueNode;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.RaiseException;
@@ -98,7 +98,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     condition = NotNodeGen.create(condition);
                 }
 
-                return new AndNode(pattern, condition);
+                return AndNodeGen.create(pattern, condition);
             default:
                 return createCallNode(patternNode.accept(this), "===", NodeUtil.cloneNode(expressionValue));
         }
@@ -141,7 +141,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
             ConstParseNode constant = (ConstParseNode) arrayPatternParseNode.getConstant();
             RubyNode constVal = constant.accept(this);
             var isInstance = createCallNode(constVal, "===", currentValueToMatch);
-            condition = new AndNode(isInstance, condition);
+            condition = AndNodeGen.create(isInstance, condition);
         }
 
         for (int i = 0; i < preSize; i++) {
@@ -157,7 +157,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
             }
 
             var callNode = createCallNode(translatedPatternElement, "===", NodeUtil.cloneNode(exprElement));
-            condition = new AndNode(condition, callNode);
+            condition = AndNodeGen.create(condition, callNode);
         }
 
         if (restNode != null) {
@@ -178,7 +178,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     currentValueToMatch = prev;
                 }
                 var seq = new ExecuteAndReturnTrueNode(restAccept);
-                condition = new AndNode(condition, seq);
+                condition = AndNodeGen.create(condition, seq);
             }
         }
 
@@ -201,7 +201,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                         "===",
                         NodeUtil.cloneNode(exprElement));
 
-                condition = new AndNode(condition, callNode);
+                condition = AndNodeGen.create(condition, callNode);
             }
         }
 

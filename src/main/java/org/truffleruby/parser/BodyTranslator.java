@@ -69,7 +69,7 @@ import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
 import org.truffleruby.language.constants.WriteConstantNode;
-import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -340,7 +340,7 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode x = translateNodeOrNil(sourceSection, node.getFirstNode());
         final RubyNode y = translateNodeOrNil(sourceSection, node.getSecondNode());
 
-        final RubyNode ret = new AndNode(x, y);
+        final RubyNode ret = AndNodeGen.create(x, y);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2209,7 +2209,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode andNode = new AndNode(lhs, rhs);
+        final RubyNode andNode = AndNodeGen.create(lhs, rhs);
         andNode.unsafeSetSourceSection(sourceSection);
 
         final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
@@ -2275,7 +2275,7 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
 
-            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : new AndNode(lhs, rhs);
+            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
 
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
@@ -2327,7 +2327,7 @@ public class BodyTranslator extends BaseTranslator {
         // This is needed for class variables. Constants are handled separately in visitOpAsgnConstDeclNode.
         if (node.getFirstNode().needsDefinitionCheck()) {
             RubyNode defined = new DefinedNode(lhs);
-            lhs = new AndNode(defined, lhs);
+            lhs = AndNodeGen.create(defined, lhs);
         }
 
         return translateOpAsgOrNode(node, lhs, rhs);

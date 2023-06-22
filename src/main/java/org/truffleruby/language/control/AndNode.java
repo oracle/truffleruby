@@ -9,51 +9,40 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class AndNode extends RubyContextSourceNode {
+public abstract class AndNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
     @Child private RubyNode right;
-
-    @Child private BooleanCastNode leftCast;
-
-    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
 
     public AndNode(RubyNode left, RubyNode right) {
         this.left = left;
         this.right = right;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        final Object leftValue = left.execute(frame);
-
-        if (conditionProfile.profile(castToBoolean(leftValue))) {
+    @Specialization
+    protected Object doAnd(VirtualFrame frame,
+            @Cached BooleanCastNode leftCast,
+            @Cached InlinedCountingConditionProfile conditionProfile) {
+        final var leftValue = left.execute(frame);
+        if (conditionProfile.profile(this, leftCast.execute(this, leftValue))) {
             return right.execute(frame);
         } else {
             return leftValue;
         }
     }
 
-    private boolean castToBoolean(final Object value) {
-        if (leftCast == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            leftCast = insert(BooleanCastNodeGen.create(null));
-        }
-        return leftCast.execute(value);
-    }
-
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new AndNode(
+        var copy = AndNodeGen.create(
                 left.cloneUninitialized(),
                 right.cloneUninitialized());
         return copy.copyFlags(this);

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
@@ -34,7 +35,6 @@ import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
-import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.ReturnID;
@@ -226,7 +226,7 @@ public class MethodTranslator extends BodyTranslator {
                                     new IsNilNode(
                                             new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
 
-            final RubyNode shouldDestructureAndArrayWasNotNil = new AndNode(
+            final RubyNode shouldDestructureAndArrayWasNotNil = AndNodeGen.create(
                     new ShouldDestructureNode(arity.acceptsKeywords()),
                     arrayWasNotNil);
 
