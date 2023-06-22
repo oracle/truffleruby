@@ -216,6 +216,27 @@ jobs:
       # To catch slow :truffle specs which only apply to native
       - run: jt test fast :truffle
 
+  test_mri:
+    name: run MRI tests on native
+    needs: [build_native]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone TruffleRuby
+        uses: actions/checkout@v2
+      - name: Setup system Ruby
+        uses: ruby/setup-ruby@v1
+      - name: Setup jt
+        run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: truffleruby-native
+      - uses: ./.github/actions/setup-truffleruby
+        with:
+          archive: truffleruby-native
+
+      - run: jt test mri --fast --no-sulong
+
   ruby_spec_cruby:
     name: ruby/spec on CRuby ${{ matrix.ruby }}
     strategy:
