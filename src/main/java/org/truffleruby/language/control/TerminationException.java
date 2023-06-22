@@ -12,7 +12,7 @@ package org.truffleruby.language.control;
 import com.oracle.truffle.api.nodes.Node;
 
 @SuppressWarnings("serial")
-public abstract class TerminationException extends RuntimeException {
+public abstract class TerminationException extends RuntimeException implements RubyThrowable {
 
     // To help debugging
     public final Node location;

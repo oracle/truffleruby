@@ -9,10 +9,9 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.nodes.ControlFlowException;
 
 @SuppressWarnings("serial")
-public final class BreakException extends ControlFlowException {
+public final class BreakException extends RubyControlFlowException {
 
     private final BreakID breakID;
     private final Object result;

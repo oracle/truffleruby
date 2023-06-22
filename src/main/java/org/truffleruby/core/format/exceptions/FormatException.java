@@ -10,9 +10,10 @@
 package org.truffleruby.core.format.exceptions;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
+import org.truffleruby.language.control.RubyThrowable;
 
 @SuppressWarnings("serial")
-public class FormatException extends ControlFlowException {
+public class FormatException extends ControlFlowException implements RubyThrowable {
 
     private final String message;
 

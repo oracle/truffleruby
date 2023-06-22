@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.Node;
 /** Used by Thread#kill and to terminate threads. This does run code in ensure. */
 @ExportLibrary(InteropLibrary.class)
 @SuppressWarnings("serial")
-public final class KillException extends AbstractTruffleException {
+public final class KillException extends AbstractTruffleException implements RubyThrowable {
 
     @TruffleBoundary
     private static RuntimeException javaStacktrace() {

@@ -9,8 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.nodes.ControlFlowException;
 
 @SuppressWarnings("serial")
-public final class RetryException extends ControlFlowException {
+public final class RetryException extends RubyControlFlowException {
 }

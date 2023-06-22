@@ -1540,7 +1540,8 @@ public class CExtNodes {
     @GenerateCached(false)
     public abstract static class ExtractRubyTagHelperNode extends RubyBaseNode {
 
-        public abstract int execute(Node node, Throwable e);
+        // Object instead of Throwable to workaround Truffle DSL bug GR-46797
+        public abstract int execute(Node node, Object e);
 
         @Specialization
         protected static int dynamicReturnTag(DynamicReturnException e) {
@@ -1582,8 +1583,9 @@ public class CExtNodes {
             return RUBY_TAG_THROW;
         }
 
+        // Object instead of Throwable to workaround Truffle DSL bug GR-46797
         @Fallback
-        protected static int noTag(Throwable e) {
+        protected static int noTag(Object e) {
             return 0;
         }
     }

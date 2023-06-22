@@ -9,10 +9,9 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.nodes.ControlFlowException;
 
 @SuppressWarnings("serial")
-public final class NextException extends ControlFlowException {
+public final class NextException extends RubyControlFlowException {
 
     private final Object result;
 
