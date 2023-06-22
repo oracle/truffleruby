@@ -9,7 +9,9 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -25,26 +27,25 @@ import org.truffleruby.utils.RunTwiceBranchProfile;
  * having been executed once (the lazy initialization) it will be compiled expecting it to be used again. We know that
  * it's unlikely to be used again, so only compile it in when it's been used more than once, by using a
  * {@link RunTwiceBranchProfile}. */
-public class OrLazyValueDefinedNode extends RubyContextSourceNode {
+public abstract class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
     @Child private RubyNode right;
 
-    @Child private BooleanCastNode leftCast = BooleanCastNode.create();
-
     private final RunTwiceBranchProfile rightTwiceProfile = new RunTwiceBranchProfile();
-    private final CountingConditionProfile countingProfile = CountingConditionProfile.create();
 
     public OrLazyValueDefinedNode(RubyNode left, RubyNode right) {
         this.left = left;
         this.right = right;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Specialization
+    protected Object doOrLazyValueDefined(VirtualFrame frame,
+            @Cached BooleanCastNode leftCast,
+            @Cached InlinedCountingConditionProfile countingProfile) {
         final Object leftValue = left.execute(frame);
 
-        if (countingProfile.profile(leftCast.execute(leftValue))) {
+        if (countingProfile.profile(this, leftCast.execute(leftValue))) {
             return leftValue;
         } else {
             rightTwiceProfile.enter();
@@ -59,7 +60,7 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new OrLazyValueDefinedNode(
+        var copy = OrLazyValueDefinedNodeGen.create(
                 left.cloneUninitialized(),
                 right.cloneUninitialized());
         return copy.copyFlags(this);

@@ -83,7 +83,7 @@ import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NoMatchingPatternNodeGen;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
-import org.truffleruby.language.control.OrLazyValueDefinedNode;
+import org.truffleruby.language.control.OrLazyValueDefinedNodeGen;
 import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
@@ -2339,7 +2339,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode ret = new OrLazyValueDefinedNode(lhs, rhs);
+        final RubyNode ret = OrLazyValueDefinedNodeGen.create(lhs, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
