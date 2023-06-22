@@ -91,6 +91,7 @@ import org.truffleruby.language.control.RetryNode;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.UnlessNodeGen;
 import org.truffleruby.language.control.WhileNode;
+import org.truffleruby.language.control.WhileNodeFactory;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -2912,9 +2913,9 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode loop;
 
         if (node.evaluateAtStart()) {
-            loop = new WhileNode(new WhileNode.WhileRepeatingNode(condition, body));
+            loop = new WhileNode(WhileNodeFactory.WhileRepeatingNodeGen.create(condition, body));
         } else {
-            loop = new WhileNode(new WhileNode.DoWhileRepeatingNode(condition, body));
+            loop = new WhileNode(WhileNodeFactory.DoWhileRepeatingNodeGen.create(condition, body));
         }
 
         final RubyNode ret = new CatchBreakNode(whileBreakID, loop, true);

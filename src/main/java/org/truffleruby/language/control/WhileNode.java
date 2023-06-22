@@ -10,9 +10,11 @@
 package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -21,7 +23,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.RepeatingNode;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 public final class WhileNode extends RubyContextSourceNode {
 
@@ -45,15 +46,28 @@ public final class WhileNode extends RubyContextSourceNode {
 
     private abstract static class WhileRepeatingBaseNode extends RubyBaseNode implements RepeatingNode {
 
-        @Child protected BooleanCastNode condition;
+        @Child protected RubyNode condition;
         @Child protected RubyNode body;
 
-        protected final BranchProfile redoUsed = BranchProfile.create();
-        protected final BranchProfile nextUsed = BranchProfile.create();
-
         public WhileRepeatingBaseNode(RubyNode condition, RubyNode body) {
-            this.condition = BooleanCastNodeGen.create(condition);
+            this.condition = condition;
             this.body = body;
+        }
+
+        protected abstract boolean execute(VirtualFrame frame);
+
+        @Override
+        public final boolean executeRepeating(VirtualFrame frame) {
+            return execute(frame);
+        }
+
+        @Override
+        public final Object executeRepeatingWithValue(VirtualFrame frame) {
+            if (executeRepeating(frame)) {
+                return CONTINUE_LOOP_STATUS;
+            } else {
+                return BREAK_LOOP_STATUS;
+            }
         }
 
         @Override
@@ -64,15 +78,19 @@ public final class WhileNode extends RubyContextSourceNode {
         public abstract WhileRepeatingBaseNode cloneUninitialized();
     }
 
-    public static class WhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
+    public abstract static class WhileRepeatingNode extends WhileRepeatingBaseNode {
 
         public WhileRepeatingNode(RubyNode condition, RubyNode body) {
             super(condition, body);
         }
 
-        @Override
-        public boolean executeRepeating(VirtualFrame frame) {
-            if (!condition.execute(frame)) {
+        @Specialization
+        protected boolean doRepeating(VirtualFrame frame,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached InlinedBranchProfile redoUsed,
+                @Cached InlinedBranchProfile nextUsed) {
+            var conditionAsBoolean = booleanCastNode.execute(condition.execute(frame));
+            if (!conditionAsBoolean) {
                 return false;
             }
 
@@ -81,11 +99,11 @@ public final class WhileNode extends RubyContextSourceNode {
                     body.doExecuteVoid(frame);
                     return true;
                 } catch (NextException e) {
-                    nextUsed.enter();
+                    nextUsed.enter(this);
                     return true;
                 } catch (RedoException e) {
                     // Just continue in the while(true) loop.
-                    redoUsed.enter();
+                    redoUsed.enter(this);
                     TruffleSafepoint.poll(this);
                 }
             }
@@ -93,42 +111,41 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public WhileRepeatingBaseNode cloneUninitialized() {
-            return new WhileRepeatingNode(
-                    condition.getValueNode().cloneUninitialized(),
+            return WhileNodeFactory.WhileRepeatingNodeGen.create(
+                    condition.cloneUninitialized(),
                     body.cloneUninitialized());
         }
 
     }
 
-    public static class DoWhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
+    public abstract static class DoWhileRepeatingNode extends WhileRepeatingBaseNode {
 
         public DoWhileRepeatingNode(RubyNode condition, RubyNode body) {
             super(condition, body);
         }
 
-        @Override
-        public boolean executeRepeating(VirtualFrame frame) {
+        @Specialization
+        protected boolean doRepeating(VirtualFrame frame,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached InlinedBranchProfile redoUsed,
+                @Cached InlinedBranchProfile nextUsed) {
             try {
                 body.doExecuteVoid(frame);
             } catch (NextException e) {
-                nextUsed.enter();
+                nextUsed.enter(this);
             } catch (RedoException e) {
                 // Just continue to next iteration without executing the condition.
-                redoUsed.enter();
+                redoUsed.enter(this);
                 return true;
             }
 
-            return condition.execute(frame);
-        }
-
-        private RubyNode getConditionBeforeCasting() {
-            return condition.getValueNode();
+            return booleanCastNode.execute(condition.execute(frame));
         }
 
         @Override
         public WhileRepeatingBaseNode cloneUninitialized() {
-            return new DoWhileRepeatingNode(
-                    getConditionBeforeCasting().cloneUninitialized(),
+            return WhileNodeFactory.DoWhileRepeatingNodeGen.create(
+                    condition.cloneUninitialized(),
                     body.cloneUninitialized());
         }
 
