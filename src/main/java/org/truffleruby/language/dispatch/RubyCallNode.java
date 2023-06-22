@@ -29,6 +29,7 @@ import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -321,10 +322,9 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
             allArgumentsDefinedProfile.enter();
 
             final Object receiverObject;
-
             try {
                 receiverObject = receiver.execute(frame);
-            } catch (Exception e) {
+            } catch (RaiseException e) {
                 receiverExceptionProfile.enter();
                 return nil;
             }

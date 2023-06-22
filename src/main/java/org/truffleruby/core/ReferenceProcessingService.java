@@ -20,7 +20,6 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.language.control.TerminationException;
 
 public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.PhantomProcessingReference<R, T>, T> {
 
@@ -168,13 +167,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             action.accept(context, language, reference);
         } catch (RaiseException e) {
             context.getCoreExceptions().showExceptionIfDebug(e.getException());
-        } catch (TerminationException e) {
-            throw e;
-        } catch (Exception e) {
-            // Do nothing, the finalizer thread must continue to process objects.
-            if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-                e.printStackTrace();
-            }
         }
     }
 
