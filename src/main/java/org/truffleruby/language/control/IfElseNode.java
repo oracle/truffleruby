@@ -9,37 +9,33 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class IfElseNode extends RubyContextSourceNode {
+public abstract class IfElseNode extends RubyContextSourceNode {
 
-    @Child private BooleanCastNode condition;
+    @Child private RubyNode condition;
     @Child private RubyNode thenBody;
     @Child private RubyNode elseBody;
 
-    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
-
     public IfElseNode(RubyNode condition, RubyNode thenBody, RubyNode elseBody) {
-        this.condition = BooleanCastNodeGen.create(condition);
-        this.thenBody = thenBody;
-        this.elseBody = elseBody;
-    }
-
-    IfElseNode(BooleanCastNode condition, RubyNode thenBody, RubyNode elseBody) {
         this.condition = condition;
         this.thenBody = thenBody;
         this.elseBody = elseBody;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        if (conditionProfile.profile(condition.execute(frame))) {
+    @Specialization
+    protected Object doIfElse(VirtualFrame frame,
+            @Cached InlinedCountingConditionProfile conditionProfile,
+            @Cached BooleanCastNode booleanCastNode) {
+        final var conditionAsBoolean = booleanCastNode.execute(condition.execute(frame));
+        if (conditionProfile.profile(this, conditionAsBoolean)) {
             return thenBody.execute(frame);
         } else {
             return elseBody.execute(frame);
@@ -55,17 +51,13 @@ public class IfElseNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         final RubyNode newThen = thenBody.simplifyAsTailExpression();
         final RubyNode newElse = elseBody.simplifyAsTailExpression();
-        return new IfElseNode(condition, newThen, newElse).copySourceSection(this);
-    }
-
-    private RubyNode getConditionBeforeCasting() {
-        return condition.getValueNode();
+        return IfElseNodeGen.create(condition, newThen, newElse).copySourceSection(this);
     }
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new IfElseNode(
-                getConditionBeforeCasting().cloneUninitialized(),
+        var copy = IfElseNodeGen.create(
+                condition.cloneUninitialized(),
                 thenBody.cloneUninitialized(),
                 elseBody.cloneUninitialized());
         return copy.copyFlags(this);

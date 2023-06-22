@@ -76,6 +76,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
+import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
@@ -781,7 +782,7 @@ public class BodyTranslator extends BaseTranslator {
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
-                final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+                final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
                 elseNode = ifNode;
@@ -802,7 +803,7 @@ public class BodyTranslator extends BaseTranslator {
 
                 // Create the if node
                 final RubyNode thenNode = when.getBodyNode().accept(this);
-                final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+                final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
                 elseNode = ifNode;
@@ -857,7 +858,7 @@ public class BodyTranslator extends BaseTranslator {
             final RubyNode conditionNode = translator.translatePatternNode(patternNode, readTemp);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
-            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+            final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
             // This if becomes the else for the next if
             elseNode = ifNode;
@@ -1809,7 +1810,7 @@ public class BodyTranslator extends BaseTranslator {
         if (thenBody != null && elseBody != null) {
             final RubyNode thenBodyTranslated = thenBody.accept(this);
             final RubyNode elseBodyTranslated = elseBody.accept(this);
-            ret = new IfElseNode(condition, thenBodyTranslated, elseBodyTranslated);
+            ret = IfElseNodeGen.create(condition, thenBodyTranslated, elseBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (thenBody != null) {
             final RubyNode thenBodyTranslated = thenBody.accept(this);

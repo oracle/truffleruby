@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
@@ -35,7 +36,6 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.DynamicReturnNode;
-import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.locals.LocalVariableType;
@@ -230,7 +230,7 @@ public class MethodTranslator extends BodyTranslator {
                     new ShouldDestructureNode(arity.acceptsKeywords()),
                     arrayWasNotNil);
 
-            preludeProc = new IfElseNode(
+            preludeProc = IfElseNodeGen.create(
                     shouldDestructureAndArrayWasNotNil,
                     newDestructureArguments,
                     loadArguments);

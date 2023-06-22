@@ -46,7 +46,7 @@ public abstract class UnlessNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode subsumeFollowing(RubyNode following) {
-        return new IfElseNode(condition, following, thenBody).copySourceSection(this);
+        return IfElseNodeGen.create(condition, following, thenBody).copySourceSection(this);
     }
 
     @Override
