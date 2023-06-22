@@ -64,7 +64,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.constants.OrAssignConstantNode;
+import org.truffleruby.language.constants.OrAssignConstantNodeGen;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -2232,7 +2232,7 @@ public class BodyTranslator extends BaseTranslator {
             }
 
             case "||": {
-                return new OrAssignConstantNode(lhs, (WriteConstantNode) rhs);
+                return OrAssignConstantNodeGen.create(lhs, (WriteConstantNode) rhs);
             }
 
             default: {
