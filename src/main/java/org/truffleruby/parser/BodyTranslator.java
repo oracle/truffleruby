@@ -94,7 +94,7 @@ import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.exceptions.EnsureNode;
+import org.truffleruby.language.exceptions.EnsureNodeGen;
 import org.truffleruby.language.exceptions.RescueStandardErrorNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
 import org.truffleruby.language.exceptions.RescueNode;
@@ -1435,7 +1435,7 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitEnsureNode(EnsureParseNode node) {
         final RubyNode tryPart = node.getBodyNode().accept(this);
         final RubyNode ensurePart = node.getEnsureNode().accept(this);
-        final RubyNode ret = new EnsureNode(tryPart, ensurePart);
+        final RubyNode ret = EnsureNodeGen.create(tryPart, ensurePart);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

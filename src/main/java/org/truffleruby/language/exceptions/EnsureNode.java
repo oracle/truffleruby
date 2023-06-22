@@ -9,47 +9,53 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-public class EnsureNode extends RubyContextSourceNode {
+public abstract class EnsureNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
-
-    private final BranchProfile killExceptionProfile = BranchProfile.create();
-    private final BranchProfile guestExceptionProfile = BranchProfile.create();
-    private final BranchProfile controlFlowExceptionProfile = BranchProfile.create();
-    private final ConditionProfile raiseExceptionProfile = ConditionProfile.create();
 
     public EnsureNode(RubyNode tryPart, RubyNode ensurePart) {
         this.tryPart = tryPart;
         this.ensurePart = ensurePart;
     }
 
+
     @Override
-    public Object execute(VirtualFrame frame) {
+    public final Object execute(VirtualFrame frame) {
         return executeCommon(frame, false);
     }
 
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public final void doExecuteVoid(VirtualFrame frame) {
         executeCommon(frame, true);
     }
 
+    protected abstract Object executeCommon(VirtualFrame frame, boolean executeVoid);
+
+
     /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode}. It only runs code in ensure for
      * guest exceptions (AbstractTruffleException), ControlFlowException or no exception. */
-    public Object executeCommon(VirtualFrame frame, boolean executeVoid) {
+    @Specialization
+    protected Object ensure(VirtualFrame frame, boolean executeVoid,
+            @Cached InlinedBranchProfile killExceptionProfile,
+            @Cached InlinedBranchProfile guestExceptionProfile,
+            @Cached InlinedBranchProfile controlFlowExceptionProfile,
+            @Cached InlinedConditionProfile raiseExceptionProfile) {
         Object value = nil;
         RuntimeException rethrowException = null;
         AbstractTruffleException guestException = null;
@@ -61,14 +67,14 @@ public class EnsureNode extends RubyContextSourceNode {
                 value = tryPart.execute(frame);
             }
         } catch (KillException e) { // an AbstractTruffleException but must not set $!
-            killExceptionProfile.enter();
+            killExceptionProfile.enter(this);
             rethrowException = e;
         } catch (AbstractTruffleException e) {
-            guestExceptionProfile.enter();
+            guestExceptionProfile.enter(this);
             guestException = e;
             rethrowException = e;
         } catch (ControlFlowException e) {
-            controlFlowExceptionProfile.enter();
+            controlFlowExceptionProfile.enter(this);
             rethrowException = e;
         }
 
@@ -76,7 +82,7 @@ public class EnsureNode extends RubyContextSourceNode {
         Object previousException = null;
 
         if (guestException != null) {
-            var exceptionObject = ExceptionOperations.getExceptionObject(guestException, raiseExceptionProfile);
+            var exceptionObject = ExceptionOperations.getExceptionObject(this, guestException, raiseExceptionProfile);
             threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
             previousException = threadLocalGlobals.getLastException();
             threadLocalGlobals.setLastException(exceptionObject);
@@ -96,9 +102,10 @@ public class EnsureNode extends RubyContextSourceNode {
         }
     }
 
+
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new EnsureNode(
+        var copy = EnsureNodeGen.create(
                 tryPart.cloneUninitialized(),
                 ensurePart.cloneUninitialized());
         return copy.copyFlags(this);

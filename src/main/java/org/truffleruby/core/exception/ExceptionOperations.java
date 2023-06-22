@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -85,11 +86,23 @@ public abstract class ExceptionOperations {
         }
     }
 
+    // TODO remove when TryNode is refactored
     public static Object getExceptionObject(AbstractTruffleException exception,
             ConditionProfile raiseExceptionProfile) {
         assert !(exception instanceof KillException)
                 : "KillException should not be used as an exception object: " + exception;
         if (raiseExceptionProfile.profile(exception instanceof RaiseException)) {
+            return ((RaiseException) exception).getException();
+        } else {
+            return exception;
+        }
+    }
+
+    public static Object getExceptionObject(Node node, AbstractTruffleException exception,
+            InlinedConditionProfile raiseExceptionProfile) {
+        assert !(exception instanceof KillException)
+                : "KillException should not be used as an exception object: " + exception;
+        if (raiseExceptionProfile.profile(node, exception instanceof RaiseException)) {
             return ((RaiseException) exception).getException();
         } else {
             return exception;
