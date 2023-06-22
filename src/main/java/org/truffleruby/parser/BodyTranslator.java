@@ -76,7 +76,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
-import org.truffleruby.language.control.IfNode;
+import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
@@ -1813,7 +1813,7 @@ public class BodyTranslator extends BaseTranslator {
             ret.unsafeSetSourceSection(sourceSection);
         } else if (thenBody != null) {
             final RubyNode thenBodyTranslated = thenBody.accept(this);
-            ret = new IfNode(condition, thenBodyTranslated);
+            ret = IfNodeGen.create(condition, thenBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (elseBody != null) {
             final RubyNode elseBodyTranslated = elseBody.accept(this);
@@ -2308,7 +2308,7 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            body = new IfNode(
+            body = IfNodeGen.create(
                     NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
                     body);
             body.unsafeSetSourceSection(sourceSection);

@@ -9,38 +9,37 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class IfNode extends RubyContextSourceNode {
+public abstract class IfNode extends RubyContextSourceNode {
 
-    @Child private BooleanCastNode condition;
+    @Child private RubyNode condition;
     @Child private RubyNode thenBody;
 
-    private final CountingConditionProfile conditionProfile = CountingConditionProfile.create();
-
     public IfNode(RubyNode condition, RubyNode thenBody) {
-        this(BooleanCastNodeGen.create(condition), thenBody);
-    }
-
-    private IfNode(BooleanCastNode condition, RubyNode thenBody) {
         this.condition = condition;
         this.thenBody = thenBody;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        if (conditionProfile.profile(condition.execute(frame))) {
+    @Specialization
+    protected Object doIf(VirtualFrame frame,
+            @Cached BooleanCastNode booleanCastNode,
+            @Cached InlinedCountingConditionProfile conditionProfile) {
+        final var conditionAsBoolean = booleanCastNode.execute(condition.execute(frame));
+        if (conditionProfile.profile(this, conditionAsBoolean)) {
             return thenBody.execute(frame);
         } else {
             return nil;
         }
     }
+
 
     @Override
     public boolean canSubsumeFollowing() {
@@ -54,17 +53,14 @@ public class IfNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode simplifyAsTailExpression() {
-        return new IfNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
+        return IfNodeGen.create(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
 
-    private RubyNode getConditionBeforeCasting() {
-        return condition.getValueNode();
-    }
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new IfNode(
-                getConditionBeforeCasting().cloneUninitialized(),
+        var copy = IfNodeGen.create(
+                condition.cloneUninitialized(),
                 thenBody.cloneUninitialized());
         return copy.copyFlags(this);
     }
