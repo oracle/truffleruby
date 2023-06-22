@@ -81,7 +81,7 @@ import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NoMatchingPatternNodeGen;
-import org.truffleruby.language.control.NotNode;
+import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrLazyValueDefinedNodeGen;
 import org.truffleruby.language.control.OrNodeGen;
@@ -2309,7 +2309,7 @@ public class BodyTranslator extends BaseTranslator {
 
         if (node.isLazy()) {
             body = new IfNode(
-                    new NotNode(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+                    NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
@@ -2891,7 +2891,7 @@ public class BodyTranslator extends BaseTranslator {
 
         RubyNode condition = node.getConditionNode().accept(this);
         if (conditionInversed) {
-            condition = new NotNode(condition);
+            condition = NotNodeGen.create(condition);
         }
 
         RubyNode body;

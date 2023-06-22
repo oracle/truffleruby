@@ -9,32 +9,31 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class NotNode extends RubyContextSourceNode {
+public abstract class NotNode extends RubyContextSourceNode {
 
-    @Child private BooleanCastNode child;
+    @Child private RubyNode child;
 
     public NotNode(RubyNode child) {
-        this.child = BooleanCastNodeGen.create(child);
+        this.child = child;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        return !child.execute(frame);
-    }
-
-    private RubyNode getChildBeforeCasting() {
-        return child.getValueNode();
+    @Specialization
+    protected Object doNot(VirtualFrame frame,
+            @Cached BooleanCastNode booleanCastNode) {
+        final var valueAsBoolean = booleanCastNode.execute(child.execute(frame));
+        return !valueAsBoolean;
     }
 
     public RubyNode cloneUninitialized() {
-        var copy = new NotNode(getChildBeforeCasting().cloneUninitialized());
+        var copy = NotNodeGen.create(child.cloneUninitialized());
         return copy.copyFlags(this);
     }
 

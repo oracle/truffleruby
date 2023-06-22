@@ -19,7 +19,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.ExecuteAndReturnTrueNode;
-import org.truffleruby.language.control.NotNode;
+import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
@@ -95,7 +95,7 @@ public class PatternMatchingTranslator extends BaseTranslator {
                     pattern = translatePatternNode(ifNode.getThenBody(), expressionValue);
                 } else {
                     pattern = translatePatternNode(ifNode.getElseBody(), expressionValue);
-                    condition = new NotNode(condition);
+                    condition = NotNodeGen.create(condition);
                 }
 
                 return new AndNode(pattern, condition);
