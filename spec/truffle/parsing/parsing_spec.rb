@@ -10,8 +10,44 @@
 
 require_relative '../../ruby/spec_helper'
 
-# Run the following command to regenerate fixture YAML files:
+# Test cases are stored in YAML files of the following structure:
+#
+#   ``` yaml
+#   subject: "short description"
+#   description: "long description"
+#   notes: >
+#     "some additional details to explain what this case actually tests (optional)"
+#   focused_on_node: "a node class name"
+#   index: "integer, position of a node to focus on in AST when there are several such nodes and we need not the first one (optional)"
+#   ruby: |
+#     <Ruby source code>
+#   ast: |
+#     <Truffle AST>
+#   ```
+#
+# The following attributes might be a multiline string,
+# so leading and terminating blank characters should be removed:
+# - description
+# - source_code
+# - expected_ast
+#
+# index is an optional attribute. Missing it means we need a node with index 0.
+#
+# Don't run specs in multi-context mode and with JIT because they affect AST:
+# - in multi-context mode some nodes are replaced with dynamic-lexical-scope related ones
+# - with JIT some nodes are replaced with optimized ones (e.g. OptimizedCallTarget)
+#
+# To regenerate fixture YAML files with actual AST run the following command:
+#
 #   OVERWRITE_PARSING_RESULTS=true jt -q test spec/truffle/parsing/parsing_spec.rb
+#
+# An approach with YAML.dump has some downsides:
+# - it adds a line `---` at a file beginning
+# - it removes unnecessary "" for string literals
+# - it looses the folded style (with > indicator) for multiline blocks
+# - it looses comments inside YAML document
+# So just replace AST in a YAML file using a regexp.
+
 overwrite = ENV['OVERWRITE_PARSING_RESULTS'] == 'true'
 
 describe "Parsing" do
@@ -21,71 +57,29 @@ describe "Parsing" do
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
-
-    # The following attributes might be a multiline string,
-    # so leading and terminating blank characters should be removed:
-    # - description
-    # - source_code
-    # - expected_ast
-    #
-    # index is an optional attribute. Missing it means we need a node with index 0.
     subject, description, focused_on_node, index, source_code, expected_ast = yaml.values_at("subject", "description", "focused_on_node", "index", "ruby", "ast")
 
-    it "a #{subject} (#{description.strip}) case is parsed correctly" do
-      actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+    guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? } do
+      it "a #{subject} (#{description.strip}) case is parsed correctly" do
+        actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
 
-      # debugging
-      #
-      # File.write("actual_ast_bytes.log", actual_ast.strip.bytes.map(&:to_s).join("\n"))
-      # File.write("expected_ast_bytes.log", expected_ast.strip.bytes.map(&:to_s).join("\n"))
+        if overwrite
+          example = File.read(filename)
+          actual_ast_with_indentation = actual_ast.lines.map { |line| "  " + line }.join
+          replaced = example.sub!(/^ast: \|.+\Z/m, "ast: |\n" + actual_ast_with_indentation)
 
-      # File.write("actual_ast.log", actual_ast)
-      # File.write("expected_ast.log", expected_ast)
+          File.write filename, example
 
-      if overwrite
-        # Regenerate YAML files with actual AST
-        #
-        # An approach with YAML.dump has some downsides:
-        # - it adds a line `---` at a file beginning
-        # - it removes unnecessary "" for string literals
-        # - it looses the folded style (with > indicator) for multiline blocks
-        # - it looses comments inside YAML document
-        #
-        # So just replace AST with Regexp:
-        example = File.read(filename)
-        actual_ast_with_indentation = actual_ast.lines.map { |line| "  " + line }.join
-        replaced = example.sub!(/^ast: \|.+\Z/m, "ast: |\n" + actual_ast_with_indentation)
+          # ensure it's still a valid YAML document
+          YAML.safe_load_file(filename)
 
-        File.write filename, example
-
-        # ensure it's still a valid YAML document
-        YAML.safe_load_file(filename)
-
-        unless replaced
-          raise "The file #{filename} wasn't updated with actual AST"
+          unless replaced
+            raise "The file #{filename} wasn't updated with actual AST"
+          end
+        else
+          # actual test check
+          actual_ast.should == expected_ast.strip
         end
-      else
-        # the multi-context mode introduces some changes in the AST:
-        # - static lexical scopes aren't set
-        # - ReadConstantWithLexicalScopeNode is used instead of ReadConstantWithLexicalScopeNode
-        # - ReadClassVariableNode.lexicalScopeNode is GetDynamicLexicalScopeNode instead of (ObjectLiteralNode object =  :: Object)
-        # - WriteConstantNode.moduleNode uses DynamicLexicalScopeNode instead of (LexicalScopeNode lexicalScope =  :: Object)
-        # - WriteClassVariableNode.lexicalScopeNode uses GetDynamicLexicalScopeNode instead of (LexicalScopeNode lexicalScope =  :: Object)
-        if !Primitive.vm_single_context? &&
-          expected_ast.include?("staticLexicalScope") ||
-          expected_ast.include?("ReadConstantWithLexicalScopeNode") ||
-          expected_ast.include?("ReadClassVariableNode") ||
-          expected_ast.include?("WriteConstantNode") ||
-          expected_ast.include?("WriteClassVariableNode")
-          skip "Static lexical scopes are never set in multi context mode"
-        end
-
-        if TruffleRuby.jit?
-          skip "Don't run parsing specs when JIT is enabled because it affects AST"
-        end
-
-        # actual test check
-        actual_ast.should == expected_ast.strip
       end
     end
   end
