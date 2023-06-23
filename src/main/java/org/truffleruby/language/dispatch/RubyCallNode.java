@@ -9,14 +9,17 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -37,8 +40,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 import java.util.Map;
@@ -230,10 +231,11 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            definedNode = insert(new DefinedNode());
+            definedNode = insert(
+                    RubyCallNodeFactory.DefinedNodeGen.create(methodName, receiver, arguments, dispatchConfig));
         }
 
-        return definedNode.isDefined(frame, context);
+        return definedNode.execute(frame, context);
     }
 
     public String getName() {
@@ -290,48 +292,65 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
         return copy.copyFlags(this);
     }
 
-    private class DefinedNode extends RubyBaseNode {
+    abstract static class DefinedNode extends RubyBaseNode {
 
-        private final RubySymbol methodNameSymbol = getSymbol(methodName);
+        private final RubySymbol methodNameSymbol;
+        private final String methodName;
+        private final DispatchConfiguration dispatchConfig;
 
+        @Child private RubyNode receiver;
+        @Children private final RubyNode[] arguments;
         @Child private DispatchNode respondToMissing = DispatchNode.create(PRIVATE_RETURN_MISSING);
-        @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
+        public DefinedNode(
+                String methodName,
+                RubyNode receiver,
+                RubyNode[] arguments,
+                DispatchConfiguration dispatchConfig) {
+            this.methodName = methodName;
+            this.methodNameSymbol = getSymbol(methodName);
+            this.receiver = receiver;
+            this.arguments = arguments;
+            this.dispatchConfig = dispatchConfig;
 
-        @Child private LookupMethodOnSelfNode lookupMethodNode = LookupMethodOnSelfNode.create();
+        }
 
-        private final ConditionProfile receiverDefinedProfile = ConditionProfile.create();
-        private final BranchProfile argumentNotDefinedProfile = BranchProfile.create();
-        private final BranchProfile allArgumentsDefinedProfile = BranchProfile.create();
-        private final BranchProfile receiverExceptionProfile = BranchProfile.create();
-        private final ConditionProfile methodNotFoundProfile = ConditionProfile.create();
+        public abstract Object execute(VirtualFrame frame, RubyContext context);
 
+        @Specialization
         @ExplodeLoop
-        public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame, getLanguage(), context) == nil)) {
+        protected Object isDefined(VirtualFrame frame, RubyContext context,
+                @Cached LookupMethodOnSelfNode lookupMethodNode,
+                @Cached BooleanCastNode respondToMissingCast,
+                @Cached InlinedConditionProfile receiverDefinedProfile,
+                @Cached InlinedBranchProfile allArgumentsDefinedProfile,
+                @Cached InlinedBranchProfile receiverExceptionProfile,
+                @Cached InlinedConditionProfile methodNotFoundProfile,
+                @Cached InlinedBranchProfile argumentNotDefinedProfile) {
+            if (receiverDefinedProfile.profile(this, receiver.isDefined(frame, getLanguage(), context) == nil)) {
                 return nil;
             }
 
             for (RubyNode argument : arguments) {
                 if (argument.isDefined(frame, getLanguage(), context) == nil) {
-                    argumentNotDefinedProfile.enter();
+                    argumentNotDefinedProfile.enter(this);
                     return nil;
                 }
             }
 
-            allArgumentsDefinedProfile.enter();
+            allArgumentsDefinedProfile.enter(this);
 
             final Object receiverObject;
             try {
                 receiverObject = receiver.execute(frame);
             } catch (RaiseException e) {
-                receiverExceptionProfile.enter();
+                receiverExceptionProfile.enter(this);
                 return nil;
             }
 
             final InternalMethod method = lookupMethodNode.execute(frame, receiverObject, methodName, dispatchConfig);
 
-            if (methodNotFoundProfile.profile(method == null)) {
+            if (methodNotFoundProfile.profile(this, method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.execute(r)) {
@@ -341,7 +360,5 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
             return FrozenStrings.METHOD;
         }
-
     }
-
 }
