@@ -26,7 +26,7 @@ describe "YARP" do
     -> {
       -> {
         Truffle::Debug.yarp_execute("p 1+2").should == 3
-      }.should output_to_fd(/^YARP AST:.+Truffle AST:/m, STDERR)
+      }.should output_to_fd(/^Truffle AST:/m, STDERR)
     }.should output("3\n")
   end
 end

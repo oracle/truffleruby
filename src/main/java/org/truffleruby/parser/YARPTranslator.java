@@ -7,8 +7,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.yarp;
+package org.truffleruby.parser;
 
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.core.CoreLibrary;
@@ -20,11 +22,10 @@ import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SelfNode;
-import org.truffleruby.parser.Translator;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.yarp.AbstractNodeVisitor;
 import org.yarp.Nodes;
 
@@ -34,11 +35,31 @@ import java.util.Arrays;
 public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private final RubyLanguage language;
-    final byte[] source;
+    private final YARPTranslator parent;
+    private final TranslatorEnvironment environment;
+    private final byte[] sourceBytes;
+    private final Source source;
+    private final ParserContext parserContext;
+    private final Node currentNode;
+    private final RubyDeferredWarnings rubyWarnings;
 
-    public YARPTranslator(RubyLanguage language, byte[] source) {
+    public YARPTranslator(
+            RubyLanguage language,
+            YARPTranslator parent,
+            TranslatorEnvironment environment,
+            byte[] sourceBytes,
+            Source source,
+            ParserContext parserContext,
+            Node currentNode,
+            RubyDeferredWarnings rubyWarnings) {
         this.language = language;
+        this.parent = parent;
+        this.environment = environment;
+        this.sourceBytes = sourceBytes;
         this.source = source;
+        this.parserContext = parserContext;
+        this.currentNode = currentNode;
+        this.rubyWarnings = rubyWarnings;
     }
 
     public RubyRootNode translate(Nodes.Node node) {
@@ -85,7 +106,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
-        String string = new String(source, node.startOffset, node.length(), StandardCharsets.US_ASCII);
+        String string = source.subSource(node.startOffset, node.length()).getCharacters().toString();
         int value = Integer.parseInt(string);
         return new IntegerFixnumLiteralNode(value);
     }
@@ -94,4 +115,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     protected RubyNode defaultVisit(Nodes.Node node) {
         throw new Error("Unknown node: " + node);
     }
+
+    protected RubyNode translateNodeOrNil(SourceIndexLength sourceSection, Nodes.Node node) {
+        final RubyNode rubyNode;
+        if (node == null) {
+            rubyNode = nilNode(sourceSection);
+        } else {
+            rubyNode = node.accept(this);
+        }
+        return rubyNode;
+    }
+
+    protected RubyNode nilNode(SourceIndexLength sourceSection) {
+        final RubyNode literal = new NilLiteralNode(false);
+        literal.unsafeSetSourceSection(sourceSection);
+        return literal;
+    }
+
 }

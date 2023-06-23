@@ -114,7 +114,6 @@ import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.yarp.YARPTranslator;
 import org.yarp.Loader;
 import org.yarp.Parser;
 
@@ -304,20 +303,25 @@ public abstract class TruffleDebugNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = strings.getTString(code);
-            var tencoding = strings.getTEncoding(code);
-            var source = copyToByteArrayNode.execute(tstring, tencoding);
+            var encoding = strings.getEncoding(code);
+            String sourceString = TStringUtils.toJavaStringOrThrow(tstring, encoding);
 
-            return doExecute(source, RubyArguments.getMethod(frame));
+            return doExecute(sourceString, RubyArguments.getMethod(frame));
         }
 
         @TruffleBoundary
-        private Object doExecute(byte[] source, InternalMethod method) {
-            byte[] serialized = yarpSerialize(getLanguage(), source);
+        private Object doExecute(String sourceString, InternalMethod method) {
+            Source source = Source.newBuilder("ruby", sourceString, "<parse_ast>").build();
+            TranslatorEnvironment.resetTemporaryVariablesIndex();
 
-            var ast = Loader.load(source, serialized);
-            System.err.println("YARP AST:");
-            System.err.println(ast);
-            var truffleAST = new YARPTranslator(getLanguage(), source).translate(ast);
+            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
+                    new RubySource(source, source.getName()),
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    null);
+
+            RubyRootNode truffleAST = RubyRootNode.of(callTarget);
 
             System.err.println("Truffle AST:");
             NodeUtil.printCompactTree(getContext().getEnvErrStream(), truffleAST);
@@ -1448,6 +1452,37 @@ public abstract class TruffleDebugNodes {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
             final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+                    new RubySource(source, source.getName()),
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    null);
+
+            return RubyRootNode.of(callTarget);
+        }
+    }
+
+    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    public abstract static class ParseWithYARPAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        protected Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
+            String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
+
+            RubyRootNode rootNode = parse(sourceCodeString);
+            String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
+
+            return createString(fromJavaStringNode, output, Encodings.UTF_8);
+        }
+
+        private RubyRootNode parse(String sourceCode) {
+            Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
+            TranslatorEnvironment.resetTemporaryVariablesIndex();
+
+            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
                     new RubySource(source, source.getName()),
                     ParserContext.TOP_LEVEL,
                     null,

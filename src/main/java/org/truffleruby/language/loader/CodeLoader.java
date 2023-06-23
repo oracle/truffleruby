@@ -35,6 +35,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.parser.YARPTranslatorDriver;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,6 +83,17 @@ public final class CodeLoader {
             LexicalScope lexicalScope,
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context, source);
+        return translator
+                .parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
+    }
+
+    @TruffleBoundary
+    public RootCallTarget parseWithYARP(RubySource source,
+            ParserContext parserContext,
+            MaterializedFrame parentFrame,
+            LexicalScope lexicalScope,
+            Node currentNode) {
+        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context, source);
         return translator
                 .parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
     }
