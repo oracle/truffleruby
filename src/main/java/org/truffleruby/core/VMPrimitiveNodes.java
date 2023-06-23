@@ -119,7 +119,7 @@ public abstract class VMPrimitiveNodes {
                 return yieldNode.yield(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter(this);
-                if (matchProfile.profile(this, referenceEqualNode.execute(e.getTag(), tag))) {
+                if (matchProfile.profile(this, referenceEqualNode.execute(this, e.getTag(), tag))) {
                     return e.getValue();
                 } else {
                     throw e;

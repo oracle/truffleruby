@@ -115,7 +115,7 @@ public abstract class TypeNodes {
         @Specialization
         protected boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            return referenceEqualNode.execute(a, b);
+            return referenceEqualNode.execute(this, a, b);
         }
     }
 

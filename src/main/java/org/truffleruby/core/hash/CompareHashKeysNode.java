@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -28,17 +29,17 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
 
     /** Checks if the two keys are the same object, which is used by both modes (by identity or not) of lookup. Enables
      * to check if the two keys are the same without a method call. */
-    public static boolean referenceEqualKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
-            int hashed, Object otherKey, int otherHashed) {
+    public static boolean referenceEqualKeys(Node node, ReferenceEqualNode refEqual, boolean compareByIdentity,
+            Object key, int hashed, Object otherKey, int otherHashed) {
         return compareByIdentity
-                ? refEqual.execute(key, otherKey)
-                : hashed == otherHashed && refEqual.execute(key, otherKey);
+                ? refEqual.execute(node, key, otherKey)
+                : hashed == otherHashed && refEqual.execute(node, key, otherKey);
     }
 
     @Specialization(guards = "compareByIdentity")
     protected boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached ReferenceEqualNode refEqual) {
-        return refEqual.execute(key, otherKey);
+        return refEqual.execute(this, key, otherKey);
     }
 
     @Specialization(guards = "!compareByIdentity")

@@ -9,62 +9,71 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 
 @GenerateUncached
+@GenerateCached(false)
+@GenerateInline
 public abstract class ReferenceEqualNode extends RubyBaseNode {
 
-    public abstract boolean execute(Object a, Object b);
+    public static boolean executeUncached(Object a, Object b) {
+        return ReferenceEqualNodeGen.getUncached().execute(null, a, b);
+    }
+
+    public abstract boolean execute(Node node, Object a, Object b);
 
     @Specialization
-    protected boolean equal(boolean a, boolean b) {
+    protected static boolean equal(boolean a, boolean b) {
         return a == b;
     }
 
     @Specialization
-    protected boolean equal(int a, int b) {
+    protected static boolean equal(int a, int b) {
         return a == b;
     }
 
     @Specialization
-    protected boolean equal(long a, long b) {
+    protected static boolean equal(long a, long b) {
         return a == b;
     }
 
     @Specialization
-    protected boolean equal(double a, double b) {
+    protected static boolean equal(double a, double b) {
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
     }
 
     @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
-    protected boolean equalRubyObjects(Object a, Object b) {
+    protected static boolean equalRubyObjects(Object a, Object b) {
         return a == b;
     }
 
     @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
-    protected boolean rubyObjectPrimitive(Object a, Object b) {
+    protected static boolean rubyObjectPrimitive(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
-    protected boolean primitiveRubyObject(Object a, Object b) {
+    protected static boolean primitiveRubyObject(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = { "isPrimitive(a)", "isPrimitive(b)", "!comparablePrimitives(a, b)" })
-    protected boolean nonComparablePrimitives(Object a, Object b) {
+    protected static boolean nonComparablePrimitives(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = "isForeignObject(a) || isForeignObject(b)", limit = "getInteropCacheLimit()")
-    protected boolean equalForeign(Object a, Object b,
+    protected static boolean equalForeign(Object a, Object b,
             @CachedLibrary("a") InteropLibrary lhsInterop,
             @CachedLibrary("b") InteropLibrary rhsInterop) {
         if (lhsInterop.hasIdentity(a)) {

@@ -9,7 +9,9 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -36,16 +38,17 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "isSingleContext()",
-                    "referenceEqualNode.execute(value, previousValue)" },
+                    "referenceEqualNode.execute(node, value, previousValue)" },
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" },
             limit = "1")
-    protected Object writeTryToKeepConstant(Object value,
+    protected static Object writeTryToKeepConstant(Object value,
             @Cached ReferenceEqualNode referenceEqualNode,
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
-            @Cached("storage.getValue()") Object previousValue) {
+            @Cached("storage.getValue()") Object previousValue,
+            @Bind("this") Node node) {
         // NOTE: we still do the volatile write to get the proper memory barrier,
         // as the global variable could be used as a publication mechanism.
         storage.setValueInternal(value);

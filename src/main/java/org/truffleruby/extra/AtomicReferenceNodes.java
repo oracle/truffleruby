@@ -100,7 +100,7 @@ public abstract class AtomicReferenceNodes {
                 final Object currentValue = self.value.get();
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.execute(expectedValue, currentValue)) {
+                        equalNode.execute(this, expectedValue, currentValue)) {
                     if (self.value.compareAndSet(currentValue, newValue)) {
                         return true;
                     }

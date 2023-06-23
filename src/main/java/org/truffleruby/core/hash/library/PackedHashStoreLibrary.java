@@ -406,19 +406,20 @@ public class PackedHashStoreLibrary {
                         "isCompareByIdentity(hash) == cachedByIdentity",
                         "cachedIndex >= 0",
                         "cachedIndex < hash.size",
-                        "sameKeysAtIndex(refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
+                        "sameKeysAtIndex(node, refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
                 limit = "1")
-        protected Object getConstantIndexPackedArray(
+        protected static Object getConstantIndexPackedArray(
                 RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached ReferenceEqualNode refEqual,
                 @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
-                @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
+                @Bind("this") Node node,
+                @Cached("index(node, refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
 
             final Object[] store = (Object[]) hash.store;
             return getValue(store, cachedIndex);
         }
 
-        protected int index(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+        protected static int index(Node node, ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
                 boolean compareByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
@@ -426,26 +427,27 @@ public class PackedHashStoreLibrary {
             for (int n = 0; n < size; n++) {
                 final int otherHashed = getHashed(store, n);
                 final Object otherKey = getKey(store, n);
-                if (sameKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (sameKeys(node, refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     return n;
                 }
             }
             return -1;
         }
 
-        protected boolean sameKeysAtIndex(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+        protected static boolean sameKeysAtIndex(Node node, ReferenceEqualNode refEqual, RubyHash hash, Object key,
+                int hashed,
                 int cachedIndex, boolean cachedByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
             final Object otherKey = getKey(store, cachedIndex);
             final int otherHashed = getHashed(store, cachedIndex);
-            return sameKeys(refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
+            return sameKeys(node, refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
         }
 
-        private boolean sameKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key, int hashed,
-                Object otherKey, int otherHashed) {
+        private static boolean sameKeys(Node node, ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
+                int hashed, Object otherKey, int otherHashed) {
             return CompareHashKeysNode
-                    .referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
+                    .referenceEqualKeys(node, refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
         }
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)

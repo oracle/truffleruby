@@ -197,7 +197,7 @@ public abstract class KernelNodes {
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedConditionProfile sameProfile,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            if (sameProfile.profile(node, referenceEqualNode.execute(a, b))) {
+            if (sameProfile.profile(node, referenceEqualNode.execute(node, a, b))) {
                 return true;
             } else {
                 final var equalNode = lazyEqualNode.get(node);
@@ -232,7 +232,7 @@ public abstract class KernelNodes {
 
         public abstract boolean execute(Object a, Object b);
 
-        @Specialization(guards = "referenceEqual.execute(a, b)", limit = "1")
+        @Specialization(guards = "referenceEqual.execute(this, a, b)", limit = "1")
         protected boolean refEqual(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
@@ -243,7 +243,7 @@ public abstract class KernelNodes {
                 @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.execute(a, b) || booleanCast.execute(this, eql.call(a, "eql?", b));
+            return referenceEqual.execute(this, a, b) || booleanCast.execute(this, eql.call(a, "eql?", b));
         }
     }
 
@@ -925,14 +925,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "equalNode.execute(self, from)", limit = "1")
+        @Specialization(guards = "equalNode.execute(this, self, from)", limit = "1")
         protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode) {
             return self;
         }
 
-        @Specialization(guards = "!equalNode.execute(self, from)", limit = "1")
+        @Specialization(guards = "!equalNode.execute(this, self, from)", limit = "1")
         protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode,
