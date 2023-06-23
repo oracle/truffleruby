@@ -353,7 +353,7 @@ public class RubyCallNode extends LiteralCallNode implements AssignableNode {
             if (methodNotFoundProfile.profile(this, method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
-                if (r != DispatchNode.MISSING && !respondToMissingCast.execute(r)) {
+                if (r != DispatchNode.MISSING && !respondToMissingCast.execute(this, r)) {
                     return nil;
                 }
             }

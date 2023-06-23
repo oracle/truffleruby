@@ -99,7 +99,7 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected boolean not(Object value,
                 @Cached BooleanCastNode cast) {
-            return !cast.execute(value);
+            return !cast.execute(this, value);
         }
 
     }
@@ -108,11 +108,11 @@ public abstract class BasicObjectNodes {
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode equalNode = DispatchNode.create();
-        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
-        protected boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !booleanCastNode.execute(equalNode.call(a, "==", b));
+        protected boolean equal(VirtualFrame frame, Object a, Object b,
+                @Cached BooleanCastNode booleanCastNode) {
+            return !booleanCastNode.execute(this, equalNode.call(a, "==", b));
         }
 
     }

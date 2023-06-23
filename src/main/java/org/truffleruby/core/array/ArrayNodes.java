@@ -1796,7 +1796,6 @@ public abstract class ArrayNodes {
         }
 
         @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
-        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
         protected Object reject(RubyArray array, RubyProc block,
@@ -1816,7 +1815,7 @@ public abstract class ArrayNodes {
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
-            if (!booleanCastNode.execute(yieldNode.yield(state.block, element))) {
+            if (!booleanCastNode.execute(node, yieldNode.yield(state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.newArraySize, element);
                 state.newArraySize++;
             }
@@ -2007,7 +2006,6 @@ public abstract class ArrayNodes {
         }
 
         @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
-        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
         protected Object select(RubyArray array, RubyProc block,
@@ -2027,7 +2025,7 @@ public abstract class ArrayNodes {
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
-            if (booleanCastNode.execute(yieldNode.yield(state.block, element))) {
+            if (booleanCastNode.execute(node, yieldNode.yield(state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.selectedSize, element);
                 state.selectedSize++;
             }

@@ -535,7 +535,7 @@ public abstract class TypeNodes {
                 @Cached BooleanCastNode booleanCastNode,
                 @Bind("this") Node node) {
             return numericProfile.profile(node, isANode.executeIsA(value, coreLibrary(node).numericClass)) &&
-                    booleanCastNode.execute(isRealNode.call(value, "real?"));
+                    booleanCastNode.execute(node, isRealNode.call(value, "real?"));
         }
     }
 
@@ -554,7 +554,7 @@ public abstract class TypeNodes {
         @Specialization
         protected boolean asBoolean(Object value,
                 @Cached BooleanCastNode booleanCastNode) {
-            return booleanCastNode.execute(value);
+            return booleanCastNode.execute(this, value);
         }
     }
 

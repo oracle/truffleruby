@@ -126,7 +126,6 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -299,10 +298,6 @@ public abstract class StringNodes {
     @CoreMethod(names = { "==", "===", "eql?" }, required = 1)
     public abstract static class EqualCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private KernelNodes.RespondToNode respondToNode;
-        @Child private DispatchNode objectEqualNode;
-        @Child private BooleanCastNode booleanCastNode;
-
         @Specialization(guards = "libB.isRubyString(b)", limit = "1")
         protected static boolean equalString(Object a, Object b,
                 @Cached RubyStringLibrary libA,
@@ -320,24 +315,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isNotRubyString(b)")
-        protected boolean equal(Object a, Object b) {
-            if (respondToNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
-            }
-
+        protected boolean equal(Object a, Object b,
+                @Cached KernelNodes.RespondToNode respondToNode,
+                @Cached DispatchNode objectEqualNode,
+                @Cached BooleanCastNode booleanCastNode) {
             if (respondToNode.executeDoesRespondTo(b, coreSymbols().TO_STR, false)) {
-                if (objectEqualNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(DispatchNode.create());
-                }
 
-                if (booleanCastNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    booleanCastNode = insert(BooleanCastNode.create());
-                }
-
-                return booleanCastNode.execute(objectEqualNode.call(b, "==", a));
+                return booleanCastNode.execute(this, objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -671,17 +655,18 @@ public abstract class StringNodes {
         // region String Slice Specialization
 
         @Specialization(guards = "stringsMatchStr.isRubyString(matchStr)", limit = "1")
-        protected Object slice2(Object string, Object matchStr, NotProvided length,
+        protected static Object slice2(Object string, Object matchStr, NotProvided length,
                 @Cached @Exclusive RubyStringLibrary stringsMatchStr,
                 @Cached @Exclusive DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached AsTruffleStringNode asTruffleStringNode) {
+                @Cached AsTruffleStringNode asTruffleStringNode,
+                @Bind("this") Node node) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
-            if (booleanCastNode.execute(included)) {
+            if (booleanCastNode.execute(node, included)) {
                 final RubyEncoding encoding = stringsMatchStr.getEncoding(matchStr);
-                return createStringCopy(asTruffleStringNode, stringsMatchStr.getTString(matchStr), encoding);
+                return createStringCopy(node, asTruffleStringNode, stringsMatchStr.getTString(matchStr), encoding);
             }
 
             return nil;
@@ -3339,12 +3324,13 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+            throw new RaiseException(getContext(),
+                    coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
         }
 
         private static Object[] addSubstring(Node node, CallBlockNode yieldNode, Object[] store, int index,
-                RubyString substring,
-                Object block, InlinedConditionProfile executeBlockProfile, InlinedConditionProfile growArrayProfile) {
+                RubyString substring, Object block, InlinedConditionProfile executeBlockProfile,
+                InlinedConditionProfile growArrayProfile) {
             if (executeBlockProfile.profile(node, block != nil)) {
                 yieldNode.yield((RubyProc) block, substring);
             } else {

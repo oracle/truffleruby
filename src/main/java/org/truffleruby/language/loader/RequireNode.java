@@ -54,7 +54,6 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private DispatchNode isInLoadedFeatures = DispatchNode.create();
-    @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
     @Child private DispatchNode addToLoadedFeatures = DispatchNode.create();
     @Child private DispatchNode relativeFeatureNode = DispatchNode.create();
 
@@ -384,7 +383,7 @@ public abstract class RequireNode extends RubyBaseNode {
     public boolean isFeatureLoaded(Object feature) {
         final Object included = isInLoadedFeatures
                 .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
-        return booleanCastNode.execute(included);
+        return BooleanCastNode.executeUncached(included);
     }
 
     private void addToLoadedFeatures(Object feature) {

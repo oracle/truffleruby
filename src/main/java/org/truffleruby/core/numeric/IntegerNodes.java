@@ -825,11 +825,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object equal(VirtualFrame frame, Object a, Object b,
+        protected static Object equal(VirtualFrame frame, Object a, Object b,
                 @Cached DispatchNode reverseCallNode,
-                @Cached BooleanCastNode booleanCastNode) {
+                @Cached BooleanCastNode booleanCastNode,
+                @Bind("this") Node node) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
-            return booleanCastNode.execute(reversedResult);
+            return booleanCastNode.execute(node, reversedResult);
         }
 
     }

@@ -34,7 +34,7 @@ public abstract class OrNode extends RubyContextSourceNode {
             @Cached InlinedCountingConditionProfile conditionProfile) {
         final Object leftValue = left.execute(frame);
 
-        if (conditionProfile.profile(this, leftCast.execute(leftValue))) {
+        if (conditionProfile.profile(this, leftCast.execute(this, leftValue))) {
             return leftValue;
         } else {
             return right.execute(frame);

@@ -47,26 +47,26 @@ public abstract class FlipFlopNode extends RubyContextSourceNode {
 
         if (exclusive) {
             if (getState(frame)) {
-                if (endCast.execute(end.execute(frame))) {
+                if (endCast.execute(this, end.execute(frame))) {
                     setState(frame, false);
                 }
 
                 return true;
             } else {
-                final boolean newState = beginCast.execute(begin.execute(frame));
+                final boolean newState = beginCast.execute(this, begin.execute(frame));
                 setState(frame, newState);
                 return newState;
             }
         } else {
             if (getState(frame)) {
-                if (endCast.execute(end.execute(frame))) {
+                if (endCast.execute(this, end.execute(frame))) {
                     setState(frame, false);
                 }
 
                 return true;
             } else {
-                if (beginCast.execute(begin.execute(frame))) {
-                    setState(frame, !endCast.execute(end.execute(frame)));
+                if (beginCast.execute(this, begin.execute(frame))) {
+                    setState(frame, !endCast.execute(this, end.execute(frame)));
                     return true;
                 }
 

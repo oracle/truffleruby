@@ -20,6 +20,8 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
@@ -78,17 +80,18 @@ public abstract class CmpIntNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "!isRubyInteger(value)", "!isNil(value)" })
-    protected int cmpObject(Object value, Object receiver, Object other,
+    protected static int cmpObject(Object value, Object receiver, Object other,
             @Cached DispatchNode gtNode,
             @Cached DispatchNode ltNode,
             @Cached BooleanCastNode gtCastNode,
-            @Cached BooleanCastNode ltCastNode) {
+            @Cached BooleanCastNode ltCastNode,
+            @Bind("this") Node node) {
 
-        if (gtCastNode.execute(gtNode.call(value, ">", 0))) {
+        if (gtCastNode.execute(node, gtNode.call(value, ">", 0))) {
             return 1;
         }
 
-        if (ltCastNode.execute(ltNode.call(value, "<", 0))) {
+        if (ltCastNode.execute(node, ltNode.call(value, "<", 0))) {
             return -1;
         }
 

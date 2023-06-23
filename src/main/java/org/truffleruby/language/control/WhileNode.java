@@ -89,7 +89,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedBranchProfile redoUsed,
                 @Cached InlinedBranchProfile nextUsed) {
-            var conditionAsBoolean = booleanCastNode.execute(condition.execute(frame));
+            var conditionAsBoolean = booleanCastNode.execute(this, condition.execute(frame));
             if (!conditionAsBoolean) {
                 return false;
             }
@@ -139,7 +139,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 return true;
             }
 
-            return booleanCastNode.execute(condition.execute(frame));
+            return booleanCastNode.execute(this, condition.execute(frame));
         }
 
         @Override

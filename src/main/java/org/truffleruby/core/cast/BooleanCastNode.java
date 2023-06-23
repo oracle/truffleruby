@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -18,77 +18,67 @@ import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 /** Casts a value into a boolean. */
 @GenerateUncached
-@NodeChild(value = "valueNode", type = RubyNode.class)
+@GenerateCached(false)
+@GenerateInline
 public abstract class BooleanCastNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static BooleanCastNode create() {
-        return BooleanCastNodeGen.create(null);
+    public static boolean executeUncached(Object value) {
+        return BooleanCastNodeGen.getUncached().execute(null, value);
     }
 
-    /** Execute with child node */
-    public abstract boolean execute(VirtualFrame frame);
-
-    public abstract RubyNode getValueNode();
-
-    /** Execute with given value */
-    public abstract boolean execute(Object value);
+    public abstract boolean execute(Node node, Object value);
 
     @Specialization
-    protected boolean doNil(Nil nil) {
+    protected static boolean doNil(Nil nil) {
         return false;
     }
 
     @Specialization
-    protected boolean doBoolean(boolean value) {
+    protected static boolean doBoolean(boolean value) {
         return value;
     }
 
     @Specialization
-    protected boolean doInt(int value) {
+    protected static boolean doInt(int value) {
         return true;
     }
 
     @Specialization
-    protected boolean doLong(long value) {
+    protected static boolean doLong(long value) {
         return true;
     }
 
     @Specialization
-    protected boolean doFloat(double value) {
+    protected static boolean doFloat(double value) {
         return true;
     }
 
     @Specialization
-    protected boolean doBasicObject(RubyDynamicObject object) {
+    protected static boolean doBasicObject(RubyDynamicObject object) {
         return true;
     }
 
     @Specialization(guards = "!isNil(object)")
-    protected boolean doImmutableObject(ImmutableRubyObject object) {
+    protected static boolean doImmutableObject(ImmutableRubyObject object) {
         return true;
     }
 
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
-    protected static boolean doForeignObject(Object object,
+    protected static boolean doForeignObject(Node node, Object object,
             @CachedLibrary("object") InteropLibrary objects,
             @Cached InlinedConditionProfile isNullProfile,
             @Cached InlinedConditionProfile isBooleanProfile,
-            @Cached InlinedBranchProfile failed,
-            @Bind("this") Node node) {
+            @Cached InlinedBranchProfile failed) {
 
         if (isNullProfile.profile(node, objects.isNull(object))) {
             return false;

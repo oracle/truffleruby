@@ -26,7 +26,7 @@ public abstract class TrueClassNodes {
         @Specialization
         protected boolean and(Object other,
                 @Cached BooleanCastNode cast) {
-            return cast.execute(other);
+            return cast.execute(this, other);
         }
     }
 
@@ -45,7 +45,7 @@ public abstract class TrueClassNodes {
         @Specialization
         protected boolean xor(Object other,
                 @Cached BooleanCastNode cast) {
-            return !cast.execute(other);
+            return !cast.execute(this, other);
         }
     }
 

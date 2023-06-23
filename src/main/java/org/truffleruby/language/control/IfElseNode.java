@@ -34,7 +34,7 @@ public abstract class IfElseNode extends RubyContextSourceNode {
     protected Object doIfElse(VirtualFrame frame,
             @Cached InlinedCountingConditionProfile conditionProfile,
             @Cached BooleanCastNode booleanCastNode) {
-        final var conditionAsBoolean = booleanCastNode.execute(condition.execute(frame));
+        final var conditionAsBoolean = booleanCastNode.execute(this, condition.execute(frame));
         if (conditionProfile.profile(this, conditionAsBoolean)) {
             return thenBody.execute(frame);
         } else {

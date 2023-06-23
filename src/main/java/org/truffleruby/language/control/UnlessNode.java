@@ -32,7 +32,7 @@ public abstract class UnlessNode extends RubyContextSourceNode {
     protected Object doUnless(VirtualFrame frame,
             @Cached InlinedCountingConditionProfile conditionProfile,
             @Cached BooleanCastNode booleanCastNode) {
-        if (!conditionProfile.profile(this, booleanCastNode.execute(condition.execute(frame)))) {
+        if (!conditionProfile.profile(this, booleanCastNode.execute(this, condition.execute(frame)))) {
             return thenBody.execute(frame);
         } else {
             return nil;

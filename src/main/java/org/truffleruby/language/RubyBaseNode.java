@@ -240,14 +240,19 @@ public abstract class RubyBaseNode extends Node {
 
     public final RubyString createStringCopy(TruffleString.AsTruffleStringNode asTruffleStringNode,
             AbstractTruffleString tstring, RubyEncoding encoding) {
+        return createStringCopy(this, asTruffleStringNode, tstring, encoding);
+    }
+
+    public static RubyString createStringCopy(Node node, TruffleString.AsTruffleStringNode asTruffleStringNode,
+            AbstractTruffleString tstring, RubyEncoding encoding) {
         final TruffleString copy = asTruffleStringNode.execute(tstring, encoding.tencoding);
         final RubyString instance = new RubyString(
-                coreLibrary().stringClass,
-                getLanguage().stringShape,
+                coreLibrary(node).stringClass,
+                getLanguage(node).stringShape,
                 false,
                 copy,
                 encoding);
-        AllocationTracing.trace(instance, this);
+        AllocationTracing.trace(instance, node);
         return instance;
     }
 

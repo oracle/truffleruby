@@ -49,7 +49,6 @@ import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -117,6 +116,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -167,8 +167,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Kernel")
@@ -203,7 +201,7 @@ public abstract class KernelNodes {
                 return true;
             } else {
                 final var equalNode = lazyEqualNode.get(node);
-                return booleanCastNode.execute(equalNode.call(a, "==", b));
+                return booleanCastNode.execute(node, equalNode.call(a, "==", b));
             }
         }
     }
@@ -245,7 +243,7 @@ public abstract class KernelNodes {
                 @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.execute(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
+            return referenceEqual.execute(a, b) || booleanCast.execute(this, eql.call(a, "eql?", b));
         }
     }
 
@@ -1441,7 +1439,7 @@ public abstract class KernelNodes {
             final Object name = RubyArguments.getArgument(rubyArgs, 0);
             final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             final boolean includeProtectedAndPrivate = nArgs >= 2 &&
-                    castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
+                    castArgumentNode.execute(this, RubyArguments.getArgument(rubyArgs, 1));
 
             if (!RubyGuards.isRubySymbolOrString(name)) {
                 notSymbolOrStringProfile.enter(this);
@@ -1462,7 +1460,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(this, dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
-                return castMissingResultNode.execute(respondToMissingNode.call(self, "respond_to_missing?",
+                return castMissingResultNode.execute(this, respondToMissingNode.call(self, "respond_to_missing?",
                         toSymbolNode.execute(name), includeProtectedAndPrivate));
             } else {
                 return false;
@@ -1649,39 +1647,39 @@ public abstract class KernelNodes {
     @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
     public abstract static class SprintfNode extends CoreMethodNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
-        @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
-                .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
+        @Child private ReadGlobalVariableNode readDebugGlobalNode = ReadGlobalVariableNodeGen.create("$DEBUG");
 
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(formatAsString)",
                         "equalNode.execute(libFormat, formatAsString, cachedTString, cachedEncoding)",
-                        "isDebug(frame) == cachedIsDebug" },
+                        "isDebug == cachedIsDebug" },
                 limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
+                @Cached @Shared BooleanCastNode booleanCastNode,
+                @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
                 @Bind("toStrNode.execute(this, format)") Object formatAsString,
                 @Cached @Shared RubyStringLibrary libFormat,
-                @Cached("isDebug(frame)") boolean cachedIsDebug,
+                @Cached("isDebug") boolean cachedIsDebug,
                 @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug))") DirectCallNode callPackNode,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(cachedFormatLength, result);
+            return finishFormat(cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -1690,10 +1688,14 @@ public abstract class KernelNodes {
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,
+                @Cached @Shared BooleanCastNode booleanCastNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
             final var formatAsString = toStrNode.execute(this, format);
             final BytesResult result;
-            final boolean isDebug = readDebugGlobalNode.execute(frame);
+            final boolean isDebug = isDebug(frame, booleanCastNode);
             var tstring = libFormat.getTString(formatAsString);
             var encoding = libFormat.getEncoding(formatAsString);
             try {
@@ -1701,26 +1703,23 @@ public abstract class KernelNodes {
                         compileFormat(tstring, encoding, arguments, isDebug),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result);
+            return finishFormat(tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result) {
+        private RubyString finishFormat(int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (fromByteArrayNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
-            }
-
-            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(this, fromByteArrayNode, bytes,
+                    result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary
@@ -1734,8 +1733,8 @@ public abstract class KernelNodes {
             }
         }
 
-        protected boolean isDebug(VirtualFrame frame) {
-            return readDebugGlobalNode.execute(frame);
+        protected boolean isDebug(VirtualFrame frame, BooleanCastNode booleanCastNode) {
+            return booleanCastNode.execute(this, readDebugGlobalNode.execute(frame));
         }
 
     }

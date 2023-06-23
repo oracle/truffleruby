@@ -484,7 +484,6 @@ public class PackedHashStoreLibrary {
 
         @Child private HashingNodes.ToHashByHashCode hashNode;
         @Child private DispatchNode equalNode;
-        @Child private BooleanCastNode booleanCastNode;
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
@@ -493,6 +492,7 @@ public class PackedHashStoreLibrary {
         @Specialization
         @ExplodeLoop
         protected Object doHash(VirtualFrame frame,
+                @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedBranchProfile duplicateKeyProfile,
                 @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode) {
             final Object[] store = createStore();
@@ -510,7 +510,7 @@ public class PackedHashStoreLibrary {
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == getHashed(store, i) &&
-                            callEqual(key, getKey(store, i))) {
+                            callEqual(key, getKey(store, i), booleanCastNode)) {
                         duplicateKeyProfile.enter(this);
                         setKey(store, i, key);
                         setValue(store, i, value);
@@ -542,18 +542,13 @@ public class PackedHashStoreLibrary {
             return hashNode.executeCached(key);
         }
 
-        private boolean callEqual(Object receiver, Object key) {
+        private boolean callEqual(Object receiver, Object key, BooleanCastNode booleanCastNode) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 equalNode = insert(DispatchNode.create());
             }
 
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.execute(equalNode.call(receiver, "eql?", key));
+            return booleanCastNode.execute(this, equalNode.call(receiver, "eql?", key));
         }
 
         @Override

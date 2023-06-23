@@ -70,7 +70,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
         }
 
         final Object matches = callTripleEqualsNode.call(handlingClass, "===", exceptionObject);
-        return booleanCastNode.execute(matches);
+        return booleanCastNode.execute(this, matches);
     }
 
     @Override

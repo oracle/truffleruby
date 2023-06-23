@@ -45,7 +45,7 @@ public abstract class OrLazyValueDefinedNode extends RubyContextSourceNode {
             @Cached InlinedCountingConditionProfile countingProfile) {
         final Object leftValue = left.execute(frame);
 
-        if (countingProfile.profile(this, leftCast.execute(leftValue))) {
+        if (countingProfile.profile(this, leftCast.execute(this, leftValue))) {
             return leftValue;
         } else {
             rightTwiceProfile.enter();
