@@ -24,6 +24,7 @@ Compatibility:
 * Add implementations of `rb_proc_call_with_block`, `rb_proc_call_kw`, `rb_proc_call_with_block_kw` and `rb_funcall_with_block_kw` (#3068, @andrykonchin).
 * Add optional `timeout` argument to `Thread::Queue#pop` (#3039, @itarato).
 * Add optional `timeout` argument to `Thread::SizedsQueue#pop` (#3039, @itarato).
+* Handle `long long` and aliases in `Fiddle` (#3128, @eregon).
 
 Performance:
 

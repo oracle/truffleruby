@@ -51,9 +51,9 @@ module Truffle::FiddleBackend
       INT_NFI_TYPE
     when -Fiddle::TYPE_INT
       UINT_NFI_TYPE
-    when Fiddle::TYPE_LONG
+    when Fiddle::TYPE_LONG, Fiddle::TYPE_LONG_LONG
       LONG_NFI_TYPE
-    when -Fiddle::TYPE_LONG
+    when -Fiddle::TYPE_LONG, -Fiddle::TYPE_LONG_LONG
       ULONG_NFI_TYPE
     when Fiddle::TYPE_FLOAT
       'FLOAT'
