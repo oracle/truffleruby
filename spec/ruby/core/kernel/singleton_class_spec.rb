@@ -46,12 +46,12 @@ describe "Kernel#singleton_class" do
 
   context "for an IO object with a replaced singleton class" do
     it "looks up singleton methods from the fresh singleton class after an object instance got a new one" do
-      proxy = -> (io) { io.foo }
+      proxy = -> io { io.foo }
       if RUBY_ENGINE == 'truffleruby'
         # We need an inline cache with only this object seen, the best way to do that is to use a Primitive
-        sclass = -> (io) { Primitive.singleton_class(io) }
+        sclass = -> io { Primitive.singleton_class(io) }
       else
-        sclass = -> (io) { io.singleton_class }
+        sclass = -> io { io.singleton_class }
       end
 
       io = File.new(__FILE__)
