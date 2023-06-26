@@ -9,30 +9,18 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToAryNode extends RubyBaseNodeWithExecute {
+public abstract class ToAryNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static ToAryNode create() {
-        return ToAryNodeGen.create(null);
-    }
 
-    public static ToAryNode create(RubyBaseNodeWithExecute child) {
-        return ToAryNodeGen.create(child);
-    }
+    public abstract RubyArray execute(Object object);
 
-    public abstract RubyArray executeToAry(Object object);
-
-    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected RubyArray coerceRubyArray(RubyArray array) {
@@ -49,10 +37,4 @@ public abstract class ToAryNode extends RubyBaseNodeWithExecute {
                 coreLibrary().arrayClass,
                 coreSymbols().TO_ARY);
     }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getChildNode().cloneUninitialized());
-    }
-
 }

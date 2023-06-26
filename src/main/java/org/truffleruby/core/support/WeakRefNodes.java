@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.annotations.CoreModule;
@@ -30,11 +31,10 @@ public abstract class WeakRefNodes {
     @Primitive(name = "weakref_set_object")
     public abstract static class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNode.create(); // for synchronization
-
         @Specialization
-        protected Object weakRefSetObject(RubyDynamicObject weakRef, Object object) {
-            fieldNode.execute(weakRef, FIELD_NAME, new TruffleWeakReference<>(object));
+        protected Object weakRefSetObject(RubyDynamicObject weakRef, Object object,
+                @Cached WriteObjectFieldNode fieldNode) {
+            fieldNode.execute(this, weakRef, FIELD_NAME, new TruffleWeakReference<>(object));
             return object;
         }
 

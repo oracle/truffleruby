@@ -16,9 +16,13 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedIntValueProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -47,11 +51,9 @@ import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
-import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -137,14 +139,11 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
-        @CreateCast("b")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
-            return ToAryNodeGen.create(other);
-        }
-
         @Specialization(
                 limit = "storageStrategyLimit()")
-        protected RubyArray addGeneralize(RubyArray a, RubyArray b,
+        protected RubyArray addGeneralize(RubyArray a, Object bObject,
+                @Cached ToAryNode toAryNode,
+                @Bind("toAryNode.execute(bObject)") RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary as,
@@ -599,7 +598,7 @@ public abstract class ArrayNodes {
         protected RubyArray concatOne(RubyArray array, Object first, Object[] rest,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode) {
-            appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             return array;
         }
 
@@ -619,11 +618,11 @@ public abstract class ArrayNodes {
                 @Cached @Shared ConditionProfile selfArgProfile) {
             int size = array.size;
             RubyArray copy = createArray(cowNode.execute(array, 0, size), size);
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             for (int i = 0; i < cachedLength; ++i) {
                 final RubyArray argOrCopy = selfArgProfile.profile(rest[i] == array)
                         ? copy
-                        : toAryNode.executeToAry(rest[i]);
+                        : toAryNode.execute(rest[i]);
                 result = appendManyNode.executeAppendMany(array, argOrCopy);
             }
             return result;
@@ -642,7 +641,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             Object store = cowNode.execute(array, 0, size);
 
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
             int i = 0;
             try {
                 for (; loopProfile.inject(i < rest.length); i++) {
@@ -650,7 +649,7 @@ public abstract class ArrayNodes {
                     if (selfArgProfile.profile(arg == array)) {
                         result = appendManyNode.executeAppendMany(array, createArray(store, size));
                     } else {
-                        result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
+                        result = appendManyNode.executeAppendMany(array, toAryNode.execute(arg));
                     }
                     TruffleSafepoint.poll(this);
                 }
@@ -1323,14 +1322,11 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
-        @CreateCast("from")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute other) {
-            return ToAryNodeGen.create(other);
-        }
-
         @Specialization
-        protected RubyArray initializeCopy(RubyArray self, RubyArray from,
+        protected RubyArray initializeCopy(RubyArray self, Object fromObject,
+                @Cached ToAryNode toAryNode,
                 @Cached ReplaceNode replaceNode) {
+            final var from = toAryNode.execute(fromObject);
             if (self == from) {
                 return self;
             }
@@ -1546,46 +1542,58 @@ public abstract class ArrayNodes {
     @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
     @ReportPolymorphism
-    public abstract static class PackNode extends CoreMethodNode {
+    public abstract static class ArrayPackNode extends CoreMethodNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
-        @Child private WriteObjectFieldNode writeAssociatedNode;
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
-
-        @CreateCast("format")
-        protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
-            return ToStrNodeGen.create(format);
+        @Specialization
+        protected RubyString pack(RubyArray array, Object format,
+                @Cached ToStrNode toStrNode,
+                @Cached PackNode packNode) {
+            final var formatAsString = toStrNode.execute(this, format);
+            return packNode.execute(this, array, formatAsString);
         }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class PackNode extends RubyBaseNode {
+
+        public abstract RubyString execute(Node node, RubyArray array, Object format);
 
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
-        protected RubyString packCached(RubyArray array, Object format,
+        protected static RubyString packCached(Node node, RubyArray array, Object format,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callPackNode,
+                @Cached("create(compileFormat(node, getJavaString(format)))") DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishPack(cachedFormatLength, result);
+            return finishPack(node, cachedFormatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
         @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
-        protected RubyString packUncached(RubyArray array, Object format,
+        protected static RubyString packUncached(Node node, RubyArray array, Object format,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
             final String formatString = toJavaStringNode.execute(format);
@@ -1593,45 +1601,42 @@ public abstract class ArrayNodes {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(formatString),
+                        compileFormat(node, formatString),
                         new Object[]{ array.getStore(), array.size, false, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
             int formatLength = libFormat.getTString(format).byteLength(libFormat.getTEncoding(format));
-            return finishPack(formatLength, result);
+            return finishPack(node, formatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
-        private RubyString finishPack(int formatLength, BytesResult result) {
+        private static RubyString finishPack(Node node, int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile,
+                WriteObjectFieldNode writeAssociatedNode, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
             final RubyEncoding rubyEncoding = result.getEncoding().getEncodingForLength(formatLength);
-            final RubyString string = createString(fromByteArrayNode, bytes, rubyEncoding);
+            final RubyString string = createString(node, fromByteArrayNode, bytes, rubyEncoding);
 
             if (result.getAssociated() != null) {
-                if (writeAssociatedNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
-                }
-
-                writeAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
+                writeAssociatedNode.execute(node, string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
             }
 
             return string;
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(String format) {
+        protected static RootCallTarget compileFormat(Node node, String format) {
             try {
-                return new PackCompiler(getLanguage(), this).compile(format);
+                return new PackCompiler(getLanguage(node), node).compile(format);
             } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
+                throw dre.getException(getContext(node));
             }
         }
 
@@ -1825,17 +1830,14 @@ public abstract class ArrayNodes {
 
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
-        @CreateCast("other")
-        protected RubyBaseNodeWithExecute coerceOtherToAry(RubyBaseNodeWithExecute index) {
-            return ToAryNodeGen.create(index);
-        }
-
         @Specialization
-        protected RubyArray replace(RubyArray array, RubyArray other,
+        protected RubyArray replace(RubyArray array, Object otherObject,
+                @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+            final var other = toAryNode.execute(otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
             if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {

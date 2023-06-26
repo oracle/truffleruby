@@ -11,6 +11,7 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Config;
@@ -51,9 +52,9 @@ public class StringGuards {
         return codeRangeNode.execute(string, encoding) == BROKEN;
     }
 
-    public static boolean isSingleByteOptimizable(AbstractTruffleString tString, RubyEncoding encoding,
+    public static boolean isSingleByteOptimizable(Node node, AbstractTruffleString tString, RubyEncoding encoding,
             SingleByteOptimizableNode singleByteOptimizableNode) {
-        return singleByteOptimizableNode.execute(tString, encoding);
+        return singleByteOptimizableNode.execute(node, tString, encoding);
     }
 
     public static boolean isAsciiCompatible(RubyEncoding encoding) {
@@ -70,15 +71,15 @@ public class StringGuards {
     }
 
     /** The mapping is ASCII-only or effectively ASCII-only based on the string properties. */
-    private static boolean isAsciiCodePointsMapping(AbstractTruffleString tstring, RubyEncoding encoding,
+    private static boolean isAsciiCodePointsMapping(Node node, AbstractTruffleString tstring, RubyEncoding encoding,
             int caseMappingOptions, SingleByteOptimizableNode singleByteOptimizableNode) {
-        return isSingleByteOptimizable(tstring, encoding, singleByteOptimizableNode)
+        return isSingleByteOptimizable(node, tstring, encoding, singleByteOptimizableNode)
                 ? isAsciiCompatMapping(caseMappingOptions)
                 : caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(encoding);
     }
 
-    public static boolean isComplexCaseMapping(AbstractTruffleString tstring, RubyEncoding encoding,
+    public static boolean isComplexCaseMapping(Node node, AbstractTruffleString tstring, RubyEncoding encoding,
             int caseMappingOptions, SingleByteOptimizableNode singleByteOptimizableNode) {
-        return !isAsciiCodePointsMapping(tstring, encoding, caseMappingOptions, singleByteOptimizableNode);
+        return !isAsciiCodePointsMapping(node, tstring, encoding, caseMappingOptions, singleByteOptimizableNode);
     }
 }

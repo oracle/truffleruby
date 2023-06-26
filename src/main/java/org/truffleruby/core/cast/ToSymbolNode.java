@@ -13,8 +13,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -24,31 +22,15 @@ import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
-@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
-
-    @NeverDefault
-    public static ToSymbolNode create() {
-        return ToSymbolNodeGen.create(null);
-    }
-
-    public static ToSymbolNode create(RubyBaseNodeWithExecute value) {
-        return ToSymbolNodeGen.create(value);
-    }
-
-    public static ToSymbolNode getUncached() {
-        return ToSymbolNodeGen.getUncached();
-    }
+public abstract class ToSymbolNode extends RubyBaseNode {
 
     public abstract RubySymbol execute(Object object);
-
-    abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     protected RubySymbol symbol(RubySymbol symbol) {
@@ -115,10 +97,4 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     protected int getCacheLimit() {
         return getLanguage().options.DISPATCH_CACHE;
     }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getValueNode().cloneUninitialized());
-    }
-
 }

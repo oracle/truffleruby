@@ -32,7 +32,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -45,6 +44,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
@@ -162,16 +162,17 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
         @Specialization
         protected static void shareElements(NativeArrayStorage store, int start, int end,
-                @CachedLibrary("store") ArrayStoreLibrary node,
+                @CachedLibrary("store") ArrayStoreLibrary arrayStoreLibrary,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @Cached WriteBarrierNode writeBarrierNode) {
+                @Cached WriteBarrierNode writeBarrierNode,
+                @Bind("$node") Node node) {
             int i = start;
             try {
                 for (; loopProfile.inject(i < end); i++) {
-                    writeBarrierNode.executeWriteBarrier(node.read(store, i));
+                    writeBarrierNode.execute(node, arrayStoreLibrary.read(store, i));
                 }
             } finally {
-                RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
+                RubyBaseNode.profileAndReportLoopCount(arrayStoreLibrary, loopProfile, i);
             }
         }
     }

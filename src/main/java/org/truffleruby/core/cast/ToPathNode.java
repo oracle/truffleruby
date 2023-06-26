@@ -11,21 +11,15 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToPathNode extends RubyBaseNodeWithExecute {
+public abstract class ToPathNode extends RubyBaseNode {
 
-    public static ToPathNode create(RubyBaseNodeWithExecute child) {
-        return ToPathNodeGen.create(child);
-    }
-
-    abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract Object execute(Object value);
 
     @Specialization
     protected RubyString coerceRubyString(RubyString path) {
@@ -41,10 +35,5 @@ public abstract class ToPathNode extends RubyBaseNodeWithExecute {
     protected RubyString coerceObject(Object object,
             @Cached DispatchNode toPathNode) {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
-    }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getChildNode().cloneUninitialized());
     }
 }

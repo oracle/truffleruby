@@ -14,8 +14,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
@@ -93,16 +95,17 @@ public class ObjectArrayStore {
 
         @Specialization
         protected static void shareElements(Object[] store, int start, int end,
-                @CachedLibrary("store") ArrayStoreLibrary node,
+                @CachedLibrary("store") ArrayStoreLibrary arrayStoreLibrary,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @Cached WriteBarrierNode writeBarrierNode) {
+                @Cached WriteBarrierNode writeBarrierNode,
+                @Bind("$node") Node node) {
             int i = start;
             try {
                 for (; loopProfile.inject(i < end); i++) {
-                    writeBarrierNode.executeWriteBarrier(store[i]);
+                    writeBarrierNode.execute(node, store[i]);
                 }
             } finally {
-                RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i);
+                RubyBaseNode.profileAndReportLoopCount(arrayStoreLibrary, loopProfile, i);
             }
         }
     }

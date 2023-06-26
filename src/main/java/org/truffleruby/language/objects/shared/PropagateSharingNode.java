@@ -38,6 +38,6 @@ public abstract class PropagateSharingNode extends RubyBaseNode {
     protected void propagateShared(RubyDynamicObject source, Object value,
             @Cached @Shared IsSharedNode isSharedNode,
             @Cached WriteBarrierNode writeBarrierNode) {
-        writeBarrierNode.executeWriteBarrier(value);
+        writeBarrierNode.execute(this, value);
     }
 }

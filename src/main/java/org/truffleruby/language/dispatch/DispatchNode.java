@@ -22,6 +22,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.ToSymbolNode;
+import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
@@ -384,7 +385,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
     protected RubySymbol nameToSymbol(String methodName) {
         if (toSymbol == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSymbol = insert(ToSymbolNode.create());
+            toSymbol = insert(ToSymbolNodeGen.create());
         }
         return toSymbol.execute(methodName);
     }
@@ -457,7 +458,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
 
         @Override
         protected RubySymbol nameToSymbol(String methodName) {
-            return ToSymbolNode.getUncached().execute(methodName);
+            return ToSymbolNodeGen.getUncached().execute(methodName);
         }
 
         @Override

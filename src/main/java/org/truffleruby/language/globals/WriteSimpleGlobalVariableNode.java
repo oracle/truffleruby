@@ -12,16 +12,15 @@ package org.truffleruby.language.globals;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     protected final String name;
-    @Child protected WriteBarrierNode writeBarrierNode = WriteBarrierNode.create();
 
     @NeverDefault
     public static WriteSimpleGlobalVariableNode create(String name) {
@@ -59,10 +58,11 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object writeAssumeConstant(Object value,
+            @Cached @Shared WriteBarrierNode writeBarrierNode,
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
-            writeBarrierNode.executeWriteBarrier(value);
+            writeBarrierNode.execute(this, value);
         }
         storage.setValueInternal(value);
         storage.updateAssumeConstant(getContext());
@@ -71,9 +71,10 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     @Specialization(replaces = "writeAssumeConstant")
     protected Object writeAliasedOrMultiContext(Object value,
+            @Cached @Shared WriteBarrierNode writeBarrierNode,
             @Cached("create(name)") LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode) {
         if (getContext().getSharedObjects().isSharing()) {
-            writeBarrierNode.executeWriteBarrier(value);
+            writeBarrierNode.execute(this, value);
         }
 
         final GlobalVariableStorage storage = lookupGlobalVariableStorageNode.execute(null);

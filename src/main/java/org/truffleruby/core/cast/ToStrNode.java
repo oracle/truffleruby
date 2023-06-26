@@ -10,57 +10,43 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToStrNode extends RubyBaseNodeWithExecute {
+@GenerateInline
+@GenerateCached(false)
+public abstract class ToStrNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static ToStrNode create() {
-        return ToStrNodeGen.create(null);
-    }
-
-    public static ToStrNode create(RubyBaseNodeWithExecute child) {
-        return ToStrNodeGen.create(child);
-    }
-
-    public abstract Object execute(Object object);
-
-    public abstract RubyBaseNodeWithExecute getChildNode();
+    public abstract Object execute(Node node, Object object);
 
     @Specialization
-    protected RubyString coerceRubyString(RubyString string) {
+    protected static RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
+    protected static ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected Object coerceObject(Object object,
-            @Cached DispatchNode toStrNode) {
+    protected static Object coerceObject(Node node, Object object,
+            @Cached(inline = false) DispatchNode toStrNode) {
         return toStrNode.call(
-                coreLibrary().truffleTypeModule,
+                coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",
                 object,
-                coreLibrary().stringClass,
-                coreSymbols().TO_STR);
-    }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getChildNode().cloneUninitialized());
+                coreLibrary(node).stringClass,
+                coreSymbols(node).TO_STR);
     }
 }

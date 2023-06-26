@@ -336,7 +336,7 @@ public class ValueWrapperManager {
             }
 
             if (context.getOptions().BACKTRACE_ON_TO_NATIVE) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("ValueWrapper#toNative: ", getNode());
+                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("ValueWrapper#toNative: ", this);
             }
 
             if (block == null || block.isFull()) {

@@ -51,7 +51,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToPathNodeGen;
+import org.truffleruby.core.cast.ToPathNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
@@ -338,18 +338,11 @@ public abstract class ModuleNodes {
     @NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
-        @CreateCast("newName")
-        protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
-            return ToSymbolNode.create(newName);
-        }
-
-        @CreateCast("oldName")
-        protected RubyBaseNodeWithExecute coerceOldNameToSymbol(RubyBaseNodeWithExecute oldName) {
-            return ToSymbolNode.create(oldName);
-        }
-
         @Specialization
-        protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
+        protected RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
+                @Cached ToSymbolNode toSymbolNode) {
+            final var newName = toSymbolNode.execute(newNameObject);
+            final var oldName = toSymbolNode.execute(oldNameObject);
             return aliasMethod(module, newName, oldName, this);
         }
 
@@ -459,7 +452,7 @@ public abstract class ModuleNodes {
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
             final Object value = RubyArguments.getArgument(rubyArgs, 0);
-            writeObjectFieldNode.execute((RubyDynamicObject) self, ivarName, value);
+            writeObjectFieldNode.execute(this, (RubyDynamicObject) self, ivarName, value);
             return value;
         }
 
@@ -488,7 +481,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private Object[] createAccessors(RubyModule module, Object[] names, Accessor accessor,
                 Visibility visibility) {
-            final Node currentNode = getNode();
+            final Node currentNode = getAdoptedNode(this);
             final SourceSection sourceSection;
             if (currentNode != null) {
                 sourceSection = currentNode.getEncapsulatingSourceSection();
@@ -630,14 +623,11 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("filename")
-        protected RubyBaseNodeWithExecute coerceFilenameToPath(RubyBaseNodeWithExecute filename) {
-            return ToPathNodeGen.create(filename);
-        }
-
         @TruffleBoundary
-        @Specialization(guards = "libFilename.isRubyString(filename)", limit = "1")
+        @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
         protected Object autoload(RubyModule module, String name, Object filename,
+                @Cached ToPathNode toPathNode,
+                @Bind("toPathNode.execute(filename)") Object filenameAsPath,
                 @Cached RubyStringLibrary libFilename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
@@ -649,12 +639,12 @@ public abstract class ModuleNodes {
                                 this));
             }
 
-            if (libFilename.getTString(filename).isEmpty()) {
+            if (libFilename.getTString(filenameAsPath).isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final String javaStringFilename = RubyGuards.getJavaString(filename);
-            module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
+            final String javaStringFilename = RubyGuards.getJavaString(filenameAsPath);
+            module.fields.setAutoloadConstant(getContext(), this, name, filenameAsPath, javaStringFilename);
             return nil;
         }
     }
@@ -745,11 +735,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(0, 1, 2, node));
             }
 
-            sourceCode = toStrNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            sourceCode = toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 0));
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .execute(toStrNode.execute(RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {

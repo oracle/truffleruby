@@ -10,7 +10,9 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -67,17 +69,18 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
                     "lookupNode.lookupProtected(frame, a, METHOD) == coreMethods().STRING_EQUAL"
             },
             assumptions = "assumptions", limit = "1")
-    protected boolean stringEqual(VirtualFrame frame, Object a, Object b,
+    protected static boolean stringEqual(VirtualFrame frame, Object a, Object b,
             @Cached RubyStringLibrary libA,
             @Cached RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
-            @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode) {
+            @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode,
+            @Bind("this") Node node) {
         var tstringA = libA.getTString(a);
         var encA = libA.getEncoding(a);
         var tstringB = libB.getTString(b);
         var encB = libB.getEncoding(b);
-        var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(tstringA, encA, tstringB, encB);
+        var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringA, encA, tstringB, encB);
         return stringEqualInternalNode.executeInternal(tstringA, tstringB, compatibleEncoding);
     }
 

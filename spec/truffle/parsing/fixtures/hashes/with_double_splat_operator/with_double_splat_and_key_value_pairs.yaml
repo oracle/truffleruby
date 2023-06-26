@@ -13,7 +13,7 @@ ast: |
           flags = 1
       children:
           children = [
-              HashCastNodeGen
+              HashCastNodeGen$HashCastASTNodeGen
                   attributes:
                       flags = 0
                   children:

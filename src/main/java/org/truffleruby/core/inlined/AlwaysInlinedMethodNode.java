@@ -41,7 +41,7 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     public abstract Object execute(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target);
 
     protected void needCallerFrame(Frame callerFrame, RootCallTarget target) {
-        needCallerFrame(getNode(), callerFrame, target);
+        needCallerFrame(this, callerFrame, target);
     }
 
     protected static void needCallerFrame(Node node, Frame callerFrame, RootCallTarget target) {
@@ -56,7 +56,7 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     protected void needCallerFrame(Frame callerFrame, String method) {
         if (callerFrame == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw buildException(getNode(), method);
+            throw buildException(this, method);
         }
 
         assert CallStackManager.isRubyFrame(callerFrame);
@@ -71,7 +71,7 @@ public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
     private static RaiseException buildException(Node node, String method) {
         return new RaiseException(getContext(node), coreExceptions(node).runtimeError(
                 method + " needs the caller frame but it was not passed (cannot be called directly from a foreign language)",
-                getNode(node)));
+                node));
     }
 
     public static boolean isBlockProvided(Object[] rubyArgs) {

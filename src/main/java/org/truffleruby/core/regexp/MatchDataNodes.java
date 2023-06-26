@@ -504,7 +504,7 @@ public abstract class MatchDataNodes {
             var encoding = strings.getEncoding(matchData.source);
 
             if (multiByteCharacterProfile.profile(this,
-                    !singleByteOptimizableNode.execute(matchDataSource, encoding))) {
+                    !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
                 return getCharOffsets(matchData, matchDataSource, encoding).beg[index];
             }
 
@@ -590,7 +590,7 @@ public abstract class MatchDataNodes {
             var encoding = strings.getEncoding(matchData.source);
 
             if (multiByteCharacterProfile.profile(this,
-                    !singleByteOptimizableNode.execute(matchDataSource, encoding))) {
+                    !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
                 return getCharOffsets(matchData, matchDataSource, encoding).end[index];
             }
 

@@ -11,7 +11,9 @@ package org.truffleruby.stdlib.readline;
 
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.Buffer;
 import org.graalvm.shadowed.org.jline.reader.Candidate;
@@ -35,7 +37,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
@@ -76,18 +77,16 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "characters", type = RubyBaseNodeWithExecute.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
-        @CreateCast("characters")
-        protected ToStrNode coerceCharactersToString(RubyBaseNodeWithExecute characters) {
-            return ToStrNodeGen.create(characters);
-        }
-
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(characters)", limit = "1")
-        protected Object setBasicWordBreakCharacters(Object characters,
-                @Cached RubyStringLibrary strings) {
-            final String delimiters = RubyGuards.getJavaString(characters);
-            getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
-            return characters;
+        @Specialization(guards = "strings.isRubyString(charactersAsString)", limit = "1")
+        protected static Object setBasicWordBreakCharacters(Object characters,
+                @Cached ToStrNode toStrNode,
+                @Cached RubyStringLibrary strings,
+                @Bind("this") Node node,
+                @Bind("toStrNode.execute(node, characters)") Object charactersAsString) {
+            final String delimiters = RubyGuards.getJavaString(charactersAsString);
+            getContext(node).getConsoleHolder().getParser().setDelimiters(delimiters);
+            return charactersAsString;
         }
 
     }
