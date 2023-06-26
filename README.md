@@ -41,9 +41,9 @@ chruby: $ ruby-install truffleruby-graalvm
 ```
 
 * Via Docker.
-  For Standalone see [official release images](https://github.com/graalvm/container/blob/master/truffleruby/README.md)
+  For Standalone see [official release images](https://github.com/graalvm/container/blob/master/truffleruby-community/README.md)
   and [nightly images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
-  For GraalVM see [official release images](https://github.com/graalvm/container/blob/master/community/README.md).
+  For GraalVM see [official release images](https://github.com/graalvm/container/blob/master/graalvm-community/README.md).
 
 * Manually, by following the documentation: [Standalone](doc/user/standalone-distribution.md) and [GraalVM](doc/user/installing-graalvm.md).
 
