@@ -204,16 +204,26 @@ suite = {
         },
 
         "org.yarp.libyarp": {
+            "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
+            "makeTarget": "all-no-debug", # Comment this out to build with asserts and no optimizations
+            "results": ["build/librubyparser.a"],
+            "description": "YARP used as a static library"
+        },
+
+        "org.truffleruby.yarp.bindings": {
+            "dir": "src/main/c/yarp_bindings",
             "native": "shared_lib",
             "deliverable": "yarp",
             "buildDependencies": [
+                "org.yarp.libyarp", # librubyparser.a
                 "org.yarp", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
+            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.yarp.libyarp>/include"],
             "ldflags": ["-pthread"],
-            "description": "YARP + JNI bindings as a single lib"
+            "ldlibs": ["<path:org.yarp.libyarp>/build/librubyparser.a"],
+            "description": "JNI bindings for YARP"
         },
 
         "org.truffleruby": {
@@ -485,7 +495,7 @@ suite = {
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
-                    "dependency:org.yarp.libyarp",
+                    "dependency:org.truffleruby.yarp.bindings",
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
