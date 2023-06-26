@@ -3,16 +3,19 @@
 set -x
 set -e
 
+YARP=../../yarp
+
 # Create generated files
-pushd ../../yarp
+pushd $YARP
+bundle
+bundle exec rake clobber
 bundle exec rake templates
 popd
 
-rm -rf src/main/c/yarp/src/yarp
-# Copy under src/yarp and not just src/ because we also have yarp_bindings.c
-mkdir src/main/c/yarp/src/yarp
-cp -R ../../yarp/include src/main/c/yarp/src/yarp
-cp -R ../../yarp/src src/main/c/yarp/src/yarp
+rm -rf src/main/c/yarp
+mkdir src/main/c/yarp
+cp -R $YARP/{include,src} src/main/c/yarp
+cp $YARP/{configure.ac,LICENSE.md,Makefile.in} src/main/c/yarp
 
 rm -rf src/yarp/java
-cp -R ../../yarp/java src/yarp/java
+cp -R $YARP/java src/yarp/java

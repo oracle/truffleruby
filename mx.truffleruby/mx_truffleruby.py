@@ -121,6 +121,24 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         command = [jdk.java] + jvm_args + [main_class] + ruby_options + ['"$@"']
         return "#!/usr/bin/env bash\n" + "exec " + " ".join(command) + "\n"
 
+
+class YARPNativeProject(mx.NativeProject):
+    def __init__(self, suite, name, deps, workingSets, output=None, **kwArgs):
+        path = join(root, kwArgs.pop('dir'))
+        super(YARPNativeProject, self).__init__(
+            suite, name, subDir=None, srcDirs=[path], deps=deps, workingSets=workingSets,
+            results=kwArgs.pop('results'),
+            output=path, d=path, vpath=False, **kwArgs)
+
+    def getBuildTask(self, args):
+        return YARPNativeBuildTask(args, self)
+
+class YARPNativeBuildTask(mx.NativeBuildTask):
+    def build(self):
+        mx.run(['autoreconf'], cwd=self.subject.dir)
+        mx.run(['./configure'], cwd=self.subject.dir)
+        super(YARPNativeBuildTask, self).build() # make
+
 # Commands
 
 def jt(*args):
