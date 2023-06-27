@@ -31,7 +31,7 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              TryNode
+              TryNodeGen
                   attributes:
                       canOmitBacktrace = true
                       flags = 1

@@ -68,7 +68,7 @@ ast: |
                                           flags = 0
                                       children:
                                           body =
-                                              EnsureNode
+                                              EnsureNodeGen
                                                   attributes:
                                                       flags = 0
                                                   children:

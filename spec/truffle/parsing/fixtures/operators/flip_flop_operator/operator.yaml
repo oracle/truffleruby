@@ -9,7 +9,7 @@ ruby: |
   x = 42
   1 if (x) .. (x)
 ast: |
-  FlipFlopNode
+  FlipFlopNodeGen
       attributes:
           exclusive = false
           flags = 1
@@ -17,20 +17,14 @@ ast: |
           frameSlot = 3
       children:
           begin =
-              BooleanCastNodeGen
-                  children:
-                      valueNode_ =
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 1
-                                  frameSlot = 2
-                                  type = FRAME_LOCAL
+              ReadLocalVariableNode
+                  attributes:
+                      flags = 1
+                      frameSlot = 2
+                      type = FRAME_LOCAL
           end =
-              BooleanCastNodeGen
-                  children:
-                      valueNode_ =
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 1
-                                  frameSlot = 2
-                                  type = FRAME_LOCAL
+              ReadLocalVariableNode
+                  attributes:
+                      flags = 1
+                      frameSlot = 2
+                      type = FRAME_LOCAL

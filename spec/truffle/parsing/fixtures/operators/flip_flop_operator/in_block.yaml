@@ -154,39 +154,30 @@ ast: |
                                                                                                                       attributes:
                                                                                                                           flags = 0
                                                                                                                           value = 42
-                                                                                                      IfNode
+                                                                                                      IfNodeGen
                                                                                                           attributes:
                                                                                                               flags = 0
                                                                                                           children:
                                                                                                               condition =
-                                                                                                                  BooleanCastNodeGen
+                                                                                                                  FlipFlopNodeGen
+                                                                                                                      attributes:
+                                                                                                                          exclusive = false
+                                                                                                                          flags = 1
+                                                                                                                          frameLevel = 1
+                                                                                                                          frameSlot = 4
                                                                                                                       children:
-                                                                                                                          valueNode_ =
-                                                                                                                              FlipFlopNode
+                                                                                                                          begin =
+                                                                                                                              ReadLocalVariableNode
                                                                                                                                   attributes:
-                                                                                                                                      exclusive = false
                                                                                                                                       flags = 1
-                                                                                                                                      frameLevel = 1
-                                                                                                                                      frameSlot = 4
-                                                                                                                                  children:
-                                                                                                                                      begin =
-                                                                                                                                          BooleanCastNodeGen
-                                                                                                                                              children:
-                                                                                                                                                  valueNode_ =
-                                                                                                                                                      ReadLocalVariableNode
-                                                                                                                                                          attributes:
-                                                                                                                                                              flags = 1
-                                                                                                                                                              frameSlot = 1
-                                                                                                                                                              type = FRAME_LOCAL
-                                                                                                                                      end =
-                                                                                                                                          BooleanCastNodeGen
-                                                                                                                                              children:
-                                                                                                                                                  valueNode_ =
-                                                                                                                                                      ReadLocalVariableNode
-                                                                                                                                                          attributes:
-                                                                                                                                                              flags = 1
-                                                                                                                                                              frameSlot = 1
-                                                                                                                                                              type = FRAME_LOCAL
+                                                                                                                                      frameSlot = 1
+                                                                                                                                      type = FRAME_LOCAL
+                                                                                                                          end =
+                                                                                                                              ReadLocalVariableNode
+                                                                                                                                  attributes:
+                                                                                                                                      flags = 1
+                                                                                                                                      frameSlot = 1
+                                                                                                                                      type = FRAME_LOCAL
                                                                                                               thenBody =
                                                                                                                   IntegerFixnumLiteralNode
                                                                                                                       attributes:

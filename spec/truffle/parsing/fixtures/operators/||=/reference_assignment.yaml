@@ -68,7 +68,7 @@ ast: |
                                       SelfNode
                                           attributes:
                                               flags = 0
-              OrNode
+              OrNodeGen
                   attributes:
                       flags = 1
                   children:
@@ -91,8 +91,6 @@ ast: |
                                               flags = 0
                                               frameSlot = 3
                                               type = FRAME_LOCAL
-                      leftCast =
-                          BooleanCastNodeGen
                       right =
                           InlinedIndexSetNodeGen
                               attributes:

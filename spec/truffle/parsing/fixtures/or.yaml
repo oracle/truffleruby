@@ -4,7 +4,7 @@ focused_on_node: "org.truffleruby.language.control.OrNode"
 ruby: |
   1 or 2
 ast: |
-  OrNode
+  OrNodeGen
       attributes:
           flags = 1
       children:
@@ -13,8 +13,6 @@ ast: |
                   attributes:
                       flags = 0
                       value = 1
-          leftCast =
-              BooleanCastNodeGen
           right =
               IntegerFixnumLiteralNode
                   attributes:

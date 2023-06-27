@@ -6,7 +6,7 @@ focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
 ruby: |
   foo ||= 42
 ast: |
-  OrLazyValueDefinedNode
+  OrLazyValueDefinedNodeGen
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
@@ -17,8 +17,6 @@ ast: |
                       flags = 0
                       frameSlot = 2
                       type = FRAME_LOCAL
-          leftCast =
-              BooleanCastNodeGen
           right =
               WriteLocalVariableNode
                   attributes:

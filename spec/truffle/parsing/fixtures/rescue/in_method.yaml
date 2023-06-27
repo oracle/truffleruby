@@ -63,7 +63,7 @@ ast: |
                                       attributes:
                                           flags = 0
                                           slot = 2
-                                  TryNode
+                                  TryNodeGen
                                       attributes:
                                           canOmitBacktrace = true
                                           flags = 0

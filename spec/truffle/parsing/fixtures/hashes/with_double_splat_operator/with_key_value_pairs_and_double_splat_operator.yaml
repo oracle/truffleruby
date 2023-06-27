@@ -13,12 +13,10 @@ ast: |
           flags = 1
       children:
           children = [
-              PackedHashStoreLibrary$SmallHashLiteralNode
+              PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                   attributes:
                       flags = 0
                   children:
-                      freezeHashKeyIfNeededNode =
-                          FreezeHashKeyIfNeededNodeGen
                       keyValues = [
                           ObjectLiteralNode
                               attributes:

@@ -8,18 +8,15 @@ ruby: |
   else
   end
 ast: |
-  UnlessNode
+  UnlessNodeGen
       attributes:
           flags = 0
       children:
           condition =
-              BooleanCastNodeGen
-                  children:
-                      valueNode_ =
-                          BooleanLiteralNode
-                              attributes:
-                                  flags = 1
-                                  value = true
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
           thenBody =
               NilLiteralNode
                   attributes:

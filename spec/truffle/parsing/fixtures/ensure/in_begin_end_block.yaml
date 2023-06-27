@@ -31,7 +31,7 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              EnsureNode
+              EnsureNodeGen
                   attributes:
                       flags = 1
                   children:

@@ -90,7 +90,7 @@ ast: |
                                       SelfNode
                                           attributes:
                                               flags = 0
-              AndNode
+              AndNodeGen
                   attributes:
                       flags = 1
                   children:

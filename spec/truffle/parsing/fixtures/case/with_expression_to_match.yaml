@@ -54,14 +54,35 @@ ast: |
                               attributes:
                                   flags = 0
                                   value = 42
-              IfElseNode
+              IfElseNodeGen
                   attributes:
                       flags = 0
                   children:
                       condition =
-                          BooleanCastNodeGen
+                          InlinedCaseEqualNodeGen
+                              attributes:
+                                  assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                  flags = 0
+                                  integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
+                                  parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                               children:
-                                  valueNode_ =
+                                  leftNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  rightNode_ =
+                                      ReadLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 2
+                                              type = FRAME_LOCAL
+                      elseBody =
+                          IfElseNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  condition =
                                       InlinedCaseEqualNodeGen
                                           attributes:
                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
@@ -73,40 +94,13 @@ ast: |
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
-                                                          value = 42
+                                                          value = 100500
                                               rightNode_ =
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
-                      elseBody =
-                          IfElseNode
-                              attributes:
-                                  flags = 0
-                              children:
-                                  condition =
-                                      BooleanCastNodeGen
-                                          children:
-                                              valueNode_ =
-                                                  InlinedCaseEqualNodeGen
-                                                      attributes:
-                                                          assumptions = [Assumption(valid, name=set_trace_func is not used)]
-                                                          flags = 0
-                                                          integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
-                                                          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
-                                                      children:
-                                                          leftNode_ =
-                                                              IntegerFixnumLiteralNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      value = 100500
-                                                          rightNode_ =
-                                                              ReadLocalVariableNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      frameSlot = 2
-                                                                      type = FRAME_LOCAL
                                   elseBody =
                                       NilLiteralNode
                                           attributes:

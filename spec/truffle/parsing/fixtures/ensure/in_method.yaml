@@ -63,7 +63,7 @@ ast: |
                                       attributes:
                                           flags = 0
                                           slot = 2
-                                  EnsureNode
+                                  EnsureNodeGen
                                       attributes:
                                           flags = 0
                                       children:
