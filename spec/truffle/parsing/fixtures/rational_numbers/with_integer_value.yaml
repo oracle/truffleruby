@@ -12,7 +12,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -26,20 +25,15 @@ ast: |
           arguments = [
               LongFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42
               LongFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 1
           ]
           receiver =
               ReadConstantNode
                   attributes:
-                      flags = 0
                       name = "Rational"
                   children:
                       moduleNode =
                           ObjectClassLiteralNode
-                              attributes:
-                                  flags = 0

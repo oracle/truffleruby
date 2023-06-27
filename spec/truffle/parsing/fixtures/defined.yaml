@@ -5,11 +5,8 @@ ruby: |
   defined? :foobar
 ast: |
   DefinedNode
-      attributes:
-          flags = 1
       children:
           child =
               ObjectLiteralNode
                   attributes:
-                      flags = 0
                       object = :foobar

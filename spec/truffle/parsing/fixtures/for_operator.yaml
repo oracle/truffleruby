@@ -45,7 +45,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
-          flags = 0
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -61,7 +60,6 @@ ast: |
                   attributes:
                       breakID = org.truffleruby.language.control.BreakID@...
                       callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
-                      flags = 0
                       frameOnStackMarkerSlot = 3
                       sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=21, characters=for i in [42, 100500]), staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
                       type = PROC
@@ -86,71 +84,54 @@ ast: |
                           children:
                               body =
                                   SequenceNode
-                                      attributes:
-                                          flags = 12
                                       children:
                                           body = [
                                               WriteLocalVariableNode
                                                   attributes:
-                                                      flags = 0
                                                       frameSlot = 0
                                                   children:
                                                       valueNode =
                                                           ProfileArgumentNodeGen
-                                                              attributes:
-                                                                  flags = 0
                                                               children:
                                                                   childNode_ =
                                                                       ReadSelfNode
-                                                                          attributes:
-                                                                              flags = 0
                                               WriteLocalVariableNode
                                                   attributes:
-                                                      flags = 0
                                                       frameSlot = 1
                                                   children:
                                                       valueNode =
                                                           ProfileArgumentNodeGen
-                                                              attributes:
-                                                                  flags = 0
                                                               children:
                                                                   childNode_ =
                                                                       ReadPreArgumentNode
                                                                           attributes:
-                                                                              flags = 0
                                                                               index = 0
                                                                               keywordArguments = false
                                                                               missingArgumentBehavior = NIL
                                               WriteDeclarationVariableNode
                                                   attributes:
-                                                      flags = 0
                                                       frameDepth = 1
                                                       frameSlot = 4
                                                   children:
                                                       valueNode =
                                                           ReadLocalVariableNode
                                                               attributes:
-                                                                  flags = 0
                                                                   frameSlot = 1
                                                                   type = FRAME_LOCAL
                                               NilLiteralNode
                                                   attributes:
-                                                      flags = 0
                                                       isImplicit = false
                                           ]
           receiver =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
-                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
                   children:
                       values = [
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 100500
                       ]

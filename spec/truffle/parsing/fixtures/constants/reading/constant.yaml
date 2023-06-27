@@ -6,7 +6,6 @@ ruby: |
 ast: |
   ReadConstantWithLexicalScopeNode
       attributes:
-          flags = 1
           lexicalScope =  :: Object
           name = "Foo"
       children:

@@ -9,5 +9,4 @@ ast: |
   FrozenStringLiteralNode
       attributes:
           definition = method
-          flags = 1
           frozenString = foobar

@@ -6,13 +6,11 @@ ruby: |
 ast: |
   ReadMatchReferenceNodes$ReadNthMatchNode
       attributes:
-          flags = 1
           index = 42
       children:
           readMatchNode =
               ReadGlobalVariableNodeGen
                   attributes:
-                      flags = 0
                       name = "$~"
                   children:
                       lookupGlobalVariableStorageNode =

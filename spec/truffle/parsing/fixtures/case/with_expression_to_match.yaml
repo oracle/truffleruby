@@ -26,96 +26,74 @@ ruby: |
   end
 ast: |
   SequenceNode
-      attributes:
-          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
-                              attributes:
-                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
-                                          attributes:
-                                              flags = 0
               WriteLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 2
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 42
               IfElseNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       condition =
                           InlinedCaseEqualNodeGen
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
-                                  flags = 0
                                   integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
                                   parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                               children:
                                   leftNode_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 42
                                   rightNode_ =
                                       ReadLocalVariableNode
                                           attributes:
-                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
                       elseBody =
                           IfElseNodeGen
-                              attributes:
-                                  flags = 0
                               children:
                                   condition =
                                       InlinedCaseEqualNodeGen
                                           attributes:
                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
-                                              flags = 0
                                               integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
                                               parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                                           children:
                                               leftNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 0
                                                           value = 100500
                                               rightNode_ =
                                                   ReadLocalVariableNode
                                                       attributes:
-                                                          flags = 0
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
                                   elseBody =
                                       NilLiteralNode
                                           attributes:
-                                              flags = 0
                                               isImplicit = false
                                   thenBody =
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
-                                              flags = 1
                                               tstring = one hundred five hundred
                       thenBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 1
                                   tstring = forty two
           ]

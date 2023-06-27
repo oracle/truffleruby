@@ -13,41 +13,30 @@ ruby: |
   end
 ast: |
   IfElseNodeGen
-      attributes:
-          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
-                      flags = 1
                       value = true
           elseBody =
               SequenceNode
-                  attributes:
-                      flags = 0
                   children:
                       body = [
                           BooleanLiteralNode
                               attributes:
-                                  flags = 1
                                   value = true
                           BooleanLiteralNode
                               attributes:
-                                  flags = 1
                                   value = false
                       ]
           thenBody =
               SequenceNode
-                  attributes:
-                      flags = 0
                   children:
                       body = [
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 100500
                       ]

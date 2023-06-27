@@ -6,21 +6,16 @@ ruby: |
 ast: |
   WriteConstantNode
       attributes:
-          flags = 1
           name = "BAR"
       children:
           moduleNode =
               ReadConstantNode
                   attributes:
-                      flags = 0
                       name = "Foo"
                   children:
                       moduleNode =
                           ObjectClassLiteralNode
-                              attributes:
-                                  flags = 0
           valueNode =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 1

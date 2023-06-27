@@ -6,7 +6,6 @@ ruby: |
 ast: |
   ReadInstanceVariableNode
       attributes:
-          flags = 1
           name = "@foo"
       children:
           readSelfSlotNode =

@@ -7,17 +7,13 @@ ruby: |
   {"foo" => 42}
 ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
-      attributes:
-          flags = 0
       children:
           keyValues = [
               FrozenStringLiteralNode
                   attributes:
                       definition = expression
-                      flags = 0
                       frozenString = foo
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42
           ]

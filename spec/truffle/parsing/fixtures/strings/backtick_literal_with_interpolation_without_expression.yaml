@@ -15,7 +15,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -31,7 +30,6 @@ ast: |
                   attributes:
                       emptyTString = ""
                       encoding = UTF-8
-                      flags = 0
                   children:
                       children = [
                           ToSNodeGen
@@ -40,18 +38,14 @@ ast: |
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
-                                              flags = 0
                                               tstring = echo 1 
                           ToSNodeGen
                               children:
                                   valueNode_ =
                                       ObjectLiteralNode
                                           attributes:
-                                              flags = 0
                                               object = ""
                       ]
           ]
           receiver =
               SelfNode
-                  attributes:
-                      flags = 0

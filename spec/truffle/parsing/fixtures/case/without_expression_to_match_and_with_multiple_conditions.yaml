@@ -21,38 +21,29 @@ ruby: |
   end
 ast: |
   IfElseNodeGen
-      attributes:
-          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
-                      flags = 0
                       value = true
           elseBody =
               IfElseNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       condition =
                           BooleanLiteralNode
                               attributes:
-                                  flags = 0
                                   value = false
                       elseBody =
                           NilLiteralNode
                               attributes:
-                                  flags = 0
                                   isImplicit = false
                       thenBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 1
                                   tstring = 1st or 2d condition
           thenBody =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
                       tstring = 1st or 2d condition

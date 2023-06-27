@@ -6,7 +6,6 @@ ruby: |
 ast: |
   InterpolatedRegexpNode
       attributes:
-          flags = 1
           rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
       children:
           asTruffleStringNode =
@@ -25,7 +24,6 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = ASCII-8BIT
-                                  flags = 0
                                   tstring = ""
               ToSNodeGen
                   children:
@@ -33,14 +31,12 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = a
               ToSNodeGen
                   children:
                       valueNode_ =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
               ToSNodeGen
                   children:
@@ -48,6 +44,5 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = c
           ]

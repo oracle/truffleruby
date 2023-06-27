@@ -13,7 +13,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = true
@@ -29,7 +28,6 @@ ast: |
                   attributes:
                       conversionMethod = :to_a
                       copy = false
-                      flags = 0
                       nilBehavior = CONVERT
                   children:
                       childNode_ =
@@ -38,7 +36,6 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
-                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -51,10 +48,6 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
-                                          attributes:
-                                              flags = 0
           ]
           receiver =
               SelfNode
-                  attributes:
-                      flags = 0

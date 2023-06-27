@@ -11,7 +11,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -25,7 +24,6 @@ ast: |
           arguments = [
               ObjectLiteralNode
                   attributes:
-                      flags = 0
                       object = RubyRegexp(source = bar, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
           ]
           receiver =
@@ -34,7 +32,6 @@ ast: |
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PRIVATE
                       emptyKeywordsProfile = false
-                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -47,5 +44,3 @@ ast: |
                   children:
                       receiver =
                           SelfNode
-                              attributes:
-                                  flags = 0

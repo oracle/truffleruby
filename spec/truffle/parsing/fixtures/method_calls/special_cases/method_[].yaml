@@ -8,17 +8,14 @@ ast: |
   InlinedIndexGetNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
-          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           leftNode_ =
               ReadLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 2
                       type = FRAME_LOCAL
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42

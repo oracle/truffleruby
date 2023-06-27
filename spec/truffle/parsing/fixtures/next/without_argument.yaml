@@ -10,11 +10,8 @@ ruby: |
   end
 ast: |
   NextNode
-      attributes:
-          flags = 1
       children:
           child =
               NilLiteralNode
                   attributes:
-                      flags = 0
                       isImplicit = false

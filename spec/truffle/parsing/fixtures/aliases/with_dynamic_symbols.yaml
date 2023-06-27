@@ -6,6 +6,5 @@ ruby: |
 ast: |
   ModuleNodes$AliasKeywordNode
       attributes:
-          flags = 1
           newName = :a
           oldName = :b

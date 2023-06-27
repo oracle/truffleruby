@@ -30,31 +30,21 @@ ast: |
       children:
           body =
               SequenceNode
-                  attributes:
-                      flags = 12
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
-                                  flags = 0
                                   frameSlot = 0
                               children:
                                   valueNode =
                                       ProfileArgumentNodeGen
-                                          attributes:
-                                              flags = 0
                                           children:
                                               childNode_ =
                                                   ReadSelfNode
-                                                      attributes:
-                                                          flags = 0
                           TypeNodesFactory$IsNilNodeFactory$IsNilNodeGen
-                              attributes:
-                                  flags = 1
                               children:
                                   argumentNodes0_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 42
                       ]

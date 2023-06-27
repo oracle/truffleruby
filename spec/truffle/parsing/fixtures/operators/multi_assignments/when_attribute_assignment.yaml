@@ -7,8 +7,6 @@ ruby: |
   a.attribute, b = 'foo', 'bar', 'baz'
 ast: |
   MultipleAssignmentNode
-      attributes:
-          flags = 1
       children:
           preNodes = [
               RubyCallNode
@@ -16,7 +14,6 @@ ast: |
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PROTECTED
                       emptyKeywordsProfile = false
-                      flags = 0
                       isAttrAssign = true
                       isSafeNavigation = false
                       isSplatted = false
@@ -30,7 +27,6 @@ ast: |
                       arguments = [
                           NilLiteralNode
                               attributes:
-                                  flags = 0
                                   isImplicit = true
                       ]
                       receiver =
@@ -39,7 +35,6 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
-                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -52,8 +47,6 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
-                                          attributes:
-                                              flags = 0
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 2
@@ -61,24 +54,20 @@ ast: |
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
-                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = baz
                       ]
           splatCastNode =
@@ -86,5 +75,4 @@ ast: |
                   attributes:
                       conversionMethod = :to_ary
                       copy = true
-                      flags = 0
                       nilBehavior = ARRAY_WITH_NIL

@@ -47,17 +47,13 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = true
-          flags = 1
       children:
           rescueParts = [
               RescueClassesNode
-                  attributes:
-                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "FOO"
                               children:
@@ -72,29 +68,23 @@ ast: |
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
               RescueSplatNode
-                  attributes:
-                      flags = 0
                   children:
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
                               attributes:
                                   conversionMethod = :to_a
                                   copy = false
-                                  flags = 0
                                   nilBehavior = EMPTY_ARRAY
                               children:
                                   childNode_ =
                                       ReadConstantWithLexicalScopeNode
                                           attributes:
-                                              flags = 0
                                               lexicalScope =  :: Object
                                               name = "EXCEPTIONS_ARRAY"
                                           children:
@@ -110,13 +100,10 @@ ast: |
                               attributes:
                                   limit_ = 4
               RescueClassesNode
-                  attributes:
-                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "BAR"
                               children:
@@ -131,12 +118,10 @@ ast: |
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
                       tstring = foo

@@ -12,7 +12,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -26,14 +25,12 @@ ast: |
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 0
               RubyCallNode
                   attributes:
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PRIVATE
                       emptyKeywordsProfile = false
-                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -47,31 +44,23 @@ ast: |
                       arguments = [
                           LongFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 314
                           LongFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 100
                       ]
                       receiver =
                           ReadConstantNode
                               attributes:
-                                  flags = 0
                                   name = "Rational"
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
-                                          attributes:
-                                              flags = 0
           ]
           receiver =
               ReadConstantNode
                   attributes:
-                      flags = 0
                       name = "Complex"
                   children:
                       moduleNode =
                           ObjectClassLiteralNode
-                              attributes:
-                                  flags = 0

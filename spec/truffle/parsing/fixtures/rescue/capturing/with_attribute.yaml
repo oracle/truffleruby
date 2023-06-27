@@ -26,17 +26,13 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
       children:
           rescueParts = [
               RescueClassesNode
-                  attributes:
-                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
                               children:
@@ -50,8 +46,6 @@ ast: |
                       ]
                       rescueBody =
                           SequenceNode
-                              attributes:
-                                  flags = 0
                               children:
                                   body = [
                                       RubyCallNode
@@ -59,7 +53,6 @@ ast: |
                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
-                                              flags = 0
                                               isAttrAssign = true
                                               isSafeNavigation = false
                                               isSplatted = false
@@ -73,7 +66,6 @@ ast: |
                                               arguments = [
                                                   ReadGlobalVariableNodeGen
                                                       attributes:
-                                                          flags = 0
                                                           name = "$!"
                                                       children:
                                                           lookupGlobalVariableStorageNode =
@@ -88,7 +80,6 @@ ast: |
                                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                           dispatchConfig = PRIVATE
                                                           emptyKeywordsProfile = false
-                                                          flags = 0
                                                           isAttrAssign = false
                                                           isSafeNavigation = false
                                                           isSplatted = false
@@ -101,11 +92,8 @@ ast: |
                                                       children:
                                                           receiver =
                                                               SelfNode
-                                                                  attributes:
-                                                                      flags = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -113,5 +101,4 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
                       tstring = foo

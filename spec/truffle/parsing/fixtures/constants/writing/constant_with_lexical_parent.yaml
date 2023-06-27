@@ -6,13 +6,11 @@ ruby: |
 ast: |
   WriteConstantNode
       attributes:
-          flags = 1
           name = "BAR"
       children:
           moduleNode =
               ReadConstantWithLexicalScopeNode
                   attributes:
-                      flags = 0
                       lexicalScope =  :: Object
                       name = "Foo"
                   children:
@@ -26,5 +24,4 @@ ast: |
           valueNode =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 1

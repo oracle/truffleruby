@@ -14,37 +14,27 @@ ruby: |
   foo[42] &&= 100500
 ast: |
   SequenceNode
-      attributes:
-          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
-                              attributes:
-                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
-                                          attributes:
-                                              flags = 0
               WriteLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 3
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 42
               WriteLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 2
                   children:
                       valueNode =
@@ -53,7 +43,6 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
-                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -66,53 +55,42 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
-                                          attributes:
-                                              flags = 0
               AndNodeGen
-                  attributes:
-                      flags = 1
                   children:
                       left =
                           InlinedIndexGetNodeGen
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
-                                  flags = 0
                                   parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                               children:
                                   leftNode_ =
                                       ReadLocalVariableNode
                                           attributes:
-                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
                                   rightNode_ =
                                       ReadLocalVariableNode
                                           attributes:
-                                              flags = 0
                                               frameSlot = 3
                                               type = FRAME_LOCAL
                       right =
                           InlinedIndexSetNodeGen
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
-                                  flags = 0
                                   parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                               children:
                                   operand1Node_ =
                                       ReadLocalVariableNode
                                           attributes:
-                                              flags = 0
                                               frameSlot = 3
                                               type = FRAME_LOCAL
                                   operand2Node_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 100500
                                   receiver_ =
                                       ReadLocalVariableNode
                                           attributes:
-                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
           ]

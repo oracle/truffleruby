@@ -7,13 +7,10 @@ ruby: |
   @a, @b, @c = 'foo', 'bar', 'baz'
 ast: |
   MultipleAssignmentNode
-      attributes:
-          flags = 1
       children:
           preNodes = [
               WriteInstanceVariableNode
                   attributes:
-                      flags = 0
                       frozenProfile = false
                       name = "@a"
                   children:
@@ -23,7 +20,6 @@ ast: |
                                   frameSlot = 0
               WriteInstanceVariableNode
                   attributes:
-                      flags = 0
                       frozenProfile = false
                       name = "@b"
                   children:
@@ -33,7 +29,6 @@ ast: |
                                   frameSlot = 0
               WriteInstanceVariableNode
                   attributes:
-                      flags = 0
                       frozenProfile = false
                       name = "@c"
                   children:
@@ -45,24 +40,20 @@ ast: |
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
-                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = baz
                       ]
           splatCastNode =
@@ -70,5 +61,4 @@ ast: |
                   attributes:
                       conversionMethod = :to_ary
                       copy = true
-                      flags = 0
                       nilBehavior = ARRAY_WITH_NIL

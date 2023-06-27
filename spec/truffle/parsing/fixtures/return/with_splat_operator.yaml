@@ -8,26 +8,21 @@ ruby: |
   return *[42]
 ast: |
   LocalReturnNode
-      attributes:
-          flags = 1
       children:
           value =
               SplatCastNodeGen
                   attributes:
                       conversionMethod = :to_a
                       copy = true
-                      flags = 0
                       nilBehavior = CONVERT
                   children:
                       childNode_ =
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
-                                  flags = 0
                                   language = org.truffleruby.RubyLanguage@...
                               children:
                                   values = [
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 42
                                   ]

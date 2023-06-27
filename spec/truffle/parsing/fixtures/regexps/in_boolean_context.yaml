@@ -12,7 +12,6 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -26,7 +25,6 @@ ast: |
           arguments = [
               ReadGlobalVariableNodeGen
                   attributes:
-                      flags = 0
                       name = "$_"
                   children:
                       lookupGlobalVariableStorageNode =
@@ -38,5 +36,4 @@ ast: |
           receiver =
               ObjectLiteralNode
                   attributes:
-                      flags = 0
                       object = RubyRegexp(source = foo, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)

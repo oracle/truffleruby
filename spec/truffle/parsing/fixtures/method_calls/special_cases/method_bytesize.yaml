@@ -8,12 +8,10 @@ ast: |
   InlinedByteSizeNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
-          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           selfNode_ =
               ReadLocalVariableNode
                   attributes:
-                      flags = 0
                       frameSlot = 2
                       type = FRAME_LOCAL

@@ -14,7 +14,6 @@ ruby: |
 ast: |
   RunModuleDefinitionNode
       attributes:
-          flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <module:A>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=module A\n  bar = "bar"\n  def bar.foo\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null), callTarget = <module:A>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
@@ -22,13 +21,11 @@ ast: |
           definingModule =
               DefineModuleNodeGen
                   attributes:
-                      flags = 0
                       name = "A"
                   children:
                       lexicalParentModuleNode_ =
                           LexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
       call targets:
           RubyRootNode
@@ -45,62 +42,45 @@ ast: |
               children:
                   body =
                       SequenceNode
-                          attributes:
-                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
-                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
-                                                  attributes:
-                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
-                                                              attributes:
-                                                                  flags = 0
                                   InsideModuleDefinitionNode
-                                      attributes:
-                                          flags = 0
                                       children:
                                           body =
                                               SequenceNode
-                                                  attributes:
-                                                      flags = 0
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
-                                                                  flags = 1
                                                                   frameSlot = 2
                                                               children:
                                                                   valueNode =
                                                                       StringLiteralNode
                                                                           attributes:
                                                                               encoding = UTF-8
-                                                                              flags = 0
                                                                               tstring = bar
                                                           LiteralMethodDefinitionNode
                                                               attributes:
                                                                   callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
-                                                                  flags = 1
                                                                   isDefSingleton = true
                                                                   name = "foo"
                                                                   sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [3 - 4], index=23, length=19, characters=  def bar.foo\n  end), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = A.foo, notes = null, argumentDescriptors = [])
                                                               children:
                                                                   moduleNode =
                                                                       SingletonClassNodeGen$SingletonClassASTNodeGen
-                                                                          attributes:
-                                                                              flags = 0
                                                                           children:
                                                                               valueNode_ =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
-                                                                                          flags = 0
                                                                                           frameSlot = 2
                                                                                           type = FRAME_LOCAL
                                                               call targets:
@@ -125,31 +105,22 @@ ast: |
                                                                       children:
                                                                           body =
                                                                               SequenceNode
-                                                                                  attributes:
-                                                                                      flags = 12
                                                                                   children:
                                                                                       body = [
                                                                                           WriteLocalVariableNode
                                                                                               attributes:
-                                                                                                  flags = 0
                                                                                                   frameSlot = 0
                                                                                               children:
                                                                                                   valueNode =
                                                                                                       ProfileArgumentNodeGen
-                                                                                                          attributes:
-                                                                                                              flags = 0
                                                                                                           children:
                                                                                                               childNode_ =
                                                                                                                   ReadSelfNode
-                                                                                                                      attributes:
-                                                                                                                          flags = 0
                                                                                           SaveMethodBlockNode
                                                                                               attributes:
-                                                                                                  flags = 0
                                                                                                   slot = 2
                                                                                           NilLiteralNode
                                                                                               attributes:
-                                                                                                  flags = 0
                                                                                                   isImplicit = false
                                                                                       ]
                                                       ]

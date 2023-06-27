@@ -5,5 +5,3 @@ ruby: |
   self
 ast: |
   SelfNode
-      attributes:
-          flags = 0

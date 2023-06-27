@@ -9,7 +9,6 @@ ast: |
   BreakNode
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          flags = 1
           ignoreMarker = true
       children:
           child =
@@ -17,18 +16,15 @@ ast: |
                   attributes:
                       conversionMethod = :to_a
                       copy = true
-                      flags = 0
                       nilBehavior = CONVERT
                   children:
                       childNode_ =
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
-                                  flags = 0
                                   language = org.truffleruby.RubyLanguage@...
                               children:
                                   values = [
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 42
                                   ]

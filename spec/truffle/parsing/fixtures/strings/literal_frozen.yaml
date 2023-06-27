@@ -11,5 +11,4 @@ ast: |
   FrozenStringLiteralNode
       attributes:
           definition = expression
-          flags = 1
           frozenString = foobar

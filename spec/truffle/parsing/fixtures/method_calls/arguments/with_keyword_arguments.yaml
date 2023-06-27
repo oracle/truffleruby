@@ -14,7 +14,6 @@ ast: |
           descriptor = KeywordArgumentsDescriptor(keywords = [bar])
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
-          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -27,21 +26,15 @@ ast: |
       children:
           arguments = [
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object = :bar
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object = :baz
                       ]
           ]
           receiver =
               SelfNode
-                  attributes:
-                      flags = 0

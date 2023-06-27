@@ -9,6 +9,5 @@ ruby: |
 ast: |
   ReadLocalVariableNode
       attributes:
-          flags = 1
           frameSlot = 2
           type = FRAME_LOCAL

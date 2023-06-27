@@ -13,20 +13,16 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
-          flags = 1
           isDefSingleton = true
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 3], index=12, length=15, characters=def bar.foo\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = <singleton class>#foo, notes = null, argumentDescriptors = [])
       children:
           moduleNode =
               SingletonClassNodeGen$SingletonClassASTNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       valueNode_ =
                           ReadLocalVariableNode
                               attributes:
-                                  flags = 0
                                   frameSlot = 2
                                   type = FRAME_LOCAL
       call targets:
@@ -51,30 +47,21 @@ ast: |
               children:
                   body =
                       SequenceNode
-                          attributes:
-                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
-                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
-                                                  attributes:
-                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
-                                                              attributes:
-                                                                  flags = 0
                                   SaveMethodBlockNode
                                       attributes:
-                                          flags = 0
                                           slot = 2
                                   NilLiteralNode
                                       attributes:
-                                          flags = 0
                                           isImplicit = false
                               ]

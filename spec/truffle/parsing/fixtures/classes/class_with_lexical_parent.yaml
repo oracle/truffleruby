@@ -10,7 +10,6 @@ ruby: |
 ast: |
   RunModuleDefinitionNode
       attributes:
-          flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=18, characters=class Foo::Bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
@@ -18,13 +17,11 @@ ast: |
           definingModule =
               DefineClassNode
                   attributes:
-                      flags = 0
                       name = "Bar"
                   children:
                       lexicalParentModule =
                           ReadConstantWithLexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "Foo"
                               children:
@@ -50,31 +47,21 @@ ast: |
               children:
                   body =
                       SequenceNode
-                          attributes:
-                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
-                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
-                                                  attributes:
-                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
-                                                              attributes:
-                                                                  flags = 0
                                   InsideModuleDefinitionNode
-                                      attributes:
-                                          flags = 0
                                       children:
                                           body =
                                               NilLiteralNode
                                                   attributes:
-                                                      flags = 0
                                                       isImplicit = false
                               ]

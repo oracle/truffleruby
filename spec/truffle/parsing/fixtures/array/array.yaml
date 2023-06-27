@@ -6,20 +6,16 @@ ruby: |
 ast: |
   ArrayLiteralNode$UninitialisedArrayLiteralNode
       attributes:
-          flags = 1
           language = org.truffleruby.RubyLanguage@...
       children:
           values = [
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 1
               BooleanLiteralNode
                   attributes:
-                      flags = 0
                       value = true
               NilLiteralNode
                   attributes:
-                      flags = 0
                       isImplicit = false
           ]

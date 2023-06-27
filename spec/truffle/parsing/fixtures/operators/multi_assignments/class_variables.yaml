@@ -7,19 +7,15 @@ ruby: |
   @@a, @@b, @@c = 'foo', 'bar', 'baz'
 ast: |
   MultipleAssignmentNode
-      attributes:
-          flags = 1
       children:
           preNodes = [
               WriteClassVariableNode
                   attributes:
-                      flags = 0
                       name = "@@a"
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object =  :: Object
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
@@ -27,13 +23,11 @@ ast: |
                           SetClassVariableNodeGen
               WriteClassVariableNode
                   attributes:
-                      flags = 0
                       name = "@@b"
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object =  :: Object
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
@@ -41,13 +35,11 @@ ast: |
                           SetClassVariableNodeGen
               WriteClassVariableNode
                   attributes:
-                      flags = 0
                       name = "@@c"
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object =  :: Object
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
@@ -57,24 +49,20 @@ ast: |
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
-                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
                                   tstring = baz
                       ]
           splatCastNode =
@@ -82,5 +70,4 @@ ast: |
                   attributes:
                       conversionMethod = :to_ary
                       copy = true
-                      flags = 0
                       nilBehavior = ARRAY_WITH_NIL

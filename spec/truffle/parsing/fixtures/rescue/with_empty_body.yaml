@@ -12,22 +12,17 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = true
-          flags = 1
       children:
           rescueParts = [
               RescueStandardErrorNode
-                  attributes:
-                      flags = 0
                   children:
                       rescueBody =
                           NilLiteralNode
                               attributes:
-                                  flags = 0
                                   isImplicit = false
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
                       tstring = foo

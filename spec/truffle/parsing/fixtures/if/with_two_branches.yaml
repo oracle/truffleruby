@@ -9,21 +9,16 @@ ruby: |
   end
 ast: |
   IfElseNodeGen
-      attributes:
-          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
-                      flags = 1
                       value = true
           elseBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 1
                       value = 42
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 1
                       value = 100500

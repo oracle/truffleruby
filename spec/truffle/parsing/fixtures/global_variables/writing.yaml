@@ -6,7 +6,6 @@ ruby: |
 ast: |
   WriteGlobalVariableNodeGen
       attributes:
-          flags = 1
           name = "$a"
       children:
           lookupGlobalVariableStorageNode =
@@ -17,5 +16,4 @@ ast: |
           valueNode_ =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 1

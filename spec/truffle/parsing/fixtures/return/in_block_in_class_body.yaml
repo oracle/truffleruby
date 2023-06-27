@@ -12,7 +12,6 @@ ruby: |
 ast: |
   RunModuleDefinitionNode
       attributes:
-          flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <class:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 5], index=0, length=46, characters=class Foo\n  1.times do\n    return 42\n  end\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Foo>, blockDepth = 0, parseName = <class:Foo>, notes = null, argumentDescriptors = null), callTarget = <class:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
@@ -20,13 +19,11 @@ ast: |
           definingModule =
               DefineClassNode
                   attributes:
-                      flags = 0
                       name = "Foo"
                   children:
                       lexicalParentModule =
                           LexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
       call targets:
           RubyRootNode
@@ -43,39 +40,28 @@ ast: |
               children:
                   body =
                       SequenceNode
-                          attributes:
-                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
-                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
-                                                  attributes:
-                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
-                                                              attributes:
-                                                                  flags = 0
                                   InsideModuleDefinitionNode
-                                      attributes:
-                                          flags = 0
                                       children:
                                           body =
                                               CatchBreakNode
                                                   attributes:
                                                       breakID = org.truffleruby.language.control.BreakID@...
-                                                      flags = 1
                                                       isWhile = false
                                                   children:
                                                       body =
                                                           FrameOnStackNode
                                                               attributes:
-                                                                  flags = 0
                                                                   frameOnStackMarkerSlot = 2
                                                               children:
                                                                   child =
@@ -84,7 +70,6 @@ ast: |
                                                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                               dispatchConfig = PROTECTED
                                                                               emptyKeywordsProfile = false
-                                                                              flags = 0
                                                                               isAttrAssign = false
                                                                               isSafeNavigation = false
                                                                               isSplatted = false
@@ -100,7 +85,6 @@ ast: |
                                                                                       attributes:
                                                                                           breakID = org.truffleruby.language.control.BreakID@...
                                                                                           callTargets = ProcCallTargets(callTargetForProc = block in <class:Foo>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
-                                                                                          flags = 0
                                                                                           frameOnStackMarkerSlot = 2
                                                                                           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=10, length=12, characters=  1.times do), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
                                                                                           type = PROC
@@ -125,37 +109,26 @@ ast: |
                                                                                               children:
                                                                                                   body =
                                                                                                       SequenceNode
-                                                                                                          attributes:
-                                                                                                              flags = 12
                                                                                                           children:
                                                                                                               body = [
                                                                                                                   WriteLocalVariableNode
                                                                                                                       attributes:
-                                                                                                                          flags = 0
                                                                                                                           frameSlot = 0
                                                                                                                       children:
                                                                                                                           valueNode =
                                                                                                                               ProfileArgumentNodeGen
-                                                                                                                                  attributes:
-                                                                                                                                      flags = 0
                                                                                                                                   children:
                                                                                                                                       childNode_ =
                                                                                                                                           ReadSelfNode
-                                                                                                                                              attributes:
-                                                                                                                                                  flags = 0
                                                                                                                   InvalidReturnNode
-                                                                                                                      attributes:
-                                                                                                                          flags = 1
                                                                                                                       children:
                                                                                                                           value =
                                                                                                                               IntegerFixnumLiteralNode
                                                                                                                                   attributes:
-                                                                                                                                      flags = 0
                                                                                                                                       value = 42
                                                                                                               ]
                                                                               receiver =
                                                                                   IntegerFixnumLiteralNode
                                                                                       attributes:
-                                                                                          flags = 0
                                                                                           value = 1
                               ]

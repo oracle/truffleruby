@@ -6,7 +6,6 @@ ruby: |
 ast: |
   WriteInstanceVariableNode
       attributes:
-          flags = 1
           frozenProfile = false
           name = "@foo"
       children:
@@ -17,5 +16,4 @@ ast: |
           rhs =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42

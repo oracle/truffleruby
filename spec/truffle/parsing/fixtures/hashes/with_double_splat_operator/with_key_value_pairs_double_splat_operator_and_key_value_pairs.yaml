@@ -10,27 +10,19 @@ ruby: |
   {foo: 1, **bar, baz: 2}
 ast: |
   ConcatHashLiteralNode
-      attributes:
-          flags = 1
       children:
           children = [
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object = :foo
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 1
                       ]
               HashCastNodeGen$HashCastASTNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       childNode_ =
                           RubyCallNode
@@ -38,7 +30,6 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
-                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -51,20 +42,14 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
-                                          attributes:
-                                              flags = 0
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object = :baz
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 2
                       ]
           ]

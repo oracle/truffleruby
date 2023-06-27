@@ -9,29 +9,22 @@ ruby: |
 ast: |
   OrLazyValueDefinedNodeGen
       attributes:
-          flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
       children:
           left =
               AndNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       left =
                           DefinedNode
-                              attributes:
-                                  flags = 0
                               children:
                                   child =
                                       ReadClassVariableNode
                                           attributes:
-                                              flags = 0
                                               name = "@@foo"
                                           children:
                                               lexicalScopeNode =
                                                   ObjectLiteralNode
                                                       attributes:
-                                                          flags = 0
                                                           object =  :: Object
                                               lookupClassVariableNode =
                                                   LookupClassVariableNodeGen
@@ -40,13 +33,11 @@ ast: |
                       right =
                           ReadClassVariableNode
                               attributes:
-                                  flags = 0
                                   name = "@@foo"
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
-                                              flags = 0
                                               object =  :: Object
                                   lookupClassVariableNode =
                                       LookupClassVariableNodeGen
@@ -55,20 +46,17 @@ ast: |
           right =
               WriteClassVariableNode
                   attributes:
-                      flags = 0
                       name = "@@foo"
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
                                   object =  :: Object
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
                       rhs =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 42
                       setClassVariableNode =
                           SetClassVariableNodeGen

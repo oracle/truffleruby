@@ -6,5 +6,4 @@ ruby: |
 ast: |
   ModuleNodes$UndefKeywordNode
       attributes:
-          flags = 1
           name = :a

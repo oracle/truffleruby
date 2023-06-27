@@ -5,15 +5,12 @@ ruby: |
   :"ab#{ 42 }cd"
 ast: |
   StringToSymbolNodeGen
-      attributes:
-          flags = 1
       children:
           stringNode_ =
               InterpolatedStringNode
                   attributes:
                       emptyTString = ""
                       encoding = UTF-8
-                      flags = 0
                   children:
                       children = [
                           ToSNodeGen
@@ -22,14 +19,12 @@ ast: |
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
-                                              flags = 0
                                               tstring = ab
                           ToSNodeGen
                               children:
                                   valueNode_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
                                               value = 42
                           ToSNodeGen
                               children:
@@ -37,6 +32,5 @@ ast: |
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
-                                              flags = 0
                                               tstring = cd
                       ]

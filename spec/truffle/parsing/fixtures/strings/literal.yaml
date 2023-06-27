@@ -7,5 +7,4 @@ ast: |
   StringLiteralNode
       attributes:
           encoding = UTF-8
-          flags = 1
           tstring = foobar

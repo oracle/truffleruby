@@ -6,5 +6,4 @@ ruby: |
 ast: |
   ObjectLiteralNode
       attributes:
-          flags = 1
           object = UTF-8

@@ -9,17 +9,13 @@ ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
-          flags = 1
       children:
           child =
               AndNodeGen
-                  attributes:
-                      flags = 0
                   children:
                       left =
                           ReadConstantWithLexicalScopeNode
                               attributes:
-                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "FOO"
                               children:
@@ -33,16 +29,13 @@ ast: |
                       right =
                           WriteConstantNode
                               attributes:
-                                  flags = 0
                                   name = "FOO"
                               children:
                                   moduleNode =
                                       LexicalScopeNode
                                           attributes:
-                                              flags = 0
                                               lexicalScope =  :: Object
                                   valueNode =
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
                                               value = 42

@@ -6,13 +6,11 @@ ruby: |
 ast: |
   ReadConstantNode
       attributes:
-          flags = 1
           name = "Bar"
       children:
           moduleNode =
               ReadConstantWithLexicalScopeNode
                   attributes:
-                      flags = 0
                       lexicalScope =  :: Object
                       name = "Foo"
                   children:

@@ -9,13 +9,11 @@ ast: |
   InlinedAddNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
-          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42
           rightNode_ =
               RubyCallNode
@@ -23,7 +21,6 @@ ast: |
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PRIVATE
                       emptyKeywordsProfile = false
-                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -37,20 +34,15 @@ ast: |
                       arguments = [
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 0
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 0
                                   value = 100500
                       ]
                       receiver =
                           ReadConstantNode
                               attributes:
-                                  flags = 0
                                   name = "Complex"
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
-                                          attributes:
-                                              flags = 0

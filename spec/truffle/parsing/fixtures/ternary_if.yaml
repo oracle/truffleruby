@@ -5,21 +5,16 @@ ruby: |
   (true) ? 42 : 100500
 ast: |
   IfElseNodeGen
-      attributes:
-          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
-                      flags = 1
                       value = true
           elseBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 100500
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 0
                       value = 42

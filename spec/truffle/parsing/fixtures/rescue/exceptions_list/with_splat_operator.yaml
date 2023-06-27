@@ -13,30 +13,24 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = true
-          flags = 1
       children:
           rescueParts = [
               RescueSplatNode
-                  attributes:
-                      flags = 0
                   children:
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
                               attributes:
                                   conversionMethod = :to_a
                                   copy = false
-                                  flags = 0
                                   nilBehavior = EMPTY_ARRAY
                               children:
                                   childNode_ =
                                       ReadConstantWithLexicalScopeNode
                                           attributes:
-                                              flags = 0
                                               lexicalScope =  :: Object
                                               name = "EXCEPTIONS_ARRAY"
                                           children:
@@ -56,5 +50,4 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
                       tstring = foo
