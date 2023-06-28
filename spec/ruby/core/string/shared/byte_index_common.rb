@@ -40,7 +40,7 @@ describe :byte_index_common, shared: true do
       re = Regexp.new "れ".encode(Encoding::EUC_JP)
       -> do
         "あれ".send(@method, re)
-      end.should raise_error(Encoding::CompatibilityError, "incompatible character encodings: UTF-8 and EUC-JP")
+      end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
     end
   end
 

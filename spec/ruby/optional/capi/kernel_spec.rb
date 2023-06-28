@@ -610,55 +610,53 @@ describe "C-API Kernel function" do
     end
   end
 
-  ruby_version_is "3.0" do
-    describe "rb_funcallv_kw" do
-      it "passes keyword arguments to the callee" do
-        def m(*args, **kwargs)
-          [args, kwargs]
-        end
-
-        @s.rb_funcallv_kw(self, :m, [{}]).should == [[], {}]
-        @s.rb_funcallv_kw(self, :m, [{a: 1}]).should == [[], {a: 1}]
-        @s.rb_funcallv_kw(self, :m, [{b: 2}, {a: 1}]).should == [[{b: 2}], {a: 1}]
-        @s.rb_funcallv_kw(self, :m, [{b: 2}, {}]).should == [[{b: 2}], {}]
+  describe "rb_funcallv_kw" do
+    it "passes keyword arguments to the callee" do
+      def m(*args, **kwargs)
+        [args, kwargs]
       end
 
-      it "raises TypeError if the last argument is not a Hash" do
-        def m(*args, **kwargs)
-          [args, kwargs]
-        end
-
-        -> {
-          @s.rb_funcallv_kw(self, :m, [42])
-        }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
-      end
-
-      it "calls a private method" do
-        object = CApiKernelSpecs::ClassWithPrivateMethod.new
-        @s.rb_funcallv_kw(object, :private_method, [{}]).should == 0
-      end
-
-      it "calls a protected method" do
-        object = CApiKernelSpecs::ClassWithProtectedMethod.new
-        @s.rb_funcallv_kw(object, :protected_method, [{}]).should == 0
-      end
+      @s.rb_funcallv_kw(self, :m, [{}]).should == [[], {}]
+      @s.rb_funcallv_kw(self, :m, [{a: 1}]).should == [[], {a: 1}]
+      @s.rb_funcallv_kw(self, :m, [{b: 2}, {a: 1}]).should == [[{b: 2}], {a: 1}]
+      @s.rb_funcallv_kw(self, :m, [{b: 2}, {}]).should == [[{b: 2}], {}]
     end
 
-    describe "rb_keyword_given_p" do
-      it "returns whether keywords were given to the C extension method" do
-        h = {a: 1}
-        empty = {}
-        @s.rb_keyword_given_p(a: 1).should == true
-        @s.rb_keyword_given_p("foo" => "bar").should == true
-        @s.rb_keyword_given_p(**h).should == true
+    it "calls a private method" do
+      object = CApiKernelSpecs::ClassWithPrivateMethod.new
+      @s.rb_funcallv_kw(object, :private_method, [{}]).should == 0
+    end
 
-        @s.rb_keyword_given_p(h).should == false
-        @s.rb_keyword_given_p().should == false
-        @s.rb_keyword_given_p(**empty).should == false
+    it "calls a protected method" do
+      object = CApiKernelSpecs::ClassWithProtectedMethod.new
+      @s.rb_funcallv_kw(object, :protected_method, [{}]).should == 0
+    end
 
-        @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{a: 1}]).should == true
-        @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{}]).should == false
+    it "raises TypeError if the last argument is not a Hash" do
+      def m(*args, **kwargs)
+        [args, kwargs]
       end
+
+      -> {
+        @s.rb_funcallv_kw(self, :m, [42])
+      }.should raise_error(TypeError, 'no implicit conversion of Integer into Hash')
+    end
+  end
+
+  describe "rb_keyword_given_p" do
+    it "returns whether keywords were given to the C extension method" do
+      h = {a: 1}
+      empty = {}
+      @s.rb_keyword_given_p(a: 1).should == true
+      @s.rb_keyword_given_p("foo" => "bar").should == true
+      @s.rb_keyword_given_p(**h).should == true
+
+      @s.rb_keyword_given_p(h).should == false
+      @s.rb_keyword_given_p().should == false
+      @s.rb_keyword_given_p(**empty).should == false
+
+      @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{a: 1}]).should == true
+      @s.rb_funcallv_kw(@s, :rb_keyword_given_p, [{}]).should == false
     end
   end
 
