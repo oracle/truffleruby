@@ -266,7 +266,7 @@ local part_definitions = {
     darwin_aarch64: common.darwin_aarch64 + common_deps + {
       platform_name:: "DarwinAArch64",
       "$.cap":: {
-        normal_machine: [],
+        normal_machine: ["darwin_bigsur"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
