@@ -69,9 +69,10 @@ public final class BindingLocalVariablesObject implements TruffleObject {
 
     @ExportMessage
     protected void writeMember(String member, Object value,
-            @Cached BindingNodes.LocalVariableSetNode localVariableSetNode) throws UnknownIdentifierException {
+            @Cached BindingNodes.LocalVariableSetNode localVariableSetNode,
+            @Bind("$node") Node node) throws UnknownIdentifierException {
         if (isValidLocalVariableName(member)) {
-            localVariableSetNode.execute(binding, member, value);
+            localVariableSetNode.execute(node, binding, member, value);
         } else {
             throw UnknownIdentifierException.create(member);
         }

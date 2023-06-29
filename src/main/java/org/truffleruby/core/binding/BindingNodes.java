@@ -324,16 +324,18 @@ public abstract class BindingNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableSetNode localVariableSetNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            return localVariableSetNode.execute(binding, name, value);
+            return localVariableSetNode.execute(this, binding, name, value);
         }
     }
 
 
     @GenerateUncached
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class LocalVariableSetNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyBinding binding, String name, Object value);
+        public abstract Object execute(Node node, RubyBinding binding, String name, Object value);
 
         @Specialization(
                 guards = {
@@ -342,7 +344,7 @@ public abstract class BindingNodes {
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot != null" },
                 limit = "getCacheLimit()")
-        protected Object localVariableSetCached(RubyBinding binding, String name, Object value,
+        protected static Object localVariableSetCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
@@ -360,7 +362,7 @@ public abstract class BindingNodes {
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot == null" },
                 limit = "getCacheLimit()")
-        protected Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
+        protected static Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
@@ -375,7 +377,7 @@ public abstract class BindingNodes {
         @Specialization(
                 guards = "!isHiddenVariable(name)",
                 replaces = { "localVariableSetCached", "localVariableSetNewCached" })
-        protected Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
+        protected static Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
             MaterializedFrame frame = binding.getFrame();
             final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
             final int slot;
@@ -394,13 +396,13 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableSetLastLine(RubyBinding binding, String name, Object value) {
+        protected static Object localVariableSetLastLine(Node node, RubyBinding binding, String name, Object value) {
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(node),
+                    coreExceptions(node).nameError("Bad local variable name", binding, name, node));
         }
 
-        protected WriteFrameSlotNode createWriteNode(int frameSlot) {
+        protected static WriteFrameSlotNode createWriteNode(int frameSlot) {
             return WriteFrameSlotNodeGen.create(frameSlot);
         }
 

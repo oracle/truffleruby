@@ -179,9 +179,10 @@ public final class RubyScope implements TruffleObject {
         @Specialization
         protected static void writeMember(RubyScope scope, String member, Object value,
                 @CachedLibrary("scope") InteropLibrary interopLibrary,
-                @Cached BindingNodes.LocalVariableSetNode localVariableSetNode) throws UnknownIdentifierException {
+                @Cached BindingNodes.LocalVariableSetNode localVariableSetNode,
+                @Bind("this") Node node) throws UnknownIdentifierException {
             if (interopLibrary.isMemberModifiable(scope, member)) {
-                localVariableSetNode.execute(scope.binding, member, value);
+                localVariableSetNode.execute(node, scope.binding, member, value);
             } else {
                 throw UnknownIdentifierException.create(member);
             }
