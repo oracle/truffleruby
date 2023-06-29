@@ -298,15 +298,19 @@ public abstract class TruffleDebugNodes {
 
     @CoreMethod(names = "yarp_execute", onSingleton = true, required = 1)
     public abstract static class YARPExecuteNode extends CoreMethodArrayArgumentsNode {
-        @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
-        protected Object yarpExecute(Object code,
+        protected Object yarpExecute(VirtualFrame frame, Object code,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = strings.getTString(code);
             var tencoding = strings.getTEncoding(code);
             var source = copyToByteArrayNode.execute(tstring, tencoding);
 
+            return doExecute(source, RubyArguments.getMethod(frame));
+        }
+
+        @TruffleBoundary
+        private Object doExecute(byte[] source, InternalMethod method) {
             byte[] serialized = yarpSerialize(getLanguage(), source);
 
             var ast = Loader.load(source, serialized);
@@ -320,7 +324,7 @@ public abstract class TruffleDebugNodes {
             return truffleAST.getCallTarget().call(RubyArguments.pack(
                     null,
                     null,
-                    null,
+                    method,
                     DeclarationContext.topLevel(getContext()),
                     null,
                     coreLibrary().mainObject,
