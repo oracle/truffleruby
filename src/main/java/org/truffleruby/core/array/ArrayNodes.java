@@ -103,7 +103,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -767,54 +766,33 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
-        @CreateCast("index")
-        protected ToIntNode coerceOtherToInt(RubyBaseNodeWithExecute index) {
-            return ToIntNode.create(index);
-        }
-
-        @Specialization(
-                guards = "stores.isMutable(store)",
-                limit = "storageStrategyLimit()")
-        protected Object deleteAt(RubyArray array, int index,
+        @Specialization(limit = "storageStrategyLimit()")
+        protected static Object doDelete(RubyArray array, Object indexObject,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared ConditionProfile negativeIndexProfile,
-                @Cached @Shared ConditionProfile notInBoundsProfile) {
-            final int size = arraySizeProfile.profile(array.size);
+                @Cached ToIntNode toIntNode,
+                @Cached InlinedIntValueProfile arraySizeProfile,
+                @Cached InlinedConditionProfile negativeIndexProfile,
+                @Cached InlinedConditionProfile notInBoundsProfile,
+                @Cached InlinedConditionProfile isMutableProfile,
+                @Bind("this") Node node) {
+            final int size = arraySizeProfile.profile(node, array.size);
+            final int index = toIntNode.execute(indexObject);
             int i = index;
-            if (negativeIndexProfile.profile(index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 i += size;
             }
 
-            if (notInBoundsProfile.profile(i < 0 || i >= size)) {
+            if (notInBoundsProfile.profile(node, i < 0 || i >= size)) {
                 return nil;
-            } else {
+            }
+
+            if (isMutableProfile.profile(node, stores.isMutable(store))) {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
                 stores.clear(store, size - 1, 1);
                 setStoreAndSize(array, store, size - 1);
                 return value;
-            }
-        }
-
-        @Specialization(
-                guards = "!stores.isMutable(store)",
-                limit = "storageStrategyLimit()")
-        protected Object deleteAtCopying(RubyArray array, int index,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared ConditionProfile negativeIndexProfile,
-                @Cached @Shared ConditionProfile notInBoundsProfile) {
-            final int size = arraySizeProfile.profile(array.size);
-            int i = index;
-            if (negativeIndexProfile.profile(index < 0)) {
-                i += size;
-            }
-
-            if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil;
             } else {
                 final Object mutableStore = stores.allocator(store).allocate(size - 1);
                 stores.copyContents(store, 0, mutableStore, 0, i);
