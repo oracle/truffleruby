@@ -1649,7 +1649,7 @@ public abstract class ModuleNodes {
             } finally {
                 profileAndReportLoopCount(node, loopProfile, i);
             }
-            return singleValueCastNode.executeSingleValue(names);
+            return singleValueCastNode.execute(node, names);
         }
 
         private static void checkNotClass(Node node, RubyModule module, InlinedBranchProfile errorProfile) {
@@ -1726,7 +1726,7 @@ public abstract class ModuleNodes {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PUBLIC);
             }
-            return singleValueCastNode.executeSingleValue(names);
+            return singleValueCastNode.execute(this, names);
         }
     }
 
@@ -1768,7 +1768,7 @@ public abstract class ModuleNodes {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PRIVATE);
             }
-            return singleValueCastNode.executeSingleValue(names);
+            return singleValueCastNode.execute(this, names);
         }
     }
 
@@ -2054,7 +2054,7 @@ public abstract class ModuleNodes {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.PROTECTED);
             }
-            return singleValueCastNode.executeSingleValue(names);
+            return singleValueCastNode.execute(this, names);
         }
     }
 

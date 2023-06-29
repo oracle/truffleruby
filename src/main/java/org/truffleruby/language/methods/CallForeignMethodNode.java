@@ -165,7 +165,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected static Object callBoolean(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached(inline = false) @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asBoolean(receiver), name, args);
             } catch (InteropException e) {
@@ -179,7 +179,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected static Object callInt(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached(inline = false) @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asInt(receiver), name, args);
             } catch (InteropException e) {
@@ -196,7 +196,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected static Object callLong(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached(inline = false) @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asLong(receiver), name, args);
             } catch (InteropException e) {
@@ -213,7 +213,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected static Object callBigInteger(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached(inline = false) @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(new RubyBignum(receivers.asBigInteger(receiver)), name, args);
             } catch (InteropException e) {
@@ -230,7 +230,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected static Object callDouble(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached(inline = false) @Shared DispatchNode dispatch) {
             try {
                 return dispatch.call(receivers.asDouble(receiver), name, args);
             } catch (InteropException e) {

@@ -9,7 +9,10 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -18,24 +21,26 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 @ImportStatic(value = { RubyGuards.class })
 public abstract class SingleValueCastNode extends RubyBaseNode {
 
-    public abstract Object executeSingleValue(Object[] args);
+    public abstract Object execute(Node node, Object[] args);
 
     @Specialization(guards = "noArguments(args)")
-    protected Object castNil(Object[] args) {
+    protected static Object castNil(Object[] args) {
         return nil;
     }
 
     @Specialization(guards = "singleArgument(args)")
-    protected Object castSingle(Object[] args) {
+    protected static Object castSingle(Object[] args) {
         return args[0];
     }
 
     @Specialization(guards = { "!noArguments(args)", "!singleArgument(args)" })
-    protected RubyArray castMany(Object[] args) {
-        return createArray(args);
+    protected static RubyArray castMany(Node node, Object[] args) {
+        return createArray(node, args);
     }
 
 }

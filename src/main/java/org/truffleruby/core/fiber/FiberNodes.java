@@ -95,7 +95,7 @@ public abstract class FiberNodes {
             var descriptorAndArgs = getContext(node).fiberManager.transferControlTo(currentFiber, toFiber, operation,
                     descriptor, args, node);
             // Ignore the descriptor like CRuby here, see https://bugs.ruby-lang.org/issues/18621
-            return singleValueCastNode.executeSingleValue(descriptorAndArgs.args);
+            return singleValueCastNode.execute(node, descriptorAndArgs.args);
         }
 
     }
@@ -173,7 +173,7 @@ public abstract class FiberNodes {
 
             if (sameFiberProfile.profile(this, currentFiber == toFiber)) {
                 // A Fiber can transfer to itself
-                return singleValueCastNode.executeSingleValue(rawArgs);
+                return singleValueCastNode.execute(this, rawArgs);
             }
 
             return fiberTransferNode.execute(this, currentFiber, toFiber, FiberOperation.TRANSFER,
