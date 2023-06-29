@@ -12,15 +12,13 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.utils.Utils;
@@ -48,21 +46,9 @@ import org.truffleruby.utils.Utils;
  * </ul>
  */
 @GenerateUncached
-@NodeChild(value = "childNode", type = RubyBaseNodeWithExecute.class)
-public abstract class ToIntNode extends RubyBaseNodeWithExecute {
-
-    @NeverDefault
-    public static ToIntNode create() {
-        return ToIntNodeGen.create(null);
-    }
-
-    public static ToIntNode create(RubyBaseNodeWithExecute child) {
-        return ToIntNodeGen.create(child);
-    }
+public abstract class ToIntNode extends RubyBaseNode {
 
     public abstract int execute(Object object);
-
-    abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
     protected int coerceInt(int value) {
@@ -104,7 +90,7 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
     }
 
     @Specialization
-    protected long coerceNil(Nil value) {
+    protected int coerceNil(Nil value) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
@@ -120,10 +106,4 @@ public abstract class ToIntNode extends RubyBaseNodeWithExecute {
                 .call(coreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getChildNode().cloneUninitialized());
-    }
-
 }

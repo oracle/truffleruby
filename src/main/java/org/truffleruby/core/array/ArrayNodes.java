@@ -1210,8 +1210,9 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "wasProvided(size)", "!isImplicitLong(size)", "wasProvided(fillingValue)" })
-        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block) {
-            int intSize = toInt(size);
+        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block,
+                @Cached @Shared ToIntNode toIntNode) {
+            int intSize = toIntNode.execute(size);
             return executeInitialize(array, intSize, fillingValue, block);
         }
 
@@ -1255,7 +1256,8 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block) {
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block,
+                @Cached @Shared ToIntNode toIntNode) {
             RubyArray copy = null;
             if (respondToToAry(object)) {
                 Object toAryResult = callToAry(object);
@@ -1267,7 +1269,7 @@ public abstract class ArrayNodes {
             if (copy != null) {
                 return executeInitialize(array, copy, NotProvided.INSTANCE, nil);
             } else {
-                int size = toInt(object);
+                int size = toIntNode.execute(object);
                 return executeInitialize(array, size, NotProvided.INSTANCE, nil);
             }
         }
@@ -1286,14 +1288,6 @@ public abstract class ArrayNodes {
                 toAryNode = insert(DispatchNode.create());
             }
             return toAryNode.call(object, "to_ary");
-        }
-
-        protected int toInt(Object value) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            return toIntNode.execute(value);
         }
 
     }

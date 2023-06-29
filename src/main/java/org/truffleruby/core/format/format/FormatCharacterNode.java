@@ -15,7 +15,6 @@ import com.oracle.truffle.api.strings.TruffleString.CodePointLengthNode;
 import com.oracle.truffle.api.strings.TruffleString.FromCodePointNode;
 import com.oracle.truffle.api.strings.TruffleString.ForceEncodingNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToStrNode;
@@ -37,7 +36,6 @@ public abstract class FormatCharacterNode extends FormatNode {
 
     private final RubyEncoding encoding;
 
-    @Child private ToIntNode toIntegerNode;
     @Child private ToStrNode toStrNode;
     @Child private FromCodePointNode fromCodePointNode;
     @Child private CodePointLengthNode codePointLengthNode;
@@ -49,13 +47,14 @@ public abstract class FormatCharacterNode extends FormatNode {
 
     @Specialization
     protected RubyString format(Object value,
+            @Cached ToIntNode toIntNode,
             @Cached RubyStringLibrary strings) {
-        final TruffleString character = getCharacter(value, strings);
+        final TruffleString character = getCharacter(value, strings, toIntNode);
         return createString(character, encoding);
     }
 
     @TruffleBoundary
-    protected TruffleString getCharacter(Object value, RubyStringLibrary strings) {
+    protected TruffleString getCharacter(Object value, RubyStringLibrary strings, ToIntNode toIntNode) {
         final TruffleString character;
 
         Object stringArgument;
@@ -66,7 +65,7 @@ public abstract class FormatCharacterNode extends FormatNode {
         }
 
         if (stringArgument == null || RubyGuards.isNil(stringArgument)) {
-            final int codepointArgument = toIntegerNode().execute(value);
+            final int codepointArgument = toIntNode.execute(value);
             character = fromCodePointNode().execute(codepointArgument, encoding.tencoding);
 
             if (character == null) {
@@ -100,15 +99,6 @@ public abstract class FormatCharacterNode extends FormatNode {
         }
 
         return toStrNode;
-    }
-
-    private ToIntNode toIntegerNode() {
-        if (toIntegerNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntegerNode = insert(ToIntNodeGen.create(null));
-        }
-
-        return toIntegerNode;
     }
 
     private FromCodePointNode fromCodePointNode() {

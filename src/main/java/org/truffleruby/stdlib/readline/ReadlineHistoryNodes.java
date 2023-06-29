@@ -58,7 +58,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -220,15 +219,12 @@ public abstract class ReadlineHistoryNodes {
     @NodeChild(value = "line", type = RubyNode.class)
     public abstract static class SetIndexNode extends CoreMethodNode {
 
-        @CreateCast("index")
-        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
-            return ToIntNode.create(index);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected Object setIndex(int index, Object line,
+        protected Object setIndex(Object indexObject, Object line,
+                @Cached ToIntNode toIntNode,
                 @Cached ToJavaStringNode toJavaStringNode) {
+            final int index = toIntNode.execute(indexObject);
             final var lineAsString = toJavaStringNode.execute(this, line);
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
