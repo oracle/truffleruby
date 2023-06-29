@@ -48,15 +48,21 @@ public class AtExitManager {
     }
 
     public AbstractTruffleException runAtExitHooks() {
-        return runExitHooks(atExitHooks, "at_exit");
+        return runExitHooks(atExitHooks);
     }
 
     public void runSystemExitHooks() {
-        runExitHooks(systemExitHooks, "system at_exit");
+        try {
+            runExitHooks(systemExitHooks);
+        } catch (ExitException | ThreadDeath e) {
+            throw e;
+        } catch (RuntimeException | Error e) {
+            BacktraceFormatter.printInternalError(context, e, "unexpected internal exception in system at_exit");
+        }
     }
 
     @TruffleBoundary
-    private AbstractTruffleException runExitHooks(Deque<RubyProc> stack, String name) {
+    private AbstractTruffleException runExitHooks(Deque<RubyProc> stack) {
         AbstractTruffleException lastException = null;
 
         while (true) {
@@ -67,13 +73,9 @@ public class AtExitManager {
 
             try {
                 ProcOperations.rootCall(block, EmptyArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
-            } catch (ExitException | ThreadDeath e) {
-                throw e;
             } catch (AbstractTruffleException e) {
                 handleAtExitException(context, e);
                 lastException = e;
-            } catch (RuntimeException | Error e) {
-                BacktraceFormatter.printInternalError(context, e, "Unexpected internal exception in " + name);
             }
         }
     }
