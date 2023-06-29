@@ -278,35 +278,37 @@ public abstract class BindingNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableGetNode localVariableGetNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            return localVariableGetNode.execute(binding, name);
+            return localVariableGetNode.execute(this, binding, name);
         }
     }
 
     @GenerateUncached
     @ImportStatic(BindingNodes.class)
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class LocalVariableGetNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyBinding binding, String name);
+        public abstract Object execute(Node node, RubyBinding binding, String name);
 
         @Specialization(guards = "!isHiddenVariable(name)")
-        protected Object localVariableGet(RubyBinding binding, String name,
+        protected static Object localVariableGet(Node node, RubyBinding binding, String name,
                 @Cached FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = binding.getFrame();
             Object result = readNode.execute(frame, name, null);
             if (result == null) {
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
+                        getContext(node),
+                        coreExceptions(node).nameErrorLocalVariableNotDefined(name, binding, node));
             }
             return result;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableGetLastLine(RubyBinding binding, String name) {
+        protected static Object localVariableGetLastLine(Node node, RubyBinding binding, String name) {
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(node),
+                    coreExceptions(node).nameError("Bad local variable name", binding, name, node));
         }
     }
 

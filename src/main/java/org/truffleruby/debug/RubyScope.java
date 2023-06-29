@@ -11,6 +11,7 @@ package org.truffleruby.debug;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
@@ -125,10 +127,11 @@ public final class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         protected static Object read(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode)
+                @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode,
+                @Bind("this") Node node)
                 throws UnknownIdentifierException {
             try {
-                return localVariableGetNode.execute(scope.binding, member);
+                return localVariableGetNode.execute(node, scope.binding, member);
             } catch (RaiseException e) {
                 throw UnknownIdentifierException.create(member);
             }

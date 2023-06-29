@@ -10,7 +10,9 @@
 package org.truffleruby.debug;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.string.StringUtils;
@@ -55,10 +57,11 @@ public final class BindingLocalVariablesObject implements TruffleObject {
 
     @ExportMessage
     protected Object readMember(String member,
-            @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode)
+            @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode,
+            @Bind("$node") Node node)
             throws UnknownIdentifierException {
         try {
-            return localVariableGetNode.execute(binding, member);
+            return localVariableGetNode.execute(node, binding, member);
         } catch (RaiseException e) {
             throw UnknownIdentifierException.create(member);
         }
