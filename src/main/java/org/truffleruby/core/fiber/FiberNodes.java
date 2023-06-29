@@ -38,7 +38,6 @@ import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -183,52 +182,52 @@ public abstract class FiberNodes {
     }
 
 
-    public abstract static class FiberResumeNode extends CoreMethodArrayArgumentsNode {
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class FiberResumeNode extends RubyBaseNode {
 
-        public static FiberResumeNode create() {
-            return FiberNodesFactory.FiberResumeNodeFactory.create(null);
-        }
 
-        public abstract Object executeResume(FiberOperation operation, RubyFiber fiber, ArgumentsDescriptor descriptor,
+        public abstract Object execute(Node node, FiberOperation operation, RubyFiber fiber,
+                ArgumentsDescriptor descriptor,
                 Object[] args);
 
         @Specialization
-        protected Object resume(
-                FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
+        protected static Object resume(
+                Node node, FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
-            final RubyFiber currentFiber = getLanguage().getCurrentFiber();
+            final RubyFiber currentFiber = getLanguage(node).getCurrentFiber();
 
             if (toFiber.isTerminated()) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("attempt to resume a terminated fiber", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("attempt to resume a terminated fiber", node));
             } else if (toFiber == currentFiber) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("attempt to resume the current fiber", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("attempt to resume the current fiber", node));
             } else if (toFiber.lastResumedByFiber != null) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("attempt to resume a resumed fiber (double resume)", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("attempt to resume a resumed fiber (double resume)", node));
             } else if (toFiber.resumingFiber != null) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("attempt to resume a resuming fiber", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("attempt to resume a resuming fiber", node));
             } else if (toFiber.lastResumedByFiber == null &&
                     (!toFiber.yielding && toFiber.status != FiberStatus.CREATED)) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("attempt to resume a transferring fiber", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("attempt to resume a transferring fiber", node));
             }
 
-            return fiberTransferNode.execute(this, currentFiber, toFiber, operation, descriptor, args);
+            return fiberTransferNode.execute(node, currentFiber, toFiber, operation, descriptor, args);
         }
 
     }
@@ -237,10 +236,9 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_raise")
     public abstract static class FiberRaiseNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private FiberResumeNode fiberResumeNode;
-
         @Specialization
         protected Object raise(RubyFiber fiber, RubyException exception,
+                @Cached FiberResumeNode fiberResumeNode,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (fiber.resumingFiber != null) {
@@ -265,29 +263,19 @@ public abstract class FiberNodes {
                         EmptyArgumentsDescriptor.INSTANCE,
                         new Object[]{ exception });
             } else {
-                return getResumeNode().executeResume(FiberOperation.RAISE, fiber,
+                return fiberResumeNode.execute(this, FiberOperation.RAISE, fiber,
                         EmptyArgumentsDescriptor.INSTANCE, new Object[]{ exception });
             }
         }
-
-        private FiberResumeNode getResumeNode() {
-            if (fiberResumeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fiberResumeNode = insert(FiberResumeNode.create());
-            }
-            return fiberResumeNode;
-        }
-
     }
 
     @CoreMethod(names = "resume", rest = true)
     public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
-
         @Specialization
-        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] rawArgs) {
-            return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber,
+        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] rawArgs,
+                @Cached FiberResumeNode fiberResumeNode) {
+            return fiberResumeNode.execute(this, FiberOperation.RESUME, fiber,
                     RubyArguments.getDescriptor(frame), rawArgs);
         }
 
@@ -295,7 +283,6 @@ public abstract class FiberNodes {
 
     @CoreMethod(names = "yield", onSingleton = true, rest = true)
     public abstract static class YieldNode extends CoreMethodArrayArgumentsNode {
-
 
         @Specialization
         protected Object fiberYield(VirtualFrame frame, Object[] rawArgs,
