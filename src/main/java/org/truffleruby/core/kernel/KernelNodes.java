@@ -534,7 +534,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyDynamicObject copy(RubyIntOrLongRange range,
                 @Cached RangeNodes.AllocateNode allocateRangeNode) {
-            return allocateRangeNode.execute(coreLibrary().rangeClass);
+            return allocateRangeNode.execute(this, coreLibrary().rangeClass);
         }
     }
 
