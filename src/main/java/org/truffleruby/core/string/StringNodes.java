@@ -2268,27 +2268,27 @@ public abstract class StringNodes {
         public abstract int execute(Node node, RubyString string, int index, int value);
 
         @Specialization(guards = "tstring.isMutable()")
-        protected static int mutable(RubyString string, int index, int value,
+        protected static int mutable(Node node, RubyString string, int index, int value,
                 @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
-            final int normalizedIndex = checkIndexNode.executeCheck(index, tstring.byteLength(tencoding));
+            final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
             writeByteNode.execute((MutableTruffleString) tstring, normalizedIndex, (byte) value, tencoding);
             return value;
         }
 
         @Specialization(guards = "!tstring.isMutable()")
-        protected static int immutable(RubyString string, int index, int value,
+        protected static int immutable(Node node, RubyString string, int index, int value,
                 @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Cached MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
                 @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
-            final int normalizedIndex = checkIndexNode.executeCheck(index, tstring.byteLength(tencoding));
+            final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
             MutableTruffleString mutableTString = asMutableTruffleStringNode.execute(tstring, tencoding);
             writeByteNode.execute(mutableTString, normalizedIndex, (byte) value, tencoding);

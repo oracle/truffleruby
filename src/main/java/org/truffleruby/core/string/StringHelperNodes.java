@@ -417,28 +417,30 @@ public abstract class StringHelperNodes {
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class CheckIndexNode extends RubyBaseNode {
 
-        public abstract int executeCheck(int index, int length);
+        public abstract int execute(Node node, int index, int length);
 
         @Specialization
-        protected int checkIndex(int index, int length,
+        protected static int checkIndex(Node node, int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile,
                 @Cached InlinedBranchProfile errorProfile) {
             if (index >= length) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().indexErrorOutOfString(index, node));
             }
 
-            if (negativeIndexProfile.profile(this, index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 index += length;
                 if (index < 0) {
-                    errorProfile.enter(this);
+                    errorProfile.enter(node);
                     throw new RaiseException(
-                            getContext(),
-                            getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                            getContext(node),
+                            getContext(node).getCoreExceptions().indexErrorOutOfString(index, node));
                 }
             }
 
