@@ -2248,23 +2248,28 @@ public abstract class StringNodes {
     @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class SetByteNode extends CoreMethodNode {
+    public abstract static class StringSetByteNode extends CoreMethodNode {
 
-        @Child private StringHelperNodes.CheckIndexNode checkIndexNode = StringHelperNodesFactory.CheckIndexNodeGen
-                .create();
-
-        @CreateCast("index")
-        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
-            return ToIntNode.create(index);
+        @Specialization
+        protected int doSetByte(RubyString string, Object indexObject, Object valueObject,
+                @Cached ToIntNode toIntIndexNode,
+                @Cached ToIntNode toIntValueNode,
+                @Cached SetByteNode setByteNode) {
+            int index = toIntIndexNode.execute(indexObject);
+            int value = toIntValueNode.execute(valueObject);
+            return setByteNode.execute(this, string, index, value);
         }
+    }
 
-        @CreateCast("value")
-        protected ToIntNode coerceValueToInt(RubyBaseNodeWithExecute value) {
-            return ToIntNode.create(value);
-        }
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class SetByteNode extends RubyBaseNode {
+
+        public abstract int execute(Node node, RubyString string, int index, int value);
 
         @Specialization(guards = "tstring.isMutable()")
-        protected int mutable(RubyString string, int index, int value,
+        protected static int mutable(RubyString string, int index, int value,
+                @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
@@ -2276,7 +2281,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!tstring.isMutable()")
-        protected int immutable(RubyString string, int index, int value,
+        protected static int immutable(RubyString string, int index, int value,
+                @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
                 @Cached MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
