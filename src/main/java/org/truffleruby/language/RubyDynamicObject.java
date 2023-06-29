@@ -171,7 +171,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached IntegerCastNode integerCastNode,
             @Shared @Cached BranchProfile errorProfile,
             @Shared @Cached TranslateInteropRubyExceptionNode translateRubyException,
-            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode)
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Bind("$node") Node node)
             throws UnsupportedMessageException {
         Object value;
         try {
@@ -183,7 +184,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
-        return integerCastNode.executeCastInt(value);
+        return integerCastNode.execute(node, value);
     }
 
     @ExportMessage

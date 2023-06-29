@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -18,31 +21,33 @@ import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
+@GenerateCached(false)
+@GenerateInline
 public abstract class IntegerCastNode extends RubyBaseNode {
 
-    public abstract int executeCastInt(Object value);
+    public abstract int execute(Node node, Object value);
 
     @Specialization
-    protected int doInt(int value) {
+    protected static int doInt(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected int doLong(long value) {
+    protected static int doLong(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected int doLongToBig(long value) {
+    protected static int doLongToBig(Node node, long value) {
         throw new RaiseException(
-                getContext(),
-                coreExceptions().rangeError("long too big to convert into `int'", this));
+                getContext(node),
+                coreExceptions(node).rangeError("long too big to convert into `int'", node));
     }
 
     @Specialization(guards = "!isImplicitLong(value)")
-    protected int doBasicObject(Object value) {
+    protected static int doBasicObject(Node node, Object value) {
         throw new RaiseException(
-                getContext(),
-                coreExceptions().typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", this));
+                getContext(node),
+                coreExceptions(node).typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", node));
     }
 }
