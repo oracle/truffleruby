@@ -1505,7 +1505,8 @@ public abstract class ModuleNodes {
 
             final Visibility visibility = DeclarationContext
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
-            module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
+            module.addMethodConsiderNameVisibility(getContext(), method.withOwner(module).withDeclaringModule(module),
+                    visibility, this);
             return getSymbol(method.getName());
         }
 

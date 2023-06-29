@@ -8,6 +8,7 @@ Bug fixes:
 * Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
 * Fix class lookup after an object's class has been replaced by `IO#reopen` (@itarato, @eregon).
 * Fix `Marshal.load` and raise `ArgumentError` when dump is broken and is too short (#3108, @andrykonchin).
+* Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
 
 Compatibility:
 
