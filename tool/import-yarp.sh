@@ -15,7 +15,7 @@ popd
 rm -rf src/main/c/yarp
 mkdir src/main/c/yarp
 cp -R $YARP/{include,src} src/main/c/yarp
-cp $YARP/{configure.ac,LICENSE.md,Makefile.in} src/main/c/yarp
+cp $YARP/{.gitignore,LICENSE.md,configure.ac,Makefile.in} src/main/c/yarp
 
 rm -rf src/yarp/java
 cp -R $YARP/java src/yarp/java
