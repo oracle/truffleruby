@@ -299,7 +299,7 @@ fails:Parsing a String (Literal with interpolation when when expressions are % S
 fails:Parsing a String (Literal with interpolation when expressions are Strings) case is parsed correctly
 fails:Parsing a Symbol (Literal with interpolation when expressions are % String literals) case is parsed correctly
 fails:Parsing a Symbol (Literal with interpolation when expressions are Strings) case is parsed correctly
-fails:Parsing a Undef (with dynamic Symbol) case is parsed correctly
+fails:Parsing a Undef (with multiple Symbols) case is parsed correctly
 fails:Parsing a Until (until loop operator) case is parsed correctly
 fails:Parsing a Until (until modifier (... until())) case is parsed correctly
 fails:Parsing a While (while loop operator) case is parsed correctly

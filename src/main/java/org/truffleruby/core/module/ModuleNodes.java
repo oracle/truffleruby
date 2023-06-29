@@ -2194,25 +2194,31 @@ public abstract class ModuleNodes {
         }
     }
 
-    public static final class UndefKeywordNode extends RubyContextSourceNode {
+    public static final class UndefNode extends RubyContextSourceNode {
 
-        private final RubySymbol name;
+        @Children private final RubyNode[] names;
 
-        public UndefKeywordNode(RubySymbol name) {
-            this.name = name;
+        public UndefNode(RubyNode[] names) {
+            this.names = names;
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
             var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
-            module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
+            for (var nameNode : names) {
+                final Object nameObject = nameNode.execute(frame);
+                final RubySymbol nameSymbol = (RubySymbol) nameObject;
+
+                module.fields.undefMethod(getLanguage(), getContext(), this, nameSymbol.getString());
+            }
             return module;
         }
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new UndefKeywordNode(name).copyFlags(this);
+            return new UndefNode(cloneUninitialized(names)).copyFlags(this);
         }
+
     }
 
     @CoreMethod(names = "used_modules", onSingleton = true)

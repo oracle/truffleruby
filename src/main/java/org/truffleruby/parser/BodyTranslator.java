@@ -2844,8 +2844,16 @@ public class BodyTranslator extends BaseTranslator {
     @Override
     public RubyNode visitUndefNode(UndefParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
+        final RubyNode ret;
 
-        final RubyNode ret = new ModuleNodes.UndefKeywordNode(translateNameNodeToSymbol(node.getName()));
+        if (node.getName() instanceof LiteralParseNode l) {
+            final RubyNode name = new SymbolParseNode(l.getPosition(), l.getName(), Encodings.UTF_8.jcoding)
+                    .accept(this);
+            ret = new ModuleNodes.UndefNode(new RubyNode[]{ name });
+        } else {
+            final RubyNode name = node.getName().accept(this);
+            ret = new ModuleNodes.UndefNode(new RubyNode[]{ name });
+        }
 
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

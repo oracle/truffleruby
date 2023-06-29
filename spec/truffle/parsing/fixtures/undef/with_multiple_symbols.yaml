@@ -1,0 +1,40 @@
+subject: "Undef"
+description: "with multiple Symbols"
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  undef :a, :b, :c
+ast: |
+  SequenceNode
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      frameSlot = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+              ModuleNodes$UndefNode
+                  children:
+                      names = [
+                          ObjectLiteralNode
+                              attributes:
+                                  object = :a
+                      ]
+              ModuleNodes$UndefNode
+                  children:
+                      names = [
+                          ObjectLiteralNode
+                              attributes:
+                                  object = :b
+                      ]
+              ModuleNodes$UndefNode
+                  children:
+                      names = [
+                          ObjectLiteralNode
+                              attributes:
+                                  object = :c
+                      ]
+          ]

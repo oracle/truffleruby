@@ -833,20 +833,12 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitUndefNode(Nodes.UndefNode node) {
-        final var undefNodes = new ArrayList<RubyNode>();
-        for (var name: node.names) {;
-            if (name instanceof Nodes.SymbolNode symbol) {
-                final String nameString = toString(symbol);
-                final RubySymbol nameSymbol = language.getSymbol(nameString);
-                final RubyNode undefRubyNode = new ModuleNodes.UndefKeywordNode(nameSymbol);
-                undefNodes.add(undefRubyNode);
-            } else {
-                throw new UnsupportedOperationException(node.getClass().getName());
-            }
+        RubyNode[] names = new RubyNode[node.names.length];
+        for (int i = 0; i < node.names.length; i++) {
+            names[i] = node.names[i].accept(this);
         }
 
-        final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
-        final RubyNode rubyNode = Translator.sequence(sourceSection, undefNodes);
+        final RubyNode rubyNode = new ModuleNodes.UndefNode(names);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
