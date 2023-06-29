@@ -186,24 +186,26 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString allocate(RubyClass rubyClass,
                 @Cached AllocateNode allocateNode) {
-            return allocateNode.execute(rubyClass);
+            return allocateNode.execute(this, rubyClass);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class AllocateNode extends RubyBaseNode {
 
-        public abstract RubyString execute(RubyClass rubyClass);
+        public abstract RubyString execute(Node node, RubyClass rubyClass);
 
         @Specialization
-        protected RubyString allocate(RubyClass rubyClass) {
+        protected static RubyString allocate(Node node, RubyClass rubyClass) {
             final RubyString string = new RubyString(
                     rubyClass,
-                    getLanguage().stringShape,
+                    getLanguage(node).stringShape,
                     false,
                     EMPTY_BINARY,
                     Encodings.BINARY);
-            AllocationTracing.trace(string, this);
+            AllocationTracing.trace(string, node);
             return string;
         }
     }

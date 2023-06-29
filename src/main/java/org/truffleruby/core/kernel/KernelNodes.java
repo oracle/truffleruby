@@ -528,7 +528,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyDynamicObject copy(ImmutableRubyString string,
                 @Cached StringNodes.AllocateNode allocateStringNode) {
-            return allocateStringNode.execute(coreLibrary().stringClass);
+            return allocateStringNode.execute(this, coreLibrary().stringClass);
         }
 
         @Specialization
