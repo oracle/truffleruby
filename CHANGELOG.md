@@ -9,6 +9,7 @@ Bug fixes:
 * Fix class lookup after an object's class has been replaced by `IO#reopen` (@itarato, @eregon).
 * Fix `Marshal.load` and raise `ArgumentError` when dump is broken and is too short (#3108, @andrykonchin).
 * Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
+* Fix added module visibility via `define_method` (#3134, @itarato)
 
 Compatibility:
 

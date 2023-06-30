@@ -499,6 +499,36 @@ describe "Module#define_method" do
       Class.new { define_method :bar, m }
     }.should raise_error(TypeError, /can't bind singleton method to a different class/)
   end
+
+  it "defines the new method public when the definition frame self is different from the target" do
+    foo_class = Class.new do
+      private def bar
+        "public"
+      end
+    end
+
+    foo = foo_class.new
+    foo.singleton_class.define_method(:bar, foo.method(:bar))
+
+    foo.bar.should == "public"
+  end
+
+  it "defines the new method according to the scope when the definition context is the same" do
+    FooWithOneBar = Class.new do
+      def bar; end
+    end
+
+    foo = FooWithOneBar.new
+
+    class << foo
+      private
+      define_method(:bar, FooWithOneBar.new.method(:bar))
+    end
+
+    -> { foo.bar }.should raise_error(NoMethodError)
+
+    Object.class_eval { remove_const(:FooWithOneBar) }
+  end
 end
 
 describe "Module#define_method" do

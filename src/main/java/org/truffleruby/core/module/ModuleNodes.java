@@ -1340,7 +1340,7 @@ public abstract class ModuleNodes {
             final String name = nameToJavaStringNode.execute(RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
-            return addMethod(module, name, (RubyMethod) method);
+            return addMethod(callerFrame.materialize(), module, name, (RubyMethod) method);
         }
 
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
@@ -1394,8 +1394,10 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method) {
-            final InternalMethod internalMethod = method.method;
+        private RubySymbol addMethod(MaterializedFrame callerFrame, RubyModule module, String name, RubyMethod method) {
+            Visibility expectedVisibility = DeclarationContext.findVisibilityCheckSelfAndDefaultDefinee(module,
+                    callerFrame);
+            final InternalMethod internalMethod = method.method.withVisibility(expectedVisibility);
 
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final RubyModule declaringModule = internalMethod.getDeclaringModule();
