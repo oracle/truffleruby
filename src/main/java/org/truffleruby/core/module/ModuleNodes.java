@@ -10,6 +10,7 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,7 +38,6 @@ import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -2315,7 +2315,6 @@ public abstract class ModuleNodes {
 
     }
 
-    @NonStandard
     @CoreMethod(names = "used_refinements", onSingleton = true)
     public abstract static class UsedRefinementsNode extends CoreMethodArrayArgumentsNode {
 
@@ -2326,11 +2325,20 @@ public abstract class ModuleNodes {
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<RubyModule> refinements = new HashSet<>();
             for (RubyModule[] refinementModules : declarationContext.getRefinements().values()) {
-                for (RubyModule refinementModule : refinementModules) {
-                    refinements.add(refinementModule);
-                }
+                Collections.addAll(refinements, refinementModules);
             }
             return createArray(refinements.toArray());
+        }
+
+    }
+
+    @CoreMethod(names = "refinements")
+    public abstract static class RefinementsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray refinements(RubyModule self) {
+            return createArray(self.fields.getRefinements().values().toArray());
         }
 
     }

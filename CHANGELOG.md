@@ -26,6 +26,7 @@ Compatibility:
 * Add optional `timeout` argument to `Thread::Queue#pop` (#3039, @itarato).
 * Add optional `timeout` argument to `Thread::SizedsQueue#pop` (#3039, @itarato).
 * Handle `long long` and aliases in `Fiddle` (#3128, @eregon).
+* Add `Module#refinements` (#3039, @itarato).
 
 Performance:
 
