@@ -1,0 +1,43 @@
+subject: "Alias"
+description: "alias (dynamic) Symbols with interpolation when expressions are arbitrary (not Strings)"
+focused_on_node: "org.truffleruby.core.module.ModuleNodes$AliasKeywordNode"
+ruby: |
+  alias :"a" :"ab#{ 42 }cd"
+ast: |
+  ModuleNodes$AliasKeywordNode
+      children:
+          newName =
+              ObjectLiteralNode
+                  attributes:
+                      object = :a
+          oldName =
+              StringToSymbolNodeGen
+                  children:
+                      stringNode_ =
+                          InterpolatedStringNode
+                              attributes:
+                                  emptyTString = ""
+                                  encoding = UTF-8
+                              children:
+                                  children = [
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          tstring = ab
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          value = 42
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          tstring = cd
+                                  ]

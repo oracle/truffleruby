@@ -5,6 +5,12 @@ ruby: |
   alias :"a" :"b"
 ast: |
   ModuleNodes$AliasKeywordNode
-      attributes:
-          newName = :a
-          oldName = :b
+      children:
+          newName =
+              ObjectLiteralNode
+                  attributes:
+                      object = :a
+          oldName =
+              ObjectLiteralNode
+                  attributes:
+                      object = :b

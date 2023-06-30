@@ -369,12 +369,12 @@ public abstract class ModuleNodes {
 
     }
 
-    public static final class AliasKeywordInterpolatedNode extends RubyContextSourceNode {
+    public static final class AliasKeywordNode extends RubyContextSourceNode {
 
         @Child private RubyNode newName;
         @Child private RubyNode oldName;
 
-        public AliasKeywordInterpolatedNode(RubyNode newName, RubyNode oldName) {
+        public AliasKeywordNode(RubyNode newName, RubyNode oldName) {
             this.newName = newName;
             this.oldName = oldName;
         }
@@ -396,31 +396,9 @@ public abstract class ModuleNodes {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new AliasKeywordInterpolatedNode(newName, oldName).copyFlags(this);
-        }
-
-    }
-
-    public static final class AliasKeywordNode extends RubyContextSourceNode {
-
-        private final RubySymbol newName;
-        private final RubySymbol oldName;
-
-        public AliasKeywordNode(RubySymbol newName, RubySymbol oldName) {
-            this.newName = newName;
-            this.oldName = oldName;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
-            return AliasMethodNode.aliasMethod(module, newName, oldName, this);
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
             return new AliasKeywordNode(newName, oldName).copyFlags(this);
         }
+
     }
 
     @CoreMethod(names = "ancestors")

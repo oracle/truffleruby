@@ -55,7 +55,6 @@ import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -299,14 +298,15 @@ public class BodyTranslator extends BaseTranslator {
         this.rubyWarnings = rubyWarnings;
     }
 
-    private RubySymbol translateNameNodeToSymbol(ParseNode node) {
-        if (node instanceof LiteralParseNode) {
-            return language.getSymbol(((LiteralParseNode) node).getName());
-        } else if (node instanceof SymbolParseNode) {
-            var encoding = Encodings.getBuiltInEncoding(((SymbolParseNode) node).getEncoding());
-            return language.getSymbol(((SymbolParseNode) node).getTString(), encoding);
+    private RubyNode translateNameNode(ParseNode node) {
+        if (node instanceof LiteralParseNode literal) {
+            final String string = literal.getName();
+            final RubyNode ret = new ObjectLiteralNode(language.getSymbol(string));
+
+            ret.unsafeSetSourceSection(node.getPosition());
+            return addNewlineIfNeeded(node, ret);
         } else {
-            throw new UnsupportedOperationException(node.getClass().getName());
+            return node.accept(this);
         }
     }
 
@@ -314,8 +314,8 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitAliasNode(AliasParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubySymbol newName = translateNameNodeToSymbol(node.getNewName());
-        final RubySymbol oldName = translateNameNodeToSymbol(node.getOldName());
+        final RubyNode newName = translateNameNode(node.getNewName());
+        final RubyNode oldName = translateNameNode(node.getOldName());
         final RubyNode ret = new ModuleNodes.AliasKeywordNode(newName, oldName);
 
         ret.unsafeSetSourceSection(sourceSection);
@@ -2844,16 +2844,8 @@ public class BodyTranslator extends BaseTranslator {
     @Override
     public RubyNode visitUndefNode(UndefParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret;
-
-        if (node.getName() instanceof LiteralParseNode l) {
-            final RubyNode name = new SymbolParseNode(l.getPosition(), l.getName(), Encodings.UTF_8.jcoding)
-                    .accept(this);
-            ret = new ModuleNodes.UndefNode(new RubyNode[]{ name });
-        } else {
-            final RubyNode name = node.getName().accept(this);
-            ret = new ModuleNodes.UndefNode(new RubyNode[]{ name });
-        }
+        final RubyNode name = translateNameNode(node.getName());
+        final RubyNode ret = new ModuleNodes.UndefNode(new RubyNode[]{ name });
 
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

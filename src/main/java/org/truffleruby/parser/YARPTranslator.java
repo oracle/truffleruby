@@ -113,14 +113,10 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             rubyNode = new AliasGlobalVarNode(
                     toString(node.old_name),
                     toString(node.new_name));
-        } else if (node.new_name instanceof Nodes.SymbolNode new_symbol &&
-                node.old_name instanceof Nodes.SymbolNode old_symbol) {
-            rubyNode = new ModuleNodes.AliasKeywordNode(
-                    language.getSymbol(toString(new_symbol)),
-                    language.getSymbol(toString(old_symbol)));
         } else {
-            // expected InterpolatedSymbolNode that should be evaluated in runtime
-            rubyNode = new ModuleNodes.AliasKeywordInterpolatedNode(
+            // expected InterpolatedSymbolNode (that should be evaluated in runtime)
+            // or SymbolNode
+            rubyNode = new ModuleNodes.AliasKeywordNode(
                     node.new_name.accept(this),
                     node.old_name.accept(this));
         }
