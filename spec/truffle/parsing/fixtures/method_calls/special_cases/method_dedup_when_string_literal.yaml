@@ -1,0 +1,12 @@
+subject: "Method call"
+description: "Special cases/method #dedup called on a String literal"
+notes: >
+  When called on a String literal it's represented as FrozenStringLiteralNode.
+focused_on_node: "org.truffleruby.language.literal.FrozenStringLiteralNode"
+ruby: |
+  "foobar".dedup
+ast: |
+  FrozenStringLiteralNode
+      attributes:
+          definition = method
+          frozenString = foobar

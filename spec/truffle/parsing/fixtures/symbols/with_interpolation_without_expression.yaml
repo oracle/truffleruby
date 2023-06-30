@@ -1,0 +1,12 @@
+subject: "Symbol"
+description: "Literal with interpolation without expressions"
+notes: >
+  An empty expression is represented as a frozen empty string with
+  (ObjectLiteralNode object = '') node.
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  :"ab#{ }cd"
+ast: |
+  ObjectLiteralNode
+      attributes:
+          object = ""

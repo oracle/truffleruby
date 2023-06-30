@@ -1,8 +1,10 @@
-subject: "if expression"
-description: "`if` expression with both `then` and `else` branches"
+subject: "unless"
+description: "with both `then` and `else` branches"
+notes: >
+  then it's represented with IfElseNode
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
-  if true
+  unless true
     100500
   else
     42
@@ -17,8 +19,8 @@ ast: |
           elseBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      value = 42
+                      value = 100500
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      value = 100500
+                      value = 42

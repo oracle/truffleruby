@@ -1,0 +1,36 @@
+subject: "Hash"
+description: "with symbol keys syntax and dynamic symbol with interpolation"
+focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
+ruby: |
+  {"foo#{ 100500 }": 42}
+ast: |
+  PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      children:
+          keyValues = [
+              StringToSymbolNodeGen
+                  children:
+                      stringNode_ =
+                          InterpolatedStringNode
+                              attributes:
+                                  emptyTString = ""
+                                  encoding = UTF-8
+                              children:
+                                  children = [
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          tstring = foo
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          value = 100500
+                                  ]
+              IntegerFixnumLiteralNode
+                  attributes:
+                      value = 42
+          ]

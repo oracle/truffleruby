@@ -1,0 +1,9 @@
+subject: "Symbol"
+description: "Literal with interpolation when expressions are % String literals"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  :"ab#{ %q{123} }cd"
+ast: |
+  ObjectLiteralNode
+      attributes:
+          object = :ab123cd

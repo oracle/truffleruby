@@ -1,18 +1,15 @@
 subject: "Hash"
-description: "with String literal key"
-notes: >
-  String literal keys are frozen and represented by FrozenStringLiteralNode
+description: "with symbol keys syntax (key: value)"
 focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
 ruby: |
-  {"foo" => 42}
+  {foo: 42}
 ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       children:
           keyValues = [
-              FrozenStringLiteralNode
+              ObjectLiteralNode
                   attributes:
-                      definition = expression
-                      frozenString = foo
+                      object = :foo
               IntegerFixnumLiteralNode
                   attributes:
                       value = 42

@@ -1,0 +1,74 @@
+subject: "defined?"
+description: "with yield in a method body (defined? yield)"
+notes: >
+  In a method body is represented with DefinedNode node:
+  
+    (DefinedNode
+      (YieldExpressionNode))
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def a
+    defined? yield
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          isDefSingleton = false
+          name = "a"
+          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=26, characters=def a\n  defined? yield\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#a
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=26, characters=def a\n  defined? yield\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=26, characters=def a\n  defined? yield\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          slot = 2
+                                  DefinedNode
+                                      children:
+                                          child =
+                                              YieldExpressionNode
+                                                  attributes:
+                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                      emptyKeywordsProfile = false
+                                                      isSplatted = false
+                                                      lastArgIsNotHashProfile = false
+                                                      notEmptyKeywordsProfile = false
+                                                      notRuby2KeywordsHashProfile = false
+                                                      ruby2KeywordsHashProfile = false
+                                                  children:
+                                                      readBlockNode =
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  frameSlot = 2
+                                                                  type = FRAME_LOCAL
+                              ]

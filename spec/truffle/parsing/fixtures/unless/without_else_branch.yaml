@@ -1,12 +1,11 @@
-subject: "if expression"
-description: >
-  when `if` expression with empty `then` branch
+subject: "unless"
+description: "without `else` branch"
+notes: >
   then `elseBody` child node is missing
 focused_on_node: "org.truffleruby.language.control.UnlessNode"
 ruby: |
-  if true
-  else
-    42
+  unless true
+    100500
   end
 ast: |
   UnlessNodeGen
@@ -18,4 +17,4 @@ ast: |
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
-                      value = 42
+                      value = 100500

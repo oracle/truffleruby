@@ -1,5 +1,5 @@
 subject: "Undef"
-description: "undef keyword"
+description: "with a keyword"
 focused_on_node: "org.truffleruby.core.module.ModuleNodes$UndefKeywordNode"
 ruby: |
   undef a

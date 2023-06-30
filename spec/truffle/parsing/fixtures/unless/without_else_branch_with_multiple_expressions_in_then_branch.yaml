@@ -1,11 +1,10 @@
-subject: "if expression"
-description: >
-  when `if` expression with empty `then` branch and `else` branch contains multiple expressions
+subject: "unless"
+description: "without `else` branch, but `then` branch contains multiple expressions"
+notes: >
   then these expressions are wrapped into a SequenceNode
 focused_on_node: "org.truffleruby.language.control.UnlessNode"
 ruby: |
-  if true
-  else
+  unless true
     42
     100500
   end

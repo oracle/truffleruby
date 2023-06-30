@@ -1,0 +1,62 @@
+subject: "defined?"
+description: "with yield in a module/class body (defined? yield)"
+notes: >
+  When `yield` is used incorrectly (not in a method body)
+  `defined?(yield)` is represented with NilLiteralNode:
+  
+    (InsideModuleDefinitionNode
+      (NilLiteralNode isImplicit = false))
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  module A
+    defined? yield
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:A>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=29, characters=module A\n  defined? yield\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null), callTarget = <module:A>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineModuleNodeGen
+                  attributes:
+                      name = "A"
+                  children:
+                      lexicalParentModuleNode_ =
+                          LexicalScopeNode
+                              attributes:
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <module:A>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=29, characters=module A\n  defined? yield\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=29, characters=module A\n  defined? yield\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                  InsideModuleDefinitionNode
+                                      children:
+                                          body =
+                                              NilLiteralNode
+                                                  attributes:
+                                                      isImplicit = false
+                              ]

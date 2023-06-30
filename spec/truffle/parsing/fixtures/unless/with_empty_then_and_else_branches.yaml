@@ -1,11 +1,12 @@
-subject: "if expression"
-description: >
-  when `if` expression without `else` branch
-  then `elseBody` child node is missing
+subject: "unless"
+description: "with empty `then` and `else` branches"
+notes: >
+  then it's represented with IfNode and
+  the `else` branch is represented as `nil` expression
 focused_on_node: "org.truffleruby.language.control.IfNode"
 ruby: |
-  if true
-    100500
+  unless true
+  else
   end
 ast: |
   IfNodeGen
@@ -15,6 +16,6 @@ ast: |
                   attributes:
                       value = true
           thenBody =
-              IntegerFixnumLiteralNode
+              NilLiteralNode
                   attributes:
-                      value = 100500
+                      isImplicit = true

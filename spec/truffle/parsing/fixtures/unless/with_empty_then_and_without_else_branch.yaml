@@ -1,16 +1,15 @@
-subject: "if expression"
-description: >
-  when `if` expression with empty `then` branch and without `else` branch
-  then it's represented as `condition; nil` expression
+subject: "unless"
+description: "with empty `then` branch and without `else` branch"
 notes: >
-  Focus test on an outer SequenceNode node.
+  then it's represented as `condition; nil` expression.
   
-  But actually we are interested in the last two nodes in the sequence:
+  Focus test on an outer SequenceNode node. But actually we are interested
+  in the last two nodes in the sequence:
   - BooleanLiteralNode
   - NilLiteralNode
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  if true
+  unless true
   end
 ast: |
   SequenceNode

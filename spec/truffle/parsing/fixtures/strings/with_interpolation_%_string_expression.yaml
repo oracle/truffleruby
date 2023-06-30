@@ -1,0 +1,10 @@
+subject: "String"
+description: "Literal with interpolation when when expressions are % String literals"
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  "ab#{ %q{123} }cd"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = UTF-8
+          tstring = ab123cd

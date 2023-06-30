@@ -1,10 +1,11 @@
-subject: "if expression"
-description: >
-  when `if` expression with both `then` and `else` branches and they contain multiple expressions
-  then these expressions are wrapped into a SequenceNode
+subject: "unless"
+description: "with both `then` and `else` branches and they contain multiple expressions"
+notes: >
+  then it's represented with IfElseNode
+  and these multiple expressions are wrapped into a SequenceNode
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
-  if true
+  unless true
     42
     100500
   else
@@ -22,21 +23,21 @@ ast: |
               SequenceNode
                   children:
                       body = [
-                          BooleanLiteralNode
-                              attributes:
-                                  value = true
-                          BooleanLiteralNode
-                              attributes:
-                                  value = false
-                      ]
-          thenBody =
-              SequenceNode
-                  children:
-                      body = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   value = 100500
+                      ]
+          thenBody =
+              SequenceNode
+                  children:
+                      body = [
+                          BooleanLiteralNode
+                              attributes:
+                                  value = true
+                          BooleanLiteralNode
+                              attributes:
+                                  value = false
                       ]

@@ -1,21 +1,17 @@
-subject: "if expression"
-description: >
-  when `if` expression with empty `then` branch and without `else` branch
-  then it's represented as `condition; nil` expression
+subject: "Parentheses operator"
+description: "with multiple expressions, e.g. (1; 2; 3)"
 notes: >
-  Focus test on an outer SequenceNode node.
-  
-  But actually we are interested in the last two nodes in the sequence:
-  - BooleanLiteralNode
-  - NilLiteralNode
+  is represented as a sequence of nodes
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  if true
-  end
+  (42; 100500)
 ast: |
   SequenceNode
       children:
           body = [
+              EmitWarningsNode
+                  attributes:
+                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
                       frameSlot = 0
@@ -25,10 +21,10 @@ ast: |
                               children:
                                   childNode_ =
                                       ReadSelfNode
-              BooleanLiteralNode
+              IntegerFixnumLiteralNode
                   attributes:
-                      value = true
-              NilLiteralNode
+                      value = 42
+              IntegerFixnumLiteralNode
                   attributes:
-                      isImplicit = true
+                      value = 100500
           ]

@@ -1,15 +1,16 @@
-subject: "if expression"
-description: >
-  when `if` expression with empty `then` branch
-  then `elseBody` child node is missing
-focused_on_node: "org.truffleruby.language.control.UnlessNode"
+subject: "unless"
+description: "with empty `then` branch"
+notes: >
+  then it's represented with IfNode, `else` branch becomes `then` one and
+  `elseBody` child node is missing
+focused_on_node: "org.truffleruby.language.control.IfNode"
 ruby: |
-  if true
+  unless true
   else
     42
   end
 ast: |
-  UnlessNodeGen
+  IfNodeGen
       children:
           condition =
               BooleanLiteralNode

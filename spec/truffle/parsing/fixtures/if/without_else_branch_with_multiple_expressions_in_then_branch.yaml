@@ -4,7 +4,7 @@ description: >
   then these expressions are wrapped into a SequenceNode
 focused_on_node: "org.truffleruby.language.control.IfNode"
 ruby: |
-  if (true)
+  if true
     42
     100500
   end
