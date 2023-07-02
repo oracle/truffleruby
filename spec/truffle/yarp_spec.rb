@@ -12,10 +12,13 @@ require_relative '../ruby/spec_helper'
 
 # Similar tests as in https://github.com/ruby/yarp/blob/main/.github/workflows/truffleruby.yml
 describe "YARP" do
-  it "can parse core files" do
-    root = File.expand_path("../..", __dir__)
-    Dir.glob("#{root}/src/main/ruby/truffleruby/**/*.rb") do |file|
-      Truffle::Debug.yarp_parse(File.read(file)).should.include?("Node")
+  root = File.expand_path("../..", __dir__)
+
+  guard -> { Dir.exist?("#{root}/src/main/ruby/truffleruby") } do
+    it "can parse core files" do
+      Dir.glob("#{root}/src/main/ruby/truffleruby/**/*.rb") do |file|
+        Truffle::Debug.yarp_parse(File.read(file)).should.include?("Node")
+      end
     end
   end
 
