@@ -33,6 +33,11 @@
 #   define YP_ATTRIBUTE_UNUSED
 #endif
 
+// inline
+#if defined(_MSC_VER) && !defined(inline)
+#   define inline __inline
+#endif
+
 // strncasecmp
 #if !defined(HAVE_STRNCASECMP) && !defined(strncasecmp)
     // In case strncasecmp isn't present on the system, we provide our own.
