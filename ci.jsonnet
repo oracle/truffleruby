@@ -218,20 +218,20 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    v17: with_path + common.jdks["labsjdk-ce-17"] + {
+    local v17 = with_path + common.jdks["labsjdk-ce-17"] + {
       environment+: {
         JT_JDK: "17",
       },
     },
 
-    v21: with_path + common.jdks["labsjdk-ce-21"] + {
+    local v21 = with_path + common.jdks["labsjdk-ce-21"] + {
       environment+: {
         JT_JDK: "21",
       },
     },
 
-    lts: self.v17,
-    new: self.v21,
+    lts: v17 + { jdk_label:: 'lts' },
+    new: v21 + { jdk_label:: 'new' },
   },
 
   platform: {
@@ -707,18 +707,26 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   builds:
     local all_builds = $.test_builds + $.bench_builds + $.manual_builds;
+    local filtered_builds = if $.jdk.lts.jdk_version == $.jdk.new.jdk_version then
+      {
+        [k]: all_builds[k]
+        for k in std.objectFields(all_builds)
+        if !std.objectHasAll(all_builds[k], "jdk_label") || all_builds[k].jdk_label == $.jdk.lts.jdk_label
+      }
+    else
+      all_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
       # and ensure timelimit is present
       [
-        all_builds[k] {
+        filtered_builds[k] {
           name: k,
-          timelimit: if std.objectHas(all_builds[k], "timelimit")
-          then all_builds[k].timelimit
+          timelimit: if std.objectHas(filtered_builds[k], "timelimit")
+          then filtered_builds[k].timelimit
           else error "Missing timelimit in " + k + " build.",
         }
-        for k in std.objectFields(all_builds)
+        for k in std.objectFields(filtered_builds)
       ]
     ),
 };
