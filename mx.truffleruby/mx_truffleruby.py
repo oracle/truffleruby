@@ -138,6 +138,12 @@ class YARPNativeBuildTask(mx.NativeBuildTask):
         mx.run(['./configure'], cwd=self.subject.dir)
         super(YARPNativeBuildTask, self).build() # make
 
+    def clean(self, forBuild=False):
+        if exists(join(self.subject.dir, 'Makefile')):
+            super(YARPNativeBuildTask, self).clean(forBuild=forBuild)
+        else:
+            pass
+
 # Commands
 
 def jt(*args):
