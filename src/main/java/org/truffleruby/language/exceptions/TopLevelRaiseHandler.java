@@ -56,20 +56,21 @@ public class TopLevelRaiseHandler extends RubyBaseNode {
             // No FiberShutdownException, it's only for Fibers
             assert !(e instanceof FiberShutdownException) : e;
 
-            BacktraceFormatter.printInternalError(
-                    getContext(),
-                    e,
+            BacktraceFormatter.printInternalError(getContext(), e,
                     "an internal exception escaped out of the interpreter");
             return 1;
         }
 
         // Execute at_exit hooks (except if hard #exit!)
+        String step = "unexpected internal exception in at_exit";
         try {
             AbstractTruffleException atExitException = getContext().getAtExitManager().runAtExitHooks();
+
             if (atExitException != null) {
                 exitCode = statusFromException(atExitException);
             }
 
+            step = "an internal exception escaped out of the interpreter";
             if (caughtException != null) {
                 // print the main script exception now
                 if (!AtExitManager.isSilentException(getContext(), caughtException)) {
@@ -84,10 +85,7 @@ public class TopLevelRaiseHandler extends RubyBaseNode {
         } catch (ThreadDeath e) { // Context#close(true)
             throw e;
         } catch (RuntimeException | Error e) { // Internal error
-            BacktraceFormatter.printInternalError(
-                    getContext(),
-                    e,
-                    "an internal exception escaped out of the interpreter");
+            BacktraceFormatter.printInternalError(getContext(), e, step);
             return 1;
         }
 

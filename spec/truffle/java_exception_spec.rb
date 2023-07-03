@@ -33,6 +33,30 @@ custom message (java.lang.RuntimeException)
     EOS
   end
 
+  it "are also reported if they happen in at_exit" do
+    file = fixture(__FILE__, 'throw_java_exception_at_exit.rb')
+    out = ruby_exe(file, args: "2>&1", exit_status: 1)
+    out = out.gsub(/\.java:\d+/, '.java:LINE')
+    out.should == <<-EOS
+
+truffleruby: unexpected internal exception in at_exit,
+please report it to https://github.com/oracle/truffleruby/issues.
+
+```
+custom message (java.lang.RuntimeException)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.executeAndSpecialize(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.execute(TruffleDebugNodesFactory.java:LINE)
+	from org.truffleruby.language.RubyCoreMethodRootNode.execute(RubyCoreMethodRootNode.java:LINE)
+#{file}:10:in `throw_java_exception'
+	from #{file}:10:in `foo'
+	from #{file}:14:in `block in <main>'
+```
+    EOS
+  end
+
   it "show the cause" do
     file = fixture(__FILE__, 'throw_java_exception_with_cause.rb')
     out = ruby_exe(file, args: "2>&1", exit_status: 1)
