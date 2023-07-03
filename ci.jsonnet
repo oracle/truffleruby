@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "8fcbcd2506181e6bd020d113940b41897bd4a528";
+local overlay = "1a47807cf46687114e0423fff01a2103ae8bd727";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -218,19 +218,13 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    local v17 = with_path + common.jdks["labsjdk-ce-17"] + {
-      environment+: {
-        JT_JDK: "17",
-      },
-    },
-
     local v21 = with_path + common.jdks["labsjdk-ce-21"] + {
       environment+: {
         JT_JDK: "21",
       },
     },
 
-    lts: v17 + { jdk_label:: 'lts' },
+    lts: v21 + { jdk_label:: 'lts' },
     new: v21 + { jdk_label:: 'new' },
   },
 
