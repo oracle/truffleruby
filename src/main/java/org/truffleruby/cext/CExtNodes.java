@@ -39,7 +39,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
-import org.truffleruby.core.MarkingServiceNodes.RunMarkOnExitNode;;
+import org.truffleruby.core.MarkingServiceNodes.RunMarkOnExitNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
