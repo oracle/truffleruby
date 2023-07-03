@@ -1,0 +1,43 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#undef HAVE_STRNCASECMP
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* YP_VERSION */
+#undef YP_VERSION
+
+/* YP_VERSION_MAJOR */
+#undef YP_VERSION_MAJOR
+
+/* YP_VERSION_MINOR */
+#undef YP_VERSION_MINOR
+
+/* YP_VERSION_PATCH */
+#undef YP_VERSION_PATCH
+
+/* _XOPEN_SOURCE */
+#undef _XOPEN_SOURCE

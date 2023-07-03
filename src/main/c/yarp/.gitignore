@@ -22,6 +22,7 @@ test.c
 a.out
 
 /ext/yarp/api_node.c
+/fuzz/output/
 /include/yarp/ast.h
 /java/org/yarp/AbstractNodeVisitor.java
 /java/org/yarp/Loader.java
