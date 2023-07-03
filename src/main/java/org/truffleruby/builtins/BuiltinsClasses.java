@@ -76,6 +76,8 @@ import org.truffleruby.core.method.UnboundMethodNodesBuiltins;
 import org.truffleruby.core.method.UnboundMethodNodesFactory;
 import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.refinement.RefinementNodesBuiltins;
+import org.truffleruby.core.refinement.RefinementNodesFactory;
 import org.truffleruby.core.monitor.TruffleMonitorNodesBuiltins;
 import org.truffleruby.core.monitor.TruffleMonitorNodesFactory;
 import org.truffleruby.core.mutex.ConditionVariableNodesBuiltins;
@@ -223,6 +225,7 @@ public abstract class BuiltinsClasses {
         RangeNodesBuiltins.setup(coreManager);
         ReadlineNodesBuiltins.setup(coreManager);
         ReadlineHistoryNodesBuiltins.setup(coreManager);
+        RefinementNodesBuiltins.setup(coreManager);
         RegexpNodesBuiltins.setup(coreManager);
         SecureRandomizerNodesBuiltins.setup(coreManager);
         SizedQueueNodesBuiltins.setup(coreManager);
@@ -304,6 +307,7 @@ public abstract class BuiltinsClasses {
         RangeNodesBuiltins.setupPrimitives(primitiveManager);
         ReadlineNodesBuiltins.setupPrimitives(primitiveManager);
         ReadlineHistoryNodesBuiltins.setupPrimitives(primitiveManager);
+        RefinementNodesBuiltins.setupPrimitives(primitiveManager);
         RegexpNodesBuiltins.setupPrimitives(primitiveManager);
         SecureRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
         SizedQueueNodesBuiltins.setupPrimitives(primitiveManager);
@@ -386,6 +390,7 @@ public abstract class BuiltinsClasses {
                 RangeNodesFactory.getFactories(),
                 ReadlineNodesFactory.getFactories(),
                 ReadlineHistoryNodesFactory.getFactories(),
+                RefinementNodesFactory.getFactories(),
                 RegexpNodesFactory.getFactories(),
                 SecureRandomizerNodesFactory.getFactories(),
                 SizedQueueNodesFactory.getFactories(),
