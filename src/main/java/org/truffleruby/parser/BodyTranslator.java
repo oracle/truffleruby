@@ -279,7 +279,6 @@ public class BodyTranslator extends BaseTranslator {
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
     protected final BodyTranslator parent;
-    protected final TranslatorEnvironment environment;
     private final RubyDeferredWarnings rubyWarnings;
 
     public boolean translatingForStatement = false;
@@ -297,7 +296,6 @@ public class BodyTranslator extends BaseTranslator {
             RubyDeferredWarnings rubyWarnings) {
         super(language, source, parserContext, currentNode, environment);
         this.parent = parent;
-        this.environment = environment;
         this.rubyWarnings = rubyWarnings;
     }
 

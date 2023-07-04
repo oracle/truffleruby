@@ -3550,7 +3550,7 @@ states[560] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[561] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* TODO: make a helper for this since it is used twice now*/
     Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromJavaStringUncached(lexer.getFile(), lexer.tencoding), lexer.encoding);
     return yyVal;
 };
 states[562] = (support, lexer, yyVal, yyVals, yyTop) -> {

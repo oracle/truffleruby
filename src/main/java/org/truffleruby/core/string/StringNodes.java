@@ -3557,15 +3557,6 @@ public abstract class StringNodes {
             return result.toTString(); // CodeRange.CR_7BIT
         }
 
-        private static int MBCLEN_CHARFOUND_LEN(int r) {
-            return r;
-        }
-
-        // MBCLEN_CHARFOUND_P, ONIGENC_MBCLEN_CHARFOUND_P
-        private static boolean MBCLEN_CHARFOUND_P(int r) {
-            return 0 < r;
-        }
-
         private static String escapedCharFormat(int c, boolean isUnicode) {
             String format;
             // c comparisons must be unsigned 32-bit

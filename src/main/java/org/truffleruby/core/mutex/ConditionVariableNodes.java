@@ -81,6 +81,7 @@ public abstract class ConditionVariableNodes {
             return condVar;
         }
 
+        @SuppressFBWarnings({ "UL_UNRELEASED_LOCK", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
         @TruffleBoundary
         private void waitInternal(RubyConditionVariable conditionVariable, ReentrantLock mutexLock,
                 RubyThread thread, long durationInNanos) {
@@ -135,7 +136,7 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        @SuppressFBWarnings(value = { "UL", "RV" })
+        // @SuppressFBWarnings(value = { "UL", "RV" })
         private void awaitSignal(RubyConditionVariable self, RubyThread thread, long durationInNanos,
                 ReentrantLock condLock, Condition condition, long endNanoTime) {
             final Memo<Boolean> done = new Memo<>(false);

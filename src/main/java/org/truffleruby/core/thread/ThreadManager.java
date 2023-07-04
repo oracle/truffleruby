@@ -34,6 +34,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentWeakSet;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.InterruptMode;
@@ -362,6 +363,7 @@ public final class ThreadManager {
         return runtimeException;
     }
 
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
         context.getSafepointManager().pauseRubyThreadAndExecute(
                 currentNode,
@@ -671,6 +673,7 @@ public final class ThreadManager {
     }
 
     /** Kill all Ruby threads, except the current Ruby Thread. Each Ruby Threads kills its fibers. */
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     @TruffleBoundary
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();

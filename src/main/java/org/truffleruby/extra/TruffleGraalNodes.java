@@ -15,6 +15,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -43,6 +44,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 
+import java.lang.invoke.VarHandle;
 import java.lang.management.CompilationMXBean;
 import java.lang.management.ManagementFactory;
 
@@ -228,13 +230,17 @@ public abstract class TruffleGraalNodes {
 
     @CoreMethod(names = "total_compilation_time", onSingleton = true)
     public abstract static class TotalCompilationTimeNode extends CoreMethodArrayArgumentsNode {
+
         private static CompilationMXBean bean;
 
+        @SuppressFBWarnings("LI_LAZY_INIT_STATIC")
         @TruffleBoundary
         @Specialization
         protected final long totalCompilationTime() {
             if (bean == null) {
-                bean = ManagementFactory.getCompilationMXBean();
+                var compilationMXBean = ManagementFactory.getCompilationMXBean();
+                VarHandle.storeStoreFence();
+                bean = compilationMXBean;
             }
 
             return bean.getTotalCompilationTime();

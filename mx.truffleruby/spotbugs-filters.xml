@@ -24,6 +24,8 @@
         <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
         <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED" /> <!-- used as a way to assert the type -->
         <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
+        <Bug pattern="ES_COMPARING_PARAMETER_STRING_WITH_EQ" />
+        <Bug pattern="ES_COMPARING_STRINGS_WITH_EQ" />
       </Or>
     </Not>
   </Match>

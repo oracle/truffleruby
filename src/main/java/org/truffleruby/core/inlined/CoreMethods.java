@@ -18,9 +18,7 @@ import org.truffleruby.language.methods.InternalMethod;
 public final class CoreMethods {
 
     public final InternalMethod EXCEPTION_BACKTRACE;
-    public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod LAMBDA;
-    public final InternalMethod BINDING;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
     public final InternalMethod KERNEL_IS_A;
@@ -41,11 +39,8 @@ public final class CoreMethods {
         final RubyClass stringClass = context.getCoreLibrary().stringClass;
         final RubyClass symbolClass = context.getCoreLibrary().symbolClass;
         final RubyClass arrayClass = context.getCoreLibrary().arrayClass;
-        final RubyClass classClass = context.getCoreLibrary().classClass;
 
-        BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         LAMBDA = getMethod(kernelModule, "lambda");
-        BINDING = getMethod(kernelModule, "binding");
         NOT = getMethod(basicObjectClass, "!");
         EXCEPTION_BACKTRACE = getMethod(exceptionClass, "backtrace");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");

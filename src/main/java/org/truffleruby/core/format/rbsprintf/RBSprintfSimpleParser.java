@@ -12,6 +12,7 @@ package org.truffleruby.core.format.rbsprintf;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
@@ -483,7 +484,7 @@ public final class RBSprintfSimpleParser {
                     boolean typeConflict = false;
                     ArrayList<RBSprintfConfig> toFix = new ArrayList<>();
                     for (var conflict : conflicts) {
-                        if (conflict.getAbsoluteArgumentIndex() == config.getAbsoluteArgumentIndex()) {
+                        if (Objects.equals(conflict.getAbsoluteArgumentIndex(), config.getAbsoluteArgumentIndex())) {
                             toFix.add(conflict);
                             typeConflict |= conflict.getFormatArgumentType() != config.getFormatArgumentType();
                         }

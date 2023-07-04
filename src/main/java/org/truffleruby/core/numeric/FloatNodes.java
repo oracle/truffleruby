@@ -654,7 +654,7 @@ public abstract class FloatNodes {
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
             if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
-                return findClosest(n, ndigits, s, d);
+                return findClosest(n, s, d);
             } else if (d > 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
                 fInt += 1;
             }
@@ -667,7 +667,7 @@ public abstract class FloatNodes {
      * We'll test the adjacent double in the direction closest to the boundary and compare the fractional portions. If
      * we're already at the minimum error we'll return the original number as it is already rounded as well as it can
      * be. In the case of a tie we return the lower number, otherwise we check the go round again. */
-    private static double findClosest(double n, int ndigits, double s, double d) {
+    private static double findClosest(double n, double s, double d) {
         double n2;
         while (true) {
             if (d > 0.5) {
@@ -675,11 +675,8 @@ public abstract class FloatNodes {
             } else {
                 n2 = Math.nextAfter(n, n - s);
             }
-            long intPart = (long) n2;
             double f = (n2 % 1) * s;
-            long fInt = (long) f;
             double d2 = f % 1;
-            int limit = Math.getExponent(n2) + Math.getExponent(s) - 52;
             if (((d > 0.5) ? 1 - d : d) < ((d2 > 0.5) ? 1 - d2 : d2)) {
                 return n;
             } else if (((d > 0.5) ? 1 - d : d) == ((d2 > 0.5) ? 1 - d2 : d2)) {
@@ -753,7 +750,7 @@ public abstract class FloatNodes {
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
             if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
-                return findClosest(n, ndigits, s, d);
+                return findClosest(n, s, d);
             } else if (d > 0.5) {
                 fInt += 1;
             } else if (d == 0.5 || Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) >= 0) {
@@ -817,7 +814,7 @@ public abstract class FloatNodes {
             int limit = Math.getExponent(n) + Math.getExponent(s) - 51;
             if (boundaryCase.profile(this, (Math.getExponent(d) <= limit) ||
                     (Math.getExponent(1.0 - d) <= limit))) {
-                return findClosest(n, ndigits, s, d);
+                return findClosest(n, s, d);
             } else if (d > 0.5 && Math.abs(n) - Math.abs((intPart + (fInt + 0.5) / s)) > 0) {
                 fInt += 1;
             }

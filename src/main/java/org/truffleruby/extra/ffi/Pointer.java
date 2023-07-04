@@ -23,6 +23,7 @@ import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.thread.ThreadLocalBuffer;
 import org.truffleruby.language.control.RaiseException;
 import sun.misc.Unsafe;
@@ -47,6 +48,7 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         }
     }
 
+    @SuppressFBWarnings("MS_EXPOSE_REP")
     public static Pointer getNullPointer(RubyContext context) {
         checkNativeAccess(context);
         return NULL;
@@ -363,6 +365,7 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         enableAutoreleaseUnsynchronized(language);
     }
 
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     @TruffleBoundary
     private void enableAutoreleaseUnsynchronized(RubyLanguage language) {
         // We must be careful here that the cleaner does not capture
@@ -370,7 +373,6 @@ public final class Pointer implements AutoCloseable, TruffleObject {
         // that will allow use to disable autorelease later.
         autoReleaseState = new AutoReleaseState(address);
         cleanable = language.cleaner.register(this, autoReleaseState);
-
     }
 
     @TruffleBoundary

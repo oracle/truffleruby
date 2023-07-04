@@ -256,7 +256,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public Thread cleanerThread = null;
     @CompilationFinal public Cleaner cleaner = null;
 
-    public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
+    @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY") public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
 
     @CompilationFinal public LanguageOptions options;
