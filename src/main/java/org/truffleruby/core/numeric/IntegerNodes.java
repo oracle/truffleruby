@@ -649,36 +649,40 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_divmod")
     public abstract static class DivModNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private GeneralDivModNode divModNode = GeneralDivModNodeGen.create();
-
         @Specialization
-        protected RubyArray divMod(long a, long b) {
-            return divModNode.execute(a, b);
+        protected RubyArray divMod(long a, long b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(long a, RubyBignum b) {
-            return divModNode.execute(a, b.value);
+        protected RubyArray divMod(long a, RubyBignum b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b.value);
         }
 
         @Specialization
-        protected RubyArray divMod(long a, double b) {
-            return divModNode.execute(a, b);
+        protected RubyArray divMod(long a, double b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(RubyBignum a, long b) {
-            return divModNode.execute(a.value, b);
+        protected RubyArray divMod(RubyBignum a, long b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a.value, b);
         }
 
         @Specialization
-        protected RubyArray divMod(RubyBignum a, double b) {
-            return divModNode.execute(a.value, b);
+        protected RubyArray divMod(RubyBignum a, double b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a.value, b);
         }
 
         @Specialization
-        protected RubyArray divMod(RubyBignum a, RubyBignum b) {
-            return divModNode.execute(a.value, b.value);
+        protected RubyArray divMod(RubyBignum a, RubyBignum b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a.value, b.value);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")

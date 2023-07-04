@@ -272,21 +272,23 @@ public abstract class FloatNodes {
     @CoreMethod(names = "divmod", required = 1)
     public abstract static class DivModNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GeneralDivModNode divModNode = GeneralDivModNodeGen.create();
 
         @Specialization
-        protected RubyArray divMod(double a, long b) {
-            return divModNode.execute(a, b);
+        protected RubyArray divMod(double a, long b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(double a, double b) {
-            return divModNode.execute(a, b);
+        protected RubyArray divMod(double a, double b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(double a, RubyBignum b) {
-            return divModNode.execute(a, b.value);
+        protected RubyArray divMod(double a, RubyBignum b,
+                @Cached @Shared GeneralDivModNode divModNode) {
+            return divModNode.execute(this, a, b.value);
         }
 
         @Specialization

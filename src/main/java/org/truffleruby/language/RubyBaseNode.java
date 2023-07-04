@@ -204,7 +204,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(long[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
+    }
+
+    protected static RubyArray createArray(Node node, long[] store) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
     public final RubyArray createArray(Object[] store) {
