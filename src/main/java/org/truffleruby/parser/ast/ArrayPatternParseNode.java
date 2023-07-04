@@ -113,7 +113,7 @@ public final class ArrayPatternParseNode extends ParseNode {
 
         boolean named = !(restArg instanceof StarParseNode);
 
-        return named || !named && postArgsNum() > 0;
+        return named || postArgsNum() > 0;
     }
 
     public int preArgsNum() {

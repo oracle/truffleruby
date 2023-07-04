@@ -87,7 +87,8 @@ public final class Encodings {
     }
 
     private static Encoding createDummyEncoding() {
-        final EncodingDB.Entry entry = EncodingDB.dummy("TRUFFLERUBY_DUMMY_ENCODING".getBytes());
+        final EncodingDB.Entry entry = EncodingDB
+                .dummy(StringOperations.encodeAsciiBytes("TRUFFLERUBY_DUMMY_ENCODING"));
         return entry.getEncoding();
     }
 

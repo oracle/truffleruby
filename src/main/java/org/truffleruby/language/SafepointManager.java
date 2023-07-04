@@ -15,7 +15,6 @@ import java.util.concurrent.Future;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.core.thread.ThreadManager;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,7 +31,6 @@ public final class SafepointManager {
     /** Variant for a single thread */
     @TruffleBoundary
     public void pauseRubyThreadAndExecute(Node currentNode, SafepointAction action) {
-        final ThreadManager threadManager = context.getThreadManager();
         final RubyThread rubyThread = action.getTargetThread();
 
         if (context.getEnv().getContext().isEntered() && context.getLanguageSlow().getCurrentThread() == rubyThread) {
@@ -49,11 +47,9 @@ public final class SafepointManager {
 
     @TruffleBoundary
     public void pauseAllThreadsAndExecute(Node currentNode, SafepointAction action) {
-        // TODO: Potentially can narrow this for some cases like pauseRubyThreadAndExecute(), but not clear how to find current Fiber of another Ruby Thread
+        // TODO: Potentially can narrow threads for some cases like pauseRubyThreadAndExecute(), but not clear how to find current Fiber of another Ruby Thread
         // TODO: For pauseRubyThreadAndExecute(), we would need to retry for new threads if it was executed on no threads to handle new Fibers of that Thread
-        final Thread[] threads = null;
-
-        final Future<Void> future = context.getEnv().submitThreadLocal(threads, action);
+        final Future<Void> future = context.getEnv().submitThreadLocal(null, action);
 
         if (action.isSynchronous()) {
             TruffleSafepoint.setBlockedThreadInterruptible(currentNode, f -> {

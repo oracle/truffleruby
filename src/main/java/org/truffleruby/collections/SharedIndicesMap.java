@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import org.truffleruby.annotations.SuppressFBWarnings;
 
 /** An append-only map of names or identifiers to indices. The map is stored in {@link org.truffleruby.RubyLanguage} and
  * each {@link org.truffleruby.RubyContext} have separate {@link ContextArray}s. This enables looking up names and
@@ -93,6 +94,7 @@ public final class SharedIndicesMap {
             }
         }
 
+        @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
         @TruffleBoundary
         public boolean contains(int index) {
             assert index <= sharedIndicesMap.size();

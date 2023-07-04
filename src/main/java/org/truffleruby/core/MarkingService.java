@@ -50,7 +50,7 @@ public final class MarkingService {
         private CapturedException capturedException;
         private ValueWrapper markOnExitObject;
         private ArrayList<ValueWrapper> markOnExitObjects;
-        private Object[] marks;
+        private Object[] marks = null;
         private int marksIndex = 0;
 
         private ExtensionCallStackEntry(

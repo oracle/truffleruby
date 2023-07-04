@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import org.truffleruby.annotations.SuppressFBWarnings;
 
 public final class FrameDescriptorNamesIterator implements Iterator<Object> {
 
@@ -34,6 +35,7 @@ public final class FrameDescriptorNamesIterator implements Iterator<Object> {
         return slot < slots;
     }
 
+    @SuppressFBWarnings("IT_NO_SUCH_ELEMENT")
     @Override
     public Object next() {
         Object identifier = descriptor.getSlotName(slot);

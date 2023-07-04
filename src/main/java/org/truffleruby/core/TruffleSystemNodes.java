@@ -39,6 +39,7 @@
 package org.truffleruby.core;
 
 import java.io.IOException;
+import java.lang.invoke.VarHandle;
 import java.lang.management.ManagementFactory;
 import java.nio.file.NoSuchFileException;
 import java.util.Set;
@@ -51,6 +52,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import com.sun.management.ThreadMXBean;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
@@ -281,14 +283,18 @@ public abstract class TruffleSystemNodes {
 
     @CoreMethod(names = "allocated_bytes_of_current_thread", onSingleton = true)
     public abstract static class AllocatedBytesNode extends CoreMethodArrayArgumentsNode {
+
         private static ThreadMXBean bean;
 
+        @SuppressFBWarnings("LI_LAZY_INIT_STATIC")
         @TruffleBoundary
         @Specialization
         protected static long allocatedBytes() {
             if (bean == null) {
-                bean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
-                bean.setThreadAllocatedMemoryEnabled(true);
+                var threadMXBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
+                threadMXBean.setThreadAllocatedMemoryEnabled(true);
+                VarHandle.storeStoreFence();
+                bean = threadMXBean;
             }
 
             return bean.getCurrentThreadAllocatedBytes();

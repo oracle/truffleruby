@@ -139,9 +139,8 @@ public final class ValueWrapperManager {
         return ref.get();
     }
 
-    public void freeAllBlocksInMap(RubyLanguage language) {
+    public void freeAllBlocksInMap() {
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = language.handleBlockAllocator;
 
         for (HandleBlockWeakReference ref : map) {
             if (ref == null) {

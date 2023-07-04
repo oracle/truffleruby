@@ -28,6 +28,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.collections;
 
+import org.truffleruby.annotations.SuppressFBWarnings;
+
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -228,6 +230,7 @@ public final class IntHashMap<V> {
             return next != null;
         }
 
+        @SuppressFBWarnings("SA_FIELD_SELF_ASSIGNMENT")
         Entry<V> nextEntry() {
             Entry<V> e = next;
             if (e == null) {

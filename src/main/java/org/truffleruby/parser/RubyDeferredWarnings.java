@@ -45,7 +45,7 @@ public final class RubyDeferredWarnings implements WarnCallback {
         NON_VERBOSE  // -W1
     }
 
-    public final class WarningMessage {
+    public static final class WarningMessage {
         public final Verbosity verbosity;
         private final String fileName;
         private final Integer lineNumber;

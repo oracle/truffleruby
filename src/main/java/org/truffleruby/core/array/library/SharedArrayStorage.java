@@ -61,7 +61,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
             if (e == null || !(e instanceof RubyDynamicObject) || SharedObjects.isShared(e)) {
                 continue;
             } else {
-                assert false : String.format("Unshared element %s.\n", e);
+                assert false : String.format("Unshared element %s.%n", e);
                 return false;
             }
         }

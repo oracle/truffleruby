@@ -27,6 +27,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.string.StringOperations;
 
 @ImportStatic(Double.class)
 public abstract class FormatFFloatNode extends FormatFloatGenericNode {
@@ -89,7 +90,7 @@ public abstract class FormatFFloatNode extends FormatFloatGenericNode {
             }
             value = bi;
         }
-        digits = format.format(value).getBytes();
+        digits = StringOperations.encodeAsciiBytes(format.format(value));
 
         if (precision <= 340) {
             return digits;

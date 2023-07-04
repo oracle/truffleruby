@@ -44,7 +44,7 @@ abstract class TStringWithEncodingBase {
         if (this == o) {
             return true;
         }
-        if (this.getClass() != o.getClass()) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         TStringWithEncodingBase that = (TStringWithEncodingBase) o;

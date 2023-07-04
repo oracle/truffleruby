@@ -25,7 +25,6 @@ import com.oracle.truffle.api.source.SourceSection;
 /** The node at the root of a pack expression. */
 public final class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final RubyLanguage language;
     private final FormatEncoding encoding;
 
     @Child private FormatNode child;
@@ -38,7 +37,6 @@ public final class FormatRootNode extends RubyBaseRootNode implements InternalRo
             FormatEncoding encoding,
             FormatNode child) {
         super(language, FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
-        this.language = language;
         this.encoding = encoding;
         this.child = child;
     }

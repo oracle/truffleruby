@@ -2391,7 +2391,7 @@ p_primitive     : literal
                 | keyword__FILE__ {
                     // TODO: make a helper for this since it is used twice now
                     Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-                    $$ = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+                    $$ = new FileParseNode(lexer.getPosition(), TruffleString.fromJavaStringUncached(lexer.getFile(), lexer.tencoding), lexer.encoding);
                 }
                 | keyword__LINE__ {
                     $$ = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());

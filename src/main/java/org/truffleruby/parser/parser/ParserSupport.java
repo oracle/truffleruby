@@ -208,8 +208,6 @@ public final class ParserSupport {
     // Added from JRuby for gettable helpers
     private int maxNumParam = 0;
     private ParseNode numParamCurrent = null;
-    private ParseNode numParamInner = null;
-    private ParseNode numParamOuter = null;
 
     private Set<TruffleString> keyTable;
     private Set<TruffleString> variableTable;
@@ -1061,7 +1059,7 @@ public final class ParserSupport {
         return hashPatternNode;
     }
 
-    public static TruffleString KWNOREST = TStringConstants.EMPTY_US_ASCII;
+    public static final TruffleString KWNOREST = TStringConstants.EMPTY_US_ASCII;
 
     public HashPatternParseNode new_hash_pattern_tail(SourceIndexLength line, HashParseNode keywordArgs,
             TruffleString keywordRestArg) {
@@ -1171,8 +1169,6 @@ public final class ParserSupport {
     // FIXME: Currently this is passing in position of receiver
     public ParseNode new_opElementAsgnNode(ParseNode receiverNode, TruffleString operatorName, ParseNode argsNode,
             ParseNode valueNode) {
-        SourceIndexLength position = lexer.tokline;  // FIXME: ruby_sourceline in new lexer.
-
         ParseNode newNode = new OpElementAsgnParseNode(
                 receiverNode.getPosition(),
                 receiverNode,
@@ -2071,8 +2067,7 @@ public final class ParserSupport {
             return new FalseParseNode(loc);
         }
         if (id.equals(__FILE__)) {
-            return new FileParseNode(loc,
-                    TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding, true),
+            return new FileParseNode(loc, TruffleString.fromJavaStringUncached(lexer.getFile(), lexer.tencoding),
                     lexer.encoding);
         }
         if (id.equals(__LINE__)) {
@@ -2190,15 +2185,7 @@ public final class ParserSupport {
     }
 
     private boolean isNumParamNested() {
-        if (numParamOuter == null && numParamInner == null) {
-            return false;
-        }
-
-        ParseNode used = numParamOuter != null ? numParamOuter : numParamInner;
-        compile_error("numbered parameter is already used in\n" + lexer.getFile() + ":" + used.getPosition() + ": " +
-                (numParamOuter != null ? "outer" : "inner") + " block here");
-        // FIXME: Show error line
-        return true;
+        return false;
     }
 
     private boolean numberedParam(String id) {

@@ -24,6 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.string.StringOperations;
 
 @ImportStatic(Double.class)
 public abstract class FormatAFloatNode extends FormatFloatGenericNode {
@@ -144,7 +145,7 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         if (exponent >= 0) {
             buf.append('+');
         }
-        buf.append(Long.toString(exponent).getBytes());
+        buf.append(StringOperations.encodeAsciiBytes(Long.toString(exponent)));
 
         return buf.getBytes();
     }
@@ -179,7 +180,7 @@ public abstract class FormatAFloatNode extends FormatFloatGenericNode {
         } else if (value instanceof Long) {
             return 0 <= (long) value;
         } else if (value instanceof Integer) {
-            return 0 <= (long) value;
+            return 0 <= (int) value;
         } else if (value instanceof BigInteger) {
             return ((BigInteger) value).signum() >= 0;
         }
