@@ -35,7 +35,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 public final class SplatParseNode extends ParseNode {
-    protected final ParseNode node;
+    private final ParseNode node;
 
     public SplatParseNode(SourceIndexLength position, ParseNode node) {
         super(position);

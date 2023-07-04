@@ -186,9 +186,9 @@ public final class ParserSupport {
     public static final String UNDERSCORE_PREFIX = "_$";
 
     // Parser states:
-    protected StaticScope currentScope;
+    private StaticScope currentScope;
 
-    protected RubyLexer lexer;
+    private RubyLexer lexer;
 
     // Is the parser current within a singleton (value is number of nested singletons)
     private int inSingleton;
@@ -199,7 +199,7 @@ public final class ParserSupport {
     // Is the parser currently within a class body.
     private boolean inClass;
 
-    protected ParserConfiguration configuration;
+    private ParserConfiguration configuration;
     private RubyParserResult result;
 
     private final String file;

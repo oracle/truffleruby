@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** ParseNode that represents an assignment of either an array element or attribute. */
 public final class AttrAssignParseNode extends ParseNode implements INameNode, IArgumentNode {
-    protected final ParseNode receiverNode;
+    private final ParseNode receiverNode;
     private String name;
     private ParseNode argsNode;
     private final boolean isLazy;

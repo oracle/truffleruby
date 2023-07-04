@@ -158,8 +158,8 @@ import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 @SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
 public final class RubyParser {
-    protected final ParserSupport support;
-    protected final RubyLexer lexer;
+    private final ParserSupport support;
+    private final RubyLexer lexer;
 
     public RubyParser(LexerSource source, RubyDeferredWarnings warnings) {
         this.support = new ParserSupport(source, warnings);
@@ -307,12 +307,12 @@ public final class RubyParser {
 
   /** number of final state.
     */
-  protected static final int yyFinal = 1;
+  private static final int yyFinal = 1;
 
   /** parser tables.
       Order is mandated by <i>jay</i>.
     */
-  protected static final short[] yyLhs = {
+  private static final short[] yyLhs = {
 //yyLhs 782
     -1,   186,     0,   141,   142,   142,   142,   142,   143,   143,
     37,    36,    38,    38,    38,    38,    44,   189,    44,   190,
@@ -920,13 +920,13 @@ public final class RubyParser {
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,
     };
-    protected static final short[] yyTable = YyTables.yyTable();
-    protected static final short[] yyCheck = YyTables.yyCheck();
+    private static final short[] yyTable = YyTables.yyTable();
+    private static final short[] yyCheck = YyTables.yyCheck();
 
   /** maps symbol value to printable name.
       @see #yyExpecting
     */
-  protected static final String[] yyNames = {
+  private static final String[] yyNames = {
     "end-of-file",null,null,null,null,null,null,null,null,null,"'\\n'",
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,"' '",null,null,null,null,null,
@@ -979,7 +979,7 @@ public final class RubyParser {
       @param state for which to compute the list.
       @return list of token names.
     */
-  protected String[] yyExpecting (int state) {
+  private String[] yyExpecting (int state) {
     int token, n, len = 0;
     boolean[] ok = new boolean[yyNames.length];
 
@@ -1017,7 +1017,7 @@ public final class RubyParser {
       This is not final so that it can be overwritten outside of invocations
       of {@link #yyparse}.
     */
-  protected int yyMax;
+  private int yyMax;
 
   /** executed at the beginning of a reduce action.
       Used as <tt>$$ = yyDefault($1)</tt>, prior to the user-specified action, if any.
@@ -1025,7 +1025,7 @@ public final class RubyParser {
       @param first value for <tt>$1</tt>, or <tt>null</tt>.
       @return first.
     */
-  protected Object yyDefault (Object first) {
+  private Object yyDefault (Object first) {
     return first;
   }
 

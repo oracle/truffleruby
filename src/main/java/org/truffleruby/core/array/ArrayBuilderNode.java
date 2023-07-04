@@ -35,9 +35,9 @@ import com.oracle.truffle.api.library.CachedLibrary;
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static final class BuilderState {
-        protected int capacity;
-        protected int nextIndex = 0;
-        protected Object store;
+        private int capacity;
+        private int nextIndex = 0;
+        Object store;
 
         private BuilderState(Object store, int capacity) {
             this.capacity = capacity;

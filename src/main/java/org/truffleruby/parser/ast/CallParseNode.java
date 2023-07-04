@@ -42,7 +42,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 public final class CallParseNode extends ParseNode implements INameNode, IArgumentNode, BlockAcceptingParseNode {
     private final ParseNode receiverNode;
     private ParseNode argsNode;
-    protected ParseNode iterNode;
+    private ParseNode iterNode;
     private String name;
     private final boolean isLazy;
 
