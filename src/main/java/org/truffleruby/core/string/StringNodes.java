@@ -311,7 +311,7 @@ public abstract class StringNodes {
             var encB = libB.getEncoding(b);
             var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringA, encA, tstringB,
                     encB);
-            return stringEqualInternalNode.executeInternal(tstringA, tstringB, compatibleEncoding);
+            return stringEqualInternalNode.executeInternal(node, tstringA, tstringB, compatibleEncoding);
         }
 
         @Specialization(guards = "isNotRubyString(b)")
