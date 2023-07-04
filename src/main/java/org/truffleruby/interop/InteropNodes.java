@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
@@ -1377,11 +1379,13 @@ public abstract class InteropNodes {
         @Specialization
         protected Object invokeMember(Object receiver, Object identifier, Object[] args,
                 @Cached InvokeMemberNode invokeMemberNode) {
-            return invokeMemberNode.execute(receiver, identifier, args);
+            return invokeMemberNode.execute(this, receiver, identifier, args);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class InvokeMemberNode extends RubyBaseNode {
 
         private static Object invoke(Node node, InteropLibrary receivers, Object receiver, String member, Object[] args,
@@ -1393,15 +1397,14 @@ public abstract class InteropNodes {
             }
         }
 
-        public abstract Object execute(Object receiver, Object identifier, Object[] args);
+        public abstract Object execute(Node node, Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object invokeCached(Object receiver, Object identifier, Object[] args,
+        protected static Object invokeCached(Node node, Object receiver, Object identifier, Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = invoke(node, receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);

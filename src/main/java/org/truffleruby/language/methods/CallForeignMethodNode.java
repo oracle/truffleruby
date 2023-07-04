@@ -142,16 +142,16 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 @Cached InlinedConditionProfile invocable,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             if (invocable.profile(node, receivers.isMemberInvocable(receiver, name))) {
-                return invokeNode.execute(receiver, name, args);
+                return invokeNode.execute(node, receiver, name, args);
             } else {
                 return readNode.execute(receiver, toSymbolNode.execute(name));
             }
         }
 
         @Specialization(guards = "args.length != 0")
-        protected static Object invoke(Object receiver, String name, Object[] args,
+        protected static Object invoke(Node node, Object receiver, String name, Object[] args,
                 @Cached @Shared InteropNodes.InvokeMemberNode invokeNode) {
-            return invokeNode.execute(receiver, name, args);
+            return invokeNode.execute(node, receiver, name, args);
         }
     }
 
@@ -244,10 +244,11 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
 
         @Specialization(guards = { "!receivers.isBoolean(receiver)", "!receivers.isNumber(receiver)" },
                 limit = "getInteropCacheLimit()")
-        protected Object call(Object receiver, String name, Object[] args,
+        protected static Object call(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached InteropNodes.InvokeMemberNode invokeNode) {
-            return invokeNode.execute(receiver, name, args);
+                @Cached InteropNodes.InvokeMemberNode invokeNode,
+                @Bind("this") Node node) {
+            return invokeNode.execute(node, receiver, name, args);
         }
     }
 }
