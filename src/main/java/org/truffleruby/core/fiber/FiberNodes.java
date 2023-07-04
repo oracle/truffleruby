@@ -9,7 +9,10 @@
  */
 package org.truffleruby.core.fiber;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -54,18 +57,21 @@ public abstract class FiberNodes {
                 ArgumentsDescriptor descriptor,
                 Object[] args,
                 @Cached FiberTransferNode fiberTransferNode) {
-            return fiberTransferNode.execute(currentFiber, toFiber, operation, descriptor, args);
+            return fiberTransferNode.execute(this, currentFiber, toFiber, operation, descriptor, args);
         }
 
     }
 
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class FiberTransferNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyFiber currentFiber, RubyFiber toFiber, FiberOperation operation,
+        public abstract Object execute(Node node, RubyFiber currentFiber, RubyFiber toFiber, FiberOperation operation,
                 ArgumentsDescriptor descriptor, Object[] args);
 
         @Specialization
-        protected Object transfer(
+        protected static Object transfer(
+                Node node,
                 RubyFiber currentFiber,
                 RubyFiber toFiber,
                 FiberOperation operation,
@@ -75,19 +81,19 @@ public abstract class FiberNodes {
                 @Cached InlinedBranchProfile errorProfile) {
 
             if (toFiber.isTerminated()) {
-                errorProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().deadFiberCalledError(this));
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).deadFiberCalledError(node));
             }
 
             if (toFiber.rubyThread != currentFiber.rubyThread) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("fiber called across threads", this));
+                        getContext(node),
+                        coreExceptions(node).fiberError("fiber called across threads", node));
             }
 
-            var descriptorAndArgs = getContext().fiberManager.transferControlTo(currentFiber, toFiber, operation,
-                    descriptor, args, this);
+            var descriptorAndArgs = getContext(node).fiberManager.transferControlTo(currentFiber, toFiber, operation,
+                    descriptor, args, node);
             // Ignore the descriptor like CRuby here, see https://bugs.ruby-lang.org/issues/18621
             return singleValueCastNode.executeSingleValue(descriptorAndArgs.args);
         }
@@ -170,7 +176,7 @@ public abstract class FiberNodes {
                 return singleValueCastNode.executeSingleValue(rawArgs);
             }
 
-            return fiberTransferNode.execute(currentFiber, toFiber, FiberOperation.TRANSFER,
+            return fiberTransferNode.execute(this, currentFiber, toFiber, FiberOperation.TRANSFER,
                     RubyArguments.getDescriptor(frame), rawArgs);
         }
 
@@ -222,7 +228,7 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("attempt to resume a transferring fiber", this));
             }
 
-            return fiberTransferNode.execute(currentFiber, toFiber, operation, descriptor, args);
+            return fiberTransferNode.execute(this, currentFiber, toFiber, operation, descriptor, args);
         }
 
     }
@@ -252,6 +258,7 @@ public abstract class FiberNodes {
             if (fiber.status == FiberStatus.SUSPENDED && !fiber.yielding) {
                 final RubyFiber currentFiber = getLanguage().getCurrentFiber();
                 return fiberTransferNode.execute(
+                        this,
                         currentFiber,
                         fiber,
                         FiberOperation.RAISE,
@@ -301,6 +308,7 @@ public abstract class FiberNodes {
                     .getReturnFiber(currentFiber, this, errorProfile);
 
             return fiberTransferNode.execute(
+                    this,
                     currentFiber,
                     fiberYieldedTo,
                     FiberOperation.YIELD,
