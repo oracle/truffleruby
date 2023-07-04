@@ -567,7 +567,7 @@ public abstract class FloatNodes {
         @Specialization
         protected Object ceil(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
-            return floatToIntegerNode.fixnumOrBignum(Math.ceil(n));
+            return floatToIntegerNode.execute(this, Math.ceil(n));
         }
     }
 
@@ -587,7 +587,7 @@ public abstract class FloatNodes {
         @Specialization
         protected Object floor(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
-            return floatToIntegerNode.fixnumOrBignum(Math.floor(n));
+            return floatToIntegerNode.execute(this, Math.floor(n));
         }
     }
 
@@ -637,7 +637,7 @@ public abstract class FloatNodes {
             if (d >= 0.5) {
                 f += 1;
             }
-            return floatToIntegerNode.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.execute(this, f * signum);
         }
     }
 
@@ -732,7 +732,7 @@ public abstract class FloatNodes {
             } else if (d == 0.5) {
                 f += f % 2;
             }
-            return floatToIntegerNode.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.execute(this, f * signum);
         }
     }
 
@@ -797,7 +797,7 @@ public abstract class FloatNodes {
             if (d > 0.5) {
                 f += 1;
             }
-            return floatToIntegerNode.fixnumOrBignum(f * signum);
+            return floatToIntegerNode.execute(this, f * signum);
         }
     }
 
@@ -838,7 +838,7 @@ public abstract class FloatNodes {
         @Specialization
         protected Object toI(double value,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
-            return floatToIntegerNode.fixnumOrBignum(value);
+            return floatToIntegerNode.execute(this, value);
         }
     }
 

@@ -178,7 +178,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
             mod += b;
         }
 
-        return createArray(node, new Object[]{ floatToIntegerNode.fixnumOrBignum(div), mod });
+        return createArray(node, new Object[]{ floatToIntegerNode.execute(node, div), mod });
     }
 
     @TruffleBoundary

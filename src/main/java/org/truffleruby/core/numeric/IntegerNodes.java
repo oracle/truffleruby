@@ -499,7 +499,7 @@ public abstract class IntegerNodes {
                 if (zeroProfile.profile(this, (double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
-                return floatToIntegerNode.fixnumOrBignum(Math.floor((double) quotient));
+                return floatToIntegerNode.execute(this, Math.floor((double) quotient));
             } else {
                 return quotient;
             }

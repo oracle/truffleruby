@@ -682,7 +682,7 @@ public abstract class CExtNodes {
         @Specialization
         protected Object dbl2big(double num,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
-            return floatToIntegerNode.fixnumOrBignum(num);
+            return floatToIntegerNode.execute(this, num);
         }
 
     }
