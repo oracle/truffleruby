@@ -10,33 +10,42 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
+@GenerateCached
 public abstract class ForeignToRubyNode extends RubyBaseNode {
 
-    public abstract Object executeConvert(Object value);
+    public final Object executeCached(Object value) {
+        return execute(this, value);
+    }
+
+    public abstract Object execute(Node node, Object value);
 
     @Specialization
-    protected int convertByte(byte value) {
+    protected static int convertByte(byte value) {
         return value;
     }
 
     @Specialization
-    protected int convertShort(short value) {
+    protected static int convertShort(short value) {
         return value;
     }
 
     @Specialization
-    protected double convertFloat(float value) {
+    protected static double convertFloat(float value) {
         return value;
     }
 
     @Fallback
-    protected Object convert(Object value) {
+    protected static Object convert(Object value) {
         return value;
     }
 

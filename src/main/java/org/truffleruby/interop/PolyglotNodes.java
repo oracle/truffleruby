@@ -292,7 +292,7 @@ public abstract class PolyglotNodes {
                         coreExceptions(node).argumentError(Utils.concat("Unknown language: ", source.getLanguage()),
                                 node));
             }
-            return foreignToRubyNode.executeConvert(result);
+            return foreignToRubyNode.execute(node, result);
         }
 
         @TruffleBoundary

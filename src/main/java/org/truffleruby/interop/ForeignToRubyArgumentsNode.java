@@ -31,7 +31,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
-            convertedArgs[n] = foreignToRubyNodes[n].executeConvert(args[n]);
+            convertedArgs[n] = foreignToRubyNodes[n].executeCached(args[n]);
         }
 
         return convertedArgs;
@@ -43,7 +43,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
         final Object[] convertedArgs = new Object[args.length];
 
         for (int n = 0; n < args.length; n++) {
-            convertedArgs[n] = foreignToRubyNode.executeConvert(args[n]);
+            convertedArgs[n] = foreignToRubyNode.execute(this, args[n]);
         }
 
         return convertedArgs;

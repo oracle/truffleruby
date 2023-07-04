@@ -520,7 +520,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
             final Object foreign = InteropNodes.execute(node, receiver, args, receivers, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -564,7 +564,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(node, e);
             }
 
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
     // endregion
@@ -615,7 +615,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(node, e);
             }
 
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1284,7 +1284,7 @@ public abstract class InteropNodes {
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = InteropNodes.readMember(node, receivers, receiver, name, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1409,7 +1409,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = invoke(node, receivers, receiver, name, args, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1553,7 +1553,7 @@ public abstract class InteropNodes {
             final var nameAsString = toJavaStringNode.execute(this, name);
             final Object value = doImport(nameAsString);
             if (value != null) {
-                return foreignToRubyNode.executeConvert(value);
+                return foreignToRubyNode.execute(this, value);
             } else {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(nameAsString, this));
