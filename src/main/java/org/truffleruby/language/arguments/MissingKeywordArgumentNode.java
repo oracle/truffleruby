@@ -28,7 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MissingKeywordArgumentNode extends RubyContextSourceNode {
+public final class MissingKeywordArgumentNode extends RubyContextSourceNode {
+
     @CompilationFinal(dimensions = 1) private final RubySymbol[] requiredKeywords;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private HashStoreLibrary hashes;

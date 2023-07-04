@@ -62,7 +62,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
 
-public class FeatureLoader {
+public final class FeatureLoader {
 
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };

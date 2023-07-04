@@ -33,9 +33,9 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.options.LanguageOptions;
 
-public class CoverageManager {
+public final class CoverageManager {
 
-    public static class LineTag extends Tag {
+    public static final class LineTag extends Tag {
     }
 
     public static final long NO_CODE = -1;

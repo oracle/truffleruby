@@ -33,7 +33,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
  *
  * Marker references only keep a week reference to their owning object to ensure they don't themselves stop the object
  * from being garbage collected. */
-public class MarkingService {
+public final class MarkingService {
 
     public static interface MarkerAction {
         public abstract void mark(Object owner);

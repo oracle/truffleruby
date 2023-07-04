@@ -29,7 +29,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.source.Source;
 
-public class RubyInlineParsingRequestNode extends ExecutableNode {
+public final class RubyInlineParsingRequestNode extends ExecutableNode {
 
     private final RubyContext context;
     private final InternalMethod method;

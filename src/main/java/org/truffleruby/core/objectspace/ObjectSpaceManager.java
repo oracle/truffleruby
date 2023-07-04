@@ -55,7 +55,7 @@ import org.truffleruby.language.RubyDynamicObject;
 
 /** Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long} values, mapped to objects
  * with a weak hash map. */
-public class ObjectSpaceManager {
+public final class ObjectSpaceManager {
 
     // behaves as volatile by piggybacking on Assumption semantics
     @CompilationFinal private boolean isTracing = false;

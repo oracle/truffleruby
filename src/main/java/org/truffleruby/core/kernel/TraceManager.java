@@ -33,18 +33,18 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class TraceManager {
-    public static class LineTag extends Tag {
+public final class TraceManager {
+    public static final class LineTag extends Tag {
     }
 
-    public static class CallTag extends Tag {
+    public static final class CallTag extends Tag {
     }
 
-    public static class ClassTag extends Tag {
+    public static final class ClassTag extends Tag {
     }
 
     /** A tag which applies to no Node, but is useful to handle not-yet-implemented TracePoint events. */
-    public static class NeverTag extends Tag {
+    public static final class NeverTag extends Tag {
     }
 
     private final RubyContext context;

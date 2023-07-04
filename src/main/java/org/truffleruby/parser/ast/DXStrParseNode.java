@@ -37,7 +37,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Dynamic backquote string. Backquote strings are eXecuted using the shell, hence the X or maybe the X is due to the
  * %x general quote syntax? */
-public class DXStrParseNode extends DParseNode implements ILiteralNode {
+public final class DXStrParseNode extends DParseNode implements ILiteralNode {
     public DXStrParseNode(SourceIndexLength position, DStrParseNode node) {
         super(position, node.getEncoding());
         addAll(node);

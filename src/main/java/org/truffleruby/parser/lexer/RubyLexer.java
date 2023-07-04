@@ -101,7 +101,7 @@ import com.oracle.truffle.api.source.SourceSection;
 /*
  * This is a port of the MRI lexer to Java.
  */
-public class RubyLexer implements MagicCommentHandler {
+public final class RubyLexer implements MagicCommentHandler {
 
     private BignumParseNode newBignumNode(String value, int radix) {
         return new BignumParseNode(getPosition(), new BigInteger(value, radix));

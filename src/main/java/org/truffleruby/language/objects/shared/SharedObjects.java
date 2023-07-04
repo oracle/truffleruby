@@ -30,7 +30,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 
-public class SharedObjects {
+public final class SharedObjects {
 
     private final RubyContext context;
     // No need for volatile since we change this before starting the 2nd Thread

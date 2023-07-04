@@ -15,7 +15,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.methods.InternalMethod;
 
-public class CoreMethods {
+public final class CoreMethods {
 
     public final InternalMethod EXCEPTION_BACKTRACE;
     public final InternalMethod BLOCK_GIVEN;

@@ -28,7 +28,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class AtExitManager {
+public final class AtExitManager {
 
     private final RubyContext context;
 

@@ -49,7 +49,7 @@ import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class NativeConfiguration {
+public final class NativeConfiguration {
 
     public static final String PREFIX = "platform.";
 

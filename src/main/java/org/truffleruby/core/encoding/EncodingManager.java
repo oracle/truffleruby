@@ -44,7 +44,7 @@ import static org.truffleruby.core.encoding.Encodings.INITIAL_NUMBER_OF_ENCODING
 
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
-public class EncodingManager {
+public final class EncodingManager {
 
     private RubyEncoding[] ENCODING_LIST_BY_ENCODING_INDEX = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();

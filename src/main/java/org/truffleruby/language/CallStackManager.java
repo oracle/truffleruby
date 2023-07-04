@@ -37,7 +37,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class CallStackManager {
+public final class CallStackManager {
 
     private final RubyLanguage language;
     private final RubyContext context;

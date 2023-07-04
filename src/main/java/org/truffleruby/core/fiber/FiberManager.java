@@ -45,7 +45,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** Helps managing Ruby {@code Fiber} objects. Only one per {@link RubyContext}. */
-public class FiberManager {
+public final class FiberManager {
 
     public static final String NAME_PREFIX = "Ruby Fiber";
     public static final Object[] SAFEPOINT_ARGS = new Object[]{ FiberSafepointMessage.class };
