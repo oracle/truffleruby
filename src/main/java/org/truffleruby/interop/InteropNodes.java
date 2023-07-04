@@ -1328,21 +1328,22 @@ public abstract class InteropNodes {
         @Specialization
         protected Object write(Object receiver, Object identifier, Object value,
                 @Cached WriteMemberWithoutConversionNode writeMemberWithoutConversionNode) {
-            return writeMemberWithoutConversionNode.execute(receiver, identifier, value);
+            return writeMemberWithoutConversionNode.execute(this, receiver, identifier, value);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class WriteMemberWithoutConversionNode extends RubyBaseNode {
 
-        public abstract Object execute(Object receiver, Object identifier, Object value);
+        public abstract Object execute(Node node, Object receiver, Object identifier, Object value);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object write(Object receiver, Object identifier, Object value,
+        protected static Object write(Node node, Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.writeMember(receiver, name, value);

@@ -102,7 +102,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 @Cached WriteMemberWithoutConversionNode writeMemberNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (args.length == 1) {
-                return writeMemberNode.execute(receiver, propertyName, args[0]);
+                return writeMemberNode.execute(node, receiver, propertyName, args[0]);
             } else {
                 errorProfile.enter(node);
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(args.length, 1, node));
