@@ -20,10 +20,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
-import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -31,6 +29,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -45,21 +44,22 @@ import org.truffleruby.language.objects.AllocationTracing;
 @CoreModule(value = "Fiber", isClass = true)
 public abstract class FiberNodes {
 
-    public abstract static class FiberTransferNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class FiberTransferNodeAST extends CoreMethodArrayArgumentsNode {
 
-        public static FiberTransferNode create() {
-            return FiberTransferNodeFactory.create(null);
+        @Specialization
+        protected Object transfer(
+                RubyFiber currentFiber,
+                RubyFiber toFiber,
+                FiberOperation operation,
+                ArgumentsDescriptor descriptor,
+                Object[] args,
+                @Cached FiberTransferNode fiberTransferNode) {
+            return fiberTransferNode.execute(currentFiber, toFiber, operation, descriptor, args);
         }
 
-        @Child private SingleValueCastNode singleValueCastNode;
+    }
 
-        public Object singleValue(Object[] args) {
-            if (singleValueCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                singleValueCastNode = insert(SingleValueCastNodeGen.create());
-            }
-            return singleValueCastNode.executeSingleValue(args);
-        }
+    public abstract static class FiberTransferNode extends RubyBaseNode {
 
         public abstract Object execute(RubyFiber currentFiber, RubyFiber toFiber, FiberOperation operation,
                 ArgumentsDescriptor descriptor, Object[] args);
@@ -71,6 +71,7 @@ public abstract class FiberNodes {
                 FiberOperation operation,
                 ArgumentsDescriptor descriptor,
                 Object[] args,
+                @Cached SingleValueCastNode singleValueCastNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
             if (toFiber.isTerminated()) {
@@ -88,7 +89,7 @@ public abstract class FiberNodes {
             var descriptorAndArgs = getContext().fiberManager.transferControlTo(currentFiber, toFiber, operation,
                     descriptor, args, this);
             // Ignore the descriptor like CRuby here, see https://bugs.ruby-lang.org/issues/18621
-            return singleValue(descriptorAndArgs.args);
+            return singleValueCastNode.executeSingleValue(descriptorAndArgs.args);
         }
 
     }
@@ -143,10 +144,10 @@ public abstract class FiberNodes {
     @CoreMethod(names = "transfer", rest = true)
     public abstract static class TransferNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
-
         @Specialization
         protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] rawArgs,
+                @Cached FiberTransferNode fiberTransferNode,
+                @Cached SingleValueCastNode singleValueCastNode,
                 @Cached InlinedConditionProfile sameFiberProfile,
                 @Cached InlinedBranchProfile errorProfile) {
 
@@ -166,7 +167,7 @@ public abstract class FiberNodes {
 
             if (sameFiberProfile.profile(this, currentFiber == toFiber)) {
                 // A Fiber can transfer to itself
-                return fiberTransferNode.singleValue(rawArgs);
+                return singleValueCastNode.executeSingleValue(rawArgs);
             }
 
             return fiberTransferNode.execute(currentFiber, toFiber, FiberOperation.TRANSFER,
@@ -185,11 +186,10 @@ public abstract class FiberNodes {
         public abstract Object executeResume(FiberOperation operation, RubyFiber fiber, ArgumentsDescriptor descriptor,
                 Object[] args);
 
-        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
-
         @Specialization
         protected Object resume(
                 FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
+                @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
@@ -232,10 +232,10 @@ public abstract class FiberNodes {
     public abstract static class FiberRaiseNode extends PrimitiveArrayArgumentsNode {
 
         @Child private FiberResumeNode fiberResumeNode;
-        @Child private FiberTransferNode fiberTransferNode;
 
         @Specialization
         protected Object raise(RubyFiber fiber, RubyException exception,
+                @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (fiber.resumingFiber != null) {
                 errorProfile.enter(this);
@@ -251,7 +251,7 @@ public abstract class FiberNodes {
 
             if (fiber.status == FiberStatus.SUSPENDED && !fiber.yielding) {
                 final RubyFiber currentFiber = getLanguage().getCurrentFiber();
-                return getTransferNode().execute(
+                return fiberTransferNode.execute(
                         currentFiber,
                         fiber,
                         FiberOperation.RAISE,
@@ -269,14 +269,6 @@ public abstract class FiberNodes {
                 fiberResumeNode = insert(FiberResumeNode.create());
             }
             return fiberResumeNode;
-        }
-
-        private FiberTransferNode getTransferNode() {
-            if (fiberTransferNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fiberTransferNode = insert(FiberTransferNode.create());
-            }
-            return fiberTransferNode;
         }
 
     }
@@ -297,10 +289,10 @@ public abstract class FiberNodes {
     @CoreMethod(names = "yield", onSingleton = true, rest = true)
     public abstract static class YieldNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
         protected Object fiberYield(VirtualFrame frame, Object[] rawArgs,
+                @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
