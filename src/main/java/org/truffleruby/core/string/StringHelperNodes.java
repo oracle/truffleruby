@@ -158,7 +158,7 @@ public abstract class StringHelperNodes {
         @Specialization(guards = { "compatibleEncoding != null", "!a.isEmpty()", "!b.isEmpty()" })
         protected static boolean equalBytes(
                 AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding,
-                @Cached TruffleString.EqualNode equalNode) {
+                @Cached(inline = false) TruffleString.EqualNode equalNode) {
             return equalNode.execute(a, b, compatibleEncoding.tencoding);
         }
 
