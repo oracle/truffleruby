@@ -649,7 +649,7 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_divmod")
     public abstract static class DivModNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private GeneralDivModNode divModNode = new GeneralDivModNode();
+        @Child private GeneralDivModNode divModNode = GeneralDivModNodeGen.create();
 
         @Specialization
         protected RubyArray divMod(long a, long b) {
