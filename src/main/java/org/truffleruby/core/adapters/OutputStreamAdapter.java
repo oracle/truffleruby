@@ -19,7 +19,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-public class OutputStreamAdapter extends OutputStream {
+public final class OutputStreamAdapter extends OutputStream {
 
     private final RubyContext context;
     private final RubyLanguage language;

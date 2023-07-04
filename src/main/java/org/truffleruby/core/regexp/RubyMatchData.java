@@ -20,7 +20,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
 
     /** A group which was not matched */
     public static final int MISSING = -1;

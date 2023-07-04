@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class TruffleFragmentParseNode extends ParseNode {
+public final class TruffleFragmentParseNode extends ParseNode {
 
     private final RubyNode fragment;
 

@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Regexp back reference: - $&amp; last successful match - $+ highest numbered group matched in last successful match.
  * - $` what precedes the last successful match - $' what follows the last successful match */
-public class BackRefParseNode extends ParseNode {
+public final class BackRefParseNode extends ParseNode {
     /** the character which generated the back reference **/
     private final char type;
 

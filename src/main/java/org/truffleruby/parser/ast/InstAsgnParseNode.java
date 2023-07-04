@@ -40,7 +40,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents an instance variable assignment. */
-public class InstAsgnParseNode extends AssignableParseNode implements INameNode {
+public final class InstAsgnParseNode extends AssignableParseNode implements INameNode {
     private String name;
 
     /** @param name the name of the instance variable

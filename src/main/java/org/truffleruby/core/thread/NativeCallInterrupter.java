@@ -16,7 +16,7 @@ import org.truffleruby.signal.LibRubySignal;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
+final class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
     private final Timer timer;
     private final long threadID;
@@ -52,7 +52,7 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
     }
 
     // Try every 100ms for 50 times maximum (5 seconds)
-    static class Task extends TimerTask {
+    static final class Task extends TimerTask {
         private static final int PERIOD = 100; // milliseconds
         private static final int MAX_TIME = 5000; // milliseconds
         private static final int MAX_EXECUTIONS = MAX_TIME / PERIOD;

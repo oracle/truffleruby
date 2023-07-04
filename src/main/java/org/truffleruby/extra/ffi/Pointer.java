@@ -93,7 +93,7 @@ public final class Pointer implements AutoCloseable, TruffleObject {
      * not to be freed if auto-release is disabled. This can't be the address field on the pointer itself as that would
      * prevent the pointer from being collected, and we can't retrieve this from the cleaner as it is effectively
      * opaque. */
-    private static class AutoReleaseState implements Runnable {
+    private static final class AutoReleaseState implements Runnable {
 
         long address;
 

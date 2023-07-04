@@ -11,7 +11,7 @@ package org.truffleruby.core.time;
 
 import org.truffleruby.core.time.RubyDateFormatter.Token;
 
-public class StrftimeLexer {
+public final class StrftimeLexer {
 
     private final String input;
     private final int length;

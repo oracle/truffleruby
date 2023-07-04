@@ -17,7 +17,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.control.RaiseException;
 
-public class FormatEncoding {
+public final class FormatEncoding {
 
     public static final FormatEncoding DEFAULT = new FormatEncoding(Encodings.BINARY);
     public static final FormatEncoding ASCII_8BIT = new FormatEncoding(Encodings.BINARY);

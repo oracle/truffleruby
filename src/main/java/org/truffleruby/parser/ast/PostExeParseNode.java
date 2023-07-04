@@ -35,7 +35,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Captures END statements (END {...}) */
-public class PostExeParseNode extends IterParseNode {
+public final class PostExeParseNode extends IterParseNode {
     public PostExeParseNode(SourceIndexLength position, ParseNode body) {
         super(position, new ArgsParseNode(position, null, null, null, null, null, null, null), body, null);
     }

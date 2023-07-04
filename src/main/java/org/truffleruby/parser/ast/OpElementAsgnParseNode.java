@@ -45,7 +45,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * a[3] &&= true
  * </pre>
  */
-public class OpElementAsgnParseNode extends ParseNode {
+public final class OpElementAsgnParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final ParseNode argsNode;
     private final ParseNode valueNode;

@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyTopLevelRootNode extends RubyMethodRootNode {
+public final class RubyTopLevelRootNode extends RubyMethodRootNode {
 
     @CompilationFinal private boolean nextProfile;
 

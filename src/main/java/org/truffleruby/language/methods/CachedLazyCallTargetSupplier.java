@@ -14,7 +14,7 @@ import com.oracle.truffle.api.RootCallTarget;
 
 import java.util.function.Supplier;
 
-public class CachedLazyCallTargetSupplier {
+public final class CachedLazyCallTargetSupplier {
 
     // Volatile, so that writes from another thread will finish publishing the RootCallTarget first
     private volatile RootCallTarget callTarget = null;

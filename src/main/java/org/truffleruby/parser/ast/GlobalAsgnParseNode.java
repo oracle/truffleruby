@@ -41,7 +41,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents an assignment to a global variable. */
-public class GlobalAsgnParseNode extends AssignableParseNode implements INameNode {
+public final class GlobalAsgnParseNode extends AssignableParseNode implements INameNode {
     private String name;
 
     public GlobalAsgnParseNode(SourceIndexLength position, TruffleString name, ParseNode valueNode) {

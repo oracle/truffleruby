@@ -18,7 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.parser.ParentFrameDescriptor;
 
-public class WriteDeclarationVariableNode extends WriteLocalNode {
+public final class WriteDeclarationVariableNode extends WriteLocalNode {
 
     private final int frameDepth;
 

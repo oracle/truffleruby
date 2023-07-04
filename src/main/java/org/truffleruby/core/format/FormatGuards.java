@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format;
 
-public class FormatGuards {
+public final class FormatGuards {
 
     public static boolean isNull(Object object) {
         return object == null;

@@ -39,7 +39,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a big integer literal. */
-public class BignumParseNode extends NumericParseNode implements SideEffectFree {
+public final class BignumParseNode extends NumericParseNode implements SideEffectFree {
     private BigInteger value;
 
     public BignumParseNode(SourceIndexLength position, BigInteger value) {

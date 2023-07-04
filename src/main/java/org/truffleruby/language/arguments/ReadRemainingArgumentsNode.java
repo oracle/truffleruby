@@ -16,7 +16,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 
 /** Assumes no keyword parameters */
-public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
+public final class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     private final int start;
     private final ConditionProfile remainingArguments = ConditionProfile.create();

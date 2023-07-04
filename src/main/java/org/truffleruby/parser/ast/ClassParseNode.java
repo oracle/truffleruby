@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
 /** A class statement (name, superClass, body). Classes bodies also define their own scope. */
-public class ClassParseNode extends ParseNode implements IScopingNode {
+public final class ClassParseNode extends ParseNode implements IScopingNode {
     private final Colon3ParseNode cpath;
     private final StaticScope scope;
     private final ParseNode bodyNode;

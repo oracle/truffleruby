@@ -15,7 +15,7 @@ import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class RepeatLoopNode extends FormatNode {
+public final class RepeatLoopNode extends FormatNode {
 
     private final int count;
 

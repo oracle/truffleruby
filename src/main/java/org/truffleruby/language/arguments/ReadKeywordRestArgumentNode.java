@@ -24,7 +24,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements EachEntryCallback {
+public final class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements EachEntryCallback {
 
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 

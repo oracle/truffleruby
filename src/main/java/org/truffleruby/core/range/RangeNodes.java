@@ -395,7 +395,7 @@ public abstract class RangeNodes {
         }
     }
 
-    public static class RangeLiteralNode extends RubyContextSourceNode {
+    public static final class RangeLiteralNode extends RubyContextSourceNode {
 
         @Child RubyNode beginNode;
         @Child RubyNode endNode;

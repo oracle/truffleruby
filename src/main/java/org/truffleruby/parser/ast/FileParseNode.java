@@ -33,7 +33,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.SourceIndexLength;
 
 /** Represents __FILE__ nodes */
-public class FileParseNode extends StrParseNode implements SideEffectFree {
+public final class FileParseNode extends StrParseNode implements SideEffectFree {
     public FileParseNode(SourceIndexLength position, TruffleString value, RubyEncoding encoding) {
         super(position, value, encoding);
     }

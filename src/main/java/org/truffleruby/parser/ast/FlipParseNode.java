@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A Range in a boolean expression (named after a FlipFlop component in electronic?). */
-public class FlipParseNode extends ParseNode {
+public final class FlipParseNode extends ParseNode {
     private final ParseNode beginNode;
     private final ParseNode endNode;
     private final boolean exclusive;

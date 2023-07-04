@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Tag;
 
-public class InsideModuleDefinitionNode extends RubyContextSourceNode {
+public final class InsideModuleDefinitionNode extends RubyContextSourceNode {
 
     @Child private RubyNode body;
 

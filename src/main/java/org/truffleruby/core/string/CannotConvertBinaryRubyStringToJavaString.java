@@ -10,7 +10,7 @@
 package org.truffleruby.core.string;
 
 @SuppressWarnings("serial")
-public class CannotConvertBinaryRubyStringToJavaString extends RuntimeException {
+public final class CannotConvertBinaryRubyStringToJavaString extends RuntimeException {
 
     private final int nonAsciiCharacter;
 

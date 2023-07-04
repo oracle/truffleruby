@@ -14,7 +14,7 @@ import org.truffleruby.core.format.FormatNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-public class RepeatExplodedNode extends FormatNode {
+public final class RepeatExplodedNode extends FormatNode {
 
     private final int count;
 

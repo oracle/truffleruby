@@ -23,7 +23,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Read a constant using the current lexical scope: CONST */
-public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
+public final class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
 
     private final LexicalScope lexicalScope;
     private final String name;

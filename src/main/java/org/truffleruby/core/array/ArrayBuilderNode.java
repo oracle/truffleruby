@@ -58,7 +58,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public abstract Object finish(BuilderState state, int length);
 
-    private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
+    private static final class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStoreLibrary.initialAllocator(false));
         @Child AppendArrayNode appendArrayNode;
@@ -143,7 +143,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    public static class StartNode extends ArrayBuilderBaseNode {
+    public static final class StartNode extends ArrayBuilderBaseNode {
 
         private final ArrayStoreLibrary.ArrayAllocator allocator;
 

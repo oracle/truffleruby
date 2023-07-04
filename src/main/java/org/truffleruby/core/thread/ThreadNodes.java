@@ -681,7 +681,7 @@ public abstract class ThreadNodes {
             return new CExtInterrupter(context, function, argument);
         }
 
-        private static class CExtInterrupter implements Interrupter {
+        private static final class CExtInterrupter implements Interrupter {
 
             private final RubyContext context;
             private final Object function;

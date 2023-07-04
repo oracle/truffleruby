@@ -17,7 +17,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 
-public class TStringBuilder extends ByteArrayBuilder {
+public final class TStringBuilder extends ByteArrayBuilder {
 
     private RubyEncoding encoding = Encodings.BINARY;
 

@@ -11,7 +11,7 @@ package org.truffleruby.stdlib.readline;
 
 import org.graalvm.shadowed.org.jline.reader.impl.DefaultParser;
 
-public class ParserWithCustomDelimiters extends DefaultParser {
+public final class ParserWithCustomDelimiters extends DefaultParser {
 
     private char[] delimiters = {
             ' ',

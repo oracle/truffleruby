@@ -24,7 +24,7 @@ import com.oracle.truffle.api.library.Message;
 import com.oracle.truffle.api.library.ReflectionLibrary;
 
 @ExportLibrary(ReflectionLibrary.class)
-public class ProxyForeignObject implements TruffleObject {
+public final class ProxyForeignObject implements TruffleObject {
 
     protected final Object delegate;
     protected final Object logger;

@@ -23,7 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
 /** The node at the root of a pack expression. */
-public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
+public final class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyLanguage language;
     private final FormatEncoding encoding;

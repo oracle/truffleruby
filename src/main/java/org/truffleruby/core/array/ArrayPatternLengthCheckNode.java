@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
+public final class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
 
     @Child RubyNode currentValueToMatch;
     final int patternLength;

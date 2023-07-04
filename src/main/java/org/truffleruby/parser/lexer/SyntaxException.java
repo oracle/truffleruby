@@ -29,7 +29,7 @@
 package org.truffleruby.parser.lexer;
 
 @SuppressWarnings("serial")
-public class SyntaxException extends RuntimeException {
+public final class SyntaxException extends RuntimeException {
     public enum PID {
         BAD_HEX_NUMBER("BAD_HEX_NUMBER"),
         BAD_IDENTIFIER("BAD_IDENTIFIER"),

@@ -15,7 +15,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class BigRationalParseNode extends NumericParseNode implements SideEffectFree {
+public final class BigRationalParseNode extends NumericParseNode implements SideEffectFree {
     private final BigInteger numerator;
     private final BigInteger denominator;
 

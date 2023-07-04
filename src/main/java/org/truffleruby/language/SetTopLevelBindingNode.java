@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SetTopLevelBindingNode extends RubyContextSourceNode {
+public final class SetTopLevelBindingNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

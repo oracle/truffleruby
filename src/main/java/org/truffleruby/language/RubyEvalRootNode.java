@@ -29,7 +29,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 /** A RootNode for an eval. Similar to a block (and not a method) once parsed since it can access the surrounding
  * variables and it is as well in another CallTarget. */
-public class RubyEvalRootNode extends RubyRootNode {
+public final class RubyEvalRootNode extends RubyRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
 

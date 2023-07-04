@@ -17,7 +17,7 @@ import org.truffleruby.RubyContext;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-public class Signals {
+public final class Signals {
 
     /** This is used instead of {@link SignalHandler#SIG_IGN} as {@code Signal.handle(sig, anyHandler)} seems to no
      * longer work after {@code Signal.handle(sig, SIG_IGN)} on JVM (on Native Image it seems fine). See

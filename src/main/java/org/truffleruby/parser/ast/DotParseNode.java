@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a range literal. */
-public class DotParseNode extends ParseNode {
+public final class DotParseNode extends ParseNode {
     private final ParseNode beginNode;
     private final ParseNode endNode;
     private final boolean exclusive;

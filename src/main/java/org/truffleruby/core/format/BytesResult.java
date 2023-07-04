@@ -11,7 +11,7 @@ package org.truffleruby.core.format;
 
 import org.truffleruby.extra.ffi.Pointer;
 
-public class BytesResult {
+public final class BytesResult {
 
     private final byte[] output;
     private final int outputLength;

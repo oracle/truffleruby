@@ -33,7 +33,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A::B ||= 1 */
-public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperatorParseNode {
+public final class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperatorParseNode {
     private ParseNode lhs;
     private TruffleString operator;
     private ParseNode rhs;

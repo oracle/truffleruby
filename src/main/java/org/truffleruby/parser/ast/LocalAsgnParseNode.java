@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** An assignment to a local variable. */
-public class LocalAsgnParseNode extends AssignableParseNode implements INameNode, IScopedNode {
+public final class LocalAsgnParseNode extends AssignableParseNode implements INameNode, IScopedNode {
     // The name of the variable
     private String name;
 

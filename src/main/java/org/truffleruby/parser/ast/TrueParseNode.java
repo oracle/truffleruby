@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents 'true'. */
-public class TrueParseNode extends ParseNode implements INameNode, SideEffectFree {
+public final class TrueParseNode extends ParseNode implements INameNode, SideEffectFree {
     public TrueParseNode(SourceIndexLength position) {
         super(position);
     }

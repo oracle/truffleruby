@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents the contents of a rescue to be evaluated */
-public class RescueBodyParseNode extends ParseNode {
+public final class RescueBodyParseNode extends ParseNode {
     private final ParseNode exceptionNodes;
     private final ParseNode bodyNode;
     private final RescueBodyParseNode optRescueNode;

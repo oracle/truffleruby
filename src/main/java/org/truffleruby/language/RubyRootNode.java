@@ -157,7 +157,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     @SuppressWarnings("serial")
-    private static class CloningError extends Error {
+    private static final class CloningError extends Error {
 
         public final Node original;
         public final Node clone;

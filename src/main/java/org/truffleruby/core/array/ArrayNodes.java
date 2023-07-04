@@ -1344,7 +1344,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        private static class State {
+        private static final class State {
             Object accumulator;
             final RubyProc block;
 
@@ -1487,7 +1487,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class MapNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        private static class State {
+        private static final class State {
             final BuilderState builderState;
             final RubyProc block;
 
@@ -1783,7 +1783,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class RejectNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        private static class State {
+        private static final class State {
             final BuilderState builderState;
             int newArraySize;
             final RubyProc block;
@@ -1993,7 +1993,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class SelectNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        private static class State {
+        private static final class State {
             final BuilderState builderState;
             int selectedSize;
             final RubyProc block;

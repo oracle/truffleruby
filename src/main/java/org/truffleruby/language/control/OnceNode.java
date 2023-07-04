@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import java.util.Objects;
 
 /** Executes a child node just once, and uses the same value each subsequent time the node is executed. */
-public class OnceNode extends RubyContextSourceNode {
+public final class OnceNode extends RubyContextSourceNode {
 
     static class Holder { // Not NodeCloneable, on purpose
         @CompilationFinal private volatile Object cachedValue;

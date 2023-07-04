@@ -24,7 +24,7 @@ import com.oracle.truffle.api.source.Source;
 
 /** A cache from {@link RubyLanguage#getPath(Source) the Source path} to a TruffleString. The TruffleString is kept
  * alive as long as the Source is reachable. */
-public class PathToTStringCache {
+public final class PathToTStringCache {
 
     private final RubyLanguage language;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();

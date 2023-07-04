@@ -40,7 +40,7 @@ import com.oracle.truffle.api.nodes.Node;
  * </code>
  * </pre>
  */
-public class ReentrantLockFreeingMap<K> {
+public final class ReentrantLockFreeingMap<K> {
 
     private final ConcurrentHashMap<K, ReentrantLock> locks = new ConcurrentHashMap<>();
 

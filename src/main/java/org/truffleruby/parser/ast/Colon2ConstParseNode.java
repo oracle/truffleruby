@@ -30,7 +30,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.language.SourceIndexLength;
 
 /** @author enebo */
-public class Colon2ConstParseNode extends Colon2ParseNode {
+public final class Colon2ConstParseNode extends Colon2ParseNode {
     public Colon2ConstParseNode(SourceIndexLength position, ParseNode leftNode, TruffleString name) {
         super(position, leftNode, name);
 

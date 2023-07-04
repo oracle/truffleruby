@@ -50,7 +50,7 @@ import org.truffleruby.parser.ast.VCallParseNode;
  *
  * StaticScope also keeps track of current module/class that is in scope. previousCRefScope will point to the previous
  * scope of the enclosing module/class (cref). */
-public class StaticScope {
+public final class StaticScope {
 
     // Next immediate scope.  Variable and constant scoping rules make use of this variable
     // in different ways.

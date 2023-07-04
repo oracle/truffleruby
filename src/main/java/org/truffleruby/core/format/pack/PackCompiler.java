@@ -18,7 +18,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.DeferredRaiseException;
 
-public class PackCompiler {
+public final class PackCompiler {
 
     private final RubyLanguage language;
     private final Node currentNode;

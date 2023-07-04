@@ -29,9 +29,9 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 @CoreModule("Truffle::ThreadOperations")
-public class TruffleThreadNodes {
+public abstract class TruffleThreadNodes {
 
-    private static class FrameAndCallNode {
+    private static final class FrameAndCallNode {
 
         public final Frame frame;
         public final Node callNode;

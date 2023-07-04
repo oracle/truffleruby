@@ -12,7 +12,7 @@ package org.truffleruby.core.regexp;
 import org.joni.WarnCallback;
 import org.truffleruby.parser.RubyWarnings;
 
-public class RegexWarnCallback implements WarnCallback {
+public final class RegexWarnCallback implements WarnCallback {
 
     private final RubyWarnings warnings;
 

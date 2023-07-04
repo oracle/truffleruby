@@ -18,7 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** For def m(**nil) */
-public class CheckNoKeywordArgumentsNode extends RubyContextSourceNode {
+public final class CheckNoKeywordArgumentsNode extends RubyContextSourceNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     private final BranchProfile errorProfile = BranchProfile.create();

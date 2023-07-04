@@ -28,7 +28,7 @@
 
 package org.truffleruby.parser.parser;
 
-public class YYDebug {
+public final class YYDebug {
     public void accept(Object a) {
         System.err.println("Accept: " + a);
     }

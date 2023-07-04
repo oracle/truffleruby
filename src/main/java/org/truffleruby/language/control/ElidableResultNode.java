@@ -21,7 +21,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 /** This node has a pair of children. One has side effects and the other returns the result. If the result isn't needed
  * all we execute is the side effects. */
 @NodeInfo(cost = NodeCost.NONE)
-public class ElidableResultNode extends RubyContextSourceNode {
+public final class ElidableResultNode extends RubyContextSourceNode {
 
     @Child private RubyNode required;
     @Child private RubyNode elidableResult;

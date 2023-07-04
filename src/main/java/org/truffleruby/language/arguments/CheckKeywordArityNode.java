@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Check that no extra keyword arguments are given, when there is no **kwrest */
-public class CheckKeywordArityNode extends RubyBaseNode {
+public final class CheckKeywordArityNode extends RubyBaseNode {
 
     public final Arity arity;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
@@ -60,7 +60,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         checkExtraKeywordArgumentsNode.check(keywordArguments);
     }
 
-    private static class CheckExtraKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
+    private static final class CheckExtraKeywordArgumentsNode extends RubyBaseNode implements EachEntryCallback {
 
         @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 

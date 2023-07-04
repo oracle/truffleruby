@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class LongFixnumLiteralNode extends RubyContextSourceNode {
+public final class LongFixnumLiteralNode extends RubyContextSourceNode {
 
     private final long value;
 

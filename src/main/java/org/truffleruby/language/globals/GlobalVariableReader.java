@@ -15,7 +15,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.SharedIndicesMap.ContextArray;
 
 /** A helper class to read global variables on the slow path, supporting the GlobalVariableStorage to be replaced. */
-public class GlobalVariableReader {
+public final class GlobalVariableReader {
 
     private final int index;
     private final ContextArray<GlobalVariableStorage> globalVariablesArray;

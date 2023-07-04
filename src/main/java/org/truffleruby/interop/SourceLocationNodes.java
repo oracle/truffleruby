@@ -23,7 +23,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.core.thread.ThreadBacktraceLocationNodes;
 
 @CoreModule(value = "Truffle::Interop::SourceLocation", isClass = true)
-public class SourceLocationNodes {
+public abstract class SourceLocationNodes {
 
     @CoreMethod(names = "absolute_path")
     public abstract static class AbsolutePathNode extends CoreMethodArrayArgumentsNode {

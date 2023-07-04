@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 // TODO: should rename to ImmutableStrings
-public class FrozenStringLiterals {
+public final class FrozenStringLiterals {
 
     private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 

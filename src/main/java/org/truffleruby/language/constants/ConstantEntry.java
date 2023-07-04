@@ -14,7 +14,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
-public class ConstantEntry {
+public final class ConstantEntry {
 
     private final Assumption assumption;
     private final RubyConstant constant;

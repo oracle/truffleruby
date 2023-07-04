@@ -16,7 +16,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class BreakNode extends RubyContextSourceNode {
+public final class BreakNode extends RubyContextSourceNode {
 
     private final BreakID breakID;
     private final boolean ignoreMarker;

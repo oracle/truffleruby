@@ -17,7 +17,7 @@ import com.oracle.truffle.api.object.Shape;
 
 import java.util.Objects;
 
-public class RubySourceLocation extends RubyDynamicObject {
+public final class RubySourceLocation extends RubyDynamicObject {
 
     public final SourceSection sourceSection;
 

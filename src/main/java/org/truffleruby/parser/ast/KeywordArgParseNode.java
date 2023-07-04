@@ -32,7 +32,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** @author enebo */
-public class KeywordArgParseNode extends ParseNode {
+public final class KeywordArgParseNode extends ParseNode {
     private AssignableParseNode assignable;
 
     public KeywordArgParseNode(SourceIndexLength position, AssignableParseNode assignable) {

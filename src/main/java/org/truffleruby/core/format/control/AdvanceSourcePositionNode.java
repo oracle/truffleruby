@@ -15,7 +15,7 @@ import org.truffleruby.core.format.exceptions.OutsideOfStringException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class AdvanceSourcePositionNode extends FormatNode {
+public final class AdvanceSourcePositionNode extends FormatNode {
 
     private final boolean toEnd;
 

@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 
-public class StarNode extends FormatNode {
+public final class StarNode extends FormatNode {
 
     @Child private LoopNode loopNode;
 
@@ -31,7 +31,7 @@ public class StarNode extends FormatNode {
         return null;
     }
 
-    private class StarRepeatingNode extends Node implements RepeatingNode {
+    private final class StarRepeatingNode extends Node implements RepeatingNode {
 
         @Child private FormatNode child;
 

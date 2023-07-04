@@ -15,7 +15,7 @@ import java.util.List;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.language.RubyGuards;
 
-public class PrintfSimpleParser {
+public final class PrintfSimpleParser {
 
     private final char[] source;
     private final Object[] arguments;
@@ -367,7 +367,7 @@ public class PrintfSimpleParser {
         return new LookAheadResult(result, newI);
     }
 
-    public static class LookAheadResult {
+    public static final class LookAheadResult {
         private Integer number;
         private int nextI;
 

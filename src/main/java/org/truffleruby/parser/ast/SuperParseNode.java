@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A call to super(...) with arguments to a method. */
-public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode {
+public final class SuperParseNode extends ParseNode implements BlockAcceptingParseNode {
     private final ParseNode argsNode;
     private ParseNode iterNode;
 

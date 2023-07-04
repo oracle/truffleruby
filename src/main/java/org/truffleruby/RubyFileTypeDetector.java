@@ -25,7 +25,7 @@ import org.truffleruby.parser.lexer.RubyLexer;
 
 import com.oracle.truffle.api.TruffleFile;
 
-public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
+public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
 
     private static final String[] KNOWN_RUBY_FILES = new String[]{ "Gemfile", "Rakefile" };
     private static final String[] KNOWN_RUBY_SUFFIXES = new String[]{ ".rb", ".rake", ".gemspec" };

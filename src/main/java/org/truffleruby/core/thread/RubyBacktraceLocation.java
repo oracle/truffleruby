@@ -14,7 +14,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 
-public class RubyBacktraceLocation extends RubyDynamicObject {
+public final class RubyBacktraceLocation extends RubyDynamicObject {
 
     final Backtrace backtrace;
     final int activationIndex;

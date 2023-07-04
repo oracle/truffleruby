@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.collections.ConcurrentOperations;
 
-public class UnsizedQueue {
+public final class UnsizedQueue {
 
     private final ReentrantLock lock;
     private final Condition canTake;
@@ -242,7 +242,7 @@ public class UnsizedQueue {
         }
     }
 
-    private static class Item {
+    private static final class Item {
 
         private final Object item;
         private Item nextToTake;

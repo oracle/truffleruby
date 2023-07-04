@@ -20,7 +20,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class TStringCache {
+public final class TStringCache {
 
     private final WeakValueCache<TBytesKey, TruffleString> bytesToTString = new WeakValueCache<>();
 

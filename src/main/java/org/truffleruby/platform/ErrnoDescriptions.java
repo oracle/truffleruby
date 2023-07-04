@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ErrnoDescriptions {
+public final class ErrnoDescriptions {
 
     private static final Map<String, String> DESCRIPTIONS;
 

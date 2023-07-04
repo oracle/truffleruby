@@ -14,7 +14,7 @@ import org.truffleruby.core.format.FormatNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-public class SequenceNode extends FormatNode {
+public final class SequenceNode extends FormatNode {
 
     @Children private final FormatNode[] children;
 

@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Access a dynamic variable (e.g. block scope local variable). */
-public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
+public final class DVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
 

@@ -15,7 +15,7 @@ import org.truffleruby.language.NotProvided;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class NotProvidedNode extends RubyContextSourceNode {
+public final class NotProvidedNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

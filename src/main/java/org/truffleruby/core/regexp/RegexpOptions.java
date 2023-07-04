@@ -14,7 +14,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
-public class RegexpOptions implements Cloneable, Comparable<RegexpOptions> {
+public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions> {
 
     public static final RegexpOptions NULL_OPTIONS = new RegexpOptions(KCode.NONE, true);
 

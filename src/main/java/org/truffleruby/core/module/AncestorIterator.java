@@ -11,7 +11,7 @@ package org.truffleruby.core.module;
 
 import java.util.Iterator;
 
-public class AncestorIterator implements Iterator<RubyModule> {
+public final class AncestorIterator implements Iterator<RubyModule> {
 
     ModuleChain module;
 

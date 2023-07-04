@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyUnboundMethod extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyUnboundMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     final RubyModule origin;
     public final InternalMethod method;

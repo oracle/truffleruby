@@ -15,7 +15,7 @@ import java.util.Objects;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 
-public class TBytesKey {
+public final class TBytesKey {
 
     private final byte[] bytes;
     private RubyEncoding encoding;

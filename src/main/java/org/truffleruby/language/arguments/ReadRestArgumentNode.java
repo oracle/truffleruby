@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 
-public class ReadRestArgumentNode extends RubyContextSourceNode {
+public final class ReadRestArgumentNode extends RubyContextSourceNode {
 
     private final int startIndex;
     private final int postArgumentsCount;

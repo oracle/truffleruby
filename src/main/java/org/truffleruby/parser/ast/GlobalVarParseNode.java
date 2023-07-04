@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** access to a global variable. */
-public class GlobalVarParseNode extends ParseNode implements INameNode {
+public final class GlobalVarParseNode extends ParseNode implements INameNode {
     private String name;
 
     public GlobalVarParseNode(SourceIndexLength position, TruffleString name) {

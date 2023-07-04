@@ -54,7 +54,7 @@ import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHash
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
-public class PackedHashStoreLibrary {
+public final class PackedHashStoreLibrary {
 
     /** Maximum numbers of entries to be represented as a packed Hash */
     public static final int MAX_ENTRIES = 3;
@@ -169,7 +169,7 @@ public class PackedHashStoreLibrary {
 
     @ImportStatic(HashGuards.class)
     @ExportMessage
-    protected static class Set {
+    protected static final class Set {
         @Specialization(guards = "hash.size == 0")
         protected static boolean setFirst(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
                 @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
@@ -275,7 +275,7 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     @ImportStatic(HashGuards.class)
-    static class EachEntry {
+    static final class EachEntry {
 
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
         @ExplodeLoop

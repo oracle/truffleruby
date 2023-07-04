@@ -11,7 +11,7 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
-public class BignumOperations {
+public final class BignumOperations {
 
     public static RubyBignum createBignum(BigInteger value) {
         // TODO BJF Jul-30-2020 Add allocation tracing

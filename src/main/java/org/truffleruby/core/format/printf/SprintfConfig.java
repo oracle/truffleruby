@@ -11,7 +11,7 @@ package org.truffleruby.core.format.printf;
 
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 
-public class SprintfConfig {
+public final class SprintfConfig {
 
     public enum FormatType {
         INTEGER,

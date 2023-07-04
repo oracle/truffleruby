@@ -934,7 +934,7 @@ public abstract class MathNodes {
         return l.sign * Math.exp(l.value);
     }
 
-    public static class NemesLogGamma {
+    public static final class NemesLogGamma {
         public final double value;
         public final double sign;
 

@@ -22,7 +22,7 @@ import org.truffleruby.core.format.FormatRootNode;
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.string.StringSupport;
 
-public class PrintfCompiler {
+public final class PrintfCompiler {
 
     private final RubyLanguage language;
     private final Node currentNode;

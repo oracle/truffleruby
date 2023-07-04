@@ -25,7 +25,7 @@ import org.truffleruby.parser.MethodTranslator;
  * When we encounter a function named {@code lambda} which is called with a block, we speculatively create a lambda call
  * target for that block in {@link MethodTranslator}. But if that method does not refer to {@code Kernel#lambda}, then a
  * proc call target is needed instead. This node is thus needed to "deoptimize" such cases. */
-public class LambdaToProcNode extends RubyContextSourceNode {
+public final class LambdaToProcNode extends RubyContextSourceNode {
 
     @Child private BlockDefinitionNode blockNode;
 

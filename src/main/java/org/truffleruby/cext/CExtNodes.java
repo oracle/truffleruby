@@ -145,7 +145,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.RubySource;
 
 @CoreModule("Truffle::CExt")
-public class CExtNodes {
+public abstract class CExtNodes {
 
     /* These tag values are derived from MRI source and from the Tk gem and are used to represent different control flow
      * states under which code may exit an `rb_protect` block. The fatal tag is defined but I could not find a point

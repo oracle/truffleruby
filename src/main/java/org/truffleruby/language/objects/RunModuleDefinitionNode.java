@@ -21,7 +21,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
-public class RunModuleDefinitionNode extends RubyContextSourceNode {
+public final class RunModuleDefinitionNode extends RubyContextSourceNode {
 
     @Child private RubyNode definingModule;
     private final ModuleBodyDefinition moduleBodyDefinition;

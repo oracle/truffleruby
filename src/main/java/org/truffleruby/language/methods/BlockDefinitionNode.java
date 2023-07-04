@@ -26,7 +26,7 @@ import org.truffleruby.parser.BodyTranslator;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
  * SharedMethodInfo. This is executed at the call site just before dispatch. */
-public class BlockDefinitionNode extends RubyContextSourceNode {
+public final class BlockDefinitionNode extends RubyContextSourceNode {
 
     private final ProcType type;
     private final SharedMethodInfo sharedMethodInfo;

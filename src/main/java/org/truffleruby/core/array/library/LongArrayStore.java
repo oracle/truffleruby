@@ -33,7 +33,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = long[].class)
 @GenerateUncached
-public class LongArrayStore {
+public final class LongArrayStore {
 
     @ExportMessage
     protected static long read(long[] store, int index) {
@@ -46,7 +46,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class AcceptsAllValues {
+    static final class AcceptsAllValues {
 
         @Specialization
         protected static boolean acceptsZeroValues(long[] store, ZeroLengthArrayStore otherStore) {
@@ -96,7 +96,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class Write {
+    static final class Write {
         @Specialization
         protected static void write(long[] store, int index, int value) {
             store[index] = value;
@@ -129,7 +129,7 @@ public class LongArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization
         protected static void copyContents(long[] srcStore, int srcStart, long[] destStore, int destStart, int length) {
@@ -161,7 +161,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class Fill {
+    static final class Fill {
         @Specialization
         protected static void fill(long[] store, int start, int length, int value) {
             Arrays.fill(store, start, start + length, value);
@@ -215,7 +215,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class GeneralizeForValue {
+    static final class GeneralizeForValue {
 
         @Specialization
         protected static ArrayAllocator generalize(long[] store, int newValue) {
@@ -240,7 +240,7 @@ public class LongArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class GeneralizeForStore {
+    static final class GeneralizeForStore {
 
         @Specialization
         protected static ArrayAllocator generalize(long[] store, int[] newStore) {
@@ -270,7 +270,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    static class AllocateForNewValue {
+    static final class AllocateForNewValue {
 
         @Specialization
         protected static Object allocateForNewStore(long[] store, int newValue, int length) {
@@ -300,7 +300,7 @@ public class LongArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class AllocateForNewStore {
+    static final class AllocateForNewStore {
 
         @Specialization
         protected static Object allocate(long[] store, ZeroLengthArrayStore newStore, int length) {
@@ -336,7 +336,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    protected static class IsDefaultValue {
+    protected static final class IsDefaultValue {
 
         @Specialization
         protected static boolean isDefaultValue(long[] store, long value) {
@@ -356,7 +356,7 @@ public class LongArrayStore {
 
     public static final ArrayAllocator LONG_ARRAY_ALLOCATOR = new LongArrayAllocator();
 
-    private static class LongArrayAllocator extends ArrayAllocator {
+    private static final class LongArrayAllocator extends ArrayAllocator {
 
         @Override
         public long[] allocate(int capacity) {

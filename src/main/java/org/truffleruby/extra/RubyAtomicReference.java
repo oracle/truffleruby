@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyDynamicObject;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RubyAtomicReference extends RubyDynamicObject {
+public final class RubyAtomicReference extends RubyDynamicObject {
 
     final AtomicReference<Object> value;
 

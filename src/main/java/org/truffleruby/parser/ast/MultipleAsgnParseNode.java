@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 /**
  *
  */
-public class MultipleAsgnParseNode extends AssignableParseNode {
+public final class MultipleAsgnParseNode extends AssignableParseNode {
     private final ListParseNode pre;
     private final ParseNode rest;
     private final ListParseNode post;

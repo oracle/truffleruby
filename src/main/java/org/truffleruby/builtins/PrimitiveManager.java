@@ -24,7 +24,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.options.LanguageOptions;
 
 /** Manages the available primitive calls. */
-public class PrimitiveManager {
+public final class PrimitiveManager {
 
     private final Map<String, String> lazyPrimitiveClasses = new ConcurrentHashMap<>();
 

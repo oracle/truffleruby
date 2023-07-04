@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** represents '||' (or) statements */
-public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
+public final class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
     private final ParseNode firstNode;
     private final ParseNode secondNode;
 

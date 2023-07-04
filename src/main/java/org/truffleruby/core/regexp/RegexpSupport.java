@@ -27,7 +27,7 @@
 
 package org.truffleruby.core.regexp;
 
-public class RegexpSupport {
+public final class RegexpSupport {
 
     public enum ErrorMode {
         RAISE,

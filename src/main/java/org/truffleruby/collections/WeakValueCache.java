@@ -176,7 +176,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         }
     }
 
-    protected static class KeyedReference<Key, Value> extends WeakReference<Value> {
+    protected static final class KeyedReference<Key, Value> extends WeakReference<Value> {
 
         private final Key key;
 

@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class LocalReturnNode extends RubyContextSourceNode {
+public final class LocalReturnNode extends RubyContextSourceNode {
 
     @Child private RubyNode value;
 

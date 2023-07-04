@@ -149,7 +149,7 @@ public final class CodeLoader {
                 arguments);
     }
 
-    public static class DeferredCall {
+    public static final class DeferredCall {
 
         private final RootCallTarget callTarget;
         private final Object[] arguments;

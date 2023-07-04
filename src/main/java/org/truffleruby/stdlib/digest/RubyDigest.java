@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyDigest extends RubyDynamicObject {
+public final class RubyDigest extends RubyDynamicObject {
 
     final DigestAlgorithm algorithm;
     final MessageDigest digest;

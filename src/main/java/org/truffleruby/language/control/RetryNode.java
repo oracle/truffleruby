@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class RetryNode extends RubyContextSourceNode {
+public final class RetryNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

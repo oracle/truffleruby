@@ -32,7 +32,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyLambdaRootNode extends RubyCheckArityRootNode {
+public final class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     public static RubyLambdaRootNode of(RootCallTarget callTarget) {
         return (RubyLambdaRootNode) callTarget.getRootNode();

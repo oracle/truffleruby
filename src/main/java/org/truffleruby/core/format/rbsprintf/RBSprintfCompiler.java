@@ -27,7 +27,7 @@ import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.string.StringSupport;
 
-public class RBSprintfCompiler {
+public final class RBSprintfCompiler {
 
     private final RubyLanguage language;
     private final Node currentNode;

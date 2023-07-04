@@ -42,7 +42,7 @@ import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 
-public class PrintfSimpleTreeBuilder {
+public final class PrintfSimpleTreeBuilder {
 
     private final RubyLanguage language;
     private final List<FormatNode> sequence = new ArrayList<>();

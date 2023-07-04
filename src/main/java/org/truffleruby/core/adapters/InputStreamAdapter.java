@@ -16,7 +16,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 /** extends NonBlockingInputStream so JLine does not create an extra thread and calls read() on the same thread as
  * calling readLine(). */
-public class InputStreamAdapter extends NonBlockingInputStream {
+public final class InputStreamAdapter extends NonBlockingInputStream {
 
     private final RubyIO object;
 

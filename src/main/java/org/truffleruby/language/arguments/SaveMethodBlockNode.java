@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class SaveMethodBlockNode extends RubyContextSourceNode {
+public final class SaveMethodBlockNode extends RubyContextSourceNode {
 
     private final int slot;
 

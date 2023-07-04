@@ -13,7 +13,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 
-public class ParserRopeOperations {
+public final class ParserRopeOperations {
 
     private final TruffleString.Encoding tencoding;
 

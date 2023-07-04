@@ -12,7 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ZeroLengthArrayStore;
 
-public class ArrayGuards {
+public final class ArrayGuards {
 
     public static int storageStrategyLimit() {
         return RubyLanguage.getCurrentLanguage().options.ARRAY_STRATEGY_CACHE;

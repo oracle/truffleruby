@@ -20,7 +20,7 @@ package org.truffleruby.core.hash;
  * entry will be the one in the entry chain before that one</li>
  * </ul>
  */
-public class HashLookupResult {
+public final class HashLookupResult {
 
     private final int hashed;
     private final int index;

@@ -170,7 +170,7 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
 
-public class ParserSupport {
+public final class ParserSupport {
 
     /** The local variable to store ... positional arguments in */
     public static final String FORWARD_ARGS_REST_VAR = Layouts.TEMP_PREFIX + "forward_rest";
