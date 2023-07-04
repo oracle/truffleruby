@@ -3045,10 +3045,17 @@ module Commands
   end
 
   def format_specializations_check
-    abort 'Some Specializations did not use the protected visibility.' if format_specializations_visibility
-    abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
-    abort 'There were extra blank lines around imports.' if Formatting.format_imports
-    abort 'There were classes which should be marked as final but were not.' if final_classes
+    any_failed = false
+    [
+      [format_specializations_visibility, 'Some Specializations did not use the protected visibility.'],
+      [format_specializations_arguments, 'Some Specializations were not properly formatted.'],
+      [Formatting.format_imports, 'There were extra blank lines around imports.'],
+      [final_classes, 'There were classes which should be marked as final but were not.'],
+    ].each do |changed, error_message|
+      any_failed ||= changed
+      $stderr.puts error_message if changed
+    end
+    abort if any_failed
   end
 
   def check_generated_files
