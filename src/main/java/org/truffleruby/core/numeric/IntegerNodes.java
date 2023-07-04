@@ -17,6 +17,8 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
@@ -30,7 +32,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
@@ -47,8 +48,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -56,8 +56,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -1911,76 +1909,40 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "mod_pow")
-    @NodeChild(value = "baseNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "exponentNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "moduloNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ModPowNode extends PrimitiveNode {
+    public abstract static class ModPowNodePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
-        public static ModPowNode create(RubyBaseNodeWithExecute base, RubyBaseNodeWithExecute exponent,
-                RubyBaseNodeWithExecute modulo) {
-            return IntegerNodesFactory.ModPowNodeFactory.create(base, exponent, modulo);
+        @Specialization
+        protected Object doModPow(BigInteger base, BigInteger exponent, BigInteger modulo,
+                @Cached ModPowNode modPowNode) {
+            return modPowNode.execute(this, base, exponent, modulo);
         }
+    }
 
-        abstract RubyBaseNodeWithExecute getBaseNode();
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class ModPowNode extends RubyBaseNode {
 
-        abstract RubyBaseNodeWithExecute getExponentNode();
-
-        abstract RubyBaseNodeWithExecute getModuloNode();
-
-        @CreateCast("baseNode")
-        protected RubyBaseNodeWithExecute baseToBigInteger(RubyBaseNodeWithExecute base) {
-            return BigIntegerCastNode.create(base);
-        }
-
-        @CreateCast("exponentNode")
-        protected RubyBaseNodeWithExecute exponentToBigInteger(RubyBaseNodeWithExecute exponent) {
-            return BigIntegerCastNode.create(exponent);
-        }
-
-        @CreateCast("moduloNode")
-        protected RubyBaseNodeWithExecute moduloToBigInteger(RubyBaseNodeWithExecute modulo) {
-            return BigIntegerCastNode.create(modulo);
-        }
+        public abstract Object execute(Node node, BigInteger base, BigInteger exponent, BigInteger modulo);
 
         @Specialization(guards = "modulo.signum() < 0")
-        protected Object mod_pow_neg(BigInteger base, BigInteger exponent, BigInteger modulo) {
+        protected static Object mod_pow_neg(BigInteger base, BigInteger exponent, BigInteger modulo,
+                @Cached @Shared FixnumOrBignumNode fixnumOrBignum) {
             BigInteger result = BigIntegerOps.modPow(base, exponent, BigIntegerOps.negate(modulo));
             return fixnumOrBignum.fixnumOrBignum(result.signum() == 1 ? BigIntegerOps.add(result, modulo) : result);
         }
 
         @Specialization(guards = "modulo.signum() > 0")
-        protected Object mod_pow_pos(BigInteger base, BigInteger exponent, BigInteger modulo) {
+        protected static Object mod_pow_pos(BigInteger base, BigInteger exponent, BigInteger modulo,
+                @Cached @Shared FixnumOrBignumNode fixnumOrBignum) {
             BigInteger result = BigIntegerOps.modPow(base, exponent, modulo);
             return fixnumOrBignum.fixnumOrBignum(result);
         }
 
         @Specialization(guards = "modulo.signum() == 0")
-        protected Object mod_pow_zero(BigInteger base, BigInteger exponent, BigInteger modulo) {
-            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+        protected static Object mod_pow_zero(Node node, BigInteger base, BigInteger exponent, BigInteger modulo) {
+            throw new RaiseException(getContext(node), coreExceptions(node).zeroDivisionError(node));
         }
 
-        RubyBaseNodeWithExecute getBaseNodeBeforeCasting() {
-            return ((BigIntegerCastNode) getBaseNode()).getValueNode();
-        }
-
-        RubyBaseNodeWithExecute getExponentNodeBeforeCasting() {
-            return ((BigIntegerCastNode) getExponentNode()).getValueNode();
-        }
-
-        RubyBaseNodeWithExecute getModuloNodeBeforeCasting() {
-            return ((BigIntegerCastNode) getModuloNode()).getValueNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getBaseNodeBeforeCasting().cloneUninitialized(),
-                    getExponentNodeBeforeCasting().cloneUninitialized(),
-                    getModuloNodeBeforeCasting().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
     }
 
     @CoreMethod(names = "downto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true)
