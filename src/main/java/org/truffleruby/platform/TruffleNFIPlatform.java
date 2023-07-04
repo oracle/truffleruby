@@ -20,7 +20,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.nfi.api.SignatureLibrary;
 
-public class TruffleNFIPlatform {
+public final class TruffleNFIPlatform {
 
     final Object defaultLibrary;
 

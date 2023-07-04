@@ -38,7 +38,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @SuppressFBWarnings("VO")
-public class ValueWrapperManager {
+public final class ValueWrapperManager {
 
     static final long UNSET_HANDLE = -2L;
 
@@ -207,7 +207,7 @@ public class ValueWrapperManager {
         }
     }
 
-    public static class HandleBlock {
+    public static final class HandleBlock {
 
         private final long base;
         private final ValueWrapperWeakReference[] wrappers;

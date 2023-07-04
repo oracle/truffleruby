@@ -164,7 +164,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
 // Checkstyle: stop
-public class <%= class_prefix %>Options {
+public final class <%= class_prefix %>Options {
 <% options.each do |o| %>
     /** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
     public final <%= o.type %> <%= o.constant %>;<% end %>
@@ -238,7 +238,7 @@ import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionStability;
 
 // @formatter:off
-public class OptionsCatalog {
+public final class OptionsCatalog {
 <% options.each do |o| %>
     public static final OptionKey<<%= o.boxed_type %>> <%= o.key_constant %> = new OptionKey<>(<%= o.default_value %><%= o.option_type ? ', ' + o.option_type : '' %>);<% end %>
 <% options.each do |o| %>

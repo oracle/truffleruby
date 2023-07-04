@@ -43,7 +43,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 @ExportLibrary(InteropLibrary.class)
 @ImportStatic(HashGuards.class)
-public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     public Object store;
     public int size;

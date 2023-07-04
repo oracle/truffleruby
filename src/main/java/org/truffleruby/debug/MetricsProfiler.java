@@ -21,7 +21,7 @@ import org.truffleruby.shared.options.Profile;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 
-public class MetricsProfiler {
+public final class MetricsProfiler {
 
     private final RubyLanguage language;
     private final RubyContext context;

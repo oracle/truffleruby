@@ -24,13 +24,13 @@ import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingReader;
 
 /** PosixSysTerminal but without overriding JVM signals (Ruby already sets up SIGINT) */
-public class PosixSysTerminalKeepSignalHandlers extends AbstractPosixTerminal {
+public final class PosixSysTerminalKeepSignalHandlers extends AbstractPosixTerminal {
 
-    protected final NonBlockingInputStream input;
-    protected final OutputStream output;
-    protected final NonBlockingReader reader;
+    private final NonBlockingInputStream input;
+    private final OutputStream output;
+    private final NonBlockingReader reader;
     // Checkstyle: stop
-    protected final PrintWriter writer;
+    private final PrintWriter writer;
 
     public PosixSysTerminalKeepSignalHandlers(
             String name,

@@ -24,7 +24,7 @@ import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingReader;
 
 /** A virtual Terminal which reads and writes from the same thread as the thread calling readLine() */
-public class SingleThreadTerminal extends AbstractTerminal {
+public final class SingleThreadTerminal extends AbstractTerminal {
 
     private final NonBlockingInputStream input;
     private final NonBlockingReader reader;

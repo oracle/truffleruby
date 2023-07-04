@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-public class BacktraceFormatter {
+public final class BacktraceFormatter {
 
     public enum FormattingFlags {
         OMIT_EXCEPTION,

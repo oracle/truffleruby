@@ -39,7 +39,7 @@ import com.oracle.truffle.api.nodes.Node;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CodeLoader {
+public final class CodeLoader {
 
     private final RubyLanguage language;
     private final RubyContext context;

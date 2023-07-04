@@ -50,7 +50,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.LogicalClassNode;
 
-public class CoreExceptions {
+public final class CoreExceptions {
 
     private final RubyLanguage language;
     private final RubyContext context;

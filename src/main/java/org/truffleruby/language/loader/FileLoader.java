@@ -30,7 +30,7 @@ import com.oracle.truffle.api.source.Source;
 /*
  * Loads normal Ruby source files from the file system.
  */
-public class FileLoader {
+public final class FileLoader {
 
     private final RubyContext context;
     private final RubyLanguage language;

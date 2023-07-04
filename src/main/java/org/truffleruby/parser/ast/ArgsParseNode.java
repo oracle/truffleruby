@@ -51,7 +51,7 @@ import org.truffleruby.parser.scope.StaticScope;
  *
  * p1...pn = pre arguments o1...on = optional arguments r = rest argument q1...qn = post arguments (only in 1.9) k1...kn
  * = keyword arguments K = keyword rest argument b = block arg */
-public class ArgsParseNode extends ParseNode {
+public final class ArgsParseNode extends ParseNode {
 
     private ParseNode[] args;
     private short optIndex;

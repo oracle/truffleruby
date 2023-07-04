@@ -66,7 +66,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.signal.LibRubySignal;
 
-public class ThreadManager {
+public final class ThreadManager {
 
     public static final String NAME_PREFIX = "Ruby Thread";
 
