@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 
-public final class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
+public abstract class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
@@ -34,14 +35,16 @@ public final class WriteInstanceVariableNode extends RubyContextSourceNode imple
 
     @CompilationFinal private boolean frozenProfile;
 
+    public abstract Object execute(VirtualFrame frame);
+
     public WriteInstanceVariableNode(String name, RubyNode rhs) {
         this.name = name;
         this.readSelfSlotNode = SelfNode.createReadSelfFrameSlotNode();
         this.rhs = rhs;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Specialization
+    protected Object doWrite(VirtualFrame frame) {
         final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
         final Object value = rhs.execute(frame);
         write(self, value);
@@ -97,7 +100,7 @@ public final class WriteInstanceVariableNode extends RubyContextSourceNode imple
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new WriteInstanceVariableNode(name, cloneUninitialized(rhs));
+        var copy = WriteInstanceVariableNodeGen.create(name, cloneUninitialized(rhs));
         return copy.copyFlags(this);
     }
 
