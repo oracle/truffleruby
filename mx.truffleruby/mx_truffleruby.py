@@ -12,6 +12,7 @@ import os
 import pipes
 from os.path import join, exists, basename
 import shutil
+import sys
 
 import mx
 import mx_gate
@@ -227,7 +228,7 @@ def ruby_spotbugs(args):
     spotbugsArgs = ['-textui', '-low', '-longBugCodes', '-include', filters]
     if mx.is_interactive():
         spotbugsArgs.append('-progress')
-    mx_spotbugs.spotbugs(args, spotbugsArgs)
+    sys.exit(mx_spotbugs.spotbugs(args, spotbugsArgs))
 
 def verify_ci(args):
     """Verify CI configuration"""
