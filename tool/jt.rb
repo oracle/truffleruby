@@ -64,7 +64,7 @@ JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-JDK_VERSIONS = [21]
+JDK_VERSIONS = [21, 17]
 DEFAULT_JDK_VERSION = JDK_VERSIONS.first
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
