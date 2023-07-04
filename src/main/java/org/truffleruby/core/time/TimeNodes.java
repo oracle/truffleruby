@@ -420,7 +420,7 @@ public abstract class TimeNodes {
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
-                guards = "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)",
+                guards = "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected static RubyString timeStrftimeCached(RubyTime time, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,

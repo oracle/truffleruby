@@ -2557,10 +2557,10 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isBrokenCodeRange(tstring, encoding, codeRangeNode)",
-                        "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)",
+                        "equalNode.execute(node, tstring, encoding, cachedTString, cachedEncoding)",
                         "preserveSymbol == cachedPreserveSymbol" },
                 limit = "getDefaultCacheLimit()")
-        protected RubySymbol toSymCached(Object string, boolean preserveSymbol,
+        protected static RubySymbol toSymCached(Object string, boolean preserveSymbol,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached("asTruffleStringUncached(string)") TruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
@@ -2568,7 +2568,8 @@ public abstract class StringNodes {
                 @Cached("getSymbol(cachedTString, cachedEncoding, cachedPreserveSymbol)") RubySymbol cachedSymbol,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
-                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding,
+                @Bind("this") Node node) {
             return cachedSymbol;
         }
 

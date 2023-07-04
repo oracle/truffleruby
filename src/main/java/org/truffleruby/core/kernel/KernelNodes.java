@@ -727,7 +727,7 @@ public abstract class KernelNodes {
                 guards = {
                         "libSource.isRubyString(source)",
                         "libFile.isRubyString(file)",
-                        "codeEqualNode.execute(libSource, source, cachedSource, cachedSourceEnc)",
+                        "codeEqualNode.execute(node, libSource, source, cachedSource, cachedSourceEnc)",
                         "fileEqualNode.execute(libFile, file, cachedFile, cachedFileEnc)",
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
@@ -1652,10 +1652,10 @@ public abstract class KernelNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(formatAsString)",
-                        "equalNode.execute(libFormat, formatAsString, cachedTString, cachedEncoding)",
+                        "equalNode.execute(node, libFormat, formatAsString, cachedTString, cachedEncoding)",
                         "isDebug == cachedIsDebug" },
                 limit = "3")
-        protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
+        protected static RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached @Shared BooleanCastNode booleanCastNode,
                 @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
@@ -1669,17 +1669,18 @@ public abstract class KernelNodes {
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Bind("this") Node node) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(cachedFormatLength, result, resizeProfile, fromByteArrayNode);
+            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -1707,18 +1708,18 @@ public abstract class KernelNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
+            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result,
+        private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
                 InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            return createString(this, fromByteArrayNode, bytes,
+            return createString(node, fromByteArrayNode, bytes,
                     result.getEncoding().getEncodingForLength(formatLength));
         }
 

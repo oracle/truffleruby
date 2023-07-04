@@ -139,8 +139,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.RubySource;
 
@@ -1960,14 +1958,16 @@ public abstract class CExtNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
+                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-        protected Object typesCached(VirtualFrame frame, Object format,
+
+        protected static Object typesCached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Bind("this") Node node) {
             return cachedTypes;
         }
 
@@ -1993,34 +1993,33 @@ public abstract class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
-
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
+                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-        protected RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
+        protected static RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
                 @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedFormat, cachedEncoding, stringReader))") DirectCallNode formatNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Bind("this") Node node) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {
                 result = (BytesResult) formatNode.call(new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(cachedFormatLength, result);
+            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -2028,6 +2027,9 @@ public abstract class CExtNodes {
                 replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
                 @Cached IndirectCallNode formatNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
             var tstring = libFormat.getTString(format);
@@ -2038,26 +2040,23 @@ public abstract class CExtNodes {
                 result = (BytesResult) formatNode.call(compileFormat(tstring, encoding, stringReader),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result);
+            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result) {
+        private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (fromByteArrayNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
-            }
-
-            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(node, fromByteArrayNode, bytes,
+                    result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary
