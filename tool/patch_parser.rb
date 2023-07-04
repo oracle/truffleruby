@@ -88,7 +88,7 @@ else
 end
 
 while gets
-  break if /protected static final short\[\] yyTable = \{/ =~ $_
+  break if /private static final short\[\] yyTable = \{/ =~ $_
   print $_
 end
 
@@ -97,20 +97,20 @@ yytable_prefix = ARGV.shift || ''
 
 table4 = get_numbers_until_end_block([])
 
-puts "    protected static final short[] yyTable = #{yytable_prefix}YyTables.yyTable();"
+puts "    private static final short[] yyTable = #{yytable_prefix}YyTables.yyTable();"
 
 while gets
-  break if /protected static final short\[\] yyCheck = \{/ =~ $_
+  break if /private static final short\[\] yyCheck = \{/ =~ $_
   print $_
 end
 
 check4 = get_numbers_until_end_block([])
 
-puts "    protected static final short[] yyCheck = #{yytable_prefix}YyTables.yyCheck();"
+puts "    private static final short[] yyCheck = #{yytable_prefix}YyTables.yyCheck();"
 
 while gets
   print $_
-  break if /protected static final String\[\] yyNames = \{/ =~ $_
+  break if /private static final String\[\] yyNames = \{/ =~ $_
 end
 
 print_names_until_end_block
@@ -179,7 +179,7 @@ open("#{yytable_prefix}YyTables.java", "w") { |f|
  ***** END LICENSE BLOCK *****/
 package #{package};
 
-public class #{yytable_prefix}YyTables {
+public final class #{yytable_prefix}YyTables {
    private static short[] combine(short[] t1, short[] t2, 
                                   short[] t3, short[] t4) {
       short[] t = new short[t1.length + t2.length + t3.length + t4.length];

@@ -26,8 +26,8 @@ import com.oracle.truffle.api.library.ReflectionLibrary;
 @ExportLibrary(ReflectionLibrary.class)
 public final class ProxyForeignObject implements TruffleObject {
 
-    protected final Object delegate;
-    protected final Object logger;
+    final Object delegate;
+    private final Object logger;
 
     private static final Message EXECUTABLE = Message.resolve(InteropLibrary.class, "execute");
     private static final Message INVOKE = Message.resolve(InteropLibrary.class, "invokeMember");

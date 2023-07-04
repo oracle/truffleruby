@@ -280,8 +280,8 @@ public final class ValueWrapperManager {
     }
 
     public static final class HandleBlockHolder {
-        protected HandleBlock handleBlock = null;
-        protected HandleBlock sharedHandleBlock = null;
+        private HandleBlock handleBlock = null;
+        private HandleBlock sharedHandleBlock = null;
     }
 
     @GenerateUncached

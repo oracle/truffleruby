@@ -24,7 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public final class DefineClassNode extends RubyContextSourceNode {
 
-    protected final String name;
+    private final String name;
 
     @Child private RubyNode superClassNode;
     @Child private RubyNode lexicalParentModule;

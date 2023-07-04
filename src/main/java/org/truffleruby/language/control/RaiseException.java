@@ -22,7 +22,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "exception")
 public final class RaiseException extends AbstractTruffleException implements RubyThrowable {
 
-    protected final RubyException exception;
+    final RubyException exception;
 
     public RaiseException(RubyContext context, RubyException exception) {
         this(context, exception, null);

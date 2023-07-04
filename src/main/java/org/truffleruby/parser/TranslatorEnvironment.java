@@ -57,7 +57,7 @@ public final class TranslatorEnvironment {
     private final boolean ownScopeForAssignments;
     private final boolean isModuleBody;
 
-    protected final TranslatorEnvironment parent;
+    private final TranslatorEnvironment parent;
     private final SharedMethodInfo sharedMethodInfo;
 
     public final String modulePath;

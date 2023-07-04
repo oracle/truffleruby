@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 public final class SplatToArgsNode extends RubyBaseNode {
 
-    @Child protected ArrayStoreLibrary stores;
+    @Child ArrayStoreLibrary stores;
     final IntValueProfile splatSizeProfile = IntValueProfile.create();
 
     public SplatToArgsNode(RubyLanguage language) {

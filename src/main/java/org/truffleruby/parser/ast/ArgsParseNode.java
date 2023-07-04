@@ -62,7 +62,7 @@ public final class ArgsParseNode extends ParseNode {
      * SyntaxError would have resulted. Can change as numbered parameters are encountered. */
     private boolean isNumbered = false;
 
-    protected final ArgumentParseNode restArgNode;
+    private final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
     private final BlockArgParseNode blockArgNode;
 

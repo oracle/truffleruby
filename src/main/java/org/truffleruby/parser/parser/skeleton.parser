@@ -15,12 +15,12 @@
 .
 .  /** number of final state.
 .    */
- yyFinal protected static final int yyFinal =
+ yyFinal private static final int yyFinal =
 .
 .  /** parser tables.
 .      Order is mandated by <i>jay</i>.
 .    */
-.  protected static final short[] yyLhs = {
+.  private static final short[] yyLhs = {
  yyLhs
 .    }, yyLen = {
  yyLen
@@ -35,27 +35,27 @@
 .    }, yyGindex = {
  yyGindex
 .    };
-.  protected static final short[] yyTable = {
+.  private static final short[] yyTable = {
  yyTable
 .    };
-.  protected static final short[] yyCheck = {
+.  private static final short[] yyCheck = {
  yyCheck
 .    };
 .
 .  /** maps symbol value to printable name.
 .      @see #yyExpecting
 .    */
-.  protected static final String[] yyNames = {
+.  private static final String[] yyNames = {
  yyNames-strings
 .    };
 .
 t  /** printable rules for debugging.
 t    */
-t  protected static final String [] yyRule = {
+t  private static final String [] yyRule = {
  yyRule-strings
 t    };
 t
-t  protected org.truffleruby.parser.parser.YYDebug yydebug;
+t  private org.truffleruby.parser.parser.YYDebug yydebug;
 t
 t  /** index-checked interface to {@link #yyNames}.
 t      @param token single character or <tt>%token</tt> value.
@@ -73,7 +73,7 @@ t
 .      @param state for which to compute the list.
 .      @return list of token names.
 .    */
-.  protected String[] yyExpecting (int state) {
+.  private String[] yyExpecting (int state) {
 .    int token, n, len = 0;
 .    boolean[] ok = new boolean[yyNames.length];
 .
@@ -112,7 +112,7 @@ t    this.yydebug = (org.truffleruby.parser.parser.YYDebug) ayydebug;
 .      This is not final so that it can be overwritten outside of invocations
 .      of {@link #yyparse}.
 .    */
-.  protected int yyMax;
+.  private int yyMax;
 .
 .  /** executed at the beginning of a reduce action.
 .      Used as <tt>$$ = yyDefault($1)</tt>, prior to the user-specified action, if any.
@@ -120,7 +120,7 @@ t    this.yydebug = (org.truffleruby.parser.parser.YYDebug) ayydebug;
 .      @param first value for <tt>$1</tt>, or <tt>null</tt>.
 .      @return first.
 .    */
-.  protected Object yyDefault (Object first) {
+.  private Object yyDefault (Object first) {
 .    return first;
 .  }
 .

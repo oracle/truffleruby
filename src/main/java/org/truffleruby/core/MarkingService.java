@@ -41,19 +41,19 @@ public final class MarkingService {
 
     protected static final class ExtensionCallStackEntry {
 
-        protected final ExtensionCallStackEntry previous;
-        protected ValueWrapper preservedObject;
-        protected ArrayList<ValueWrapper> preservedObjects;
-        protected final boolean keywordsGiven;
-        protected Object specialVariables;
-        protected final Object block;
-        protected CapturedException capturedException;
-        protected ValueWrapper markOnExitObject;
-        protected ArrayList<ValueWrapper> markOnExitObjects;
-        protected Object[] marks;
-        protected int marksIndex = 0;
+        private final ExtensionCallStackEntry previous;
+        ValueWrapper preservedObject;
+        ArrayList<ValueWrapper> preservedObjects;
+        private final boolean keywordsGiven;
+        private Object specialVariables;
+        private final Object block;
+        private CapturedException capturedException;
+        private ValueWrapper markOnExitObject;
+        private ArrayList<ValueWrapper> markOnExitObjects;
+        private Object[] marks;
+        private int marksIndex = 0;
 
-        protected ExtensionCallStackEntry(
+        private ExtensionCallStackEntry(
                 ExtensionCallStackEntry previous,
                 boolean keywordsGiven,
                 Object specialVariables,
@@ -68,7 +68,7 @@ public final class MarkingService {
 
     public static final class ExtensionCallStack {
 
-        protected ExtensionCallStackEntry current;
+        ExtensionCallStackEntry current;
 
         public ExtensionCallStack(Object specialVariables, Object block) {
             current = new ExtensionCallStackEntry(null, false, specialVariables, block);
