@@ -1104,11 +1104,10 @@ public abstract class CExtNodes {
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
-
         @Specialization
-        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name) {
-            setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+            setMethodVisibilityNode.execute(this, module, name, Visibility.MODULE_FUNCTION);
             return module;
         }
 
