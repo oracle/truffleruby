@@ -1,0 +1,317 @@
+fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
+fails:Parsing a END block (END { ... }) case is parsed correctly
+fails:Parsing a Encoding keyword (__ENCODING__ keyword) case is parsed correctly
+fails:Parsing a Alias (alias (dynamic) Symbols) case is parsed correctly
+fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with double splat operator without variable name (**)) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with keyword arguments) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with optional positional parameters) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with splat operator without name and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Arity / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Block (Arity / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Block (Arity / with keyword arguments) case is parsed correctly
+fails:Parsing a Block (Arity / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Block (Arity / with optional positional parameters) case is parsed correctly
+fails:Parsing a Block (Arity / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Block (Arity / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but optional parameters count > 1 - it tries to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but required parameters count > 1 - it tries to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but one required parameter and one optional one - it tries to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when rest positional parameter and multiple required terminating ones - it tries to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when rest positional parameter and multiple required ones - it tries to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when no positional parameters (required/optional/rest) - it doesn't try to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when one optional positional parameter - it doesn't try to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when one required positional parameter - it doesn't try to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when no positional parameters but a rest parameter - it doesn't try to destruct) case is parsed correctly
+fails:Parsing a Block (Destructuring array argument / when a rest parameter and optional positional parameters - it doesn't try to destruct) case is parsed correctly
+fails:Parsing a Block (Name / in a block) case is parsed correctly
+fails:Parsing a Block (Name / in a method) case is parsed correctly
+fails:Parsing a Block (Name / at top level) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with block (proc { |&b| })) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with keyword arguments) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with optional positional parameters) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / without parameters) case is parsed correctly
+fails:Parsing a Block (Tail expression / with explicit return inside then branch of the `if` operator) case is parsed correctly
+fails:Parsing a Block (Tail expression / with explicit return inside then/else branches of the `if` operator) case is parsed correctly
+fails:Parsing a Block (Tail expression / with explicit return at the end of a sequence of multiple expressions) case is parsed correctly
+fails:Parsing a Block (Tail expression / with explicit return) case is parsed correctly
+fails:Parsing a Block (Tail expression / with explicit return inside then branch of the `unless` operator) case is parsed correctly
+fails:Parsing a Block (a block with empty body) case is parsed correctly
+fails:Parsing a Block (a block with not empty body) case is parsed correctly
+fails:Parsing a Block (a block without parameters) case is parsed correctly
+fails:Parsing a Break (break operator with argument) case is parsed correctly
+fails:Parsing a Break (break operator with splat operator (break *a)) case is parsed correctly
+fails:Parsing a Break (break operator within a block) case is parsed correctly
+fails:Parsing a Break (break operator without argument) case is parsed correctly
+fails:Parsing a case expression (case expression with expression/value to match (case a when ... end)) case is parsed correctly
+fails:Parsing a case expression (case expression with expression to match and `else` branch (case a when ... else ... end)) case is parsed correctly
+fails:Parsing a case expression (case expression with expression to match and multiple values in a `when` branch (case a when a, b ... end)) case is parsed correctly
+fails:Parsing a case expression (case expression without expression to match (case when expr ... end)) case is parsed correctly
+fails:Parsing a case expression (case expression without expression to match and with `else` branch (case when expr ... else ... end)) case is parsed correctly
+fails:Parsing a case expression (case expression without expression to match and with multiple conditions in a `when` branch (case when a, b ... end)) case is parsed correctly
+fails:Parsing a class << (reopen an object singleton class) case is parsed correctly
+fails:Parsing a class (class definition) case is parsed correctly
+fails:Parsing a class (class definition with explicit lexical parent module (class Foo::Bar)) case is parsed correctly
+fails:Parsing a class (class definition when there are some expressions inside a body) case is parsed correctly
+fails:Parsing a class (class definition with inheriting a parent class) case is parsed correctly
+fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
+fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Integer is represented as `Complext.convert(0, Rational.convert(b, 1))`) case is parsed correctly
+fails:Parsing a Complex number (Complex literal in format of a + bi is represented as `a + Complex.convert(0, b)`) case is parsed correctly
+fails:Parsing a Constant (reading / a constant) case is parsed correctly
+fails:Parsing a Constant (reading / a fully qualified constant (::A)) case is parsed correctly
+fails:Parsing a Constant (reading / a fully qualified constant with lexical parent (::A::B)) case is parsed correctly
+fails:Parsing a Constant (reading / a constant with lexical grandparent (A::B::C)) case is parsed correctly
+fails:Parsing a Constant (reading / a constant with lexical parent (A::B)) case is parsed correctly
+fails:Parsing a Constant (assigning / a constant) case is parsed correctly
+fails:Parsing a Constant (assigning / a fully qualified constant (::A)) case is parsed correctly
+fails:Parsing a Constant (assigning / a fully qualified constant with lexical parent (::A::B)) case is parsed correctly
+fails:Parsing a Constant (assigning / a constant with lexical grandparent (A::B::C)) case is parsed correctly
+fails:Parsing a Constant (assigning / a constant with lexical parent (A::B)) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with double splat operator without variable name (**)) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with keyword arguments) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with optional positional parameters) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Def (Argument descriptors / with splat operator without name and preceding and following parameters) case is parsed correctly
+fails:Parsing a Def (Arity / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Def (Arity / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Def (Arity / with keyword arguments) case is parsed correctly
+fails:Parsing a Def (Arity / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Def (Arity / with optional positional parameters) case is parsed correctly
+fails:Parsing a Def (Arity / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Def (Arity / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Def (Name / Non singleton / in an anonymous module) case is parsed correctly
+fails:Parsing a Def (Name / Non singleton / in a module) case is parsed correctly
+fails:Parsing a Def (Name / Non singleton / when top-level method) case is parsed correctly
+fails:Parsing a Def (Name / Singleton / in an anonymous module) case is parsed correctly
+fails:Parsing a Def (Name / Singleton / in a module) case is parsed correctly
+fails:Parsing a Def (Name / Singleton / when top-level method) case is parsed correctly
+fails:Parsing a Def (Name / Singleton / when top-level method and `self` receiver) case is parsed correctly
+fails:Parsing a Def (Parameters declaration in a frame / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Def (Parameters declaration in a frame / with all kinds of positional and keyword parameters) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with block (def a(&b))) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with keyword arguments) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with optional keyword arguments) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with optional positional parameters) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Def (Parameters to local variables / without parameters) case is parsed correctly
+fails:Parsing a Def (Tail expression / with explicit return inside then branch of the `if` operator) case is parsed correctly
+fails:Parsing a Def (Tail expression / with explicit return inside then/else branches of the `if` operator) case is parsed correctly
+fails:Parsing a Def (Tail expression / with explicit return at the end of a sequence of multiple expressions) case is parsed correctly
+fails:Parsing a Def (Tail expression / with explicit return) case is parsed correctly
+fails:Parsing a Def (Tail expression / with explicit return inside then branch of the `unless` operator) case is parsed correctly
+fails:Parsing a Def (Singleton method definition) case is parsed correctly
+fails:Parsing a Def (Method definition with empty body) case is parsed correctly
+fails:Parsing a Def (Method definition with not empty body) case is parsed correctly
+fails:Parsing a Def (Method definition without parameters) case is parsed correctly
+fails:Parsing a defined? (with yield in a method body (defined? yield)) case is parsed correctly
+fails:Parsing a defined? (with yield in a module/class body (defined? yield)) case is parsed correctly
+fails:Parsing a Ensure keyword (ensure in a begin/end block) case is parsed correctly
+fails:Parsing a Ensure keyword (ensure in a do/end block) case is parsed correctly
+fails:Parsing a Ensure keyword (ensure in a method) case is parsed correctly
+fails:Parsing a Ensure keyword (ensure in a module) case is parsed correctly
+fails:Parsing a Ensure keyword (with empty body) case is parsed correctly
+fails:Parsing a Float (Float literal fixed-point format with underscores) case is parsed correctly
+fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
+fails:Parsing a Hash (Hash literal with key-value pairs) case is parsed correctly
+fails:Parsing a Hash (when empty) case is parsed correctly
+fails:Parsing a Hash (with '=>' syntax (key => value)) case is parsed correctly
+fails:Parsing a Hash (Double Splat operator/there is only double splat operator (`{**{}}`)) case is parsed correctly
+fails:Parsing a Hash (Double Splat operator/double splat operator + key-value pairs (`{**{}, a: 1}`)) case is parsed correctly
+fails:Parsing a Hash (Double Splat operator/key-value pairs + double splat operator (`{a: 1, **{}}`)) case is parsed correctly
+fails:Parsing a Hash (Double Splat operator/key-value pairs + double splat operator + key-value pairs (`{a: 1, **{}, b: 2}`)) case is parsed correctly
+fails:Parsing a Hash (with String literal key) case is parsed correctly
+fails:Parsing a Hash (with symbol keys syntax (key: value)) case is parsed correctly
+fails:Parsing a Hash (with symbol keys syntax and dynamic symbol ('key': value)) case is parsed correctly
+fails:Parsing a Hash (with symbol keys syntax and dynamic symbol with interpolation) case is parsed correctly
+fails:Parsing a Instance variable (reading an instance variable) case is parsed correctly
+fails:Parsing a Instance variable (assigning an instance variable new value) case is parsed correctly
+fails:Parsing a Integer (Big Integer literal (that takes >= 64 bits)) case is parsed correctly
+fails:Parsing a Integer (Integer literal with binary prefix) case is parsed correctly
+fails:Parsing a Integer (Integer literal with explicit decimal prefix) case is parsed correctly
+fails:Parsing a Integer (Integer literal with hexadecimal prefix) case is parsed correctly
+fails:Parsing a Integer (Integer literal with octal prefix) case is parsed correctly
+fails:Parsing a Integer (Integer literal with underscore) case is parsed correctly
+fails:Parsing a Lambda (literal `-> () { ... }`) case is parsed correctly
+fails:Parsing a Local variable (in a block / reading a local variable) case is parsed correctly
+fails:Parsing a Local variable (in a block / assigning a local variable new value) case is parsed correctly
+fails:Parsing a Local variable (in a block but defined in an outer scope / reading a local variable) case is parsed correctly
+fails:Parsing a Local variable (in a block but defined in an outer scope / assigning a local variable new value) case is parsed correctly
+fails:Parsing a Local variable (reading a local variable) case is parsed correctly
+fails:Parsing a Local variable (assigning a local variable new value) case is parsed correctly
+fails:Parsing a Method call (Arguments/with a &-deconstruction to a block argument (&bar)) case is parsed correctly
+fails:Parsing a Method call (Arguments/with block literal argument) case is parsed correctly
+fails:Parsing a Method call (Arguments/with double splat operator (**kw)) case is parsed correctly
+fails:Parsing a Method call (Arguments/with keyword arguments) case is parsed correctly
+fails:Parsing a Method call (Arguments/with positional argument and splat operator (a, *args)) case is parsed correctly
+fails:Parsing a Method call (Arguments/with splat operator (*args)) case is parsed correctly
+fails:Parsing a Method call (Arguments/with splat operator and positional arguments (*args, a)) case is parsed correctly
+fails:Parsing a Method call (Primitive is replaced with a node implementing this method) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #!) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #%) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #&) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #*) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #+) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #-) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #-@) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #<) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #<<) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #<=) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #==) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #===) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #>) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #>=) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #>>) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #[]) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #[]=) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #at (Array#at)) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #bytesize) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #dedup called on a String literal) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #freeze) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #is_a?) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #kind_of?) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #lambda (Kernel#lambda)) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #lambda (not Kernel#lambda)) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #nil?) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #/) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #|) case is parsed correctly
+fails:Parsing a Method call (Special cases/method #attr= (property assignment)) case is parsed correctly
+fails:Parsing a Method call (Method call with implicit receiver (`foo`)) case is parsed correctly
+fails:Parsing a Method call (With safe navigation operator (&.)) case is parsed correctly
+fails:Parsing a Method call (Without arguments and parentheses) case is parsed correctly
+fails:Parsing a module (module definition) case is parsed correctly
+fails:Parsing a module (module definition with explicit lexical parent module (module Foo::Bar)) case is parsed correctly
+fails:Parsing a module (module definition when there are some expressions inside a body) case is parsed correctly
+fails:Parsing a Next (next operator with returning value) case is parsed correctly
+fails:Parsing a Next (next operator with splat operator (next *a)) case is parsed correctly
+fails:Parsing a Next (next operator without returning value) case is parsed correctly
+fails:Parsing a &&= (Assign an attribute local variable (a.b &&= c)) case is parsed correctly
+fails:Parsing a &&= (Assign an referenced element (a[b] &&= c)) case is parsed correctly
+fails:Parsing a &&= (Assign an element referenced with multiple indexes (a[b, c, d] &&= e)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/class variable (@@a &&= b)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/constant (A &&= b)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/fully qualified constant (::A &&= b)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/global variable ($a &&= b)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/instance variable (@a &&= b)) case is parsed correctly
+fails:Parsing a &&= (Variable assignment/local variable (a &&= b)) case is parsed correctly
+fails:Parsing a Flip-flop operator (in a block) case is parsed correctly
+fails:Parsing a Flip-flop operator (in a class body) case is parsed correctly
+fails:Parsing a Flip-flop operator (in a lambda) case is parsed correctly
+fails:Parsing a Flip-flop operator (in a method) case is parsed correctly
+fails:Parsing a Flip-flop operator (in a module body) case is parsed correctly
+fails:Parsing a Flip-flop operator (Flop-flop operator - a range literal in boolean context) case is parsed correctly
+fails:Parsing a Match (=~ operator) case is parsed correctly
+fails:Parsing a Match (=~ operator/with Regexp literal as a RHS) case is parsed correctly
+fails:Parsing a Match (=~ operator/with Regexp literal as a LHS (without named capture groups)) case is parsed correctly
+fails:Parsing a Match (=~ operator/with Regexp literal as a LHS without interpolation and with named capture groups) case is parsed correctly
+fails:Parsing a Multi-assignment (When assigning class variables) case is parsed correctly
+fails:Parsing a Multi-assignment (When assigning constants) case is parsed correctly
+fails:Parsing a Multi-assignment (When assigning global variables) case is parsed correctly
+fails:Parsing a Multi-assignment (When assigning instance variables) case is parsed correctly
+fails:Parsing a Multi-assignment (When assigning local variables) case is parsed correctly
+fails:Parsing a Multi-assignment (When there is an attribute on the LHS) case is parsed correctly
+fails:Parsing a Multi-assignment (When RHS is a list of multiple values) case is parsed correctly
+fails:Parsing a Multi-assignment (When nested multi assignment (a, (b, c), d = ...)) case is parsed correctly
+fails:Parsing a Multi-assignment (When RHS is a single value) case is parsed correctly
+fails:Parsing a Multi-assignment (When splat operator/in the beginning of the LHS (*array, a = ...)) case is parsed correctly
+fails:Parsing a Multi-assignment (When splat operator/in the end of the LHS (a, b, *array = ...)) case is parsed correctly
+fails:Parsing a Multi-assignment (When splat operator/in the middle of the LHS (a, *array, b = ...)) case is parsed correctly
+fails:Parsing a Multi-assignment (When splat operator/without other variables in the LHS (*a = ...)) case is parsed correctly
+fails:Parsing a Multi-assignment (When splat operator/without variable in the LHS (a, *, c = ...)) case is parsed correctly
+fails:Parsing a Parentheses operator (empty) case is parsed correctly
+fails:Parsing a Parentheses operator (with multiple expressions, e.g. (1; 2; 3)) case is parsed correctly
+fails:Parsing a Parentheses operator (with single expression) case is parsed correctly
+fails:Parsing a ||= (Assign an attribute of a local variable (a.b ||= c)) case is parsed correctly
+fails:Parsing a ||= (Assign an referenced element (a[b] ||= c)) case is parsed correctly
+fails:Parsing a ||= (Assign an element referenced with multiple indexes (a[b, c, d] ||= e)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/class variable (@@a ||= b)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/constant (A ||= b)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/fully qualified constant (::A ||= b)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/global variable ($a ||= b)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/instance variable (@a ||= b)) case is parsed correctly
+fails:Parsing a ||= (Variable assignment/local variable (a ||= b)) case is parsed correctly
+fails:Parsing a Range (Beginningless Range literal ..b) case is parsed correctly
+fails:Parsing a Range (Endless Range literal a..) case is parsed correctly
+fails:Parsing a Range (Range literal a...b (with excluded end)) case is parsed correctly
+fails:Parsing a Range (Range literal a..b (with included end)) case is parsed correctly
+fails:Parsing a Range (When Range boundaries are Integer values) case is parsed correctly
+fails:Parsing a Range (When Range boundaries are big Integer values (that don't fit into Java int, so > 2**32)) case is parsed correctly
+fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is parsed correctly
+fails:Parsing a Rational number (with Float value) case is parsed correctly
+fails:Parsing a Rational number (with Integer value) case is parsed correctly
+fails:Parsing a Rational number (with negative value) case is parsed correctly
+fails:Parsing a Redo (redo operator) case is parsed correctly
+fails:Parsing a Regexp (Regexp literal in boolean context (e.g. condition in if, while, etc)) case is parsed correctly
+fails:Parsing a Regexp (a literal) case is parsed correctly
+fails:Parsing a Regexp (a literal with interpolation (with #{...})) case is parsed correctly
+fails:Parsing a Regexp (a literal with interpolation but without expression (#{})) case is parsed correctly
+fails:Parsing a Regexp (a literal with options (e.g. i, x, m, o)) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with an attribute) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with a class variable) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with a constant) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with a global variable) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with an instance variable) case is parsed correctly
+fails:Parsing a Rescue keyword (capturing / with a local variable) case is parsed correctly
+fails:Parsing a Rescue keyword (exceptions list / with single explicit exception class) case is parsed correctly
+fails:Parsing a Rescue keyword (exceptions list / with explicit multiple exception classes) case is parsed correctly
+fails:Parsing a Rescue keyword (exceptions list / with a splat operator) case is parsed correctly
+fails:Parsing a Rescue keyword (exceptions list / with a splat operator, followed and preceded by list elements) case is parsed correctly
+fails:Parsing a Rescue keyword (exceptions list / without explicit exceptions list) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue in a begin/end block) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue in a do/end block) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue in a method) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue in a module) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue with else branch) case is parsed correctly
+fails:Parsing a Rescue keyword (rescue with empty else branch) case is parsed correctly
+fails:Parsing a Rescue keyword (with empty body) case is parsed correctly
+fails:Parsing a Rescue keyword (with exception and variable) case is parsed correctly
+fails:Parsing a Rescue keyword (with multiple rescue branches) case is parsed correctly
+fails:Parsing a Rescue keyword (without exception but with a variable) case is parsed correctly
+fails:Parsing a Return (return operator at the top level) case is parsed correctly
+fails:Parsing a Return (return operator in a block (with a value)) case is parsed correctly
+fails:Parsing a Return (return operator in a block in a class definition body) case is parsed correctly
+fails:Parsing a Return (return operator in a block in a module definition body) case is parsed correctly
+fails:Parsing a Return (return operator in a block without a value) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda) case is parsed correctly
+fails:Parsing a Return (return operator in a method (with a value)) case is parsed correctly
+fails:Parsing a Return (return operator in a method without value) case is parsed correctly
+fails:Parsing a Return (return operator with splat operator (return *a)) case is parsed correctly
+fails:Parsing a Sequence of expressions () case is parsed correctly
+fails:Parsing a String (Backtick literal (`echo 1`) to execute a shell command) case is parsed correctly
+fails:Parsing a String (Backtick literal (`echo 1`) with interpolation (#{...})) case is parsed correctly
+fails:Parsing a String (Backtick literal (`echo 1`) with interpolation without expression (#{})) case is parsed correctly
+fails:Parsing a String (Frozen literal) case is parsed correctly
+fails:Parsing a String (Literal with interpolation when when expressions are % String literals) case is parsed correctly
+fails:Parsing a String (Literal with interpolation when expressions are Strings) case is parsed correctly
+fails:Parsing a Symbol (Literal with interpolation when expressions are % String literals) case is parsed correctly
+fails:Parsing a Symbol (Literal with interpolation when expressions are Strings) case is parsed correctly
+fails:Parsing a Undef (with dynamic Symbol) case is parsed correctly
+fails:Parsing a Until (until loop operator) case is parsed correctly
+fails:Parsing a Until (until modifier (... until())) case is parsed correctly
+fails:Parsing a While (while loop operator) case is parsed correctly
+fails:Parsing a While (while modifier (... while())) case is parsed correctly
+fails:Parsing a Yield (yield operator with arguments) case is parsed correctly
+fails:Parsing a Yield (yield operator with keyword arguments) case is parsed correctly
+fails:Parsing a Yield (yield operator with double splat operator (yield **a)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator (yield *a)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with multiple following positional arguments (yield *a, b, c)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with multiple preceding and following positional arguments (yield a, *b, c)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with multiple preceding positional arguments (yield a, b, *c)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with a single following positional argument (yield *a, b)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with a single preceding and following positional argument (yield a, *b, c)) case is parsed correctly
+fails:Parsing a Yield (yield operator with splat operator with a single preceding positional argument (yield a, *b)) case is parsed correctly
+fails:Parsing a Yield (yield operator without arguments) case is parsed correctly

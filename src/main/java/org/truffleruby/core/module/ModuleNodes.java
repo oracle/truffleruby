@@ -369,6 +369,38 @@ public abstract class ModuleNodes {
 
     }
 
+    public static final class AliasKeywordInterpolatedNode extends RubyContextSourceNode {
+
+        @Child private RubyNode newName;
+        @Child private RubyNode oldName;
+
+        public AliasKeywordInterpolatedNode(RubyNode newName, RubyNode oldName) {
+            this.newName = newName;
+            this.oldName = oldName;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            final RubyModule module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
+
+            final Object newNameObject = newName.execute(frame);
+            final Object oldNameObject = oldName.execute(frame);
+
+            assert newNameObject instanceof RubySymbol;
+            assert oldNameObject instanceof RubySymbol;
+
+            RubySymbol newNameSymbol = (RubySymbol) newNameObject;
+            RubySymbol oldNameSymbol = (RubySymbol) oldNameObject;
+            return AliasMethodNode.aliasMethod(module, newNameSymbol, oldNameSymbol, this);
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            return new AliasKeywordInterpolatedNode(newName, oldName).copyFlags(this);
+        }
+
+    }
+
     public static final class AliasKeywordNode extends RubyContextSourceNode {
 
         private final RubySymbol newName;
