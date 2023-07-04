@@ -71,8 +71,7 @@ local part_definitions = {
 
     build: {
       setup+: [["mx", "sversions"]] +
-              # aot-build.log is used for the build-stats metrics, in other cases it does no harm
-              jt(["build", "--env", self.mx_env] + self.mx_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
+              jt(["build", "--env", self.mx_env] + self.mx_options + ["--"] + self.mx_build_options) +
               [
                 # make sure jt always uses what was just built
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],

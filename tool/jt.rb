@@ -1727,11 +1727,11 @@ module Commands
 
     value = case attribute
             when 'binary-size'
-              build_stats_native_binary_size(*args)
+              build_stats_native_binary_size
             when 'build-time'
-              build_stats_native_build_time(*args)
+              build_stats_native_build_time
             when 'runtime-compilable-methods'
-              build_stats_native_runtime_compilable_methods(*args)
+              build_stats_native_runtime_compilable_methods
             else
               raise ArgumentError, attribute
             end
@@ -1743,25 +1743,21 @@ module Commands
     end
   end
 
-  private def build_stats_native_binary_size(*args)
+  private def build_stats_native_binary_size
     truffleruby_native!
     File.size(language_lib_path) / 1024.0 / 1024.0
   end
 
-  private def build_stats_native_build_time(*args)
-    log = File.read('aot-build.log')
-    unless log =~ /\[librubyvm:\d+\] Finished generating 'librubyvm' in (\d+)m (\d+)s\./
-      raise 'Could not find line with build time for librubyvm'
-    end
-    Integer($1) * 60 + Integer($2)
+  private def build_stats_native_build_time
+    require 'json'
+    data = JSON.load(File.read('native-image-build-rubyvm.json'))
+    data.fetch('resource_usage').fetch('total_secs')
   end
 
-  private def build_stats_native_runtime_compilable_methods(*args)
-    log = File.read('aot-build.log')
-    unless log =~ /\[librubyvm:\d+\]\s*(?<method_count>[\d,]+)\s*runtime compiled methods/
-      raise 'Could not find line with runtime methods for librubyvm'
-    end
-    Integer($~[:method_count].gsub(',', ''))
+  private def build_stats_native_runtime_compilable_methods
+    require 'json'
+    data = JSON.load(File.read('native-image-build-rubyvm.json'))
+    data.fetch('image_details').fetch('runtime_compiled_methods').fetch('count')
   end
 
   def metrics(command, *args)
