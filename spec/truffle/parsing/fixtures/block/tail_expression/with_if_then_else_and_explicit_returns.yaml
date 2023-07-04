@@ -59,18 +59,15 @@ ast: |
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
-                                  IfElseNode
+                                  IfElseNodeGen
                                       attributes:
                                           flags = 0
                                       children:
                                           condition =
-                                              BooleanCastNodeGen
-                                                  children:
-                                                      valueNode_ =
-                                                          BooleanLiteralNode
-                                                              attributes:
-                                                                  flags = 1
-                                                                  value = true
+                                              BooleanLiteralNode
+                                                  attributes:
+                                                      flags = 1
+                                                      value = true
                                           elseBody =
                                               DynamicReturnNode
                                                   attributes:

@@ -99,7 +99,7 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected boolean not(Object value,
                 @Cached BooleanCastNode cast) {
-            return !cast.execute(value);
+            return !cast.execute(this, value);
         }
 
     }
@@ -108,11 +108,11 @@ public abstract class BasicObjectNodes {
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode equalNode = DispatchNode.create();
-        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
-        protected boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !booleanCastNode.execute(equalNode.call(a, "==", b));
+        protected boolean equal(VirtualFrame frame, Object a, Object b,
+                @Cached BooleanCastNode booleanCastNode) {
+            return !booleanCastNode.execute(this, equalNode.call(a, "==", b));
         }
 
     }
@@ -128,7 +128,7 @@ public abstract class BasicObjectNodes {
         @Specialization
         protected boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            return referenceEqualNode.execute(a, b);
+            return referenceEqualNode.execute(this, a, b);
         }
     }
 
@@ -238,14 +238,15 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
-        protected int objectIDForeign(Object value,
+        protected static int objectIDForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
                 } catch (UnsupportedMessageException e) {
-                    throw translateInteropException.execute(e);
+                    throw translateInteropException.execute(node, e);
                 }
             } else {
                 return System.identityHashCode(value);
@@ -305,7 +306,7 @@ public abstract class BasicObjectNodes {
 
             if (count >= 2) {
                 fileName = toJavaStringNode
-                        .execute(toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 1)));
+                        .execute(node, toStrNode.execute(node, RubyArguments.getArgument(rubyArgs, 1)));
             }
 
             if (count >= 3) {
@@ -558,7 +559,7 @@ public abstract class BasicObjectNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name),
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name),
                     RubyArguments.repack(rubyArgs, self, 1));
         }
     }

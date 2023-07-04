@@ -83,7 +83,7 @@ public final class DataHolder implements TruffleObject {
         try {
             return "DATA_HOLDER: " + interop.asString(interop.toDisplayString(pointer, allowSideEffects));
         } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
+            throw TranslateInteropExceptionNode.executeUncached(e);
         }
     }
 }

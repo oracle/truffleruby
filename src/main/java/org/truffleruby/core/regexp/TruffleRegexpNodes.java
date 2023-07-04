@@ -68,7 +68,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.interop.LazyTranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -280,18 +279,19 @@ public class TruffleRegexpNodes {
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child DispatchNode copyNode = DispatchNode.create();
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
         private final RubyStringLibrary regexpStringLibrary = RubyStringLibrary.create();
 
         @Specialization(
-                guards = "argsMatch(frame, cachedArgs, args)",
+                guards = "argsMatch(node, frame, cachedArgs, args, sameOrEqualNode)",
                 limit = "getDefaultCacheLimit()")
-        protected Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+        protected static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+                @Cached DispatchNode copyNode,
+                @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached @Shared InlinedBranchProfile errorProfile,
-                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
+                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union,
+                @Bind("this") Node node) {
             return copyNode.call(union, "clone");
         }
 
@@ -333,12 +333,13 @@ public class TruffleRegexpNodes {
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(VirtualFrame frame, Object[] cachedArgs, Object[] args) {
+        protected static boolean argsMatch(Node node, VirtualFrame frame, Object[] cachedArgs, Object[] args,
+                SameOrEqualNode sameOrEqualNode) {
             if (cachedArgs.length != args.length) {
                 return false;
             } else {
                 for (int i = 0; i < cachedArgs.length; i++) {
-                    if (!sameOrEqualNode.executeSameOrEqual(cachedArgs[i], args[i])) {
+                    if (!sameOrEqualNode.execute(node, cachedArgs[i], args[i])) {
                         return false;
                     }
                 }
@@ -892,7 +893,7 @@ public class TruffleRegexpNodes {
                 @Cached InlinedIntValueProfile groupCountProfile,
                 @Cached LazyDispatchNode warnOnFallbackNode,
                 @Cached LazyDispatchNode stringDupNode,
-                @Cached LazyTranslateInteropExceptionNode lazyTranslateInteropExceptionNode,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
                 @Bind("this") Node node) {
@@ -953,17 +954,17 @@ public class TruffleRegexpNodes {
                 tstringToMatch = tstring;
                 execMethod = "execBoolean";
             }
-            final Object result = invoke(regexInterop, tRegex, execMethod, lazyTranslateInteropExceptionNode.get(node),
+            final Object result = invoke(node, regexInterop, tRegex, execMethod, translateInteropExceptionNode,
                     tstringToMatch, fromIndex);
 
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch",
-                        lazyTranslateInteropExceptionNode.get(node));
+                final boolean isMatch = (boolean) readMember(node, resultInterop, result, "isMatch",
+                        translateInteropExceptionNode);
 
                 if (matchFoundProfile.profile(node, isMatch)) {
                     final int groupCount = groupCountProfile
-                            .profile(node, (int) readMember(regexInterop, tRegex, "groupCount",
-                                    lazyTranslateInteropExceptionNode.get(node)));
+                            .profile(node, (int) readMember(node, regexInterop, tRegex, "groupCount",
+                                    translateInteropExceptionNode));
                     final Region region = new Region(groupCount);
 
                     try {
@@ -1021,21 +1022,21 @@ public class TruffleRegexpNodes {
             return matchData;
         }
 
-        private static Object readMember(InteropLibrary interop, Object receiver, String name,
+        private static Object readMember(Node node, InteropLibrary interop, Object receiver, String name,
                 TranslateInteropExceptionNode translateInteropExceptionNode) {
             try {
                 return interop.readMember(receiver, name);
             } catch (InteropException e) {
-                throw translateInteropExceptionNode.execute(e);
+                throw translateInteropExceptionNode.execute(node, e);
             }
         }
 
-        private static Object invoke(InteropLibrary interop, Object receiver, String member,
+        private static Object invoke(Node node, InteropLibrary interop, Object receiver, String member,
                 TranslateInteropExceptionNode translateInteropExceptionNode, Object... args) {
             try {
                 return interop.invokeMember(receiver, member, args);
             } catch (InteropException e) {
-                throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
+                throw translateInteropExceptionNode.executeInInvokeMember(node, e, receiver, args);
             }
         }
 

@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -47,7 +49,6 @@ import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
 import org.truffleruby.core.cast.DurationToNanoSecondsNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -68,8 +69,6 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -115,12 +114,13 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
+import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.RequireNode;
-import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -149,7 +149,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -168,8 +167,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Kernel")
@@ -178,53 +175,44 @@ public abstract class KernelNodes {
     /** Check if operands are the same object or call #==. Known as rb_equal() in MRI. The fact Kernel#=== uses this is
      * pure coincidence. */
     @Primitive(name = "same_or_equal?")
-    public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private DispatchNode equalNode;
-        @Child private BooleanCastNode booleanCastNode;
-
-        private final ConditionProfile sameProfile = ConditionProfile.create();
-
-        public static SameOrEqualNode create() {
-            return SameOrEqualNodeFactory.create(null);
-        }
-
-        public abstract boolean executeSameOrEqual(Object a, Object b);
+    public abstract static class SameOrEqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean sameOrEqual(Object a, Object b,
+        protected boolean doSameOrEqual(Object a, Object b,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            return sameOrEqualNode.execute(this, a, b);
+
+        }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class SameOrEqualNode extends RubyBaseNode {
+
+        public abstract boolean execute(Node node, Object a, Object b);
+
+        @Specialization
+        protected static boolean sameOrEqual(Node node, Object a, Object b,
+                @Cached LazyDispatchNode lazyEqualNode,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached InlinedConditionProfile sameProfile,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            if (sameProfile.profile(referenceEqualNode.execute(a, b))) {
+            if (sameProfile.profile(node, referenceEqualNode.execute(node, a, b))) {
                 return true;
             } else {
-                return areEqual(a, b);
+                final var equalNode = lazyEqualNode.get(node);
+                return booleanCastNode.execute(node, equalNode.call(a, "==", b));
             }
         }
-
-        private boolean areEqual(Object left, Object right) {
-            if (equalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(DispatchNode.create());
-            }
-
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.execute(equalNode.call(left, "==", right));
-        }
-
     }
 
     @CoreMethod(names = "===", required = 1)
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization
-        protected boolean caseCmp(Object a, Object b) {
-            return sameOrEqualNode.executeSameOrEqual(a, b);
+        protected boolean caseCmp(Object a, Object b,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            return sameOrEqualNode.execute(this, a, b);
         }
 
     }
@@ -244,7 +232,7 @@ public abstract class KernelNodes {
 
         public abstract boolean execute(Object a, Object b);
 
-        @Specialization(guards = "referenceEqual.execute(a, b)", limit = "1")
+        @Specialization(guards = "referenceEqual.execute(this, a, b)", limit = "1")
         protected boolean refEqual(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
@@ -255,7 +243,7 @@ public abstract class KernelNodes {
                 @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.execute(a, b) || booleanCast.execute(eql.call(a, "eql?", b));
+            return referenceEqual.execute(this, a, b) || booleanCast.execute(this, eql.call(a, "eql?", b));
         }
     }
 
@@ -263,25 +251,27 @@ public abstract class KernelNodes {
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected Object findFile(Object featureString,
+        protected static Object findFile(Object featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            String feature = toJavaStringNode.execute(featureString);
-            return findFileString(feature, notFoundProfile, fromJavaStringNode);
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            String feature = toJavaStringNode.execute(node, featureString);
+            return findFileString(feature, notFoundProfile, fromJavaStringNode, node);
         }
 
         @Specialization
-        protected Object findFileString(String featureString,
+        protected static Object findFileString(String featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
-                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
-            final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Bind("this") Node node) {
+            final String expandedPath = getContext(node).getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
-                notFoundProfile.enter(this);
+                notFoundProfile.enter(node);
                 return nil;
             }
-            return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
+            return createString(node, fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -328,14 +318,14 @@ public abstract class KernelNodes {
     @Primitive(name = "load_feature")
     public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RequireNode requireNode = RequireNodeGen.create();
-
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected boolean loadFeature(Object featureString, Object expandedPathString,
+        protected static boolean loadFeature(Object featureString, Object expandedPathString,
                 @Cached RubyStringLibrary libFeatureString,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached RequireNode requireNode,
+                @Bind("this") Node node) {
             return requireNode.executeRequire(
-                    toJavaStringNode.execute(featureString),
+                    toJavaStringNode.execute(node, featureString),
                     expandedPathString);
         }
 
@@ -344,11 +334,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "<=>" }, required = 1)
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-
         @Specialization
-        protected Object compare(Object self, Object other) {
-            if (sameOrEqualNode.executeSameOrEqual(self, other)) {
+        protected Object compare(Object self, Object other,
+                @Cached SameOrEqualNode sameOrEqualNode) {
+            if (sameOrEqualNode.execute(this, self, other)) {
                 return 0;
             } else {
                 return nil;
@@ -743,7 +732,7 @@ public abstract class KernelNodes {
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
+        protected static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached @Shared RubyStringLibrary libSource,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -752,39 +741,44 @@ public abstract class KernelNodes {
                 @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("parse(cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
+                @Bind("this") Node node,
+                @Cached("parse(node, cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualSameEncodingNode codeEqualNode,
                 @Cached StringHelperNodes.EqualNode fileEqualNode) {
-            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            Object[] rubyArgs = prepareEvalArgs(node, callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(rubyArgs);
         }
 
         @Specialization(
                 guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
                 replaces = "evalCached", limit = "1")
-        protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
+        protected static Object evalBindingUncached(
+                Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached @Shared RubyStringLibrary libSource,
-                @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
 
-            var callTarget = parse(libSource.getTString(source), libSource.getEncoding(source), binding.getFrame(),
-                    toJavaStringNode.execute(file), line);
+            var callTarget = parse(node, libSource.getTString(source), libSource.getEncoding(source),
+                    binding.getFrame(),
+                    toJavaStringNode.execute(node, file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
 
-            Object[] rubyArgs = prepareEvalArgs(callTarget, assignsNewUserVariables, self, binding);
+            Object[] rubyArgs = prepareEvalArgs(node, callTarget, assignsNewUserVariables, self, binding);
             return callNode.call(callTarget, rubyArgs);
         }
 
-        private Object[] prepareEvalArgs(RootCallTarget callTarget, boolean assignsNewUserVariables, Object self,
+        private static Object[] prepareEvalArgs(Node node, RootCallTarget callTarget, boolean assignsNewUserVariables,
+                Object self,
                 RubyBinding binding) {
             final MaterializedFrame parentFrame = Objects.requireNonNull(binding.getFrame());
 
             Object[] args = assignsNewUserVariables ? new Object[]{ binding } : RubyNode.EMPTY_ARGUMENTS;
 
-            return getContext().getCodeLoader().prepareArgs(callTarget,
+            return getContext(node).getCodeLoader().prepareArgs(callTarget,
                     ParserContext.EVAL,
                     RubyArguments.getDeclarationContext(parentFrame),
                     parentFrame,
@@ -794,23 +788,23 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget parse(AbstractTruffleString sourceText, RubyEncoding encoding,
+        protected static RootCallTarget parse(Node node, AbstractTruffleString sourceText, RubyEncoding encoding,
                 MaterializedFrame parentFrame, String file, int line) {
             //intern() to improve footprint
             final String sourceFile = file.intern();
-            final RubySource source = EvalLoader.createEvalSource(getContext(), sourceText, encoding, "eval",
-                    sourceFile, line, this);
+            final RubySource source = EvalLoader.createEvalSource(getContext(node), sourceText, encoding, "eval",
+                    sourceFile, line, node);
             final LexicalScope lexicalScope = RubyArguments.getMethod(parentFrame).getLexicalScope();
-            return getContext()
+            return getContext(node)
                     .getCodeLoader()
-                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, this);
+                    .parse(source, ParserContext.EVAL, parentFrame, lexicalScope, node);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
             return BindingNodes.getFrameDescriptor(binding);
         }
 
-        protected FrameDescriptor getDescriptor(RootCallTarget callTarget) {
+        protected static FrameDescriptor getDescriptor(RootCallTarget callTarget) {
             return RubyRootNode.of(callTarget).getFrameDescriptor();
         }
 
@@ -910,14 +904,15 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
-        protected int hashForeign(Object value,
+        protected static int hashForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Bind("this") Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
                 } catch (UnsupportedMessageException e) {
-                    throw translateInteropException.execute(e);
+                    throw translateInteropException.execute(node, e);
                 }
             } else {
                 return System.identityHashCode(value);
@@ -930,14 +925,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "equalNode.execute(self, from)", limit = "1")
+        @Specialization(guards = "equalNode.execute(this, self, from)", limit = "1")
         protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode) {
             return self;
         }
 
-        @Specialization(guards = "!equalNode.execute(self, from)", limit = "1")
+        @Specialization(guards = "!equalNode.execute(this, self, from)", limit = "1")
         protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode,
@@ -990,7 +985,7 @@ public abstract class KernelNodes {
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return objectLibrary.containsKey(object, nameString);
         }
@@ -1009,7 +1004,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return objectLibrary.getOrDefault(object, nameString, nil);
         }
@@ -1018,7 +1013,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             return nil;
         }
@@ -1033,7 +1028,7 @@ public abstract class KernelNodes {
                 @Cached WriteObjectFieldNode writeNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             raiseIfFrozenNode.execute(object);
             writeNode.execute(this, object, nameString, value);
@@ -1044,7 +1039,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name, Object value,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
@@ -1058,7 +1053,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             raiseIfFrozenNode.execute(object);
             return removeIVar(object, nameString);
@@ -1068,7 +1063,7 @@ public abstract class KernelNodes {
         protected Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
-            final String nameString = nameToJavaStringNode.execute(name);
+            final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
@@ -1244,29 +1239,40 @@ public abstract class KernelNodes {
     @CoreMethod(names = "methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
-    public abstract static class MethodsNode extends CoreMethodNode {
+    public abstract static class KernelMethodsNode extends CoreMethodNode {
 
-        @CreateCast("regular")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute regular) {
-            return BooleanCastWithDefaultNode.create(true, regular);
+        @Specialization
+        protected RubyArray doMethods(Object self, Object maybeRegular,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
+                @Cached MethodsNode methodsNode) {
+            final boolean regular = booleanCastWithDefaultNode.execute(this, maybeRegular, true);
+            return methodsNode.execute(this, self, regular);
+
         }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class MethodsNode extends RubyBaseNode {
+
+        public abstract RubyArray execute(Node node, Object self, boolean regular);
 
         @TruffleBoundary
         @Specialization(guards = "regular")
-        protected RubyArray methodsRegular(Object self, boolean regular,
+        protected static RubyArray methodsRegular(Node node, Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyModule metaClass = metaClassNode.execute(this, self);
+            final RubyModule metaClass = metaClassNode.execute(node, self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getLanguage(), regular, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethodsOnObject(getLanguage(node), regular, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
-            return createArray(objects);
+            return createArray(node, objects);
         }
 
         @Specialization(guards = "!regular")
-        protected RubyArray methodsSingleton(VirtualFrame frame, Object self, boolean regular,
+        protected static RubyArray methodsSingleton(Node node, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
-            return singletonMethodsNode.executeSingletonMethods(frame, self, false);
+            return singletonMethodsNode.execute(node, self, false);
         }
 
     }
@@ -1305,15 +1311,12 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray privateMethods(Object self, boolean includeAncestors,
+        protected RubyArray privateMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1340,15 +1343,12 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray protectedMethods(Object self, boolean includeAncestors,
+        protected RubyArray protectedMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
             Object[] objects = metaClass.fields
@@ -1379,16 +1379,13 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected RubyArray publicMethods(Object self, boolean includeAncestors,
+        protected RubyArray publicMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final RubyModule metaClass = metaClassNode.execute(this, self);
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
@@ -1408,7 +1405,7 @@ public abstract class KernelNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), newArgs);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name), newArgs);
         }
 
     }
@@ -1442,7 +1439,7 @@ public abstract class KernelNodes {
             final Object name = RubyArguments.getArgument(rubyArgs, 0);
             final int nArgs = RubyArguments.getPositionalArgumentsCount(rubyArgs);
             final boolean includeProtectedAndPrivate = nArgs >= 2 &&
-                    castArgumentNode.execute(RubyArguments.getArgument(rubyArgs, 1));
+                    castArgumentNode.execute(this, RubyArguments.getArgument(rubyArgs, 1));
 
             if (!RubyGuards.isRubySymbolOrString(name)) {
                 notSymbolOrStringProfile.enter(this);
@@ -1451,7 +1448,7 @@ public abstract class KernelNodes {
                         coreExceptions().typeErrorIsNotAOrB(self, "symbol", "string", this));
             }
 
-            final String methodName = toJavaString.execute(name);
+            final String methodName = toJavaString.execute(this, name);
             final boolean found;
             if (ignoreVisibilityProfile.profile(this, includeProtectedAndPrivate)) {
                 found = dispatchPrivate.execute(callerFrame, self, methodName);
@@ -1463,7 +1460,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(this, dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
-                return castMissingResultNode.execute(respondToMissingNode.call(self, "respond_to_missing?",
+                return castMissingResultNode.execute(this, respondToMissingNode.call(self, "respond_to_missing?",
                         toSymbolNode.execute(name), includeProtectedAndPrivate));
             } else {
                 return false;
@@ -1514,18 +1511,14 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-
-        @CreateCast("name")
-        protected RubyBaseNodeWithExecute coerceToString(RubyBaseNodeWithExecute name) {
-            return NameToJavaStringNode.create(name);
-        }
-
         @Specialization
-        protected RubyMethod singletonMethod(Object self, String name,
+        protected RubyMethod singletonMethod(Object self, Object nameObject,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached InlinedConditionProfile singletonProfile,
                 @Cached InlinedConditionProfile methodProfile,
                 @Cached MetaClassNode metaClassNode) {
+            final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
             if (singletonProfile.profile(this, metaClass.isSingleton)) {
@@ -1552,34 +1545,37 @@ public abstract class KernelNodes {
     @CoreMethod(names = "singleton_methods", optional = 1)
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SingletonMethodsNode extends CoreMethodNode {
+    public abstract static class KernelSingletonMethodsNode extends CoreMethodNode {
 
-        @NeverDefault
-        public static SingletonMethodsNode create() {
-            return SingletonMethodsNodeFactory.create(null, null);
+        @Specialization
+        protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
+                @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
+                @Cached SingletonMethodsNode singletonMethodsNode) {
+            final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
+            return singletonMethodsNode.execute(this, self, includeAncestors);
         }
+    }
 
-        public abstract RubyArray executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class SingletonMethodsNode extends RubyBaseNode {
 
-        @CreateCast("includeAncestors")
-        protected RubyBaseNodeWithExecute coerceToBoolean(RubyBaseNodeWithExecute includeAncestors) {
-            return BooleanCastWithDefaultNode.create(true, includeAncestors);
-        }
+        public abstract RubyArray execute(Node node, Object self, boolean includeAncestors);
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray singletonMethods(Object self, boolean includeAncestors,
+        protected static RubyArray singletonMethods(Node node, Object self, boolean includeAncestors,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.execute(this, self);
+            final RubyClass metaClass = metaClassNode.execute(node, self);
 
             if (!metaClass.isSingleton) {
-                return createEmptyArray();
+                return createEmptyArray(node);
             }
 
             Object[] objects = metaClass.fields
-                    .filterSingletonMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterSingletonMethods(getLanguage(node), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
-            return createArray(objects);
+            return createArray(node, objects);
         }
 
     }
@@ -1651,39 +1647,39 @@ public abstract class KernelNodes {
     @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
     public abstract static class SprintfNode extends CoreMethodNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
-        @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
-                .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
+        @Child private ReadGlobalVariableNode readDebugGlobalNode = ReadGlobalVariableNodeGen.create("$DEBUG");
 
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(formatAsString)",
                         "equalNode.execute(libFormat, formatAsString, cachedTString, cachedEncoding)",
-                        "isDebug(frame) == cachedIsDebug" },
+                        "isDebug == cachedIsDebug" },
                 limit = "3")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
+                @Cached @Shared BooleanCastNode booleanCastNode,
+                @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
                 @Bind("toStrNode.execute(this, format)") Object formatAsString,
                 @Cached @Shared RubyStringLibrary libFormat,
-                @Cached("isDebug(frame)") boolean cachedIsDebug,
+                @Cached("isDebug") boolean cachedIsDebug,
                 @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedTString,
                 @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
                 @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug))") DirectCallNode callPackNode,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(cachedFormatLength, result);
+            return finishFormat(cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -1692,10 +1688,14 @@ public abstract class KernelNodes {
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,
+                @Cached @Shared BooleanCastNode booleanCastNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
             final var formatAsString = toStrNode.execute(this, format);
             final BytesResult result;
-            final boolean isDebug = readDebugGlobalNode.execute(frame);
+            final boolean isDebug = isDebug(frame, booleanCastNode);
             var tstring = libFormat.getTString(formatAsString);
             var encoding = libFormat.getEncoding(formatAsString);
             try {
@@ -1703,26 +1703,23 @@ public abstract class KernelNodes {
                         compileFormat(tstring, encoding, arguments, isDebug),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result);
+            return finishFormat(tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result) {
+        private RubyString finishFormat(int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (fromByteArrayNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
-            }
-
-            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(this, fromByteArrayNode, bytes,
+                    result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary
@@ -1736,8 +1733,8 @@ public abstract class KernelNodes {
             }
         }
 
-        protected boolean isDebug(VirtualFrame frame) {
-            return readDebugGlobalNode.execute(frame);
+        protected boolean isDebug(VirtualFrame frame, BooleanCastNode booleanCastNode) {
+            return booleanCastNode.execute(this, readDebugGlobalNode.execute(frame));
         }
 
     }

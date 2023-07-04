@@ -103,7 +103,7 @@ public abstract class MethodNodes {
         protected boolean equal(RubyMethod a, RubyMethod b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode
-                    .execute(a.receiver, b.receiver) &&
+                    .execute(this, a.receiver, b.receiver) &&
                     a.method.getDeclaringModule() == b.method.getDeclaringModule() &&
                     MethodNodes.areInternalMethodEqual(a.method, b.method);
         }

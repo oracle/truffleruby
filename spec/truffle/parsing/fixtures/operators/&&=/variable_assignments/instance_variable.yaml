@@ -12,7 +12,7 @@ ast: |
           flags = 1
       children:
           child =
-              AndNode
+              AndNodeGen
                   attributes:
                       flags = 0
                   children:

@@ -20,31 +20,25 @@ ruby: |
     "1st or 2d condition"
   end
 ast: |
-  IfElseNode
+  IfElseNodeGen
       attributes:
           flags = 0
       children:
           condition =
-              BooleanCastNodeGen
-                  children:
-                      valueNode_ =
-                          BooleanLiteralNode
-                              attributes:
-                                  flags = 0
-                                  value = true
+              BooleanLiteralNode
+                  attributes:
+                      flags = 0
+                      value = true
           elseBody =
-              IfElseNode
+              IfElseNodeGen
                   attributes:
                       flags = 0
                   children:
                       condition =
-                          BooleanCastNodeGen
-                              children:
-                                  valueNode_ =
-                                      BooleanLiteralNode
-                                          attributes:
-                                              flags = 0
-                                              value = false
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = false
                       elseBody =
                           NilLiteralNode
                               attributes:

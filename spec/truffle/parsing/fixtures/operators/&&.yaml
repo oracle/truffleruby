@@ -4,7 +4,7 @@ focused_on_node: "org.truffleruby.language.control.AndNode"
 ruby: |
   1 && 2
 ast: |
-  AndNode
+  AndNodeGen
       attributes:
           flags = 1
       children:

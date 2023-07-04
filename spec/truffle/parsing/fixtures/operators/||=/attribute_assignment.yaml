@@ -48,7 +48,7 @@ ast: |
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
-                          OrNode
+                          OrNodeGen
                               attributes:
                                   flags = 0
                               children:
@@ -75,8 +75,6 @@ ast: |
                                                           flags = 0
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
-                                  leftCast =
-                                      BooleanCastNodeGen
                                   right =
                                       RubyCallNode
                                           attributes:

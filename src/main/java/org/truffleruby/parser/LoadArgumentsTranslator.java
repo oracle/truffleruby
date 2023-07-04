@@ -34,7 +34,7 @@ import org.truffleruby.language.arguments.ReadPostArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRestArgumentNode;
 import org.truffleruby.language.arguments.SaveMethodBlockNode;
-import org.truffleruby.language.control.IfElseNode;
+import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -217,7 +217,7 @@ public class LoadArgumentsTranslator extends Translator {
 
         if (useArray()) {
             if (argsNode.getPreCount() == 0 || argsNode.hasRestArg()) {
-                sequence.add(new IfElseNode(
+                sequence.add(IfElseNodeGen.create(
                         new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
                         notNilAtLeastAsLarge,
                         notNilSmaller));
@@ -404,7 +404,7 @@ public class LoadArgumentsTranslator extends Translator {
 
                 if (useArray()) {
                     // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
-                    readNode = new IfElseNode(
+                    readNode = IfElseNodeGen.create(
                             new ArrayIsAtLeastAsLargeAsNode(minimum, loadArray(sourceSection)),
                             ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index),
                             defaultValue);
@@ -571,10 +571,10 @@ public class LoadArgumentsTranslator extends Translator {
                         SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
                         true,
                         readArgument(sourceSection))),
-                new IfElseNode(
+                IfElseNodeGen.create(
                         new IsNilNode(new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)),
                         nil,
-                        new IfElseNode(
+                        IfElseNodeGen.create(
                                 new ArrayIsAtLeastAsLargeAsNode(
                                         node.getPreCount() + node.getPostCount(),
                                         new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)),

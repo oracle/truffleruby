@@ -47,7 +47,7 @@ public class TruffleNFIPlatform {
         try {
             return InteropLibrary.getFactory().getUncached(library).readMember(library, name);
         } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
+            throw TranslateInteropExceptionNode.executeUncached(e);
         }
     }
 
@@ -63,7 +63,7 @@ public class TruffleNFIPlatform {
         try {
             return InteropLibrary.getFactory().getUncached(object).asPointer(object);
         } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
+            throw TranslateInteropExceptionNode.executeUncached(e);
         }
     }
 

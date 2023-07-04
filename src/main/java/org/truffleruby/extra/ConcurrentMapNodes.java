@@ -213,7 +213,7 @@ public class ConcurrentMapNodes {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.execute(expectedValue, currentValue)) {
+                        equalNode.execute(this, expectedValue, currentValue)) {
                     if (replace(self.getMap(), keyWrapper, currentValue, newValue)) {
                         return true;
                     }
@@ -255,7 +255,7 @@ public class ConcurrentMapNodes {
                 final Object currentValue = get(self.getMap(), keyWrapper);
 
                 if (RubyGuards.isPrimitive(currentValue) &&
-                        equalNode.execute(expectedValue, currentValue)) {
+                        equalNode.execute(this, expectedValue, currentValue)) {
                     if (remove(self.getMap(), keyWrapper, currentValue)) {
                         return true;
                     }

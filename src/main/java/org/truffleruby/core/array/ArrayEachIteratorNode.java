@@ -10,72 +10,69 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.TruffleSafepoint;
-import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.profiles.IntValueProfile;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import com.oracle.truffle.api.profiles.InlinedIntValueProfile;
+import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInterface;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.language.yield.CallBlockNode;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
+@GenerateInline(inlineByDefault = true)
 public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 
     public interface ArrayElementConsumerNode extends NodeInterface {
-        void accept(CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index);
+        void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
+                BooleanCastNode booleanCastNode);
     }
 
-    @Child private ArrayEachIteratorNode recurseNode;
+    public final RubyArray executeCached(RubyArray array, Object state, int startAt,
+            ArrayElementConsumerNode consumerNode) {
+        return execute(this, array, state, startAt, consumerNode);
 
-    @NeverDefault
-    public static ArrayEachIteratorNode create() {
-        return ArrayEachIteratorNodeGen.create();
     }
 
-    public abstract RubyArray execute(RubyArray array, Object state, int startAt,
+    public abstract RubyArray execute(Node node, RubyArray array, Object state, int startAt,
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected RubyArray iterateMany(RubyArray array, Object state, int startAt, ArrayElementConsumerNode consumerNode,
+    protected static RubyArray iterateMany(
+            Node node, RubyArray array, Object state, int startAt, ArrayElementConsumerNode consumerNode,
             // Checkstyle: stop -- Verified @Bind is not necessary here due to using `Library#accepts()`.
             @CachedLibrary("array.getStore()") ArrayStoreLibrary stores,
             // Checkstyle: resume
-            @Cached LoopConditionProfile loopProfile,
-            @Cached IntValueProfile arraySizeProfile,
-            @Cached ConditionProfile strategyMatchProfile,
+            @Cached InlinedLoopConditionProfile loopProfile,
+            @Cached InlinedIntValueProfile arraySizeProfile,
+            @Cached InlinedConditionProfile strategyMatchProfile,
+            @Cached LazyArrayEachIteratorNode lazyArrayEachIteratorNode,
+            @Cached BooleanCastNode booleanCastNode,
             @Cached CallBlockNode yieldNode) {
         int i = startAt;
         try {
-            for (; loopProfile.inject(i < arraySizeProfile.profile(array.size)); i++) {
+            for (; loopProfile.inject(node, i < arraySizeProfile.profile(node, array.size)); i++) {
                 Object store = array.getStore();
-                if (strategyMatchProfile.profile(stores.accepts(store))) {
-                    consumerNode.accept(yieldNode, array, state, stores.read(store, i), i);
+                if (strategyMatchProfile.profile(node, stores.accepts(store))) {
+                    consumerNode.accept(node, yieldNode, array, state, stores.read(store, i), i, booleanCastNode);
                 } else {
-                    return getRecurseNode().execute(array, state, i, consumerNode);
+                    return lazyArrayEachIteratorNode.get(node).executeCached(array, state, i, consumerNode);
                 }
-                TruffleSafepoint.poll(this);
+                TruffleSafepoint.poll(node);
             }
         } finally {
-            profileAndReportLoopCount(loopProfile, i - startAt);
+            profileAndReportLoopCount(node, loopProfile, i - startAt);
         }
 
         return array;
-    }
-
-    private ArrayEachIteratorNode getRecurseNode() {
-        if (recurseNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            recurseNode = insert(ArrayEachIteratorNode.create());
-        }
-        return recurseNode;
     }
 }

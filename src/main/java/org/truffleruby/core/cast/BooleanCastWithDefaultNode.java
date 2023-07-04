@@ -11,41 +11,29 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Casts a value into a boolean and defaults to the given value if not provided. */
-@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
-public abstract class BooleanCastWithDefaultNode extends RubyBaseNodeWithExecute {
+@GenerateCached(false)
+@GenerateInline
+public abstract class BooleanCastWithDefaultNode extends RubyBaseNode {
 
-    public static BooleanCastWithDefaultNode create(boolean defaultValue, RubyBaseNodeWithExecute node) {
-        return BooleanCastWithDefaultNodeGen.create(defaultValue, node);
-    }
-
-    private final boolean defaultValue;
-
-    public BooleanCastWithDefaultNode(boolean defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    public abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract boolean execute(Node node, Object value, boolean defaultValue);
 
     @Specialization
-    protected boolean doDefault(NotProvided value) {
+    protected static boolean doDefault(NotProvided value, boolean defaultValue) {
         return defaultValue;
     }
 
     @Fallback
-    protected boolean fallback(Object value,
+    protected static boolean fallback(Node node, Object value, boolean defaultValue,
             @Cached BooleanCastNode booleanCastNode) {
-        return booleanCastNode.execute(value);
-    }
-
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(defaultValue, getValueNode().cloneUninitialized());
+        return booleanCastNode.execute(node, value);
     }
 }

@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.interop;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateCached;
@@ -16,19 +16,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
-@GenerateCached(false)
 @GenerateInline
-public abstract class LazyTranslateInteropExceptionNode extends RubyBaseNode {
+@GenerateCached(false)
+public abstract class LazyArrayEachIteratorNode extends RubyBaseNode {
 
-    public final TranslateInteropExceptionNode get(Node node) {
+    public final ArrayEachIteratorNode get(Node node) {
         return execute(node);
     }
 
-    protected abstract TranslateInteropExceptionNode execute(Node node);
+    protected abstract ArrayEachIteratorNode execute(Node node);
 
     @Specialization
-    protected static TranslateInteropExceptionNode doLazy(
-            @Cached(inline = false) TranslateInteropExceptionNode translateInteropExceptionNode) {
-        return translateInteropExceptionNode;
+    protected static ArrayEachIteratorNode doLazy(
+            @Cached(inline = false) ArrayEachIteratorNode arrayEachIteratorNode) {
+        return arrayEachIteratorNode;
     }
 }

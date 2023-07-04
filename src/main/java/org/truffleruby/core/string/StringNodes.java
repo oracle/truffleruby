@@ -126,7 +126,6 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -299,10 +298,6 @@ public abstract class StringNodes {
     @CoreMethod(names = { "==", "===", "eql?" }, required = 1)
     public abstract static class EqualCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private KernelNodes.RespondToNode respondToNode;
-        @Child private DispatchNode objectEqualNode;
-        @Child private BooleanCastNode booleanCastNode;
-
         @Specialization(guards = "libB.isRubyString(b)", limit = "1")
         protected static boolean equalString(Object a, Object b,
                 @Cached RubyStringLibrary libA,
@@ -320,24 +315,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isNotRubyString(b)")
-        protected boolean equal(Object a, Object b) {
-            if (respondToNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
-            }
-
+        protected boolean equal(Object a, Object b,
+                @Cached KernelNodes.RespondToNode respondToNode,
+                @Cached DispatchNode objectEqualNode,
+                @Cached BooleanCastNode booleanCastNode) {
             if (respondToNode.executeDoesRespondTo(b, coreSymbols().TO_STR, false)) {
-                if (objectEqualNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(DispatchNode.create());
-                }
 
-                if (booleanCastNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    booleanCastNode = insert(BooleanCastNode.create());
-                }
-
-                return booleanCastNode.execute(objectEqualNode.call(b, "==", a));
+                return booleanCastNode.execute(this, objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -671,17 +655,18 @@ public abstract class StringNodes {
         // region String Slice Specialization
 
         @Specialization(guards = "stringsMatchStr.isRubyString(matchStr)", limit = "1")
-        protected Object slice2(Object string, Object matchStr, NotProvided length,
+        protected static Object slice2(Object string, Object matchStr, NotProvided length,
                 @Cached @Exclusive RubyStringLibrary stringsMatchStr,
                 @Cached @Exclusive DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached AsTruffleStringNode asTruffleStringNode) {
+                @Cached AsTruffleStringNode asTruffleStringNode,
+                @Bind("this") Node node) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
-            if (booleanCastNode.execute(included)) {
+            if (booleanCastNode.execute(node, included)) {
                 final RubyEncoding encoding = stringsMatchStr.getEncoding(matchStr);
-                return createStringCopy(asTruffleStringNode, stringsMatchStr.getTString(matchStr), encoding);
+                return createStringCopy(node, asTruffleStringNode, stringsMatchStr.getTString(matchStr), encoding);
             }
 
             return nil;
@@ -1403,7 +1388,7 @@ public abstract class StringNodes {
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Exclusive ForceEncodingNode forceEncodingNode,
                 @Bind("this") Node node) {
-            final String stringName = toJavaStringNode.execute(newEncoding);
+            final String stringName = toJavaStringNode.execute(node, newEncoding);
             final RubyEncoding rubyEncoding = getContext(node).getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
@@ -2801,7 +2786,7 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
-                @Cached("create(compileFormat(getJavaString(format)))") DirectCallNode callUnpackNode,
+                @Cached("create(compileFormat(this, getJavaString(format)))") DirectCallNode callUnpackNode,
                 @Cached StringHelperNodes.EqualNode equalNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode) {
@@ -2838,13 +2823,13 @@ public abstract class StringNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishUnpack(result);
+            return finishUnpack(this, result);
         }
 
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
                 replaces = "unpackCached", limit = "1")
-        protected RubyArray unpackUncached(Object string, Object format, Object offsetObject,
+        protected static RubyArray unpackUncached(Object string, Object format, Object offsetObject,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedBranchProfile negativeOffsetProfile,
                 @Cached @Shared InlinedBranchProfile tooLargeOffsetProfile,
@@ -2853,54 +2838,55 @@ public abstract class StringNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callUnpackNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
-                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode) {
+                @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
+                @Bind("this") Node node) {
             var byteArray = byteArrayNode.execute(libString.getTString(string), libString.getTEncoding(string));
 
             final ArrayResult result;
             final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 
             if (offset < 0) {
-                negativeOffsetProfile.enter(this);
+                negativeOffsetProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(
-                                "offset can't be negative", this, null));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().argumentError(
+                                "offset can't be negative", node, null));
             }
 
             if (offset > byteArray.getLength()) {
-                tooLargeOffsetProfile.enter(this);
+                tooLargeOffsetProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(
-                                "offset outside of string", this, null));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().argumentError(
+                                "offset outside of string", node, null));
             }
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        compileFormat(toJavaStringNode.execute(format)),
+                        compileFormat(node, toJavaStringNode.execute(node, format)),
                         new Object[]{
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
                                 stringGetAssociatedNode.execute(string) });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishUnpack(result);
+            return finishUnpack(node, result);
         }
 
-        private RubyArray finishUnpack(ArrayResult result) {
-            return createArray(result.getOutput(), result.getOutputLength());
+        private static RubyArray finishUnpack(Node node, ArrayResult result) {
+            return createArray(node, result.getOutput(), result.getOutputLength());
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(String format) {
+        protected static RootCallTarget compileFormat(Node node, String format) {
             try {
-                return new UnpackCompiler(getLanguage(), this).compile(format);
+                return new UnpackCompiler(getLanguage(node), node).compile(format);
             } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
+                throw dre.getException(getContext(node));
             }
         }
 
@@ -3338,12 +3324,13 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
-            throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+            throw new RaiseException(getContext(),
+                    coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
         }
 
         private static Object[] addSubstring(Node node, CallBlockNode yieldNode, Object[] store, int index,
-                RubyString substring,
-                Object block, InlinedConditionProfile executeBlockProfile, InlinedConditionProfile growArrayProfile) {
+                RubyString substring, Object block, InlinedConditionProfile executeBlockProfile,
+                InlinedConditionProfile growArrayProfile) {
             if (executeBlockProfile.profile(node, block != nil)) {
                 yieldNode.yield((RubyProc) block, substring);
             } else {

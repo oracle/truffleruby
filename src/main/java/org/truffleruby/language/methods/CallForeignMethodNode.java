@@ -157,28 +157,30 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
         protected abstract Object execute(Object receiver, String name, Object[] args);
 
         @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getInteropCacheLimit()")
-        protected Object callBoolean(Object receiver, String name, Object[] args,
+        protected static Object callBoolean(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached @Shared DispatchNode dispatch,
+                @Bind("this") Node node) {
             try {
                 return dispatch.call(receivers.asBoolean(receiver), name, args);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.execute(node, e);
             }
         }
 
         @Specialization(
                 guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
                 limit = "getInteropCacheLimit()")
-        protected Object callInt(Object receiver, String name, Object[] args,
+        protected static Object callInt(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached @Shared DispatchNode dispatch,
+                @Bind("this") Node node) {
             try {
                 return dispatch.call(receivers.asInt(receiver), name, args);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.execute(node, e);
             }
         }
 
@@ -188,14 +190,15 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                         "!receivers.fitsInInt(receiver)",
                         "receivers.fitsInLong(receiver)" },
                 limit = "getInteropCacheLimit()")
-        protected Object callLong(Object receiver, String name, Object[] args,
+        protected static Object callLong(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached @Shared DispatchNode dispatch,
+                @Bind("this") Node node) {
             try {
                 return dispatch.call(receivers.asLong(receiver), name, args);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.execute(node, e);
             }
         }
 
@@ -205,14 +208,15 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                         "!receivers.fitsInLong(receiver)",
                         "receivers.fitsInBigInteger(receiver)" },
                 limit = "getInteropCacheLimit()")
-        protected Object callBigInteger(Object receiver, String name, Object[] args,
+        protected static Object callBigInteger(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached @Shared DispatchNode dispatch,
+                @Bind("this") Node node) {
             try {
                 return dispatch.call(new RubyBignum(receivers.asBigInteger(receiver)), name, args);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.execute(node, e);
             }
         }
 
@@ -222,14 +226,15 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                         "!receivers.fitsInBigInteger(receiver)",
                         "receivers.fitsInDouble(receiver)" },
                 limit = "getInteropCacheLimit()")
-        protected Object callDouble(Object receiver, String name, Object[] args,
+        protected static Object callDouble(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached @Shared TranslateInteropExceptionNode translateInteropException,
-                @Cached @Shared DispatchNode dispatch) {
+                @Cached @Shared DispatchNode dispatch,
+                @Bind("this") Node node) {
             try {
                 return dispatch.call(receivers.asDouble(receiver), name, args);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.execute(node, e);
             }
         }
 

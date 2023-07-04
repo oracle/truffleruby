@@ -24,7 +24,7 @@ ast: |
                           DefaultLoopNode
                               children:
                                   repeatNode =
-                                      WhileNode$WhileRepeatingNode
+                                      WhileNodeFactory$WhileRepeatingNodeGen
                                           children:
                                               body =
                                                   IntegerFixnumLiteralNode
@@ -32,10 +32,7 @@ ast: |
                                                           flags = 1
                                                           value = 42
                                               condition =
-                                                  BooleanCastNodeGen
-                                                      children:
-                                                          valueNode_ =
-                                                              BooleanLiteralNode
-                                                                  attributes:
-                                                                      flags = 1
-                                                                      value = true
+                                                  BooleanLiteralNode
+                                                      attributes:
+                                                          flags = 1
+                                                          value = true

@@ -110,7 +110,7 @@ public abstract class TruffleSystemNodes {
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached InlinedConditionProfile nullValueProfile,
                 @Bind("this") Node node) {
-            final String javaName = toJavaStringNode.execute(name);
+            final String javaName = toJavaStringNode.execute(node, name);
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(node, value == null)) {
@@ -185,17 +185,17 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)
     public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
-
         @Specialization(guards = "strings.isRubyString(property)", limit = "1")
-        protected Object getJavaProperty(Object property,
+        protected static Object getJavaProperty(Object property,
                 @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            String value = getProperty(toJavaStringNode.execute(property));
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            String value = getProperty(toJavaStringNode.execute(node, property));
             if (value == null) {
                 return nil;
             } else {
-                return createString(fromJavaStringNode, value, Encodings.UTF_8);
+                return createString(node, fromJavaStringNode, value, Encodings.UTF_8);
             }
         }
 
@@ -238,7 +238,7 @@ public abstract class TruffleSystemNodes {
                 @Shared @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, toJavaStringNode.execute(message));
+            log(javaLevel, toJavaStringNode.execute(this, message));
             return nil;
         }
 
@@ -246,7 +246,7 @@ public abstract class TruffleSystemNodes {
         protected Object log(RubySymbol level, Object message,
                 @Shared @Cached RubyStringLibrary strings,
                 @Shared @Cached ToJavaStringNode toJavaStringNode) {
-            log(getLevel(level), toJavaStringNode.execute(message));
+            log(getLevel(level), toJavaStringNode.execute(this, message));
             return nil;
         }
 

@@ -28,7 +28,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
-import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -54,7 +54,6 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private DispatchNode isInLoadedFeatures = DispatchNode.create();
-    @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
     @Child private DispatchNode addToLoadedFeatures = DispatchNode.create();
     @Child private DispatchNode relativeFeatureNode = DispatchNode.create();
 
@@ -294,10 +293,11 @@ public abstract class RequireNode extends RubyBaseNode {
         try {
             InteropNodes
                     .execute(
+                            null,
                             initFunction,
                             ArrayUtils.EMPTY_ARRAY,
                             initFunctionInteropLibrary,
-                            TranslateInteropExceptionNode.getUncached());
+                            TranslateInteropExceptionNodeGen.getUncached());
         } finally {
             try {
                 DispatchNode.getUncached().call(coreLibrary().truffleCExtModule, "resolve_registered_addresses");
@@ -383,7 +383,7 @@ public abstract class RequireNode extends RubyBaseNode {
     public boolean isFeatureLoaded(Object feature) {
         final Object included = isInLoadedFeatures
                 .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
-        return booleanCastNode.execute(included);
+        return BooleanCastNode.executeUncached(included);
     }
 
     private void addToLoadedFeatures(Object feature) {

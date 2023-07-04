@@ -26,12 +26,10 @@ ast: |
           ruby2KeywordsHashProfile = false
       children:
           arguments = [
-              PackedHashStoreLibrary$SmallHashLiteralNode
+              PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                   attributes:
                       flags = 0
                   children:
-                      freezeHashKeyIfNeededNode =
-                          FreezeHashKeyIfNeededNodeGen
                       keyValues = [
                           ObjectLiteralNode
                               attributes:

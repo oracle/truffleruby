@@ -40,6 +40,7 @@ import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -469,7 +470,7 @@ public class FeatureLoader {
                     // rb_tr_init(Truffle::CExt)
                     interop.execute(initFunction, truffleCExt);
                 } catch (InteropException e) {
-                    throw TranslateInteropExceptionNode.getUncached().execute(e);
+                    throw TranslateInteropExceptionNode.executeUncached(e);
                 } finally {
                     language.getCurrentFiber().extensionCallStack.pop();
                 }
@@ -528,15 +529,16 @@ public class FeatureLoader {
         } catch (UnknownIdentifierException e) {
             return nil;
         } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
+            throw TranslateInteropExceptionNode.executeUncached(e);
         }
 
         final InteropLibrary abiFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(abiVersionFunction);
         final String abiVersion = (String) InteropNodes.execute(
+                null,
                 abiVersionFunction,
                 ArrayUtils.EMPTY_ARRAY,
                 abiFunctionInteropLibrary,
-                TranslateInteropExceptionNode.getUncached());
+                TranslateInteropExceptionNodeGen.getUncached());
 
         return StringOperations.createUTF8String(context, language, abiVersion);
     }
@@ -551,7 +553,7 @@ public class FeatureLoader {
                     context.getCoreExceptions()
                             .loadError(String.format("function %s() not found in %s", functionName, path), path, null));
         } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
+            throw TranslateInteropExceptionNode.executeUncached(e);
         }
 
         if (function == null) {

@@ -70,6 +70,7 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
+import org.truffleruby.language.control.WhileNodeFactory;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
@@ -296,7 +297,8 @@ public class TranslatorDriver {
                         sourceIndexLength,
                         Arrays.asList(new ChompLoopNode(), truffleNode));
             }
-            truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(new KernelGetsNode(), truffleNode));
+            truffleNode = new WhileNode(
+                    WhileNodeFactory.WhileRepeatingNodeGen.create(new KernelGetsNode(), truffleNode));
         }
 
         if (beginNode != null) {

@@ -6,7 +6,7 @@ focused_on_node: "org.truffleruby.language.constants.OrAssignConstantNode"
 ruby: |
   ::FOO ||= 42
 ast: |
-  OrAssignConstantNode
+  OrAssignConstantNodeGen
       attributes:
           flags = 0
           writeTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...

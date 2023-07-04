@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
@@ -39,13 +40,13 @@ public class RescueSplatNode extends RescueNode {
     }
 
     @Override
-    public boolean canHandle(VirtualFrame frame, Object exceptionObject) {
+    public boolean canHandle(VirtualFrame frame, Object exceptionObject, BooleanCastNode booleanCastNode) {
         final RubyArray handlingClasses = (RubyArray) splatCastNode.execute(frame);
 
         int i = 0;
         try {
             for (; loopProfile.inject(i < handlingClasses.size); ++i) {
-                if (matches(exceptionObject, stores.read(handlingClasses.getStore(), i))) {
+                if (matches(exceptionObject, stores.read(handlingClasses.getStore(), i), booleanCastNode)) {
                     return true;
                 }
                 TruffleSafepoint.poll(this);

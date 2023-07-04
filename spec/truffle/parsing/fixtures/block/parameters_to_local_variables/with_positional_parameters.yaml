@@ -49,73 +49,67 @@ ast: |
                               flags = 12
                           children:
                               body = [
-                                  IfElseNode
+                                  IfElseNodeGen
                                       attributes:
                                           flags = 0
                                       children:
                                           condition =
-                                              BooleanCastNodeGen
+                                              AndNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
-                                                      valueNode_ =
-                                                          AndNode
+                                                      left =
+                                                          ShouldDestructureNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  keywordArguments = false
+                                                      right =
+                                                          SequenceNode
                                                               attributes:
                                                                   flags = 0
                                                               children:
-                                                                  left =
-                                                                      ShouldDestructureNode
+                                                                  body = [
+                                                                      WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              keywordArguments = false
-                                                                  right =
-                                                                      SequenceNode
+                                                                              frameSlot = 4
+                                                                          children:
+                                                                              valueNode =
+                                                                                  SplatCastNodeGen
+                                                                                      attributes:
+                                                                                          conversionMethod = :to_ary
+                                                                                          copy = false
+                                                                                          flags = 0
+                                                                                          nilBehavior = NIL
+                                                                                      children:
+                                                                                          childNode_ =
+                                                                                              ProfileArgumentNodeGen
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                  children:
+                                                                                                      childNode_ =
+                                                                                                          ReadPreArgumentNode
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                                  index = 0
+                                                                                                                  keywordArguments = false
+                                                                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                                                      NotNodeGen
                                                                           attributes:
                                                                               flags = 0
                                                                           children:
-                                                                              body = [
-                                                                                  WriteLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 4
-                                                                                      children:
-                                                                                          valueNode =
-                                                                                              SplatCastNodeGen
-                                                                                                  attributes:
-                                                                                                      conversionMethod = :to_ary
-                                                                                                      copy = false
-                                                                                                      flags = 0
-                                                                                                      nilBehavior = NIL
-                                                                                                  children:
-                                                                                                      childNode_ =
-                                                                                                          ProfileArgumentNodeGen
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                              children:
-                                                                                                                  childNode_ =
-                                                                                                                      ReadPreArgumentNode
-                                                                                                                          attributes:
-                                                                                                                              flags = 0
-                                                                                                                              index = 0
-                                                                                                                              keywordArguments = false
-                                                                                                                              missingArgumentBehavior = RUNTIME_ERROR
-                                                                                  NotNode
+                                                                              child =
+                                                                                  IsNilNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                       children:
                                                                                           child =
-                                                                                              BooleanCastNodeGen
-                                                                                                  children:
-                                                                                                      valueNode_ =
-                                                                                                          IsNilNode
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                              children:
-                                                                                                                  child =
-                                                                                                                      ReadLocalVariableNode
-                                                                                                                          attributes:
-                                                                                                                              flags = 0
-                                                                                                                              frameSlot = 4
-                                                                                                                              type = FRAME_LOCAL
-                                                                              ]
+                                                                                              ReadLocalVariableNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                      frameSlot = 4
+                                                                                                      type = FRAME_LOCAL
+                                                                  ]
                                           elseBody =
                                               SequenceNode
                                                   attributes:

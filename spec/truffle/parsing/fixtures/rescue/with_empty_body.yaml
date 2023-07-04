@@ -9,7 +9,7 @@ ruby: |
   rescue
   end
 ast: |
-  TryNode
+  TryNodeGen
       attributes:
           canOmitBacktrace = true
           flags = 1

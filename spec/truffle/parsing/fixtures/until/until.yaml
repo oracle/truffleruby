@@ -24,7 +24,7 @@ ast: |
                           DefaultLoopNode
                               children:
                                   repeatNode =
-                                      WhileNode$WhileRepeatingNode
+                                      WhileNodeFactory$WhileRepeatingNodeGen
                                           children:
                                               body =
                                                   IntegerFixnumLiteralNode
@@ -32,18 +32,12 @@ ast: |
                                                           flags = 1
                                                           value = 42
                                               condition =
-                                                  BooleanCastNodeGen
+                                                  NotNodeGen
+                                                      attributes:
+                                                          flags = 0
                                                       children:
-                                                          valueNode_ =
-                                                              NotNode
+                                                          child =
+                                                              BooleanLiteralNode
                                                                   attributes:
-                                                                      flags = 0
-                                                                  children:
-                                                                      child =
-                                                                          BooleanCastNodeGen
-                                                                              children:
-                                                                                  valueNode_ =
-                                                                                      BooleanLiteralNode
-                                                                                          attributes:
-                                                                                              flags = 1
-                                                                                              value = true
+                                                                      flags = 1
+                                                                      value = true

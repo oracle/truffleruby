@@ -9,7 +9,9 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -180,10 +182,11 @@ public abstract class TruffleGraalNodes {
     public abstract static class BailoutNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
-        protected Object bailout(Object message,
+        protected static Object bailout(Object message,
                 @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            CompilerDirectives.bailout(toJavaStringNode.execute(message));
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Bind("this") Node node) {
+            CompilerDirectives.bailout(toJavaStringNode.execute(node, message));
             return nil;
         }
     }

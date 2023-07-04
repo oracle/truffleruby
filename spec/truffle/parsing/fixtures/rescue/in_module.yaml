@@ -68,7 +68,7 @@ ast: |
                                           flags = 0
                                       children:
                                           body =
-                                              TryNode
+                                              TryNodeGen
                                                   attributes:
                                                       canOmitBacktrace = true
                                                       flags = 0

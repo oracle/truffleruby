@@ -11,6 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -22,8 +23,8 @@ public class RescueStandardErrorNode extends RescueNode {
     }
 
     @Override
-    public boolean canHandle(VirtualFrame frame, Object exceptionObject) {
-        return matches(exceptionObject, coreLibrary().standardErrorClass);
+    public boolean canHandle(VirtualFrame frame, Object exceptionObject, BooleanCastNode booleanCastNode) {
+        return matches(exceptionObject, coreLibrary().standardErrorClass, booleanCastNode);
     }
 
     @Override

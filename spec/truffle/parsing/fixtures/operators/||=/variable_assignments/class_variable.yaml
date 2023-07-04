@@ -7,13 +7,13 @@ focused_on_node: "org.truffleruby.language.control.OrLazyValueDefinedNode"
 ruby: |
   @@foo ||= 42
 ast: |
-  OrLazyValueDefinedNode
+  OrLazyValueDefinedNodeGen
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
       children:
           left =
-              AndNode
+              AndNodeGen
                   attributes:
                       flags = 0
                   children:
@@ -52,8 +52,6 @@ ast: |
                                       LookupClassVariableNodeGen
                                   resolveTargetModuleNode =
                                       ResolveTargetModuleForClassVariablesNodeGen
-          leftCast =
-              BooleanCastNodeGen
           right =
               WriteClassVariableNode
                   attributes:

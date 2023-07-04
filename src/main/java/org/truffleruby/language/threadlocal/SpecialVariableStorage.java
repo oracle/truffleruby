@@ -112,7 +112,7 @@ public final class SpecialVariableStorage implements TruffleObject {
             try {
                 result += interop.asString(interop.toDisplayString(lastMatch.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
-                throw TranslateInteropExceptionNode.getUncached().execute(e);
+                throw TranslateInteropExceptionNode.executeUncached(e);
             }
         } else {
             result += "nil";
@@ -123,7 +123,7 @@ public final class SpecialVariableStorage implements TruffleObject {
             try {
                 result += interop.asString(interop.toDisplayString(lastLine.get(null, profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
-                throw TranslateInteropExceptionNode.getUncached().execute(e);
+                throw TranslateInteropExceptionNode.executeUncached(e);
             }
         } else {
             result += "nil";

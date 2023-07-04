@@ -64,42 +64,44 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
-import org.truffleruby.language.constants.OrAssignConstantNode;
+import org.truffleruby.language.constants.OrAssignConstantNodeGen;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
 import org.truffleruby.language.constants.WriteConstantNode;
-import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
-import org.truffleruby.language.control.IfNode;
+import org.truffleruby.language.control.IfElseNodeGen;
+import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NoMatchingPatternNodeGen;
-import org.truffleruby.language.control.NotNode;
+import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.OnceNode;
-import org.truffleruby.language.control.OrLazyValueDefinedNode;
-import org.truffleruby.language.control.OrNode;
+import org.truffleruby.language.control.OrLazyValueDefinedNodeGen;
+import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
 import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.control.UnlessNode;
+import org.truffleruby.language.control.UnlessNodeGen;
 import org.truffleruby.language.control.WhileNode;
+import org.truffleruby.language.control.WhileNodeFactory;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.exceptions.EnsureNode;
+import org.truffleruby.language.exceptions.EnsureNodeGen;
 import org.truffleruby.language.exceptions.RescueStandardErrorNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
 import org.truffleruby.language.exceptions.RescueNode;
 import org.truffleruby.language.exceptions.RescueSplatNode;
-import org.truffleruby.language.exceptions.TryNode;
+import org.truffleruby.language.exceptions.TryNodeGen;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
@@ -116,7 +118,7 @@ import org.truffleruby.language.literal.StringLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
 import org.truffleruby.language.literal.TruffleKernelOperationsModuleLiteralNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
-import org.truffleruby.language.locals.FlipFlopNode;
+import org.truffleruby.language.locals.FlipFlopNodeGen;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
@@ -338,7 +340,7 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode x = translateNodeOrNil(sourceSection, node.getFirstNode());
         final RubyNode y = translateNodeOrNil(sourceSection, node.getSecondNode());
 
-        final RubyNode ret = new AndNode(x, y);
+        final RubyNode ret = AndNodeGen.create(x, y);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -780,7 +782,7 @@ public class BodyTranslator extends BaseTranslator {
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
-                final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+                final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
                 elseNode = ifNode;
@@ -801,7 +803,7 @@ public class BodyTranslator extends BaseTranslator {
 
                 // Create the if node
                 final RubyNode thenNode = when.getBodyNode().accept(this);
-                final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+                final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
                 elseNode = ifNode;
@@ -856,7 +858,7 @@ public class BodyTranslator extends BaseTranslator {
             final RubyNode conditionNode = translator.translatePatternNode(patternNode, readTemp);
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
-            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+            final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
 
             // This if becomes the else for the next if
             elseNode = ifNode;
@@ -1435,7 +1437,7 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitEnsureNode(EnsureParseNode node) {
         final RubyNode tryPart = node.getBodyNode().accept(this);
         final RubyNode ensurePart = node.getEnsureNode().accept(this);
-        final RubyNode ret = new EnsureNode(tryPart, ensurePart);
+        final RubyNode ret = EnsureNodeGen.create(tryPart, ensurePart);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -1503,7 +1505,8 @@ public class BodyTranslator extends BaseTranslator {
 
         final FrameSlotAndDepth slotAndDepth = createFlipFlopState(sourceSection, 0);
 
-        final RubyNode ret = new FlipFlopNode(begin, end, node.isExclusive(), slotAndDepth.depth, slotAndDepth.slot);
+        final RubyNode ret = FlipFlopNodeGen.create(begin, end, node.isExclusive(), slotAndDepth.depth,
+                slotAndDepth.slot);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -1807,15 +1810,15 @@ public class BodyTranslator extends BaseTranslator {
         if (thenBody != null && elseBody != null) {
             final RubyNode thenBodyTranslated = thenBody.accept(this);
             final RubyNode elseBodyTranslated = elseBody.accept(this);
-            ret = new IfElseNode(condition, thenBodyTranslated, elseBodyTranslated);
+            ret = IfElseNodeGen.create(condition, thenBodyTranslated, elseBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (thenBody != null) {
             final RubyNode thenBodyTranslated = thenBody.accept(this);
-            ret = new IfNode(condition, thenBodyTranslated);
+            ret = IfNodeGen.create(condition, thenBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (elseBody != null) {
             final RubyNode elseBodyTranslated = elseBody.accept(this);
-            ret = new UnlessNode(condition, elseBodyTranslated);
+            ret = UnlessNodeGen.create(condition, elseBodyTranslated);
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = sequence(sourceSection, Arrays.asList(condition, new NilLiteralNode(true)));
@@ -2206,7 +2209,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode andNode = new AndNode(lhs, rhs);
+        final RubyNode andNode = AndNodeGen.create(lhs, rhs);
         andNode.unsafeSetSourceSection(sourceSection);
 
         final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
@@ -2229,7 +2232,7 @@ public class BodyTranslator extends BaseTranslator {
             }
 
             case "||": {
-                return new OrAssignConstantNode(lhs, (WriteConstantNode) rhs);
+                return OrAssignConstantNodeGen.create(lhs, (WriteConstantNode) rhs);
             }
 
             default: {
@@ -2272,7 +2275,7 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
 
-            final RubyNode controlNode = isOrOperator ? new OrNode(lhs, rhs) : new AndNode(lhs, rhs);
+            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
 
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
@@ -2306,8 +2309,8 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            body = new IfNode(
-                    new NotNode(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+            body = IfNodeGen.create(
+                    NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
@@ -2324,7 +2327,7 @@ public class BodyTranslator extends BaseTranslator {
         // This is needed for class variables. Constants are handled separately in visitOpAsgnConstDeclNode.
         if (node.getFirstNode().needsDefinitionCheck()) {
             RubyNode defined = new DefinedNode(lhs);
-            lhs = new AndNode(defined, lhs);
+            lhs = AndNodeGen.create(defined, lhs);
         }
 
         return translateOpAsgOrNode(node, lhs, rhs);
@@ -2337,7 +2340,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode ret = new OrLazyValueDefinedNode(lhs, rhs);
+        final RubyNode ret = OrLazyValueDefinedNodeGen.create(lhs, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2492,7 +2495,7 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode x = translateNodeOrNil(sourceSection, node.getFirstNode());
         final RubyNode y = translateNodeOrNil(sourceSection, node.getSecondNode());
 
-        final RubyNode ret = new OrNode(x, y);
+        final RubyNode ret = OrNodeGen.create(x, y);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2668,7 +2671,7 @@ public class BodyTranslator extends BaseTranslator {
             elsePart = node.getElseNode().accept(this);
         }
 
-        final RubyNode ret = new TryNode(
+        final RubyNode ret = TryNodeGen.create(
                 tryPart,
                 rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
                 elsePart,
@@ -2889,7 +2892,7 @@ public class BodyTranslator extends BaseTranslator {
 
         RubyNode condition = node.getConditionNode().accept(this);
         if (conditionInversed) {
-            condition = new NotNode(condition);
+            condition = NotNodeGen.create(condition);
         }
 
         RubyNode body;
@@ -2911,9 +2914,9 @@ public class BodyTranslator extends BaseTranslator {
         final RubyNode loop;
 
         if (node.evaluateAtStart()) {
-            loop = new WhileNode(new WhileNode.WhileRepeatingNode(condition, body));
+            loop = new WhileNode(WhileNodeFactory.WhileRepeatingNodeGen.create(condition, body));
         } else {
-            loop = new WhileNode(new WhileNode.DoWhileRepeatingNode(condition, body));
+            loop = new WhileNode(WhileNodeFactory.DoWhileRepeatingNodeGen.create(condition, body));
         }
 
         final RubyNode ret = new CatchBreakNode(whileBreakID, loop, true);

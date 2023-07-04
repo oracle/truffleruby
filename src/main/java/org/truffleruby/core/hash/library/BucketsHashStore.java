@@ -248,8 +248,8 @@ public class BucketsHashStore {
 
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
-        propagateSharingKey.executePropagate(hash, key2);
-        propagateSharingValue.executePropagate(hash, value);
+        propagateSharingKey.execute(node, hash, key2);
+        propagateSharingValue.execute(node, hash, value);
 
         final Entry[] entries = this.entries;
         final HashLookupResult result = lookup.execute(hash, entries, key2);
@@ -380,12 +380,13 @@ public class BucketsHashStore {
     @TruffleBoundary
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
-            @Cached @Exclusive PropagateSharingNode propagateSharing) {
+            @Cached @Exclusive PropagateSharingNode propagateSharing,
+            @Bind("$node") Node node) {
         if (hash == dest) {
             return;
         }
 
-        propagateSharing.executePropagate(dest, hash);
+        propagateSharing.execute(node, dest, hash);
         assert verify(hash);
 
         final Entry[] entries = ((BucketsHashStore) hash.store).entries;

@@ -9,12 +9,10 @@ focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$Small
 ruby: |
   {foo: 42}
 ast: |
-  PackedHashStoreLibrary$SmallHashLiteralNode
+  PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       attributes:
           flags = 0
       children:
-          freezeHashKeyIfNeededNode =
-              FreezeHashKeyIfNeededNodeGen
           keyValues = [
               ObjectLiteralNode
                   attributes:

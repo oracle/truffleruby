@@ -25,31 +25,25 @@ ruby: |
     "other"
   end
 ast: |
-  IfElseNode
+  IfElseNodeGen
       attributes:
           flags = 0
       children:
           condition =
-              BooleanCastNodeGen
-                  children:
-                      valueNode_ =
-                          IntegerFixnumLiteralNode
-                              attributes:
-                                  flags = 0
-                                  value = 42
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
           elseBody =
-              IfElseNode
+              IfElseNodeGen
                   attributes:
                       flags = 0
                   children:
                       condition =
-                          BooleanCastNodeGen
-                              children:
-                                  valueNode_ =
-                                      IntegerFixnumLiteralNode
-                                          attributes:
-                                              flags = 0
-                                              value = 100500
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 100500
                       elseBody =
                           StringLiteralNode
                               attributes:

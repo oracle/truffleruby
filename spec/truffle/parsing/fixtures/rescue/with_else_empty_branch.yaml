@@ -11,7 +11,7 @@ ruby: |
   else
   end
 ast: |
-  TryNode
+  TryNodeGen
       attributes:
           canOmitBacktrace = true
           flags = 1

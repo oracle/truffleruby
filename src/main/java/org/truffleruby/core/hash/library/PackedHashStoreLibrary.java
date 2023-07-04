@@ -27,7 +27,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -41,7 +40,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
-import org.truffleruby.core.hash.FreezeHashKeyIfNeededNodeGen;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashingNodes;
@@ -52,6 +50,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -176,11 +175,12 @@ public class PackedHashStoreLibrary {
                 @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
                 @Cached @Shared HashingNodes.ToHash hashNode,
                 @Cached @Shared PropagateSharingNode propagateSharingKey,
-                @Cached @Shared PropagateSharingNode propagateSharingValue) {
+                @Cached @Shared PropagateSharingNode propagateSharingValue,
+                @Bind("this") Node node) {
 
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
-            propagateSharingKey.executePropagate(hash, key2);
-            propagateSharingValue.executePropagate(hash, value);
+            propagateSharingKey.execute(node, hash, key2);
+            propagateSharingValue.execute(node, hash, value);
             setHashedKeyValue(store, 0, hashNode.execute(key2, byIdentity), key2, value);
             hash.size = 1;
             assert verify(store, hash);
@@ -202,8 +202,8 @@ public class PackedHashStoreLibrary {
             final int size = hash.size;
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
             final int hashed = hashNode.execute(key2, byIdentity);
-            propagateSharingKey.executePropagate(hash, key2);
-            propagateSharingValue.executePropagate(hash, value);
+            propagateSharingKey.execute(node, hash, key2);
+            propagateSharingValue.execute(node, hash, value);
 
             // written very carefully to allow PE
             for (int n = 0; n < MAX_ENTRIES; n++) {
@@ -307,12 +307,13 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
-            @Cached @Exclusive PropagateSharingNode propagateSharing) {
+            @Cached @Exclusive PropagateSharingNode propagateSharing,
+            @Bind("$node") Node node) {
         if (hash == dest) {
             return;
         }
 
-        propagateSharing.executePropagate(dest, hash);
+        propagateSharing.execute(node, dest, hash);
 
         Object storeCopy = copyStore(store);
         int size = hash.size;
@@ -405,19 +406,20 @@ public class PackedHashStoreLibrary {
                         "isCompareByIdentity(hash) == cachedByIdentity",
                         "cachedIndex >= 0",
                         "cachedIndex < hash.size",
-                        "sameKeysAtIndex(refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
+                        "sameKeysAtIndex(node, refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
                 limit = "1")
-        protected Object getConstantIndexPackedArray(
+        protected static Object getConstantIndexPackedArray(
                 RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached ReferenceEqualNode refEqual,
                 @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
-                @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
+                @Bind("this") Node node,
+                @Cached("index(node, refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
 
             final Object[] store = (Object[]) hash.store;
             return getValue(store, cachedIndex);
         }
 
-        protected int index(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+        protected static int index(Node node, ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
                 boolean compareByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
@@ -425,26 +427,27 @@ public class PackedHashStoreLibrary {
             for (int n = 0; n < size; n++) {
                 final int otherHashed = getHashed(store, n);
                 final Object otherKey = getKey(store, n);
-                if (sameKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (sameKeys(node, refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     return n;
                 }
             }
             return -1;
         }
 
-        protected boolean sameKeysAtIndex(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+        protected static boolean sameKeysAtIndex(Node node, ReferenceEqualNode refEqual, RubyHash hash, Object key,
+                int hashed,
                 int cachedIndex, boolean cachedByIdentity) {
 
             final Object[] store = (Object[]) hash.store;
             final Object otherKey = getKey(store, cachedIndex);
             final int otherHashed = getHashed(store, cachedIndex);
-            return sameKeys(refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
+            return sameKeys(node, refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
         }
 
-        private boolean sameKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key, int hashed,
-                Object otherKey, int otherHashed) {
+        private static boolean sameKeys(Node node, ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
+                int hashed, Object otherKey, int otherHashed) {
             return CompareHashKeysNode
-                    .referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
+                    .referenceEqualKeys(node, refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
         }
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
@@ -479,21 +482,21 @@ public class PackedHashStoreLibrary {
         }
     }
 
-    public static class SmallHashLiteralNode extends HashLiteralNode {
+    public abstract static class SmallHashLiteralNode extends HashLiteralNode {
 
         @Child private HashingNodes.ToHashByHashCode hashNode;
         @Child private DispatchNode equalNode;
-        @Child private BooleanCastNode booleanCastNode;
-        @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
-        private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
         }
 
+        @Specialization
         @ExplodeLoop
-        @Override
-        public Object execute(VirtualFrame frame) {
+        protected Object doHash(VirtualFrame frame,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached InlinedBranchProfile duplicateKeyProfile,
+                @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode) {
             final Object[] store = createStore();
             int size = 0;
 
@@ -509,8 +512,8 @@ public class PackedHashStoreLibrary {
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == getHashed(store, i) &&
-                            callEqual(key, getKey(store, i))) {
-                        duplicateKeyProfile.enter();
+                            callEqual(key, getKey(store, i), booleanCastNode)) {
+                        duplicateKeyProfile.enter(this);
                         setKey(store, i, key);
                         setValue(store, i, value);
                         duplicateKey = true;
@@ -541,23 +544,18 @@ public class PackedHashStoreLibrary {
             return hashNode.executeCached(key);
         }
 
-        private boolean callEqual(Object receiver, Object key) {
+        private boolean callEqual(Object receiver, Object key, BooleanCastNode booleanCastNode) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 equalNode = insert(DispatchNode.create());
             }
 
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.execute(equalNode.call(receiver, "eql?", key));
+            return booleanCastNode.execute(this, equalNode.call(receiver, "eql?", key));
         }
 
         @Override
         public RubyNode cloneUninitialized() {
-            var copy = new SmallHashLiteralNode(cloneUninitialized(keyValues));
+            var copy = SmallHashLiteralNodeGen.create(cloneUninitialized(keyValues));
             return copy.copyFlags(this);
         }
 

@@ -52,13 +52,12 @@ public abstract class QueueNodes {
     @CoreMethod(names = { "push", "<<", "enq" }, required = 1)
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
         @Specialization
-        protected RubyQueue push(RubyQueue self, final Object value) {
+        protected RubyQueue push(RubyQueue self, final Object value,
+                @Cached PropagateSharingNode propagateSharingNode) {
             final UnsizedQueue queue = self.queue;
 
-            propagateSharingNode.executePropagate(self, value);
+            propagateSharingNode.execute(this, self, value);
 
             if (queue.add(value)) {
                 return self;
