@@ -1758,7 +1758,7 @@ module Commands
 
   private def build_stats_native_runtime_compilable_methods(*args)
     log = File.read('aot-build.log')
-    unless log =~ /\[librubyvm:\d+\]\s*(?<method_count>[\d,]+).* of .* methods included for runtime compilation/
+    unless log =~ /\[librubyvm:\d+\]\s*(?<method_count>[\d,]+)\s*runtime compiled methods/
       raise 'Could not find line with runtime methods for librubyvm'
     end
     Integer($~[:method_count].gsub(',', ''))
