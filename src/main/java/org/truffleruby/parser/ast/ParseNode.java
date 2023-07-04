@@ -62,11 +62,11 @@ public abstract class ParseNode {
                 this instanceof RequiredKeywordArgumentValueParseNode : this.getClass();
     }
 
-    public void setNewline() {
+    public final void setNewline() {
         this.newline = true;
     }
 
-    public boolean isNewline() {
+    public final boolean isNewline() {
         return newline;
     }
 
@@ -79,7 +79,7 @@ public abstract class ParseNode {
         return new SourceIndexLength(sourceCharIndex, sourceLength);
     }
 
-    public void extendPosition(ParseNode node) {
+    public final void extendPosition(ParseNode node) {
         if (this.hasPosition() && node.hasPosition()) {
             int begin = Math.min(this.sourceCharIndex, node.sourceCharIndex);
             int end = Math.max(this.sourceCharIndex + this.sourceLength, node.sourceCharIndex + node.sourceLength);
@@ -88,7 +88,7 @@ public abstract class ParseNode {
         }
     }
 
-    public void extendPosition(SourceIndexLength pos) {
+    public final void extendPosition(SourceIndexLength pos) {
         if (this.hasPosition() && pos.isAvailable()) {
             int begin = Math.min(this.sourceCharIndex, pos.getCharIndex());
             int end = Math.max(this.sourceCharIndex + this.sourceLength, pos.getCharEnd());
