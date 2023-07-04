@@ -20,7 +20,7 @@ import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.thread.RubyThread;
 
-class TracePointEventNode extends TraceBaseEventNode {
+final class TracePointEventNode extends TraceBaseEventNode {
 
     private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 

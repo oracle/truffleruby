@@ -22,7 +22,7 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
-public class StringGuards {
+public final class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 

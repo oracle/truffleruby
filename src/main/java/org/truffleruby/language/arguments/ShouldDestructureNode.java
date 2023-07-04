@@ -18,7 +18,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-public class ShouldDestructureNode extends RubyContextSourceNode {
+public final class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private DispatchNode respondToToAry;
 

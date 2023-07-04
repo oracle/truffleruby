@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a float literal. */
-public class FloatParseNode extends NumericParseNode implements ILiteralNode, SideEffectFree {
+public final class FloatParseNode extends NumericParseNode implements ILiteralNode, SideEffectFree {
     private double value;
 
     public FloatParseNode(SourceIndexLength position, double value) {

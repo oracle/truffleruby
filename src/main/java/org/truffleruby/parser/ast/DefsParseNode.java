@@ -40,7 +40,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
 /** Represents a singleton method definition. */
-public class DefsParseNode extends MethodDefParseNode implements INameNode {
+public final class DefsParseNode extends MethodDefParseNode implements INameNode {
     private final ParseNode receiverNode;
 
     public DefsParseNode(

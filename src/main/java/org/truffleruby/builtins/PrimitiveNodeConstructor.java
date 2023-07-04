@@ -22,7 +22,7 @@ import org.truffleruby.parser.Translator;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.source.Source;
 
-public class PrimitiveNodeConstructor {
+public final class PrimitiveNodeConstructor {
 
     private final Primitive annotation;
     private final NodeFactory<? extends RubyBaseNode> factory;

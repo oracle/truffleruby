@@ -10,7 +10,7 @@
 package org.truffleruby.core.module;
 
 
-public class PrependMarker extends ModuleChain {
+public final class PrependMarker extends ModuleChain {
 
     private final ModuleFields origin;
 

@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyBaseNode;
 
 /** An AssignableNode to represent the * in <code>* = 1, 2</code> */
-public class NoopAssignableNode extends RubyBaseNode implements AssignableNode {
+public final class NoopAssignableNode extends RubyBaseNode implements AssignableNode {
     @Override
     public void assign(VirtualFrame frame, Object value) {
         // The RHS is executed now, nothing else to do

@@ -30,7 +30,7 @@ import org.truffleruby.parser.Identifiers;
  * access global variables is far from trivial, we use eval() here too, after validating that it's a valid global
  * variable name. */
 @ExportLibrary(InteropLibrary.class)
-public class GlobalVariablesObject implements TruffleObject {
+public final class GlobalVariablesObject implements TruffleObject {
 
     private final GlobalVariables globalVariables;
 

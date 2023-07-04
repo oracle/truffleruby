@@ -33,7 +33,7 @@ import org.truffleruby.language.SourceIndexLength;
 
 /** Represents a bare class declaration (e.g. class Foo/module Foo). This is slightly misnamed since it contains no
  * double colons (::), but our cname production needs to be a common type. In JRuby 2, we will rename this. */
-public class Colon2ImplicitParseNode extends Colon2ParseNode {
+public final class Colon2ImplicitParseNode extends Colon2ParseNode {
     public Colon2ImplicitParseNode(SourceIndexLength position, TruffleString name) {
         super(position, null, name);
     }

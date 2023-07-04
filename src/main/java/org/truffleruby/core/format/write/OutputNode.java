@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class OutputNode extends RubyBaseNode {
+public final class OutputNode extends RubyBaseNode {
     public Object execute(VirtualFrame frame) {
         return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
     }

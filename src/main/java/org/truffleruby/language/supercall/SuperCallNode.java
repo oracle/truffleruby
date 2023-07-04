@@ -24,7 +24,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SuperCallNode extends LiteralCallNode {
+public final class SuperCallNode extends LiteralCallNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;

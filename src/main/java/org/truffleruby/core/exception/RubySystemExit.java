@@ -19,7 +19,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubySystemExit extends RubyException {
+public final class RubySystemExit extends RubyException {
 
     public int exitStatus;
 

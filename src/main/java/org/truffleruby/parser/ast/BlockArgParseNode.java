@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** An explicit block argument (&amp;my_block) in parameter list. */
-public class BlockArgParseNode extends ParseNode implements INameNode {
+public final class BlockArgParseNode extends ParseNode implements INameNode {
     private final int count;
     private String name;
 

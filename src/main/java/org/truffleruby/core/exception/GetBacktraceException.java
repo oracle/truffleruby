@@ -13,7 +13,7 @@ import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
 
 @SuppressWarnings("serial")
-public class GetBacktraceException extends AbstractTruffleException {
+public final class GetBacktraceException extends AbstractTruffleException {
 
     public static final int UNLIMITED = AbstractTruffleException.UNLIMITED_STACK_TRACE;
 

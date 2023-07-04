@@ -18,7 +18,7 @@ import org.truffleruby.language.control.BreakID;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CatchBreakNode extends RubyContextSourceNode {
+public final class CatchBreakNode extends RubyContextSourceNode {
 
     private final boolean isWhile;
     private final BreakID breakID;

@@ -42,7 +42,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  *
  * Before this ParseNode is evaluated it contains the code as a String (value). After the first evaluation this String
  * is parsed into the evaluatedNode ParseNode. */
-public class EvStrParseNode extends ParseNode {
+public final class EvStrParseNode extends ParseNode {
     private final ParseNode body;
 
     public EvStrParseNode(SourceIndexLength position, ParseNode body) {

@@ -158,7 +158,7 @@ public final class ValueWrapperManager {
         holder.handleBlock = null;
     }
 
-    protected static class FreeHandleBlock {
+    protected static final class FreeHandleBlock {
         public final long start;
         public final FreeHandleBlock next;
 
@@ -185,7 +185,7 @@ public final class ValueWrapperManager {
     private static final long OFFSET_MASK = ~BLOCK_MASK;
     public static final long ALLOCATION_BASE = 0x0badL << 48;
 
-    public static class HandleBlockAllocator {
+    public static final class HandleBlockAllocator {
 
         private long nextBlock = ALLOCATION_BASE;
         private FreeHandleBlock firstFreeBlock = null;
@@ -279,7 +279,7 @@ public final class ValueWrapperManager {
         }
     }
 
-    public static class HandleBlockHolder {
+    public static final class HandleBlockHolder {
         protected HandleBlock handleBlock = null;
         protected HandleBlock sharedHandleBlock = null;
     }
@@ -389,7 +389,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class UnwrapperFunction implements TruffleObject {
+    public static final class UnwrapperFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -406,7 +406,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class ID2SymbolFunction implements TruffleObject {
+    public static final class ID2SymbolFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -422,7 +422,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class Symbol2IDFunction implements TruffleObject {
+    public static final class Symbol2IDFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -440,7 +440,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class WrapperFunction implements TruffleObject {
+    public static final class WrapperFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -456,7 +456,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class IsNativeObjectFunction implements TruffleObject {
+    public static final class IsNativeObjectFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -473,7 +473,7 @@ public final class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class ToNativeObjectFunction implements TruffleObject {
+    public static final class ToNativeObjectFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {

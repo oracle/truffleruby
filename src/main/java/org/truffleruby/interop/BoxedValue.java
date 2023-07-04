@@ -21,7 +21,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.control.RaiseException;
 
 @ExportLibrary(ReflectionLibrary.class)
-public class BoxedValue implements TruffleObject {
+public final class BoxedValue implements TruffleObject {
 
     private static final Message READ_MEMBER = Message.resolve(InteropLibrary.class, "readMember");
     private static final Message INVOKE_MEMBER = Message.resolve(InteropLibrary.class, "invokeMember");

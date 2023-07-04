@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
-public class VariableNamesObject implements TruffleObject {
+public final class VariableNamesObject implements TruffleObject {
 
     private final String[] names;
 

@@ -39,7 +39,7 @@ public final class MarkingService {
         public abstract void mark(Object owner);
     }
 
-    protected static class ExtensionCallStackEntry {
+    protected static final class ExtensionCallStackEntry {
 
         protected final ExtensionCallStackEntry previous;
         protected ValueWrapper preservedObject;
@@ -66,7 +66,7 @@ public final class MarkingService {
         }
     }
 
-    public static class ExtensionCallStack {
+    public static final class ExtensionCallStack {
 
         protected ExtensionCallStackEntry current;
 

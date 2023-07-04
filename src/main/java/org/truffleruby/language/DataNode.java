@@ -18,7 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class DataNode extends RubyContextSourceNode {
+public final class DataNode extends RubyContextSourceNode {
 
     @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
     @Child private DispatchNode callHelperNode;

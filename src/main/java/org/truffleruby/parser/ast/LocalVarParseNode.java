@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Access a local variable */
-public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
+public final class LocalVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
 

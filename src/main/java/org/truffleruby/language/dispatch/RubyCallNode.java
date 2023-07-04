@@ -48,7 +48,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
-public class RubyCallNode extends LiteralCallNode implements AssignableNode {
+public final class RubyCallNode extends LiteralCallNode implements AssignableNode {
 
     private final String methodName;
 

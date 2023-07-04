@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-public class BreakID {
+public final class BreakID {
 
     public static final BreakID ANY_BLOCK = new BreakID();
 

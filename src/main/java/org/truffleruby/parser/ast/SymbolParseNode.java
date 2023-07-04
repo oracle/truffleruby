@@ -47,7 +47,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a symbol (:symbol_name). */
-public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
+public final class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
 
     private final String name;
     private final TruffleString tstring;

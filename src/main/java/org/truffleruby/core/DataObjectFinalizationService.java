@@ -38,7 +38,7 @@ public final class DataObjectFinalizationService
         ReferenceProcessingService<DataObjectFinalizerReference, Object> {
 
     // We need a base node here, it should extend ruby base root node and implement internal root node.
-    public static class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
+    public static final class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
         @Child private InteropLibrary nullDataPointerNode;
         @Child private InteropLibrary nullDataFreeNode;

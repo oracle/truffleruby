@@ -10,7 +10,7 @@
 package org.truffleruby.core.module;
 
 /** A reference to an included RubyModule. */
-public class IncludedModule extends ModuleChain {
+public final class IncludedModule extends ModuleChain {
 
     private final RubyModule includedModule;
 

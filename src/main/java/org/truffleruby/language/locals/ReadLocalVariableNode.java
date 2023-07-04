@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ReadLocalVariableNode extends ReadLocalNode {
+public final class ReadLocalVariableNode extends ReadLocalNode {
 
     public ReadLocalVariableNode(LocalVariableType type, int frameSlot) {
         super(frameSlot, type);

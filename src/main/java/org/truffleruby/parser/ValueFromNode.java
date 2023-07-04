@@ -31,7 +31,7 @@ public interface ValueFromNode {
 
     ParseNode get(SourceIndexLength sourceSection);
 
-    class ValueFromEffectNode implements ValueFromNode {
+    final class ValueFromEffectNode implements ValueFromNode {
 
         private final BodyTranslator translator;
         private final ParseNode node;
@@ -67,7 +67,7 @@ public interface ValueFromNode {
 
     }
 
-    class ValueFromSelfNode implements ValueFromNode {
+    final class ValueFromSelfNode implements ValueFromNode {
 
         @Override
         public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
@@ -81,7 +81,7 @@ public interface ValueFromNode {
 
     }
 
-    class ValueFromSplatNode implements ValueFromNode {
+    final class ValueFromSplatNode implements ValueFromNode {
 
         private final ValueFromNode value;
 

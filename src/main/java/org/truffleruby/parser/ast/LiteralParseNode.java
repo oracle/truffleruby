@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * stores the position of the literal and the name/value of the literal. We made it a node so that the parser needs to
  * work less hard in its productions. dynamic literals are nodes and by having literals also be nodes means they have a
  * common subtype which is not Object. */
-public class LiteralParseNode extends ParseNode implements InvisibleNode {
+public final class LiteralParseNode extends ParseNode implements InvisibleNode {
     private String name;
 
     public LiteralParseNode(SourceIndexLength position, TruffleString name) {

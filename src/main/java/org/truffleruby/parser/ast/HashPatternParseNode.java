@@ -38,7 +38,7 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HashPatternParseNode extends ParseNode {
+public final class HashPatternParseNode extends ParseNode {
     private final ParseNode restArg;
     private final HashParseNode keywordArgs;
 

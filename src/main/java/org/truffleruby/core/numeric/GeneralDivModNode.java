@@ -20,7 +20,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class GeneralDivModNode extends RubyBaseNode {
+public final class GeneralDivModNode extends RubyBaseNode {
 
     @Child private FixnumOrBignumNode fixnumOrBignumQuotient = new FixnumOrBignumNode();
     @Child private FixnumOrBignumNode fixnumOrBignumRemainder = new FixnumOrBignumNode();

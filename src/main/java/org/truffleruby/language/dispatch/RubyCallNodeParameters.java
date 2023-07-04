@@ -12,7 +12,7 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 
-public class RubyCallNodeParameters {
+public final class RubyCallNodeParameters {
 
     private final RubyNode receiver;
     private final String methodName;

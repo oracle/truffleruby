@@ -13,7 +13,7 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 
 /** Kernel#throw */
 @SuppressWarnings("serial")
-public class ThrowException extends ControlFlowException implements RubyThrowable {
+public final class ThrowException extends ControlFlowException implements RubyThrowable {
 
     private final Object tag;
     private final Object value;

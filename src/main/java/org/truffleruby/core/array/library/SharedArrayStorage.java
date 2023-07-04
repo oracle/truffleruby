@@ -182,7 +182,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization(guards = "srcStore == destStore")
         protected static void copyContents(
@@ -321,7 +321,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     static final ArrayAllocator SHARED_OBJECT_ARRAY_ALLOCATOR = new SharedArrayAllocator(
             ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR);
 
-    private static class SharedArrayAllocator extends ArrayAllocator {
+    private static final class SharedArrayAllocator extends ArrayAllocator {
 
         private final ArrayAllocator storageAllocator;
 

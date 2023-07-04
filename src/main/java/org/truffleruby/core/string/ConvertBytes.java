@@ -27,7 +27,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
-public class ConvertBytes {
+public final class ConvertBytes {
     private final RubyContext context;
     private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
@@ -512,7 +512,7 @@ public class ConvertBytes {
     }
 
     @SuppressWarnings("serial")
-    public static class ERange extends RuntimeException {
+    public static final class ERange extends RuntimeException {
         public enum Kind {
             Overflow,
             Underflow

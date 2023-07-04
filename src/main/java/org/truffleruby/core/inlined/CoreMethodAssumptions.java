@@ -53,7 +53,7 @@ import org.truffleruby.language.methods.BlockDefinitionNode;
  * Every specialization should use {@code assumptions = "assumptions",} to check at least the tracing Assumption. When
  * adding a new node, it is a good idea to add a debug print in the non-inlined method and try calling it with and
  * without a {@code set_trace_func proc{};} before to see if the inlined version is used correctly. */
-public class CoreMethodAssumptions {
+public final class CoreMethodAssumptions {
 
     final RubyLanguage language;
 

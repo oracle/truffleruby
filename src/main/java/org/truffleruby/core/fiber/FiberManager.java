@@ -452,7 +452,7 @@ public final class FiberManager {
     public interface FiberMessage {
     }
 
-    private static class FiberResumeMessage implements FiberMessage {
+    private static final class FiberResumeMessage implements FiberMessage {
 
         private final FiberOperation operation;
         private final RubyFiber sendingFiber;
@@ -509,10 +509,10 @@ public final class FiberManager {
         }
     }
 
-    private static class FiberShutdownMessage implements FiberMessage {
+    private static final class FiberShutdownMessage implements FiberMessage {
     }
 
-    private static class FiberExceptionMessage implements FiberMessage {
+    private static final class FiberExceptionMessage implements FiberMessage {
 
         private final RuntimeException exception;
 

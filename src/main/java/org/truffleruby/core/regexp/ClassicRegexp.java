@@ -69,7 +69,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.parser.RubyDeferredWarnings;
 
-public class ClassicRegexp implements ReOptions {
+public final class ClassicRegexp implements ReOptions {
     private final RubyContext context;
     private final Regex pattern;
     private final TStringWithEncoding str;

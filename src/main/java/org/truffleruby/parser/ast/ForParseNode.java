@@ -42,7 +42,7 @@ import org.truffleruby.parser.scope.StaticScope;
  * stack, so doing this way is mildly painful.
  *
  * @see IterParseNode */
-public class ForParseNode extends IterParseNode {
+public final class ForParseNode extends IterParseNode {
     private ParseNode iterNode;
 
     public ForParseNode(

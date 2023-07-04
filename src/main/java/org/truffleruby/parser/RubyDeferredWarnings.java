@@ -36,7 +36,7 @@ import java.util.List;
 
 import org.joni.WarnCallback;
 
-public class RubyDeferredWarnings implements WarnCallback {
+public final class RubyDeferredWarnings implements WarnCallback {
 
     public List<WarningMessage> warnings = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class RubyDeferredWarnings implements WarnCallback {
         NON_VERBOSE  // -W1
     }
 
-    public class WarningMessage {
+    public final class WarningMessage {
         public final Verbosity verbosity;
         private final String fileName;
         private final Integer lineNumber;

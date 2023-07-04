@@ -17,7 +17,7 @@ import org.truffleruby.core.encoding.Encodings;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
-public class CoreString {
+public final class CoreString {
 
     private final RubyLanguage language;
     private final String literal;

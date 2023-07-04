@@ -43,7 +43,7 @@ import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
 
-public class Helpers {
+public final class Helpers {
 
     public static final Map<String, String> map(String... keyValues) {
         HashMap<String, String> map = new HashMap<>(keyValues.length / 2);

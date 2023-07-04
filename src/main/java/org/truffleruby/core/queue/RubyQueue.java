@@ -17,7 +17,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import java.util.Set;
 
-public class RubyQueue extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyQueue extends RubyDynamicObject implements ObjectGraphNode {
 
     public final UnsizedQueue queue;
 

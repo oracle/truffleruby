@@ -36,7 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class OpAsgnParseNode extends ParseNode {
+public final class OpAsgnParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final ParseNode valueNode;
     private final String variableName;

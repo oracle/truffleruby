@@ -33,7 +33,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = double[].class)
 @GenerateUncached
-public class DoubleArrayStore {
+public final class DoubleArrayStore {
 
     @ExportMessage
     protected static double read(double[] store, int index) {
@@ -46,7 +46,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    static class AcceptsAllValues {
+    static final class AcceptsAllValues {
 
         @Specialization
         protected static boolean acceptsZeroValues(double[] store, ZeroLengthArrayStore otherStore) {
@@ -116,7 +116,7 @@ public class DoubleArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization
         protected static void copyContents(
@@ -195,7 +195,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    static class GeneralizeForValue {
+    static final class GeneralizeForValue {
 
         @Specialization
         protected static ArrayAllocator generalize(double[] store, double newValue) {
@@ -210,7 +210,7 @@ public class DoubleArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class GeneralizeForStore {
+    static final class GeneralizeForStore {
 
         @Specialization
         protected static ArrayAllocator generalize(double[] store, int[] newStore) {
@@ -245,7 +245,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    static class AllocateForNewValue {
+    static final class AllocateForNewValue {
 
         @Specialization
         protected static Object allocateForNewStore(double[] store, double newValue, int length) {
@@ -260,7 +260,7 @@ public class DoubleArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class AllocateForNewStore {
+    static final class AllocateForNewStore {
 
         @Specialization
         protected static Object allocate(double[] store, ZeroLengthArrayStore newStore, int length) {
@@ -296,7 +296,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    protected static class IsDefaultValue {
+    protected static final class IsDefaultValue {
 
         @Specialization
         protected static boolean isDefaultValue(double[] store, double value) {
@@ -316,7 +316,7 @@ public class DoubleArrayStore {
 
     public static final ArrayAllocator DOUBLE_ARRAY_ALLOCATOR = new DoubleArrayAllocator();
 
-    private static class DoubleArrayAllocator extends ArrayAllocator {
+    private static final class DoubleArrayAllocator extends ArrayAllocator {
 
         @Override
         public double[] allocate(int capacity) {

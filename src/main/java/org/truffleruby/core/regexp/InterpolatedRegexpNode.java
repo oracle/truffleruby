@@ -27,7 +27,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-public class InterpolatedRegexpNode extends RubyContextSourceNode {
+public final class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
     @Child private RegexpBuilderNode builderNode;

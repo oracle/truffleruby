@@ -18,7 +18,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyPointer extends RubyDynamicObject {
+public final class RubyPointer extends RubyDynamicObject {
 
     public Pointer pointer;
 

@@ -41,7 +41,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a simple regular expression literal. */
-public class RegexpParseNode extends ParseNode implements ILiteralNode {
+public final class RegexpParseNode extends ParseNode implements ILiteralNode {
     private final TStringWithEncoding value;
     private final RegexpOptions options;
 

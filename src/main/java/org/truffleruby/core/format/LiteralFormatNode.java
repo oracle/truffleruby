@@ -11,7 +11,7 @@ package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class LiteralFormatNode extends FormatNode {
+public final class LiteralFormatNode extends FormatNode {
 
     private final Object value;
 

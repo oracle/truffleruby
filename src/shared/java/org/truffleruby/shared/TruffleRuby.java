@@ -11,7 +11,7 @@ package org.truffleruby.shared;
 
 import org.graalvm.nativeimage.ImageInfo;
 
-public class TruffleRuby {
+public final class TruffleRuby {
 
     public static final String FORMAL_NAME = "TruffleRuby";
     public static final String LANGUAGE_ID = "ruby";

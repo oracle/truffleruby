@@ -15,7 +15,7 @@ import org.truffleruby.language.LexicalScope;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class LexicalScopeNode extends RubyContextSourceNode {
+public final class LexicalScopeNode extends RubyContextSourceNode {
 
     private final LexicalScope lexicalScope;
 

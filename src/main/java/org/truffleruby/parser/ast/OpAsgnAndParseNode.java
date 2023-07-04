@@ -36,7 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParseNode {
+public final class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParseNode {
     private final ParseNode firstNode;
     private final ParseNode secondNode;
 

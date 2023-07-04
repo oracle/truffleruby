@@ -18,7 +18,7 @@ import org.truffleruby.language.control.ReturnID;
 
 /** Translator environment, unique per parse/translation. This must be immutable to be correct for lazy translation, as
  * then multiple threads might lazy translate methods of the same file in parallel. */
-public class ParseEnvironment {
+public final class ParseEnvironment {
 
     public final Source source;
     private final boolean inCore;

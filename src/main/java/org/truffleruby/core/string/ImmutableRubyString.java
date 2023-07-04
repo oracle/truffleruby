@@ -143,7 +143,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
 
     @ImportStatic(RubyBaseNode.class)
     @ExportMessage
-    public static class AsString {
+    public static final class AsString {
         @Specialization(
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")

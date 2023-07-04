@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class DefinedWrapperNode extends RubyContextSourceNode {
+public final class DefinedWrapperNode extends RubyContextSourceNode {
 
     private final CoreString definition;
 

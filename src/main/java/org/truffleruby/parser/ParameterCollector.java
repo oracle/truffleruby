@@ -30,7 +30,7 @@ import org.truffleruby.parser.ast.RestArgParseNode;
 import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
 /** Collects parameter names from a JRuby AST. */
-public class ParameterCollector extends AbstractNodeVisitor<Object> {
+public final class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     private final List<String> parameters = new ArrayList<>();
 

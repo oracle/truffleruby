@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents the unassignable star in a multiple assignment (e.g. a,b,* = arr). */
-public class StarParseNode extends ParseNode {
+public final class StarParseNode extends ParseNode {
     /** Constructor for StarParseNode. */
     public StarParseNode(SourceIndexLength position) {
         super(position);

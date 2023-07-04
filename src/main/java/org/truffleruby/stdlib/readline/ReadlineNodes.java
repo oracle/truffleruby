@@ -265,7 +265,7 @@ public abstract class ReadlineNodes {
     }
 
     // Complete using a Proc object
-    private static class ProcCompleter implements Completer {
+    private static final class ProcCompleter implements Completer {
 
         private final RubyContext context;
         private final RubyLanguage language;

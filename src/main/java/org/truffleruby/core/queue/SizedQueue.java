@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.collections.ConcurrentOperations;
 
-public class SizedQueue {
+public final class SizedQueue {
 
     private final ReentrantLock lock;
     private final Condition canAdd;

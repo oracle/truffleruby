@@ -15,7 +15,7 @@ import org.truffleruby.core.klass.RubyClass;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyPRNGRandomizer extends RubyRandomizer {
+public final class RubyPRNGRandomizer extends RubyRandomizer {
 
     private Randomizer randomizer;
 

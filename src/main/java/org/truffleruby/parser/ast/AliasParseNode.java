@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents an alias statement (<code>alias newName oldName</code>). */
-public class AliasParseNode extends ParseNode {
+public final class AliasParseNode extends ParseNode {
     private ParseNode oldName;
     private ParseNode newName;
 

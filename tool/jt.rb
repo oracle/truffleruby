@@ -2880,6 +2880,43 @@ module Commands
       end
     end
 
+    def final_classes
+      generics = /(?:<[A-Z,]+>)?/
+      class_regexp = /^\s*([ a-z]*)class (\w+)\b#{generics}(?: extends (\w+\.)?(\w+)\b#{generics})?.*\{$/
+
+      subclasses = {}
+      each_file('main') do |content|
+        content.scan(class_regexp) do
+          modifiers, name, superclass_prefix, superclass = $1.strip.split, $2, $3, $4
+          raise "superclass prefix not supported for: #{$&}" if superclass_prefix
+          if superclass
+            (subclasses[superclass] ||= []) << name
+          end
+          unless modifiers.include?('abstract') or modifiers.include?('final')
+            subclasses[name] ||= []
+          end
+        end
+        content
+      end
+
+      should_be_final = subclasses.select { |_name, subs| subs.empty? }
+      return false if should_be_final.empty?
+
+      each_file('main') do |content|
+        new_content = content
+        content.scan(class_regexp) do
+          modifiers, name = $1.strip.split, $2
+          line = $&
+          unless modifiers.include?('abstract') or modifiers.include?('final')
+            if should_be_final.include?(name)
+              new_content = new_content.sub(line, line.sub(/\bclass #{name}\b/, "final class #{name}"))
+            end
+          end
+        end
+        new_content
+      end
+    end
+
     private
 
     def split_arguments(line)
@@ -2925,9 +2962,9 @@ module Commands
       segments.map { |segment| segment.gsub(/\A,?\s+|\s+,?\Z/, '') }
     end
 
-    def each_file
+    def each_file(subdirs = [])
       changed = false
-      Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
+      Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', *subdirs, '**', '*.java')) do |file|
         content = File.read file
         new_content = yield content
 
@@ -3003,10 +3040,15 @@ module Commands
     Formatting.format_specializations_arguments
   end
 
+  def final_classes
+    Formatting.final_classes
+  end
+
   def format_specializations_check
     abort 'Some Specializations did not use the protected visibility.' if format_specializations_visibility
     abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
     abort 'There were extra blank lines around imports.' if Formatting.format_imports
+    abort 'There were classes which should be marked as final but were not.' if final_classes
   end
 
   def check_generated_files

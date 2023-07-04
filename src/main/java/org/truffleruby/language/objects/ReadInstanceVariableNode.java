@@ -22,7 +22,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 
-public class ReadInstanceVariableNode extends RubyContextSourceNode {
+public final class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     private final String name;
 

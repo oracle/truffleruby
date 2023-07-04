@@ -23,7 +23,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
+public final class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     @Child GetConstantNode getConstantNode = GetConstantNode.create();
 

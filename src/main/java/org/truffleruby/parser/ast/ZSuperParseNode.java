@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** a call to 'super' with no arguments in a method. */
-public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNode {
+public final class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNode {
     private ParseNode iterNode;
 
     public ZSuperParseNode(SourceIndexLength position) {

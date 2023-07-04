@@ -12,7 +12,7 @@ package org.truffleruby.core.support;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 
-public class RubySecureRandomizer extends RubyRandomizer {
+public final class RubySecureRandomizer extends RubyRandomizer {
 
     public RubySecureRandomizer(RubyClass rubyClass, Shape shape) {
         super(rubyClass, shape);

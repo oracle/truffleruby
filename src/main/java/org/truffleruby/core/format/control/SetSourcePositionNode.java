@@ -16,7 +16,7 @@ import org.truffleruby.core.format.exceptions.RangeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class SetSourcePositionNode extends FormatNode {
+public final class SetSourcePositionNode extends FormatNode {
 
     private final int position;
 

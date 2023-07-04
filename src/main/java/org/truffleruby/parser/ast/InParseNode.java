@@ -46,7 +46,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /** Represents an in condition */
-public class InParseNode extends ParseNode {
+public final class InParseNode extends ParseNode {
     protected final ParseNode expressionNodes;
     protected final ParseNode bodyNode;
     private final ParseNode nextCase;

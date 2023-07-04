@@ -31,7 +31,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import static org.truffleruby.language.RubyBaseNode.nil;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     public RubyMethod(RubyClass metaClass, Shape shape, Object receiver, InternalMethod method) {
         super(metaClass, shape);

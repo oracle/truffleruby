@@ -21,7 +21,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Represents a super call with implicit arguments without a surrounding method */
-public class ZSuperOutsideMethodNode extends RubyContextSourceNode {
+public final class ZSuperOutsideMethodNode extends RubyContextSourceNode {
 
     final boolean insideDefineMethod;
 

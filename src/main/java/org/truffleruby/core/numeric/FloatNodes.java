@@ -546,7 +546,7 @@ public abstract class FloatNodes {
 
     }
 
-    protected static class FloatRoundGuards {
+    protected static final class FloatRoundGuards {
 
         // These are < rather than <=, because we may offset by -1 or +1 to round in the direction that we want
 

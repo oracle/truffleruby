@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class FixnumOrBignumNode extends RubyBaseNode {
+public final class FixnumOrBignumNode extends RubyBaseNode {
 
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);

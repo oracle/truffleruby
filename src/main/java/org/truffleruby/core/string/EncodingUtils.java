@@ -34,7 +34,7 @@ import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 
-public class EncodingUtils {
+public final class EncodingUtils {
 
     // rb_enc_asciicompat
     public static boolean encAsciicompat(Encoding enc) {

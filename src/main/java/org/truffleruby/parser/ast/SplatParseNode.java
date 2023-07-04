@@ -34,7 +34,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class SplatParseNode extends ParseNode {
+public final class SplatParseNode extends ParseNode {
     protected final ParseNode node;
 
     public SplatParseNode(SourceIndexLength position, ParseNode node) {

@@ -34,7 +34,7 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
-public class ObjectArrayStore {
+public final class ObjectArrayStore {
 
     @ExportMessage
     protected static Object read(Object[] store, int index) {
@@ -91,7 +91,7 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    static class ShareElements {
+    static final class ShareElements {
 
         @Specialization
         protected static void shareElements(Object[] store, int start, int end,
@@ -112,7 +112,7 @@ public class ObjectArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization
         protected static void copyContents(
@@ -226,7 +226,7 @@ public class ObjectArrayStore {
 
     public static final ArrayAllocator OBJECT_ARRAY_ALLOCATOR = new ObjectArrayAllocator();
 
-    private static class ObjectArrayAllocator extends ArrayAllocator {
+    private static final class ObjectArrayAllocator extends ArrayAllocator {
 
         @Override
         public Object[] allocate(int capacity) {

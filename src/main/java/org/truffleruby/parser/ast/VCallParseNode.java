@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** RubyMethod call without any arguments */
-public class VCallParseNode extends ParseNode implements INameNode {
+public final class VCallParseNode extends ParseNode implements INameNode {
     private String name;
 
     public VCallParseNode(SourceIndexLength position, String name) {

@@ -52,7 +52,7 @@ import java.util.Set;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
-public class BucketsHashStore {
+public final class BucketsHashStore {
 
     private final Entry[] entries;
     private Entry firstInSequence;
@@ -601,7 +601,7 @@ public class BucketsHashStore {
 
     }
 
-    public static class GenericHashLiteralNode extends HashLiteralNode {
+    public static final class GenericHashLiteralNode extends HashLiteralNode {
 
         @Child HashStoreLibrary hashes;
         private final int bucketsCount;

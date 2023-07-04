@@ -40,7 +40,7 @@ import org.truffleruby.parser.ast.PreExeParseNode;
 
 /**
  */
-public class RubyParserResult {
+public final class RubyParserResult {
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;

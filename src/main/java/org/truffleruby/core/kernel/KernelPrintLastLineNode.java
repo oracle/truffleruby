@@ -18,7 +18,7 @@ import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class KernelPrintLastLineNode extends RubyContextSourceNode {
+public final class KernelPrintLastLineNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callPrintNode;
     @Child private ReadGlobalVariableNode readGlobalVariableNode;

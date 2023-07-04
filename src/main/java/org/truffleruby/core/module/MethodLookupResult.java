@@ -14,7 +14,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
-public class MethodLookupResult {
+public final class MethodLookupResult {
 
     private final InternalMethod method;
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;

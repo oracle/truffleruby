@@ -30,7 +30,7 @@ import org.truffleruby.language.objects.SingletonClassNode;
  * <li>the currently activated refinement modules which apply to the method</li>
  * </ul>
  */
-public class DeclarationContext {
+public final class DeclarationContext {
 
     public static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
 
@@ -43,7 +43,7 @@ public class DeclarationContext {
     }
 
     /** #instance_eval, the default definee is self.singleton_class */
-    public static class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
+    public static final class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
         private final Object self;
 
         public SingletonClassOfSelfDefaultDefinee(Object self) {
@@ -56,7 +56,7 @@ public class DeclarationContext {
     }
 
     /** class/module body or Module#class_eval, the default definee is opened module */
-    public static class FixedDefaultDefinee implements DefaultDefinee {
+    public static final class FixedDefaultDefinee implements DefaultDefinee {
         private final RubyModule module;
 
         public FixedDefaultDefinee(RubyModule module) {

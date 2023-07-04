@@ -20,7 +20,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-class MetricsInternalRootNode extends RubyBaseRootNode implements InternalRootNode {
+final class MetricsInternalRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private static final SourceSection REQUIRE_METRICS_SOURCE_SECTION = Source
             .newBuilder(TruffleRuby.LANGUAGE_ID, "", "(metrics)")

@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** an 'if' statement. */
-public class IfParseNode extends ParseNode {
+public final class IfParseNode extends ParseNode {
     private final ParseNode condition;
     private final ParseNode thenBody;
     private final ParseNode elseBody;

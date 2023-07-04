@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a yield statement. */
-public class YieldParseNode extends ParseNode {
+public final class YieldParseNode extends ParseNode {
     private final ParseNode argsNode;
 
     /** Construct a new YieldParseNode.

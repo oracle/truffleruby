@@ -27,7 +27,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
-public class BindingLocalVariablesObject implements TruffleObject {
+public final class BindingLocalVariablesObject implements TruffleObject {
 
     @CompilationFinal private RubyBinding binding;
 

@@ -33,7 +33,7 @@ package org.truffleruby.parser.parser;
 
 import org.truffleruby.parser.ast.ParseNode;
 
-public class ParseNodeTuple {
+public final class ParseNodeTuple {
 
     private final ParseNode key;
     private final ParseNode value;

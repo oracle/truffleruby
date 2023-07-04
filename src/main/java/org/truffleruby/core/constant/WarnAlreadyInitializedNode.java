@@ -17,7 +17,7 @@ import org.truffleruby.language.WarnNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class WarnAlreadyInitializedNode extends RubyBaseNode {
+public final class WarnAlreadyInitializedNode extends RubyBaseNode {
 
     @Child private WarnNode warnNode = new WarnNode();
 

@@ -11,7 +11,7 @@ package org.truffleruby.core.format.rbsprintf;
 
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 
-public class RBSprintfConfig {
+public final class RBSprintfConfig {
 
     public enum FormatType {
         INTEGER,

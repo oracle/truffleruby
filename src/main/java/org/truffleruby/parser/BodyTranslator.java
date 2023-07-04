@@ -609,7 +609,7 @@ public class BodyTranslator extends BaseTranslator {
         }
     }
 
-    protected static class ArgumentsAndBlockTranslation {
+    protected static final class ArgumentsAndBlockTranslation {
 
         private final RubyNode block;
         private final RubyNode[] arguments;

@@ -61,6 +61,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.debug.TruffleDebugNodes.ForeignArrayNode.ForeignArray;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.FromJavaStringNode;
@@ -665,7 +666,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignNull implements TruffleObject {
+        public static final class ForeignNull implements TruffleObject {
 
             @ExportMessage
             protected boolean isNull() {
@@ -690,7 +691,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignPointerNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignPointer implements TruffleObject {
+        public static final class ForeignPointer implements TruffleObject {
 
             private final long address;
 
@@ -726,7 +727,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignObject implements TruffleObject {
+        public static final class ForeignObject implements TruffleObject {
             @ExportMessage
             protected TriState isIdenticalOrUndefined(Object other) {
                 return other instanceof ForeignObject ? TriState.valueOf(this == other) : TriState.UNDEFINED;
@@ -754,7 +755,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignObjectWithMembersNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignObjectWithMembers implements TruffleObject {
+        public static final class ForeignObjectWithMembers implements TruffleObject {
 
             private final Map<String, Object> map;
 
@@ -773,7 +774,7 @@ public abstract class TruffleDebugNodes {
             @ExportMessage
             @TruffleBoundary
             protected Object getMembers(boolean includeInternal) {
-                return new ForeignArrayNode.ForeignArray("a", "b", "c", "method1", "method2");
+                return new ForeignArray("a", "b", "c", "method1", "method2");
             }
 
             @TruffleBoundary
@@ -900,7 +901,7 @@ public abstract class TruffleDebugNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ForeignPointerArrayNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignPointerArray extends ForeignArrayNode.ForeignArray {
+        public static final class ForeignPointerArray extends ForeignArray {
             public ForeignPointerArray(Object... values) {
                 super(values);
             }
@@ -932,7 +933,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_iterator", onSingleton = true)
     public abstract static class ForeignIteratorNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignIterator implements TruffleObject {
+        public static final class ForeignIterator implements TruffleObject {
             final int[] values = { 1, 2, 3 };
             int index = 0;
 
@@ -974,7 +975,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_iterable", onSingleton = true)
     public abstract static class ForeignIterableNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignIterable implements TruffleObject {
+        public static final class ForeignIterable implements TruffleObject {
             @ExportMessage
             protected boolean hasIterator() {
                 return true;
@@ -1002,7 +1003,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignHashNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignHashEntriesIterator implements TruffleObject {
+        public static final class ForeignHashEntriesIterator implements TruffleObject {
             final ForeignHash foreignHash;
             int index = 0;
 
@@ -1025,10 +1026,10 @@ public abstract class TruffleDebugNodes {
             protected Object getIteratorNextElement() throws StopIterationException {
                 if (index == 0) {
                     index++;
-                    return new ForeignArrayNode.ForeignArray(foreignHash.key1, foreignHash.value1);
+                    return new ForeignArray(foreignHash.key1, foreignHash.value1);
                 } else if (index == 1) {
                     index++;
-                    return new ForeignArrayNode.ForeignArray(foreignHash.key2, foreignHash.value2);
+                    return new ForeignArray(foreignHash.key2, foreignHash.value2);
                 } else {
                     throw StopIterationException.create();
                 }
@@ -1041,7 +1042,7 @@ public abstract class TruffleDebugNodes {
         }
 
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignHash implements TruffleObject {
+        public static final class ForeignHash implements TruffleObject {
             private final RubySymbol key1;
             private final int value1;
             private final RubySymbol key2;
@@ -1103,7 +1104,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)
     public abstract static class ForeignExecutableNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignExecutable implements TruffleObject {
+        public static final class ForeignExecutable implements TruffleObject {
 
             private final Object value;
 
@@ -1137,7 +1138,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_identity_function", onSingleton = true)
     public abstract static class ForeignIdentityFunctionNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignIdentityFunction implements TruffleObject {
+        public static final class ForeignIdentityFunction implements TruffleObject {
             @ExportMessage
             protected final boolean isExecutable() {
                 return true;
@@ -1159,7 +1160,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignString implements TruffleObject {
+        public static final class ForeignString implements TruffleObject {
 
             private final String string;
 
@@ -1195,7 +1196,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class ForeignExceptionNode extends CoreMethodArrayArgumentsNode {
         @SuppressWarnings("serial")
         @ExportLibrary(InteropLibrary.class)
-        public static class ForeignException extends AbstractTruffleException {
+        public static final class ForeignException extends AbstractTruffleException {
 
             public ForeignException(String message) {
                 super(message);

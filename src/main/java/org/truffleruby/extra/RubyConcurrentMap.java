@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * identity (#equal? in NonConcurrentMapBackend). To use custom code to compare the keys we need a wrapper for keys
  * implementing #hashCode and #equals. For comparing values by identity we use {@link ReferenceEqualNode} if the value
  * is a primitive, otherwise we rely on equals() being == on Ruby objects. */
-public class RubyConcurrentMap extends RubyDynamicObject {
+public final class RubyConcurrentMap extends RubyDynamicObject {
 
-    public static class Key {
+    public static final class Key {
 
         public final Object key;
         private final int hashCode;

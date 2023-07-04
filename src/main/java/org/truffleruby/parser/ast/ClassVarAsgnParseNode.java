@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Class variable assignment node. */
-public class ClassVarAsgnParseNode extends AssignableParseNode implements INameNode {
+public final class ClassVarAsgnParseNode extends AssignableParseNode implements INameNode {
     private String name;
 
     /** @param name id of the class variable to assign to

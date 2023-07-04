@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
+public final class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
 
     private final NodeFactory<? extends RubyBaseNode> nodeFactory;
     private final CoreMethod coreMethod;

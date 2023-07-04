@@ -14,7 +14,7 @@ import org.truffleruby.core.string.StringUtils;
 
 import java.util.Arrays;
 
-public class KeywordArgumentsDescriptorManager {
+public final class KeywordArgumentsDescriptorManager {
 
     public static final KeywordArgumentsDescriptor EMPTY = new KeywordArgumentsDescriptor(
             StringUtils.EMPTY_STRING_ARRAY);
@@ -31,7 +31,7 @@ public class KeywordArgumentsDescriptorManager {
         return CANONICAL_KEYWORD_DESCRIPTORS.addInCacheIfAbsent(key, descriptor);
     }
 
-    public static class Key {
+    public static final class Key {
 
         private final String[] keywords;
 

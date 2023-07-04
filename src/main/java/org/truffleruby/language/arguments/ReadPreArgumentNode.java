@@ -17,7 +17,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.utils.Utils;
 
-public class ReadPreArgumentNode extends RubyContextSourceNode {
+public final class ReadPreArgumentNode extends RubyContextSourceNode {
 
     private final int index;
     private final boolean keywordArguments;

@@ -172,7 +172,7 @@ public final class TraceManager {
 
     }
 
-    private class CallEventEventNode extends BaseEventEventNode {
+    private final class CallEventEventNode extends BaseEventEventNode {
 
         @Child private LogicalClassNode logicalClassNode;
 

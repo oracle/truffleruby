@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class CantConvertException extends FormatException {
+public final class CantConvertException extends FormatException {
 
     public CantConvertException(String message) {
         super(message);

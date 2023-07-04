@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class RescueStandardErrorNode extends RescueNode {
+public final class RescueStandardErrorNode extends RescueNode {
 
     public RescueStandardErrorNode(RubyNode rescueBody) {
         super(rescueBody);

@@ -55,7 +55,7 @@ import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.parser.RubyParser;
 
-public class StringTerm extends StrTerm {
+public final class StringTerm extends StrTerm {
 
     // Expand variables, Indentation of final marker
     private int flags;

@@ -25,7 +25,7 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public class MarkingServiceNodes {
+public abstract class MarkingServiceNodes {
 
     @GenerateUncached
     public abstract static class KeepAliveNode extends RubyBaseNode {
@@ -67,7 +67,7 @@ public class MarkingServiceNodes {
         }
     }
 
-    public static class QueueForMarkOnExitNode extends RubyBaseNode {
+    public static final class QueueForMarkOnExitNode extends RubyBaseNode {
 
         @NeverDefault
         public static QueueForMarkOnExitNode create() {

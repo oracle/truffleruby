@@ -23,7 +23,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
-    public static class ReadNthMatchNode extends RubyContextSourceNode {
+    public static final class ReadNthMatchNode extends RubyContextSourceNode {
         @Child private RubyNode readMatchNode;
         @Child private DispatchNode getIndexNode;
         private final int index;
@@ -73,7 +73,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
     }
 
-    public static class SetNamedVariablesMatchNode extends RubyContextSourceNode {
+    public static final class SetNamedVariablesMatchNode extends RubyContextSourceNode {
         @Child private RubyNode matchDataNode;
         @Child private RubyNode readMatchNode;
         @Children private final RubyNode[] setters;

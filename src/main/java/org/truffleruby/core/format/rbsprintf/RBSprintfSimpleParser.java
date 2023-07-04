@@ -16,7 +16,7 @@ import java.util.List;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 
-public class RBSprintfSimpleParser {
+public final class RBSprintfSimpleParser {
 
     private final char[] source;
     private final boolean isDebug;
@@ -410,7 +410,7 @@ public class RBSprintfSimpleParser {
         return new LookAheadResult(result, newI);
     }
 
-    public static class LookAheadResult {
+    public static final class LookAheadResult {
         private Integer number;
         private int nextI;
 

@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.util.Arrays;
 
-public class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
+public final class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
 
     public final NodeFactory<? extends RubyBaseNode> nodeFactory;
 

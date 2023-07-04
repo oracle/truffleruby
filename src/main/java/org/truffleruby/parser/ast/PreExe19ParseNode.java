@@ -33,7 +33,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
 /** A pre-execution construction (BEGIN { ... }). */
-public class PreExe19ParseNode extends PreExeParseNode {
+public final class PreExe19ParseNode extends PreExeParseNode {
     public PreExe19ParseNode(SourceIndexLength position, StaticScope scope, ParseNode body) {
         super(position, scope, body);
     }

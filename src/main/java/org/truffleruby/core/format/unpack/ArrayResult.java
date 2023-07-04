@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format.unpack;
 
-public class ArrayResult {
+public final class ArrayResult {
 
     private final Object output;
     private final int outputLength;

@@ -102,7 +102,7 @@ public abstract class ReadBERNode extends FormatNode {
         return new BigIntegerAndPos(big, pos);
     }
 
-    private static class BigIntegerAndPos {
+    private static final class BigIntegerAndPos {
 
         private final BigInteger bigInteger;
         private final int pos;

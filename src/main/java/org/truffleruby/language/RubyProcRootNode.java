@@ -28,7 +28,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyProcRootNode extends RubyRootNode {
+public final class RubyProcRootNode extends RubyRootNode {
 
     @Child private TranslateExceptionNode translateExceptionNode;
     @Child private CheckKeywordArityNode checkKeywordArityNode;

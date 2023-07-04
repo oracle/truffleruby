@@ -21,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements InternalRootNode {
+public final class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final TruffleString sourceString;
     @Child DispatchNode callEvalNode = DispatchNode.create();

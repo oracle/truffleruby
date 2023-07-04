@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 // Must use TruffleString.Encoding and not RubyEncoding to avoid initialization cycle
-public class TStringConstants {
+public final class TStringConstants {
     public static final Map<String, TruffleString> TSTRING_CONSTANTS = new HashMap<>();
 
     public static final TruffleString EMPTY_BINARY = withHashCode(TruffleString.Encoding.BYTES.getEmpty());

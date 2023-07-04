@@ -24,7 +24,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubySyntaxError extends RubyException {
+public final class RubySyntaxError extends RubyException {
 
     private final SourceSection sourceLocation; // this is where the syntax error happened in the file being parsed
 

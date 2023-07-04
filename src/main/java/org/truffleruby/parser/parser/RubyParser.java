@@ -157,7 +157,7 @@ import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
-public class RubyParser {
+public final class RubyParser {
     protected final ParserSupport support;
     protected final RubyLexer lexer;
 

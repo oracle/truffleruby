@@ -26,7 +26,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyTime extends RubyDynamicObject {
+public final class RubyTime extends RubyDynamicObject {
 
     ZonedDateTime dateTime;
     Object offset;

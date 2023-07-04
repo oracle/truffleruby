@@ -158,7 +158,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    static class ShareElements {
+    static final class ShareElements {
 
         @Specialization
         protected static void shareElements(NativeArrayStorage store, int start, int end,

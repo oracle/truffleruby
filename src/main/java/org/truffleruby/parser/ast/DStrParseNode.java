@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A string which contains some dynamic elements which needs to be evaluated (introduced by #). */
-public class DStrParseNode extends DParseNode implements ILiteralNode {
+public final class DStrParseNode extends DParseNode implements ILiteralNode {
 
     public DStrParseNode(SourceIndexLength position, Encoding encoding) {
         super(position, encoding);

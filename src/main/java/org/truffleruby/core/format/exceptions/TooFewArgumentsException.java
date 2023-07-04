@@ -10,5 +10,5 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class TooFewArgumentsException extends FormatException {
+public final class TooFewArgumentsException extends FormatException {
 }

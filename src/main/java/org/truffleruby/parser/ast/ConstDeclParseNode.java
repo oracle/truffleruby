@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Declaration (and assignment) of a Constant. */
-public class ConstDeclParseNode extends AssignableParseNode implements INameNode {
+public final class ConstDeclParseNode extends AssignableParseNode implements INameNode {
     private final String name;
     private final INameNode constNode;
 

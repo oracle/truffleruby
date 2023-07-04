@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** zero length list */
-public class ZArrayParseNode extends ListParseNode implements ILiteralNode {
+public final class ZArrayParseNode extends ListParseNode implements ILiteralNode {
     public ZArrayParseNode(SourceIndexLength position) {
         super(position);
     }

@@ -35,7 +35,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.parser.scope.StaticScope;
 
-public class ParserConfiguration {
+public final class ParserConfiguration {
     private StaticScope existingScope = null;
     private boolean asBlock = false;
     // Is this inline source (aka -e "...source...")

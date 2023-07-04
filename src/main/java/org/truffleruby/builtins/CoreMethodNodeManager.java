@@ -54,7 +54,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
-public class CoreMethodNodeManager {
+public final class CoreMethodNodeManager {
 
     private final RubyContext context;
     private final RubyLanguage language;
@@ -509,7 +509,7 @@ public class CoreMethodNodeManager {
         return (NodeFactory<? extends RubyBaseNode>) instance;
     }
 
-    public static class MethodDetails {
+    public static final class MethodDetails {
 
         private final String moduleName;
         private final CoreMethod methodAnnotation;

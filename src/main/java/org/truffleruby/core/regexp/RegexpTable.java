@@ -13,7 +13,7 @@ import org.truffleruby.collections.WeakValueCache;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class RegexpTable {
+public final class RegexpTable {
 
     // A cache for j.l.String to Regexps. Entries are kept as long as the Regexp is alive.
     // However, this doesn't matter as the cache entries will be re-created when used.

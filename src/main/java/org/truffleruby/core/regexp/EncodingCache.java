@@ -18,7 +18,7 @@ import org.joni.Regex;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.encoding.RubyEncoding;
 
-public class EncodingCache {
+public final class EncodingCache {
     private final Map<RubyEncoding, Regex> encodings;
 
     @TruffleBoundary

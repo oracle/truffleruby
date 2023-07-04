@@ -51,7 +51,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.nodes.Node;
 
-public class SimpleUnpackTreeBuilder implements SimplePackListener {
+public final class SimpleUnpackTreeBuilder implements SimplePackListener {
 
     private final Node currentNode;
 

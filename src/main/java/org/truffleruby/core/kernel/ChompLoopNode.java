@@ -16,7 +16,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 
-public class ChompLoopNode extends RubyContextSourceNode {
+public final class ChompLoopNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callChompNode = DispatchNode.create();
     @Child private ReadGlobalVariableNode readGlobalVariableNode = ReadGlobalVariableNodeGen.create("$_");
