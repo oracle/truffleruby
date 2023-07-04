@@ -144,7 +144,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             if (invocable.profile(node, receivers.isMemberInvocable(receiver, name))) {
                 return invokeNode.execute(node, receiver, name, args);
             } else {
-                return readNode.execute(receiver, toSymbolNode.execute(name));
+                return readNode.execute(node, receiver, toSymbolNode.execute(name));
             }
         }
 

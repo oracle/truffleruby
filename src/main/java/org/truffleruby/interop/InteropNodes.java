@@ -1265,22 +1265,23 @@ public abstract class InteropNodes {
         @Specialization
         protected Object readMember(Object receiver, Object identifier,
                 @Cached ReadMemberNode readMemberNode) {
-            return readMemberNode.execute(receiver, identifier);
+            return readMemberNode.execute(this, receiver, identifier);
         }
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class ReadMemberNode extends RubyBaseNode {
 
-        public abstract Object execute(Object receiver, Object identifier);
+        public abstract Object execute(Node node, Object receiver, Object identifier);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object readMember(Object receiver, Object identifier,
+        protected static Object readMember(Node node, Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @Bind("this") Node node) {
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = InteropNodes.readMember(node, receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
