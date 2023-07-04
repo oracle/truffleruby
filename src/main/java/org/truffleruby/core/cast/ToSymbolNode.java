@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -28,52 +29,61 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
+@GenerateCached
+@GenerateInline(inlineByDefault = true)
 public abstract class ToSymbolNode extends RubyBaseNode {
 
-    public abstract RubySymbol execute(Object object);
+    public final RubySymbol executeCached(Object object) {
+        return execute(this, object);
+    }
+
+    public static RubySymbol executeUncached(Object object) {
+        return ToSymbolNodeGen.getUncached().execute(null, object);
+    }
+
+    public abstract RubySymbol execute(Node node, Object object);
 
     @Specialization
-    protected RubySymbol symbol(RubySymbol symbol) {
+    protected static RubySymbol symbol(RubySymbol symbol) {
         return symbol;
     }
 
     @Specialization(guards = "str == cachedStr", limit = "getCacheLimit()")
-    protected RubySymbol javaString(String str,
+    protected static RubySymbol javaString(String str,
             @Cached(value = "str") String cachedStr,
             @Cached(value = "getSymbol(cachedStr)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(replaces = "javaString")
-    protected RubySymbol javaStringUncached(String str) {
-        return getSymbol(str);
+    protected static RubySymbol javaStringUncached(Node node, String str) {
+        return getSymbol(node, str);
     }
 
     @Specialization(
             guards = { "strings.isRubyString(str)", "equalNode.execute(strings, str, cachedTString, cachedEncoding)" },
             limit = "getCacheLimit()")
-    protected RubySymbol rubyString(Object str,
+    protected static RubySymbol rubyString(Node node, Object str,
             @Cached @Shared RubyStringLibrary strings,
             @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
             @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-            @Cached(value = "getSymbol(cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
+            @Cached(value = "getSymbol(node, cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString", limit = "1")
-    protected RubySymbol rubyStringUncached(Object str,
+    protected static RubySymbol rubyStringUncached(Node node, Object str,
             @Cached @Shared RubyStringLibrary strings) {
-        return getSymbol(strings.getTString(str), strings.getEncoding(str));
+        return getSymbol(node, strings.getTString(str), strings.getEncoding(str));
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
-    protected static RubySymbol toStr(Object object,
+    protected static RubySymbol toStr(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @Cached @Exclusive RubyStringLibrary strings,
-            @Cached ToSymbolNode toSymbolNode,
-            @Bind("this") Node node) {
+            @Cached(inline = false) ToSymbolNode toSymbolNode) {
         var coerced = toStrNode.call(
                 coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",
@@ -82,7 +92,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
                 coreSymbols(node).TO_STR);
 
         if (strings.isRubyString(coerced)) {
-            return toSymbolNode.execute(coerced);
+            return toSymbolNode.executeCached(coerced);
         } else {
             errorProfile.enter(node);
             throw new RaiseException(getContext(node), coreExceptions(node).typeErrorBadCoercion(

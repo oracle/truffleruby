@@ -1461,7 +1461,7 @@ public abstract class KernelNodes {
             } else if (respondToMissingProfile
                     .profile(this, dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
                 return castMissingResultNode.execute(this, respondToMissingNode.call(self, "respond_to_missing?",
-                        toSymbolNode.execute(name), includeProtectedAndPrivate));
+                        toSymbolNode.execute(this, name), includeProtectedAndPrivate));
             } else {
                 return false;
             }

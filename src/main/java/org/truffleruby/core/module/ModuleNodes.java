@@ -342,8 +342,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
                 @Cached ToSymbolNode toSymbolNode) {
-            final var newName = toSymbolNode.execute(newNameObject);
-            final var oldName = toSymbolNode.execute(oldNameObject);
+            final var newName = toSymbolNode.execute(this, newNameObject);
+            final var oldName = toSymbolNode.execute(this, oldNameObject);
             return aliasMethod(module, newName, oldName, this);
         }
 
