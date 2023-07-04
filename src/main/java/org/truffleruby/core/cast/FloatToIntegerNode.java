@@ -49,7 +49,7 @@ public abstract class FloatToIntegerNode extends RubyBaseNode {
                 throw new RaiseException(getContext(node), coreExceptions(node).floatDomainError("NaN", node));
             }
 
-            return fixnumOrBignumNode.fixnumOrBignum(BigIntegerOps.fromDouble(value));
+            return fixnumOrBignumNode.execute(node, BigIntegerOps.fromDouble(value));
         }
     }
 }

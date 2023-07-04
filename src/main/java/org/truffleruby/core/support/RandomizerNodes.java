@@ -83,7 +83,7 @@ public abstract class RandomizerNodes {
         @Specialization
         protected Object randomizerRandInt(RubyRandomizer randomizer, RubyBignum limit,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
-            return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(randomizer, limit.value));
+            return fixnumOrBignum.execute(this, randLimitedBignum(randomizer, limit.value));
         }
 
         @TruffleBoundary

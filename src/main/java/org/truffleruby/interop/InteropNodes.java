@@ -1131,7 +1131,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
             try {
-                return fixnumOrBignumNode.fixnumOrBignum(receivers.asBigInteger(receiver));
+                return fixnumOrBignumNode.execute(node, receivers.asBigInteger(receiver));
             } catch (InteropException e) {
                 throw translateInteropException.execute(node, e);
             }

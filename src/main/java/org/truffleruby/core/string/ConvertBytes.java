@@ -465,7 +465,7 @@ public final class ConvertBytes {
             }
         }
 
-        return fixnumOrBignumNode.fixnumOrBignum(z);
+        return fixnumOrBignumNode.execute(caller, z);
     }
 
     private BigInteger stringToBig(String str) {

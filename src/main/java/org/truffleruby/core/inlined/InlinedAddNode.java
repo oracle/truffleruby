@@ -49,7 +49,7 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     @Specialization(assumptions = "assumptions")
     protected Object longAddWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignum) {
-        return fixnumOrBignum.fixnumOrBignum(BigIntegerOps.add(a, b));
+        return fixnumOrBignum.execute(this, BigIntegerOps.add(a, b));
     }
 
     @Specialization(assumptions = "assumptions")

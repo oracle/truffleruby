@@ -199,8 +199,8 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
         }
 
         return createArray(node, new Object[]{
-                fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]),
-                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]) });
+                fixnumOrBignumQuotient.execute(node, bigIntegerResults[0]),
+                fixnumOrBignumRemainder.execute(node, bigIntegerResults[1]) });
     }
 
 }

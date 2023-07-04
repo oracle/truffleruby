@@ -151,7 +151,7 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getEncodingManager().getLocaleEncoding();
     }
 
-    protected final RubyBignum createBignum(BigInteger value) {
+    protected static RubyBignum createBignum(BigInteger value) {
         return BignumOperations.createBignum(value);
     }
 
