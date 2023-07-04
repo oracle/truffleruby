@@ -135,7 +135,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             SourceSection sourceSection,
             RubyModule lexicalParent,
             String givenBaseName,
-            RubyModule rubyModule) {
+            RubyModule rubyModule /* not fully initialized yet, should not access any field of it */) {
         super(null);
         this.language = language;
         this.sourceSection = sourceSection;

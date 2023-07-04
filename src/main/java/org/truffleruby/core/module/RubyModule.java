@@ -48,6 +48,7 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
     @DynamicField private Object object3;
     @DynamicField private Object object4;
 
+    @SuppressWarnings("this-escape")
     public RubyModule(
             RubyClass rubyClass,
             Shape shape,
@@ -59,6 +60,7 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
         this.fields = new ModuleFields(language, sourceSection, lexicalParent, givenBaseName, this);
     }
 
+    @SuppressWarnings("this-escape")
     protected RubyModule(RubyLanguage language, Shape classShape, String constructorOnlyForClassClass) {
         super(classShape, constructorOnlyForClassClass);
         this.fields = new ModuleFields(language, null, null, "Class", this);
