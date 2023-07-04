@@ -1912,8 +1912,14 @@ public abstract class IntegerNodes {
     public abstract static class ModPowNodePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object doModPow(BigInteger base, BigInteger exponent, BigInteger modulo,
+        protected Object doModPow(Object baseObject, Object exponentObject, Object moduloObject,
+                @Cached BigIntegerCastNode baseCastNode,
+                @Cached BigIntegerCastNode exponentCastNode,
+                @Cached BigIntegerCastNode moduloCastNode,
                 @Cached ModPowNode modPowNode) {
+            final var base = baseCastNode.execute(baseObject);
+            final var exponent = exponentCastNode.execute(exponentObject);
+            final var modulo = moduloCastNode.execute(moduloObject);
             return modPowNode.execute(this, base, exponent, modulo);
         }
     }
