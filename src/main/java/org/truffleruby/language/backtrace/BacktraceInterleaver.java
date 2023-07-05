@@ -50,11 +50,16 @@ public class BacktraceInterleaver {
         return interleaved;
     }
 
+
     public static boolean isCallBoundary(StackTraceElement element) {
-        return (element.getClassName().equals("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget") &&
-                element.getMethodName().equals("executeRootNode")) ||
-                (element.getClassName().equals("com.oracle.truffle.api.impl.DefaultCallTarget") &&
-                        element.getMethodName().startsWith("call"));
+        // GR-47041: we need com.oracle.truffle.api.impl.Accessor.RuntimeSupport.isGuestCallStackFrame but it's not public
+        String className = element.getClassName();
+        String methodName = element.getMethodName();
+        return ((className.equals("com.oracle.truffle.runtime.OptimizedCallTarget") ||
+                className.equals("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget")) &&
+                methodName.equals("executeRootNode")) ||
+                (className.equals("com.oracle.truffle.api.impl.DefaultCallTarget") &&
+                        methodName.equals("callDirectOrIndirect"));
     }
 
     private static boolean isIntoRuby(StackTraceElement[] elements, int index) {
