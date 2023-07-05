@@ -201,7 +201,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         var arguments = node.arguments.arguments;
 
         if (arguments == null) {
-            arguments = new Nodes.Node[]{};
+            arguments = Nodes.Node.EMPTY_ARRAY;
         }
 
         var translatedArguments = new RubyNode[arguments.length];
@@ -784,7 +784,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
-        var location = new SourceIndexLength(node.startOffset, node.length());
+        var location = new SourceIndexLength(node.startOffset, node.length);
 
         var body = node.body;
         var translated = new RubyNode[body.length];
@@ -933,11 +933,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private String toString(Nodes.Location location) {
-        return new String(sourceBytes, location.startOffset, location.length(), StandardCharsets.US_ASCII);
+        return new String(sourceBytes, location.startOffset, location.length, StandardCharsets.US_ASCII);
     }
 
     private String toString(Nodes.Node node) {
-        return new String(sourceBytes, node.startOffset, node.length(), StandardCharsets.US_ASCII);
+        return new String(sourceBytes, node.startOffset, node.length, StandardCharsets.US_ASCII);
     }
 
     private String toString(Nodes.SymbolNode node) {
