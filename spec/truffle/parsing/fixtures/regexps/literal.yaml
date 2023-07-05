@@ -6,4 +6,5 @@ ruby: |
 ast: |
   ObjectLiteralNode
       attributes:
+          flags = 1
           object = RubyRegexp(source = abc, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)

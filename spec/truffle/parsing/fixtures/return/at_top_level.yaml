@@ -7,21 +7,31 @@ ruby: |
   return 42
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               LocalReturnNode
+                  attributes:
+                      flags = 1
                   children:
                       value =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 42
           ]

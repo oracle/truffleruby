@@ -6,4 +6,5 @@ ruby: |
 ast: |
   FloatLiteralNode
       attributes:
+          flags = 1
           value = 3.14

@@ -6,4 +6,5 @@ ruby: |
 ast: |
   BooleanLiteralNode
       attributes:
+          flags = 1
           value = false

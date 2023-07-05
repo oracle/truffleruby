@@ -11,6 +11,7 @@ ast: |
       attributes:
           emptyTString = ""
           encoding = UTF-8
+          flags = 1
       children:
           children = [
               ToSNodeGen
@@ -19,12 +20,14 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = ab
               ToSNodeGen
                   children:
                       valueNode_ =
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = ""
               ToSNodeGen
                   children:
@@ -32,5 +35,6 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = cd
           ]

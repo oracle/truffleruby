@@ -5,3 +5,5 @@ ruby: |
   retry
 ast: |
   RetryNode
+      attributes:
+          flags = 1

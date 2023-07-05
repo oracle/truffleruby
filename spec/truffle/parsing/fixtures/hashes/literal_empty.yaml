@@ -7,3 +7,5 @@ ruby: |
   {}
 ast: |
   EmptyHashStore$EmptyHashLiteralNode
+      attributes:
+          flags = 1

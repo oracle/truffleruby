@@ -7,6 +7,7 @@ ast: |
   InlinedEqualNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
+          flags = 1
           floatEqualAssumption = Assumption(valid, name=inlined Float#==)
           integerEqualAssumption = Assumption(valid, name=inlined Integer#==)
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
@@ -14,8 +15,10 @@ ast: |
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 1
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 2

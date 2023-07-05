@@ -7,6 +7,8 @@ ruby: |
   {**foo}
 ast: |
   HashCastNodeGen$HashCastASTNodeGen
+      attributes:
+          flags = 0
       children:
           childNode_ =
               RubyCallNode
@@ -14,6 +16,7 @@ ast: |
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PRIVATE
                       emptyKeywordsProfile = false
+                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -26,3 +29,5 @@ ast: |
                   children:
                       receiver =
                           SelfNode
+                              attributes:
+                                  flags = 0

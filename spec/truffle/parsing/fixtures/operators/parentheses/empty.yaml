@@ -7,21 +7,30 @@ ruby: |
   ()
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               EmitWarningsNode
                   attributes:
+                      flags = 0
                       warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               NilLiteralNode
                   attributes:
+                      flags = 1
                       isImplicit = false
           ]

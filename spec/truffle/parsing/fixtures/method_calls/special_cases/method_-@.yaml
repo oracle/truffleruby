@@ -8,10 +8,12 @@ ast: |
   InlinedNegNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#-@), Assumption(valid, name=inlined Float#-@)]
+          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           selfNode_ =
               ReadLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 2
                       type = FRAME_LOCAL

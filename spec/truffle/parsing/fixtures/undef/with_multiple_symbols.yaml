@@ -5,36 +5,52 @@ ruby: |
   undef :a, :b, :c
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               ModuleNodes$UndefNode
+                  attributes:
+                      flags = 0
                   children:
                       names = [
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = :a
                       ]
               ModuleNodes$UndefNode
+                  attributes:
+                      flags = 0
                   children:
                       names = [
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = :b
                       ]
               ModuleNodes$UndefNode
+                  attributes:
+                      flags = 0
                   children:
                       names = [
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = :c
                       ]
           ]

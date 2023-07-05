@@ -9,13 +9,17 @@ ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
+          flags = 1
       children:
           child =
               AndNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       left =
                           ReadGlobalVariableNodeGen
                               attributes:
+                                  flags = 0
                                   name = "$foo"
                               children:
                                   lookupGlobalVariableStorageNode =
@@ -26,6 +30,7 @@ ast: |
                       right =
                           WriteGlobalVariableNodeGen
                               attributes:
+                                  flags = 0
                                   name = "$foo"
                               children:
                                   lookupGlobalVariableStorageNode =
@@ -36,4 +41,5 @@ ast: |
                                   valueNode_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 0
                                               value = 42

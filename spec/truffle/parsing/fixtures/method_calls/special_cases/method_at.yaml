@@ -7,13 +7,16 @@ ast: |
   InlinedAtNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
+          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           leftNode_ =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
+                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42

@@ -11,6 +11,7 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
+          flags = 1
           isAttrAssign = false
           isSafeNavigation = true
           isSplatted = false
@@ -24,4 +25,5 @@ ast: |
           receiver =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42

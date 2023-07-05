@@ -14,21 +14,28 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
+          flags = 1
       children:
           rescueParts = [
               RescueStandardErrorNode
+                  attributes:
+                      flags = 0
                   children:
                       rescueBody =
                           SequenceNode
+                              attributes:
+                                  flags = 0
                               children:
                                   body = [
                                       WriteLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 2
                                           children:
                                               valueNode =
                                                   ReadGlobalVariableNodeGen
                                                       attributes:
+                                                          flags = 0
                                                           name = "$!"
                                                       children:
                                                           lookupGlobalVariableStorageNode =
@@ -38,6 +45,7 @@ ast: |
                                                                       name = "$!"
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -45,4 +53,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 1
                       tstring = foo

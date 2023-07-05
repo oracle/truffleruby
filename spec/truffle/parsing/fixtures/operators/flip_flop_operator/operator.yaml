@@ -12,16 +12,19 @@ ast: |
   FlipFlopNodeGen
       attributes:
           exclusive = false
+          flags = 1
           frameLevel = 0
           frameSlot = 3
       children:
           begin =
               ReadLocalVariableNode
                   attributes:
+                      flags = 1
                       frameSlot = 2
                       type = FRAME_LOCAL
           end =
               ReadLocalVariableNode
                   attributes:
+                      flags = 1
                       frameSlot = 2
                       type = FRAME_LOCAL

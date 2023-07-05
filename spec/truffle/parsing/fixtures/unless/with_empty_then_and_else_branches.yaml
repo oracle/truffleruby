@@ -10,12 +10,16 @@ ruby: |
   end
 ast: |
   IfNodeGen
+      attributes:
+          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
+                      flags = 1
                       value = true
           thenBody =
               NilLiteralNode
                   attributes:
+                      flags = 0
                       isImplicit = true

@@ -14,6 +14,7 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
           isDefSingleton = false
           name = "a"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=26, characters=def a\n  defined? yield\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
@@ -39,27 +40,38 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   SaveMethodBlockNode
                                       attributes:
+                                          flags = 0
                                           slot = 2
                                   DefinedNode
+                                      attributes:
+                                          flags = 1
                                       children:
                                           child =
                                               YieldExpressionNode
                                                   attributes:
                                                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                       emptyKeywordsProfile = false
+                                                      flags = 0
                                                       isSplatted = false
                                                       lastArgIsNotHashProfile = false
                                                       notEmptyKeywordsProfile = false
@@ -69,6 +81,7 @@ ast: |
                                                       readBlockNode =
                                                           ReadLocalVariableNode
                                                               attributes:
+                                                                  flags = 0
                                                                   frameSlot = 2
                                                                   type = FRAME_LOCAL
                               ]

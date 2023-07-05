@@ -5,9 +5,12 @@ ruby: |
   undef a
 ast: |
   ModuleNodes$UndefNode
+      attributes:
+          flags = 1
       children:
           names = [
               ObjectLiteralNode
                   attributes:
+                      flags = 0
                       object = :a
           ]

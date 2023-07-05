@@ -7,6 +7,8 @@ ruby: |
   a, b = 'foo'
 ast: |
   MultipleAssignmentNode
+      attributes:
+          flags = 1
       children:
           preNodes = [
               WriteFrameSlotNodeGen
@@ -20,10 +22,12 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 0
                       tstring = foo
           splatCastNode =
               SplatCastNodeGen
                   attributes:
                       conversionMethod = :to_ary
                       copy = true
+                      flags = 0
                       nilBehavior = ARRAY_WITH_NIL

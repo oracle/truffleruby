@@ -5,15 +5,20 @@ ruby: |
   undef :"a_#{ 1 }"
 ast: |
   ModuleNodes$UndefNode
+      attributes:
+          flags = 1
       children:
           names = [
               StringToSymbolNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       stringNode_ =
                           InterpolatedStringNode
                               attributes:
                                   emptyTString = ""
                                   encoding = UTF-8
+                                  flags = 0
                               children:
                                   children = [
                                       ToSNodeGen
@@ -22,12 +27,14 @@ ast: |
                                                   StringLiteralNode
                                                       attributes:
                                                           encoding = UTF-8
+                                                          flags = 0
                                                           tstring = a_
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
+                                                          flags = 1
                                                           value = 1
                                   ]
           ]

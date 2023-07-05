@@ -12,6 +12,7 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
+          flags = 1
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -24,10 +25,15 @@ ast: |
       children:
           block =
               ToProcNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       childNode_ =
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = :symbol
           receiver =
               SelfNode
+                  attributes:
+                      flags = 0

@@ -6,4 +6,5 @@ ruby: |
 ast: |
   IntegerFixnumLiteralNode
       attributes:
+          flags = 1
           value = 66

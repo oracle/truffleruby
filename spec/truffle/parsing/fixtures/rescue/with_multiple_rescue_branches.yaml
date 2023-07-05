@@ -27,13 +27,17 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
+          flags = 1
       children:
           rescueParts = [
               RescueClassesNode
+                  attributes:
+                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
+                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
                               children:
@@ -48,12 +52,16 @@ ast: |
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 1
                                   value = 42
               RescueClassesNode
+                  attributes:
+                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
+                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "SyntaxError"
                               children:
@@ -68,10 +76,12 @@ ast: |
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 1
                                   value = 100500
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 1
                       tstring = foo

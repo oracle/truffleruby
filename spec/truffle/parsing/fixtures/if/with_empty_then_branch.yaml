@@ -10,12 +10,16 @@ ruby: |
   end
 ast: |
   UnlessNodeGen
+      attributes:
+          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
+                      flags = 1
                       value = true
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 1
                       value = 42

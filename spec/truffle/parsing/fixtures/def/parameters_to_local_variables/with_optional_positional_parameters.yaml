@@ -18,6 +18,7 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=30, characters=def foo(a, b=42, c=100500)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 2, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = opt)])
@@ -43,40 +44,54 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 2
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadPreArgumentNode
                                                               attributes:
+                                                                  flags = 0
                                                                   index = 0
                                                                   keywordArguments = false
                                                                   missingArgumentBehavior = RUNTIME_ERROR
                                   SaveMethodBlockNode
                                       attributes:
+                                          flags = 0
                                           slot = 5
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadOptionalArgumentNode
                                                   attributes:
+                                                      flags = 0
                                                       index = 1
                                                       keywordArguments = false
                                                       minimum = 2
@@ -84,14 +99,17 @@ ast: |
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
+                                                                  flags = 0
                                                                   value = 42
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 4
                                       children:
                                           valueNode =
                                               ReadOptionalArgumentNode
                                                   attributes:
+                                                      flags = 0
                                                       index = 2
                                                       keywordArguments = false
                                                       minimum = 3
@@ -99,8 +117,10 @@ ast: |
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
+                                                                  flags = 0
                                                                   value = 100500
                                   NilLiteralNode
                                       attributes:
+                                          flags = 0
                                           isImplicit = false
                               ]

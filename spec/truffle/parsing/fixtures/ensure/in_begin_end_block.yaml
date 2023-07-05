@@ -13,18 +13,27 @@ ruby: |
   end
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               EnsureNodeGen
+                  attributes:
+                      flags = 1
                   children:
                       ensurePart =
                           RubyCallNode
@@ -32,6 +41,7 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
+                                  flags = 1
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -44,9 +54,12 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
+                                          attributes:
+                                              flags = 0
                       tryPart =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 1
                                   tstring = foo
           ]

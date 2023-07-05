@@ -17,6 +17,7 @@ ast: |
           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
+          flags = 0
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -30,16 +31,20 @@ ast: |
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 1
           ]
           block =
               LambdaToProcNode
+                  attributes:
+                      flags = 0
                   children:
                       blockNode =
                           BlockDefinitionNode
                               attributes:
                                   breakID = org.truffleruby.language.control.BreakID@...
                                   callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in <top (required)>, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                  flags = 0
                                   frameOnStackMarkerSlot = -1
                                   sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=13, characters=lambda(1) { }), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
                                   type = LAMBDA
@@ -73,20 +78,30 @@ ast: |
                                       children:
                                           body =
                                               SequenceNode
+                                                  attributes:
+                                                      flags = 12
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
+                                                                  flags = 0
                                                                   frameSlot = 0
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
                                                                           children:
                                                                               childNode_ =
                                                                                   ReadSelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
                                                           NilLiteralNode
                                                               attributes:
+                                                                  flags = 0
                                                                   isImplicit = false
                                                       ]
           receiver =
               SelfNode
+                  attributes:
+                      flags = 0

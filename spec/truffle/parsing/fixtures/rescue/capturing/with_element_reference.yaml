@@ -27,13 +27,17 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
+          flags = 1
       children:
           rescueParts = [
               RescueClassesNode
+                  attributes:
+                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
+                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
                               children:
@@ -47,20 +51,25 @@ ast: |
                       ]
                       rescueBody =
                           SequenceNode
+                              attributes:
+                                  flags = 0
                               children:
                                   body = [
                                       InlinedIndexSetNodeGen
                                           attributes:
                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                              flags = 0
                                               parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                                           children:
                                               operand1Node_ =
                                                   ObjectLiteralNode
                                                       attributes:
+                                                          flags = 0
                                                           object = :foo
                                               operand2Node_ =
                                                   ReadGlobalVariableNodeGen
                                                       attributes:
+                                                          flags = 0
                                                           name = "$!"
                                                       children:
                                                           lookupGlobalVariableStorageNode =
@@ -74,6 +83,7 @@ ast: |
                                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                           dispatchConfig = PRIVATE
                                                           emptyKeywordsProfile = false
+                                                          flags = 0
                                                           isAttrAssign = false
                                                           isSafeNavigation = false
                                                           isSplatted = false
@@ -86,8 +96,11 @@ ast: |
                                                       children:
                                                           receiver =
                                                               SelfNode
+                                                                  attributes:
+                                                                      flags = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -95,4 +108,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 1
                       tstring = foo

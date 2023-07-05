@@ -7,13 +7,16 @@ ast: |
   InlinedLessThanNodeGen
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#<), Assumption(valid, name=inlined Float#<)]
+          flags = 1
           parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
       children:
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 1
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 2

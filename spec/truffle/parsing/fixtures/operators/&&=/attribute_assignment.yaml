@@ -14,13 +14,17 @@ ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
+          flags = 1
       children:
           child =
               SequenceNode
+                  attributes:
+                      flags = 0
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
+                                  flags = 0
                                   frameSlot = 2
                               children:
                                   valueNode =
@@ -29,6 +33,7 @@ ast: |
                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                               dispatchConfig = PRIVATE
                                               emptyKeywordsProfile = false
+                                              flags = 0
                                               isAttrAssign = false
                                               isSafeNavigation = false
                                               isSplatted = false
@@ -41,7 +46,11 @@ ast: |
                                           children:
                                               receiver =
                                                   SelfNode
+                                                      attributes:
+                                                          flags = 0
                           AndNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   left =
                                       RubyCallNode
@@ -49,6 +58,7 @@ ast: |
                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
+                                              flags = 0
                                               isAttrAssign = false
                                               isSafeNavigation = false
                                               isSplatted = false
@@ -62,6 +72,7 @@ ast: |
                                               receiver =
                                                   ReadLocalVariableNode
                                                       attributes:
+                                                          flags = 0
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
                                   right =
@@ -70,6 +81,7 @@ ast: |
                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
+                                              flags = 0
                                               isAttrAssign = true
                                               isSafeNavigation = false
                                               isSplatted = false
@@ -83,11 +95,13 @@ ast: |
                                               arguments = [
                                                   IntegerFixnumLiteralNode
                                                       attributes:
+                                                          flags = 0
                                                           value = 42
                                               ]
                                               receiver =
                                                   ReadLocalVariableNode
                                                       attributes:
+                                                          flags = 0
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
                       ]

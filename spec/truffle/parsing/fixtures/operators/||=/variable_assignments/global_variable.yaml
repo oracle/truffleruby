@@ -9,17 +9,23 @@ ruby: |
 ast: |
   OrLazyValueDefinedNodeGen
       attributes:
+          flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
       children:
           left =
               AndNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       left =
                           DefinedNode
+                              attributes:
+                                  flags = 0
                               children:
                                   child =
                                       ReadGlobalVariableNodeGen
                                           attributes:
+                                              flags = 0
                                               name = "$foo"
                                           children:
                                               lookupGlobalVariableStorageNode =
@@ -30,6 +36,7 @@ ast: |
                       right =
                           ReadGlobalVariableNodeGen
                               attributes:
+                                  flags = 0
                                   name = "$foo"
                               children:
                                   lookupGlobalVariableStorageNode =
@@ -40,6 +47,7 @@ ast: |
           right =
               WriteGlobalVariableNodeGen
                   attributes:
+                      flags = 0
                       name = "$foo"
                   children:
                       lookupGlobalVariableStorageNode =
@@ -50,4 +58,5 @@ ast: |
                       valueNode_ =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 42

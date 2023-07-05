@@ -9,3 +9,5 @@ ruby: |
   end
 ast: |
   RedoNode
+      attributes:
+          flags = 1

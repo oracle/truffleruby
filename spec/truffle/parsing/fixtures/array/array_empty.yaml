@@ -6,4 +6,5 @@ ruby: |
 ast: |
   ArrayLiteralNode$UninitialisedArrayLiteralNode
       attributes:
+          flags = 1
           language = org.truffleruby.RubyLanguage@...

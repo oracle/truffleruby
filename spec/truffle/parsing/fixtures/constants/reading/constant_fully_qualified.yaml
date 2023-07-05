@@ -6,7 +6,10 @@ ruby: |
 ast: |
   ReadConstantNode
       attributes:
+          flags = 1
           name = "Foo"
       children:
           moduleNode =
               ObjectClassLiteralNode
+                  attributes:
+                      flags = 0

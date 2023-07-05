@@ -37,9 +37,7 @@ public abstract class TruffleASTPrinter {
     // Skip the following node attributes:
     // - "sourceCharIndex", "sourceLength" - are incorrect and will have correct values in YARP
     // - "RubyRootNode.bodyCopy" - is set if clone-uninitialized is forced
-    // - "flags" - right now we cannot implement RubyNode::FLAG_NEWLINE with YARP so postpone it
-    private static final Set<String> attributesToIgnore = Set.of("sourceCharIndex", "sourceLength", "bodyCopy",
-            "flags");
+    private static final Set<String> attributesToIgnore = Set.of("sourceCharIndex", "sourceLength", "bodyCopy");
 
     public static String dump(RubyRootNode rootNode, String focusedNodeClassName, int index) {
         final Node node;

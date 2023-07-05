@@ -6,4 +6,5 @@ ruby: |
 ast: |
   NilLiteralNode
       attributes:
+          flags = 1
           isImplicit = false

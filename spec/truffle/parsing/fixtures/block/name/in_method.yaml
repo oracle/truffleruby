@@ -13,6 +13,7 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=21, characters=def foo\n  proc {}\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
@@ -38,28 +39,38 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   SaveMethodBlockNode
                                       attributes:
+                                          flags = 0
                                           slot = 2
                                   CatchBreakNode
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
+                                          flags = 0
                                           isWhile = false
                                       children:
                                           body =
                                               FrameOnStackNode
                                                   attributes:
+                                                      flags = 0
                                                       frameOnStackMarkerSlot = 3
                                                   children:
                                                       child =
@@ -68,6 +79,7 @@ ast: |
                                                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                   dispatchConfig = PRIVATE
                                                                   emptyKeywordsProfile = false
+                                                                  flags = 0
                                                                   isAttrAssign = false
                                                                   isSafeNavigation = false
                                                                   isSplatted = false
@@ -83,6 +95,7 @@ ast: |
                                                                           attributes:
                                                                               breakID = org.truffleruby.language.control.BreakID@...
                                                                               callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                              flags = 0
                                                                               frameOnStackMarkerSlot = 3
                                                                               sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
                                                                               type = PROC
@@ -107,21 +120,31 @@ ast: |
                                                                                   children:
                                                                                       body =
                                                                                           SequenceNode
+                                                                                              attributes:
+                                                                                                  flags = 12
                                                                                               children:
                                                                                                   body = [
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
+                                                                                                              flags = 0
                                                                                                               frameSlot = 0
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   ProfileArgumentNodeGen
+                                                                                                                      attributes:
+                                                                                                                          flags = 0
                                                                                                                       children:
                                                                                                                           childNode_ =
                                                                                                                               ReadSelfNode
+                                                                                                                                  attributes:
+                                                                                                                                      flags = 0
                                                                                                       NilLiteralNode
                                                                                                           attributes:
+                                                                                                              flags = 0
                                                                                                               isImplicit = false
                                                                                                   ]
                                                                   receiver =
                                                                       SelfNode
+                                                                          attributes:
+                                                                              flags = 0
                               ]

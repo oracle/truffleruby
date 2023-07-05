@@ -8,6 +8,8 @@ ruby: |
   /foo(?<bar>.+)/ =~ "baz"
 ast: |
   ReadMatchReferenceNodes$SetNamedVariablesMatchNode
+      attributes:
+          flags = 0
       children:
           matchDataNode =
               RubyCallNode
@@ -15,6 +17,7 @@ ast: |
                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                       dispatchConfig = PROTECTED
                       emptyKeywordsProfile = false
+                      flags = 1
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -29,30 +32,36 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = baz
                       ]
                       receiver =
                           ObjectLiteralNode
                               attributes:
+                                  flags = 0
                                   object = RubyRegexp(source = foo(?<bar>.+), options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
           nilSetters = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 3
                   children:
                       valueNode =
                           NilLiteralNode
                               attributes:
+                                  flags = 0
                                   isImplicit = true
           ]
           readMatchNode =
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 2
                   children:
                       valueNode =
                           ReadGlobalVariableNodeGen
                               attributes:
+                                  flags = 0
                                   name = "$~"
                               children:
                                   lookupGlobalVariableStorageNode =
@@ -63,11 +72,13 @@ ast: |
           setters = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 3
                   children:
                       valueNode =
                           MatchDataNodes$GetFixedNameMatchNode
                               attributes:
+                                  flags = 0
                                   symbol = :bar
                               children:
                                   getIndexNode =
@@ -78,6 +89,7 @@ ast: |
                                   readMatchNode =
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
           ]

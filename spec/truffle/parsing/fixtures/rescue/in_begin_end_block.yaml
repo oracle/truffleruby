@@ -13,32 +13,44 @@ ruby: |
   end
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               TryNodeGen
                   attributes:
                       canOmitBacktrace = true
+                      flags = 1
                   children:
                       rescueParts = [
                           RescueStandardErrorNode
+                              attributes:
+                                  flags = 0
                               children:
                                   rescueBody =
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 1
                                               value = 42
                       ]
                       tryPart =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 1
                                   tstring = foo
           ]

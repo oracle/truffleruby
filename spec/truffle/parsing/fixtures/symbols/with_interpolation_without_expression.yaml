@@ -9,4 +9,5 @@ ruby: |
 ast: |
   ObjectLiteralNode
       attributes:
+          flags = 0
           object = ""

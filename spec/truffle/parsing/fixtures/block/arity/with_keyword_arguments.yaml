@@ -20,6 +20,7 @@ ast: |
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=16, characters=proc do |a:, b:|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
           type = PROC
@@ -44,41 +45,53 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 1
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
+                                                      flags = 0
                                                       name = :a
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
+                                                      flags = 0
                                                       name = :b
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
                                   NilLiteralNode
                                       attributes:
+                                          flags = 0
                                           isImplicit = false
                               ]
                   checkKeywordArityNode =

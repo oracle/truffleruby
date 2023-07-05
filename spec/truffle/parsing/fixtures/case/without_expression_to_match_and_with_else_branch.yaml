@@ -26,30 +26,39 @@ ruby: |
   end
 ast: |
   IfElseNodeGen
+      attributes:
+          flags = 0
       children:
           condition =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42
           elseBody =
               IfElseNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       condition =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 100500
                       elseBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 1
                                   tstring = other
                       thenBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 1
                                   tstring = one hundred five hundred
           thenBody =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 1
                       tstring = forty two

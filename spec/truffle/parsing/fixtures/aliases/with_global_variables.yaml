@@ -6,5 +6,6 @@ ruby: |
 ast: |
   AliasGlobalVarNode
       attributes:
+          flags = 1
           newName = "$a"
           oldName = "$b"

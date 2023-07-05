@@ -6,17 +6,20 @@ ruby: |
 ast: |
   WriteClassVariableNode
       attributes:
+          flags = 1
           name = "@@foo"
       children:
           lexicalScopeNode =
               ObjectLiteralNode
                   attributes:
+                      flags = 0
                       object =  :: Object
           resolveTargetModuleNode =
               ResolveTargetModuleForClassVariablesNodeGen
           rhs =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42
           setClassVariableNode =
               SetClassVariableNodeGen

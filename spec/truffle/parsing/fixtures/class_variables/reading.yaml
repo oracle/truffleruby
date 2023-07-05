@@ -6,11 +6,13 @@ ruby: |
 ast: |
   ReadClassVariableNode
       attributes:
+          flags = 1
           name = "@@foo"
       children:
           lexicalScopeNode =
               ObjectLiteralNode
                   attributes:
+                      flags = 0
                       object =  :: Object
           lookupClassVariableNode =
               LookupClassVariableNodeGen

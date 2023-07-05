@@ -11,9 +11,11 @@ ast: |
   BreakNode
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
+          flags = 1
           ignoreMarker = true
       children:
           child =
               NilLiteralNode
                   attributes:
+                      flags = 0
                       isImplicit = false

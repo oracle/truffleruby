@@ -8,11 +8,13 @@ ruby: |
 ast: |
   OrLazyValueDefinedNodeGen
       attributes:
+          flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
       children:
           left =
               ReadInstanceVariableNode
                   attributes:
+                      flags = 0
                       name = "@foo"
                   children:
                       readSelfSlotNode =
@@ -22,6 +24,7 @@ ast: |
           right =
               WriteInstanceVariableNode
                   attributes:
+                      flags = 0
                       frozenProfile = false
                       name = "@foo"
                   children:
@@ -32,4 +35,5 @@ ast: |
                       rhs =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 42

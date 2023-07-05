@@ -16,43 +16,57 @@ ruby: |
   foo[42, 43, 44] &&= 100500
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 3
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 42
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 4
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 43
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 5
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 0
                                   value = 44
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 2
                   children:
                       valueNode =
@@ -61,6 +75,7 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
+                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -73,7 +88,11 @@ ast: |
                               children:
                                   receiver =
                                       SelfNode
+                                          attributes:
+                                              flags = 0
               AndNodeGen
+                  attributes:
+                      flags = 1
                   children:
                       left =
                           RubyCallNode
@@ -81,6 +100,7 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PROTECTED
                                   emptyKeywordsProfile = false
+                                  flags = 0
                                   isAttrAssign = false
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -94,20 +114,24 @@ ast: |
                                   arguments = [
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 3
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 4
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 5
                                               type = FRAME_LOCAL
                                   ]
                                   receiver =
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
                       right =
@@ -116,6 +140,7 @@ ast: |
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                   dispatchConfig = PROTECTED
                                   emptyKeywordsProfile = false
+                                  flags = 0
                                   isAttrAssign = true
                                   isSafeNavigation = false
                                   isSplatted = false
@@ -129,23 +154,28 @@ ast: |
                                   arguments = [
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 3
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 4
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 5
                                               type = FRAME_LOCAL
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 0
                                               value = 100500
                                   ]
                                   receiver =
                                       ReadLocalVariableNode
                                           attributes:
+                                              flags = 0
                                               frameSlot = 2
                                               type = FRAME_LOCAL
           ]

@@ -9,9 +9,11 @@ ruby: |
 ast: |
   WriteLocalVariableNode
       attributes:
+          flags = 1
           frameSlot = 2
       children:
           valueNode =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42

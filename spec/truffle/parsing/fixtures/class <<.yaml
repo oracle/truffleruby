@@ -10,17 +10,21 @@ ruby: |
 ast: |
   RunModuleDefinitionNode
       attributes:
+          flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <singleton class>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=23, characters=class << "foo"\n  42\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <singleton class>, blockDepth = 0, parseName = <singleton class>, notes = null, argumentDescriptors = null), callTarget = <singleton class>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
           definingModule =
               SingletonClassNodeGen$SingletonClassASTNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       valueNode_ =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = foo
       call targets:
           RubyRootNode
@@ -37,21 +41,31 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
                                       children:
                                           body =
                                               IntegerFixnumLiteralNode
                                                   attributes:
+                                                      flags = 1
                                                       value = 42
                               ]

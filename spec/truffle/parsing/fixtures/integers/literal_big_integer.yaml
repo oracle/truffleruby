@@ -6,4 +6,5 @@ ruby: |
 ast: |
   ObjectLiteralNode
       attributes:
+          flags = 1
           object = 18446744073709551617

@@ -5,15 +5,20 @@ ruby: |
   {"foo#{ 100500 }": 42}
 ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      attributes:
+          flags = 0
       children:
           keyValues = [
               StringToSymbolNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       stringNode_ =
                           InterpolatedStringNode
                               attributes:
                                   emptyTString = ""
                                   encoding = UTF-8
+                                  flags = 0
                               children:
                                   children = [
                                       ToSNodeGen
@@ -22,15 +27,18 @@ ast: |
                                                   StringLiteralNode
                                                       attributes:
                                                           encoding = UTF-8
+                                                          flags = 0
                                                           tstring = foo
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
+                                                          flags = 1
                                                           value = 100500
                                   ]
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42
           ]

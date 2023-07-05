@@ -36,6 +36,7 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
           isDefSingleton = false
           name = "a"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 3], index=0, length=47, characters=def a\n  yield foo, bar, *foobar, foo2, bar2\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
@@ -61,24 +62,33 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   SaveMethodBlockNode
                                       attributes:
+                                          flags = 0
                                           slot = 2
                                   YieldExpressionNode
                                       attributes:
                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                           emptyKeywordsProfile = false
+                                          flags = 1
                                           isSplatted = true
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
@@ -87,10 +97,13 @@ ast: |
                                       children:
                                           arguments = [
                                               ArrayConcatNode
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       children = [
                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                               attributes:
+                                                                  flags = 0
                                                                   language = org.truffleruby.RubyLanguage@...
                                                               children:
                                                                   values = [
@@ -99,6 +112,7 @@ ast: |
                                                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
+                                                                              flags = 0
                                                                               isAttrAssign = false
                                                                               isSafeNavigation = false
                                                                               isSplatted = false
@@ -111,11 +125,14 @@ ast: |
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
                                                                       RubyCallNode
                                                                           attributes:
                                                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
+                                                                              flags = 0
                                                                               isAttrAssign = false
                                                                               isSafeNavigation = false
                                                                               isSplatted = false
@@ -128,11 +145,14 @@ ast: |
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
                                                                   ]
                                                           SplatCastNodeGen
                                                               attributes:
                                                                   conversionMethod = :to_a
                                                                   copy = true
+                                                                  flags = 0
                                                                   nilBehavior = CONVERT
                                                               children:
                                                                   childNode_ =
@@ -141,6 +161,7 @@ ast: |
                                                                               descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
+                                                                              flags = 0
                                                                               isAttrAssign = false
                                                                               isSafeNavigation = false
                                                                               isSplatted = false
@@ -153,15 +174,19 @@ ast: |
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
                                                           SplatCastNodeGen
                                                               attributes:
                                                                   conversionMethod = :to_a
                                                                   copy = true
+                                                                  flags = 0
                                                                   nilBehavior = CONVERT
                                                               children:
                                                                   childNode_ =
                                                                       ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                           attributes:
+                                                                              flags = 0
                                                                               language = org.truffleruby.RubyLanguage@...
                                                                           children:
                                                                               values = [
@@ -170,6 +195,7 @@ ast: |
                                                                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                                           dispatchConfig = PRIVATE
                                                                                           emptyKeywordsProfile = false
+                                                                                          flags = 0
                                                                                           isAttrAssign = false
                                                                                           isSafeNavigation = false
                                                                                           isSplatted = false
@@ -182,11 +208,14 @@ ast: |
                                                                                       children:
                                                                                           receiver =
                                                                                               SelfNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
                                                                                   RubyCallNode
                                                                                       attributes:
                                                                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                                           dispatchConfig = PRIVATE
                                                                                           emptyKeywordsProfile = false
+                                                                                          flags = 0
                                                                                           isAttrAssign = false
                                                                                           isSafeNavigation = false
                                                                                           isSplatted = false
@@ -199,12 +228,15 @@ ast: |
                                                                                       children:
                                                                                           receiver =
                                                                                               SelfNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
                                                                               ]
                                                       ]
                                           ]
                                           readBlockNode =
                                               ReadLocalVariableNode
                                                   attributes:
+                                                      flags = 0
                                                       frameSlot = 2
                                                       type = FRAME_LOCAL
                               ]

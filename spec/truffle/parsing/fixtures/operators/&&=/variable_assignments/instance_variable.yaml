@@ -9,13 +9,17 @@ ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
+          flags = 1
       children:
           child =
               AndNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       left =
                           ReadInstanceVariableNode
                               attributes:
+                                  flags = 0
                                   name = "@foo"
                               children:
                                   readSelfSlotNode =
@@ -25,6 +29,7 @@ ast: |
                       right =
                           WriteInstanceVariableNode
                               attributes:
+                                  flags = 0
                                   frozenProfile = false
                                   name = "@foo"
                               children:
@@ -35,4 +40,5 @@ ast: |
                                   rhs =
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 0
                                               value = 42

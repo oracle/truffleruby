@@ -10,19 +10,26 @@ ruby: |
   end
 ast: |
   IfNodeGen
+      attributes:
+          flags = 0
       children:
           condition =
               BooleanLiteralNode
                   attributes:
+                      flags = 1
                       value = true
           thenBody =
               SequenceNode
+                  attributes:
+                      flags = 0
                   children:
                       body = [
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 1
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
+                                  flags = 1
                                   value = 100500
                       ]

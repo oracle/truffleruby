@@ -9,21 +9,27 @@ ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
+          flags = 1
       children:
           child =
               AndNodeGen
+                  attributes:
+                      flags = 0
                   children:
                       left =
                           ReadLocalVariableNode
                               attributes:
+                                  flags = 0
                                   frameSlot = 2
                                   type = FRAME_LOCAL
                       right =
                           WriteLocalVariableNode
                               attributes:
+                                  flags = 0
                                   frameSlot = 2
                               children:
                                   valueNode =
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 0
                                               value = 42

@@ -7,24 +7,34 @@ ruby: |
   (42; 100500)
 ast: |
   SequenceNode
+      attributes:
+          flags = 12
       children:
           body = [
               EmitWarningsNode
                   attributes:
+                      flags = 0
                       warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
+                      flags = 0
                       frameSlot = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
+                                          attributes:
+                                              flags = 0
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 1
                       value = 42
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 1
                       value = 100500
           ]

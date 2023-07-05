@@ -5,12 +5,16 @@ ruby: |
   {42 => :foo}
 ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      attributes:
+          flags = 0
       children:
           keyValues = [
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42
               ObjectLiteralNode
                   attributes:
+                      flags = 0
                       object = :foo
           ]

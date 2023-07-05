@@ -17,6 +17,7 @@ ast: |
   LiteralMethodDefinitionNode
       attributes:
           callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=19, characters=def foo(a:, b:)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
@@ -42,44 +43,57 @@ ast: |
               children:
                   body =
                       SequenceNode
+                          attributes:
+                              flags = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
                                   SaveMethodBlockNode
                                       attributes:
+                                          flags = 0
                                           slot = 2
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
+                                                      flags = 0
                                                       name = :a
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
                                   WriteLocalVariableNode
                                       attributes:
+                                          flags = 0
                                           frameSlot = 4
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
+                                                      flags = 0
                                                       name = :b
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
                                   NilLiteralNode
                                       attributes:
+                                          flags = 0
                                           isImplicit = false
                               ]
                   checkKeywordArityNode =

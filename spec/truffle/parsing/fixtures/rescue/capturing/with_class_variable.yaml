@@ -24,13 +24,17 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
+          flags = 1
       children:
           rescueParts = [
               RescueClassesNode
+                  attributes:
+                      flags = 0
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
                               attributes:
+                                  flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
                               children:
@@ -44,21 +48,26 @@ ast: |
                       ]
                       rescueBody =
                           SequenceNode
+                              attributes:
+                                  flags = 0
                               children:
                                   body = [
                                       WriteClassVariableNode
                                           attributes:
+                                              flags = 0
                                               name = "@@error"
                                           children:
                                               lexicalScopeNode =
                                                   ObjectLiteralNode
                                                       attributes:
+                                                          flags = 0
                                                           object =  :: Object
                                               resolveTargetModuleNode =
                                                   ResolveTargetModuleForClassVariablesNodeGen
                                               rhs =
                                                   ReadGlobalVariableNodeGen
                                                       attributes:
+                                                          flags = 0
                                                           name = "$!"
                                                       children:
                                                           lookupGlobalVariableStorageNode =
@@ -70,6 +79,7 @@ ast: |
                                                   SetClassVariableNodeGen
                                       IntegerFixnumLiteralNode
                                           attributes:
+                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -77,4 +87,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
+                      flags = 1
                       tstring = foo

@@ -10,8 +10,11 @@ ruby: |
   end
 ast: |
   NextNode
+      attributes:
+          flags = 1
       children:
           child =
               IntegerFixnumLiteralNode
                   attributes:
+                      flags = 0
                       value = 42

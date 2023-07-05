@@ -6,6 +6,7 @@ ruby: |
 ast: |
   ReadGlobalVariableNodeGen
       attributes:
+          flags = 1
           name = "$0"
       children:
           lookupGlobalVariableStorageNode =

@@ -7,12 +7,16 @@ ruby: |
   a, (b, c), d = 'foo', 'bar', 'baz', 'foobar'
 ast: |
   MultipleAssignmentNode
+      attributes:
+          flags = 1
       children:
           preNodes = [
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 2
               MultipleAssignmentNode
+                  attributes:
+                      flags = 0
                   children:
                       preNodes = [
                           WriteFrameSlotNodeGen
@@ -27,6 +31,7 @@ ast: |
                               attributes:
                                   conversionMethod = :to_ary
                                   copy = true
+                                  flags = 0
                                   nilBehavior = ARRAY_WITH_NIL
               WriteFrameSlotNodeGen
                   attributes:
@@ -35,24 +40,29 @@ ast: |
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
+                      flags = 0
                       language = org.truffleruby.RubyLanguage@...
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = baz
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
+                                  flags = 0
                                   tstring = foobar
                       ]
           splatCastNode =
@@ -60,4 +70,5 @@ ast: |
                   attributes:
                       conversionMethod = :to_ary
                       copy = true
+                      flags = 0
                       nilBehavior = ARRAY_WITH_NIL
