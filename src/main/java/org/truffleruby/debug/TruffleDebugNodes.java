@@ -1471,14 +1471,7 @@ public abstract class TruffleDebugNodes {
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String sourceCodeString = RubyGuards.getJavaString(sourceCode);
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
-            RubyRootNode rootNode;
-
-            try {
-                rootNode = parse(sourceCodeString);
-            } catch (Exception | Error e) {
-                return e.toString();
-            }
-
+            RubyRootNode rootNode = parse(sourceCodeString);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
