@@ -33,6 +33,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
@@ -300,17 +301,16 @@ public abstract class TruffleDebugNodes {
     public abstract static class YARPExecuteNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
         protected Object yarpExecute(VirtualFrame frame, Object code,
-                @Cached RubyStringLibrary strings,
-                @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
+                @Cached RubyStringLibrary strings) {
             var tstring = strings.getTString(code);
             var encoding = strings.getEncoding(code);
-            String sourceString = TStringUtils.toJavaStringOrThrow(tstring, encoding);
 
-            return doExecute(sourceString, RubyArguments.getMethod(frame));
+            return doExecute(tstring, encoding, RubyArguments.getMethod(frame));
         }
 
         @TruffleBoundary
-        private Object doExecute(String sourceString, InternalMethod method) {
+        private Object doExecute(AbstractTruffleString tstring, RubyEncoding encoding, InternalMethod method) {
+            String sourceString = TStringUtils.toJavaStringOrThrow(tstring, encoding);
             Source source = Source.newBuilder("ruby", sourceString, "<parse_ast>").build();
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
