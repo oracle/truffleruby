@@ -206,7 +206,7 @@ suite = {
         "org.yarp.libyarp": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
-            "makeTarget": "all-no-debug", # Comment this out to build with asserts and no optimizations
+            # "makeTarget": "all-no-debug", # Can use this to build without asserts
             "results": ["build/librubyparser.a"],
             "description": "YARP used as a static library"
         },
