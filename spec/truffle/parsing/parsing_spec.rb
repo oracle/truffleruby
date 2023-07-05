@@ -53,7 +53,8 @@ overwrite = ENV['OVERWRITE_PARSING_RESULTS'] == 'true'
 describe "Parsing" do
   require 'yaml'
 
-  filenames = Dir.glob(File.dirname(__FILE__) + "/fixtures/**/*.yaml")
+  filenames = Dir.glob("#{__dir__}/fixtures/**/*.yaml")
+  # filenames = ["#{__dir__}/fixtures/global_variables/reading_$0.yaml"] # to run a single one
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
