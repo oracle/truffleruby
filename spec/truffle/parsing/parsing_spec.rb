@@ -61,7 +61,11 @@ describe "Parsing" do
 
     guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? } do
       it "a #{subject} (#{description.strip}) case is parsed correctly" do
-        actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+        if ENV['TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR'] == 'true'
+          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+        else
+          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+        end
 
         if overwrite
           example = File.read(filename)
