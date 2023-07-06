@@ -367,8 +367,8 @@ public abstract class KernelNodes {
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached InlinedConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
-            return blockProfile
-                    .profile(this, readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
+            return blockProfile.profile(this,
+                    readNode.execute(callerFrame, this, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
     }
 

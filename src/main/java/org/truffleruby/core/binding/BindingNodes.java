@@ -294,7 +294,7 @@ public abstract class BindingNodes {
         protected static Object localVariableGet(Node node, RubyBinding binding, String name,
                 @Cached FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = binding.getFrame();
-            Object result = readNode.execute(frame, name, null);
+            Object result = readNode.execute(frame, node, name, null);
             if (result == null) {
                 throw new RaiseException(
                         getContext(node),
