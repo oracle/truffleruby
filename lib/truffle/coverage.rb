@@ -11,13 +11,23 @@
 
 module Coverage
 
-  def self.start
+  def self.supported?(mode)
+    mode == :lines
+  end
+
+  def self.start(*arguments, **options)
+    # We have to track if the :lines option was provided, as that calls for a
+    # different result format
+    @lines = true if options[:lines]
     Truffle::Coverage.enable
   end
 
   def self.result
     result = peek_result
     Truffle::Coverage.disable
+    # We have to wrap the coverage lines array in a hash with the :lines key if
+    # the :lines option was given
+    result.transform_values! { |_,lines_array| {lines: lines_array} } if @lines
     result
   end
 
