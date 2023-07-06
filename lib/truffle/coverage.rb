@@ -13,6 +13,7 @@ module Coverage
   def self.supported?(mode)
     mode == :lines
   end
+
   def self.start(*arguments, **options)
     # Arguments/options are ignored.
     Truffle::Coverage.enable
