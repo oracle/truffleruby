@@ -2274,7 +2274,7 @@ public abstract class StringNodes {
                 @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
-                @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
+                @Cached(inline = false) @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
             final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
@@ -2287,8 +2287,8 @@ public abstract class StringNodes {
                 @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
-                @Cached MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
-                @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
+                @Cached(inline = false) MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
+                @Cached(inline = false) @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
             final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
