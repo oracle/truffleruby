@@ -2210,7 +2210,7 @@ public abstract class ModuleNodes {
         protected RubyArray usedRefinements() {
             final Frame frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-            final Set<RubyModule> refinements = new HashSet<>();
+            final List<RubyModule> refinements = new ArrayList<>();
             for (RubyModule[] refinementModules : declarationContext.getRefinements().values()) {
                 Collections.addAll(refinements, refinementModules);
             }
