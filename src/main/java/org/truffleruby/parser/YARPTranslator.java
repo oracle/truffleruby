@@ -520,6 +520,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             final RubyNode rubyNode = new StringLiteralNode(cachedTString, Encodings.UTF_8);
 
             assignNodePositionInSource(node, rubyNode);
+            copyNewlineFlag(s, rubyNode);
 
             return rubyNode;
         }
@@ -548,6 +549,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             final RubyNode rubyNode = new ObjectLiteralNode(symbol);
 
             assignNodePositionInSource(node, rubyNode);
+            copyNewlineFlag(s, rubyNode);
 
             return rubyNode;
         }
@@ -946,6 +948,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private void assignNodePositionInSource(Nodes.Node yarpNode, RubyNode rubyNode) {
         rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        copyNewlineFlag(yarpNode, rubyNode);
+    }
+
+    private void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
+        if (yarpNode.hasNewLineFlag()) {
+            rubyNode.unsafeSetIsNewLine();
+        }
     }
 
 }
