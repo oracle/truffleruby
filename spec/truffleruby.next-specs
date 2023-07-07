@@ -21,3 +21,5 @@ spec/ruby/core/string/bytesplice_spec.rb
 
 spec/ruby/core/string/byteindex_spec.rb
 spec/ruby/core/string/byterindex_spec.rb
+
+spec/ruby/optional/capi/hash_spec.rb
