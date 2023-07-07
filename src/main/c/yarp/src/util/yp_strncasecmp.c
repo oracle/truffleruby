@@ -1,4 +1,5 @@
-#include "yarp/defines.h"
+#include <ctype.h>
+#include <stddef.h>
 
 int
 yp_strncasecmp(const char *string1, const char *string2, size_t length) {

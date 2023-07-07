@@ -38,19 +38,13 @@
 #   define inline __inline
 #endif
 
-// strncasecmp
-#if !defined(HAVE_STRNCASECMP) && !defined(strncasecmp)
-    // In case strncasecmp isn't present on the system, we provide our own.
-    int yp_strncasecmp(const char *string1, const char *string2, size_t length);
-#   define strncasecmp yp_strncasecmp
-#endif
+int yp_strncasecmp(const char *string1, const char *string2, size_t length);
 
-// snprintf
-#if !defined(HAVE_SNPRINTF) && !defined(snprintf)
-    // In case snprintf isn't present on the system, we provide our own that
-    // simply forwards to the less-safe sprintf.
-    int yp_snprintf(char *dest, YP_ATTRIBUTE_UNUSED size_t size, const char *format, ...);
-#   define snprintf yp_snprintf
+int yp_snprintf(char *dest, YP_ATTRIBUTE_UNUSED size_t size, const char *format, ...);
+
+#if defined(HAVE_SNPRINTF)
+    // We use snprintf if it's available
+#   define yp_snprintf snprintf
 #endif
 
 #endif

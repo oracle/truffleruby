@@ -14,8 +14,8 @@ import java.nio.ByteOrder;
 // @formatter:off
 public class Loader {
 
-    public static Nodes.Node load(byte[] source, byte[] serialized) {
-        return new Loader(serialized).load(source);
+    public static Nodes.Node load(byte[] serialized, Nodes.Source source) {
+        return new Loader(serialized, source).load();
     }
 
     private static final class ConstantPool {
@@ -49,12 +49,16 @@ public class Loader {
 
     private final ByteBuffer buffer;
     private ConstantPool constantPool;
+    private final Nodes.Source source;
+    private final boolean[] newlineMarked;
 
-    private Loader(byte[] serialized) {
-        buffer = ByteBuffer.wrap(serialized).order(ByteOrder.nativeOrder());
+    private Loader(byte[] serialized, Nodes.Source source) {
+        this.buffer = ByteBuffer.wrap(serialized).order(ByteOrder.nativeOrder());
+        this.source = source;
+        this.newlineMarked = new boolean[1 + source.getLineCount()];
     }
 
-    private Nodes.Node load(byte[] source) {
+    private Nodes.Node load() {
         expect((byte) 'Y');
         expect((byte) 'A');
         expect((byte) 'R');
@@ -72,14 +76,16 @@ public class Loader {
 
         int constantPoolBufferOffset = buffer.getInt();
         int constantPoolLength = loadVarInt();
-        this.constantPool = new ConstantPool(source, constantPoolBufferOffset, constantPoolLength);
+        this.constantPool = new ConstantPool(source.bytes, constantPoolBufferOffset, constantPoolLength);
 
         Nodes.Node node = loadNode();
-        int left = constantPoolBufferOffset - buffer.position();
 
+        int left = constantPoolBufferOffset - buffer.position();
         if (left != 0) {
             throw new Error("Expected to consume all bytes while deserializing but there were " + left + " bytes left");
         }
+
+        node.setNewLineFlag(this.source, newlineMarked);
 
         return node;
     }
