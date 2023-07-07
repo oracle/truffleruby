@@ -62,14 +62,14 @@ public class RubyRootNode extends RubyBaseRootNode {
 
         // Ensure the body node is instrument-able, which requires a non-null SourceSection
         if (!body.hasSource()) {
-            body.unsafeSetSourceSection(getSourceSection());
+            body.unsafeSetSourceSection(sourceSection);
         }
 
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
 
         if (language.options.CHECK_CLONE_UNINITIALIZED_CORRECTNESS) {
-            this.bodyCopy = copyBody();
+            this.bodyCopy = NodeUtil.cloneNode(body);
         } else {
             this.bodyCopy = null;
         }
@@ -157,7 +157,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     @SuppressWarnings("serial")
-    private static class CloningError extends Error {
+    private static final class CloningError extends Error {
 
         public final Node original;
         public final Node clone;

@@ -21,7 +21,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class ReadClassVariableNode extends RubyContextSourceNode {
+public final class ReadClassVariableNode extends RubyContextSourceNode {
 
     private final String name;
     private final BranchProfile missingProfile = BranchProfile.create();

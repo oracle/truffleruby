@@ -61,7 +61,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
             if (e == null || !(e instanceof RubyDynamicObject) || SharedObjects.isShared(e)) {
                 continue;
             } else {
-                assert false : String.format("Unshared element %s.\n", e);
+                assert false : String.format("Unshared element %s.%n", e);
                 return false;
             }
         }
@@ -182,7 +182,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization(guards = "srcStore == destStore")
         protected static void copyContents(
@@ -321,7 +321,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     static final ArrayAllocator SHARED_OBJECT_ARRAY_ALLOCATOR = new SharedArrayAllocator(
             ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR);
 
-    private static class SharedArrayAllocator extends ArrayAllocator {
+    private static final class SharedArrayAllocator extends ArrayAllocator {
 
         private final ArrayAllocator storageAllocator;
 

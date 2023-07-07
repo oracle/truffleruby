@@ -309,9 +309,8 @@ public abstract class EncodingConverterNodes {
             final byte[] bytes = new byte[n];
             ec.putback(bytes, 0, n);
 
-            final Object sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
-            final RubyEncoding rubyEncoding = sourceEncoding == nil ? Encodings.BINARY : (RubyEncoding) sourceEncoding;
-            return createString(fromByteArrayNode, bytes, rubyEncoding);
+            var sourceEncoding = (RubyEncoding) sourceEncodingNode.call(encodingConverter, "source_encoding");
+            return createString(fromByteArrayNode, bytes, sourceEncoding);
         }
     }
 

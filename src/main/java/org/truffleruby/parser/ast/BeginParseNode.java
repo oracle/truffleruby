@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Begin/End block. A Begin ... End block without rescue. */
-public class BeginParseNode extends ParseNode {
+public final class BeginParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
     public BeginParseNode(SourceIndexLength position, ParseNode bodyNode) {

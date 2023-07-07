@@ -16,7 +16,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
 
-public class ThreadLocalGlobals {
+public final class ThreadLocalGlobals {
 
     private Object lastException; // $!
     public Object processStatus; // $?

@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
-public class SetBindingFrameForEvalNode extends RubyContextSourceNode {
+public final class SetBindingFrameForEvalNode extends RubyContextSourceNode {
 
     @Child RubyNode body;
 

@@ -28,12 +28,14 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.collections;
 
+import org.truffleruby.annotations.SuppressFBWarnings;
+
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class IntHashMap<V> {
+public final class IntHashMap<V> {
 
     private Entry<V>[] table;
     private int count;
@@ -42,7 +44,7 @@ public class IntHashMap<V> {
 
     private final float loadFactor;
 
-    public static class Entry<V> {
+    public static final class Entry<V> {
         final int hash;
         final int key;
         V value;
@@ -228,6 +230,7 @@ public class IntHashMap<V> {
             return next != null;
         }
 
+        @SuppressFBWarnings("SA_FIELD_SELF_ASSIGNMENT")
         Entry<V> nextEntry() {
             Entry<V> e = next;
             if (e == null) {
@@ -251,7 +254,7 @@ public class IntHashMap<V> {
 
     }
 
-    private class EntryIterator extends HashIterator<Entry<V>> {
+    private final class EntryIterator extends HashIterator<Entry<V>> {
         @Override
         public Entry<V> next() {
             return nextEntry();
@@ -269,7 +272,7 @@ public class IntHashMap<V> {
         return (es != null ? es : (entrySet = new EntrySet()));
     }
 
-    private class EntrySet extends AbstractSet<Entry<V>> {
+    private final class EntrySet extends AbstractSet<Entry<V>> {
 
         @Override
         public Iterator<Entry<V>> iterator() {

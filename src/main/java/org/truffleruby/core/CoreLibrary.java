@@ -99,7 +99,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * code, it should be done at the top of the Ruby class.)
  * </ul>
  */
-public class CoreLibrary {
+public final class CoreLibrary {
 
     public static final SourceSection UNAVAILABLE_SOURCE_SECTION = Source
             .newBuilder(TruffleRuby.LANGUAGE_ID, "", "(unavailable)")

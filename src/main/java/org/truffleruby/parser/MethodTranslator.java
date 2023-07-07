@@ -61,7 +61,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class MethodTranslator extends BodyTranslator {
+public final class MethodTranslator extends BodyTranslator {
 
     private final ArgsParseNode argsNode;
     private final boolean isBlock;

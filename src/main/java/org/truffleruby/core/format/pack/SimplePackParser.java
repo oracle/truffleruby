@@ -13,7 +13,7 @@ import org.truffleruby.language.control.DeferredRaiseException;
 
 import java.nio.ByteOrder;
 
-public class SimplePackParser {
+public final class SimplePackParser {
 
     public static final int COUNT_NONE = -1;
     public static final int COUNT_STAR = -2;

@@ -42,7 +42,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-public class RubyWarnings implements WarnCallback {
+public final class RubyWarnings implements WarnCallback {
 
     public RubyWarnings() {
     }

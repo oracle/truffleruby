@@ -31,7 +31,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringConstants;
 
-public class Encodings {
+public final class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final RubyEncoding US_ASCII = initializeUsAscii();
@@ -87,7 +87,8 @@ public class Encodings {
     }
 
     private static Encoding createDummyEncoding() {
-        final EncodingDB.Entry entry = EncodingDB.dummy("TRUFFLERUBY_DUMMY_ENCODING".getBytes());
+        final EncodingDB.Entry entry = EncodingDB
+                .dummy(StringOperations.encodeAsciiBytes("TRUFFLERUBY_DUMMY_ENCODING"));
         return entry.getEncoding();
     }
 

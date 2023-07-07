@@ -26,6 +26,7 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -73,10 +74,12 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         return TStringUtils.toJavaStringOrThrow(tstring, getEncodingUncached());
     }
 
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     public boolean isNative() {
         return nativeString != null;
     }
 
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     public Pointer getNativeString(RubyLanguage language) {
         if (nativeString == null) {
             return createNativeString(language);
@@ -143,7 +146,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
 
     @ImportStatic(RubyBaseNode.class)
     @ExportMessage
-    public static class AsString {
+    public static final class AsString {
         @Specialization(
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")

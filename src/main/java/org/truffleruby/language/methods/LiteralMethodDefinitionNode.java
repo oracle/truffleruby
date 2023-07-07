@@ -25,7 +25,7 @@ import java.util.Set;
 
 /** Define a method from a method literal (def mymethod ... end). That is, create an InternalMethod and add it to the
  * current module (default definee). */
-public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
+public final class LiteralMethodDefinitionNode extends RubyContextSourceNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;

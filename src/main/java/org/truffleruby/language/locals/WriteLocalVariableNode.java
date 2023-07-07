@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteLocalVariableNode extends WriteLocalNode {
+public final class WriteLocalVariableNode extends WriteLocalNode {
 
     @Child private WriteFrameSlotNode writeFrameSlotNode;
 

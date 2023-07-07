@@ -62,9 +62,9 @@ import org.truffleruby.parser.ast.types.INameNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 
-public class LoadArgumentsTranslator extends Translator {
+public final class LoadArgumentsTranslator extends Translator {
 
-    private static class ArraySlot {
+    private static final class ArraySlot {
 
         private int arraySlot;
         private int previousIndex;

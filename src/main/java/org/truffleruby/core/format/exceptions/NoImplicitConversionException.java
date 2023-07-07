@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class NoImplicitConversionException extends FormatException {
+public final class NoImplicitConversionException extends FormatException {
 
     private final Object object;
     private final String target;

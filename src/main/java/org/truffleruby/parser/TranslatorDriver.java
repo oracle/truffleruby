@@ -90,7 +90,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class TranslatorDriver {
+public final class TranslatorDriver {
 
     /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;

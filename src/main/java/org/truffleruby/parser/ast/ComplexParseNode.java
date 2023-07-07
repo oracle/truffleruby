@@ -32,7 +32,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** @author enebo */
-public class ComplexParseNode extends NumericParseNode implements SideEffectFree {
+public final class ComplexParseNode extends NumericParseNode implements SideEffectFree {
     private NumericParseNode y;
 
     public ComplexParseNode(SourceIndexLength position, NumericParseNode y) {

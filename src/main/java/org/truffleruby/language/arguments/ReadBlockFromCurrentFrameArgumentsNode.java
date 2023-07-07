@@ -15,7 +15,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
 /** {@link SaveMethodBlockNode} should be preferred when writing the result to a frame slot. */
-public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
+public final class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return RubyArguments.getBlock(frame);

@@ -31,7 +31,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.source.Source;
 
-public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
+public final class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RootCallTarget callTarget;
 

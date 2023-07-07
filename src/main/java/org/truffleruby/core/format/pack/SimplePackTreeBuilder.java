@@ -56,7 +56,7 @@ import com.oracle.truffle.api.nodes.Node;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
 
-public class SimplePackTreeBuilder implements SimplePackListener {
+public final class SimplePackTreeBuilder implements SimplePackListener {
 
     private final Node currentNode;
 

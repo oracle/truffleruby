@@ -66,7 +66,7 @@ import org.truffleruby.language.objects.AllocationTracing;
  * Also note that the activations are recorded lazily when one of the aforementionned methods is called, excepted when
  * specified otherwise in the constructor. The activations will match the state of the Truffle call stack whenever the
  * activations are recorded (so, during the constructor call or first method call). */
-public class Backtrace {
+public final class Backtrace {
     // region Fields
     // See accessors for info on most undocumented fields.
 

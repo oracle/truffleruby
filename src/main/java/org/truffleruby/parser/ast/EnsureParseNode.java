@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** An 'ensure' statement. */
-public class EnsureParseNode extends ParseNode {
+public final class EnsureParseNode extends ParseNode {
     private final ParseNode bodyNode;
     private final ParseNode ensureNode;
 

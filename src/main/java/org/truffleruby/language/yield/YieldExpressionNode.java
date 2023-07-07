@@ -27,7 +27,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.dispatch.LiteralCallNode;
 
-public class YieldExpressionNode extends LiteralCallNode {
+public final class YieldExpressionNode extends LiteralCallNode {
 
     @Children private final RubyNode[] arguments;
     @Child private CallBlockNode yieldNode;

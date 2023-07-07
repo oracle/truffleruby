@@ -35,7 +35,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** @author enebo */
-public class OptArgParseNode extends ParseNode implements INameNode {
+public final class OptArgParseNode extends ParseNode implements INameNode {
     private ParseNode value;
 
     public OptArgParseNode(SourceIndexLength position, ParseNode value) {

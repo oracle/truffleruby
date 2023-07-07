@@ -49,6 +49,6 @@ parser = header + parser
 File.write(parser_path, parser)
 
 tables = File.read(tables_path)
-tables = tables.sub('public class YyTables {', "// @formatter:off\npublic class YyTables {")
+tables = tables.sub('public final class YyTables {', "// @formatter:off\npublic final class YyTables {")
 tables = tables + "// @formatter:on\n"
 File.write(tables_path, tables)

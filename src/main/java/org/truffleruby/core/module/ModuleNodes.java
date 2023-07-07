@@ -369,7 +369,7 @@ public abstract class ModuleNodes {
 
     }
 
-    public static class AliasKeywordNode extends RubyContextSourceNode {
+    public static final class AliasKeywordNode extends RubyContextSourceNode {
 
         private final RubySymbol newName;
         private final RubySymbol oldName;
@@ -1401,7 +1401,7 @@ public abstract class ModuleNodes {
             return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
-        private static class CallMethodWithLambdaBody extends RubyContextSourceNode {
+        private static final class CallMethodWithLambdaBody extends RubyContextSourceNode {
 
             private final RubyProc proc;
             private final RootCallTarget lambdaCallTarget;
@@ -2162,7 +2162,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    public static class UndefKeywordNode extends RubyContextSourceNode {
+    public static final class UndefKeywordNode extends RubyContextSourceNode {
 
         private final RubySymbol name;
 

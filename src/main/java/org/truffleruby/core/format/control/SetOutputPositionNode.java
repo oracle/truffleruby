@@ -13,7 +13,7 @@ import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SetOutputPositionNode extends FormatNode {
+public final class SetOutputPositionNode extends FormatNode {
 
     private final int position;
 

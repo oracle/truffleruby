@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-class MetricsBodyNode<T> extends RubyContextSourceNode {
+final class MetricsBodyNode<T> extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

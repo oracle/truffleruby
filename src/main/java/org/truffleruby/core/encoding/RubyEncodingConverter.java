@@ -14,7 +14,7 @@ import org.jcodings.transcode.EConv;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
-public class RubyEncodingConverter extends RubyDynamicObject {
+public final class RubyEncodingConverter extends RubyDynamicObject {
 
     EConv econv;
 

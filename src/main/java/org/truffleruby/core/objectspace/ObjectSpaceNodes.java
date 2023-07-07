@@ -179,7 +179,7 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    private static class CallableFinalizer implements Runnable {
+    private static final class CallableFinalizer implements Runnable {
 
         private final Object callable;
 

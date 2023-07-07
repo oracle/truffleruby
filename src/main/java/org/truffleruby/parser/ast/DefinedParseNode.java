@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** a defined statement. */
-public class DefinedParseNode extends ParseNode {
+public final class DefinedParseNode extends ParseNode {
     private final ParseNode expressionNode;
 
     public DefinedParseNode(SourceIndexLength position, ParseNode expressionNode) {

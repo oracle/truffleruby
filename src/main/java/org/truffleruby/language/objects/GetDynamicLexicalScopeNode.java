@@ -15,7 +15,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class GetDynamicLexicalScopeNode extends RubyContextSourceNode {
+public final class GetDynamicLexicalScopeNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

@@ -11,7 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-public class ReadCallerVariablesIfAvailableNode extends ReadCallerVariablesNode {
+public final class ReadCallerVariablesIfAvailableNode extends ReadCallerVariablesNode {
 
     public static ReadCallerVariablesIfAvailableNode create() {
         return new ReadCallerVariablesIfAvailableNode();

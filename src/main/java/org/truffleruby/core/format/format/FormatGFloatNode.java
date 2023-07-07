@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.RubyThread;
 
 @ImportStatic(Double.class)
@@ -129,7 +130,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
             }
             format.setMaximumFractionDigits(precision - intDigits);
         }
-        digits = format.format(value).getBytes();
+        digits = StringOperations.encodeAsciiBytes(format.format(value));
 
         return digits;
     }

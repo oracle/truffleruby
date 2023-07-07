@@ -68,17 +68,17 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
     }
 
-    public static class ReferenceProcessor {
-        protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
+    public static final class ReferenceProcessor {
+        final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
-        protected RubyThread processingThread;
-        protected final RubyContext context;
+        private RubyThread processingThread;
+        private final RubyContext context;
 
         public ReferenceProcessor(RubyContext context) {
             this.context = context;
         }
 
-        protected void processReferenceQueue(ReferenceProcessingService<?, ?> service) {
+        void processReferenceQueue(ReferenceProcessingService<?, ?> service) {
             if (processOnMainThread()) {
                 drainReferenceQueues();
             } else {
@@ -102,7 +102,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         private static final String THREAD_NAME = "Ruby-reference-processor";
 
         @TruffleBoundary
-        protected void createProcessingThread(ReferenceProcessingService<?, ?> service) {
+        private void createProcessingThread(ReferenceProcessingService<?, ?> service) {
             final ThreadManager threadManager = context.getThreadManager();
             final RubyLanguage language = context.getLanguageSlow();
             RubyThread newThread;
@@ -126,7 +126,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         @TruffleBoundary
-        protected final void drainReferenceQueues() {
+        void drainReferenceQueues() {
             final RubyLanguage language = context.getLanguageSlow();
             while (true) {
                 @SuppressWarnings("unchecked")

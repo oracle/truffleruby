@@ -32,7 +32,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.Collections;
 import java.util.List;
 
-public class NoKeywordsArgParseNode extends KeywordRestArgParseNode {
+public final class NoKeywordsArgParseNode extends KeywordRestArgParseNode {
     public NoKeywordsArgParseNode(SourceIndexLength position, String name) {
         super(position, name, -1);
     }

@@ -460,7 +460,7 @@ public abstract class MatchDataNodes {
         }
     }
 
-    public static class GetFixedNameMatchNode extends RubyContextSourceNode {
+    public static final class GetFixedNameMatchNode extends RubyContextSourceNode {
 
         @Child RubyNode readMatchNode;
         private final RubySymbol symbol;

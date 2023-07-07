@@ -43,7 +43,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * and
  *
  * &lt;body&gt; 'while' &lt;condition&gt; */
-public class WhileParseNode extends ParseNode {
+public final class WhileParseNode extends ParseNode {
     private final ParseNode conditionNode;
     private final ParseNode bodyNode;
     private final boolean evaluateAtStart;

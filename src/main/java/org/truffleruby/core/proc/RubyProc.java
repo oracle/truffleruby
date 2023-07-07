@@ -36,7 +36,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     // Accessed for calling a RubyProc
     public final RootCallTarget callTarget;

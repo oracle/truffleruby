@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Access to a class variable. */
-public class ClassVarParseNode extends ParseNode implements INameNode, SideEffectFree {
+public final class ClassVarParseNode extends ParseNode implements INameNode, SideEffectFree {
     private String name;
 
     public ClassVarParseNode(SourceIndexLength position, TruffleString name) {

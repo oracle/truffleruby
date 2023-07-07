@@ -23,8 +23,8 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 
-public class FindDeclarationVariableNodes {
-    public static class FrameSlotAndDepth {
+public abstract class FindDeclarationVariableNodes {
+    public static final class FrameSlotAndDepth {
         public final int slot;
         public final int depth;
 

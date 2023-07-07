@@ -30,7 +30,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.parser.RubySource;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
-public class ThreadBacktraceLocationNodes {
+public abstract class ThreadBacktraceLocationNodes {
 
     @TruffleBoundary
     private static SourceSection getAvailableSourceSection(RubyContext context,

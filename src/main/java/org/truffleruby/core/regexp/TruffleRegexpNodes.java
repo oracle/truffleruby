@@ -94,7 +94,7 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 
 @CoreModule("Truffle::RegexpOperations")
-public class TruffleRegexpNodes {
+public abstract class TruffleRegexpNodes {
 
     @TruffleBoundary
     private static void instrumentMatch(ConcurrentHashMap<MatchInfo, AtomicInteger> metricsMap, RubyRegexp regexp,

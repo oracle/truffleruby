@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 @CoreModule(value = "TruffleRuby::ConcurrentMap", isClass = true)
-public class ConcurrentMapNodes {
+public abstract class ConcurrentMapNodes {
 
     @TruffleBoundary
     private static Object get(ConcurrentHashMap<Key, Object> map, Key key) {

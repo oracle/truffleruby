@@ -52,7 +52,7 @@ import org.truffleruby.parser.ast.TrueParseNode;
 
 import java.util.Arrays;
 
-public class PatternMatchingTranslator extends BaseTranslator {
+public final class PatternMatchingTranslator extends BaseTranslator {
 
     final TranslatorEnvironment environment;
     final BodyTranslator bodyTranslator;

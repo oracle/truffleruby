@@ -9,7 +9,7 @@
  */
 package org.truffleruby.collections;
 
-public class Memo<T> {
+public final class Memo<T> {
 
     private T value;
 

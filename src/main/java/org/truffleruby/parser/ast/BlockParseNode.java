@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a block of nodes (read that as list). */
-public class BlockParseNode extends ListParseNode {
+public final class BlockParseNode extends ListParseNode {
     public BlockParseNode(SourceIndexLength position) {
         super(position);
     }

@@ -41,7 +41,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
 /** method definition node. */
-public class DefnParseNode extends MethodDefParseNode implements INameNode {
+public final class DefnParseNode extends MethodDefParseNode implements INameNode {
     public DefnParseNode(
             SourceIndexLength position,
             TruffleString name,

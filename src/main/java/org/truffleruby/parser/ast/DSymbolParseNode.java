@@ -33,7 +33,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** ParseNode representing symbol in a form like ':"3jane"'. */
-public class DSymbolParseNode extends DParseNode {
+public final class DSymbolParseNode extends DParseNode {
     /** For mutating from a DStr to a DSym (we just create a new one with same contents).
      *
      * @param node to be copied */

@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.truffleruby.language.Nil;
 
-public class FormatFrameDescriptor {
+public final class FormatFrameDescriptor {
 
     public static final int SOURCE_SLOT;
     public static final int SOURCE_END_POSITION_SLOT;

@@ -21,7 +21,7 @@ import org.truffleruby.core.support.RubyIO;
 /** A simple file descriptor -> IO stream class.
  *
  * STDIO FDs will map to the polyglot STDIO streams. For all other IO, a valid Ruby IO object must be provided. */
-public class IoStream {
+public final class IoStream {
 
     private final RubyContext context;
     private final RubyLanguage language;

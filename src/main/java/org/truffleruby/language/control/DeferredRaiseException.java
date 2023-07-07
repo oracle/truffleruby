@@ -14,7 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
 
 @SuppressWarnings("serial")
-public class DeferredRaiseException extends Exception {
+public final class DeferredRaiseException extends Exception {
 
     public final ExceptionGetter exceptionGetter;
 

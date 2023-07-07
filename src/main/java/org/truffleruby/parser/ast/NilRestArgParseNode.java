@@ -38,7 +38,7 @@ import java.util.List;
 
 import static org.truffleruby.parser.ast.NodeType.NILRESTARG;
 
-public class NilRestArgParseNode extends ParseNode {
+public final class NilRestArgParseNode extends ParseNode {
     public NilRestArgParseNode(SourceIndexLength position) {
         super(position);
     }

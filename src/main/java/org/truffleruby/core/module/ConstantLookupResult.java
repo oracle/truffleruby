@@ -16,7 +16,7 @@ import org.truffleruby.language.RubyConstant;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
-public class ConstantLookupResult {
+public final class ConstantLookupResult {
 
     private final RubyConstant constant;
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;

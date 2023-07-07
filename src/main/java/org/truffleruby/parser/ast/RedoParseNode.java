@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a 'redo' */
-public class RedoParseNode extends ParseNode implements NonLocalControlFlowParseNode {
+public final class RedoParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RedoParseNode(SourceIndexLength position) {
         super(position);
     }

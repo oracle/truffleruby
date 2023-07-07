@@ -11,7 +11,7 @@ package org.truffleruby.cext;
 
 import com.oracle.truffle.api.interop.TruffleObject;
 
-public class CapturedException implements TruffleObject {
+public final class CapturedException implements TruffleObject {
 
     private final Throwable exception;
 

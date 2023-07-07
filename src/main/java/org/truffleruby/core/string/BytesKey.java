@@ -15,7 +15,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 
-public class BytesKey {
+public final class BytesKey {
 
     private final byte[] bytes;
     private final Encoding encoding;

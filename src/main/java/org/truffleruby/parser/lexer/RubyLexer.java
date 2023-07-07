@@ -101,7 +101,7 @@ import com.oracle.truffle.api.source.SourceSection;
 /*
  * This is a port of the MRI lexer to Java.
  */
-public class RubyLexer implements MagicCommentHandler {
+public final class RubyLexer implements MagicCommentHandler {
 
     private BignumParseNode newBignumNode(String value, int radix) {
         return new BignumParseNode(getPosition(), new BigInteger(value, radix));
@@ -2882,20 +2882,20 @@ public class RubyLexer implements MagicCommentHandler {
     /** Was end-of-file reached? (or {@link #END_MARKER}) */
     public boolean eofp = false;
 
-    protected int parenNest = 0;
-    protected int braceNest = 0;
+    private int parenNest = 0;
+    private int braceNest = 0;
     public boolean commandStart;
-    protected StackState conditionState = new StackState();
-    protected StackState cmdArgumentState = new StackState();
+    private StackState conditionState = new StackState();
+    private StackState cmdArgumentState = new StackState();
     private TruffleString current_arg;
     public boolean inKwarg = false;
-    protected int last_cr_line;
+    private int last_cr_line;
     private int leftParenBegin = 0;
 
     // -- END FIELDS ---
 
     // MRI: comment_at_top
-    protected boolean comment_at_top() {
+    private boolean comment_at_top() {
         int p = lex_pbeg;
         int pend = lex_p - 1;
         if (line_count != (has_shebang ? 2 : 1)) {

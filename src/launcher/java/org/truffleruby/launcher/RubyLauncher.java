@@ -11,6 +11,7 @@ package org.truffleruby.launcher;
 
 import java.io.PrintStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -195,7 +196,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                         .redirectOutput(Redirect.INHERIT) // set the output of the pager to the terminal and not a pipe
                         .redirectError(Redirect.INHERIT) // set the error of the pager to the terminal and not a pipe
                         .start();
-                PrintStream out = new PrintStream(process.getOutputStream());
+                PrintStream out = new PrintStream(process.getOutputStream(), false, StandardCharsets.UTF_8);
 
                 setOutput(out);
                 boolean code = super.runLauncherAction();

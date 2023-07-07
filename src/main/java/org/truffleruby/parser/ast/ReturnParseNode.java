@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a return statement. */
-public class ReturnParseNode extends ParseNode implements NonLocalControlFlowParseNode {
+public final class ReturnParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     private final ParseNode valueNode;
 
     public ReturnParseNode(SourceIndexLength position, ParseNode valueNode) {

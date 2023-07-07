@@ -41,7 +41,7 @@ import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 
-public class RBSprintfSimpleTreeBuilder {
+public final class RBSprintfSimpleTreeBuilder {
 
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<RBSprintfConfig> configs;

@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class InvalidFormatException extends FormatException {
+public final class InvalidFormatException extends FormatException {
 
     public InvalidFormatException(String message) {
         super(message);

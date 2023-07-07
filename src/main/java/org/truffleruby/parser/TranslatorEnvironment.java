@@ -37,7 +37,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-public class TranslatorEnvironment {
+public final class TranslatorEnvironment {
 
     public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
 
@@ -57,7 +57,7 @@ public class TranslatorEnvironment {
     private final boolean ownScopeForAssignments;
     private final boolean isModuleBody;
 
-    protected final TranslatorEnvironment parent;
+    private final TranslatorEnvironment parent;
     private final SharedMethodInfo sharedMethodInfo;
 
     public final String modulePath;

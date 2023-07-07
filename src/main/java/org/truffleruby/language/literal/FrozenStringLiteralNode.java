@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class FrozenStringLiteralNode extends RubyContextSourceNode {
+public final class FrozenStringLiteralNode extends RubyContextSourceNode {
 
     private final ImmutableRubyString frozenString;
     private final ImmutableRubyString definition;

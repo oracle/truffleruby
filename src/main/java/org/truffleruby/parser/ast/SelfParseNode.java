@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents 'self' keyword */
-public class SelfParseNode extends ParseNode implements INameNode, SideEffectFree {
+public final class SelfParseNode extends ParseNode implements INameNode, SideEffectFree {
     public SelfParseNode(SourceIndexLength position) {
         super(position);
     }

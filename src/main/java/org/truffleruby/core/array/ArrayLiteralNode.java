@@ -96,7 +96,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         return values.length;
     }
 
-    private static class EmptyArrayLiteralNode extends ArrayLiteralNode {
+    private static final class EmptyArrayLiteralNode extends ArrayLiteralNode {
 
         public EmptyArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);
@@ -109,7 +109,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     }
 
-    private static class FloatArrayLiteralNode extends ArrayLiteralNode {
+    private static final class FloatArrayLiteralNode extends ArrayLiteralNode {
 
         public FloatArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);
@@ -146,7 +146,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     }
 
-    private static class IntegerArrayLiteralNode extends ArrayLiteralNode {
+    private static final class IntegerArrayLiteralNode extends ArrayLiteralNode {
 
         public IntegerArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);
@@ -183,7 +183,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     }
 
-    private static class LongArrayLiteralNode extends ArrayLiteralNode {
+    private static final class LongArrayLiteralNode extends ArrayLiteralNode {
 
         public LongArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);
@@ -220,7 +220,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     }
 
-    private static class ObjectArrayLiteralNode extends ArrayLiteralNode {
+    private static final class ObjectArrayLiteralNode extends ArrayLiteralNode {
 
         public ObjectArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);
@@ -240,7 +240,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     }
 
-    private static class UninitialisedArrayLiteralNode extends ArrayLiteralNode {
+    private static final class UninitialisedArrayLiteralNode extends ArrayLiteralNode {
 
         public UninitialisedArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
             super(language, values);

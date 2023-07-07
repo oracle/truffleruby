@@ -97,7 +97,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
 import sun.misc.SignalHandler;
 
-public class RubyContext {
+public final class RubyContext {
 
     private final RubyLanguage language;
     @CompilationFinal private TruffleLanguage.Env env;
@@ -528,7 +528,7 @@ public class RubyContext {
             RubyLanguage.LOGGER.info(
                     "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
         }
-        valueWrapperManager.freeAllBlocksInMap(language);
+        valueWrapperManager.freeAllBlocksInMap();
     }
 
     public boolean isPreInitializing() {

@@ -18,7 +18,7 @@ import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionStability;
 
 // @formatter:off
-public class OptionsCatalog {
+public final class OptionsCatalog {
 
     public static final OptionKey<String[]> LOAD_PATHS_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);

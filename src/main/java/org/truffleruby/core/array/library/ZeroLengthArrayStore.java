@@ -102,7 +102,7 @@ public final class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    static class GeneralizeForValue {
+    static final class GeneralizeForValue {
 
         @Specialization
         protected static ArrayAllocator generalize(ZeroLengthArrayStore store, int newValue) {
@@ -127,7 +127,7 @@ public final class ZeroLengthArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class GeneralizeForStore {
+    static final class GeneralizeForStore {
 
         @Specialization
         protected static ArrayAllocator generalize(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore) {
@@ -147,7 +147,7 @@ public final class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    static class AllocateForNewValue {
+    static final class AllocateForNewValue {
 
         @Specialization
         protected static Object allocateForNewValue(ZeroLengthArrayStore store, int newValue, int length) {
@@ -173,7 +173,7 @@ public final class ZeroLengthArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class AllocateForNewStore {
+    static final class AllocateForNewStore {
 
         @Specialization
         protected static Object allocateForNewStore(
@@ -207,7 +207,7 @@ public final class ZeroLengthArrayStore {
 
     static final ArrayAllocator ZERO_LENGTH_ALLOCATOR = new ZeroLengthAllocator();
 
-    static class ZeroLengthAllocator extends ArrayAllocator {
+    static final class ZeroLengthAllocator extends ArrayAllocator {
 
         @Override
         public Object allocate(int capacity) {

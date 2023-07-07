@@ -21,7 +21,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
 // Checkstyle: stop
-public class LanguageOptions {
+public final class LanguageOptions {
 
     /** --no-home-provided=false */
     public final boolean NO_HOME_PROVIDED;

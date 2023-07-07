@@ -22,7 +22,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class RescueSplatNode extends RescueNode {
+public final class RescueSplatNode extends RescueNode {
 
     @Child private SplatCastNode splatCastNode;
     @Child private ArrayStoreLibrary stores;

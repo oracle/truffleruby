@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a 'break' statement. */
-public class BreakParseNode extends ParseNode implements NonLocalControlFlowParseNode {
+public final class BreakParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     private final ParseNode valueNode;
 
     public BreakParseNode(SourceIndexLength position, ParseNode valueNode) {

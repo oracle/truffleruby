@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class FloatLiteralNode extends RubyContextSourceNode {
+public final class FloatLiteralNode extends RubyContextSourceNode {
 
     private final double value;
 

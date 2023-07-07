@@ -38,7 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents an alias of a global variable. */
-public class VAliasParseNode extends ParseNode {
+public final class VAliasParseNode extends ParseNode {
     private String oldName;
     private String newName;
 

@@ -48,6 +48,7 @@ public abstract class ListParseNode extends ParseNode {
      *
      * @param position where list is
      * @param firstNode first element of the list */
+    @SuppressWarnings("this-escape")
     protected ListParseNode(SourceIndexLength position, ParseNode firstNode) {
         super(position);
 
@@ -66,7 +67,7 @@ public abstract class ListParseNode extends ParseNode {
         return NodeType.LISTNODE;
     }
 
-    protected void growList(int mustBeDelta) {
+    private void growList(int mustBeDelta) {
         int newSize = list.length * 2;
         // Fairly arbitrary to scale 1.5 here but this means we are adding a lot so I think
         // we can taper the multiplier
@@ -79,7 +80,7 @@ public abstract class ListParseNode extends ParseNode {
         list = newList;
     }
 
-    protected void addInternal(ParseNode node) {
+    private void addInternal(ParseNode node) {
         if (size >= list.length) {
             growList(1);
         }

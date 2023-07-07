@@ -157,9 +157,9 @@ import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
-public class RubyParser {
-    protected final ParserSupport support;
-    protected final RubyLexer lexer;
+public final class RubyParser {
+    private final ParserSupport support;
+    private final RubyLexer lexer;
 
     public RubyParser(LexerSource source, RubyDeferredWarnings warnings) {
         this.support = new ParserSupport(source, warnings);
@@ -307,12 +307,12 @@ public class RubyParser {
 
   /** number of final state.
     */
-  protected static final int yyFinal = 1;
+  private static final int yyFinal = 1;
 
   /** parser tables.
       Order is mandated by <i>jay</i>.
     */
-  protected static final short[] yyLhs = {
+  private static final short[] yyLhs = {
 //yyLhs 782
     -1,   186,     0,   141,   142,   142,   142,   142,   143,   143,
     37,    36,    38,    38,    38,    38,    44,   189,    44,   190,
@@ -920,13 +920,13 @@ public class RubyParser {
      0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
      0,     0,     0,     0,     0,     0,     0,     0,     0,
     };
-    protected static final short[] yyTable = YyTables.yyTable();
-    protected static final short[] yyCheck = YyTables.yyCheck();
+    private static final short[] yyTable = YyTables.yyTable();
+    private static final short[] yyCheck = YyTables.yyCheck();
 
   /** maps symbol value to printable name.
       @see #yyExpecting
     */
-  protected static final String[] yyNames = {
+  private static final String[] yyNames = {
     "end-of-file",null,null,null,null,null,null,null,null,null,"'\\n'",
     null,null,null,null,null,null,null,null,null,null,null,null,null,null,
     null,null,null,null,null,null,null,"' '",null,null,null,null,null,
@@ -979,7 +979,7 @@ public class RubyParser {
       @param state for which to compute the list.
       @return list of token names.
     */
-  protected String[] yyExpecting (int state) {
+  private String[] yyExpecting (int state) {
     int token, n, len = 0;
     boolean[] ok = new boolean[yyNames.length];
 
@@ -1017,7 +1017,7 @@ public class RubyParser {
       This is not final so that it can be overwritten outside of invocations
       of {@link #yyparse}.
     */
-  protected int yyMax;
+  private int yyMax;
 
   /** executed at the beginning of a reduce action.
       Used as <tt>$$ = yyDefault($1)</tt>, prior to the user-specified action, if any.
@@ -1025,7 +1025,7 @@ public class RubyParser {
       @param first value for <tt>$1</tt>, or <tt>null</tt>.
       @return first.
     */
-  protected Object yyDefault (Object first) {
+  private Object yyDefault (Object first) {
     return first;
   }
 
@@ -3550,7 +3550,7 @@ states[560] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[561] = (support, lexer, yyVal, yyVals, yyTop) -> {
     /* TODO: make a helper for this since it is used twice now*/
     Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromByteArrayUncached(lexer.getFile().getBytes(), lexer.tencoding , true), lexer.encoding);
+    yyVal = new FileParseNode(lexer.getPosition(), TruffleString.fromJavaStringUncached(lexer.getFile(), lexer.tencoding), lexer.encoding);
     return yyVal;
 };
 states[562] = (support, lexer, yyVal, yyVals, yyTop) -> {

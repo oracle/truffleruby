@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class ReadOptionalArgumentNode extends RubyContextSourceNode {
+public final class ReadOptionalArgumentNode extends RubyContextSourceNode {
 
     private final int index;
     private final int minimum;

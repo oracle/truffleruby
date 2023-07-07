@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-public class ArrayPatternParseNode extends ParseNode {
+public final class ArrayPatternParseNode extends ParseNode {
     private ListParseNode preArgs;
     private final ParseNode restArg;
     private final ListParseNode postArgs;
@@ -113,7 +113,7 @@ public class ArrayPatternParseNode extends ParseNode {
 
         boolean named = !(restArg instanceof StarParseNode);
 
-        return named || !named && postArgsNum() > 0;
+        return named || postArgsNum() > 0;
     }
 
     public int preArgsNum() {

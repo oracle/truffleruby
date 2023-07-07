@@ -36,7 +36,7 @@ import org.truffleruby.language.control.RaiseException;
 import java.util.List;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubyScope implements TruffleObject {
+public final class RubyScope implements TruffleObject {
 
     public static final String RECEIVER_MEMBER = "self";
 

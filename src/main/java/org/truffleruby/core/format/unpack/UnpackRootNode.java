@@ -21,7 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode {
+public final class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyLanguage language;
 

@@ -21,7 +21,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class EmitWarningsNode extends RubyContextSourceNode {
+public final class EmitWarningsNode extends RubyContextSourceNode {
 
     public final RubyDeferredWarnings warnings;
 

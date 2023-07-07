@@ -36,7 +36,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-public class FindPatternParseNode extends ParseNode {
+public final class FindPatternParseNode extends ParseNode {
     private final ParseNode preRestArg;
     private final ListParseNode args;
     private final ParseNode postRestArg;

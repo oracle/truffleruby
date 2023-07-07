@@ -40,7 +40,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * &lhs_which_returns_something_block/proc_like)
  *
  * bodyNode is any expression which can return something which is ultimately coercible to a proc. */
-public class BlockPassParseNode extends ParseNode {
+public final class BlockPassParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
     /** Used by the arg_blk_pass and new_call, new_fcall and new_super methods in ParserSupport to temporary save the

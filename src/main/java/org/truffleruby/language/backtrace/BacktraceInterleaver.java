@@ -12,7 +12,7 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BacktraceInterleaver {
+public final class BacktraceInterleaver {
 
     public static List<String> interleave(List<String> rubyBacktrace, StackTraceElement[] javaStacktrace, int omitted) {
         final List<String> interleaved = new ArrayList<>();

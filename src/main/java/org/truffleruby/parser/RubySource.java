@@ -21,7 +21,7 @@ import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.TStringWithEncoding;
 
-public class RubySource {
+public final class RubySource {
 
     private final Source source;
     /** The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently the same as

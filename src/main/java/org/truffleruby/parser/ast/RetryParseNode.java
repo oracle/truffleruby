@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a 'retry' statement. */
-public class RetryParseNode extends ParseNode implements NonLocalControlFlowParseNode {
+public final class RetryParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RetryParseNode(SourceIndexLength position) {
         super(position);
     }

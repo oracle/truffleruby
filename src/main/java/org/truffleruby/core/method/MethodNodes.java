@@ -357,7 +357,7 @@ public abstract class MethodNodes {
             return getLanguage().options.METHOD_TO_PROC_CACHE;
         }
 
-        private static class CallWithRubyMethodReceiverNode extends RubyContextSourceNode {
+        private static final class CallWithRubyMethodReceiverNode extends RubyContextSourceNode {
             @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
 
             @Override

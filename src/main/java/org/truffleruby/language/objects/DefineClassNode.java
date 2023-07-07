@@ -22,9 +22,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class DefineClassNode extends RubyContextSourceNode {
+public final class DefineClassNode extends RubyContextSourceNode {
 
-    protected final String name;
+    private final String name;
 
     @Child private RubyNode superClassNode;
     @Child private RubyNode lexicalParentModule;

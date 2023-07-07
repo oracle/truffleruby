@@ -24,7 +24,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Read a constant using a dynamic lexical scope: class << expr; CONST; end */
-public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
+public final class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
 
     private final String name;
 

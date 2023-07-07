@@ -11,7 +11,7 @@ package org.truffleruby.core.string;
 
 import org.truffleruby.RubyLanguage;
 
-public class CoreStrings {
+public final class CoreStrings {
 
     public final CoreString ARGUMENT_OUT_OF_RANGE;
     public final CoreString ASSIGNMENT;

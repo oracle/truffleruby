@@ -26,7 +26,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Read a literal constant on a given module: MOD::CONST */
-public class ReadConstantNode extends RubyContextSourceNode {
+public final class ReadConstantNode extends RubyContextSourceNode {
 
     private final String name;
     private final BranchProfile notModuleProfile = BranchProfile.create();

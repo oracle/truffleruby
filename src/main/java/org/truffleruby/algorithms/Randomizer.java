@@ -26,7 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.algorithms;
 
-public class Randomizer {
+public final class Randomizer {
 
     private static final int N = 624;
     private static final int M = 397;

@@ -17,7 +17,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-public class AutoloadConstant {
+public final class AutoloadConstant {
 
     private final Object feature;
     private final String autoloadPath;

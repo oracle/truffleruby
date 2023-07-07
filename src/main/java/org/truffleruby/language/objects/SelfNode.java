@@ -21,7 +21,7 @@ import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SelfNode extends RubyContextSourceNode {
+public final class SelfNode extends RubyContextSourceNode {
 
     public static final int SELF_INDEX = 0;
     public static final HiddenKey SELF_IDENTIFIER = new HiddenKey("(self)");

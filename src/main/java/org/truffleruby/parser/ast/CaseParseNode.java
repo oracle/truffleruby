@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A Case statement. Represents a complete case statement, including the body with its when and in statements. */
-public class CaseParseNode extends ParseNode {
+public final class CaseParseNode extends ParseNode {
     /** the case expression. **/
     private final ParseNode caseNode;
     /** A list of all choices including else */

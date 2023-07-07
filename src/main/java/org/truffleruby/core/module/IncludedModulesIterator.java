@@ -11,7 +11,7 @@ package org.truffleruby.core.module;
 
 import java.util.Iterator;
 
-public class IncludedModulesIterator implements Iterator<RubyModule> {
+public final class IncludedModulesIterator implements Iterator<RubyModule> {
 
     private final ModuleFields currentModule;
     ModuleChain nextModule;

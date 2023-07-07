@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.control.RaiseException;
 
-public class FloatToIntegerNode extends RubyBaseNode {
+public final class FloatToIntegerNode extends RubyBaseNode {
 
     @NeverDefault
     public static FloatToIntegerNode create() {

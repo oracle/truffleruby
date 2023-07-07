@@ -47,7 +47,7 @@ import org.truffleruby.parser.parser.ParserRopeOperations;
 
 import com.oracle.truffle.api.source.Source;
 
-public class LexerSource {
+public final class LexerSource {
 
     public ParserRopeOperations parserRopeOperations;
     private final Source source;

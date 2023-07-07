@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
-public class SingleElementArray implements TruffleObject {
+public final class SingleElementArray implements TruffleObject {
 
     private final Object element;
 

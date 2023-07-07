@@ -33,7 +33,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = int[].class)
 @GenerateUncached
-public class IntegerArrayStore {
+public final class IntegerArrayStore {
 
     @ExportMessage
     protected static int read(int[] store, int index) {
@@ -46,7 +46,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class AcceptsAllValues {
+    static final class AcceptsAllValues {
 
         @Specialization
         protected static boolean acceptsZeroValues(int[] store, ZeroLengthArrayStore otherStore) {
@@ -116,7 +116,7 @@ public class IntegerArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class CopyContents {
+    static final class CopyContents {
 
         @Specialization
         protected static void copyContents(int[] srcStore, int srcStart, int[] destStore, int destStart, int length) {
@@ -194,7 +194,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class GeneralizeForValue {
+    static final class GeneralizeForValue {
 
         @Specialization
         protected static ArrayAllocator generalize(int[] store, int newValue) {
@@ -219,7 +219,7 @@ public class IntegerArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class GeneralizeForStore {
+    static final class GeneralizeForStore {
 
         @Specialization
         protected static ArrayAllocator generalize(int[] store, int[] newStore) {
@@ -254,7 +254,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class AllocateForNewValue {
+    static final class AllocateForNewValue {
 
         @Specialization
         protected static Object allocateForNewValue(int[] store, int newValue, int length) {
@@ -280,7 +280,7 @@ public class IntegerArrayStore {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    static class AllocateForNewStore {
+    static final class AllocateForNewStore {
 
         @Specialization
         protected static Object allocate(int[] store, ZeroLengthArrayStore newStore, int length) {
@@ -316,7 +316,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    protected static class IsDefaultValue {
+    protected static final class IsDefaultValue {
 
         @Specialization
         protected static boolean isDefaultValue(int[] store, int value) {
@@ -336,7 +336,7 @@ public class IntegerArrayStore {
 
     public static final ArrayAllocator INTEGER_ARRAY_ALLOCATOR = new IntegerArrayAllocator();
 
-    private static class IntegerArrayAllocator extends ArrayAllocator {
+    private static final class IntegerArrayAllocator extends ArrayAllocator {
 
         @Override
         public int[] allocate(int capacity) {

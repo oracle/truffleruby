@@ -17,9 +17,9 @@ import org.truffleruby.core.encoding.TStringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FrozenStrings {
+public final class FrozenStrings {
 
-    public static final List<TruffleString> TSTRINGS = new ArrayList<>();
+    static final List<TruffleString> TSTRINGS = new ArrayList<>();
 
     public static final ImmutableRubyString EMPTY_US_ASCII = FrozenStringLiterals.createStringAndCacheLater(
             TStringConstants.EMPTY_US_ASCII,

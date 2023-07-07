@@ -38,7 +38,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     }
 
     @SuppressWarnings("serial")
-    protected static class Warned extends ControlFlowException {
+    protected static final class Warned extends ControlFlowException {
     }
 
     public final void warn(String message) {

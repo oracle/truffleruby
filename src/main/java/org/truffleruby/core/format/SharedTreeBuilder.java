@@ -19,7 +19,7 @@ import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.StarNode;
 import org.truffleruby.core.format.pack.SimplePackParser;
 
-public class SharedTreeBuilder {
+public final class SharedTreeBuilder {
 
     private final RubyLanguage language;
 
@@ -89,7 +89,7 @@ public class SharedTreeBuilder {
         return new StarLength(star, length);
     }
 
-    public static class StarLength {
+    public static final class StarLength {
 
         private final boolean star;
         private final int length;

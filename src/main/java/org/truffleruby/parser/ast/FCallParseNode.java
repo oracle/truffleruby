@@ -39,10 +39,10 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a method call with self as an implicit receiver. */
-public class FCallParseNode extends ParseNode implements INameNode, IArgumentNode, BlockAcceptingParseNode {
+public final class FCallParseNode extends ParseNode implements INameNode, IArgumentNode, BlockAcceptingParseNode {
     private String name;
-    protected ParseNode argsNode;
-    protected ParseNode iterNode;
+    private ParseNode argsNode;
+    private ParseNode iterNode;
 
     public FCallParseNode(SourceIndexLength position, String name) {
         this(position, name, null, null);

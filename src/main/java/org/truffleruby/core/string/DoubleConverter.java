@@ -32,7 +32,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.parser.SafeDoubleParser;
 
-public class DoubleConverter {
+public final class DoubleConverter {
     private byte[] bytes;
     private int index;
     private int endIndex;
@@ -154,7 +154,7 @@ public class DoubleConverter {
     }
 
     @SuppressWarnings("serial")
-    static class LightweightNumberFormatException extends NumberFormatException {
+    static final class LightweightNumberFormatException extends NumberFormatException {
         public LightweightNumberFormatException(String message) {
             super(message);
         }

@@ -20,7 +20,7 @@ import org.truffleruby.language.control.RaiseException;
  * run with the -x option, or automatically if a file contains a shebang line. This class detects embedded scripts, and
  * transforms them so they're valid Ruby programs which we can execute.
  */
-public class EmbeddedScript {
+public final class EmbeddedScript {
 
     private final RubyContext context;
 

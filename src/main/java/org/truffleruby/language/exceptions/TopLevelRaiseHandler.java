@@ -27,7 +27,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.IsANode;
 
-public class TopLevelRaiseHandler extends RubyBaseNode {
+public final class TopLevelRaiseHandler extends RubyBaseNode {
 
     @TruffleBoundary
     public int execute(Runnable body) {

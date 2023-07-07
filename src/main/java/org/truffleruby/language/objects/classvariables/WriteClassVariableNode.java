@@ -22,7 +22,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.control.RaiseException;
 
-public class WriteClassVariableNode extends RubyContextSourceNode implements AssignableNode {
+public final class WriteClassVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
     private final BranchProfile topLevelProfile = BranchProfile.create();

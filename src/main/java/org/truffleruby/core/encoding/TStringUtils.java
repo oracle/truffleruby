@@ -26,7 +26,7 @@ import org.truffleruby.core.string.StringGuards;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
-public class TStringUtils {
+public final class TStringUtils {
 
     public static TruffleString.Encoding jcodingToTEncoding(Encoding jcoding) {
         var jcodingName = jcoding.toString();

@@ -51,7 +51,7 @@ import org.truffleruby.parser.scope.StaticScope;
  *
  * p1...pn = pre arguments o1...on = optional arguments r = rest argument q1...qn = post arguments (only in 1.9) k1...kn
  * = keyword arguments K = keyword rest argument b = block arg */
-public class ArgsParseNode extends ParseNode {
+public final class ArgsParseNode extends ParseNode {
 
     private ParseNode[] args;
     private short optIndex;
@@ -62,7 +62,7 @@ public class ArgsParseNode extends ParseNode {
      * SyntaxError would have resulted. Can change as numbered parameters are encountered. */
     private boolean isNumbered = false;
 
-    protected final ArgumentParseNode restArgNode;
+    private final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
     private final BlockArgParseNode blockArgNode;
 

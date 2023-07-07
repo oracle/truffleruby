@@ -39,7 +39,7 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 
-public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
+public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
         // Generated from tool/generate-native-config.rb on x86_64-darwin18

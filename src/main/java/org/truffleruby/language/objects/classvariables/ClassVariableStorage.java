@@ -15,7 +15,7 @@ import org.truffleruby.RubyLanguage;
 
 import java.lang.invoke.VarHandle;
 
-public class ClassVariableStorage extends DynamicObject {
+public final class ClassVariableStorage extends DynamicObject {
 
     // Same number of inline fields as DynamicObjectBasic
     @DynamicField private long primitive1;

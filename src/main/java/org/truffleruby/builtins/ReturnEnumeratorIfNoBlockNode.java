@@ -20,7 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
+public final class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
 
     private final String methodName;
     @Child private RubyNode method;

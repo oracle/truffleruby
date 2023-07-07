@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents a 'next' statement. */
-public class NextParseNode extends ParseNode implements NonLocalControlFlowParseNode {
+public final class NextParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     private final ParseNode valueNode;
 
     public NextParseNode(SourceIndexLength position, ParseNode valueNode) {

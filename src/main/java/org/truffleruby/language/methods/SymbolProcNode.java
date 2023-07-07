@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
-public class SymbolProcNode extends RubyContextSourceNode {
+public final class SymbolProcNode extends RubyContextSourceNode {
 
     private final String symbol;
 

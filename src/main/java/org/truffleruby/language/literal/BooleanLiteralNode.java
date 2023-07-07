@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class BooleanLiteralNode extends RubyContextSourceNode {
+public final class BooleanLiteralNode extends RubyContextSourceNode {
 
     private final boolean value;
 

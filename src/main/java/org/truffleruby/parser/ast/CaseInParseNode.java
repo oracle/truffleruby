@@ -45,7 +45,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /** A Case statement. Represents a complete case statement, including the body with its when and in statements. */
-public class CaseInParseNode extends ParseNode {
+public final class CaseInParseNode extends ParseNode {
     /** the case expression. **/
     private final ParseNode caseNode;
     /** A list of all choices including else */

@@ -20,7 +20,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyConstant implements ObjectGraphNode {
+public final class RubyConstant implements ObjectGraphNode {
 
     public static final RubyConstant[] EMPTY_ARRAY = new RubyConstant[0];
 

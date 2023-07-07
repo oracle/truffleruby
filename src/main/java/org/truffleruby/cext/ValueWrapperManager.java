@@ -38,7 +38,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @SuppressFBWarnings("VO")
-public class ValueWrapperManager {
+public final class ValueWrapperManager {
 
     static final long UNSET_HANDLE = -2L;
 
@@ -139,9 +139,8 @@ public class ValueWrapperManager {
         return ref.get();
     }
 
-    public void freeAllBlocksInMap(RubyLanguage language) {
+    public void freeAllBlocksInMap() {
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = language.handleBlockAllocator;
 
         for (HandleBlockWeakReference ref : map) {
             if (ref == null) {
@@ -158,7 +157,7 @@ public class ValueWrapperManager {
         holder.handleBlock = null;
     }
 
-    protected static class FreeHandleBlock {
+    protected static final class FreeHandleBlock {
         public final long start;
         public final FreeHandleBlock next;
 
@@ -185,7 +184,7 @@ public class ValueWrapperManager {
     private static final long OFFSET_MASK = ~BLOCK_MASK;
     public static final long ALLOCATION_BASE = 0x0badL << 48;
 
-    public static class HandleBlockAllocator {
+    public static final class HandleBlockAllocator {
 
         private long nextBlock = ALLOCATION_BASE;
         private FreeHandleBlock firstFreeBlock = null;
@@ -207,7 +206,7 @@ public class ValueWrapperManager {
         }
     }
 
-    public static class HandleBlock {
+    public static final class HandleBlock {
 
         private final long base;
         private final ValueWrapperWeakReference[] wrappers;
@@ -279,9 +278,9 @@ public class ValueWrapperManager {
         }
     }
 
-    public static class HandleBlockHolder {
-        protected HandleBlock handleBlock = null;
-        protected HandleBlock sharedHandleBlock = null;
+    public static final class HandleBlockHolder {
+        private HandleBlock handleBlock = null;
+        private HandleBlock sharedHandleBlock = null;
     }
 
     @GenerateUncached
@@ -389,7 +388,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class UnwrapperFunction implements TruffleObject {
+    public static final class UnwrapperFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -406,7 +405,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class ID2SymbolFunction implements TruffleObject {
+    public static final class ID2SymbolFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -422,7 +421,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class Symbol2IDFunction implements TruffleObject {
+    public static final class Symbol2IDFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -440,7 +439,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class WrapperFunction implements TruffleObject {
+    public static final class WrapperFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -456,7 +455,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class IsNativeObjectFunction implements TruffleObject {
+    public static final class IsNativeObjectFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {
@@ -473,7 +472,7 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
-    public static class ToNativeObjectFunction implements TruffleObject {
+    public static final class ToNativeObjectFunction implements TruffleObject {
 
         @ExportMessage
         protected boolean isExecutable() {

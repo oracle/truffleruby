@@ -28,7 +28,7 @@ import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.TruffleOptions;
 
-public class ParserCache {
+public final class ParserCache {
 
     public static final Map<String, RootParseNode> INSTANCE;
 

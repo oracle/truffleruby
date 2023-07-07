@@ -13,7 +13,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
-public class RubyHandle extends RubyDynamicObject {
+public final class RubyHandle extends RubyDynamicObject {
 
     public final Object object;
 

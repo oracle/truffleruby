@@ -29,6 +29,7 @@ import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.EncodingUtils;
@@ -44,7 +45,7 @@ import static org.truffleruby.core.encoding.Encodings.INITIAL_NUMBER_OF_ENCODING
 
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
-public class EncodingManager {
+public final class EncodingManager {
 
     private RubyEncoding[] ENCODING_LIST_BY_ENCODING_INDEX = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
@@ -188,10 +189,11 @@ public class EncodingManager {
 
     @TruffleBoundary
     public static Encoding getEncoding(String name) {
-        EncodingDB.Entry entry = EncodingDB.getEncodings().get(StringOperations.encodeAsciiBytes(name));
+        byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
+        EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
 
         if (entry == null) {
-            entry = EncodingDB.getAliases().get(name.getBytes());
+            entry = EncodingDB.getAliases().get(nameBytes);
         }
 
         if (entry != null) {
@@ -201,7 +203,7 @@ public class EncodingManager {
         return null;
     }
 
-    public Object[] getEncodingList() {
+    public synchronized Object[] getEncodingList() {
         return ArrayUtils.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, ENCODING_LIST_BY_ENCODING_INDEX.length);
     }
 
@@ -227,6 +229,7 @@ public class EncodingManager {
     }
 
     // Should only be used by Primitive.encoding_get_encoding_by_index
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     RubyEncoding getRubyEncoding(int encodingIndex) {
         return ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex];
     }

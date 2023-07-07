@@ -54,6 +54,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
@@ -101,6 +102,7 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
@@ -269,7 +271,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_watch_signal")
+    @Primitive(name = "vm_watch_signal", argumentNames = "action")
     public abstract static class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -295,28 +297,32 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)", limit = "1")
-        protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
+        protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
                 @Shared @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
-                SharedObjects.writeBarrier(getLanguage(), action);
+                SharedObjects.writeBarrier(getLanguage(), proc);
             }
 
             final String signalName = RubyGuards.getJavaString(signalString);
 
             return registerHandler(signalName, signal -> {
-                final RubyThread rootThread = context.getThreadManager().getRootThread();
-                context.getSafepointManager().pauseRubyThreadAndExecute(
-                        DummyNode.INSTANCE,
-                        new SafepointAction("Handling of signal " + signal, rootThread, true, false) {
-                            @Override
-                            public void run(RubyThread rubyThread, Node currentNode) {
-                                ProcOperations.rootCall(action, EmptyArgumentsDescriptor.INSTANCE, signal.getNumber());
-                            }
-                        });
+                var rootThread = context.getThreadManager().getRootThread();
+                context.getSafepointManager().pauseRubyThreadAndExecute(DummyNode.INSTANCE,
+                        callProcSafepointAction(proc, signal, rootThread));
             }, isRubyDefaultHandler);
+        }
+
+        @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+        private static SafepointAction callProcSafepointAction(RubyProc proc, Signal signal, RubyThread rootThread) {
+            return new SafepointAction("Handling of signal " + signal, rootThread, true, false) {
+                @Override
+                public void run(RubyThread rubyThread, Node currentNode) {
+                    ProcOperations.rootCall(proc, EmptyArgumentsDescriptor.INSTANCE, signal.getNumber());
+                }
+            };
         }
 
         @TruffleBoundary

@@ -14,7 +14,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class FrameOnStackNode extends RubyContextSourceNode {
+public final class FrameOnStackNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
     private final int frameOnStackMarkerSlot;

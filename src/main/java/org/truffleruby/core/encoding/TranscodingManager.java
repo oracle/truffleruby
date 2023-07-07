@@ -50,7 +50,7 @@ import org.truffleruby.core.string.StringUtils;
 /** This class computes all direct transcoder paths for both JVM and Native Image as a convenient-to-access Map. On
  * Native Image, it also loads eagerly everything that would need the tables/*.bin resources, so they are not needed at
  * runtime */
-public class TranscodingManager {
+public final class TranscodingManager {
 
     static final Map<String, Set<String>> allDirectTranscoderPaths = new HashMap<>();
 

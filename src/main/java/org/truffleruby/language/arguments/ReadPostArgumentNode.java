@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class ReadPostArgumentNode extends RubyContextSourceNode {
+public final class ReadPostArgumentNode extends RubyContextSourceNode {
 
     private final int indexFromCount;
     private final boolean keywordArguments;

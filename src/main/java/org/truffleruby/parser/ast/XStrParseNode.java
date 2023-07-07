@@ -42,7 +42,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** A Backtick(`) string */
-public class XStrParseNode extends ParseNode implements ILiteralNode {
+public final class XStrParseNode extends ParseNode implements ILiteralNode {
     private final TruffleString value;
     public final RubyEncoding encoding;
 

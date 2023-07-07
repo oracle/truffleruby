@@ -13,7 +13,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
-public class RubyWeakMap extends RubyDynamicObject {
+public final class RubyWeakMap extends RubyDynamicObject {
 
     final WeakMapStorage storage;
 

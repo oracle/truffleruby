@@ -181,7 +181,7 @@ public abstract class RubyDateFormatter {
 
     public static final Token[] EMPTY_TOKEN_ARRAY = new Token[0];
 
-    public static class Token {
+    public static final class Token {
         private final Format format;
         private final Object data;
         private final TruffleString tstring;

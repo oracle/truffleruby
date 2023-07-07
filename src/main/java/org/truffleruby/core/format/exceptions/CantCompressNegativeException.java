@@ -10,5 +10,5 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class CantCompressNegativeException extends FormatException {
+public final class CantCompressNegativeException extends FormatException {
 }

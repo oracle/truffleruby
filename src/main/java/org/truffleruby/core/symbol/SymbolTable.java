@@ -24,7 +24,7 @@ import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class SymbolTable {
+public final class SymbolTable {
 
     private final TStringCache tstringCache;
 

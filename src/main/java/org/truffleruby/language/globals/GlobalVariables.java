@@ -22,7 +22,7 @@ import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class GlobalVariables {
+public final class GlobalVariables {
 
     private final RubyContext context;
     private final RubyLanguage language;

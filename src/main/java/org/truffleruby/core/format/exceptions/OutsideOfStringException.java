@@ -10,5 +10,5 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class OutsideOfStringException extends FormatException {
+public final class OutsideOfStringException extends FormatException {
 }

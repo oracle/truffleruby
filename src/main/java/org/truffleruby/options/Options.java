@@ -23,7 +23,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
 // Checkstyle: stop
-public class Options {
+public final class Options {
 
     /** --load-paths=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] LOAD_PATHS;

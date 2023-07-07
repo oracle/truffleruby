@@ -22,7 +22,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class MultipleAssignmentNode extends RubyContextSourceNode implements AssignableNode {
+public final class MultipleAssignmentNode extends RubyContextSourceNode implements AssignableNode {
 
     @Child RubyNode rhsNode;
     @Child SplatCastNode splatCastNode;

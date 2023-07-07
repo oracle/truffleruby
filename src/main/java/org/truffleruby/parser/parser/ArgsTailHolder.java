@@ -32,7 +32,7 @@ import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 
 /** Simple struct to hold values until they can be inserted into the AST. */
-public class ArgsTailHolder {
+public final class ArgsTailHolder {
     private SourceIndexLength position;
     private BlockArgParseNode blockArg;
     private ListParseNode keywordArgs;

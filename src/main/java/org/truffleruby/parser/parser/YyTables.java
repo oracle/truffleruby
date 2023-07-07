@@ -29,7 +29,7 @@
 package org.truffleruby.parser.parser;
 
 // @formatter:off
-public class YyTables {
+public final class YyTables {
    private static short[] combine(short[] t1, short[] t2, 
                                   short[] t3, short[] t4) {
       short[] t = new short[t1.length + t2.length + t3.length + t4.length];

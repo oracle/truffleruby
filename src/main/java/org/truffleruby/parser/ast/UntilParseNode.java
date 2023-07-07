@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents an until statement. */
-public class UntilParseNode extends ParseNode {
+public final class UntilParseNode extends ParseNode {
     private final ParseNode conditionNode;
     private final ParseNode bodyNode;
     private final boolean evaluateAtStart;

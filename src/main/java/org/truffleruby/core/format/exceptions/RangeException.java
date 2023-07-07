@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.exceptions;
 
 @SuppressWarnings("serial")
-public class RangeException extends FormatException {
+public final class RangeException extends FormatException {
 
     public RangeException(String message) {
         super(message);

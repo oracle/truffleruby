@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-public class TruffleKernelOperationsModuleLiteralNode extends RubyContextSourceNode {
+public final class TruffleKernelOperationsModuleLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

@@ -21,7 +21,7 @@ import org.truffleruby.parser.ArgumentType;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.parser.parser.ParserSupport;
 
-public class ArgumentDescriptorUtils {
+public final class ArgumentDescriptorUtils {
 
     @TruffleBoundary
     public static RubyArray argumentDescriptorsToParameters(RubyLanguage language, RubyContext context,

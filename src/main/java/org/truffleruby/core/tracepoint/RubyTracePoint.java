@@ -19,7 +19,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import java.util.Set;
 
-public class RubyTracePoint extends RubyDynamicObject implements ObjectGraphNode {
+public final class RubyTracePoint extends RubyDynamicObject implements ObjectGraphNode {
 
     TracePointEvent[] events;
     RubyProc proc;

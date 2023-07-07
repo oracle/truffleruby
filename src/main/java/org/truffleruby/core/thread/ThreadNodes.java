@@ -56,6 +56,7 @@ import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
@@ -618,6 +619,7 @@ public abstract class ThreadNodes {
     @CoreMethod(names = { "wakeup", "run" })
     public abstract static class WakeupNode extends CoreMethodArrayArgumentsNode {
 
+        @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
         @TruffleBoundary
         @Specialization
         protected RubyThread wakeup(RubyThread rubyThread) {
@@ -681,7 +683,7 @@ public abstract class ThreadNodes {
             return new CExtInterrupter(context, function, argument);
         }
 
-        private static class CExtInterrupter implements Interrupter {
+        private static final class CExtInterrupter implements Interrupter {
 
             private final RubyContext context;
             private final Object function;

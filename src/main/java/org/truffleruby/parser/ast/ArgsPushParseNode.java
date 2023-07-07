@@ -34,7 +34,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-public class ArgsPushParseNode extends ParseNode {
+public final class ArgsPushParseNode extends ParseNode {
     private ParseNode firstNode;
     private ParseNode secondNode;
 

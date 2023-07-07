@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class WriteConstantNode extends RubyContextSourceNode implements AssignableNode {
+public final class WriteConstantNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 

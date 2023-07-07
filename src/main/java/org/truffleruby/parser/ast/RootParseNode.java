@@ -38,7 +38,7 @@ import com.oracle.truffle.api.source.Source;
 /** Represents the top of the AST. This is a node not present in MRI. It was created to hold the top-most static scope
  * in an easy to grab way and it also exists to hold BEGIN and END nodes. These can then be interpreted/compiled in the
  * same places as the rest of the code. */
-public class RootParseNode extends ParseNode {
+public final class RootParseNode extends ParseNode {
 
     private final ParseNode beginNode;
     private final Source source;

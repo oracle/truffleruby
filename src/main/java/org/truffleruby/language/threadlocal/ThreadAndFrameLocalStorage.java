@@ -17,7 +17,7 @@ import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class ThreadAndFrameLocalStorage {
+public final class ThreadAndFrameLocalStorage {
 
     // We store a thread id rather than the thread itself. Although
     // this id can theoretically be reused the implementation simply

@@ -111,7 +111,7 @@ public final class EmptyHashStore {
         return true;
     }
 
-    public static class EmptyHashLiteralNode extends HashLiteralNode {
+    public static final class EmptyHashLiteralNode extends HashLiteralNode {
 
         public EmptyHashLiteralNode() {
             super(RubyNode.EMPTY_ARRAY);

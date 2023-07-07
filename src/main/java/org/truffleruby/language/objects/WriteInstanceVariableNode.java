@@ -23,7 +23,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 
-public class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
+public final class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 

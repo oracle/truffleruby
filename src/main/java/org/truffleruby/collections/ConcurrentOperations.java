@@ -10,6 +10,7 @@
 package org.truffleruby.collections;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.annotations.SuppressFBWarnings;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,6 +60,7 @@ public abstract class ConcurrentOperations {
      * prefers the signal and just returns, it does {@code Thread.currentThread().interrupt()} to let us know there was
      * an interrupt too. In any case, if there was any interrupt we want to throw InterruptedException, regardless of
      * what the implementation prefers. */
+    @SuppressFBWarnings("WA_AWAIT_NOT_IN_LOOP")
     public static void awaitAndCheckInterrupt(Condition condition) throws InterruptedException {
         // Checkstyle: stop
         condition.await();

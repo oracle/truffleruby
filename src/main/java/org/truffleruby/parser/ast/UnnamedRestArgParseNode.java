@@ -32,7 +32,7 @@ import org.truffleruby.language.SourceIndexLength;
 
 /** A bare '*' or nothing (as in {@code proc { |a,| }}, which destructures for a Proc but otherwise behaves like exactly
  * like |a|). */
-public class UnnamedRestArgParseNode extends RestArgParseNode {
+public final class UnnamedRestArgParseNode extends RestArgParseNode {
 
     private final boolean star;
 

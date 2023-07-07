@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 
-public class StringLiteralNode extends RubyContextSourceNode {
+public final class StringLiteralNode extends RubyContextSourceNode {
 
     private final TruffleString tstring;
     private final RubyEncoding encoding;

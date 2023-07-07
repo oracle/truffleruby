@@ -13,7 +13,7 @@ import org.truffleruby.core.array.ArrayUtils;
 
 /** Simplistic array stack implementation that will partial-evaluate nicely, unlike {@link java.util.ArrayDeque}. */
 @SuppressWarnings("unchecked")
-public class SimpleStack<T> {
+public final class SimpleStack<T> {
 
     Object[] storage;
     int index = -1;

@@ -28,7 +28,7 @@ import com.oracle.truffle.api.source.Source;
 /*
  * Loads the main script, whether it comes from an argument, standard in, or a file.
  */
-public class MainLoader {
+public final class MainLoader {
 
     private final RubyContext context;
     private final RubyLanguage language;
