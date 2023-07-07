@@ -313,9 +313,13 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
+                '-J-Xmx5g', # Set Xmx to use a reliable amount of memory
                 '-H:+DumpThreadStacksOnSignal',
                 '-H:+DetectUserDirectoriesInImageHeap',
                 '-H:+TruffleCheckBlockListMethods'
+            ],
+            build_args_enterprise=[
+                '-J-Xmx6g', # Set Xmx to use a reliable amount of memory
             ],
             language='ruby',
             option_vars=[
