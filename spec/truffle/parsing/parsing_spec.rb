@@ -54,7 +54,7 @@ describe "Parsing" do
   require 'yaml'
 
   filenames = Dir.glob("#{__dir__}/fixtures/**/*.yaml")
-  # filenames = ["#{__dir__}/fixtures/global_variables/reading_$0.yaml"] # to run a single one
+  # filenames = ["#{__dir__}/fixtures/ternary_if.yaml"] # to run a single one
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
@@ -78,7 +78,9 @@ describe "Parsing" do
           # ensure it's still a valid YAML document
           YAML.safe_load_file(filename)
 
-          unless replaced
+          if replaced
+            skip "overwritten result file"
+          else
             raise "The file #{filename} wasn't updated with actual AST"
           end
         else
