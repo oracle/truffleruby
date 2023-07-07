@@ -54,18 +54,21 @@ describe "Parsing" do
   require 'yaml'
 
   filenames = Dir.glob("#{__dir__}/fixtures/**/*.yaml")
-  # filenames = ["#{__dir__}/fixtures/ternary_if.yaml"] # to run a single one
+  # filenames = ["#{__dir__}/fixtures/if/with_empty_then_branch.yaml"] # to run a single one
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
     subject, description, focused_on_node, index, source_code, expected_ast = yaml.values_at("subject", "description", "focused_on_node", "index", "ruby", "ast")
+    source_code.strip!
+    expected_ast.strip!
+    index = index.to_i
 
     guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? } do
       it "a #{subject} (#{description.strip}) case is parsed correctly" do
         if ENV['TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR'] == 'true'
-          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index).strip
         else
-          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code.strip, focused_on_node, index.to_i).strip
+          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code, focused_on_node, index).strip
         end
 
         if overwrite
@@ -85,7 +88,10 @@ describe "Parsing" do
           end
         else
           # actual test check
-          actual_ast.should == expected_ast.strip
+          unless actual_ast == expected_ast
+            $stderr.puts "\nYARP AST:", Truffle::Debug.yarp_parse(source_code)
+          end
+          actual_ast.should == expected_ast
         end
       end
     end
