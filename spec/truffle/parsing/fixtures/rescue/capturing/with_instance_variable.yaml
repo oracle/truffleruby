@@ -52,7 +52,7 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteInstanceVariableNode
+                                      WriteInstanceVariableNodeGen
                                           attributes:
                                               flags = 0
                                               frozenProfile = false

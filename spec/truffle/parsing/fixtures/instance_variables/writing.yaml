@@ -4,7 +4,7 @@ focused_on_node: "org.truffleruby.language.objects.WriteInstanceVariableNode"
 ruby: |
   @foo = 42
 ast: |
-  WriteInstanceVariableNode
+  WriteInstanceVariableNodeGen
       attributes:
           flags = 1
           frozenProfile = false

@@ -11,7 +11,7 @@ ast: |
           flags = 1
       children:
           preNodes = [
-              WriteInstanceVariableNode
+              WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
                       frozenProfile = false
@@ -21,7 +21,7 @@ ast: |
                           ReadFrameSlotNodeGen
                               attributes:
                                   frameSlot = 0
-              WriteInstanceVariableNode
+              WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
                       frozenProfile = false
@@ -31,7 +31,7 @@ ast: |
                           ReadFrameSlotNodeGen
                               attributes:
                                   frameSlot = 0
-              WriteInstanceVariableNode
+              WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
                       frozenProfile = false
