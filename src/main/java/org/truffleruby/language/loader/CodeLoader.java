@@ -17,13 +17,11 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -95,11 +93,7 @@ public final class CodeLoader {
             MaterializedFrame parentFrame,
             LexicalScope lexicalScope,
             Node currentNode) {
-        var tstringWithEnc = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
-                RubyStringLibrary.getUncached().getEncoding(code));
-        var charSequence = new ByteBasedCharSequence(tstringWithEnc);
-        Source source = Source.newBuilder("ruby", charSequence, "<parse_ast>").build();
-        var rubySource = new RubySource(source, source.getName(), tstringWithEnc);
+        RubySource rubySource = YARPTranslatorDriver.createRubySource(code);
         final YARPTranslatorDriver translator = new YARPTranslatorDriver(context, rubySource);
         return translator.parse(rubySource, parserContext, null, parentFrame, lexicalScope, currentNode);
     }

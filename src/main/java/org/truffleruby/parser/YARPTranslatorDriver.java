@@ -57,9 +57,11 @@ import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyEvalRootNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
@@ -70,6 +72,8 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.control.WhileNodeFactory;
+import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.loader.ByteBasedCharSequence;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
@@ -79,6 +83,7 @@ import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
 import org.yarp.Loader;
+import org.yarp.Nodes;
 import org.yarp.Parser;
 
 import java.util.ArrayList;
@@ -399,8 +404,8 @@ public class YARPTranslatorDriver {
         org.yarp.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 
-        return Loader.load(sourceBytes, serializedBytes);
-
+        var yarpSource = createYARPSource(sourceBytes, rubySource);
+        return Loader.load(serializedBytes, yarpSource);
         // YARP end
 
         // TODO: handle syntax errors
@@ -444,6 +449,24 @@ public class YARPTranslatorDriver {
         //        }
 
         //        return (RootParseNode) result.getAST();
+    }
+
+    public static RubySource createRubySource(Object code) {
+        var tstringWithEnc = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+                RubyStringLibrary.getUncached().getEncoding(code));
+        var charSequence = new ByteBasedCharSequence(tstringWithEnc);
+        Source source = Source.newBuilder("ruby", charSequence, "<parse_ast>").build();
+        return new RubySource(source, source.getName(), tstringWithEnc);
+    }
+
+    public static Nodes.Source createYARPSource(byte[] sourceBytes, RubySource rubySource) {
+        Source source = rubySource.getSource();
+        int[] lineOffsets = new int[source.getLineCount()];
+        for (int line = 1; line <= source.getLineCount(); line++) {
+            lineOffsets[line - 1] = source.getLineStartOffset(line);
+        }
+
+        return new Nodes.Source(sourceBytes, lineOffsets);
     }
 
     private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame, int blockDepth) {

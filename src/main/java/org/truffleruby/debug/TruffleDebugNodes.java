@@ -111,6 +111,7 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.TranslatorEnvironment;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
@@ -290,7 +291,8 @@ public abstract class TruffleDebugNodes {
 
             byte[] serialized = yarpSerialize(getLanguage(), source);
 
-            var ast = Loader.load(source, serialized);
+            var yarpSource = YARPTranslatorDriver.createYARPSource(source, YARPTranslatorDriver.createRubySource(code));
+            var ast = Loader.load(serialized, yarpSource);
 
             return createString(fromJavaStringNode, ast.toString(), Encodings.UTF_8);
         }
