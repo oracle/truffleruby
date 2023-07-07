@@ -255,7 +255,7 @@ public class YARPTranslatorDriver {
                         //                            beginNodeMemo.set(translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode()));
                         //                        }
                         //                        return translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
-                        return translator.translateNodeOrNil(sourceIndexLength, node);
+                        return node.accept(translator);
                     });
         } finally {
             printParseTranslateExecuteMetric("after-translate", context, source);

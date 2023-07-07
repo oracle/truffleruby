@@ -85,7 +85,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         return new SourceIndexLength(start, end - start);
     }
 
-    private static List<RubyNode> flatten(List<RubyNode> sequence, boolean allowTrailingNil) {
+    static List<RubyNode> flatten(List<RubyNode> sequence, boolean allowTrailingNil) {
         return flattenFromN(sequence, allowTrailingNil, 0);
     }
 

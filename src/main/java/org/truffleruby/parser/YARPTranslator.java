@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
@@ -30,7 +31,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.control.AndNodeGen;
@@ -38,6 +38,7 @@ import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RetryNode;
+import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.control.UnlessNodeGen;
 import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
@@ -64,7 +65,10 @@ import org.yarp.Nodes;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
+// NOTE: we should avoid SourceIndexLength in YARPTranslator, instead pass a Nodes.Node as location,
+// because that's inefficient and there is typically no need for such an object since YARP location info is correct.
 public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private final RubyLanguage language;
@@ -251,9 +255,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitClassVariableReadNode(Nodes.ClassVariableReadNode node) {
-        final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
         final RubyNode rubyNode = new ReadClassVariableNode(
-                getLexicalScopeNode("class variable lookup", sourceSection),
+                getLexicalScopeNode("class variable lookup", node),
                 toString(node));
 
         assignNodePositionInSource(node, rubyNode);
@@ -261,11 +264,10 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitClassVariableWriteNode(Nodes.ClassVariableWriteNode node) {
-        final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
         final RubyNode rhs = node.value.accept(this);
 
         final RubyNode rubyNode = new WriteClassVariableNode(
-                getLexicalScopeNode("set dynamic class variable", sourceSection),
+                getLexicalScopeNode("set dynamic class variable", node),
                 toString(node.name_loc),
                 rhs);
 
@@ -451,8 +453,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             // if (condition)
             // end
-            final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
-            rubyNode = Translator.sequence(sourceSection, Arrays.asList(conditionNode, new NilLiteralNode(true)));
+            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode(true)));
         }
 
         return rubyNode;
@@ -786,14 +787,12 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
-        var location = new SourceIndexLength(node.startOffset, node.length);
-
         var body = node.body;
         var translated = new RubyNode[body.length];
         for (int i = 0; i < body.length; i++) {
             translated[i] = body[i].accept(this);
         }
-        return Translator.sequence(location, Arrays.asList(translated));
+        return sequence(node, Arrays.asList(translated));
     }
 
     public RubyNode visitStringConcatNode(Nodes.StringConcatNode node) {
@@ -859,8 +858,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             // unless (condition)
             // end
-            final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
-            rubyNode = Translator.sequence(sourceSection, Arrays.asList(conditionNode, new NilLiteralNode(true)));
+            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode(true)));
         }
 
         return rubyNode;
@@ -891,27 +889,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         throw new Error("Unknown node: " + node);
     }
 
-    protected RubyNode translateNodeOrNil(SourceIndexLength sourceSection, Nodes.Node node) {
-        final RubyNode rubyNode;
-        if (node == null) {
-            rubyNode = nilNode(sourceSection);
-        } else {
-            rubyNode = node.accept(this);
-        }
-        return rubyNode;
-    }
-
-    protected RubyNode nilNode(SourceIndexLength sourceSection) {
-        final RubyNode literal = new NilLiteralNode(false);
-        literal.unsafeSetSourceSection(sourceSection);
-        return literal;
-    }
-
-    private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
+    private RubyNode getLexicalScopeNode(String kind, Nodes.Node yarpNode) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER.info(() -> kind + " at " +
-                        RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
+                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(yarpNode)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -946,14 +928,36 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return new String(node.unescaped);
     }
 
-    private void assignNodePositionInSource(Nodes.Node yarpNode, RubyNode rubyNode) {
+    private SourceSection getSourceSection(Nodes.Node yarpNode) {
+        return source.createSection(yarpNode.startOffset, yarpNode.length);
+    }
+
+    private static void assignNodePositionInSource(Nodes.Node yarpNode, RubyNode rubyNode) {
         rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
         copyNewlineFlag(yarpNode, rubyNode);
     }
 
-    private void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
+    private static void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
         if (yarpNode.hasNewLineFlag()) {
             rubyNode.unsafeSetIsNewLine();
+        }
+    }
+
+    private static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
+        assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
+        final List<RubyNode> flattened = Translator.flatten(sequence, true);
+
+        if (flattened.isEmpty()) {
+            final RubyNode nilNode = new NilLiteralNode(true);
+            assignNodePositionInSource(yarpNode, nilNode);
+            return nilNode;
+        } else if (flattened.size() == 1) {
+            return flattened.get(0);
+        } else {
+            final RubyNode[] flatSequence = flattened.toArray(RubyNode.EMPTY_ARRAY);
+            var sequenceNode = new SequenceNode(flatSequence);
+            assignNodePositionInSource(yarpNode, sequenceNode);
+            return sequenceNode;
         }
     }
 
