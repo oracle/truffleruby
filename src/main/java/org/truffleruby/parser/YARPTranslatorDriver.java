@@ -184,7 +184,7 @@ public class YARPTranslatorDriver {
         // Needs the magic comment to be parsed
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
-        final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
+        final SourceSection sourceSection = source.createSection(0, rubySource.getBytes().length);
         final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
 
         final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()
@@ -226,7 +226,7 @@ public class YARPTranslatorDriver {
 
         // Translate to Ruby Truffle nodes
 
-        byte[] sourceBytes = rubySource.getSource().getCharacters().toString().getBytes();
+        byte[] sourceBytes = rubySource.getBytes();
         final YARPTranslator translator = new YARPTranslator(
                 language,
                 null,
@@ -395,7 +395,7 @@ public class YARPTranslatorDriver {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         // YARP begin
-        byte[] sourceBytes = rubySource.getSource().getCharacters().toString().getBytes();
+        byte[] sourceBytes = rubySource.getBytes();
         org.yarp.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 

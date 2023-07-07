@@ -33,7 +33,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
@@ -302,20 +301,15 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
         protected Object yarpExecute(VirtualFrame frame, Object code,
                 @Cached RubyStringLibrary strings) {
-            var tstring = strings.getTString(code);
-            var encoding = strings.getEncoding(code);
-
-            return doExecute(tstring, encoding, RubyArguments.getMethod(frame));
+            return doExecute(code, RubyArguments.getMethod(frame));
         }
 
         @TruffleBoundary
-        private Object doExecute(AbstractTruffleString tstring, RubyEncoding encoding, InternalMethod method) {
-            String sourceString = TStringUtils.toJavaStringOrThrow(tstring, encoding);
-            Source source = Source.newBuilder("ruby", sourceString, "<parse_ast>").build();
+        private Object doExecute(Object code, InternalMethod method) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
             final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
-                    new RubySource(source, source.getName()),
+                    code,
                     ParserContext.TOP_LEVEL,
                     null,
                     RubyLanguage.getCurrentContext().getRootLexicalScope(),
@@ -1465,23 +1459,22 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
     public abstract static class ParseWithYARPAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
         @TruffleBoundary
-        protected Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
+        @Specialization(guards = "strings.isRubyString(code)", limit = "1")
+        protected Object parseAndDump(Object code, Object focusedNodeClassName, int index,
+                @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
-            RubyRootNode rootNode = parse(sourceCodeString);
+            RubyRootNode rootNode = parse(code);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(String sourceCode) {
-            Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
+        private RubyRootNode parse(Object code) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
             final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
-                    new RubySource(source, source.getName()),
+                    code,
                     ParserContext.TOP_LEVEL,
                     null,
                     RubyLanguage.getCurrentContext().getRootLexicalScope(),
