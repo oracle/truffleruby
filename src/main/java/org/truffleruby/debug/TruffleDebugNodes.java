@@ -310,11 +310,11 @@ public abstract class TruffleDebugNodes {
         private Object doExecute(Object code, InternalMethod method) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
-            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseWithYARP(
                     code,
                     ParserContext.TOP_LEVEL,
                     null,
-                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    getContext().getRootLexicalScope(),
                     null);
 
             RubyRootNode truffleAST = RubyRootNode.of(callTarget);
@@ -1447,11 +1447,11 @@ public abstract class TruffleDebugNodes {
             Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
-            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     new RubySource(source, source.getName()),
                     ParserContext.TOP_LEVEL,
                     null,
-                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    getContext().getRootLexicalScope(),
                     null);
 
             return RubyRootNode.of(callTarget);
@@ -1475,11 +1475,11 @@ public abstract class TruffleDebugNodes {
         private RubyRootNode parse(Object code) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
-            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parseWithYARP(
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseWithYARP(
                     code,
                     ParserContext.TOP_LEVEL,
                     null,
-                    RubyLanguage.getCurrentContext().getRootLexicalScope(),
+                    getContext().getRootLexicalScope(),
                     null);
 
             return RubyRootNode.of(callTarget);
