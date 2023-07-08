@@ -18,7 +18,7 @@ module Coverage
   def self.start(*arguments, **options)
     # We have to track if the :lines option was provided, as that calls for a
     # different result format
-    @lines = true if options[:lines]
+    @lines = !!options[:lines]
     Truffle::Coverage.enable
   end
 
