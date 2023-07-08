@@ -381,13 +381,10 @@ public abstract class ModuleNodes {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            final RubyModule module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
+            var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
 
             final Object newNameObject = newName.execute(frame);
             final Object oldNameObject = oldName.execute(frame);
-
-            assert newNameObject instanceof RubySymbol;
-            assert oldNameObject instanceof RubySymbol;
 
             RubySymbol newNameSymbol = (RubySymbol) newNameObject;
             RubySymbol oldNameSymbol = (RubySymbol) oldNameObject;
