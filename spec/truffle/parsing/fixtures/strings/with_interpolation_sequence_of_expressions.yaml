@@ -8,7 +8,7 @@ ast: |
       attributes:
           emptyTString = ""
           encoding = UTF-8
-          flags = 1
+          flags = 0
       children:
           children = [
               ToSNodeGen
@@ -17,7 +17,7 @@ ast: |
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
-                                  flags = 0
+                                  flags = 1
                                   tstring = ab
               ToSNodeGen
                   children:
@@ -29,11 +29,11 @@ ast: |
                                   body = [
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
+                                              flags = 0
                                               value = 42
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
+                                              flags = 0
                                               value = 100500
                                   ]
               ToSNodeGen
