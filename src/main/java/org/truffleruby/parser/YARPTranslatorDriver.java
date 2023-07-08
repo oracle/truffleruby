@@ -90,7 +90,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class YARPTranslatorDriver {
+public final class YARPTranslatorDriver {
 
     /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
