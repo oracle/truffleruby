@@ -188,14 +188,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitBlockParametersNode(Nodes.BlockParametersNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitBreakNode(Nodes.BreakNode node) {
         return defaultVisit(node);
     }
@@ -393,10 +385,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitForwardingSuperNode(Nodes.ForwardingSuperNode node) {
         return defaultVisit(node);
     }
@@ -580,14 +568,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitKeywordParameterNode(Nodes.KeywordParameterNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
         return defaultVisit(node);
     }
@@ -642,10 +622,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    public RubyNode visitNoKeywordsParameterNode(Nodes.NoKeywordsParameterNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
         final String name = toString(node);
         final int index = Integer.parseInt(name.substring(1));
@@ -656,10 +632,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitOrNode(Nodes.OrNode node) {
         final RubyNode left = node.left.accept(this);
         final RubyNode right = node.right.accept(this);
@@ -667,10 +639,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rubyNode = OrNodeGen.create(left, right);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
-    }
-
-    public RubyNode visitParametersNode(Nodes.ParametersNode node) {
-        return defaultVisit(node);
     }
 
     public RubyNode visitParenthesesNode(Nodes.ParenthesesNode node) {
@@ -731,23 +699,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitRequiredDestructuredParameterNode(Nodes.RequiredDestructuredParameterNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitRescueModifierNode(Nodes.RescueModifierNode node) {
         return defaultVisit(node);
     }
 
     public RubyNode visitRescueNode(Nodes.RescueNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
         return defaultVisit(node);
     }
 
