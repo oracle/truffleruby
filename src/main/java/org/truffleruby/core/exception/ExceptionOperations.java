@@ -76,8 +76,8 @@ public abstract class ExceptionOperations {
     }
 
     public static Object getExceptionObject(AbstractTruffleException exception) {
-        assert !(exception instanceof KillException)
-                : "KillException should not be used as an exception object: " + exception;
+        assert !(exception instanceof KillException) : "KillException should not be used as an exception object: " +
+                exception;
         if (exception instanceof RaiseException) {
             return ((RaiseException) exception).getException();
         } else {
@@ -87,8 +87,8 @@ public abstract class ExceptionOperations {
 
     public static Object getExceptionObject(Node node, AbstractTruffleException exception,
             InlinedConditionProfile raiseExceptionProfile) {
-        assert !(exception instanceof KillException)
-                : "KillException should not be used as an exception object: " + exception;
+        assert !(exception instanceof KillException) : "KillException should not be used as an exception object: " +
+                exception;
         if (raiseExceptionProfile.profile(node, exception instanceof RaiseException)) {
             return ((RaiseException) exception).getException();
         } else {
