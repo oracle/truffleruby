@@ -20,12 +20,12 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.cast.StringToSymbolNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.string.InterpolatedStringNode;
-import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -63,7 +63,6 @@ import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.yarp.AbstractNodeVisitor;
 import org.yarp.Nodes;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -79,6 +78,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private final ParserContext parserContext;
     private final Node currentNode;
     private final RubyDeferredWarnings rubyWarnings;
+    private final RubyEncoding sourceEncoding;
 
     public YARPTranslator(
             RubyLanguage language,
@@ -97,6 +97,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         this.parserContext = parserContext;
         this.currentNode = currentNode;
         this.rubyWarnings = rubyWarnings;
+        this.sourceEncoding = Encodings.UTF_8; // TODO
     }
 
     public RubyRootNode translate(Nodes.Node node) {
@@ -200,7 +201,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCallNode(Nodes.CallNode node) {
-        var methodName = new String(node.name, StandardCharsets.UTF_8);
+        var methodName = new String(node.name, EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
         var arguments = node.arguments.arguments;
 
@@ -343,7 +344,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // empty interpolation expression, e.g. in "a #{} b"
         if (node.statements == null) {
             RubyNode rubyNode = new ObjectLiteralNode(
-                    language.getFrozenStringLiteral(TStringConstants.EMPTY_BINARY, Encodings.BINARY));
+                    language.getFrozenStringLiteral(sourceEncoding.tencoding.getEmpty(), sourceEncoding));
             assignNodePositionInSource(node, rubyNode);
             return rubyNode;
         }
@@ -516,9 +517,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // a special case for `:"abc"` literal - convert to Symbol ourselves
         if (node.parts.length == 1 && node.parts[0] instanceof Nodes.StringNode s) {
-            final TruffleString tstring = TStringUtils.fromByteArray(s.unescaped, Encodings.UTF_8);
-            final TruffleString cachedTString = language.tstringCache.getTString(tstring, Encodings.UTF_8);
-            final RubyNode rubyNode = new StringLiteralNode(cachedTString, Encodings.UTF_8);
+            final TruffleString tstring = TStringUtils.fromByteArray(s.unescaped, sourceEncoding);
+            final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
+            final RubyNode rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
 
             assignNodePositionInSource(node, rubyNode);
             copyNewlineFlag(s, rubyNode);
@@ -535,7 +536,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             children[i] = ToSNodeGen.create(part.accept(this));
         }
 
-        final RubyNode rubyNode = new InterpolatedStringNode(children, Encodings.UTF_8.jcoding);
+        final RubyNode rubyNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
         assignNodePositionInSource(node, rubyNode);
 
         return rubyNode;
@@ -564,7 +565,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             children[i] = ToSNodeGen.create(part.accept(this));
         }
 
-        final RubyNode stringNode = new InterpolatedStringNode(children, Encodings.UTF_8.jcoding);
+        final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
         final RubyNode rubyNode = StringToSymbolNodeGen.create(stringNode);
         assignNodePositionInSource(node, rubyNode);
 
@@ -800,7 +801,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStringNode(Nodes.StringNode node) {
-        final RubyEncoding encoding = Encodings.UTF_8;
+        final RubyEncoding encoding = sourceEncoding;
         final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
         final TruffleString cachedTString = language.tstringCache.getTString(tstring, encoding);
         final RubyNode rubyNode = new StringLiteralNode(cachedTString, encoding);
@@ -917,11 +918,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private String toString(Nodes.Location location) {
-        return new String(sourceBytes, location.startOffset, location.length, StandardCharsets.US_ASCII);
+        return new String(sourceBytes, location.startOffset, location.length,
+                EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
     }
 
     private String toString(Nodes.Node node) {
-        return new String(sourceBytes, node.startOffset, node.length, StandardCharsets.US_ASCII);
+        return new String(sourceBytes, node.startOffset, node.length,
+                EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
     }
 
     private String toString(Nodes.SymbolNode node) {
