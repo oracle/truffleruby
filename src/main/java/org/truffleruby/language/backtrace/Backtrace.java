@@ -121,8 +121,7 @@ public final class Backtrace {
 
     /** Sets the wrapper for the Ruby exception associated with this backtrace. */
     public void setRaiseException(RaiseException raiseException) {
-        assert this.raiseException == null
-                : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
+        assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
         this.raiseException = raiseException;
     }
 
