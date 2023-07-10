@@ -884,7 +884,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private String toString(Nodes.SymbolNode node) {
-        return new String(node.unescaped);
+        return new String(node.unescaped, EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
     }
 
     private SourceSection getSourceSection(Nodes.Node yarpNode) {
