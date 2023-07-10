@@ -873,11 +873,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private String toString(Nodes.Location location) {
-        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, location.startOffset, location.length, sourceEncoding.tencoding, false), sourceEncoding);
+        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, location.startOffset,
+                location.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     private String toString(Nodes.Node node) {
-        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding, false), sourceEncoding);
+        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset,
+                node.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     private SourceSection getSourceSection(Nodes.Node yarpNode) {
