@@ -387,9 +387,9 @@ suite = {
 
         "TRUFFLERUBY-ANNOTATIONS": {
             "moduleInfo": {
-                "name": "org.truffleruby.annotations",
+                "name": "org.graalvm.ruby.annotations",
                 "exports": [
-                    "org.truffleruby.annotations to org.truffleruby",
+                    "org.truffleruby.annotations to org.graalvm.ruby",
                 ],
             },
             "dependencies": [
@@ -404,7 +404,7 @@ suite = {
         # This code is loaded twice in different classloaders, therefore any created instances should not be passed around.
         "TRUFFLERUBY-SHARED": {
             "moduleInfo": {
-                "name": "org.truffleruby.shared",
+                "name": "org.graalvm.ruby.shared",
                 "exports": [
                     "org.truffleruby.shared",
                     "org.truffleruby.shared.options",
@@ -435,7 +435,7 @@ suite = {
 
         "TRUFFLERUBY-SERVICES": {
             "moduleInfo": {
-                "name": "org.truffleruby.services",
+                "name": "org.graalvm.ruby.services",
                 "exports": ["org.truffleruby.services.scriptengine"],
             },
             "dependencies": [
@@ -450,7 +450,7 @@ suite = {
 
         "TRUFFLERUBY": {
             "moduleInfo": {
-                "name": "org.truffleruby",
+                "name": "org.graalvm.ruby",
             },
             "dependencies": [
                 "org.truffleruby",
