@@ -20,7 +20,6 @@ import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.cast.StringToSymbolNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -193,7 +192,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCallNode(Nodes.CallNode node) {
-        var methodName = new String(node.name, EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
+        var methodName = TStringUtils.toJavaStringOrThrow(node.name, sourceEncoding);
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
         var arguments = node.arguments.arguments;
 
@@ -757,10 +756,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStringNode(Nodes.StringNode node) {
-        final RubyEncoding encoding = sourceEncoding;
-        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
-        final TruffleString cachedTString = language.tstringCache.getTString(tstring, encoding);
-        final RubyNode rubyNode = new StringLiteralNode(cachedTString, encoding);
+        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
+        final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
+        final RubyNode rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
 
         assignNodePositionInSource(node, rubyNode);
 
@@ -772,7 +770,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitSymbolNode(Nodes.SymbolNode node) {
-        final RubySymbol symbol = language.getSymbol(toString(node));
+        var tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
+        final RubySymbol symbol = language.getSymbol(tstring, sourceEncoding);
         final RubyNode rubyNode = new ObjectLiteralNode(symbol);
 
         assignNodePositionInSource(node, rubyNode);
@@ -874,17 +873,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private String toString(Nodes.Location location) {
-        return new String(sourceBytes, location.startOffset, location.length,
-                EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
+        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, location.startOffset, location.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     private String toString(Nodes.Node node) {
-        return new String(sourceBytes, node.startOffset, node.length,
-                EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
-    }
-
-    private String toString(Nodes.SymbolNode node) {
-        return new String(node.unescaped, EncodingManager.charsetForEncoding(sourceEncoding.jcoding));
+        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     private SourceSection getSourceSection(Nodes.Node yarpNode) {

@@ -23,14 +23,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
-import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -222,8 +221,8 @@ public final class FeatureLoader {
                     context,
                     InteropLibrary.getUncached(),
                     0);
-            final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding().jcoding;
-            return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
+            var localeEncoding = context.getEncodingManager().getLocaleEncoding();
+            return TStringUtils.toJavaStringOrThrow(bytes, localeEncoding);
         } finally {
             rubyThread.getIoBuffer(context).free(null, rubyThread, buffer, InlinedConditionProfile.getUncached());
         }
