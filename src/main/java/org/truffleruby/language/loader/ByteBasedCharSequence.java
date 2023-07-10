@@ -14,7 +14,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.TStringWithEncoding;
 
-/** YARP gives use byte offsets but Truffle wants a CharSequence, this tries to integrate both as much as possible.
+/** YARP gives us byte offsets but Truffle wants a CharSequence, this tries to integrate both as much as possible.
  * Using a java.lang.String instead would mean computing char offsets, which is prohibitively expensive. */
 public final class ByteBasedCharSequence implements CharSequence {
 
