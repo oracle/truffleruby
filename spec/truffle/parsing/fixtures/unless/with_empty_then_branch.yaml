@@ -1,0 +1,26 @@
+subject: "unless"
+description: "with empty `then` branch"
+notes: >
+  then it's represented with IfNode, `else` branch becomes `then` one and
+  `elseBody` child node is missing
+focused_on_node: "org.truffleruby.language.control.IfNode"
+ruby: |
+  unless true
+  else
+    42
+  end
+ast: |
+  IfNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 42

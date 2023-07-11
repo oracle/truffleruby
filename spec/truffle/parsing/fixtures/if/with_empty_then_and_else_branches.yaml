@@ -4,7 +4,7 @@ description: >
   then it's represented as `nil` expression
 focused_on_node: "org.truffleruby.language.control.UnlessNode"
 ruby: |
-  if (true)
+  if true
   else
   end
 ast: |

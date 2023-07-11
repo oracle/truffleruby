@@ -107,6 +107,13 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         }
     }
 
+    public void unsafeSetSourceSection(int charIndex, int sourceLength) {
+        assert !hasSource();
+
+        setSourceCharIndex(charIndex);
+        setSourceLength(sourceLength);
+    }
+
     public RubyNode copySourceSection(RubyNode from) {
         if (from.hasSource()) {
             setSourceCharIndex(from.getSourceCharIndex());

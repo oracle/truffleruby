@@ -130,6 +130,10 @@ public final class TStringUtils {
         return truffleString.getByteCodeRangeUncached(encoding.tencoding) == ASCII || encoding.isSingleByte;
     }
 
+    public static String toJavaStringOrThrow(byte[] bytes, RubyEncoding encoding) {
+        return toJavaStringOrThrow(fromByteArray(bytes, encoding), encoding);
+    }
+
     public static String toJavaStringOrThrow(AbstractTruffleString tstring, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("uncached");
         if (encoding == Encodings.BINARY && !StringGuards.is7BitUncached(tstring, encoding)) {

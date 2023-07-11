@@ -1,10 +1,16 @@
 subject: "Undef"
-description: "undef Symbol"
-focused_on_node: "org.truffleruby.core.module.ModuleNodes$UndefKeywordNode"
+description: "Symbol"
+focused_on_node: "org.truffleruby.core.module.ModuleNodes$UndefNode"
 ruby: |
   undef :a
 ast: |
-  ModuleNodes$UndefKeywordNode
+  ModuleNodes$UndefNode
       attributes:
           flags = 1
-          name = :a
+      children:
+          names = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :a
+          ]

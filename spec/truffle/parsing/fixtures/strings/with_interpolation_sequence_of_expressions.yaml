@@ -1,0 +1,47 @@
+subject: "String"
+description: "Literal with interpolation when here are multiple expressions (#{a; b; c})"
+focused_on_node: "org.truffleruby.core.string.InterpolatedStringNode"
+ruby: |
+  "ab#{ 42; 100500 }cd"
+ast: |
+  InterpolatedStringNode
+      attributes:
+          emptyTString = ""
+          encoding = UTF-8
+          flags = 0
+      children:
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = ab
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  body = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 100500
+                                  ]
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = cd
+          ]

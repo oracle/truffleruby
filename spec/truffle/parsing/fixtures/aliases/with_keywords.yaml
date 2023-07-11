@@ -7,5 +7,14 @@ ast: |
   ModuleNodes$AliasKeywordNode
       attributes:
           flags = 1
-          newName = :a
-          oldName = :b
+      children:
+          newName =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :a
+          oldName =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :b

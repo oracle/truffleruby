@@ -1,0 +1,24 @@
+subject: "unless"
+description: "without `else` branch"
+notes: >
+  then `elseBody` child node is missing
+focused_on_node: "org.truffleruby.language.control.UnlessNode"
+ruby: |
+  unless true
+    100500
+  end
+ast: |
+  UnlessNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 100500

@@ -1,0 +1,31 @@
+subject: "unless"
+description: "with both `then` and `else` branches"
+notes: >
+  then it's represented with IfElseNode
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  unless true
+    100500
+  else
+    42
+  end
+ast: |
+  IfElseNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
+          elseBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 100500
+          thenBody =
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 1
+                      value = 42

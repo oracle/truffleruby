@@ -371,10 +371,10 @@ public abstract class ModuleNodes {
 
     public static final class AliasKeywordNode extends RubyContextSourceNode {
 
-        private final RubySymbol newName;
-        private final RubySymbol oldName;
+        @Child private RubyNode newName;
+        @Child private RubyNode oldName;
 
-        public AliasKeywordNode(RubySymbol newName, RubySymbol oldName) {
+        public AliasKeywordNode(RubyNode newName, RubyNode oldName) {
             this.newName = newName;
             this.oldName = oldName;
         }
@@ -382,13 +382,20 @@ public abstract class ModuleNodes {
         @Override
         public Object execute(VirtualFrame frame) {
             var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
-            return AliasMethodNode.aliasMethod(module, newName, oldName, this);
+
+            final Object newNameObject = newName.execute(frame);
+            final Object oldNameObject = oldName.execute(frame);
+
+            RubySymbol newNameSymbol = (RubySymbol) newNameObject;
+            RubySymbol oldNameSymbol = (RubySymbol) oldNameObject;
+            return AliasMethodNode.aliasMethod(module, newNameSymbol, oldNameSymbol, this);
         }
 
         @Override
         public RubyNode cloneUninitialized() {
             return new AliasKeywordNode(newName, oldName).copyFlags(this);
         }
+
     }
 
     @CoreMethod(names = "ancestors")
@@ -2162,25 +2169,31 @@ public abstract class ModuleNodes {
         }
     }
 
-    public static final class UndefKeywordNode extends RubyContextSourceNode {
+    public static final class UndefNode extends RubyContextSourceNode {
 
-        private final RubySymbol name;
+        @Children private final RubyNode[] names;
 
-        public UndefKeywordNode(RubySymbol name) {
-            this.name = name;
+        public UndefNode(RubyNode[] names) {
+            this.names = names;
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
             var module = RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
-            module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
+            for (var nameNode : names) {
+                final Object nameObject = nameNode.execute(frame);
+                final RubySymbol nameSymbol = (RubySymbol) nameObject;
+
+                module.fields.undefMethod(getLanguage(), getContext(), this, nameSymbol.getString());
+            }
             return module;
         }
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new UndefKeywordNode(name).copyFlags(this);
+            return new UndefNode(cloneUninitialized(names)).copyFlags(this);
         }
+
     }
 
     @CoreMethod(names = "used_modules", onSingleton = true)

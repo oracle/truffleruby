@@ -1,0 +1,25 @@
+subject: "unless"
+description: "with empty `then` and `else` branches"
+notes: >
+  then it's represented with IfNode and
+  the `else` branch is represented as `nil` expression
+focused_on_node: "org.truffleruby.language.control.IfNode"
+ruby: |
+  unless true
+  else
+  end
+ast: |
+  IfNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
+          thenBody =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = true

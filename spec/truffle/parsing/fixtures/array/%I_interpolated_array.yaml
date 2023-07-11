@@ -1,0 +1,21 @@
+subject: "Array"
+description: "%I String array literal"
+focused_on_node: "org.truffleruby.core.array.ArrayLiteralNode$UninitialisedArrayLiteralNode"
+ruby: |
+  %I{foo bar}
+ast: |
+  ArrayLiteralNode$UninitialisedArrayLiteralNode
+      attributes:
+          flags = 1
+          language = org.truffleruby.RubyLanguage@...
+      children:
+          values = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :foo
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :bar
+          ]

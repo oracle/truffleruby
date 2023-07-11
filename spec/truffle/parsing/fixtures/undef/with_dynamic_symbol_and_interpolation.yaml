@@ -1,0 +1,40 @@
+subject: "Undef"
+description: "with dynamic Symbol and interpolation"
+focused_on_node: "org.truffleruby.core.module.ModuleNodes$UndefNode"
+ruby: |
+  undef :"a_#{ 1 }"
+ast: |
+  ModuleNodes$UndefNode
+      attributes:
+          flags = 1
+      children:
+          names = [
+              StringToSymbolNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      stringNode_ =
+                          InterpolatedStringNode
+                              attributes:
+                                  emptyTString = ""
+                                  encoding = UTF-8
+                                  flags = 0
+                              children:
+                                  children = [
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          flags = 0
+                                                          tstring = a_
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 1
+                                  ]
+          ]

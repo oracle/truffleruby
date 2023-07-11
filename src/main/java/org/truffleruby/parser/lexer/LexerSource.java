@@ -74,7 +74,6 @@ public final class LexerSource {
             rubyEncoding = Encodings.UTF_8;
             // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
             var sourceString = source.getCharacters().toString();
-            // this.sourceBytes = TStringUtils.fromByteArray(sourceString.getBytes(StandardCharsets.UTF_8), TruffleString.Encoding.UTF_8);
             this.sourceBytes = TStringUtils.utf8TString(sourceString);
         }
         this.sourceByteLength = sourceBytes.byteLength(rubyEncoding.tencoding);

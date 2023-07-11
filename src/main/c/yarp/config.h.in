@@ -6,9 +6,6 @@
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
-/* Define to 1 if you have the `strncasecmp' function. */
-#undef HAVE_STRNCASECMP
-
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -26,18 +23,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* YP_VERSION */
-#undef YP_VERSION
-
-/* YP_VERSION_MAJOR */
-#undef YP_VERSION_MAJOR
-
-/* YP_VERSION_MINOR */
-#undef YP_VERSION_MINOR
-
-/* YP_VERSION_PATCH */
-#undef YP_VERSION_PATCH
 
 /* _XOPEN_SOURCE */
 #undef _XOPEN_SOURCE

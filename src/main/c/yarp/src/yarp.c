@@ -1,11 +1,5 @@
 #include "yarp.h"
-
-// The YP_VERSION macro is defined by the build system. If it is not
-// present then we need to fail the build, since we're explicitly returning it
-// from the yp_version function.
-#ifndef YP_VERSION
-#error "YP_VERSION must be defined"
-#endif
+#include "yarp/version.h"
 
 // The YARP version and the serialization format.
 const char *
@@ -696,7 +690,7 @@ yp_array_pattern_node_node_list_create(yp_parser_t *parser, yp_node_list_t *node
     for (size_t index = 0; index < nodes->size; index++) {
         yp_node_t *child = nodes->nodes[index];
 
-        if (child->type == YP_NODE_SPLAT_NODE) {
+        if (!found_rest && child->type == YP_NODE_SPLAT_NODE) {
             node->rest = child;
             found_rest = true;
         } else if (found_rest) {
@@ -4353,6 +4347,17 @@ peek(yp_parser_t *parser) {
     }
 }
 
+// Get the next string of length len in the source starting from parser->current.end.
+// If the string extends beyond the end of the source, return the empty string ""
+static inline const char*
+peek_string(yp_parser_t *parser, size_t len) {
+    if (parser->current.end + len <= parser->end) {
+        return parser->current.end;
+    } else {
+        return "";
+    }
+}
+
 // If the character to be read matches the given value, then returns true and
 // advanced the current pointer.
 static inline bool
@@ -4445,7 +4450,7 @@ parser_lex_encoding_comment(yp_parser_t *parser) {
     // Extensions like utf-8 can contain extra encoding details like,
     // utf-8-dos, utf-8-linux, utf-8-mac. We treat these all as utf-8 should
     // treat any encoding starting utf-8 as utf-8.
-    if (strncasecmp(encoding_start, "utf-8", 5) == 0) {
+    if ((encoding_start + 5 <= parser->end) && (yp_strncasecmp(encoding_start, "utf-8", 5) == 0)) {
         // We don't need to do anything here because the default encoding is
         // already UTF-8. We'll just return.
         return;
@@ -4454,7 +4459,7 @@ parser_lex_encoding_comment(yp_parser_t *parser) {
     // Next, we're going to loop through each of the encodings that we handle
     // explicitly. If we found one that we understand, we'll use that value.
 #define ENCODING(value, prebuilt) \
-    if (width == sizeof(value) - 1 && strncasecmp(encoding_start, value, sizeof(value) - 1) == 0) { \
+    if (width == sizeof(value) - 1 && encoding_start + width <= parser->end && yp_strncasecmp(encoding_start, value, width) == 0) { \
         parser->encoding = prebuilt; \
         parser->encoding_changed |= true; \
         if (parser->encoding_changed_callback != NULL) parser->encoding_changed_callback(parser); \
@@ -4863,7 +4868,7 @@ lex_global_variable(yp_parser_t *parser) {
             parser->current.end++;
             size_t width;
 
-            if ((width = char_is_identifier(parser, parser->current.end)) > 0) {
+            if (parser->current.end < parser->end && (width = char_is_identifier(parser, parser->current.end)) > 0) {
                 do {
                     parser->current.end += width;
                 } while (parser->current.end < parser->end && (width = char_is_identifier(parser, parser->current.end)) > 0);
@@ -4919,7 +4924,8 @@ static yp_token_type_t
 lex_keyword(yp_parser_t *parser, const char *value, yp_lex_state_t state, yp_token_type_t type, yp_token_type_t modifier_type) {
     yp_lex_state_t last_state = parser->lex_state;
 
-    if (strncmp(parser->current.start, value, strlen(value)) == 0) {
+    const size_t vlen = strlen(value);
+    if (parser->current.start + vlen <= parser->end && strncmp(parser->current.start, value, vlen) == 0) {
         if (parser->lex_state & YP_LEX_STATE_FNAME) {
             lex_state_set(parser, YP_LEX_STATE_ENDFN);
         } else {
@@ -5838,7 +5844,7 @@ parser_lex(yp_parser_t *parser) {
 
                 // = => =~ == === =begin
                 case '=':
-                    if (current_token_starts_line(parser) && strncmp(parser->current.end, "begin", 5) == 0 && yp_char_is_whitespace(parser->current.end[5])) {
+                    if (current_token_starts_line(parser) && strncmp(peek_string(parser, 5), "begin", 5) == 0 && yp_char_is_whitespace(peek_at(parser, 5))) {
                         yp_token_type_t type = lex_embdoc(parser);
 
                         if (type == YP_TOKEN_EOF) {
@@ -6899,7 +6905,7 @@ parser_lex(yp_parser_t *parser) {
                     start += yp_strspn_inline_whitespace(start, parser->end - start);
                 }
 
-                if (strncmp(start, ident_start, ident_length) == 0) {
+                if ((start + ident_length <= parser->end) && (strncmp(start, ident_start, ident_length) == 0)) {
                     bool matched = true;
                     bool at_end = false;
 
@@ -7563,7 +7569,7 @@ parse_target(yp_parser_t *parser, yp_node_t *target, yp_token_t *operator, yp_no
                 char *name = calloc(length + 2, sizeof(char));
                 if (name == NULL) return NULL;
 
-                snprintf(name, length + 2, "%.*s=", (int) length, yp_string_source(&call->name));
+                yp_snprintf(name, length + 2, "%.*s=", (int) length, yp_string_source(&call->name));
 
                 // Now switch the name to the new string.
                 yp_string_free(&call->name);
@@ -11085,7 +11091,10 @@ parse_expression_prefix(yp_parser_t *parser, yp_binding_power_t binding_power) {
                     lex_state_set(parser, YP_LEX_STATE_FNAME | YP_LEX_STATE_FITEM);
                     parser_lex(parser);
                     name = parse_undef_argument(parser);
-                    if (name->type == YP_NODE_MISSING_NODE) break;
+                    if (name->type == YP_NODE_MISSING_NODE) {
+                        yp_node_destroy(parser, name);
+                        break;
+                    }
 
                     yp_undef_node_append(undef, name);
                 }

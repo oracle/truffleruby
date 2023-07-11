@@ -19,6 +19,7 @@ import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 
 public final class RubySource {
@@ -29,6 +30,7 @@ public final class RubySource {
      * Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
     private final String sourcePath;
     private final TruffleString code;
+    private byte[] bytes;
     private final RubyEncoding encoding;
     private final boolean isEval;
     private final int lineOffset;
@@ -69,12 +71,22 @@ public final class RubySource {
     }
 
     public TruffleString getTruffleString() {
+        assert hasTruffleString();
         return code;
     }
 
     public TStringWithEncoding getTStringWithEncoding() {
         assert hasTruffleString();
         return new TStringWithEncoding(code, encoding);
+    }
+
+    public byte[] getBytes() {
+        assert hasTruffleString();
+        if (bytes != null) {
+            return bytes;
+        } else {
+            return bytes = TStringUtils.getBytesOrCopy(code, encoding);
+        }
     }
 
     public RubyEncoding getEncoding() {

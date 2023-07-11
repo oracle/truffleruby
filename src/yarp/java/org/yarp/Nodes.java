@@ -233,12 +233,41 @@ public abstract class Nodes {
         }
     }
 
+    public static final class Source {
+        public final byte[] bytes;
+        private final int[] lineOffsets;
+
+        public Source(byte[] bytes, int[] lineOffsets) {
+            assert lineOffsets[0] == 0;
+            this.bytes = bytes;
+            this.lineOffsets = lineOffsets;
+        }
+
+        public int line(int byteOffset) {
+            assert byteOffset >= 0 && byteOffset < bytes.length : byteOffset;
+            int index = Arrays.binarySearch(lineOffsets, byteOffset);
+            int line;
+            if (index < 0) {
+                line = -index - 1;
+            } else {
+                line = index + 1;
+            }
+            assert line >= 1 && line <= getLineCount() : line;
+            return line;
+        }
+
+        public int getLineCount() {
+            return lineOffsets.length;
+        }
+    }
+
     public static abstract class Node {
 
         public static final Node[] EMPTY_ARRAY = {};
 
         public final int startOffset;
         public final int length;
+        private boolean newLineFlag = false;
 
         public Node(int startOffset, int length) {
             this.startOffset = startOffset;
@@ -253,6 +282,18 @@ public abstract class Nodes {
             return startOffset + length;
         }
 
+        public boolean hasNewLineFlag() {
+            return newLineFlag;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            int line = source.line(this.startOffset);
+            if (!newlineMarked[line]) {
+                newlineMarked[line] = true;
+                this.newLineFlag = true;
+            }
+        }
+
         public abstract <T> T accept(AbstractNodeVisitor<T> visitor);
 
         public abstract Node[] childNodes();
@@ -264,7 +305,11 @@ public abstract class Nodes {
 
         private String toString(String indent) {
             StringBuilder builder = new StringBuilder();
-            builder.append(indent).append(this.getClass().getSimpleName()).append('\n');
+            builder.append(indent).append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
             for (Node child : childNodes()) {
                 if (child != null) {
                     builder.append(child.toString(indent + "  "));
@@ -291,6 +336,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { new_name, old_name };
         }
@@ -315,6 +361,7 @@ public abstract class Nodes {
             this.right = right;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { left, right };
@@ -341,6 +388,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { left, right };
         }
@@ -361,6 +409,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.arguments = arguments;
         }
+
 
         public Node[] childNodes() {
             return arguments;
@@ -387,6 +436,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
+
 
         public Node[] childNodes() {
             return elements;
@@ -431,6 +481,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.add(constant);
@@ -461,6 +512,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { key, value };
         }
@@ -484,6 +536,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -502,6 +555,7 @@ public abstract class Nodes {
         public BackReferenceReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -536,6 +590,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { statements, rescue_clause, else_clause, ensure_clause };
         }
@@ -558,6 +613,7 @@ public abstract class Nodes {
             this.expression = expression;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { expression };
@@ -588,6 +644,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { parameters, statements };
         }
@@ -611,6 +668,7 @@ public abstract class Nodes {
             this.name_loc = name_loc;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -643,6 +701,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { parameters };
         }
@@ -665,6 +724,7 @@ public abstract class Nodes {
             this.arguments = arguments;
             this.keyword_loc = keyword_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { arguments };
@@ -718,6 +778,7 @@ public abstract class Nodes {
             this.name = name;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { receiver, arguments, block };
         }
@@ -743,6 +804,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { target, value };
         }
@@ -767,6 +829,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { target, value };
@@ -795,6 +858,7 @@ public abstract class Nodes {
             this.operator_id = operator_id;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { target, value };
         }
@@ -819,6 +883,7 @@ public abstract class Nodes {
             this.target = target;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value, target };
@@ -850,6 +915,7 @@ public abstract class Nodes {
             this.case_keyword_loc = case_keyword_loc;
             this.end_keyword_loc = end_keyword_loc;
         }
+
 
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
@@ -888,6 +954,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { constant_path, superclass, statements };
         }
@@ -913,6 +980,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -937,6 +1005,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value };
@@ -965,6 +1034,7 @@ public abstract class Nodes {
             this.operator = operator;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -983,6 +1053,7 @@ public abstract class Nodes {
         public ClassVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1009,6 +1080,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1034,6 +1106,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1058,6 +1131,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value };
@@ -1086,6 +1160,7 @@ public abstract class Nodes {
             this.operator = operator;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1110,6 +1185,7 @@ public abstract class Nodes {
             this.child = child;
             this.delimiter_loc = delimiter_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { parent, child };
@@ -1136,6 +1212,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { target, value };
         }
@@ -1160,6 +1237,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { target, value };
@@ -1187,6 +1265,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { target, value };
@@ -1216,6 +1295,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { target, value };
         }
@@ -1234,6 +1314,7 @@ public abstract class Nodes {
         public ConstantReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1279,6 +1360,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { receiver, parameters, statements };
         }
@@ -1306,6 +1388,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1329,6 +1412,12 @@ public abstract class Nodes {
             this.else_keyword_loc = else_keyword_loc;
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            if (this.statements != null) {
+                this.statements.setNewLineFlag(source, newlineMarked);
+            }
         }
 
         public Node[] childNodes() {
@@ -1356,6 +1445,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { statements };
         }
@@ -1378,6 +1468,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.variable = variable;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { variable };
@@ -1408,6 +1499,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { statements };
         }
@@ -1426,6 +1518,7 @@ public abstract class Nodes {
         public FalseNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1464,6 +1557,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.add(constant);
@@ -1487,6 +1581,7 @@ public abstract class Nodes {
         public FloatNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1521,6 +1616,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { index, collection, statements };
         }
@@ -1542,6 +1638,7 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -1561,6 +1658,7 @@ public abstract class Nodes {
         public ForwardingParameterNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1582,6 +1680,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.block = block;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { block };
@@ -1608,6 +1707,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1632,6 +1732,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value };
@@ -1660,6 +1761,7 @@ public abstract class Nodes {
             this.operator = operator;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1678,6 +1780,7 @@ public abstract class Nodes {
         public GlobalVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1704,6 +1807,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1728,6 +1832,7 @@ public abstract class Nodes {
             this.elements = elements;
             this.closing_loc = closing_loc;
         }
+
 
         public Node[] childNodes() {
             return elements;
@@ -1760,6 +1865,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
+
 
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
@@ -1797,6 +1903,16 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.predicate.setNewLineFlag(source, newlineMarked);
+            if (this.statements != null) {
+                this.statements.setNewLineFlag(source, newlineMarked);
+            }
+            if (this.consequent != null) {
+                this.consequent.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
         public Node[] childNodes() {
             return new Node[] { predicate, statements, consequent };
         }
@@ -1817,6 +1933,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.numeric = numeric;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { numeric };
@@ -1845,6 +1962,7 @@ public abstract class Nodes {
             this.then_loc = then_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { pattern, statements };
         }
@@ -1870,6 +1988,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1894,6 +2013,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value };
@@ -1922,6 +2042,7 @@ public abstract class Nodes {
             this.operator = operator;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1940,6 +2061,7 @@ public abstract class Nodes {
         public InstanceVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1966,6 +2088,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -1984,6 +2107,7 @@ public abstract class Nodes {
         public IntegerNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2012,6 +2136,12 @@ public abstract class Nodes {
             this.flags = flags;
         }
 
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            for (Nodes.Node node : this.parts) {
+                node.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
         public Node[] childNodes() {
             return parts;
         }
@@ -2035,6 +2165,12 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.parts = parts;
             this.closing_loc = closing_loc;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            for (Nodes.Node node : this.parts) {
+                node.setNewLineFlag(source, newlineMarked);
+            }
         }
 
         public Node[] childNodes() {
@@ -2062,6 +2198,12 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            for (Nodes.Node node : this.parts) {
+                node.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
         public Node[] childNodes() {
             return parts;
         }
@@ -2087,6 +2229,12 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            for (Nodes.Node node : this.parts) {
+                node.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
         public Node[] childNodes() {
             return parts;
         }
@@ -2107,6 +2255,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.elements = elements;
         }
+
 
         public Node[] childNodes() {
             return elements;
@@ -2136,6 +2285,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -2159,6 +2309,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.name_loc = name_loc;
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2187,6 +2338,7 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { parameters, statements };
         }
@@ -2214,6 +2366,7 @@ public abstract class Nodes {
             this.constant_id = constant_id;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -2240,6 +2393,7 @@ public abstract class Nodes {
             this.value = value;
             this.constant_id = constant_id;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value };
@@ -2270,6 +2424,7 @@ public abstract class Nodes {
             this.operator_id = operator_id;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -2294,6 +2449,7 @@ public abstract class Nodes {
             this.constant_id = constant_id;
             this.depth = depth;
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2324,6 +2480,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -2348,6 +2505,7 @@ public abstract class Nodes {
             this.pattern = pattern;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { value, pattern };
@@ -2374,6 +2532,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value, pattern };
         }
@@ -2390,6 +2549,7 @@ public abstract class Nodes {
         public MissingNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2420,6 +2580,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { constant_path, statements };
         }
@@ -2449,6 +2610,7 @@ public abstract class Nodes {
             this.rparen_loc = rparen_loc;
         }
 
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.addAll(Arrays.asList(targets));
@@ -2475,6 +2637,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { arguments };
         }
@@ -2493,6 +2656,7 @@ public abstract class Nodes {
         public NilNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2518,6 +2682,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -2536,6 +2701,7 @@ public abstract class Nodes {
         public NumberedReferenceReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2565,6 +2731,7 @@ public abstract class Nodes {
             this.value = value;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { value };
         }
@@ -2589,6 +2756,7 @@ public abstract class Nodes {
             this.right = right;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { left, right };
@@ -2624,6 +2792,7 @@ public abstract class Nodes {
             this.block = block;
         }
 
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.addAll(Arrays.asList(requireds));
@@ -2641,7 +2810,7 @@ public abstract class Nodes {
         }
     }
 
-    // Represents a parentesized expression
+    // Represents a parenthesized expression
     // 
     //     (10 + 34)
     //     ^^^^^^^^^
@@ -2655,6 +2824,12 @@ public abstract class Nodes {
             this.statements = statements;
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            if (this.statements != null) {
+                this.statements.setNewLineFlag(source, newlineMarked);
+            }
         }
 
         public Node[] childNodes() {
@@ -2685,6 +2860,7 @@ public abstract class Nodes {
             this.rparen_loc = rparen_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { expression };
         }
@@ -2708,6 +2884,7 @@ public abstract class Nodes {
             this.variable = variable;
             this.operator_loc = operator_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { variable };
@@ -2736,6 +2913,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { statements };
         }
@@ -2763,6 +2941,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { statements };
         }
@@ -2781,6 +2960,10 @@ public abstract class Nodes {
             super(startOffset, length);
             this.locals = locals;
             this.statements = statements;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.statements.setNewLineFlag(source, newlineMarked);
         }
 
         public Node[] childNodes() {
@@ -2813,6 +2996,7 @@ public abstract class Nodes {
             this.flags = flags;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { left, right };
         }
@@ -2834,6 +3018,7 @@ public abstract class Nodes {
             this.numeric = numeric;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { numeric };
         }
@@ -2852,6 +3037,7 @@ public abstract class Nodes {
         public RedoNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2882,6 +3068,7 @@ public abstract class Nodes {
             this.flags = flags;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -2908,6 +3095,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+
         public Node[] childNodes() {
             return parameters;
         }
@@ -2929,6 +3117,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.constant_id = constant_id;
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2954,6 +3143,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
             this.rescue_expression = rescue_expression;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { expression, rescue_expression };
@@ -2989,6 +3179,7 @@ public abstract class Nodes {
             this.consequent = consequent;
         }
 
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.addAll(Arrays.asList(exceptions));
@@ -3018,6 +3209,7 @@ public abstract class Nodes {
             this.name_loc = name_loc;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3036,6 +3228,7 @@ public abstract class Nodes {
         public RetryNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3060,6 +3253,7 @@ public abstract class Nodes {
             this.arguments = arguments;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { arguments };
         }
@@ -3078,6 +3272,7 @@ public abstract class Nodes {
         public SelfNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3110,6 +3305,7 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { expression, statements };
         }
@@ -3128,6 +3324,7 @@ public abstract class Nodes {
         public SourceEncodingNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3150,6 +3347,7 @@ public abstract class Nodes {
             this.filepath = filepath;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3168,6 +3366,7 @@ public abstract class Nodes {
         public SourceLineNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3192,6 +3391,7 @@ public abstract class Nodes {
             this.expression = expression;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { expression };
         }
@@ -3211,6 +3411,12 @@ public abstract class Nodes {
         public StatementsNode(Node[] body, int startOffset, int length) {
             super(startOffset, length);
             this.body = body;
+        }
+
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            for (Nodes.Node node : this.body) {
+                node.setNewLineFlag(source, newlineMarked);
+            }
         }
 
         public Node[] childNodes() {
@@ -3235,6 +3441,7 @@ public abstract class Nodes {
             this.left = left;
             this.right = right;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { left, right };
@@ -3270,6 +3477,7 @@ public abstract class Nodes {
             this.unescaped = unescaped;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3302,6 +3510,7 @@ public abstract class Nodes {
             this.block = block;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { arguments, block };
         }
@@ -3332,6 +3541,7 @@ public abstract class Nodes {
             this.unescaped = unescaped;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3350,6 +3560,7 @@ public abstract class Nodes {
         public TrueNode(int startOffset, int length) {
             super(startOffset, length);
         }
+
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3373,6 +3584,7 @@ public abstract class Nodes {
             this.names = names;
             this.keyword_loc = keyword_loc;
         }
+
 
         public Node[] childNodes() {
             return names;
@@ -3406,6 +3618,16 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.predicate.setNewLineFlag(source, newlineMarked);
+            if (this.statements != null) {
+                this.statements.setNewLineFlag(source, newlineMarked);
+            }
+            if (this.consequent != null) {
+                this.consequent.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
         public Node[] childNodes() {
             return new Node[] { predicate, statements, consequent };
         }
@@ -3434,6 +3656,7 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { predicate, statements };
         }
@@ -3458,6 +3681,7 @@ public abstract class Nodes {
             this.conditions = conditions;
             this.statements = statements;
         }
+
 
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
@@ -3490,6 +3714,7 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
+
         public Node[] childNodes() {
             return new Node[] { predicate, statements };
         }
@@ -3517,6 +3742,7 @@ public abstract class Nodes {
             this.unescaped = unescaped;
         }
 
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3543,6 +3769,7 @@ public abstract class Nodes {
             this.arguments = arguments;
             this.rparen_loc = rparen_loc;
         }
+
 
         public Node[] childNodes() {
             return new Node[] { arguments };

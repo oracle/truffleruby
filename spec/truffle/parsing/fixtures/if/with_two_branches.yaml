@@ -2,7 +2,7 @@ subject: "if expression"
 description: "`if` expression with both `then` and `else` branches"
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
-  if (true)
+  if true
     100500
   else
     42

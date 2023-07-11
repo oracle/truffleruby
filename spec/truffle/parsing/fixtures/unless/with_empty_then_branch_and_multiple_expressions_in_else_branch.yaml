@@ -1,0 +1,37 @@
+subject: "unless"
+description: "with empty `then` branch and `else` branch contains multiple expressions"
+notes: >
+  then it's represented with IfNode, `else` branch becomes `then` branch
+  and these multiple expressions are wrapped into a SequenceNode
+focused_on_node: "org.truffleruby.language.control.IfNode"
+ruby: |
+  unless true
+  else
+    42
+    100500
+  end
+ast: |
+  IfNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true
+          thenBody =
+              SequenceNode
+                  attributes:
+                      flags = 0
+                  children:
+                      body = [
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 42
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 1
+                                  value = 100500
+                      ]

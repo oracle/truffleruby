@@ -21,9 +21,9 @@ import java.util.Map;
 public final class TStringConstants {
     public static final Map<String, TruffleString> TSTRING_CONSTANTS = new HashMap<>();
 
-    public static final TruffleString EMPTY_BINARY = withHashCode(TruffleString.Encoding.BYTES.getEmpty());
-    public static final TruffleString EMPTY_US_ASCII = withHashCode(TruffleString.Encoding.US_ASCII.getEmpty());
-    public static final TruffleString EMPTY_UTF8 = withHashCode(TruffleString.Encoding.UTF_8.getEmpty());
+    public static final TruffleString EMPTY_BINARY = TruffleString.Encoding.BYTES.getEmpty();
+    public static final TruffleString EMPTY_US_ASCII = TruffleString.Encoding.US_ASCII.getEmpty();
+    public static final TruffleString EMPTY_UTF8 = TruffleString.Encoding.UTF_8.getEmpty();
 
     @CompilationFinal(dimensions = 1) public static final byte[] EMPTY_BYTES = new byte[0];
     @CompilationFinal(dimensions = 1) public static final byte[] NEWLINE_BYTE_ARRAY = new byte[]{ '\n' };

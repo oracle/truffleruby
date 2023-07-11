@@ -1,5 +1,7 @@
 subject: "Hash"
-description: "Empty Hash literal"
+description: "when empty"
+notes: >
+  it represented with EmptyHashLiteralNode node
 focused_on_node: "org.truffleruby.core.hash.library.EmptyHashStore$EmptyHashLiteralNode"
 ruby: |
   {}

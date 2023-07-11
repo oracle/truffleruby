@@ -26,7 +26,6 @@ import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -291,14 +290,6 @@ public final class EncodingManager {
 
         final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(encoding.jcoding, nameBytes);
-    }
-
-    @TruffleBoundary
-    public static Charset charsetForEncoding(Encoding encoding) {
-        if (encoding == ASCIIEncoding.INSTANCE) {
-            throw new UnsupportedOperationException("Cannot return a Charset for the BINARY Ruby Encoding");
-        }
-        return encoding.getCharset();
     }
 
     public RubyEncoding getLocaleEncoding() {

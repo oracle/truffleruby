@@ -4,7 +4,7 @@ description: >
   then `elseBody` child node is missing
 focused_on_node: "org.truffleruby.language.control.UnlessNode"
 ruby: |
-  if (true)
+  if true
   else
     42
   end

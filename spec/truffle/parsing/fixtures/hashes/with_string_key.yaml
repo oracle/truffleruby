@@ -1,5 +1,5 @@
 subject: "Hash"
-description: "Hash literal with String literal key"
+description: "with String literal key"
 notes: >
   String literal keys are frozen and represented by FrozenStringLiteralNode
 focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
