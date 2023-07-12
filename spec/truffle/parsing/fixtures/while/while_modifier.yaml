@@ -1,5 +1,5 @@
 subject: "While"
-description: "while modifier (... while())"
+description: "while modifier with begin/end (... while())"
 notes: >
   It's represented with WhileNode node wrapped into CatchBreakNode.
   and a nested DoWhileRepeatingNode node.
@@ -29,10 +29,10 @@ ast: |
                                               body =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = 42
                                               condition =
                                                   BooleanLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = true

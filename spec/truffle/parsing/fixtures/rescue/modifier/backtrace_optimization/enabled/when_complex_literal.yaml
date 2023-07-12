@@ -1,0 +1,65 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / enabled / when rescue section is Complex literal (... rescue 42i)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  "foo" rescue 42i
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "convert"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  arguments = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 0
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]
+                                  receiver =
+                                      ReadConstantNode
+                                          attributes:
+                                              flags = 0
+                                              name = "Complex"
+                                          children:
+                                              moduleNode =
+                                                  ObjectClassLiteralNode
+                                                      attributes:
+                                                          flags = 0
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

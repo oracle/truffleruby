@@ -78,7 +78,7 @@ ast: |
                                                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
                                                                   dispatchConfig = PRIVATE
                                                                   emptyKeywordsProfile = false
-                                                                  flags = 1
+                                                                  flags = 0
                                                                   isAttrAssign = false
                                                                   isSafeNavigation = false
                                                                   isSplatted = false
@@ -97,6 +97,6 @@ ast: |
                                                           StringLiteralNode
                                                               attributes:
                                                                   encoding = UTF-8
-                                                                  flags = 1
+                                                                  flags = 0
                                                                   tstring = foo
                               ]

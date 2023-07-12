@@ -1,0 +1,35 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / enabled / when rescue section is local variable (... rescue a)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  bar = 1
+  "foo" rescue bar
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2
+                                  type = FRAME_LOCAL
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

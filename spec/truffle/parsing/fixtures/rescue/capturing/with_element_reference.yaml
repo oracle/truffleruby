@@ -1,7 +1,7 @@
 subject: "Rescue keyword"
-description: "capturing / with a class variable"
+description: "capturing / with element reference"
 notes: >
-  Capturing exception to a setter is represented as a `a.[]=()` method call.
+  Capturing exception to element reference is represented as a `a.[]=()` method call.
   
   A local variable is represented with the following simplified AST:
   
@@ -100,7 +100,7 @@ ast: |
                                                                       flags = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
+                                              flags = 0
                                               value = 42
                                   ]
           ]
@@ -108,5 +108,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
+                      flags = 0
                       tstring = foo

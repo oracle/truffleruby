@@ -1,0 +1,29 @@
+subject: "While"
+description: "when body is empty"
+notes: >
+  Empty body is represented with NilLiteralNode node.
+focused_on_node: "org.truffleruby.language.control.WhileNode"
+ruby: |
+  while true
+  end
+ast: |
+  WhileNode
+      attributes:
+          flags = 0
+      children:
+          loopNode =
+              DefaultLoopNode
+                  children:
+                      repeatNode =
+                          WhileNodeFactory$WhileRepeatingNodeGen
+                              children:
+                                  body =
+                                      NilLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              isImplicit = false
+                                  condition =
+                                      BooleanLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = true

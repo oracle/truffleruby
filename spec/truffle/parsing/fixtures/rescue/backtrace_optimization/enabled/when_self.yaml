@@ -1,0 +1,36 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / enabled / when rescue section is self (... rescue self)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    self
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

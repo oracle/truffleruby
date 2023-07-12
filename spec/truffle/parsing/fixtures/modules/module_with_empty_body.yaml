@@ -1,0 +1,77 @@
+subject: "module"
+description: "module definition with empty body"
+notes: >
+  A module definition is represented as a RunModuleDefinitionNode node,
+  that is used for both classes and modules definition,
+  and with specific for a module a child DefineModuleNodeGen node.
+  
+  A module body is represented as a CallTarget, (that will be used to create an internal method),
+  stored in ModuleBodyDefinition.
+  
+  Expressions inside a module body are represented by InsideModuleDefinitionNode node.
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  module Foo
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineModuleNodeGen
+                  attributes:
+                      flags = 0
+                      name = "Foo"
+                  children:
+                      lexicalParentModuleNode_ =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <module:Foo>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              NilLiteralNode
+                                                  attributes:
+                                                      flags = 0
+                                                      isImplicit = false
+                              ]

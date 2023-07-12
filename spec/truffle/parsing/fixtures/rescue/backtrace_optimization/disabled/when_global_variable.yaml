@@ -1,0 +1,43 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is global variable (... rescue $a)"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    $bar
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ReadGlobalVariableNodeGen
+                              attributes:
+                                  flags = 0
+                                  name = "$bar"
+                              children:
+                                  lookupGlobalVariableStorageNode =
+                                      LookupGlobalVariableStorageNodeGen
+                                          attributes:
+                                              index = -1
+                                              name = "$bar"
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

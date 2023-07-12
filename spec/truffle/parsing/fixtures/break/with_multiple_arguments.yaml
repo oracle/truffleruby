@@ -1,0 +1,30 @@
+subject: "Break"
+description: "break operator with multiple arguments"
+focused_on_node: "org.truffleruby.language.control.BreakNode"
+ruby: |
+  while true
+    break 42, 100500
+  end
+ast: |
+  BreakNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          flags = 0
+          ignoreMarker = true
+      children:
+          child =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 100500
+                      ]

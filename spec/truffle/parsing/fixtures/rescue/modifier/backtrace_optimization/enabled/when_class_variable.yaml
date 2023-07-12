@@ -1,0 +1,43 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / enabled / when rescue section is class variable (... rescue @@a)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  "foo" rescue @@bar
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@bar"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

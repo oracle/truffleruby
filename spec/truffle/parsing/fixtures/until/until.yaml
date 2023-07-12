@@ -29,7 +29,7 @@ ast: |
                                               body =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = 42
                                               condition =
                                                   NotNodeGen
@@ -39,5 +39,5 @@ ast: |
                                                           child =
                                                               BooleanLiteralNode
                                                                   attributes:
-                                                                      flags = 1
+                                                                      flags = 0
                                                                       value = true

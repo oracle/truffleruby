@@ -1,0 +1,46 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is constant (... rescue A)"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    BAR
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "BAR"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "BAR"
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

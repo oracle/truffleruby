@@ -1,0 +1,31 @@
+subject: "Next"
+description: "next operator with multiple returned values"
+notes: >
+  Operator is represented by NextNode.
+  Returned values are represented by an ArrayLiteralNode$UninitialisedArrayLiteralNode.
+focused_on_node: "org.truffleruby.language.control.NextNode"
+ruby: |
+  while (true)
+    next 42, 100500
+  end
+ast: |
+  NextNode
+      attributes:
+          flags = 0
+      children:
+          child =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+                  children:
+                      values = [
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 100500
+                      ]

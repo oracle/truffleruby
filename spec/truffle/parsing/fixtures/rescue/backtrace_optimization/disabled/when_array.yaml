@@ -1,0 +1,44 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is Array (... rescue [])"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    [:bar]
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                              attributes:
+                                  flags = 0
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object = :bar
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

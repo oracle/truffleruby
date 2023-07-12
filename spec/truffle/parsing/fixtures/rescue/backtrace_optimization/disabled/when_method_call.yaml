@@ -1,0 +1,53 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is method call (... rescue foo())"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    bar
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "bar"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

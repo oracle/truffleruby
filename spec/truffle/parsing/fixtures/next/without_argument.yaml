@@ -11,7 +11,7 @@ ruby: |
 ast: |
   NextNode
       attributes:
-          flags = 1
+          flags = 0
       children:
           child =
               NilLiteralNode

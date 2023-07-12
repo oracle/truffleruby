@@ -1,0 +1,37 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    /bar/
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = RubyRegexp(source = bar, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

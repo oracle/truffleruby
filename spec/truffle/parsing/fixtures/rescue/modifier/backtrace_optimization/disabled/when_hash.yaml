@@ -1,0 +1,43 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / disabled / when rescue section is Hash (... rescue {})"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  "foo" rescue { bar: 42 }
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  keyValues = [
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object = :bar
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

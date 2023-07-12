@@ -31,6 +31,6 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
+                      flags = 0
                       tstring = foo
           ]

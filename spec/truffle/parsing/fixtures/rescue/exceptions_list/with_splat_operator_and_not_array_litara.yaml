@@ -1,0 +1,52 @@
+subject: "Rescue keyword"
+description: "exceptions list / with a splat operator and not Array literal (*nil, *true, etc)"
+notes: >
+  There is no any difference with non-literal list elements -
+  the rescue branch is represented as a RescueSplatNode node.
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue *nil
+    42
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueSplatNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+                      splatCastNode =
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = false
+                                  flags = 0
+                                  nilBehavior = EMPTY_ARRAY
+                              children:
+                                  childNode_ =
+                                      NilLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              isImplicit = false
+                      stores =
+                          ArrayStoreLibraryGen$CachedDispatchFirst
+                              attributes:
+                                  limit_ = 4
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

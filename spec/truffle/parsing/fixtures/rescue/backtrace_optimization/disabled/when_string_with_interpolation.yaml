@@ -1,0 +1,64 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / disabled / when rescue section is String with interpolation (... rescue %Q{ abc #{} def})"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    "abc #{ 42 } def"
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          InterpolatedStringNode
+                              attributes:
+                                  emptyTString = ""
+                                  encoding = UTF-8
+                                  flags = 0
+                              children:
+                                  children = [
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          flags = 0
+                                                          tstring = abc 
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                      ToSNodeGen
+                                          children:
+                                              valueNode_ =
+                                                  StringLiteralNode
+                                                      attributes:
+                                                          encoding = UTF-8
+                                                          flags = 0
+                                                          tstring =  def
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

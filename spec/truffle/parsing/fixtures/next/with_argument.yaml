@@ -2,7 +2,7 @@ subject: "Next"
 description: "next operator with returning value"
 notes: >
   Operator is represented by NextNode.
-  Returned value is represented by as a child node (IntegerFixnumLiteralNode in the example below).
+  Returned value is represented by a child node (IntegerFixnumLiteralNode in the example below).
 focused_on_node: "org.truffleruby.language.control.NextNode"
 ruby: |
   while (true)
@@ -11,7 +11,7 @@ ruby: |
 ast: |
   NextNode
       attributes:
-          flags = 1
+          flags = 0
       children:
           child =
               IntegerFixnumLiteralNode

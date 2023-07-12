@@ -23,7 +23,7 @@ ast: |
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
-                                  flags = 1
+                                  flags = 0
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
@@ -56,5 +56,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
+                      flags = 0
                       tstring = foo

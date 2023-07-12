@@ -29,10 +29,10 @@ ast: |
                                               body =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = 42
                                               condition =
                                                   BooleanLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = true

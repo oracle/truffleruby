@@ -1,0 +1,41 @@
+subject: "Until"
+description: "until modifier (... until())"
+notes: >
+  It's represented with WhileNode node wrapped into CatchBreakNode,
+  negated (with NotNode node) condition and a nested WhileRepeatingNode node.
+focused_on_node: "org.truffleruby.language.methods.CatchBreakNode"
+ruby: |
+  42 until true
+ast: |
+  CatchBreakNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          flags = 1
+          isWhile = true
+      children:
+          body =
+              WhileNode
+                  attributes:
+                      flags = 0
+                  children:
+                      loopNode =
+                          DefaultLoopNode
+                              children:
+                                  repeatNode =
+                                      WhileNodeFactory$WhileRepeatingNodeGen
+                                          children:
+                                              body =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                              condition =
+                                                  NotNodeGen
+                                                      attributes:
+                                                          flags = 0
+                                                      children:
+                                                          child =
+                                                              BooleanLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      value = true

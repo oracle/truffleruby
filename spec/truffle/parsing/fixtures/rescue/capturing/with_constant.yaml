@@ -1,7 +1,7 @@
 subject: "Rescue keyword"
 description: "capturing / with a constant"
 notes: >
-  A local variable is represented with the following simplified AST:
+  A constant capturing is represented with the following simplified AST:
   
     (WriteConstantNode name = ERROR
       (ObjectLiteralNode object =  :: Object)
@@ -75,7 +75,7 @@ ast: |
                                                                       name = "$!"
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 1
+                                              flags = 0
                                               value = 42
                                   ]
           ]
@@ -83,5 +83,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 1
+                      flags = 0
                       tstring = foo

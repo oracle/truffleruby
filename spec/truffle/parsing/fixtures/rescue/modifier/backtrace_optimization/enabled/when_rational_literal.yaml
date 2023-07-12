@@ -1,0 +1,65 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / enabled / when rescue section is Rational literal (... rescue 42r)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  "foo" rescue 42r
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "convert"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  ruby2KeywordsHashProfile = false
+                              children:
+                                  arguments = [
+                                      LongFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                      LongFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 1
+                                  ]
+                                  receiver =
+                                      ReadConstantNode
+                                          attributes:
+                                              flags = 0
+                                              name = "Rational"
+                                          children:
+                                              moduleNode =
+                                                  ObjectClassLiteralNode
+                                                      attributes:
+                                                          flags = 0
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo
