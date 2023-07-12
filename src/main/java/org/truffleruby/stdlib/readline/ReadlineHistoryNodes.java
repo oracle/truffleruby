@@ -45,7 +45,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jline.reader.History;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -53,12 +52,9 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -215,9 +211,7 @@ public abstract class ReadlineHistoryNodes {
     }
 
     @CoreMethod(names = "[]=", needsSelf = false, lowerFixnum = 1, required = 2)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "line", type = RubyNode.class)
-    public abstract static class SetIndexNode extends CoreMethodNode {
+    public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

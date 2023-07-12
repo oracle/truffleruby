@@ -14,14 +14,12 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNode;
@@ -29,8 +27,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -105,10 +101,7 @@ public abstract class SizedQueueNodes {
     }
 
     @CoreMethod(names = { "push", "<<", "enq" }, required = 1, optional = 1)
-    @NodeChild(value = "queue", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    @NodeChild(value = "nonBlocking", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SizedQueuePushNode extends CoreMethodNode {
+    public abstract static class SizedQueuePushNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubySizedQueue doPush(RubySizedQueue self, final Object value, Object maybeNonBlocking,

@@ -36,7 +36,6 @@ import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
@@ -99,7 +98,6 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -1237,9 +1235,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
-    public abstract static class KernelMethodsNode extends CoreMethodNode {
+    public abstract static class KernelMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray doMethods(Object self, Object maybeRegular,
@@ -1307,9 +1303,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "private_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PrivateMethodsNode extends CoreMethodNode {
+    public abstract static class PrivateMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1339,9 +1333,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "protected_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ProtectedMethodsNode extends CoreMethodNode {
+    public abstract static class ProtectedMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1375,9 +1367,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "public_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PublicMethodsNode extends CoreMethodNode {
+    public abstract static class PublicMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1507,9 +1497,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_method", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SingletonMethodNode extends CoreMethodNode {
+    public abstract static class SingletonMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMethod singletonMethod(Object self, Object nameObject,
@@ -1543,9 +1531,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class KernelSingletonMethodsNode extends CoreMethodNode {
+    public abstract static class KernelSingletonMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
@@ -1643,9 +1629,7 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
     @ReportPolymorphism
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SprintfNode extends CoreMethodNode {
+    public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ReadGlobalVariableNode readDebugGlobalNode = ReadGlobalVariableNodeGen.create("$DEBUG");
 
@@ -1858,8 +1842,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
-    @NodeChild(value = "selfNode", type = RubyNode.class)
-    public abstract static class KernelToSNode extends CoreMethodNode {
+    public abstract static class KernelToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString toS(Object self,

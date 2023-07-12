@@ -19,6 +19,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -104,7 +105,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -132,11 +132,9 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "a", type = RubyNode.class)
-    @NodeChild(value = "b", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class AddNode extends CoreMethodNode {
+    public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
                 limit = "storageStrategyLimit()")
@@ -760,11 +758,9 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class DeleteAtNode extends CoreMethodNode {
+    public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected static Object doDelete(RubyArray array, Object indexObject,
@@ -1293,10 +1289,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "from", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class InitializeCopyNode extends CoreMethodNode {
+    public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray initializeCopy(RubyArray self, Object fromObject,
@@ -1517,11 +1511,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
     @ReportPolymorphism
-    public abstract static class ArrayPackNode extends CoreMethodNode {
+    public abstract static class ArrayPackNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString pack(RubyArray array, Object format,

@@ -31,15 +31,12 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
@@ -51,7 +48,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -214,9 +210,7 @@ public abstract class BindingNodes {
 
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @CoreMethod(names = "local_variable_defined?", required = 1)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class BindingLocalVariableDefinedNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean localVariableDefined(RubyBinding binding, Object nameObject,
@@ -268,10 +262,8 @@ public abstract class BindingNodes {
     }
 
     @CoreMethod(names = "local_variable_get", required = 1)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(BindingNodes.class)
-    public abstract static class BindingLocalVariableGetNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object localVariableGet(RubyBinding binding, Object nameObject,
@@ -314,10 +306,7 @@ public abstract class BindingNodes {
 
     @ReportPolymorphism
     @CoreMethod(names = "local_variable_set", required = 2)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class BindingLocalVariableSetNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object localVariableSet(RubyBinding binding, Object nameObject, Object value,

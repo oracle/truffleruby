@@ -34,7 +34,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -87,7 +86,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -127,7 +125,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -994,9 +991,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class RbConstGetNode extends CoreMethodNode {
+    public abstract static class RbConstGetNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
 
@@ -1013,9 +1008,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class RbConstGetFromNode extends CoreMethodNode {
+    public abstract static class RbConstGetFromNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
 
@@ -1032,10 +1025,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_set", onSingleton = true, required = 3)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class RbConstSetNode extends CoreMethodNode {
+    public abstract static class RbConstSetNode extends CoreMethodArrayArgumentsNode {
 
 
         @Specialization

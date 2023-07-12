@@ -25,7 +25,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -65,8 +64,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
-import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
-import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
@@ -333,10 +330,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, split = Split.NEVER)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "newName", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
-    public abstract static class AliasMethodNode extends CoreMethodNode {
+    public abstract static class AliasMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
@@ -613,10 +607,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload", required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "filename", type = RubyBaseNodeWithExecute.class)
-    public abstract static class AutoloadNode extends CoreMethodNode {
+    public abstract static class AutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
@@ -658,10 +649,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload?", required = 1, optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    public abstract static class IsAutoloadNode extends CoreMethodNode {
+    public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         @TruffleBoundary
@@ -823,9 +811,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_defined?", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
+    public abstract static class ClassVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean isClassVariableDefinedString(RubyModule module, Object nameObject,
@@ -840,9 +826,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_get", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ClassVariableGetNode extends CoreMethodNode {
+    public abstract static class ClassVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object getClassVariable(RubyModule module, Object nameObject,
@@ -866,10 +850,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class ClassVariableSetNode extends CoreMethodNode {
+    public abstract static class ClassVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object setClassVariable(RubyModule module, Object nameObject, Object value,
@@ -885,9 +866,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variables", optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ClassVariablesNode extends CoreMethodNode {
+    public abstract static class ClassVariablesNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -909,9 +888,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "constants", optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ConstantsNode extends CoreMethodNode {
+    public abstract static class ConstantsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1118,9 +1095,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_missing", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ConstMissingNode extends CoreMethodNode {
+    public abstract static class ConstMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object constMissing(RubyModule module, Object nameObject,
@@ -1132,10 +1107,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_source_location", required = 1, optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ModuleConstSourceLocationNode extends CoreMethodNode {
+    public abstract static class ModuleConstSourceLocationNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object constSourceLocation(RubyModule module, Object nameObject, Object maybeInherit,
@@ -1193,20 +1165,12 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_set", required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class ConstSetNode extends CoreMethodNode {
-
-        public static ConstSetNode create() {
-            return ConstSetNodeFactory.create(null, null, null);
-        }
-
-        @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
+    public abstract static class ConstSetNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
         protected Object setConstant(RubyModule module, Object nameObject, Object value,
+                @Cached ConstSetUncheckedNode uncheckedSetNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
             if (!Identifiers.isValidConstantName(name)) {
@@ -1220,19 +1184,9 @@ public abstract class ModuleNodes {
         }
     }
 
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ConstSetUncheckedNode extends RubyBaseNode {
 
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
-
-        @NeverDefault
-        public static ConstSetUncheckedNode create() {
-            return ConstSetUncheckedNodeGen.create(null, null, null);
-        }
-
-        public abstract Object execute(VirtualFrame frame);
 
         public abstract Object execute(RubyModule module, String name, Object value);
 
@@ -1592,10 +1546,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "method_defined?", required = 1, optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    public abstract static class MethodDefinedNode extends CoreMethodNode {
+    public abstract static class MethodDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1807,9 +1758,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "public_instance_method", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
+    public abstract static class PublicInstanceMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, Object nameObject,
@@ -1838,9 +1787,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    protected abstract static class AbstractInstanceMethodsNode extends CoreMethodNode {
+    protected abstract static class AbstractInstanceMethodsNode extends CoreMethodArrayArgumentsNode {
 
         final Visibility visibility;
 
@@ -1889,10 +1836,7 @@ public abstract class ModuleNodes {
     }
 
 
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inherit", type = RubyBaseNodeWithExecute.class)
-    protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
+    protected abstract static class AbstractMethodDefinedNode extends CoreMethodArrayArgumentsNode {
 
         final Visibility visibility;
 
@@ -1943,9 +1887,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "instance_methods", optional = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class InstanceMethodsNode extends CoreMethodNode {
+    public abstract static class InstanceMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -2059,9 +2001,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "remove_class_variable", required = 1)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class RemoveClassVariableNode extends CoreMethodNode {
+    public abstract static class RemoveClassVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object removeClassVariableString(RubyModule module, Object nameObject,

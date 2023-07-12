@@ -180,8 +180,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class StringNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class StringAllocateNode extends CoreMethodNode {
+    public abstract static class StringAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass,
@@ -220,10 +219,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class AddNode extends CoreMethodNode {
+    public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString add(Object string, Object other,
@@ -2246,11 +2243,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfNotMutableSelf = true, lowerFixnum = { 1, 2 })
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringSetByteNode extends CoreMethodNode {
+    public abstract static class StringSetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected int doSetByte(RubyString string, Object indexObject, Object valueObject,
@@ -2687,11 +2681,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringTrBangNode extends CoreMethodNode {
+    public abstract static class StringTrBangNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object trBang(RubyString self, Object fromStr, Object toStr,
@@ -2743,11 +2734,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr_s!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class TrSBangNode extends CoreMethodNode {
+    public abstract static class TrSBangNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
                 guards = { "self.tstring.isEmpty()" })
