@@ -46,21 +46,6 @@ import org.truffleruby.language.objects.AllocationTracing;
 @CoreModule(value = "Fiber", isClass = true)
 public abstract class FiberNodes {
 
-    public abstract static class FiberTransferNodeAST extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object transfer(
-                RubyFiber currentFiber,
-                RubyFiber toFiber,
-                FiberOperation operation,
-                ArgumentsDescriptor descriptor,
-                Object[] args,
-                @Cached FiberTransferNode fiberTransferNode) {
-            return fiberTransferNode.execute(this, currentFiber, toFiber, operation, descriptor, args);
-        }
-
-    }
-
     @GenerateCached(false)
     @GenerateInline
     public abstract static class FiberTransferNode extends RubyBaseNode {
