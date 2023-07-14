@@ -36,7 +36,6 @@ import com.oracle.truffle.api.utilities.AssumedValue;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.annotations.Primitive;
@@ -99,7 +98,6 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -367,8 +365,8 @@ public abstract class KernelNodes {
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached InlinedConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
-            return blockProfile
-                    .profile(this, readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
+            return blockProfile.profile(this,
+                    readNode.execute(callerFrame, this, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
     }
 
@@ -528,13 +526,13 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyDynamicObject copy(ImmutableRubyString string,
                 @Cached StringNodes.AllocateNode allocateStringNode) {
-            return allocateStringNode.execute(coreLibrary().stringClass);
+            return allocateStringNode.execute(this, coreLibrary().stringClass);
         }
 
         @Specialization
         protected RubyDynamicObject copy(RubyIntOrLongRange range,
                 @Cached RangeNodes.AllocateNode allocateRangeNode) {
-            return allocateRangeNode.execute(coreLibrary().rangeClass);
+            return allocateRangeNode.execute(this, coreLibrary().rangeClass);
         }
     }
 
@@ -727,7 +725,7 @@ public abstract class KernelNodes {
                 guards = {
                         "libSource.isRubyString(source)",
                         "libFile.isRubyString(file)",
-                        "codeEqualNode.execute(libSource, source, cachedSource, cachedSourceEnc)",
+                        "codeEqualNode.execute(node, libSource, source, cachedSource, cachedSourceEnc)",
                         "fileEqualNode.execute(libFile, file, cachedFile, cachedFileEnc)",
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
@@ -1237,9 +1235,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "regular", type = RubyBaseNodeWithExecute.class)
-    public abstract static class KernelMethodsNode extends CoreMethodNode {
+    public abstract static class KernelMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray doMethods(Object self, Object maybeRegular,
@@ -1307,9 +1303,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "private_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PrivateMethodsNode extends CoreMethodNode {
+    public abstract static class PrivateMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1339,9 +1333,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "protected_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ProtectedMethodsNode extends CoreMethodNode {
+    public abstract static class ProtectedMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1375,9 +1367,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "public_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class PublicMethodsNode extends CoreMethodNode {
+    public abstract static class PublicMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1461,7 +1451,7 @@ public abstract class KernelNodes {
             } else if (respondToMissingProfile
                     .profile(this, dispatchRespondToMissing.execute(callerFrame, self, "respond_to_missing?"))) {
                 return castMissingResultNode.execute(this, respondToMissingNode.call(self, "respond_to_missing?",
-                        toSymbolNode.execute(name), includeProtectedAndPrivate));
+                        toSymbolNode.execute(this, name), includeProtectedAndPrivate));
             } else {
                 return false;
             }
@@ -1507,9 +1497,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_method", required = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SingletonMethodNode extends CoreMethodNode {
+    public abstract static class SingletonMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyMethod singletonMethod(Object self, Object nameObject,
@@ -1543,9 +1531,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_methods", optional = 1)
-    @NodeChild(value = "object", type = RubyNode.class)
-    @NodeChild(value = "includeAncestors", type = RubyBaseNodeWithExecute.class)
-    public abstract static class KernelSingletonMethodsNode extends CoreMethodNode {
+    public abstract static class KernelSingletonMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
@@ -1643,19 +1629,17 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
     @ReportPolymorphism
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "arguments", type = RubyBaseNodeWithExecute.class)
-    public abstract static class SprintfNode extends CoreMethodNode {
+    public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ReadGlobalVariableNode readDebugGlobalNode = ReadGlobalVariableNodeGen.create("$DEBUG");
 
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(formatAsString)",
-                        "equalNode.execute(libFormat, formatAsString, cachedTString, cachedEncoding)",
+                        "equalNode.execute(node, libFormat, formatAsString, cachedTString, cachedEncoding)",
                         "isDebug == cachedIsDebug" },
                 limit = "3")
-        protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
+        protected static RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached @Shared BooleanCastNode booleanCastNode,
                 @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
@@ -1669,17 +1653,18 @@ public abstract class KernelNodes {
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode) {
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Bind("this") Node node) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(cachedFormatLength, result, resizeProfile, fromByteArrayNode);
+            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -1707,18 +1692,18 @@ public abstract class KernelNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
+            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result,
+        private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
                 InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(this, bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            return createString(this, fromByteArrayNode, bytes,
+            return createString(node, fromByteArrayNode, bytes,
                     result.getEncoding().getEncodingForLength(formatLength));
         }
 
@@ -1857,8 +1842,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
-    @NodeChild(value = "selfNode", type = RubyNode.class)
-    public abstract static class KernelToSNode extends CoreMethodNode {
+    public abstract static class KernelToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString toS(Object self,

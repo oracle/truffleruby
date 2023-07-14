@@ -34,7 +34,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapCArrayNode;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -87,7 +86,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
@@ -127,7 +125,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -139,8 +136,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.RubySource;
 
@@ -682,7 +677,7 @@ public abstract class CExtNodes {
         @Specialization
         protected Object dbl2big(double num,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
-            return floatToIntegerNode.fixnumOrBignum(num);
+            return floatToIntegerNode.execute(this, num);
         }
 
     }
@@ -996,9 +991,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class RbConstGetNode extends CoreMethodNode {
+    public abstract static class RbConstGetNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
 
@@ -1015,9 +1008,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class RbConstGetFromNode extends CoreMethodNode {
+    public abstract static class RbConstGetFromNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
 
@@ -1034,10 +1025,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_const_set", onSingleton = true, required = 3)
-    @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class RbConstSetNode extends CoreMethodNode {
+    public abstract static class RbConstSetNode extends CoreMethodArrayArgumentsNode {
 
 
         @Specialization
@@ -1106,11 +1094,10 @@ public abstract class CExtNodes {
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
-
         @Specialization
-        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name) {
-            setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+            setMethodVisibilityNode.execute(this, module, name, Visibility.MODULE_FUNCTION);
             return module;
         }
 
@@ -1960,14 +1947,16 @@ public abstract class CExtNodes {
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
+                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-        protected Object typesCached(VirtualFrame frame, Object format,
+
+        protected static Object typesCached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Bind("this") Node node) {
             return cachedTypes;
         }
 
@@ -1993,34 +1982,33 @@ public abstract class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TruffleString.FromByteArrayNode fromByteArrayNode;
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.create();
-
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
-                        "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
+                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-        protected RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
+        protected static RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
                 @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("create(compileFormat(cachedFormat, cachedEncoding, stringReader))") DirectCallNode formatNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+                @Bind("this") Node node) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {
                 result = (BytesResult) formatNode.call(new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
+                exceptionProfile.enter(node);
+                throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(cachedFormatLength, result);
+            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
         @Specialization(
@@ -2028,6 +2016,9 @@ public abstract class CExtNodes {
                 replaces = "formatCached", limit = "1")
         protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
                 @Cached IndirectCallNode formatNode,
+                @Cached @Shared InlinedBranchProfile exceptionProfile,
+                @Cached @Shared InlinedConditionProfile resizeProfile,
+                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat) {
             var tstring = libFormat.getTString(format);
@@ -2038,26 +2029,23 @@ public abstract class CExtNodes {
                 result = (BytesResult) formatNode.call(compileFormat(tstring, encoding, stringReader),
                         new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
-                exceptionProfile.enter();
+                exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(tstring.byteLength(encoding.tencoding), result);
+            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
-        private RubyString finishFormat(int formatLength, BytesResult result) {
+        private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
+                InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
             byte[] bytes = result.getOutput();
 
-            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+            if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (fromByteArrayNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fromByteArrayNode = insert(TruffleString.FromByteArrayNode.create());
-            }
-
-            return createString(fromByteArrayNode, bytes, result.getEncoding().getEncodingForLength(formatLength));
+            return createString(node, fromByteArrayNode, bytes,
+                    result.getEncoding().getEncodingForLength(formatLength));
         }
 
         @TruffleBoundary

@@ -151,7 +151,7 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getEncodingManager().getLocaleEncoding();
     }
 
-    protected final RubyBignum createBignum(BigInteger value) {
+    protected static RubyBignum createBignum(BigInteger value) {
         return BignumOperations.createBignum(value);
     }
 
@@ -164,7 +164,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding) {
-        return getLanguage().getSymbol(name, encoding);
+        return getSymbol(this, name, encoding);
+    }
+
+    protected static RubySymbol getSymbol(Node node, AbstractTruffleString name, RubyEncoding encoding) {
+        return getLanguage(node).getSymbol(name, encoding);
     }
 
     protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding, boolean preserveSymbol) {
@@ -204,7 +208,11 @@ public abstract class RubyBaseNode extends Node {
     }
 
     protected final RubyArray createArray(long[] store) {
-        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+        return createArray(this, store);
+    }
+
+    protected static RubyArray createArray(Node node, long[] store) {
+        return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
     public final RubyArray createArray(Object[] store) {

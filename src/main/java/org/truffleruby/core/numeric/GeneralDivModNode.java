@@ -11,6 +11,14 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.FloatToIntegerNode;
@@ -18,71 +26,30 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
-public final class GeneralDivModNode extends RubyBaseNode {
+@GenerateInline
+@GenerateCached(false)
+public abstract class GeneralDivModNode extends RubyBaseNode {
 
-    @Child private FixnumOrBignumNode fixnumOrBignumQuotient = new FixnumOrBignumNode();
-    @Child private FixnumOrBignumNode fixnumOrBignumRemainder = new FixnumOrBignumNode();
-    @Child private FloatToIntegerNode floatToIntegerNode = FloatToIntegerNode.create();
+    public abstract RubyArray execute(Node node, Object a, Object b);
 
-    private final BranchProfile bZeroProfile = BranchProfile.create();
-    private final BranchProfile bMinusOneProfile = BranchProfile.create();
-    private final BranchProfile nanProfile = BranchProfile.create();
-    private final BranchProfile bigIntegerFixnumProfile = BranchProfile.create();
-    private final BranchProfile useFixnumPairProfile = BranchProfile.create();
-    private final BranchProfile useObjectPairProfile = BranchProfile.create();
-
-    public RubyArray execute(long a, long b) {
-        return divMod(a, b);
-    }
-
-    public RubyArray execute(long a, BigInteger b) {
-        return divMod(BigIntegerOps.valueOf(a), b);
-    }
-
-    public RubyArray execute(long a, double b) {
-        return divMod(a, b);
-    }
-
-    public RubyArray execute(BigInteger a, long b) {
-        return divMod(a, BigIntegerOps.valueOf(b));
-    }
-
-    public RubyArray execute(BigInteger a, BigInteger b) {
-        return divMod(a, b);
-    }
-
-    public RubyArray execute(BigInteger a, double b) {
-        return divMod(BigIntegerOps.doubleValue(a), b);
-    }
-
-    public RubyArray execute(double a, long b) {
-        return divMod(a, b);
-    }
-
-    public RubyArray execute(double a, BigInteger b) {
-        return divMod(a, BigIntegerOps.doubleValue(b));
-    }
-
-    public RubyArray execute(double a, double b) {
-        return divMod(a, b);
-    }
-
-    /* div-mod algorithms copied from org.jruby.RubyFixnum, org.jruby.RubyBignum and org.jrubyRubyFloat. See license and
-     * contributors there. */
-
-    private RubyArray divMod(long a, long b) {
+    @Specialization
+    protected static RubyArray doLongs(Node node, long a, long b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Exclusive InlinedBranchProfile bMinusOneProfile,
+            @Cached @Exclusive InlinedBranchProfile useFixnumPairProfile,
+            @Cached @Exclusive InlinedBranchProfile useObjectPairProfile,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient) {
         if (b == 0) {
-            bZeroProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+            bZeroProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).zeroDivisionError(node));
         }
 
         long mod;
         Object integerDiv;
 
         if (b == -1) {
-            bMinusOneProfile.enter();
+            bMinusOneProfile.enter(node);
 
             if (a == Long.MIN_VALUE) {
                 integerDiv = BigIntegerOps.negate(a);
@@ -102,32 +69,107 @@ public final class GeneralDivModNode extends RubyBaseNode {
 
         if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) &&
                 CoreLibrary.fitsIntoInteger(mod)) {
-            useFixnumPairProfile.enter();
-            return createArray(new int[]{ (int) (long) integerDiv, (int) mod });
+            useFixnumPairProfile.enter(node);
+            return createArray(node, new int[]{ (int) (long) integerDiv, (int) mod });
         } else if (integerDiv instanceof Long) {
-            useObjectPairProfile.enter();
-            return createArray(new long[]{ (long) integerDiv, mod });
+            useObjectPairProfile.enter(node);
+            return createArray(node, new long[]{ (long) integerDiv, mod });
         } else {
-            useObjectPairProfile.enter();
-            return createArray(new Object[]{
-                    fixnumOrBignumQuotient.fixnumOrBignum((BigInteger) integerDiv),
+            useObjectPairProfile.enter(node);
+            return createArray(node, new Object[]{
+                    fixnumOrBignumQuotient.execute(node, (BigInteger) integerDiv),
                     mod
             });
         }
     }
 
+    @Specialization
+    protected static RubyArray doLongAndBigInt(Node node, long a, BigInteger b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumRemainder) {
+        return divMod(node, BigIntegerOps.valueOf(a), b, bZeroProfile, bigIntegerFixnumProfile, fixnumOrBignumQuotient,
+                fixnumOrBignumRemainder);
+    }
+
+    @Specialization
+    protected static RubyArray doLongAndDouble(Node node, long a, double b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile nanProfile,
+            @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
+        return divMod(node, a, b, bZeroProfile, nanProfile, floatToIntegerNode);
+    }
+
+    @Specialization
+    protected static RubyArray doBigIntAndLong(Node node, BigInteger a, long b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumRemainder) {
+        return divMod(node, a, BigIntegerOps.valueOf(b), bZeroProfile, bigIntegerFixnumProfile, fixnumOrBignumQuotient,
+                fixnumOrBignumRemainder);
+    }
+
+    @Specialization
+    protected static RubyArray doBigInts(Node node, BigInteger a, BigInteger b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
+            @Cached @Shared FixnumOrBignumNode fixnumOrBignumRemainder) {
+        return divMod(node, a, b, bZeroProfile, bigIntegerFixnumProfile, fixnumOrBignumQuotient,
+                fixnumOrBignumRemainder);
+    }
+
+    @Specialization
+    protected static RubyArray doBigIntAndDouble(Node node, BigInteger a, double b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile nanProfile,
+            @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
+        return divMod(node, BigIntegerOps.doubleValue(a), b, bZeroProfile, nanProfile, floatToIntegerNode);
+    }
+
+    @Specialization
+    protected static RubyArray doDoubleAndLong(Node node, double a, long b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile nanProfile,
+            @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
+        return divMod(node, a, b, bZeroProfile, nanProfile, floatToIntegerNode);
+    }
+
+    @Specialization
+    protected static RubyArray doDoubleAndBigInt(Node node, double a, BigInteger b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile nanProfile,
+            @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
+        return divMod(node, a, BigIntegerOps.doubleValue(b), bZeroProfile, nanProfile, floatToIntegerNode);
+    }
+
+    @Specialization
+    protected static RubyArray doDoubles(Node node, double a, double b,
+            @Cached @Shared InlinedBranchProfile bZeroProfile,
+            @Cached @Shared InlinedBranchProfile nanProfile,
+            @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
+        return divMod(node, a, b, bZeroProfile, nanProfile, floatToIntegerNode);
+    }
+
+    /* div-mod algorithms copied from org.jruby.RubyFixnum, org.jruby.RubyBignum and org.jrubyRubyFloat. See license and
+     * contributors there. */
+
     @TruffleBoundary
-    private RubyArray divMod(double a, double b) {
+    private static RubyArray divMod(Node node, double a, double b, InlinedBranchProfile bZeroProfile,
+            InlinedBranchProfile nanProfile,
+            FloatToIntegerNode floatToIntegerNode) {
         if (b == 0) {
-            bZeroProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+            bZeroProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).zeroDivisionError(node));
         }
 
         double mod = Math.IEEEremainder(a, b);
 
         if (Double.isNaN(mod)) {
-            nanProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
+            nanProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).floatDomainError("NaN", node));
         }
 
         final double div = Math.floor(a / b);
@@ -136,27 +178,29 @@ public final class GeneralDivModNode extends RubyBaseNode {
             mod += b;
         }
 
-        return createArray(new Object[]{ floatToIntegerNode.fixnumOrBignum(div), mod });
+        return createArray(node, new Object[]{ floatToIntegerNode.execute(node, div), mod });
     }
 
     @TruffleBoundary
-    private RubyArray divMod(BigInteger a, BigInteger b) {
+    private static RubyArray divMod(Node node, BigInteger a, BigInteger b, InlinedBranchProfile bZeroProfile,
+            InlinedBranchProfile bigIntegerFixnumProfile, FixnumOrBignumNode fixnumOrBignumQuotient,
+            FixnumOrBignumNode fixnumOrBignumRemainder) {
         if (b.signum() == 0) {
-            bZeroProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+            bZeroProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).zeroDivisionError(node));
         }
 
         final BigInteger[] bigIntegerResults = a.divideAndRemainder(b);
 
         if ((a.signum() * b.signum()) == -1 && bigIntegerResults[1].signum() != 0) {
-            bigIntegerFixnumProfile.enter();
+            bigIntegerFixnumProfile.enter(node);
             bigIntegerResults[0] = bigIntegerResults[0].subtract(BigInteger.ONE);
             bigIntegerResults[1] = b.add(bigIntegerResults[1]);
         }
 
-        return createArray(new Object[]{
-                fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]),
-                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]) });
+        return createArray(node, new Object[]{
+                fixnumOrBignumQuotient.execute(node, bigIntegerResults[0]),
+                fixnumOrBignumRemainder.execute(node, bigIntegerResults[1]) });
     }
 
 }

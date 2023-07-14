@@ -127,8 +127,9 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
     @ExportMessage(name = "isHashEntryReadable", limit = "hashStrategyLimit()")
     public final boolean isHashEntryExisting(Object key,
             @CachedLibrary("this.store") HashStoreLibrary hashStores,
-            @Cached @Shared ForeignToRubyNode toRuby) {
-        return hashStores.lookupOrDefault(store, null, this, toRuby.executeConvert(key), NULL_PROVIDER) != null;
+            @Cached @Shared ForeignToRubyNode toRuby,
+            @Bind("$node") Node node) {
+        return hashStores.lookupOrDefault(store, null, this, toRuby.execute(node, key), NULL_PROVIDER) != null;
     }
 
     @ExportMessage(name = "isHashEntryModifiable")
@@ -153,7 +154,7 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
             @Cached InlinedConditionProfile unknownKey,
             @Bind("$node") Node node)
             throws UnknownKeyException {
-        final Object value = hashStores.lookupOrDefault(store, null, this, toRuby.executeConvert(key), NULL_PROVIDER);
+        final Object value = hashStores.lookupOrDefault(store, null, this, toRuby.execute(node, key), NULL_PROVIDER);
         if (unknownKey.profile(node, value == null)) {
             throw UnknownKeyException.create(key);
         }
@@ -163,21 +164,23 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
     @ExportMessage(limit = "hashStrategyLimit()")
     public Object readHashValueOrDefault(Object key, Object defaultValue,
             @CachedLibrary("this.store") HashStoreLibrary hashStores,
-            @Cached @Shared ForeignToRubyNode toRuby) {
+            @Cached @Shared ForeignToRubyNode toRuby,
+            @Bind("$node") Node node) {
         return hashStores
-                .lookupOrDefault(store, null, this, toRuby.executeConvert(key), new DefaultProvider(defaultValue));
+                .lookupOrDefault(store, null, this, toRuby.execute(node, key), new DefaultProvider(defaultValue));
     }
 
     @ExportMessage
     public void writeHashEntry(Object key, Object value,
             @Cached @Exclusive DispatchNode set,
             @Cached @Shared IsFrozenNode isFrozenNode,
-            @Cached @Shared ForeignToRubyNode toRuby)
+            @Cached @Shared ForeignToRubyNode toRuby,
+            @Bind("$node") Node node)
             throws UnsupportedMessageException {
         if (isFrozenNode.execute(this)) {
             throw UnsupportedMessageException.create();
         }
-        set.call(this, "[]=", toRuby.executeConvert(key), value);
+        set.call(this, "[]=", toRuby.execute(node, key), value);
     }
 
     @ExportMessage
@@ -185,7 +188,8 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
             @Cached @Exclusive DispatchNode delete,
             @Shared @Cached IsFrozenNode isFrozenNode,
             @CachedLibrary("this") InteropLibrary interop,
-            @Cached @Shared ForeignToRubyNode toRuby)
+            @Cached @Shared ForeignToRubyNode toRuby,
+            @Bind("$node") Node node)
             throws UnsupportedMessageException, UnknownKeyException {
         if (isFrozenNode.execute(this)) {
             throw UnsupportedMessageException.create();
@@ -193,7 +197,7 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
         if (!interop.isHashEntryExisting(this, key)) {
             throw UnknownKeyException.create(key);
         }
-        delete.call(this, "delete", toRuby.executeConvert(key));
+        delete.call(this, "delete", toRuby.execute(node, key));
     }
 
     @ExportMessage

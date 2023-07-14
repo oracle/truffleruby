@@ -49,7 +49,7 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
     @Specialization(assumptions = "assumptions")
     protected Object longSubWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignumNode) {
-        return fixnumOrBignumNode.fixnumOrBignum(BigIntegerOps.subtract(a, b));
+        return fixnumOrBignumNode.execute(this, BigIntegerOps.subtract(a, b));
     }
 
     @Specialization(assumptions = "assumptions")

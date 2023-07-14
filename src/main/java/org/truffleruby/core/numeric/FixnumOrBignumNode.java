@@ -11,34 +11,35 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public final class FixnumOrBignumNode extends RubyBaseNode {
+@GenerateCached(false)
+@GenerateInline
+public abstract class FixnumOrBignumNode extends RubyBaseNode {
 
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
 
-    @NeverDefault
-    public static FixnumOrBignumNode create() {
-        return new FixnumOrBignumNode();
-    }
 
-    public FixnumOrBignumNode() {
-    }
+    public abstract Object execute(Node node, BigInteger value);
 
-    private final ConditionProfile lowerProfile = ConditionProfile.create();
-    private final ConditionProfile intProfile = ConditionProfile.create();
-
-    public Object fixnumOrBignum(BigInteger value) {
-        if (lowerProfile.profile(fitsIntoLong(value))) {
+    @Specialization
+    protected static Object fixnumOrBignum(Node node, BigInteger value,
+            @Cached InlinedConditionProfile lowerProfile,
+            @Cached InlinedConditionProfile intProfile) {
+        if (lowerProfile.profile(node, fitsIntoLong(value))) {
             final long longValue = BigIntegerOps.longValue(value);
 
-            if (intProfile.profile(CoreLibrary.fitsIntoInteger(longValue))) {
+            if (intProfile.profile(node, CoreLibrary.fitsIntoInteger(longValue))) {
                 return (int) longValue;
             } else {
                 return longValue;

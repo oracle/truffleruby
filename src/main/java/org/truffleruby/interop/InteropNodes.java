@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
@@ -26,7 +28,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -47,7 +48,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -63,7 +63,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
@@ -518,7 +517,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
             final Object foreign = InteropNodes.execute(node, receiver, args, receivers, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -562,7 +561,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(node, e);
             }
 
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
     // endregion
@@ -613,7 +612,7 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(node, e);
             }
 
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1131,7 +1130,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
             try {
-                return fixnumOrBignumNode.fixnumOrBignum(receivers.asBigInteger(receiver));
+                return fixnumOrBignumNode.execute(node, receivers.asBigInteger(receiver));
             } catch (InteropException e) {
                 throw translateInteropException.execute(node, e);
             }
@@ -1263,25 +1262,26 @@ public abstract class InteropNodes {
         @Specialization
         protected Object readMember(Object receiver, Object identifier,
                 @Cached ReadMemberNode readMemberNode) {
-            return readMemberNode.execute(receiver, identifier);
+            return readMemberNode.execute(this, receiver, identifier);
         }
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class ReadMemberNode extends RubyBaseNode {
 
-        public abstract Object execute(Object receiver, Object identifier);
+        public abstract Object execute(Node node, Object receiver, Object identifier);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object readMember(Object receiver, Object identifier,
+        protected static Object readMember(Node node, Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @Bind("this") Node node) {
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = InteropNodes.readMember(node, receivers, receiver, name, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1325,21 +1325,22 @@ public abstract class InteropNodes {
         @Specialization
         protected Object write(Object receiver, Object identifier, Object value,
                 @Cached WriteMemberWithoutConversionNode writeMemberWithoutConversionNode) {
-            return writeMemberWithoutConversionNode.execute(receiver, identifier, value);
+            return writeMemberWithoutConversionNode.execute(this, receiver, identifier, value);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class WriteMemberWithoutConversionNode extends RubyBaseNode {
 
-        public abstract Object execute(Object receiver, Object identifier, Object value);
+        public abstract Object execute(Node node, Object receiver, Object identifier, Object value);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object write(Object receiver, Object identifier, Object value,
+        protected static Object write(Node node, Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.writeMember(receiver, name, value);
@@ -1377,11 +1378,13 @@ public abstract class InteropNodes {
         @Specialization
         protected Object invokeMember(Object receiver, Object identifier, Object[] args,
                 @Cached InvokeMemberNode invokeMemberNode) {
-            return invokeMemberNode.execute(receiver, identifier, args);
+            return invokeMemberNode.execute(this, receiver, identifier, args);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class InvokeMemberNode extends RubyBaseNode {
 
         private static Object invoke(Node node, InteropLibrary receivers, Object receiver, String member, Object[] args,
@@ -1393,18 +1396,17 @@ public abstract class InteropNodes {
             }
         }
 
-        public abstract Object execute(Object receiver, Object identifier, Object[] args);
+        public abstract Object execute(Node node, Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
-        protected static Object invokeCached(Object receiver, Object identifier, Object[] args,
+        protected static Object invokeCached(Node node, Object receiver, Object identifier, Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
             final Object foreign = invoke(node, receivers, receiver, name, args, translateInteropException);
-            return foreignToRubyNode.executeConvert(foreign);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -1522,9 +1524,7 @@ public abstract class InteropNodes {
 
     // region Import/Export
     @CoreMethod(names = "export", onSingleton = true, required = 2)
-    @NodeChild(value = "name", type = RubyNode.class)
-    @NodeChild(value = "object", type = RubyNode.class)
-    public abstract static class ExportNode extends CoreMethodNode {
+    public abstract static class ExportNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -1537,8 +1537,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "import", onSingleton = true, required = 1)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class ImportNode extends CoreMethodNode {
+    public abstract static class ImportNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object importObject(Object name,
@@ -1548,7 +1547,7 @@ public abstract class InteropNodes {
             final var nameAsString = toJavaStringNode.execute(this, name);
             final Object value = doImport(nameAsString);
             if (value != null) {
-                return foreignToRubyNode.executeConvert(value);
+                return foreignToRubyNode.execute(this, value);
             } else {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(nameAsString, this));
@@ -2301,10 +2300,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_short", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferShortNode extends CoreMethodNode {
+    public abstract static class ReadBufferShortNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected static short readBufferShort(Object receiver, Object byteOrderObject, long byteOffset,
@@ -2323,11 +2319,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_short", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferShortNode extends CoreMethodNode {
+    public abstract static class WriteBufferShortNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInShort(value)")
         protected static Object writeBufferShort(Object receiver, Object byteOrderObject, long byteOffset, Object value,
@@ -2349,10 +2341,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_int", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferIntNode extends CoreMethodNode {
+    public abstract static class ReadBufferIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected static int readBufferInt(Object receiver, Object byteOrderObject, long byteOffset,
@@ -2371,11 +2360,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_int", onSingleton = true, required = 4, lowerFixnum = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferIntNode extends CoreMethodNode {
+    public abstract static class WriteBufferIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInInt(value)")
         protected static Object writeBufferInt(Object receiver, Object orderObject, long byteOffset, Object value,
@@ -2397,10 +2382,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_long", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferLongNode extends CoreMethodNode {
+    public abstract static class ReadBufferLongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected static long readBufferLong(Object receiver, Object byteOrderObject, long byteOffset,
@@ -2419,11 +2401,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_long", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferLongNode extends CoreMethodNode {
+    public abstract static class WriteBufferLongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInLong(value)")
         protected static Object writeBufferLong(Object receiver, Object orderObject, long byteOffset, Object value,
@@ -2445,10 +2423,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_float", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferFloatNode extends CoreMethodNode {
+    public abstract static class ReadBufferFloatNode extends CoreMethodArrayArgumentsNode {
 
         // must return double so Ruby nodes can deal with it
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2468,11 +2443,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_float", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferFloatNode extends CoreMethodNode {
+    public abstract static class WriteBufferFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
         protected static Object writeBufferFloat(Object receiver, Object orderObject, long byteOffset, Object value,
@@ -2494,10 +2465,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_double", onSingleton = true, required = 3)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferDoubleNode extends CoreMethodNode {
+    public abstract static class ReadBufferDoubleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected static double readBufferDouble(Object receiver, Object byteOrderObject, long byteOffset,
@@ -2516,11 +2484,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_double", onSingleton = true, required = 4)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "byteOrder", type = RubyNode.class)
-    @NodeChild(value = "byteOffset", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferDoubleNode extends CoreMethodNode {
+    public abstract static class WriteBufferDoubleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
         protected static Object writeBufferDouble(Object receiver, Object orderObject, long byteOffset, Object value,

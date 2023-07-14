@@ -48,6 +48,7 @@ package org.truffleruby.core.format.read.bytes;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -61,7 +62,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBERNode extends FormatNode {
 
-    @Child private FixnumOrBignumNode fixnumOrBignumNode = new FixnumOrBignumNode();
 
     private static final long UL_MASK = 0xFE000000;
     private static final BigInteger BIG_128 = BigInteger.valueOf(128);
@@ -69,7 +69,8 @@ public abstract class ReadBERNode extends FormatNode {
     private final ConditionProfile simpleProfile = ConditionProfile.create();
 
     @Specialization
-    protected Object encode(VirtualFrame frame, byte[] source) {
+    protected Object encode(VirtualFrame frame, byte[] source,
+            @Cached FixnumOrBignumNode fixnumOrBignumNode) {
         final ByteBuffer encode = wrapByteBuffer(frame, source);
         int position = encode.position();
 
@@ -85,7 +86,7 @@ public abstract class ReadBERNode extends FormatNode {
             final BigIntegerAndPos bigIntegerAndPos = runLoop(encode, ul, position);
 
             setSourcePosition(frame, bigIntegerAndPos.getPos());
-            return fixnumOrBignumNode.fixnumOrBignum(bigIntegerAndPos.getBigInteger());
+            return fixnumOrBignumNode.execute(this, bigIntegerAndPos.getBigInteger());
         }
     }
 

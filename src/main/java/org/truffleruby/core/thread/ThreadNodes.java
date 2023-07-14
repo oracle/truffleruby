@@ -1037,7 +1037,7 @@ public abstract class ThreadNodes {
                     blockingCallInterruptible,
                     this);
             // Convert byte, short & float from NFI to int & double
-            return foreignToRubyNode.executeConvert(result);
+            return foreignToRubyNode.execute(this, result);
         }
     }
 }

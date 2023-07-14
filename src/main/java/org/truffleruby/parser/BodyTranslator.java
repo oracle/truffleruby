@@ -135,6 +135,7 @@ import org.truffleruby.language.objects.DynamicLexicalScopeNode;
 import org.truffleruby.language.objects.GetDynamicLexicalScopeNode;
 import org.truffleruby.language.objects.InsideModuleDefinitionNode;
 import org.truffleruby.language.objects.LexicalScopeNode;
+import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
 import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.RunModuleDefinitionNode;
@@ -142,7 +143,6 @@ import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.SingletonClassNode.SingletonClassASTNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
-import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
@@ -1838,7 +1838,7 @@ public class BodyTranslator extends BaseTranslator {
             rhs = node.getValueNode().accept(this);
         }
 
-        final RubyNode ret = new WriteInstanceVariableNode(name, rhs);
+        final RubyNode ret = WriteInstanceVariableNodeGen.create(name, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

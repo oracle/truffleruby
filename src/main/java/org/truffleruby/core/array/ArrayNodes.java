@@ -19,6 +19,7 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -103,9 +104,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -133,11 +132,9 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "a", type = RubyNode.class)
-    @NodeChild(value = "b", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class AddNode extends CoreMethodNode {
+    public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
                 limit = "storageStrategyLimit()")
@@ -761,60 +758,37 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class DeleteAtNode extends CoreMethodNode {
+    public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
-        @CreateCast("index")
-        protected ToIntNode coerceOtherToInt(RubyBaseNodeWithExecute index) {
-            return ToIntNode.create(index);
-        }
-
-        @Specialization(
-                guards = "stores.isMutable(store)",
-                limit = "storageStrategyLimit()")
-        protected Object deleteAt(RubyArray array, int index,
+        @Specialization(limit = "storageStrategyLimit()")
+        protected static Object doDelete(RubyArray array, Object indexObject,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared ConditionProfile negativeIndexProfile,
-                @Cached @Shared ConditionProfile notInBoundsProfile) {
-            final int size = arraySizeProfile.profile(array.size);
+                @Cached ToIntNode toIntNode,
+                @Cached InlinedIntValueProfile arraySizeProfile,
+                @Cached InlinedConditionProfile negativeIndexProfile,
+                @Cached InlinedConditionProfile notInBoundsProfile,
+                @Cached InlinedConditionProfile isMutableProfile,
+                @Bind("this") Node node) {
+            final int size = arraySizeProfile.profile(node, array.size);
+            final int index = toIntNode.execute(indexObject);
             int i = index;
-            if (negativeIndexProfile.profile(index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 i += size;
             }
 
-            if (notInBoundsProfile.profile(i < 0 || i >= size)) {
+            if (notInBoundsProfile.profile(node, i < 0 || i >= size)) {
                 return nil;
-            } else {
+            }
+
+            if (isMutableProfile.profile(node, stores.isMutable(store))) {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
                 stores.clear(store, size - 1, 1);
                 setStoreAndSize(array, store, size - 1);
                 return value;
-            }
-        }
-
-        @Specialization(
-                guards = "!stores.isMutable(store)",
-                limit = "storageStrategyLimit()")
-        protected Object deleteAtCopying(RubyArray array, int index,
-                @Bind("array.getStore()") Object store,
-                @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached @Shared IntValueProfile arraySizeProfile,
-                @Cached @Shared ConditionProfile negativeIndexProfile,
-                @Cached @Shared ConditionProfile notInBoundsProfile) {
-            final int size = arraySizeProfile.profile(array.size);
-            int i = index;
-            if (negativeIndexProfile.profile(index < 0)) {
-                i += size;
-            }
-
-            if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil;
             } else {
                 final Object mutableStore = stores.allocator(store).allocate(size - 1);
                 stores.copyContents(store, 0, mutableStore, 0, i);
@@ -1232,8 +1206,9 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "wasProvided(size)", "!isImplicitLong(size)", "wasProvided(fillingValue)" })
-        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block) {
-            int intSize = toInt(size);
+        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block,
+                @Cached @Shared ToIntNode toIntNode) {
+            int intSize = toIntNode.execute(size);
             return executeInitialize(array, intSize, fillingValue, block);
         }
 
@@ -1277,7 +1252,8 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block) {
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block,
+                @Cached @Shared ToIntNode toIntNode) {
             RubyArray copy = null;
             if (respondToToAry(object)) {
                 Object toAryResult = callToAry(object);
@@ -1289,7 +1265,7 @@ public abstract class ArrayNodes {
             if (copy != null) {
                 return executeInitialize(array, copy, NotProvided.INSTANCE, nil);
             } else {
-                int size = toInt(object);
+                int size = toIntNode.execute(object);
                 return executeInitialize(array, size, NotProvided.INSTANCE, nil);
             }
         }
@@ -1310,21 +1286,11 @@ public abstract class ArrayNodes {
             return toAryNode.call(object, "to_ary");
         }
 
-        protected int toInt(Object value) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            return toIntNode.execute(value);
-        }
-
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "from", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class InitializeCopyNode extends CoreMethodNode {
+    public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyArray initializeCopy(RubyArray self, Object fromObject,
@@ -1545,11 +1511,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
     @ReportPolymorphism
-    public abstract static class ArrayPackNode extends CoreMethodNode {
+    public abstract static class ArrayPackNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString pack(RubyArray array, Object format,

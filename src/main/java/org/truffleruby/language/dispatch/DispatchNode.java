@@ -387,7 +387,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSymbol = insert(ToSymbolNodeGen.create());
         }
-        return toSymbol.execute(methodName);
+        return toSymbol.executeCached(methodName);
     }
 
     /** This will be called from the {@link CallInternalMethodNode} child whenever it creates a new
@@ -458,7 +458,7 @@ public class DispatchNode extends SpecialVariablesSendingNode {
 
         @Override
         protected RubySymbol nameToSymbol(String methodName) {
-            return ToSymbolNodeGen.getUncached().execute(methodName);
+            return ToSymbolNode.executeUncached(methodName);
         }
 
         @Override

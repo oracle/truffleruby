@@ -31,15 +31,12 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
@@ -51,7 +48,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -214,9 +210,7 @@ public abstract class BindingNodes {
 
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @CoreMethod(names = "local_variable_defined?", required = 1)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class BindingLocalVariableDefinedNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean localVariableDefined(RubyBinding binding, Object nameObject,
@@ -268,70 +262,69 @@ public abstract class BindingNodes {
     }
 
     @CoreMethod(names = "local_variable_get", required = 1)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(BindingNodes.class)
-    public abstract static class BindingLocalVariableGetNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object localVariableGet(RubyBinding binding, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableGetNode localVariableGetNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            return localVariableGetNode.execute(binding, name);
+            return localVariableGetNode.execute(this, binding, name);
         }
     }
 
     @GenerateUncached
     @ImportStatic(BindingNodes.class)
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class LocalVariableGetNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyBinding binding, String name);
+        public abstract Object execute(Node node, RubyBinding binding, String name);
 
         @Specialization(guards = "!isHiddenVariable(name)")
-        protected Object localVariableGet(RubyBinding binding, String name,
+        protected static Object localVariableGet(Node node, RubyBinding binding, String name,
                 @Cached FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = binding.getFrame();
-            Object result = readNode.execute(frame, name, null);
+            Object result = readNode.execute(frame, node, name, null);
             if (result == null) {
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
+                        getContext(node),
+                        coreExceptions(node).nameErrorLocalVariableNotDefined(name, binding, node));
             }
             return result;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableGetLastLine(RubyBinding binding, String name) {
+        protected static Object localVariableGetLastLine(Node node, RubyBinding binding, String name) {
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(node),
+                    coreExceptions(node).nameError("Bad local variable name", binding, name, node));
         }
     }
 
     @ReportPolymorphism
     @CoreMethod(names = "local_variable_set", required = 2)
-    @NodeChild(value = "bindingNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "valueNode", type = RubyNode.class)
-    public abstract static class BindingLocalVariableSetNode extends CoreMethodNode {
+    public abstract static class BindingLocalVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object localVariableSet(RubyBinding binding, Object nameObject, Object value,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LocalVariableSetNode localVariableSetNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            return localVariableSetNode.execute(binding, name, value);
+            return localVariableSetNode.execute(this, binding, name, value);
         }
     }
 
 
     @GenerateUncached
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class LocalVariableSetNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyBinding binding, String name, Object value);
+        public abstract Object execute(Node node, RubyBinding binding, String name, Object value);
 
         @Specialization(
                 guards = {
@@ -340,7 +333,7 @@ public abstract class BindingNodes {
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot != null" },
                 limit = "getCacheLimit()")
-        protected Object localVariableSetCached(RubyBinding binding, String name, Object value,
+        protected static Object localVariableSetCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
@@ -358,7 +351,7 @@ public abstract class BindingNodes {
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot == null" },
                 limit = "getCacheLimit()")
-        protected Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
+        protected static Object localVariableSetNewCached(RubyBinding binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
@@ -373,7 +366,7 @@ public abstract class BindingNodes {
         @Specialization(
                 guards = "!isHiddenVariable(name)",
                 replaces = { "localVariableSetCached", "localVariableSetNewCached" })
-        protected Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
+        protected static Object localVariableSetUncached(RubyBinding binding, String name, Object value) {
             MaterializedFrame frame = binding.getFrame();
             final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
             final int slot;
@@ -392,13 +385,13 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        protected Object localVariableSetLastLine(RubyBinding binding, String name, Object value) {
+        protected static Object localVariableSetLastLine(Node node, RubyBinding binding, String name, Object value) {
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameError("Bad local variable name", binding, name, this));
+                    getContext(node),
+                    coreExceptions(node).nameError("Bad local variable name", binding, name, node));
         }
 
-        protected WriteFrameSlotNode createWriteNode(int frameSlot) {
+        protected static WriteFrameSlotNode createWriteNode(int frameSlot) {
             return WriteFrameSlotNodeGen.create(frameSlot);
         }
 

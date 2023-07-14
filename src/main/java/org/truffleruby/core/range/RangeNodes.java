@@ -10,14 +10,16 @@
 package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -29,7 +31,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -45,7 +46,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.Shape;
@@ -380,11 +380,7 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "new", constructor = true, required = 2, optional = 1)
-    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    @NodeChild(value = "beginNode", type = RubyNode.class)
-    @NodeChild(value = "endNode", type = RubyNode.class)
-    @NodeChild(value = "excludeEndNode", type = RubyBaseNodeWithExecute.class)
-    public abstract static class NewNode extends CoreMethodNode {
+    public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object newRange(RubyClass rubyClass, Object begin, Object end, Object maybeExcludeEnd,
@@ -462,26 +458,27 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class RangeAllocateNode extends CoreMethodNode {
+    public abstract static class RangeAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyObjectRange allocate(RubyClass rubyClass,
                 @Cached AllocateNode allocateNode) {
-            return allocateNode.execute(rubyClass);
+            return allocateNode.execute(this, rubyClass);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class AllocateNode extends RubyBaseNode {
 
-        public abstract RubyObjectRange execute(RubyClass rubyClass);
+        public abstract RubyObjectRange execute(Node node, RubyClass rubyClass);
 
         @Specialization
-        protected RubyObjectRange allocate(RubyClass rubyClass) {
-            final Shape shape = getLanguage().objectRangeShape;
+        protected static RubyObjectRange allocate(Node node, RubyClass rubyClass) {
+            final Shape shape = getLanguage(node).objectRangeShape;
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil, false);
-            AllocationTracing.trace(range, this);
+            AllocationTracing.trace(range, node);
             return range;
         }
     }

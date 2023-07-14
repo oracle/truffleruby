@@ -22,7 +22,7 @@ ast: |
                               attributes:
                                   frameSlot = 0
           right =
-              WriteInstanceVariableNode
+              WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
                       frozenProfile = false

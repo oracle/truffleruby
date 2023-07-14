@@ -59,7 +59,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 
         if (notFoundProfile.profile(this, method == null)) {
-            final RubySymbol symbolName = toSymbolNode.execute(name);
+            final RubySymbol symbolName = toSymbolNode.execute(this, name);
             final Object respondToMissing = respondToMissingNode
                     .call(self, "respond_to_missing?", symbolName, dispatchConfig.ignoreVisibility);
             if (respondToMissingProfile.profile(this, booleanCastNode.execute(this, respondToMissing))) {

@@ -180,30 +180,31 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class StringNodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    @NodeChild(value = "rubyClassNode", type = RubyNode.class)
-    public abstract static class StringAllocateNode extends CoreMethodNode {
+    public abstract static class StringAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString allocate(RubyClass rubyClass,
                 @Cached AllocateNode allocateNode) {
-            return allocateNode.execute(rubyClass);
+            return allocateNode.execute(this, rubyClass);
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class AllocateNode extends RubyBaseNode {
 
-        public abstract RubyString execute(RubyClass rubyClass);
+        public abstract RubyString execute(Node node, RubyClass rubyClass);
 
         @Specialization
-        protected RubyString allocate(RubyClass rubyClass) {
+        protected static RubyString allocate(Node node, RubyClass rubyClass) {
             final RubyString string = new RubyString(
                     rubyClass,
-                    getLanguage().stringShape,
+                    getLanguage(node).stringShape,
                     false,
                     EMPTY_BINARY,
                     Encodings.BINARY);
-            AllocationTracing.trace(string, this);
+            AllocationTracing.trace(string, node);
             return string;
         }
     }
@@ -218,10 +219,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class AddNode extends CoreMethodNode {
+    public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString add(Object string, Object other,
@@ -311,7 +310,7 @@ public abstract class StringNodes {
             var encB = libB.getEncoding(b);
             var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringA, encA, tstringB,
                     encB);
-            return stringEqualInternalNode.executeInternal(tstringA, tstringB, compatibleEncoding);
+            return stringEqualInternalNode.executeInternal(node, tstringA, tstringB, compatibleEncoding);
         }
 
         @Specialization(guards = "isNotRubyString(b)")
@@ -2244,45 +2243,48 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfNotMutableSelf = true, lowerFixnum = { 1, 2 })
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class SetByteNode extends CoreMethodNode {
+    public abstract static class StringSetByteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringHelperNodes.CheckIndexNode checkIndexNode = StringHelperNodesFactory.CheckIndexNodeGen
-                .create();
-
-        @CreateCast("index")
-        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
-            return ToIntNode.create(index);
+        @Specialization
+        protected int doSetByte(RubyString string, Object indexObject, Object valueObject,
+                @Cached ToIntNode toIntIndexNode,
+                @Cached ToIntNode toIntValueNode,
+                @Cached SetByteNode setByteNode) {
+            int index = toIntIndexNode.execute(indexObject);
+            int value = toIntValueNode.execute(valueObject);
+            return setByteNode.execute(this, string, index, value);
         }
+    }
 
-        @CreateCast("value")
-        protected ToIntNode coerceValueToInt(RubyBaseNodeWithExecute value) {
-            return ToIntNode.create(value);
-        }
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class SetByteNode extends RubyBaseNode {
+
+        public abstract int execute(Node node, RubyString string, int index, int value);
 
         @Specialization(guards = "tstring.isMutable()")
-        protected int mutable(RubyString string, int index, int value,
+        protected static int mutable(Node node, RubyString string, int index, int value,
+                @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
-                @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
+                @Cached(inline = false) @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
-            final int normalizedIndex = checkIndexNode.executeCheck(index, tstring.byteLength(tencoding));
+            final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
             writeByteNode.execute((MutableTruffleString) tstring, normalizedIndex, (byte) value, tencoding);
             return value;
         }
 
         @Specialization(guards = "!tstring.isMutable()")
-        protected int immutable(RubyString string, int index, int value,
+        protected static int immutable(Node node, RubyString string, int index, int value,
+                @Cached @Shared StringHelperNodes.CheckIndexNode checkIndexNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Bind("string.tstring") AbstractTruffleString tstring,
-                @Cached MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
-                @Cached @Shared MutableTruffleString.WriteByteNode writeByteNode) {
+                @Cached(inline = false) MutableTruffleString.AsMutableTruffleStringNode asMutableTruffleStringNode,
+                @Cached(inline = false) @Shared MutableTruffleString.WriteByteNode writeByteNode) {
             var tencoding = libString.getTEncoding(string);
-            final int normalizedIndex = checkIndexNode.executeCheck(index, tstring.byteLength(tencoding));
+            final int normalizedIndex = checkIndexNode.execute(node, index, tstring.byteLength(tencoding));
 
             MutableTruffleString mutableTString = asMutableTruffleStringNode.execute(tstring, tencoding);
             writeByteNode.execute(mutableTString, normalizedIndex, (byte) value, tencoding);
@@ -2557,10 +2559,10 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isBrokenCodeRange(tstring, encoding, codeRangeNode)",
-                        "equalNode.execute(tstring, encoding, cachedTString, cachedEncoding)",
+                        "equalNode.execute(node, tstring, encoding, cachedTString, cachedEncoding)",
                         "preserveSymbol == cachedPreserveSymbol" },
                 limit = "getDefaultCacheLimit()")
-        protected RubySymbol toSymCached(Object string, boolean preserveSymbol,
+        protected static RubySymbol toSymCached(Object string, boolean preserveSymbol,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached("asTruffleStringUncached(string)") TruffleString cachedTString,
                 @Cached("strings.getEncoding(string)") RubyEncoding cachedEncoding,
@@ -2568,7 +2570,8 @@ public abstract class StringNodes {
                 @Cached("getSymbol(cachedTString, cachedEncoding, cachedPreserveSymbol)") RubySymbol cachedSymbol,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
-                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding,
+                @Bind("this") Node node) {
             return cachedSymbol;
         }
 
@@ -2678,11 +2681,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class StringTrBangNode extends CoreMethodNode {
+    public abstract static class StringTrBangNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object trBang(RubyString self, Object fromStr, Object toStr,
@@ -2734,11 +2734,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr_s!", required = 2, raiseIfNotMutableSelf = true)
-    @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class TrSBangNode extends CoreMethodNode {
+    public abstract static class TrSBangNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
                 guards = { "self.tstring.isEmpty()" })

@@ -143,8 +143,8 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached DispatchNode dispatch,
             @Cached IntegerCastNode intCastNode,
             @Cached @Shared LogicalClassNode logicalClassNode) throws ArityException {
-        int minExpected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "min_expected"));
-        int maxExpected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "max_expected"));
+        int minExpected = intCastNode.execute(this, dispatch.call(exception.getException(), "min_expected"));
+        int maxExpected = intCastNode.execute(this, dispatch.call(exception.getException(), "max_expected"));
         throw ArityException.create(minExpected, maxExpected, arguments.length, exception);
     }
 

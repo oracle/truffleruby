@@ -10,25 +10,19 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import java.math.BigInteger;
 
 /** Casts a value into a BigInteger. */
-@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
-public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
+public abstract class BigIntegerCastNode extends RubyBaseNode {
 
-    public static BigIntegerCastNode create(RubyBaseNodeWithExecute value) {
-        return BigIntegerCastNodeGen.create(value);
-    }
-
-    public abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract BigInteger execute(Object value);
 
     @Specialization
     protected BigInteger doInt(int value) {
@@ -58,8 +52,4 @@ public abstract class BigIntegerCastNode extends RubyBaseNodeWithExecute {
                 this);
     }
 
-    @Override
-    public RubyBaseNodeWithExecute cloneUninitialized() {
-        return create(getValueNode().cloneUninitialized());
-    }
 }

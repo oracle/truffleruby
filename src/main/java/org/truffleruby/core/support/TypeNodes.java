@@ -424,10 +424,10 @@ public abstract class TypeNodes {
 
     @Primitive(name = "rb_num2int")
     public abstract static class RbNum2IntPrimitiveNode extends PrimitiveArrayArgumentsNode {
-        @Child private ToIntNode toIntNode = ToIntNode.create();
 
         @Specialization
-        protected int numToInt(Object value) {
+        protected int numToInt(Object value,
+                @Cached ToIntNode toIntNode) {
             return toIntNode.execute(value);
         }
     }

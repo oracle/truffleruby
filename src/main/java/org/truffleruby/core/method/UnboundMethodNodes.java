@@ -151,7 +151,7 @@ public abstract class UnboundMethodNodes {
         protected RubySymbol originalName(RubyUnboundMethod unboundMethod,
                 @Cached ToSymbolNode toSymbolNode) {
             String originalName = unboundMethod.method.getOriginalName();
-            return toSymbolNode.execute(originalName);
+            return toSymbolNode.execute(this, originalName);
         }
     }
 

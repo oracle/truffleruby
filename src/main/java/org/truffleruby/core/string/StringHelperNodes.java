@@ -108,55 +108,62 @@ public abstract class StringHelperNodes {
                 @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached StringEqualInternalNode stringEqualInternalNode) {
             var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(this, a, encA, b, encB);
-            return stringEqualInternalNode.executeInternal(a, b, compatibleEncoding);
+            return stringEqualInternalNode.executeInternal(this, a, b, compatibleEncoding);
         }
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class EqualSameEncodingNode extends RubyBaseNode {
 
-        public final boolean execute(RubyStringLibrary libString, Object rubyString,
+        public final boolean execute(Node node, RubyStringLibrary libString, Object rubyString,
                 TruffleString cachedString, RubyEncoding cachedEncoding) {
-            return execute(libString.getTString(rubyString), libString.getEncoding(rubyString),
+            return execute(node, libString.getTString(rubyString), libString.getEncoding(rubyString),
                     cachedString, cachedEncoding);
         }
 
         // cachedString is TruffleString to ensure correctness, caching on a MutableTruffleString is incorrect
-        public abstract boolean execute(AbstractTruffleString tstring, RubyEncoding encoding,
+        public abstract boolean execute(Node node, AbstractTruffleString tstring, RubyEncoding encoding,
                 TruffleString cachedString, RubyEncoding cachedEncoding);
 
         @Specialization(guards = "encA == encB")
-        protected boolean same(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
+        protected static boolean same(
+                Node node, AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
                 @Cached StringEqualInternalNode stringEqualInternalNode) {
-            return stringEqualInternalNode.executeInternal(a, b, encA);
+            return stringEqualInternalNode.executeInternal(node, a, b, encA);
         }
 
         @Specialization(guards = "encA != encB")
-        protected boolean diff(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB) {
+        protected static boolean diff(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB) {
             return false;
         }
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class StringEqualInternalNode extends RubyBaseNode {
         // compatibleEncoding is RubyEncoding or null
-        public abstract boolean executeInternal(AbstractTruffleString a, AbstractTruffleString b,
+        public abstract boolean executeInternal(Node node, AbstractTruffleString a, AbstractTruffleString b,
                 RubyEncoding compatibleEncoding);
 
         @Specialization(guards = "a.isEmpty() || b.isEmpty()")
-        protected boolean empty(AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
+        protected static boolean empty(
+                AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
             assert compatibleEncoding != null;
             return a.isEmpty() && b.isEmpty();
         }
 
         @Specialization(guards = { "compatibleEncoding != null", "!a.isEmpty()", "!b.isEmpty()" })
-        protected boolean equalBytes(AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding,
-                @Cached TruffleString.EqualNode equalNode) {
+        protected static boolean equalBytes(
+                AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding,
+                @Cached(inline = false) TruffleString.EqualNode equalNode) {
             return equalNode.execute(a, b, compatibleEncoding.tencoding);
         }
 
         @Specialization(guards = "compatibleEncoding == null")
-        protected boolean notComparable(
+        protected static boolean notComparable(
                 AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
             return false;
         }
@@ -410,28 +417,30 @@ public abstract class StringHelperNodes {
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class CheckIndexNode extends RubyBaseNode {
 
-        public abstract int executeCheck(int index, int length);
+        public abstract int execute(Node node, int index, int length);
 
         @Specialization
-        protected int checkIndex(int index, int length,
+        protected static int checkIndex(Node node, int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile,
                 @Cached InlinedBranchProfile errorProfile) {
             if (index >= length) {
-                errorProfile.enter(this);
+                errorProfile.enter(node);
                 throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                        getContext(node),
+                        getContext(node).getCoreExceptions().indexErrorOutOfString(index, node));
             }
 
-            if (negativeIndexProfile.profile(this, index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 index += length;
                 if (index < 0) {
-                    errorProfile.enter(this);
+                    errorProfile.enter(node);
                     throw new RaiseException(
-                            getContext(),
-                            getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                            getContext(node),
+                            getContext(node).getCoreExceptions().indexErrorOutOfString(index, node));
                 }
             }
 
