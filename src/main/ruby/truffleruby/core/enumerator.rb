@@ -231,6 +231,40 @@ class Enumerator
     end
   end
 
+  def self.product(*enums, **kwargs, &block)
+    Truffle::KernelOperations.validate_no_kwargs(kwargs)
+
+    return Product.new(*enums) if Primitive.nil?(block)
+    product_iterator([], enums, &block)
+  end
+
+  class << self
+    protected def product_iterator(current, rest_enums, &block)
+      return block.call(current) if rest_enums.empty?
+
+      rest_enums_tail = rest_enums[1..]
+      rest_enums.first.each_entry do |next_e|
+        product_iterator(current + [next_e], rest_enums_tail, &block)
+      end
+    end
+  end
+
+  class Product  < Enumerator
+    def initialize(*enums, **kwargs)
+      Truffle::KernelOperations.validate_no_kwargs(kwargs)
+
+      @enums = enums
+    end
+
+    def each(&block)
+      Primitive.class(self).product_iterator([], @enums, &block)
+    end
+
+    def size
+      @enums.map(&:size).reduce(1, &:*)
+    end
+  end
+
   class Yielder
     attr_accessor :memo
 
