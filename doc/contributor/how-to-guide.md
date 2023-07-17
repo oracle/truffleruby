@@ -47,16 +47,16 @@
 -   [How to decide on what to change - ABI version or ABI
     check](#TruffleRubyhowtoguide-Howtodecideonwhattochange-ABIversionorABIcheck)
 -   [How to choose where to add new specs - in TruffleRuby or in
-    RubySpec
+    ruby/spec
     repository](#TruffleRubyhowtoguide-Howtochoosewheretoaddnewspecs-inTruffleRubyorinRubySpecrepository)
 -   [How to choose between Ruby and Java when implement a Ruby Core
     Library class
     method](#TruffleRubyhowtoguide-HowtochoosebetweenRubyandJavawhenimplementaRubyCoreLibraryclassmethod)
 -   [How to write specs for C
     API](#TruffleRubyhowtoguide-HowtowritespecsforCAPI)
--   [How to exclude/include a RubySpec/MRI test
+-   [How to exclude/include a spec/MRI test
     case](#TruffleRubyhowtoguide-Howtoexclude/includeaRubySpec/MRItestcase)
--   [How to tag slow RubySpec
+-   [How to tag slow ruby/spec
     tests](#TruffleRubyhowtoguide-HowtotagslowRubySpectests)
 -   [How to introduce a constant  in
     specs](#TruffleRubyhowtoguide-Howtointroduceaconstantinspecs)
@@ -64,16 +64,16 @@
 
 ## How to find a Core Method implementation
 
-Core Library is implemented partially in Ruby and partially in Java.
+The Core Library is implemented partially in Ruby and partially in Java.
 
-You can find Core Library classes implemented in Ruby in the
+You can find Core Library methods implemented in Ruby in the
 `src/main/ruby/truffleruby/core` directory, e.g.
 
 -   `array.rb`
 -   `file.rb`
 -   ...
 
-Java implementation is located in the
+Core Library methods implemented in Java are located in the
 `src/main/java/org/truffleruby/core` directory in
 `<Ruby-class-name>Nodes.java` files.
 
@@ -87,7 +87,7 @@ public abstract class FalseClassNodes {
 ```
 
 where `value = "FalseClass"` means a Ruby class (`FalseClass` in
-our case which methods are implemented in this file).
+our case, of which some methods are implemented in this file).
 
 Such a class contains implementation of Ruby class methods that are
 declared in the following way:
@@ -114,8 +114,7 @@ directory. File names follow the same pattern: `<RubyClass>Nodes`, e.g.
 represented by a Java class named after it, e.g.
 `StringNodes.SizeNode` implements Ruby `String#size` method.
 
-Let's consider and example - implementation of `Hash#clear` Core
-Method:
+Let's consider and example - the implementation of the `Hash#clear` Core Method:
 
 ```java
 // HashNodes.java
@@ -148,9 +147,8 @@ The `FrozenError` will be raised in this case.
 @ImportStatic(HashGuards.class)
 ```
 
-`@ImportStatic` annotation makes available in the `ClearNode` class
-some helper methods (guards in this case) declared in the `HashGuards`
-class.
+The `@ImportStatic` annotation makes available in the `ClearNode` class (in the `limit` in this case)
+some helper methods declared in the `HashGuards` class.
 
 ```java
 public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
@@ -158,11 +156,10 @@ public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
 A Core Method class is called after a Ruby method with a suffix
 `Node`. It usually inherits `CoreMethodArrayArgumentsNode` class but
-there are other options that could be met in the wild:
+there are other possibilities:
 
--   CoreMethodNode
--   RubyContextSourceNode
--   AlwaysInlinedMethodNode
+- `CoreMethodNode`
+- `AlwaysInlinedMethodNode`
 
 ```java
 @Specialization(limit = "hashStrategyLimit()")
@@ -188,9 +185,9 @@ Library classes are represented in Java as Java classes, e.g.
 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
 ```
 
-It's a declaration of auxiliary parameter that will be passed
+`@Cached`/`@CachedLibrary` are a declaration of extra parameters that will be passed in
 automatically by the runtime. `HashStoreLibrary` is a helper class to
-manipulate internal representation (`hash.store`) of Ruby Hash to
+manipulate the internal representation (`hash.store`) of Ruby Hash to
 store key-value pairs.
 
 ```java
@@ -212,6 +209,10 @@ argument - receiver of the `clear` Ruby method.
 
 The idea behind specializations is to have different (optimized)
 implementations for different arguments.
+
+Note that specializations should be mutually exclusive in the arguments they accept.
+For given arguments only one (or at most one) specialization should match the given arguments.
+If a specialization `replaces` another then the same applies, except we ignore the replaced specialization(s).
 
 Let's consider one more example - implementation on `Integer#<`:
 
@@ -312,7 +313,7 @@ conditions to choose a specialization. It can contain Java method calls
 that should be declared in the class as public methods or imported (with
 `@ImportStatic`) from some helper class (e.g. `StringGuards` or
 `HashGuards`). The most common guard predicates are defined in
-`RubyGuards` and by default available in any Core Method class.
+`RubyGuards` and by default available in Java class inheriting from `RubyBaseNode`.
 
 Examples of some guards:
 
@@ -382,7 +383,7 @@ There are a lot of methods in the Ruby Core Library that accept unknown
 number of arguments, e.g. #send, Module#class_eval, etc. There is a way
 to implement such a method in Java - just specify `rest = true`
 `@CoreMethod` annotation attribute and specializations will have a bit
-different parameters list - with `Object[] rubyArgs` argument.
+different parameters list - with `Object[] args` argument.
 
 Let's consider an example of `String#concat` method. The most generic
 specialization is the following:
@@ -421,15 +422,14 @@ names` are actual method call arguments.
 If a Core Method accepts a block argument, it should declare the last
 parameter as `RubyProc block`.
 
-Let's consider an example - implementation of `Module#initialize`
-method:
+Let's consider an example - the implementation of the `Module#initialize` method:
 
 ```java
 // ModuleNodes.java
 @CoreMethod(names = "initialize", needsBlock = true)
 public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-    public abstract RubyModule executeInitialize(RubyModule module, Object block);
+    public abstract RubyModule execute(RubyModule module, Object block);
 
     @Specialization
     protected RubyModule initialize(RubyModule module, Nil block) {
@@ -460,8 +460,9 @@ is a common way to call a Ruby block.
 A lot of Ruby Core Methods have multiple signatures with different
 numbers of arguments. So it's a common situation when a positional
 parameter might be missing. In Java a Core Method specialization missing
-an optional parameter is expressed with `NotProvided` class. There are
-several similar approaches to handle optional parameters.
+an optional parameter is expressed with `NotProvided` class.
+
+There are several similar approaches to handle optional parameters:
 
 #### Explicit check
 
@@ -477,6 +478,8 @@ protected RubyArray unpackCached(Object string, Object format, Object offsetObje
 
     final int offset = (offsetObject == NotProvided.INSTANCE) ? 0 : (int) offsetObject;
 ```
+
+This should use an `InlinedConditionProfile`, unless the method is always `split`.
 
 #### Check with guard
 
@@ -496,7 +499,7 @@ protected Object stepFallback(VirtualFrame frame, Object range, Object step, Obj
 
 #### Check on the specializations level
 
-When cases when parameter is present and missing are handled in
+Cases when parameter is present and missing are handled in
 different specializations you can rely on filtering by specialization
 signature and:
 
@@ -548,7 +551,7 @@ differentiate them.
 
 ### Class methods
 
-When you need to implement in Java a class method, not instance one -
+When you need to implement in Java a Ruby singleton/class method - not an instance method -
 use `onSingleton = true` attribute of the `@CoreMethod` annotation:
 
 ```java
@@ -565,69 +568,14 @@ public abstract static class IsRuby2KeywordsHashNode extends CoreMethodArrayArgu
 Please note that a specialization's arguments don't contain `self` -
 only a Ruby method's own parameters (`RubyHash hash` in our example).
 
-### Declare argument type casting
-
-There are helper nodes for implicit type casting e.g. `ToIntNode`,
-`ToAryNode` or `ToStrNode`. There is a way to declare type casting
-of Core Method arguments - with `@CreateCast` annotation.
-
-Let's consider an example of `Module#alias_method` method
-implementation:
-
-```java
-// ModuleNodes.java
-@CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, split = Split.NEVER)
-@NodeChild(value = "module", type = RubyNode.class)
-@NodeChild(value = "newName", type = RubyBaseNodeWithExecute.class)
-@NodeChild(value = "oldName", type = RubyBaseNodeWithExecute.class)
-public abstract static class AliasMethodNode extends CoreMethodNode {
-
-    @CreateCast("newName")
-    protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
-        return ToSymbolNode.create(newName);
-    }
-
-    @CreateCast("oldName")
-    protected RubyBaseNodeWithExecute coerceOldNameToSymbol(RubyBaseNodeWithExecute oldName) {
-        return ToSymbolNode.create(oldName);
-    }
-
-    @Specialization
-    protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
-        return aliasMethod(module, newName, oldName, this);
-    }
-```
-
-Actual type casting to Symbol (with a `ToSymbolNode` class) is moved
-out from a specialization to helper methods `coerceNewNameToSymbol`
-and `coerceOldNameToSymbol`.
-
-```java
-@CreateCast("newName")
-protected RubyBaseNodeWithExecute coerceNewNameToSymbol(RubyBaseNodeWithExecute newName) {
-    return ToSymbolNode.create(newName);
-}
-```
-
-Please note that the helper methods don't perform casting itself. They
-build and return an AST node that will be executed and cast arguments to
-Symbols before calling a proper specialization.
-
-The specialization accepts already caster RubySymbol values:
-
-```java
-protected RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName) {
-```
-
 ## How to add a new C API function
 
 Ruby provides the C API so TruffleRuby should comply with this API as
 well.
 
-C API functions implementation is located in the `src/main/c/cext`
-directory.
+C API functions implementations are located in the `src/main/c/cext` directory.
 
-C function can just proxy a call to implementation in Ruby, e.g.
+C function can just proxy a call to an implementation in Ruby, e.g.
 function `rb_time_nano_new` calls (using `polyglot_invoke` function)
 another function with the same name and passes all the parameters:
 
@@ -654,10 +602,8 @@ module.
 C extensions related *primitives* are located in
 `org/truffleruby/cext/CExtNodes.java` file.
 
-More details about writing a C extensions are provided in the C
-Extensions Guide
-([https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md](https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md){.external-link
-rel="nofollow"}).
+More details about writing a C extensions are provided in the C Extensions Guide
+([https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md](https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md){.external-link rel="nofollow"}).
 
 ## How to define and expose a POSIX system call to Ruby code
 
@@ -743,7 +689,7 @@ Library Ruby source code.
 
 There are two helper nodes
 
-Use `WarnNode` to warn unconditionally:
+Use `WarnNode` to warn unless `$VERBOSE` is `nil`:
 
 ```ruby
 @Specialization
@@ -760,7 +706,7 @@ protected Object powBignum(long base, RubyBignum exponent,
 }
 ```
 
-Use `WarningNode` to warn only if `$VERBOSE` is true:
+Use `WarningNode` to warn only if `$VERBOSE` is `true`:
 
 ```java
 @Specialization
@@ -777,13 +723,12 @@ protected Object taint(Object object,
 
 Use `getContext().getCallStack().getTopMostUserSourceSection()`
 instead of `getSourceSection()` to print a file and a line number of
-an application code in warning message if warning is triggered in Core
-Library Ruby source code.
+an application code in warning message if warning is triggered in a Core
+Library method.
 
 ## How to raise Ruby exception in Java
 
-Use `throw new RaiseException(...)` to raise a specified Ruby
-exception
+Use `throw new RaiseException(...)` to raise a specified Ruby exception
 
 ```java
 throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
@@ -813,8 +758,7 @@ To convert arguments to an expected type in Ruby there are two types of
 helpers:
 
 - Ruby methods defined in a `Truffle::Type` module
-- *primitives* defined in
-  `src/main/java/org/truffleruby/core/support/TypeNodes.java`
+- *primitives* defined in `src/main/java/org/truffleruby/core/support/TypeNodes.java`
 
 Main helper methods for implicit type conversion are:
 
@@ -855,6 +799,8 @@ The most common are the following:
 - `Primitive.rb_to_int`
 - `Primitive.as_boolean`
 
+These primitives are preferred to `rb_convert_type`/`rb_check_convert_type` since they are more efficient (for execution speed and footprint).
+
 ## How to cast type implicitly in Java
 
 Ruby Core library uses implicit type conversion to convert method
@@ -883,7 +829,7 @@ protected int[] normalizeEndlessRange(RubyObjectRange range, int size,
 
 ## How to call Java code in Ruby
 
-Use *primitives*, Java classes defined in a special way, to be able to
+Use *primitives*, that is Java classes defined in a special way, to be able to
 call them in Ruby source code. *Primitives* are usually located in the
 `<RubyClass>Nodes` files among Core Method nodes.
 
@@ -935,7 +881,7 @@ protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
 
 ### With arguments
 
-Ruby method arguments might be passed as positional arguments up to 3:
+`DispatchNode` has several `call*()` methods for up to 3 positional arguments:
 
 ```java
 callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString); // WarnNode
@@ -948,7 +894,7 @@ toEnumWithSize.call( // EnumeratorSizeNode
     sizeMethodName);
 ```
 
-If there are more than 3 arguments - they may be passes as an Array:
+If there are more than 3 arguments - they may be passed as an `Object[]`:
 
 ```java
 // TruffleRegexpNodes
@@ -973,9 +919,8 @@ There are also useful helper methods:
 ### Arguments manipulation
 
 The methods listed above are just kind of helpers to simplify working
-with DispatchNode.dispatch method that accepts arguments in a "frame
-arguments" format. There are numerous helpers in a `RubyArguments`
-class to create, change and query "frame arguments":
+with the `DispatchNode#dispatch` method which accepts arguments in a "frame arguments" format.
+There are numerous helpers in a `RubyArguments` class to create, change and query "frame arguments":
 
 - pack
 - repack
@@ -1003,6 +948,10 @@ public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 }
 ```
 
+This is designed to avoid extra `Object[]` allocations.
+As an example for `callWarnNode.call(kernelModule, "warn", warningString)` we don't want to allocate a 1-element `Object[]` with `warningString`,
+we want to allocate an `Object[]` in "frame arguments" format with the hidden arguments and `warningString` as the last one.
+
 ## How to declare an optional method argument in Ruby
 
 It's a common situation when a Ruby core class method has an optional
@@ -1022,10 +971,14 @@ def min(n = undefined, &block)
 end
 ```
 
+Only use `undefined` when necessary.
+If there is a natural default value (i.e., not passing the value is the same as passing the default value explicitly)
+then use that instead for best readability.
+
 ## How to accept keyword arguments in Core Method in Java
 
 Currently there is no way to accept directly keyword arguments in Java
-Core Method implementations.
+Core Method implementations, to simplify various aspects of the implementation.
 
 There is a workaround:
 
@@ -1047,18 +1000,17 @@ end
 
 ## How to create Ruby Array in Java 
 
-There is `createArray` helper method available in `RubyNode`
-subclasses:
+There is `createArray` helper method available in `RubyBaseNode` subclasses:
 
 ```java
-createArray(newStore, size)
+createArray(newStore, size);
 createArray(bytes);
 ```
 
 ## How to call original class method in Ruby
 
-You want to implement a Ruby Core library class' method using another
-Ruby Core class method and handle a case when this method is redefined
+You want to implement a Ruby Core library method using a
+Ruby Core *class* method and handle a case when this method is redefined
 by a user code.
 
 You may call original class method in the following way:
@@ -1070,15 +1022,15 @@ ORIGINAL_TIME_AT.call(sec, nsec, :nanosecond)
 
 ## How to call original instance method in Ruby
 
-You want to implement a Ruby Core library class' method using another
-Ruby Core instance method and handle a case when this method is
+You want to implement a Ruby Core library method using a
+Ruby Core *instance* method and handle a case when this method is
 redefined by a user code.
 
 You may call original instance method in the following way:
 
 ```ruby
 ARRAY_APPEND = Array.instance_method(:<<)
-ARRAY_APPEND.bind_call(obj, *arguments)
+ARRAY_APPEND.bind_call(array, element)
 ```
 
 ## How to get a list of all the Primitives
@@ -1097,8 +1049,11 @@ array_inject
 
 ## How to use the most common Primitives
 
-I would say the following *primitives* are the most often used and
-generic:
+Primitives are always more efficient than the corresponding code without the primitive,
+both in execution speed (avoids a Ruby method call) and in memory footprint.
+Unlike core methods they cannot be redefined, which is useful to avoid calling a potentially-redefined core method.
+
+I would say the following *primitives* are the most often used and  generic:
 
 - `Primitive.nil?`
 - `Primitive.undefined?`
@@ -1111,17 +1066,18 @@ generic:
 
 #### `Primitive.nil?(object)`
 
-It's equivalent to `object == nil` or `object.nil?`
+It's equivalent to `object == nil` or `object.nil?`, but more efficient.
 
 #### `Primitive.undefined?(object)`
 
 It's equivalent to `object == undefined` where `undefined` is a
 special magic unique object.
 
-`undefined` object is used to detect whether an optional positional
+The `undefined` object is used to detect whether an optional positional
 argument is passed or not and to distinguish default "undefined" value
 and `nil` that may be specified. `undefined` is an instance of
 `NotProvided` Java class - `NotProvided.INSTANCE`.
+It's also the same as (unwrapped) `Qundef` in C.
 
 ```ruby
 # core/string.rb
@@ -1135,11 +1091,14 @@ def initialize(other = undefined, capacity: nil, encoding: nil)
 end
 ```
 
+`undefined` should never be returned to user code, so it remains a special object
+only the TruffleRuby implementation has access to.
+
 #### `Primitive.check_frozen(object)`
 
 It's equivalent to `raise FrozenError if object.frozen?`.
 
-It's used usually in self modifying methods to check whether self is
+It's used usually in self modifying methods to check whether `self` is
 frozen (so it cannot be modified) and to raise `FrozenError` if it is.
 
 ```ruby
@@ -1153,11 +1112,12 @@ end
 
 #### `Primitive.single_block_arg`
 
-It's used to get a block first argument.
+It's used to get a block's arguments as a single value.
 
-It returns either:
+It returns:
 
-- a first argument if there is a single argument passed
+- `nil` if no arguments are passed
+- the single argument if there is a single argument passed
 - an array of arguments if there are multiple arguments passed
 
 ```ruby
@@ -1192,61 +1152,17 @@ available in Ruby under a `Truffle::Debug` Ruby module.
 
 There are the following Java debug helper methods:
 
-- print
-- tstring_to_debug_string
-- flatten_string
-- break_handle
-- remove_handle
-- java_class_of
-- print_backtrace
-- yarp_serialize
-- yarp_parse
-- yarp_execute
-- parse_ast - JRuby parser specific
-- ast
-- print_ast
-- print_source_sections
-- ast_size
-- shape
-- array_storage
-- array_capacity
-- hash_storage
-- shared?
-- log_warning
-- log_info
-- log_config
-- throw_java_exception
-- throw_java_exception_with_cause
-- throw_assertion_error
-- assert
-- Primitive.assert
-- java_class
-- java_object
-- java_null
-- java_character
-- foreign_null
-- foreign_pointer
-- foreign_object
-- foreign_object_with_members
-- foreign_array
-- foreign_pointer_array
-- foreign_iterator
-- foreign_iterable
-- foreign_hash
-- foreign_executable
-- foreign_identity_function
-- foreign_string
-- foreign_exception
-- foreign_boxed_value
-- long
-- associated
-- drain_finalization_queue
-- frame_declaration_context_to_string
-- get_frame_bindings
-- parse_name_of_method
-- create_polyglot_thread
-- primitive_names
-- cexts_to_native_count
+```
+jt -q ruby -e 'puts Truffle::Debug.methods(false).sort'
+...
+java_class_of
+...
+print
+print_ast
+print_backtrace
+print_source_sections
+...
+```
 
 ### Truffle::Debug.java_class_of
 
@@ -1283,14 +1199,14 @@ jt -q ruby -e 'p Truffle::Debug.ast([].method(:to_ary))'
 ### Truffle::Debug.print_ast
 
 ```
-jt -q ruby -e 'puts Truffle::Debug.print_ast([].method(:to_ary))'
-RubyMethodRootNode
-body = SequenceNode
-body[0] = WriteLocalVariableNode
-valueNode = ProfileArgumentNodeGen
-childNode_ = ReadSelfNode
-body[1] = SaveMethodBlockNode
-body[2] = SelfNode
+$ jt -q ruby -e 'puts Truffle::Debug.print_ast([].method(:to_ary))'
+  RubyMethodRootNode
+    body = SequenceNode
+      body[0] = WriteLocalVariableNode
+        valueNode = ProfileArgumentNodeGen
+          childNode_ = ReadSelfNode
+      body[1] = SaveMethodBlockNode
+      body[2] = SelfNode
 ```
 
 The method `Array#to_ary` is implemented in the following way:
@@ -1310,10 +1226,8 @@ jt -q ruby -e 'puts Truffle::Debug.ast_size([].method(:to_ary))'
 
 ## How to update supported Unicode version
 
-We rely on
-[https://github.com/jruby/jcodings](https://github.com/jruby/jcodings){.external-link
-rel="nofollow"} for Unicode/Encoding stuff. So basically updating
-Unicode version is just as upgrade of this library
+We rely on [JCodings](https://github.com/jruby/jcodings){.external-link rel="nofollow"} for Unicode/Encoding stuff.
+So basically updating  Unicode version is just as upgrade of this library
 
 Steps to do:
 
@@ -1407,8 +1321,8 @@ Run `ruby-generate-native-config-*` CI jobs and copy-paste generated
 
 When you modify C-files (*.c, *.h) or compilation-related Ruby files
 (e.g. `lib/truffle/rbconfig.rb`) you should either increase ABI
-(Application binary interface) check version if the change doesn't
-affect ABI or increase ABI version itself explicitly by modifying one of
+(Application Binary Interface) version if the change does
+affect the ABI or increase the ABI *check* version explicitly by modifying one of
 the files:
 
 - lib/cext/ABI_version.txt
@@ -1419,42 +1333,43 @@ ABI change is:
 - removing/adding a non-static function
 - implementing already declared non-static functions
 
-## How to choose where to add new specs - in TruffleRuby or in RubySpec repository
+In case of doubt, bump `ABI_version.txt`.
+
+## How to choose where to add new specs - in TruffleRuby or in ruby/spec repository
 
 When you want to add specs there are two options - you can add them in:
 
--   in `spec/ruby` directory in the TruffleRuby repository, or
--   in the RubySpec git repository instead
-    ([https://github.com/ruby/spec](https://github.com/ruby/spec))
+- in `spec/ruby` directory in the TruffleRuby repository, or
+- in the ruby/spec git repository instead ([https://github.com/ruby/spec](https://github.com/ruby/spec))
 
-The `spec/ruby` directory contains the whole RubySpec test suite.
+The `spec/ruby` directory contains the whole ruby/spec test suite.
 
-A rule of thumb is that - small changes are committed in the
-`spec/ruby` directory but the large changes - in RubySpec directly to
-avoid conflicts with changes in RubySpec itself.
+If you are implementing or fixing some method in TruffleRuby, change specs under `spec/ruby` in the same PR (much more convenient).
 
-The `spec/ruby` is being [synchronized with RubySpec
-repository](https://github.com/ruby/spec#synchronization-with-ruby-implementations)
-periodically. RubySpec itself is synchronized with other
+If you make a PR with only spec changes, it is best to make a PR to ruby/spec directly
+to avoid conflicts with changes in ruby/spec itself.
+
+The `spec/ruby` is being [synchronized with ruby/spec repository](https://github.com/ruby/spec#synchronization-with-ruby-implementations)
+periodically. ruby/spec itself is synchronized with other
 Ruby implementations (CRuby, JRuby etc). So no manual actions are
 required if you add new specs in the `spec/ruby` directory.
 
 ## How to choose between Ruby and Java when implement a Ruby Core Library class method
 
-"Prefer Ruby if possible (easier to maintain & read), Java can make
-sense in some cases if it can gain much in terms of performance (e.g.,
-extra inline cache or so which is not possible in Ruby)". Benoit
-Daloze.
+> Prefer Ruby if possible (easier to maintain & read), Java can make
+> sense in some cases if it can gain much in terms of performance (e.g.,
+> extra inline cache or so which is not possible in Ruby).
+> Benoit Daloze.
 
 It's also an option to implement a method partially in Java and
 partially in Ruby. It makes sense when there is complex logic but it's
 a performance critical method.
 
 So performance critical code paths are implemented in Java and complex
-but less critical paths are implemented in Ruby as follback
+but less critical paths are implemented in Ruby as fallback
 specializations.
 
-Let's look at the implementation of the `Float#round` Ruby method:
+Let's look at the implementation of the `Float#==` Ruby method:
 
 ```java
 // FloatNodes.java
@@ -1505,7 +1420,7 @@ library.
 Specs are located in `spec/ruby/optional/capi` directory and are
 written in Ruby.
 
-To make a public C function available in Ruby spec a helper Ruby class
+To make a public C function available in a spec, a helper Ruby method
 should be introduced. Each method is implemented in C and calls a public
 Ruby API function.
 
@@ -1540,11 +1455,10 @@ void Init_array_spec(void) {
 }
 ```
 
-When a `CApiArraySpecs#rb_Array` Ruby method is called in a test - a
-`array_spec_rb_Array` C function will be called.
+When the `CApiArraySpecs#rb_Array` Ruby method is called in a test,
+the `array_spec_rb_Array` C function will be called.
 
-Such helper C functions usually are simple enough and just call a Ruby C
-API function:
+Such helper C functions are often simple and just call a Ruby C API function:
 
 ```c
 // spec/ruby/optional/capi/ext/array_spec.c
@@ -1560,7 +1474,7 @@ on a helper functions compilation step.
 
 So Ruby specs should be covered with a `ruby_version_is` guard and
 **all the related C code** in specs should be disabled in similar way
-with C macroses `RUBY_VERSION_IS_<X>_<Y>` (e.g.
+with C macros `RUBY_VERSION_IS_<X>_<Y>` (e.g.
 `RUBY_VERSION_IS_3_2`) that present if Ruby version is X.Y (3.2 in
 our case) or newer:
 
@@ -1574,32 +1488,28 @@ our case) or newer:
 
 C helpers are defined in `spec/ruby/optional/capi/ext/rubyspec.h`
 
-If a C helper should be more sophisticated - then some Ruby C macroses
+If a C helper should be more sophisticated - then some Ruby C macros
 and functions might be helpful:
 
-- `Qnil`, `Qtrue`, `Qfalse` - Ruby `nil`, `true` and
-  `false` objects
+- `Qnil`, `Qtrue`, `Qfalse` - Ruby `nil`, `true` and `false` objects respectively
 - `INT2NUM`, `INT2FIX` - to convert C `int` to Ruby `Integer`
 - `NUM2INT`, `FIX2INT` - to convert Ruby `Integer` to C `int`
-- `NUM2LONG`, `FIX2LONG` - to convert Ruby `Integer` to C
-  `long`
+- `NUM2LONG`, `FIX2LONG` - to convert Ruby `Integer` to C `long`
 - `NIL_P` - check whether argument is Ruby `nil`
-- `RTEST` - check the "truthy" value (`nil`, `false` - 0,
-  anything else - 1)
+- `RTEST` - check the "truthy" value (`nil`, `false` - 0, anything else - 1)
 - `ID2SYM`, `SYM2ID`
-- `rb_str_new`, `rb_str_new2`
+- `rb_str_new`, `rb_str_new_cstr`
 - `rb_intern`
 
-## How to exclude/include a RubySpec/MRI test case
+## How to exclude/include a spec/MRI test case
 
 There is a mechanism to skip tests for not yet implemented functionality
 or known but not fixed bug.
 
-### RubySpec tests
+### ruby/spec specs
 
 Test cases that shouldn't be run by the `jt test` command are tagged
-with a tag "fails". Tag files are located in the `spec/tags`
-directory.
+with a tag "fails". Tag files are located in the `spec/tags` directory.
 
 Example of such tagged test case:
 
@@ -1614,6 +1524,13 @@ Use command `jt tag` to tag failing specs:
 jt tag <path-to-spec-file>
 ```
 
+Or you can also tag specs from a failed specs run's output with:
+
+```
+# First copy the output in your clipboard (e.g. Ctrl+C)
+$ xsel -b | spec/mspec/tool/tag_from_output.rb
+```
+
 Use command `jt untag` to remove passing specs from a tags file
 
 ```
@@ -1625,8 +1542,7 @@ Use `jt help` command for further details.
 ### MRI tests
 
 MRI test cases that shouldn't be run by `jt test` command are listed
-in the exclude files, that are located in `test/mri/excludes`
-directory.
+in the exclude files, that are located in `test/mri/excludes` directory.
 
 Example of such excluded test case:
 
@@ -1648,21 +1564,21 @@ to `test/mri/failing.exclude` file.
 More details are explained in the MRI Tests Guide
 (<https://github.com/oracle/truffleruby/blob/master/doc/contributor/mri-tests.md>).
 
-## How to tag slow RubySpec tests
+## How to tag slow ruby/spec tests
 
-Some test cases are tagged as "slow" to be able to run only fast
-specs.
+Some test cases are tagged as "slow" to be able to run only fast specs.
 
-To automatically add tag "slow" for a test case run the following
-Shell command:
+To automatically add tag "slow" for a test case run the following shell command:
 
 ```
 jt test fast <path-to-spec-file>
 ```
 
+And commit the added/changed tag files.
+
 ## How to introduce a constant in specs
 
-It's a common issue when to write a new spec you need a new Ruby
+It's a common issue when writing new specs that you need a new Ruby
 constant or not anonymous class/module.
 
 It's prohibited to introduce a new top-level constant to not pollute
@@ -1670,7 +1586,7 @@ the global namespace and keep specs isolated as much as possible.
 
 The only way to define a new constant or not anonymous class/module is
 to define it in one of the spec helper modules. Such modules follow a
-name convention `...Spec` and usually created per each test file in
+name convention `...Specs` and usually created per each test file in
 `fixtures/classes.rb` file.
 
 This is a helper module for Array specs:
@@ -1692,11 +1608,11 @@ end
 
 ## How to add a new spec
 
-TruffleRuby uses the RubySpec test suite
-(<https://github.com/ruby/spec>). Tests are located in the `spec/ruby` directory.
+TruffleRuby uses the ruby/spec test suite (<https://github.com/ruby/spec>).
+Tests are located in the `spec/ruby` directory.
 
-The are the following main directories:
+There are the following main directories:
 
-- spec/ruby/core - specs for the Core Library
-- spec/ruby/library - specs for the Standard Library
-- spec/ruby/language - specs for the Ruby syntax itself
+- `spec/ruby/core` - specs for the Core Library
+- `spec/ruby/library` - specs for the Standard Library
+- `spec/ruby/language` - specs for the Ruby syntax itself
