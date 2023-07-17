@@ -423,8 +423,8 @@ suite = {
             "moduleInfo": {
                 "name": "org.graalvm.ruby.shared",
                 "exports": [
-                    "org.truffleruby.shared",
-                    "org.truffleruby.shared.options",
+                    "org.truffleruby.shared to org.graalvm.ruby, org.graalvm.ruby.launcher",
+                    "org.truffleruby.shared.options to org.graalvm.ruby, org.graalvm.ruby.launcher",
                 ],
             },
             "dependencies": [
