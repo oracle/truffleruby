@@ -436,7 +436,9 @@ suite = {
         "TRUFFLERUBY-SERVICES": {
             "moduleInfo": {
                 "name": "org.graalvm.ruby.services",
-                "exports": ["org.truffleruby.services.scriptengine"],
+                "exports": [
+                    "org.truffleruby.services.scriptengine",
+                ],
             },
             "dependencies": [
                 "org.truffleruby.services"
@@ -489,6 +491,12 @@ suite = {
         },
 
         "TRUFFLERUBY-LAUNCHER": {
+            "moduleInfo": {
+                "name": "org.graalvm.ruby.launcher",
+                "exports": [
+                    "org.truffleruby.launcher to org.graalvm.launcher",
+                ],
+            },
             "dependencies": [
                 "org.truffleruby.launcher"
             ],
