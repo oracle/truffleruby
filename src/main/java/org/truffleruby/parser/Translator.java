@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -23,6 +24,8 @@ import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
+import org.truffleruby.language.literal.LongFixnumLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.objects.SelfNode;
@@ -165,6 +168,14 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             node.unsafeSetSourceSection(sourceSection);
         }
         return node;
+    }
+
+    public static RubyNode integerOrLongLiteralNode(long value) {
+        if (CoreLibrary.fitsIntoInteger(value)) {
+            return new IntegerFixnumLiteralNode((int) value);
+        } else {
+            return new LongFixnumLiteralNode(value);
+        }
     }
 
     protected static RubyNode[] createArray(int size) {

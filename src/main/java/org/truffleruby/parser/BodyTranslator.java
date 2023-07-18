@@ -1488,13 +1488,6 @@ public class BodyTranslator extends BaseTranslator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    private RubyNode integerOrLongLiteralNode(long value) {
-        if (CoreLibrary.fitsIntoInteger(value)) {
-            return new IntegerFixnumLiteralNode((int) value);
-        } else {
-            return new LongFixnumLiteralNode(value);
-        }
-    }
 
     @Override
     public RubyNode visitFlipNode(FlipParseNode node) {
