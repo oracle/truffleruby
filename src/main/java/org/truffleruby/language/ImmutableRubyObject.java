@@ -17,7 +17,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import com.oracle.truffle.api.dsl.Cached;
@@ -30,6 +29,9 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.methods.GetMethodObjectNode;
+
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 /** A subset of messages from {@link org.truffleruby.language.RubyDynamicObject} for immutable objects. Such objects
  * have no instance variables, so the logic is simpler. We cannot easily reuse RubyDynamicObject messages since the
@@ -125,7 +127,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             @Shared @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
-            return getMethodObjectNode.execute(null, this, name, DispatchConfiguration.PRIVATE);
+            return getMethodObjectNode.execute(null, this, name, PRIVATE);
         } else {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);
@@ -140,12 +142,12 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public Object invokeMember(String name, Object[] arguments,
-            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchMember,
+            @Exclusive @Cached DispatchNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
-        Object result = dispatchMember.call(this, name, convertedArguments);
+        Object result = dispatchMember.call(this, name, PRIVATE_RETURN_MISSING, convertedArguments);
         if (result == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);

@@ -23,6 +23,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 public abstract class HashCastNode extends RubyBaseNode {
 
     public abstract RubyHash execute(Object value);
@@ -35,8 +37,8 @@ public abstract class HashCastNode extends RubyBaseNode {
     @Specialization(guards = "!isRubyHash(object)")
     protected RubyHash cast(Object object,
             @Cached InlinedBranchProfile errorProfile,
-            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toHashNode) {
-        final Object result = toHashNode.call(object, "to_hash");
+            @Cached DispatchNode toHashNode) {
+        final Object result = toHashNode.call(object, "to_hash", PRIVATE_RETURN_MISSING);
 
         if (result == DispatchNode.MISSING) {
             errorProfile.enter(this);

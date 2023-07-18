@@ -174,10 +174,10 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
 
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatch = insert(DispatchNode.create(dispatchConfig));
+            dispatch = insert(DispatchNode.create());
         }
 
-        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, rubyArgs,
+        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, rubyArgs, dispatchConfig,
                 ruby2KeywordsHash ? this : null);
         if (isAttrAssign) {
             final Object value = rubyArgs[rubyArgs.length - 1];
@@ -300,7 +300,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
 
         @Child private RubyNode receiver;
         @Children private final RubyNode[] arguments;
-        @Child private DispatchNode respondToMissing = DispatchNode.create(PRIVATE_RETURN_MISSING);
+        @Child private DispatchNode respondToMissing = DispatchNode.create();
 
         public DefinedNode(
                 String methodName,
@@ -351,7 +351,8 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
             final InternalMethod method = lookupMethodNode.execute(frame, receiverObject, methodName, dispatchConfig);
 
             if (methodNotFoundProfile.profile(this, method == null)) {
-                final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
+                final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", PRIVATE_RETURN_MISSING,
+                        methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.execute(this, r)) {
                     return nil;

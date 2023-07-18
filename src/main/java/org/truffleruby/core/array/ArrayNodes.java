@@ -11,7 +11,7 @@ package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
-import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 import java.util.Arrays;
 
@@ -1320,7 +1320,7 @@ public abstract class ArrayNodes {
             }
         }
 
-        @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
+        @Child private DispatchNode dispatch = DispatchNode.create();
 
         // Uses block and no Symbol
 
@@ -1438,7 +1438,7 @@ public abstract class ArrayNodes {
             int n = start;
             try {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    accumulator = dispatch.callWithFrame(frame, accumulator, symbol, stores.read(store, n));
+                    accumulator = dispatch.callWithFrame(frame, accumulator, symbol, PUBLIC, stores.read(store, n));
                     TruffleSafepoint.poll(this);
                 }
             } finally {

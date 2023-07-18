@@ -15,6 +15,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 /** Attempts converting its argument to an array by calling #to_ary, or if that doesn't work, by wrapping it inside a
  * one-element array. */
 public abstract class ArrayConvertNode extends RubyBaseNode {
@@ -30,8 +32,8 @@ public abstract class ArrayConvertNode extends RubyBaseNode {
     protected RubyArray cast(Object object,
             @Cached ConditionProfile canCast,
             @Cached ArrayBuilderNode arrayBuilder,
-            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toArrayNode) {
-        final Object result = toArrayNode.call(object, "to_ary");
+            @Cached DispatchNode toArrayNode) {
+        final Object result = toArrayNode.call(object, "to_ary", PRIVATE_RETURN_MISSING);
         if (canCast.profile(result instanceof RubyArray)) {
             return (RubyArray) result;
         } else {

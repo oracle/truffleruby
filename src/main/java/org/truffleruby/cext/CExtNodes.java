@@ -105,6 +105,7 @@ import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
@@ -138,6 +139,9 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.parser.RubySource;
+
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 @CoreModule("Truffle::CExt")
 public abstract class CExtNodes {
@@ -314,7 +318,7 @@ public abstract class CExtNodes {
     public abstract static class SendWithoutCExtLockBaseNode extends PrimitiveArrayArgumentsNode {
         public Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object block,
                 ArgumentsDescriptor descriptor, Object[] args,
-                DispatchNode dispatchNode, InlinedConditionProfile ownedProfile) {
+                DispatchNode dispatchNode, DispatchConfiguration config, InlinedConditionProfile ownedProfile) {
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
                 boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
@@ -323,7 +327,7 @@ public abstract class CExtNodes {
                     MutexOperations.unlockInternal(lock);
                 }
                 try {
-                    return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block,
+                    return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), config, block,
                             descriptor, args);
                 } finally {
                     if (owned) {
@@ -331,7 +335,8 @@ public abstract class CExtNodes {
                     }
                 }
             } else {
-                return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), block, descriptor, args);
+                return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), config, block,
+                        descriptor, args);
             }
         }
     }
@@ -346,7 +351,7 @@ public abstract class CExtNodes {
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
-                    dispatchNode, ownedProfile);
+                    dispatchNode, PRIVATE, ownedProfile);
         }
 
     }
@@ -361,7 +366,7 @@ public abstract class CExtNodes {
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
-                    dispatchNode, ownedProfile);
+                    dispatchNode, PRIVATE, ownedProfile);
         }
     }
 
@@ -382,11 +387,11 @@ public abstract class CExtNodes {
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
-                        dispatchNode, ownedProfile);
+                        dispatchNode, PRIVATE, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
                         KeywordArgumentsDescriptorManager.EMPTY, args,
-                        dispatchNode, ownedProfile);
+                        dispatchNode, PRIVATE, ownedProfile);
             }
         }
     }
@@ -397,11 +402,11 @@ public abstract class CExtNodes {
         protected Object publicSendWithoutLock(
                 VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
-                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
             return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
-                    dispatchNode, ownedProfile);
+                    dispatchNode, PUBLIC, ownedProfile);
         }
     }
 
@@ -413,7 +418,7 @@ public abstract class CExtNodes {
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached HashCastNode hashCastNode,
                 @Cached InlinedConditionProfile emptyProfile,
-                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
             Object[] args = unwrapCArrayNode.execute(argv);
 
@@ -422,11 +427,11 @@ public abstract class CExtNodes {
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
-                        dispatchNode, ownedProfile);
+                        dispatchNode, PUBLIC, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
                         KeywordArgumentsDescriptorManager.EMPTY, args,
-                        dispatchNode, ownedProfile);
+                        dispatchNode, PUBLIC, ownedProfile);
             }
         }
     }

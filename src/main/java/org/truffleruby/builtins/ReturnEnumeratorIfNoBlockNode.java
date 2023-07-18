@@ -19,6 +19,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public final class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
 
@@ -52,7 +53,7 @@ public final class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
             final Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), receiver, 0, 1);
             RubyArguments.setArgument(rubyArgs, 0, methodSymbol);
 
-            return toEnumNode.dispatch(null, receiver, "to_enum", rubyArgs);
+            return toEnumNode.dispatch(null, receiver, "to_enum", rubyArgs, PRIVATE, null);
         } else {
             return method.execute(frame);
         }

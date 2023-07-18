@@ -18,6 +18,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 public final class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private DispatchNode respondToToAry;
@@ -49,10 +51,11 @@ public final class ShouldDestructureNode extends RubyContextSourceNode {
 
         if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToAry = insert(DispatchNode.create(DispatchNode.PRIVATE_RETURN_MISSING));
+            respondToToAry = insert(DispatchNode.create());
         }
 
-        var respondToCallResult = respondToToAry.call(singleArgument, "respond_to?", getLanguage().coreSymbols.TO_ARY);
+        var respondToCallResult = respondToToAry.call(singleArgument, "respond_to?", PRIVATE_RETURN_MISSING,
+                getLanguage().coreSymbols.TO_ARY);
         // the object may not have the #respond_to? method (e.g. an instance of BasicObject class)
         if (respondToCallResult == DispatchNode.MISSING) {
             return false;

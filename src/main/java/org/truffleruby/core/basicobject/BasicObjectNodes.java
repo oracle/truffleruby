@@ -89,6 +89,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "BasicObject", isClass = true)
 public abstract class BasicObjectNodes {
@@ -560,7 +561,7 @@ public abstract class BasicObjectNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name),
-                    RubyArguments.repack(rubyArgs, self, 1));
+                    RubyArguments.repack(rubyArgs, self, 1), PRIVATE, null);
         }
     }
 

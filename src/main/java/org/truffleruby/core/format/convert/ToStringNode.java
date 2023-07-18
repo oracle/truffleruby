@@ -110,7 +110,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached @Shared RubyStringLibrary libString,
             @Cached @Exclusive RubyStringLibrary argLibString) {
         if ("inspect".equals(conversionMethod)) {
-            final Object value = getToStrNode().call(string, conversionMethod);
+            final Object value = getToStrNode().call(string, conversionMethod, PRIVATE_RETURN_MISSING);
 
             if (libString.isRubyString(value)) {
                 return value;
@@ -126,10 +126,10 @@ public abstract class ToStringNode extends FormatNode {
             @Cached @Shared RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
+            toSNode = insert(DispatchNode.create());
         }
 
-        final Object value = toSNode.call(array, "to_s");
+        final Object value = toSNode.call(array, "to_s", PRIVATE_RETURN_MISSING);
 
         if (libString.isRubyString(value)) {
             return value;
@@ -142,7 +142,7 @@ public abstract class ToStringNode extends FormatNode {
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected Object toString(Object object,
             @Cached @Shared RubyStringLibrary libString) {
-        final Object value = getToStrNode().call(object, conversionMethod);
+        final Object value = getToStrNode().call(object, conversionMethod, PRIVATE_RETURN_MISSING);
 
         if (libString.isRubyString(value)) {
             return value;
@@ -172,7 +172,7 @@ public abstract class ToStringNode extends FormatNode {
     private DispatchNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
+            toStrNode = insert(DispatchNode.create());
         }
         return toStrNode;
     }

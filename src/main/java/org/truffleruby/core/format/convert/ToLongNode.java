@@ -25,6 +25,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 @NodeChild("value")
 public abstract class ToLongNode extends FormatNode {
 
@@ -75,12 +77,12 @@ public abstract class ToLongNode extends FormatNode {
     @Specialization(
             guards = { "!errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
     protected static long toLong(VirtualFrame frame, Object object,
-            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toIntNode,
+            @Cached DispatchNode toIntNode,
             @Cached("create(true)") ToLongNode redoNode,
             @Cached InlinedBranchProfile noConversionAvailable,
             @Bind("this") Node node) {
 
-        Object result = toIntNode.call(object, "to_int");
+        Object result = toIntNode.call(object, "to_int", PRIVATE_RETURN_MISSING);
         if (result == DispatchNode.MISSING) {
             noConversionAvailable.enter(node);
             throw new CantConvertException("can't convert Object to Integer");

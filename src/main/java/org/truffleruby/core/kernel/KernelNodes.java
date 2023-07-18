@@ -167,6 +167,9 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
+
 @CoreModule("Kernel")
 public abstract class KernelNodes {
 
@@ -1228,8 +1231,7 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, self, name,
-                    DispatchConfiguration.PRIVATE);
+            return getMethodObjectNode.execute(callerFrame, self, name, PRIVATE);
         }
 
     }
@@ -1287,10 +1289,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode callInspectNode = DispatchNode.create();
-
         @Specialization
-        protected Object p(VirtualFrame frame, Object value) {
+        protected Object p(VirtualFrame frame, Object value,
+                @Cached DispatchNode callInspectNode) {
             Object inspected = callInspectNode.call(value, "inspect");
             print(inspected);
             return value;
@@ -1360,8 +1361,7 @@ public abstract class KernelNodes {
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
-            return getMethodObjectNode.execute(callerFrame, self, name,
-                    DispatchConfiguration.PUBLIC);
+            return getMethodObjectNode.execute(callerFrame, self, name, PUBLIC);
         }
 
     }
@@ -1391,11 +1391,12 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
-                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name), newArgs);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name), newArgs, PUBLIC,
+                    null);
         }
 
     }

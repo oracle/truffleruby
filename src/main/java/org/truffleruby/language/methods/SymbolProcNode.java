@@ -17,7 +17,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 public final class SymbolProcNode extends RubyContextSourceNode {
 
@@ -36,13 +36,13 @@ public final class SymbolProcNode extends RubyContextSourceNode {
         final Object receiver = RubyArguments.getArgument(frame, 0);
 
         return getCallNode().dispatch(frame, receiver, symbol,
-                RubyArguments.repack(frame.getArguments(), receiver, 1));
+                RubyArguments.repack(frame.getArguments(), receiver, 1), PUBLIC, null);
     }
 
     private DispatchNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(DispatchNode.create(PUBLIC));
+            callNode = insert(DispatchNode.create());
         }
 
         return callNode;
