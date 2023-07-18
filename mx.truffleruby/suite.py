@@ -57,6 +57,7 @@ suite = {
         # ------------- Libraries -------------
 
         "JCODINGS": {
+            "moduleName": "org.jruby.jcodings",
             "maven": {
                 "groupId": "org.jruby.jcodings",
                 "artifactId": "jcodings",
@@ -68,6 +69,7 @@ suite = {
         },
 
         "JONI": {
+            "moduleName": "org.jruby.joni",
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
@@ -384,6 +386,12 @@ suite = {
         # ------------- Distributions -------------
 
         "TRUFFLERUBY-ANNOTATIONS": {
+            "moduleInfo": {
+                "name": "org.graalvm.ruby.annotations",
+                "exports": [
+                    "org.truffleruby.annotations to org.graalvm.ruby",
+                ],
+            },
             "dependencies": [
                 "org.truffleruby.annotations"
             ],
@@ -395,6 +403,13 @@ suite = {
         # since the rest cannot depend on the launcher and the shared code cannot be there.
         # This code is loaded twice in different classloaders, therefore any created instances should not be passed around.
         "TRUFFLERUBY-SHARED": {
+            "moduleInfo": {
+                "name": "org.graalvm.ruby.shared",
+                "exports": [
+                    "org.truffleruby.shared",
+                    "org.truffleruby.shared.options",
+                ],
+            },
             "dependencies": [
                 "org.truffleruby.shared"
             ],
@@ -420,8 +435,10 @@ suite = {
 
         "TRUFFLERUBY-SERVICES": {
             "moduleInfo": {
-                "name": "org.truffleruby.services",
-                "exports": ["org.truffleruby.services.scriptengine"],
+                "name": "org.graalvm.ruby.services",
+                "exports": [
+                    "org.truffleruby.services.scriptengine",
+                ],
             },
             "dependencies": [
                 "org.truffleruby.services"
@@ -434,6 +451,9 @@ suite = {
         },
 
         "TRUFFLERUBY": {
+            "moduleInfo": {
+                "name": "org.graalvm.ruby",
+            },
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.ruby",
@@ -471,6 +491,12 @@ suite = {
         },
 
         "TRUFFLERUBY-LAUNCHER": {
+            "moduleInfo": {
+                "name": "org.graalvm.ruby.launcher",
+                "exports": [
+                    "org.truffleruby.launcher to org.graalvm.launcher",
+                ],
+            },
             "dependencies": [
                 "org.truffleruby.launcher"
             ],
