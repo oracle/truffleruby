@@ -45,11 +45,11 @@ ast: |
                       ruby2KeywordsHashProfile = false
                   children:
                       arguments = [
-                          LongFixnumLiteralNode
+                          IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
                                   value = 314
-                          LongFixnumLiteralNode
+                          IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
                                   value = 100
