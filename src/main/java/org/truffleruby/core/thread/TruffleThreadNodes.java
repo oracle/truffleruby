@@ -26,7 +26,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 @CoreModule("Truffle::ThreadOperations")
 public abstract class TruffleThreadNodes {
@@ -62,7 +61,7 @@ public abstract class TruffleThreadNodes {
             if (data == null) {
                 return nil;
             } else {
-                ReadCallerVariablesNode.notifyCallerToSendSpecialVariables(data.callNode);
+                //ReadCallerVariablesNode.notifyCallerToSendSpecialVariables(data.callNode);
                 Object variables = storageNode.execute(data.frame.materialize());
                 getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;

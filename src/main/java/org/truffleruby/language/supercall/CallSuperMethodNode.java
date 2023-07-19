@@ -9,7 +9,10 @@
  */
 package org.truffleruby.language.supercall;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.SpecialVariablesSendingNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -18,6 +21,7 @@ import org.truffleruby.language.dispatch.LiteralCallNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -29,6 +33,9 @@ public final class CallSuperMethodNode extends SpecialVariablesSendingNode {
 
     @Child private CallInternalMethodNode callMethodNode;
     @Child private DispatchNode callMethodMissingNode;
+    @Child private GetSpecialVariableStorage readingNode;
+
+    @CompilationFinal private Assumption specialVariableAssumption;
 
     public static CallSuperMethodNode create() {
         return new CallSuperMethodNode();
@@ -52,7 +59,11 @@ public final class CallSuperMethodNode extends SpecialVariablesSendingNode {
             return callMethodMissing(self, block, descriptor, methodMissingArguments, literalCallNode);
         }
 
-        final SpecialVariableStorage callerSpecialVariables = getSpecialVariablesIfRequired(frame);
+        SpecialVariableStorage callerSpecialVariables = null;
+        if (!getSpecialVariableStorageAssumption(frame).isValid()) {
+            callerSpecialVariables = getReadingNode().execute(frame);
+        }
+
         final Object[] rubyArgs = RubyArguments.pack(
                 null, callerSpecialVariables, superMethod, null, self, block, descriptor, arguments);
 
@@ -66,6 +77,23 @@ public final class CallSuperMethodNode extends SpecialVariablesSendingNode {
         }
         return callMethodNode;
     }
+
+    private GetSpecialVariableStorage getReadingNode() {
+        if (readingNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            readingNode = insert(GetSpecialVariableStorage.create());
+        }
+        return readingNode;
+    }
+
+    private Assumption getSpecialVariableStorageAssumption(Frame frame) {
+        if (specialVariableAssumption == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            specialVariableAssumption = getSpecialVariableAssumption(frame);
+        }
+        return specialVariableAssumption;
+    }
+
 
     private Object callMethodMissing(Object receiver, Object block, ArgumentsDescriptor descriptor, Object[] arguments,
             LiteralCallNode literalCallNode) {

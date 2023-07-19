@@ -177,7 +177,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
             dispatch = insert(DispatchNode.create());
         }
 
-        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, rubyArgs, dispatchConfig,
+        final Object returnValue = dispatch.execute(frame, receiverObject, methodName, rubyArgs, dispatchConfig,
                 ruby2KeywordsHash ? this : null);
         if (isAttrAssign) {
             final Object value = rubyArgs[rubyArgs.length - 1];

@@ -12,6 +12,7 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -213,6 +214,7 @@ public abstract class TruffleKernelNodes {
     }
 
     @ImportStatic(TruffleKernelNodes.class)
+    @GenerateUncached
     public abstract static class GetSpecialVariableStorage extends RubyBaseNode {
 
         @NeverDefault

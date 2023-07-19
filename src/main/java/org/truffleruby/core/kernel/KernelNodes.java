@@ -1395,7 +1395,7 @@ public abstract class KernelNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             Object[] newArgs = RubyArguments.repack(rubyArgs, self, 1);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name), newArgs, PUBLIC,
+            return dispatchNode.execute(callerFrame, self, nameToJavaString.execute(this, name), newArgs, PUBLIC,
                     null);
         }
 

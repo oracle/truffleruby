@@ -53,7 +53,7 @@ public final class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
             final Object[] rubyArgs = RubyArguments.repack(frame.getArguments(), receiver, 0, 1);
             RubyArguments.setArgument(rubyArgs, 0, methodSymbol);
 
-            return toEnumNode.dispatch(null, receiver, "to_enum", rubyArgs, PRIVATE, null);
+            return toEnumNode.execute(null, receiver, "to_enum", rubyArgs, PRIVATE, null);
         } else {
             return method.execute(frame);
         }

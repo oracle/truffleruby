@@ -560,7 +560,7 @@ public abstract class BasicObjectNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
-            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(this, name),
+            return dispatchNode.execute(callerFrame, self, nameToJavaString.execute(this, name),
                     RubyArguments.repack(rubyArgs, self, 1), PRIVATE, null);
         }
     }
