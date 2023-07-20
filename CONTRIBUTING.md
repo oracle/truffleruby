@@ -21,6 +21,10 @@ be useful to someone working on TruffleRuby.
 
 https://github.com/oracle/truffleruby/tree/master/doc/contributor
 
+You can find the most common issues described in a How-To Guide.
+
+https://github.com/oracle/truffleruby/tree/master/doc/contributor/how-to-guide.md
+
 ## Slack
 
 You are welcome to join the channel `#truffleruby` of the
