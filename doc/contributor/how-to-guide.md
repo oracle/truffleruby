@@ -572,8 +572,7 @@ module.
 C extensions related *primitives* are located in
 `org/truffleruby/cext/CExtNodes.java` file.
 
-More details about writing a C extensions are provided in the C Extensions Guide
-([https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md](https://github.com/oracle/truffleruby/blob/master/doc/contributor/cexts.md){.external-link rel="nofollow"}).
+More details about writing a C extensions are provided in the [C Extensions Guide](cexts.md).
 
 ## How to define and expose a POSIX system call to Ruby code
 
@@ -613,7 +612,7 @@ e.g. this function returns current time in nanoseconds:
 // src/main/c/truffleposix/truffleposix.c
 int64_t truffleposix_clock_gettime(int clock) {
   struct timespec timespec;
-  int ret = clock_gettime((clockid_t) clock, ×pec);
+  int ret = clock_gettime((clockid_t) clock, &timespec);
   if (ret != 0) {
     return 0;
   }
@@ -832,8 +831,7 @@ Library files):
 # truffleruby_primitives: true
 ```
 
-Naming conventions are described in the Primitives Guide
-<https://github.com/oracle/truffleruby/blob/master/doc/contributor/primitives.md>.
+Naming conventions are described in the [Primitives Guide](primitives.md).
 
 ## How to call Ruby method in Java
 
@@ -1196,14 +1194,13 @@ jt -q ruby -e 'puts Truffle::Debug.ast_size([].method(:to_ary))'
 
 ## How to update supported Unicode version
 
-We rely on [JCodings](https://github.com/jruby/jcodings){.external-link rel="nofollow"} for Unicode/Encoding stuff.
+We rely on [JCodings](https://github.com/jruby/jcodings) for Unicode/Encoding stuff.
 So basically updating  Unicode version is just as upgrade of this library
 
 Steps to do:
 
 - choose a proper jcodings version (probably the latest one)
-  - Unicode version is hardcoded here
-    <https://github.com/jruby/jcodings/blob/jcodings-1.0.58/src/org/jcodings/Config.java>
+  - Unicode version is hardcoded [here](https://github.com/jruby/jcodings/blob/jcodings-1.0.58/src/org/jcodings/Config.java)
 - ask for approval to upgrade the third-party component (example Jira ticket: GR-43593)
 - upgrade the library ([example PR](https://github.com/oracle/truffleruby/pull/2930))
 - Ruby constants `UNICODE_VERSION` and `UNICODE_EMOJI_VERSION` should have a proper value now
@@ -1531,8 +1528,7 @@ jt retag <path-to-MRI-test-file>
 If you need to skip the whole file with MRI tests - it should be added
 to `test/mri/failing.exclude` file.
 
-More details are explained in the MRI Tests Guide
-(<https://github.com/oracle/truffleruby/blob/master/doc/contributor/mri-tests.md>).
+More details are explained in the [MRI Tests Guide](mri-tests.md).
 
 ## How to tag slow ruby/spec tests
 
