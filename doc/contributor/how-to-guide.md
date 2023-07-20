@@ -1,66 +1,36 @@
 # How-To Guide
 
--   [How to find a Core Method
-    implementation](#TruffleRubyhowtoguide-HowtofindaCoreMethodimplementation)
--   [How to add a Core Method in
-    Java](#TruffleRubyhowtoguide-HowtoaddaCoreMethodinJava)
--   [How to add a new C API
-    function](#TruffleRubyhowtoguide-HowtoaddanewCAPIfunction)
--   [How to define and expose a POSIX system call to Ruby
-    code](#TruffleRubyhowtoguide-HowtodefineandexposeaPOSIXsystemcalltoRubycode)
--   [How to add a helper Ruby
-    method](#TruffleRubyhowtoguide-HowtoaddahelperRubymethod)
--   [How to warn in Ruby](#TruffleRubyhowtoguide-HowtowarninRuby)
--   [How to warn in Java](#TruffleRubyhowtoguide-HowtowarninJava)
--   [How to raise Ruby exception in
-    Java](#TruffleRubyhowtoguide-HowtoraiseRubyexceptioninJava)
--   [How to cast type implicitly in
-    Ruby](#TruffleRubyhowtoguide-HowtocasttypeimplicitlyinRuby)
--   [How to cast type implicitly in
-    Java](#TruffleRubyhowtoguide-HowtocasttypeimplicitlyinJava)
--   [How to call Java code in
-    Ruby](#TruffleRubyhowtoguide-HowtocallJavacodeinRuby)
--   [How to call Ruby method in
-    Java](#TruffleRubyhowtoguide-HowtocallRubymethodinJava)
--   [How to declare an optional method argument in
-    Ruby](#TruffleRubyhowtoguide-HowtodeclareanoptionalmethodargumentinRuby)
--   [How to accept keyword arguments in Core Method in
-    Java](#TruffleRubyhowtoguide-HowtoacceptkeywordargumentsinCoreMethodinJava)
--   [How to create Ruby Array in
-    Java](#TruffleRubyhowtoguide-HowtocreateRubyArrayinJava)
--   [How to call original class method in
-    Ruby](#TruffleRubyhowtoguide-HowtocalloriginalclassmethodinRuby)
--   [How to call original instance method in
-    Ruby](#TruffleRubyhowtoguide-HowtocalloriginalinstancemethodinRuby)
--   [How to get a list of all the
-    Primitives](#TruffleRubyhowtoguide-HowtogetalistofallthePrimitives)
--   [How to use the most common
-    Primitives](#TruffleRubyhowtoguide-HowtousethemostcommonPrimitives)
--   [How to use Java debug
-    helpers](#TruffleRubyhowtoguide-HowtouseJavadebughelpers)
--   [How to update supported Unicode
-    version](#TruffleRubyhowtoguide-HowtoupdatesupportedUnicodeversion)
--   [How to patch MRI source files when update
-    Ruby](#TruffleRubyhowtoguide-HowtopatchMRIsourcefileswhenupdateRuby)
--   [How to introduce a new platform-specific constant in
-    Ruby](#TruffleRubyhowtoguide-Howtointroduceanewplatform-specificconstantinRuby)
--   [How to decide on what to change - ABI version or ABI
-    check](#TruffleRubyhowtoguide-Howtodecideonwhattochange-ABIversionorABIcheck)
--   [How to choose where to add new specs - in TruffleRuby or in
-    ruby/spec
-    repository](#TruffleRubyhowtoguide-Howtochoosewheretoaddnewspecs-inTruffleRubyorinRubySpecrepository)
--   [How to choose between Ruby and Java when implement a Ruby Core
-    Library class
-    method](#TruffleRubyhowtoguide-HowtochoosebetweenRubyandJavawhenimplementaRubyCoreLibraryclassmethod)
--   [How to write specs for C
-    API](#TruffleRubyhowtoguide-HowtowritespecsforCAPI)
--   [How to exclude/include a spec/MRI test
-    case](#TruffleRubyhowtoguide-Howtoexclude/includeaRubySpec/MRItestcase)
--   [How to tag slow ruby/spec
-    tests](#TruffleRubyhowtoguide-HowtotagslowRubySpectests)
--   [How to introduce a constant  in
-    specs](#TruffleRubyhowtoguide-Howtointroduceaconstantinspecs)
--   [How to add a new spec](#TruffleRubyhowtoguide-Howtoaddanewspec)
+  * [How to find a Core Method implementation](#how-to-find-a-core-method-implementation)
+  * [How to add a Core Method in Java](#how-to-add-a-core-method-in-java)
+  * [How to add a new C API function](#how-to-add-a-new-c-api-function)
+  * [How to define and expose a POSIX system call to Ruby code](#how-to-define-and-expose-a-posix-system-call-to-ruby-code)
+  * [How to add a helper Ruby method](#how-to-add-a-helper-ruby-method)
+  * [How to warn in Ruby](#how-to-warn-in-ruby)
+  * [How to warn in Java](#how-to-warn-in-java)
+  * [How to raise Ruby exception in Java](#how-to-raise-ruby-exception-in-java)
+  * [How to cast type implicitly in Ruby](#how-to-cast-type-implicitly-in-ruby)
+  * [How to cast type implicitly in Java](#how-to-cast-type-implicitly-in-java)
+  * [How to call Java code in Ruby](#how-to-call-java-code-in-ruby)
+  * [How to call Ruby method in Java](#how-to-call-ruby-method-in-java)
+  * [How to declare an optional method argument in Ruby](#how-to-declare-an-optional-method-argument-in-ruby)
+  * [How to accept keyword arguments in Core Method in Java](#how-to-accept-keyword-arguments-in-core-method-in-java)
+  * [How to create Ruby Array in Java](#how-to-create-ruby-array-in-java-)
+  * [How to call original class method in Ruby](#how-to-call-original-class-method-in-ruby)
+  * [How to call original instance method in Ruby](#how-to-call-original-instance-method-in-ruby)
+  * [How to get a list of all the Primitives](#how-to-get-a-list-of-all-the-primitives)
+  * [How to use the most common Primitives](#how-to-use-the-most-common-primitives)
+  * [How to use Java debug helpers](#how-to-use-java-debug-helpers)
+  * [How to update supported Unicode version](#how-to-update-supported-unicode-version)
+  * [How to patch MRI source files when update Ruby](#how-to-patch-mri-source-files-when-update-ruby)
+  * [How to introduce a new platform-specific constant in Ruby](#how-to-introduce-a-new-platform-specific-constant-in-ruby)
+  * [How to decide on what to change - ABI version or ABI check](#how-to-decide-on-what-to-change---abi-version-or-abi-check)
+  * [How to choose where to add new specs - in TruffleRuby or in ruby/spec repository](#how-to-choose-where-to-add-new-specs---in-truffleruby-or-in-rubyspec-repository)
+  * [How to choose between Ruby and Java when implement a Ruby Core Library class method](#how-to-choose-between-ruby-and-java-when-implement-a-ruby-core-library-class-method)
+  * [How to write specs for C API](#how-to-write-specs-for-c-api)
+  * [How to exclude/include ruby/spec and MRI test cases](#how-to-excludeinclude-rubyspec-and-mri-test-cases)
+  * [How to tag slow ruby/spec tests](#how-to-tag-slow-rubyspec-tests)
+  * [How to introduce a constant in specs](#how-to-introduce-a-constant-in-specs)
+  * [How to add a new spec](#how-to-add-a-new-spec)
 
 ## How to find a Core Method implementation
 
@@ -1501,7 +1471,7 @@ and functions might be helpful:
 - `rb_str_new`, `rb_str_new_cstr`
 - `rb_intern`
 
-## How to exclude/include a spec/MRI test case
+## How to exclude/include ruby/spec and MRI test cases
 
 There is a mechanism to skip tests for not yet implemented functionality
 or known but not fixed bug.
