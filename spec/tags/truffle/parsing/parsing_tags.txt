@@ -214,16 +214,6 @@ fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue 
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is local variable defined in outer scope (... rescue a)) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with an attribute) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a class variable) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a constant) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a constant with lexical parent (A::B)) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a fully qualified constant (::A)) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a constant with fully qualified lexical parent (::A::B)) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with element reference) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a global variable) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with an instance variable) case is parsed correctly
-fails:Parsing a Rescue keyword (capturing / with a local variable) case is parsed correctly
 fails:Parsing a Rescue keyword (rescue in a do/end block) case is parsed correctly
 fails:Parsing a Rescue keyword (rescue in a method) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly

@@ -1,5 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with a local variable"
+yarp_specific: true
 notes: >
   A local variable is represented with the following simplified AST:
   
@@ -51,22 +52,21 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteLocalVariableNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
                                           children:
-                                              valueNode =
-                                                  ReadGlobalVariableNodeGen
+                                              rescueVariableNode =
+                                                  WriteLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          name = "$!"
+                                                          frameSlot = 2
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          valueNode =
+                                                              DeadNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitLocalVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0

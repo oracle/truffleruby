@@ -1,5 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with an attribute"
+yarp_specific: true
 notes: >
   Capturing exception to a setter is represented as a `a.foo=()` method call.
   
@@ -54,55 +55,54 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      RubyCallNode
+                                      AssignRescueVariableNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                              dispatchConfig = PROTECTED
-                                              emptyKeywordsProfile = false
                                               flags = 0
-                                              isAttrAssign = true
-                                              isSafeNavigation = false
-                                              isSplatted = false
-                                              isVCall = false
-                                              lastArgIsNotHashProfile = false
-                                              methodName = "foo="
-                                              notEmptyKeywordsProfile = false
-                                              notRuby2KeywordsHashProfile = false
-                                              ruby2KeywordsHashProfile = false
                                           children:
-                                              arguments = [
-                                                  ReadGlobalVariableNodeGen
-                                                      attributes:
-                                                          flags = 0
-                                                          name = "$!"
-                                                      children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
-                                                                  attributes:
-                                                                      index = -1
-                                                                      name = "$!"
-                                              ]
-                                              receiver =
+                                              rescueVariableNode =
                                                   RubyCallNode
                                                       attributes:
                                                           descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                                          dispatchConfig = PRIVATE
+                                                          dispatchConfig = PROTECTED
                                                           emptyKeywordsProfile = false
                                                           flags = 0
-                                                          isAttrAssign = false
+                                                          isAttrAssign = true
                                                           isSafeNavigation = false
                                                           isSplatted = false
-                                                          isVCall = true
+                                                          isVCall = false
                                                           lastArgIsNotHashProfile = false
-                                                          methodName = "a"
+                                                          methodName = "foo="
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
                                                           ruby2KeywordsHashProfile = false
                                                       children:
-                                                          receiver =
-                                                              SelfNode
+                                                          arguments = [
+                                                              DeadNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      reason = "YARPTranslator#translateRescueException"
+                                                          ]
+                                                          receiver =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                      dispatchConfig = PRIVATE
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = true
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "a"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                      ruby2KeywordsHashProfile = false
+                                                                  children:
+                                                                      receiver =
+                                                                          SelfNode
+                                                                              attributes:
+                                                                                  flags = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0

@@ -1,5 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with a constant with fully qualified lexical parent (::A::B)"
+yarp_specific: true
 notes: >
   A constant capturing is represented with the following simplified AST:
   
@@ -53,32 +54,31 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteConstantNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              name = "ERROR"
                                           children:
-                                              moduleNode =
-                                                  ReadConstantNode
+                                              rescueVariableNode =
+                                                  WriteConstantNode
                                                       attributes:
                                                           flags = 0
-                                                          name = "Foo"
+                                                          name = "ERROR"
                                                       children:
                                                           moduleNode =
-                                                              ObjectClassLiteralNode
+                                                              ReadConstantNode
                                                                   attributes:
                                                                       flags = 0
-                                              valueNode =
-                                                  ReadGlobalVariableNodeGen
-                                                      attributes:
-                                                          flags = 0
-                                                          name = "$!"
-                                                      children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                                      name = "Foo"
+                                                                  children:
+                                                                      moduleNode =
+                                                                          ObjectClassLiteralNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                          valueNode =
+                                                              DeadNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitConstantPathWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0

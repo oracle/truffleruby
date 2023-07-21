@@ -1,5 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with a class variable"
+yarp_specific: true
 notes: >
   A class variable capturing is represented with the following simplified AST:
   
@@ -52,31 +53,30 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteClassVariableNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              name = "@@error"
                                           children:
-                                              lexicalScopeNode =
-                                                  ObjectLiteralNode
+                                              rescueVariableNode =
+                                                  WriteClassVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          object =  :: Object
-                                              resolveTargetModuleNode =
-                                                  ResolveTargetModuleForClassVariablesNodeGen
-                                              rhs =
-                                                  ReadGlobalVariableNodeGen
-                                                      attributes:
-                                                          flags = 0
-                                                          name = "$!"
+                                                          name = "@@error"
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          lexicalScopeNode =
+                                                              ObjectLiteralNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
-                                              setClassVariableNode =
-                                                  SetClassVariableNodeGen
+                                                                      flags = 0
+                                                                      object =  :: Object
+                                                          resolveTargetModuleNode =
+                                                              ResolveTargetModuleForClassVariablesNodeGen
+                                                          rhs =
+                                                              DeadNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitClassVariableWriteNode"
+                                                          setClassVariableNode =
+                                                              SetClassVariableNodeGen
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0

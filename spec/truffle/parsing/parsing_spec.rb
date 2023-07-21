@@ -17,6 +17,7 @@ require_relative '../../ruby/spec_helper'
 #   description: "long description"
 #   notes: >
 #     "some additional details to explain what this case actually tests (optional)"
+#   yarp_specific: "true/false - we have different TruffleAST for YARP so don't run this test against JRuby parser"
 #   focused_on_node: "a node class name"
 #   index: "integer, position of a node to focus on in AST when there are several such nodes and we need not the first one (optional)"
 #   ruby: |
@@ -59,13 +60,15 @@ describe "Parsing" do
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
-    subject, description, focused_on_node, index, source_code, expected_ast = yaml.values_at("subject", "description", "focused_on_node", "index", "ruby", "ast")
+    subject, description, yarp_specific, focused_on_node, index, source_code, expected_ast = yaml.values_at("subject", "description", "yarp_specific", "focused_on_node", "index", "ruby", "ast")
     source_code.strip!
     expected_ast.strip!
     index = index.to_i
 
     guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? } do
       it "a #{subject} (#{description.strip}) case is parsed correctly" do
+        skip "YARP specific test" if original_parser && yarp_specific
+
         if original_parser
           actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index).strip
         else

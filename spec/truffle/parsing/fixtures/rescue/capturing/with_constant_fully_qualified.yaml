@@ -1,5 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with a fully qualified constant (::A)"
+yarp_specific: true
 notes: >
   A constant capturing is represented with the following simplified AST:
   
@@ -52,26 +53,25 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteConstantNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              name = "ERROR"
                                           children:
-                                              moduleNode =
-                                                  ObjectClassLiteralNode
+                                              rescueVariableNode =
+                                                  WriteConstantNode
                                                       attributes:
                                                           flags = 0
-                                              valueNode =
-                                                  ReadGlobalVariableNodeGen
-                                                      attributes:
-                                                          flags = 0
-                                                          name = "$!"
+                                                          name = "ERROR"
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          moduleNode =
+                                                              ObjectClassLiteralNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      flags = 0
+                                                          valueNode =
+                                                              DeadNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitConstantPathWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
