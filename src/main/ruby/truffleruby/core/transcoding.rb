@@ -185,6 +185,8 @@ class Encoding
       source = source ? StringValue(source) : +''
       target = StringValue(target)
 
+      Primitive.check_mutable_string target
+
       if Primitive.nil? offset
         offset = target.bytesize
       else
