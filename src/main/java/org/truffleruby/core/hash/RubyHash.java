@@ -11,6 +11,20 @@ package org.truffleruby.core.hash;
 
 import java.util.Set;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.hash.library.BucketsHashStore;
+import org.truffleruby.core.hash.library.CompactHashStore;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectGraphNode;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
@@ -26,20 +40,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
-
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.hash.library.BucketsHashStore;
-import org.truffleruby.core.hash.library.HashStoreLibrary;
-import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ObjectGraphNode;
 
 @ExportLibrary(InteropLibrary.class)
 @ImportStatic(HashGuards.class)
@@ -86,6 +87,8 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
     public void getAdjacentObjects(Set<Object> reachable) {
         if (store instanceof BucketsHashStore) {
             ((BucketsHashStore) store).getAdjacentObjects(reachable);
+        } else if (store instanceof CompactHashStore) {
+            ((CompactHashStore) store).getAdjacentObjects(reachable);
         } else {
             ObjectGraph.addProperty(reachable, store);
         }

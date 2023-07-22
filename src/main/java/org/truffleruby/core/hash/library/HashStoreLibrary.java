@@ -61,9 +61,9 @@ public abstract class HashStoreLibrary extends Library {
     public abstract Object lookupOrDefault(Object store, Frame frame, RubyHash hash, Object key,
             PEBiFunction defaultNode);
 
-    /** Associates the key with the value and returns true only if the hash changed as a result of the operation (i.e.
-     * returns false if the key was already associated with the value). {@code byIdentity} indicates whether the key
-     * should be compared using Java identity, or using {@link SameOrEqlNode} semantics. */
+    /** Associates the key with the value and returns true only if the hash didn't contain the key before the operation
+     * (i.e. returns false if and only if the key was already associated with any value). {@code byIdentity} indicates
+     * whether the key should be compared using Java identity,or using {@link SameOrEqlNode} semantics. */
     @Abstract
     public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
 
@@ -103,7 +103,7 @@ public abstract class HashStoreLibrary extends Library {
     public abstract RubyArray shift(Object store, RubyHash hash);
 
     /** Re-hashes the keys in the hash (if the keys are mutable objects, then changes to these objects may change the
-     * hash. */
+     * hash.) */
     @Abstract
     public abstract void rehash(Object store, RubyHash hash);
 
@@ -116,7 +116,7 @@ public abstract class HashStoreLibrary extends Library {
         void accept(int index, Object key, Object value, Object state);
     }
 
-    /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
+    /** Call the block with a key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
      * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
     @GenerateInline(false)

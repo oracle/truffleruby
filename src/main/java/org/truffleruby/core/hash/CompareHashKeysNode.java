@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.language.RubyBaseNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.core.basicobject.ReferenceEqualNode;
-import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.language.RubyBaseNode;
 
 @GenerateUncached
 public abstract class CompareHashKeysNode extends RubyBaseNode {
@@ -46,5 +47,27 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
     boolean same(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached SameOrEqlNode same) {
         return hashed == otherHashed && same.execute(key, otherKey);
+    }
+
+    @GenerateUncached
+    public abstract static class AssumingEqualHashes extends RubyBaseNode {
+
+        public static AssumingEqualHashes getUncached() {
+            return CompareHashKeysNodeGen.AssumingEqualHashesNodeGen.getUncached();
+        }
+
+        public abstract boolean execute(boolean compareByIdentity, Object key, Object otherKey);
+
+        @Specialization(guards = "compareByIdentity")
+        boolean refEquals(boolean compareByIdentity, Object key, Object otherKey,
+                @Cached ReferenceEqualNode refEqual) {
+            return refEqual.execute(this, key, otherKey);
+        }
+
+        @Specialization(guards = "!compareByIdentity")
+        boolean same(boolean compareByIdentity, Object key, Object otherKey,
+                @Cached SameOrEqlNode same) {
+            return same.execute(key, otherKey);
+        }
     }
 }
