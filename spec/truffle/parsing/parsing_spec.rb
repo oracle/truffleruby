@@ -65,7 +65,9 @@ describe "Parsing" do
     expected_ast.strip!
     index = index.to_i
 
-    guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? } do
+    # multiple-context mode, enabled JIT or changed default inline cache size affects Truffle AST.
+    # So just don't run the pursing specs at all in such jobs on CI.
+    guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? && Truffle::Boot.get_option("default-cache") != 0 } do
       it "a #{subject} (#{description.strip}) case is parsed correctly" do
         skip "YARP specific test" if original_parser && yarp_specific
 
