@@ -331,7 +331,7 @@ module Utilities
     return @truffleruby_compiler = true if truffleruby_native_built?
 
     # Detect if the compiler is present by reading the $graalvm_home/release file
-    @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
+    @truffleruby_compiler = File.readlines("#{graalvm_home || ruby_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
   end
