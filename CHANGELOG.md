@@ -34,6 +34,7 @@ Compatibility:
 * Add `Module#undefined_instance_methods` (#3039, @itarato).
 * Add `Thread.each_caller_location` (#3039, @itarato).
 * Add `timeout` argument to `Thread::SizedQueue#push` (#3039, @itarato).
+* Add `rb_syserr_new` function (#3175, @rwstauner).
 
 Performance:
 

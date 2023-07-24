@@ -100,6 +100,22 @@ describe "C-API Exception function" do
     end
   end
 
+  describe "rb_syserr_new" do
+    it "returns system error with nil message" do
+      exception = @s.rb_syserr_new(Errno::ENOENT::Errno, nil)
+      exception.class.should == Errno::ENOENT
+      exception.message.should include("No such file or directory")
+      exception.should.is_a?(SystemCallError)
+    end
+
+    it "returns system error with custom message" do
+      exception = @s.rb_syserr_new(Errno::ENOENT::Errno, "custom message")
+      exception.message.should include("custom message")
+      exception.class.should == Errno::ENOENT
+      exception.should.is_a?(SystemCallError)
+    end
+  end
+
   describe "rb_syserr_new_str" do
     it "returns system error with nil message" do
       const = Errno::ENOENT
