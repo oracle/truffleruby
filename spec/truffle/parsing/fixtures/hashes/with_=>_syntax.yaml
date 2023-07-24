@@ -6,7 +6,7 @@ ruby: |
 ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       attributes:
-          flags = 1
+          flags = 0
       children:
           keyValues = [
               IntegerFixnumLiteralNode

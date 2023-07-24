@@ -26,7 +26,7 @@ ast: |
                       rescueBody =
                           StringToSymbolNodeGen
                               attributes:
-                                  flags = 0
+                                  flags = 1
                               children:
                                   stringNode_ =
                                       InterpolatedStringNode
@@ -49,7 +49,7 @@ ast: |
                                                           valueNode_ =
                                                               IntegerFixnumLiteralNode
                                                                   attributes:
-                                                                      flags = 0
+                                                                      flags = 1
                                                                       value = 42
                                                   ToSNodeGen
                                                       children:
@@ -65,5 +65,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

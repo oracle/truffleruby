@@ -26,7 +26,7 @@ ast: |
                       rescueBody =
                           ReadGlobalVariableNodeGen
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   name = "$bar"
                               children:
                                   lookupGlobalVariableStorageNode =
@@ -39,5 +39,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

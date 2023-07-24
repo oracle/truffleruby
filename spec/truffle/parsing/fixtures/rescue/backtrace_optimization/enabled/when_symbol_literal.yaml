@@ -26,12 +26,12 @@ ast: |
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   object = :bar
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

@@ -72,11 +72,11 @@ ast: |
                                                       body = [
                                                           IntegerFixnumLiteralNode
                                                               attributes:
-                                                                  flags = 0
+                                                                  flags = 1
                                                                   value = 1
                                                           IntegerFixnumLiteralNode
                                                               attributes:
-                                                                  flags = 0
+                                                                  flags = 1
                                                                   value = 2
                                                       ]
                               ]

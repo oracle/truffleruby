@@ -10,4 +10,4 @@ ruby: |
 ast: |
   RedoNode
       attributes:
-          flags = 0
+          flags = 1

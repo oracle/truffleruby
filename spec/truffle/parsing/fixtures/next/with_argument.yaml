@@ -11,7 +11,7 @@ ruby: |
 ast: |
   NextNode
       attributes:
-          flags = 0
+          flags = 1
       children:
           child =
               IntegerFixnumLiteralNode

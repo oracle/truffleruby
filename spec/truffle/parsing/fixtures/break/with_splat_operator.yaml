@@ -9,7 +9,7 @@ ast: |
   BreakNode
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          flags = 0
+          flags = 1
           ignoreMarker = true
       children:
           child =

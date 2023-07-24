@@ -26,12 +26,12 @@ ast: |
                       rescueBody =
                           FloatLiteralNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   value = 3.14
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

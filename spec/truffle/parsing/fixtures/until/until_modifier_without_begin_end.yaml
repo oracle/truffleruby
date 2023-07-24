@@ -37,5 +37,5 @@ ast: |
                                                           child =
                                                               BooleanLiteralNode
                                                                   attributes:
-                                                                      flags = 0
+                                                                      flags = 1
                                                                       value = true

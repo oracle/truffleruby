@@ -26,12 +26,12 @@ ast: |
                       rescueBody =
                           NilLiteralNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   isImplicit = false
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

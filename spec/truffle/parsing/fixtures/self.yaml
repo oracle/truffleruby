@@ -6,4 +6,4 @@ ruby: |
 ast: |
   SelfNode
       attributes:
-          flags = 1
+          flags = 0

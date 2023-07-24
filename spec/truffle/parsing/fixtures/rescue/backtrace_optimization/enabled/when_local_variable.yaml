@@ -28,7 +28,7 @@ ast: |
                       rescueBody =
                           ReadLocalVariableNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   frameSlot = 2
                                   type = FRAME_LOCAL
           ]
@@ -36,5 +36,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo
