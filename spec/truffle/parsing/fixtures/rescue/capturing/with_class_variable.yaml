@@ -25,7 +25,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueClassesNode
@@ -79,7 +79,7 @@ ast: |
                                                               SetClassVariableNodeGen
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
+                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -87,5 +87,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

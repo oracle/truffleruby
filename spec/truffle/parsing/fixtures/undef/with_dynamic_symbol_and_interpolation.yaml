@@ -34,7 +34,7 @@ ast: |
                                               valueNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = 1
                                   ]
           ]

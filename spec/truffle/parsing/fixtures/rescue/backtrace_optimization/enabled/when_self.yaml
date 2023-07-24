@@ -16,7 +16,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = true
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueStandardErrorNode
@@ -26,7 +26,7 @@ ast: |
                       rescueBody =
                           SelfNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
           ]
           tryPart =
               StringLiteralNode

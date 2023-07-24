@@ -34,7 +34,7 @@ ast: |
               TryNodeGen
                   attributes:
                       canOmitBacktrace = true
-                      flags = 1
+                      flags = 0
                   children:
                       rescueParts = [
                           RescueStandardErrorNode

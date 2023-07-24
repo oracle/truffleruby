@@ -70,6 +70,6 @@ ast: |
                                           body =
                                               NilLiteralNode
                                                   attributes:
-                                                      flags = 0
+                                                      flags = 1
                                                       isImplicit = false
                               ]

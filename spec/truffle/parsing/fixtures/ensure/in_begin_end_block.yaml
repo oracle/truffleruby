@@ -33,7 +33,7 @@ ast: |
                                               flags = 0
               EnsureNodeGen
                   attributes:
-                      flags = 1
+                      flags = 0
                   children:
                       ensurePart =
                           RubyCallNode

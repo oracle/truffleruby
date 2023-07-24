@@ -16,7 +16,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueStandardErrorNode
@@ -28,7 +28,7 @@ ast: |
                               attributes:
                                   emptyTString = ""
                                   encoding = UTF-8
-                                  flags = 1
+                                  flags = 0
                               children:
                                   children = [
                                       ToSNodeGen
@@ -37,14 +37,14 @@ ast: |
                                                   StringLiteralNode
                                                       attributes:
                                                           encoding = UTF-8
-                                                          flags = 0
+                                                          flags = 1
                                                           tstring = abc 
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
-                                                          flags = 1
+                                                          flags = 0
                                                           value = 42
                                       ToSNodeGen
                                           children:
