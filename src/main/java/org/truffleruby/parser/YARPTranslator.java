@@ -42,7 +42,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -117,8 +116,10 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
-// NOTE: we should avoid SourceIndexLength in YARPTranslator, instead pass a Nodes.Node as location,
-// because that's inefficient and there is typically no need for such an object since YARP location info is correct.
+// NOTE: we should avoid SourceIndexLength in YARPTranslator, instead pass a Nodes.Node as location, because
+// * it does not copy the newline flag properly,
+// * it is inefficient,
+// * there is typically no need for such an object since YARP location info is correct.
 
 /** Translate (or convert) AST provided by a parser (YARP parser) to Truffle AST */
 public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
@@ -1017,24 +1018,23 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitLocalVariableReadNode(Nodes.LocalVariableReadNode node) {
-        final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
         final String name = toString(node);
 
-        final RubyNode rubyNode = environment.findLocalVarNode(name, sourceSection);
+        final RubyNode rubyNode = environment.findLocalVarNode(name, null);
         assert rubyNode != null : name;
 
+        assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
     public RubyNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
-        final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
         final String name = toString(node.name_loc);
 
         if (environment.getNeverAssignInParentScope()) {
             environment.declareVar(name);
         }
 
-        ReadLocalNode lhs = environment.findLocalVarNode(name, sourceSection);
+        ReadLocalNode lhs = environment.findLocalVarNode(name, null);
 
         // TODO: it should always be present if we use byte[][] locals
         if (lhs == null) {
@@ -1044,7 +1044,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             }
             environmentToDeclareIn.declareVar(name);
 
-            lhs = environment.findLocalVarNode(name, sourceSection);
+            lhs = environment.findLocalVarNode(name, null);
 
             if (lhs == null) {
                 throw CompilerDirectives.shouldNotReachHere();
