@@ -17,6 +17,8 @@ import java.util.Arrays;
 // @formatter:off
 public abstract class Nodes {
 
+    public static final byte[][] EMPTY_BYTE_ARRAY_ARRAY = {};
+
     public static final class CallNodeFlags implements Comparable<CallNodeFlags> {
 
         // &. operator
@@ -216,16 +218,15 @@ public abstract class Nodes {
 
 
     public static final class Location {
+
+        public static final Location[] EMPTY_ARRAY = {};
+
         public final int startOffset;
         public final int length;
 
         public Location(int startOffset, int length) {
             this.startOffset = startOffset;
             this.length = length;
-        }
-
-        public int length() {
-            return length;
         }
 
         public int endOffset() {
@@ -274,15 +275,11 @@ public abstract class Nodes {
             this.length = length;
         }
 
-        public int length() {
-            return length;
-        }
-
-        public int endOffset() {
+        public final int endOffset() {
             return startOffset + length;
         }
 
-        public boolean hasNewLineFlag() {
+        public final boolean hasNewLineFlag() {
             return newLineFlag;
         }
 
@@ -295,6 +292,8 @@ public abstract class Nodes {
         }
 
         public abstract <T> T accept(AbstractNodeVisitor<T> visitor);
+
+        public abstract <T> void visitChildNodes(AbstractNodeVisitor<T> visitor);
 
         public abstract Node[] childNodes();
 
@@ -337,8 +336,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.new_name.accept(visitor);
+            this.old_name.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { new_name, old_name };
+            return new Node[] { this.new_name, this.old_name };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -363,8 +367,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.left.accept(visitor);
+            this.right.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { left, right };
+            return new Node[] { this.left, this.right };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -389,8 +398,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.left.accept(visitor);
+            this.right.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { left, right };
+            return new Node[] { this.left, this.right };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -411,8 +425,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.arguments) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return arguments;
+            return this.arguments;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -438,8 +458,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.elements) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return elements;
+            return this.elements;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -482,12 +508,27 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.constant != null) {
+                this.constant.accept(visitor);
+            }
+            for (Nodes.Node child : this.requireds) {
+                child.accept(visitor);
+            }
+            if (this.rest != null) {
+                this.rest.accept(visitor);
+            }
+            for (Nodes.Node child : this.posts) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.add(constant);
-            childNodes.addAll(Arrays.asList(requireds));
-            childNodes.add(rest);
-            childNodes.addAll(Arrays.asList(posts));
+            childNodes.add(this.constant);
+            childNodes.addAll(Arrays.asList(this.requireds));
+            childNodes.add(this.rest);
+            childNodes.addAll(Arrays.asList(this.posts));
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -513,8 +554,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.key.accept(visitor);
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { key, value };
+            return new Node[] { this.key, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -537,8 +585,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -556,6 +610,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -590,9 +647,28 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+        @Override
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            // Never mark BeginNode with a newline flag, mark children instead
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+            if (this.rescue_clause != null) {
+                this.rescue_clause.accept(visitor);
+            }
+            if (this.else_clause != null) {
+                this.else_clause.accept(visitor);
+            }
+            if (this.ensure_clause != null) {
+                this.ensure_clause.accept(visitor);
+            }
+        }
 
         public Node[] childNodes() {
-            return new Node[] { statements, rescue_clause, else_clause, ensure_clause };
+            return new Node[] { this.statements, this.rescue_clause, this.else_clause, this.ensure_clause };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -615,8 +691,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.expression != null) {
+                this.expression.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { expression };
+            return new Node[] { this.expression };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -645,8 +727,17 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.parameters != null) {
+                this.parameters.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { parameters, statements };
+            return new Node[] { this.parameters, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -669,6 +760,9 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -702,8 +796,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.parameters != null) {
+                this.parameters.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { parameters };
+            return new Node[] { this.parameters };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -726,8 +826,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { arguments };
+            return new Node[] { this.arguments };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -779,8 +885,20 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.receiver != null) {
+                this.receiver.accept(visitor);
+            }
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+            if (this.block != null) {
+                this.block.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { receiver, arguments, block };
+            return new Node[] { this.receiver, this.arguments, this.block };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -805,8 +923,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -831,8 +954,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -859,8 +987,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -885,8 +1018,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+            this.target.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value, target };
+            return new Node[] { this.value, this.target };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -917,11 +1055,23 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.predicate != null) {
+                this.predicate.accept(visitor);
+            }
+            for (Nodes.Node child : this.conditions) {
+                child.accept(visitor);
+            }
+            if (this.consequent != null) {
+                this.consequent.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.add(predicate);
-            childNodes.addAll(Arrays.asList(conditions));
-            childNodes.add(consequent);
+            childNodes.add(this.predicate);
+            childNodes.addAll(Arrays.asList(this.conditions));
+            childNodes.add(this.consequent);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -955,8 +1105,18 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.constant_path.accept(visitor);
+            if (this.superclass != null) {
+                this.superclass.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { constant_path, superclass, statements };
+            return new Node[] { this.constant_path, this.superclass, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -981,8 +1141,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1007,8 +1171,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1035,8 +1203,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1054,6 +1226,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1081,8 +1256,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1107,8 +1288,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1133,8 +1318,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1161,8 +1350,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1187,8 +1380,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.parent != null) {
+                this.parent.accept(visitor);
+            }
+            this.child.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { parent, child };
+            return new Node[] { this.parent, this.child };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1213,8 +1413,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1239,8 +1444,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1267,8 +1477,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1296,8 +1511,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { target, value };
+            return new Node[] { this.target, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1315,6 +1537,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1361,8 +1586,20 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.receiver != null) {
+                this.receiver.accept(visitor);
+            }
+            if (this.parameters != null) {
+                this.parameters.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { receiver, parameters, statements };
+            return new Node[] { this.receiver, this.parameters, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1389,8 +1626,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1414,14 +1655,15 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
-        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
-                this.statements.setNewLineFlag(source, newlineMarked);
+                this.statements.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1446,8 +1688,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1470,8 +1718,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.variable.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { variable };
+            return new Node[] { this.variable };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1500,8 +1752,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1519,6 +1777,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1558,12 +1819,23 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.constant != null) {
+                this.constant.accept(visitor);
+            }
+            this.left.accept(visitor);
+            for (Nodes.Node child : this.requireds) {
+                child.accept(visitor);
+            }
+            this.right.accept(visitor);
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.add(constant);
-            childNodes.add(left);
-            childNodes.addAll(Arrays.asList(requireds));
-            childNodes.add(right);
+            childNodes.add(this.constant);
+            childNodes.add(this.left);
+            childNodes.addAll(Arrays.asList(this.requireds));
+            childNodes.add(this.right);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -1582,6 +1854,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1617,8 +1892,16 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.index.accept(visitor);
+            this.collection.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { index, collection, statements };
+            return new Node[] { this.index, this.collection, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1638,6 +1921,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1659,6 +1945,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1682,8 +1971,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.block != null) {
+                this.block.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { block };
+            return new Node[] { this.block };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1708,8 +2003,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1734,8 +2033,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1762,8 +2065,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1781,6 +2088,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -1808,8 +2118,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1834,8 +2150,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.elements) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return elements;
+            return this.elements;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1867,11 +2189,23 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.constant != null) {
+                this.constant.accept(visitor);
+            }
+            for (Nodes.Node child : this.assocs) {
+                child.accept(visitor);
+            }
+            if (this.kwrest != null) {
+                this.kwrest.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.add(constant);
-            childNodes.addAll(Arrays.asList(assocs));
-            childNodes.add(kwrest);
+            childNodes.add(this.constant);
+            childNodes.addAll(Arrays.asList(this.assocs));
+            childNodes.add(this.kwrest);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -1903,18 +2237,23 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.predicate.accept(visitor);
             if (this.statements != null) {
-                this.statements.setNewLineFlag(source, newlineMarked);
+                this.statements.accept(visitor);
             }
             if (this.consequent != null) {
-                this.consequent.setNewLineFlag(source, newlineMarked);
+                this.consequent.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { predicate, statements, consequent };
+            return new Node[] { this.predicate, this.statements, this.consequent };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1935,8 +2274,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.numeric.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { numeric };
+            return new Node[] { this.numeric };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1963,8 +2306,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.pattern.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { pattern, statements };
+            return new Node[] { this.pattern, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1989,8 +2339,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2015,8 +2369,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2043,8 +2401,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2062,6 +2424,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2089,8 +2454,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2108,6 +2479,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2136,14 +2510,22 @@ public abstract class Nodes {
             this.flags = flags;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            for (Nodes.Node node : this.parts) {
-                node.setNewLineFlag(source, newlineMarked);
+            Node first = this.parts.length > 0 ? this.parts[0] : null;
+            if (first != null) {
+                first.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parts) {
+                child.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return parts;
+            return this.parts;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2167,14 +2549,22 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            for (Nodes.Node node : this.parts) {
-                node.setNewLineFlag(source, newlineMarked);
+            Node first = this.parts.length > 0 ? this.parts[0] : null;
+            if (first != null) {
+                first.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parts) {
+                child.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return parts;
+            return this.parts;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2198,14 +2588,22 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            for (Nodes.Node node : this.parts) {
-                node.setNewLineFlag(source, newlineMarked);
+            Node first = this.parts.length > 0 ? this.parts[0] : null;
+            if (first != null) {
+                first.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parts) {
+                child.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return parts;
+            return this.parts;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2229,14 +2627,22 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            for (Nodes.Node node : this.parts) {
-                node.setNewLineFlag(source, newlineMarked);
+            Node first = this.parts.length > 0 ? this.parts[0] : null;
+            if (first != null) {
+                first.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parts) {
+                child.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return parts;
+            return this.parts;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2257,8 +2663,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.elements) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return elements;
+            return this.elements;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2286,8 +2698,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2310,6 +2728,9 @@ public abstract class Nodes {
             this.name_loc = name_loc;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2339,8 +2760,17 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.parameters != null) {
+                this.parameters.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { parameters, statements };
+            return new Node[] { this.parameters, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2367,8 +2797,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2395,8 +2829,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2425,8 +2863,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2450,6 +2892,9 @@ public abstract class Nodes {
             this.depth = depth;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2481,8 +2926,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2507,8 +2958,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+            this.pattern.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value, pattern };
+            return new Node[] { this.value, this.pattern };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2533,8 +2989,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+            this.pattern.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value, pattern };
+            return new Node[] { this.value, this.pattern };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2550,6 +3011,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2581,8 +3045,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.constant_path.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { constant_path, statements };
+            return new Node[] { this.constant_path, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2611,10 +3082,19 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.targets) {
+                child.accept(visitor);
+            }
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.addAll(Arrays.asList(targets));
-            childNodes.add(value);
+            childNodes.addAll(Arrays.asList(this.targets));
+            childNodes.add(this.value);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -2638,8 +3118,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { arguments };
+            return new Node[] { this.arguments };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2657,6 +3143,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2683,6 +3172,9 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -2702,6 +3194,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -2732,8 +3227,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { value };
+            return new Node[] { this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2758,8 +3257,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.left.accept(visitor);
+            this.right.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { left, right };
+            return new Node[] { this.left, this.right };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2793,15 +3297,39 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.requireds) {
+                child.accept(visitor);
+            }
+            for (Nodes.Node child : this.optionals) {
+                child.accept(visitor);
+            }
+            for (Nodes.Node child : this.posts) {
+                child.accept(visitor);
+            }
+            if (this.rest != null) {
+                this.rest.accept(visitor);
+            }
+            for (Nodes.Node child : this.keywords) {
+                child.accept(visitor);
+            }
+            if (this.keyword_rest != null) {
+                this.keyword_rest.accept(visitor);
+            }
+            if (this.block != null) {
+                this.block.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.addAll(Arrays.asList(requireds));
-            childNodes.addAll(Arrays.asList(optionals));
-            childNodes.addAll(Arrays.asList(posts));
-            childNodes.add(rest);
-            childNodes.addAll(Arrays.asList(keywords));
-            childNodes.add(keyword_rest);
-            childNodes.add(block);
+            childNodes.addAll(Arrays.asList(this.requireds));
+            childNodes.addAll(Arrays.asList(this.optionals));
+            childNodes.addAll(Arrays.asList(this.posts));
+            childNodes.add(this.rest);
+            childNodes.addAll(Arrays.asList(this.keywords));
+            childNodes.add(this.keyword_rest);
+            childNodes.add(this.block);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -2826,14 +3354,19 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            // Never mark ParenthesesNode with a newline flag, mark children instead
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
-                this.statements.setNewLineFlag(source, newlineMarked);
+                this.statements.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2861,8 +3394,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.expression.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { expression };
+            return new Node[] { this.expression };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2886,8 +3423,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.variable.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { variable };
+            return new Node[] { this.variable };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2914,8 +3455,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2942,8 +3489,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2962,12 +3515,13 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
-        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            this.statements.setNewLineFlag(source, newlineMarked);
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.statements.accept(visitor);
         }
 
         public Node[] childNodes() {
-            return new Node[] { statements };
+            return new Node[] { this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2997,8 +3551,17 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.left != null) {
+                this.left.accept(visitor);
+            }
+            if (this.right != null) {
+                this.right.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { left, right };
+            return new Node[] { this.left, this.right };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3019,8 +3582,12 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.numeric.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { numeric };
+            return new Node[] { this.numeric };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3038,6 +3605,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3069,6 +3639,9 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3096,8 +3669,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parameters) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return parameters;
+            return this.parameters;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3118,6 +3697,9 @@ public abstract class Nodes {
             this.constant_id = constant_id;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3144,9 +3726,18 @@ public abstract class Nodes {
             this.rescue_expression = rescue_expression;
         }
 
+        @Override
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.expression.setNewLineFlag(source, newlineMarked);
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.expression.accept(visitor);
+            this.rescue_expression.accept(visitor);
+        }
 
         public Node[] childNodes() {
-            return new Node[] { expression, rescue_expression };
+            return new Node[] { this.expression, this.rescue_expression };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3157,10 +3748,13 @@ public abstract class Nodes {
     // Represents a rescue statement.
     // 
     //     begin
-    //     rescue
-    //       foo
+    //     rescue Foo, *splat, Bar => ex
     //     ^^^^^^
+    //       foo
     //     end
+    // 
+    // `Foo, *splat, Bar` are in the `exceptions` field.
+    // `ex` is in the `exception` field.
     public static final class RescueNode extends Node {
         public final Location keyword_loc;
         public final Node[] exceptions;
@@ -3180,12 +3774,27 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.exceptions) {
+                child.accept(visitor);
+            }
+            if (this.exception != null) {
+                this.exception.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+            if (this.consequent != null) {
+                this.consequent.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.addAll(Arrays.asList(exceptions));
-            childNodes.add(exception);
-            childNodes.add(statements);
-            childNodes.add(consequent);
+            childNodes.addAll(Arrays.asList(this.exceptions));
+            childNodes.add(this.exception);
+            childNodes.add(this.statements);
+            childNodes.add(this.consequent);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -3210,6 +3819,9 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3229,6 +3841,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3254,8 +3869,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { arguments };
+            return new Node[] { this.arguments };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3273,6 +3894,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3306,8 +3930,15 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.expression.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { expression, statements };
+            return new Node[] { this.expression, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3325,6 +3956,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3348,6 +3982,9 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3367,6 +4004,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3392,8 +4032,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.expression != null) {
+                this.expression.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { expression };
+            return new Node[] { this.expression };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3413,14 +4059,15 @@ public abstract class Nodes {
             this.body = body;
         }
 
-        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
-            for (Nodes.Node node : this.body) {
-                node.setNewLineFlag(source, newlineMarked);
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.body) {
+                child.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return body;
+            return this.body;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3443,8 +4090,13 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.left.accept(visitor);
+            this.right.accept(visitor);
+        }
+
         public Node[] childNodes() {
-            return new Node[] { left, right };
+            return new Node[] { this.left, this.right };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3477,6 +4129,9 @@ public abstract class Nodes {
             this.unescaped = unescaped;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3511,8 +4166,17 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+            if (this.block != null) {
+                this.block.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { arguments, block };
+            return new Node[] { this.arguments, this.block };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3542,6 +4206,9 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
         public Node[] childNodes() {
             return EMPTY_ARRAY;
         }
@@ -3561,6 +4228,9 @@ public abstract class Nodes {
             super(startOffset, length);
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3586,8 +4256,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.names) {
+                child.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return names;
+            return this.names;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3618,18 +4294,23 @@ public abstract class Nodes {
             this.end_keyword_loc = end_keyword_loc;
         }
 
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.predicate.accept(visitor);
             if (this.statements != null) {
-                this.statements.setNewLineFlag(source, newlineMarked);
+                this.statements.accept(visitor);
             }
             if (this.consequent != null) {
-                this.consequent.setNewLineFlag(source, newlineMarked);
+                this.consequent.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { predicate, statements, consequent };
+            return new Node[] { this.predicate, this.statements, this.consequent };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3656,9 +4337,20 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
+        @Override
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.predicate.setNewLineFlag(source, newlineMarked);
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.predicate.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
 
         public Node[] childNodes() {
-            return new Node[] { predicate, statements };
+            return new Node[] { this.predicate, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3683,10 +4375,19 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.conditions) {
+                child.accept(visitor);
+            }
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
-            childNodes.addAll(Arrays.asList(conditions));
-            childNodes.add(statements);
+            childNodes.addAll(Arrays.asList(this.conditions));
+            childNodes.add(this.statements);
             return childNodes.toArray(EMPTY_ARRAY);
         }
 
@@ -3714,9 +4415,20 @@ public abstract class Nodes {
             this.statements = statements;
         }
 
+        @Override
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            this.predicate.setNewLineFlag(source, newlineMarked);
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.predicate.accept(visitor);
+            if (this.statements != null) {
+                this.statements.accept(visitor);
+            }
+        }
 
         public Node[] childNodes() {
-            return new Node[] { predicate, statements };
+            return new Node[] { this.predicate, this.statements };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3742,6 +4454,9 @@ public abstract class Nodes {
             this.unescaped = unescaped;
         }
 
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
 
         public Node[] childNodes() {
             return EMPTY_ARRAY;
@@ -3771,8 +4486,14 @@ public abstract class Nodes {
         }
 
 
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+        }
+
         public Node[] childNodes() {
-            return new Node[] { arguments };
+            return new Node[] { this.arguments };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {

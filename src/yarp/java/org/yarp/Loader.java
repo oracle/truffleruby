@@ -50,12 +50,10 @@ public class Loader {
     private final ByteBuffer buffer;
     private ConstantPool constantPool;
     private final Nodes.Source source;
-    private final boolean[] newlineMarked;
 
     private Loader(byte[] serialized, Nodes.Source source) {
         this.buffer = ByteBuffer.wrap(serialized).order(ByteOrder.nativeOrder());
         this.source = source;
-        this.newlineMarked = new boolean[1 + source.getLineCount()];
     }
 
     private Nodes.Node load() {
@@ -85,7 +83,9 @@ public class Loader {
             throw new Error("Expected to consume all bytes while deserializing but there were " + left + " bytes left");
         }
 
-        node.setNewLineFlag(this.source, newlineMarked);
+        boolean[] newlineMarked = new boolean[1 + source.getLineCount()];
+        MarkNewlinesVisitor visitor = new MarkNewlinesVisitor(source, newlineMarked);
+        node.accept(visitor);
 
         return node;
     }
@@ -108,6 +108,9 @@ public class Loader {
 
     private Nodes.Location[] loadLocations() {
         int length = loadVarInt();
+        if (length == 0) {
+            return Nodes.Location.EMPTY_ARRAY;
+        }
         Nodes.Location[] locations = new Nodes.Location[length];
         for (int i = 0; i < length; i++) {
             locations[i] = loadLocation();
@@ -121,6 +124,9 @@ public class Loader {
 
     private byte[][] loadConstants() {
         int length = loadVarInt();
+        if (length == 0) {
+            return Nodes.EMPTY_BYTE_ARRAY_ARRAY;
+        }
         byte[][] constants = new byte[length][];
         for (int i = 0; i < length; i++) {
             constants[i] = constantPool.get(buffer, loadVarInt());
@@ -130,6 +136,9 @@ public class Loader {
 
     private Nodes.Node[] loadNodes() {
         int length = loadVarInt();
+        if (length == 0) {
+            return Nodes.Node.EMPTY_ARRAY;
+        }
         Nodes.Node[] nodes = new Nodes.Node[length];
         for (int i = 0; i < length; i++) {
             nodes[i] = loadNode();
