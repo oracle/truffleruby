@@ -94,15 +94,12 @@ module RbConfig
 
   toolchain_path = Truffle::Boot.toolchain_paths(:PATH)
 
+  configure_args = ''
   # Make C extensions use the same libssl as the one used for the openssl C extension
   if Truffle::Platform.darwin?
     require 'truffle/openssl-prefix'
-    openssl_prefix = ENV['OPENSSL_PREFIX']
-    if openssl_prefix
-      # Change the same variables as MRI's --with-opt-dir configure option would
-      cppflags << " -I#{openssl_prefix}/include"
-      ldflags << " -L#{openssl_prefix}/lib"
-      dldflags << " -L#{openssl_prefix}/lib"
+    if openssl_prefix = ENV['OPENSSL_PREFIX']
+      configure_args << " '--with-openssl-dir=#{openssl_prefix}'"
     end
   end
 
@@ -131,7 +128,7 @@ module RbConfig
     'ARCH_FLAG'         => '',
     'build'             => host,
     'build_os'          => host_os_full,
-    'configure_args'    => ' ',
+    'configure_args'    => configure_args,
     'CC'                => cc,
     'CCDLFLAGS'         => '-fPIC',
     'CP'                => 'cp',
