@@ -325,6 +325,12 @@ describe :kernel_require, shared: true do
       @path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
     end
 
+    it "stores a deduped path" do
+      path = -@path
+      @object.require(path).should be_true
+      $LOADED_FEATURES.last.should equal(path)
+    end
+
     it "stores an absolute path" do
       @object.require(@path).should be_true
       $LOADED_FEATURES.should include(@path)

@@ -31,6 +31,7 @@ Compatibility:
 * Add `Refinement#refined_class` (#3039, @itarato).
 * Add `rb_hash_new_capa` function (#3039, @itarato).
 * Fix `Encoding::Converter#primitive_convert` and raise `FrozenError` when a destination buffer argument is frozen (@andrykonchin).
+* Deduplicate strings in `$LOADED_FEATURES` (#3182, @rwstauner).
 
 Performance:
 

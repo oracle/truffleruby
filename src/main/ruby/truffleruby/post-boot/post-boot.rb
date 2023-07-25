@@ -41,14 +41,14 @@ if Truffle::Boot.preinitializing?
     # We need to fix all paths which capture the image build-time home to point
     # to the runtime home.
 
-    paths_starting_with_home = []
     [$LOAD_PATH, $LOADED_FEATURES].each do |array|
-      array.each do |path|
+      array.each.with_index do |path, index|
         if path.start_with?(old_home)
+          # Use String#replace to actually remove the old value from the heap.
           path.replace Truffle::Debug.flatten_string(path[old_home.size..-1])
-          paths_starting_with_home << path
         elsif !path.include?('/')
           # relative path for always provided features like 'ruby2_keywords.rb'
+          array[index] = -path
         else
           raise "Path #{path.inspect} in $LOAD_PATH or $LOADED_FEATURES was expected to start with #{old_home}"
         end
@@ -60,8 +60,12 @@ if Truffle::Boot.preinitializing?
 
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
-      paths_starting_with_home.each do |path|
-        path.replace(new_home + path)
+      [$LOAD_PATH, $LOADED_FEATURES].each do |array|
+        array.each.with_index do |path, index|
+          unless path.frozen?
+            array[index] = -(new_home + path)
+          end
+        end
       end
     end
   end

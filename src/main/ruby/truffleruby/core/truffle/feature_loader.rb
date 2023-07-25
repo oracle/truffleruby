@@ -218,7 +218,7 @@ module Truffle
     # Add feature to $LOADED_FEATURES and the index, called from RequireNode
     def self.provide_feature(feature)
       raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
-      #feature.freeze # TODO freeze these but post-boot.rb issue using replace
+      feature = -feature unless Truffle::Boot.preinitializing?
       with_synchronized_features do
         get_loaded_features_index
         $LOADED_FEATURES << feature
@@ -294,7 +294,7 @@ module Truffle
         @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
-          #val.freeze # TODO freeze these but post-boot.rb issue using replace
+          val = -val unless Truffle::Boot.preinitializing?
           val
         end
         $LOADED_FEATURES.each_with_index do |val, idx|
