@@ -264,7 +264,7 @@ class JT
         end
 
         configs.each do |c|
-          lines << "RUN ruby #{c} --experimental-options --engine.CompilationFailureAction=ExitVM --engine.TreatPerformanceWarningsAsErrors=all --engine.IterativePartialEscape  --engine.MultiTier=false pe/pe.rb || true"
+          lines << "RUN ruby #{c} --experimental-options --engine.CompilationFailureAction=ExitVM --compiler.TreatPerformanceWarningsAsErrors=all --compiler.IterativePartialEscape  --engine.MultiTier=false pe/pe.rb || true"
         end
       end
 
