@@ -283,34 +283,19 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
             LiteralCallNode literalCallNode,
             @Cached(value = "getSpecialVariableAssumption(frame)",
                     uncached = "ALWAYS_VALID") Assumption specialVariableAssumption,
-            @Cached MetaClassNode metaclassNode,
-            @Cached LookupMethodNode methodLookup,
+            @Cached MetaClassNode metaClassNode,
+            @Cached LookupMethodNode lookupMethodNode,
             @Cached InlinedConditionProfile methodMissing,
             @Cached CallInternalMethodNode callNode,
             @Cached GetSpecialVariableStorage readingNode,
             @Cached LazyDispatchMethodMissingNode lazyDispatchMethodMissingNode) {
-        return dispatchInternal(frame, receiver, methodName, rubyArgs, config, literalCallNode,
-                metaclassNode, methodLookup, methodMissing, callNode, readingNode, specialVariableAssumption,
-                lazyDispatchMethodMissingNode);
-    }
-
-    protected final Object dispatchInternal(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode,
-            MetaClassNode metaClassNode,
-            LookupMethodNode lookupMethodNode,
-            InlinedConditionProfile methodMissingProfile,
-            CallInternalMethodNode callNode,
-            GetSpecialVariableStorage readingNode,
-            Assumption specialVariableAssumption,
-            LazyDispatchMethodMissingNode lazyDispatchMethodMissingNode) {
         assert RubyArguments.getSelf(rubyArgs) == receiver;
         CompilerAsserts.partialEvaluationConstant(config);
 
         final RubyClass metaclass = metaClassNode.execute(this, receiver);
         final InternalMethod method = lookupMethodNode.execute(frame, metaclass, methodName, config);
 
-        if (methodMissingProfile.profile(this, method == null || method.isUndefined())) {
+        if (methodMissing.profile(this, method == null || method.isUndefined())) {
             return lazyDispatchMethodMissingNode.get(this).execute(frame, receiver, methodName, rubyArgs, config,
                     literalCallNode);
         }
