@@ -12,7 +12,9 @@ guard -> { !TruffleRuby.native? } do
   describe "Java.add_to_classpath" do
     before :all do
       jar_dir = File.expand_path(File.dirname(__FILE__)) + '/fixtures/examplejar'
-      bin_dir = TruffleRuby.graalvm_home + '/bin'
+      java_home = Truffle::System.get_java_property('java.home')
+      raise "#{java_home} does not exist" unless Dir.exist?(java_home)
+      bin_dir = "#{java_home}/bin"
       Dir.chdir(jar_dir) do
         system("#{bin_dir}/javac org/truffleruby/examplejar/Example.java")
         system("#{bin_dir}/jar cf example.jar org/truffleruby/examplejar/Example.class")
