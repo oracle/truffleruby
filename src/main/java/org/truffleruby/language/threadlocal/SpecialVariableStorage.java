@@ -51,6 +51,11 @@ public final class SpecialVariableStorage implements TruffleObject {
         return (Assumption) descriptor.getInfo();
     }
 
+    public static boolean hasSpecialVariableAssumption(FrameDescriptor descriptor) {
+        var info = descriptor.getInfo();
+        return info instanceof Assumption assumption && assumption.getName() == ASSUMPTION_NAME;
+    }
+
     public static boolean hasSpecialVariableStorageSlot(Frame frame) {
         assert RubyArguments.getDeclarationFrame(frame) == null;
         return hasSpecialVariableStorageSlot(frame.getFrameDescriptor());

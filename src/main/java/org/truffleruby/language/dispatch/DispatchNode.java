@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -37,6 +38,7 @@ import org.truffleruby.options.Options;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
+@ImportStatic(Assumption.class)
 @GenerateUncached
 public abstract class DispatchNode extends SpecialVariablesSendingNode {
 
@@ -280,7 +282,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
             DispatchConfiguration config,
             LiteralCallNode literalCallNode,
             @Cached(value = "getSpecialVariableAssumption(frame)",
-                    uncached = "getValidAssumption()") Assumption specialVariableAssumption,
+                    uncached = "ALWAYS_VALID") Assumption specialVariableAssumption,
             @Cached MetaClassNode metaclassNode,
             @Cached LookupMethodNode methodLookup,
             @Cached InlinedConditionProfile methodMissing,
