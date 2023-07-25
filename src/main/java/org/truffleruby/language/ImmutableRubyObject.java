@@ -147,7 +147,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             @Shared @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
-        Object result = dispatchMember.call(this, name, PRIVATE_RETURN_MISSING, convertedArguments);
+        Object result = dispatchMember.call(PRIVATE_RETURN_MISSING, this, name, convertedArguments);
         if (result == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);

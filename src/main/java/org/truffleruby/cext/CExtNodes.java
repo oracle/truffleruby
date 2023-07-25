@@ -327,7 +327,7 @@ public abstract class CExtNodes {
                     MutexOperations.unlockInternal(lock);
                 }
                 try {
-                    return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), config, block,
+                    return dispatchNode.callWithFrameAndBlock(config, frame, receiver, method.getString(), block,
                             descriptor, args);
                 } finally {
                     if (owned) {
@@ -335,7 +335,7 @@ public abstract class CExtNodes {
                     }
                 }
             } else {
-                return dispatchNode.callWithFrameAndBlock(frame, receiver, method.getString(), config, block,
+                return dispatchNode.callWithFrameAndBlock(config, frame, receiver, method.getString(), block,
                         descriptor, args);
             }
         }

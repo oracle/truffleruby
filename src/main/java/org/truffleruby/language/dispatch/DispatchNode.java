@@ -60,7 +60,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
             DispatchConfiguration config,
             LiteralCallNode literalCallNode);
 
-    public Object call(Object receiver, String method, DispatchConfiguration config) {
+    public Object call(DispatchConfiguration config, Object receiver, String method) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
@@ -76,7 +76,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(null, receiver, method, rubyArgs, PRIVATE, null);
     }
 
-    public Object call(Object receiver, String method, DispatchConfiguration config, Object arg1) {
+    public Object call(DispatchConfiguration config, Object receiver, String method, Object arg1) {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
@@ -94,7 +94,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(null, receiver, method, rubyArgs, PRIVATE, null);
     }
 
-    public Object call(Object receiver, String method, DispatchConfiguration config, Object arg1, Object arg2) {
+    public Object call(DispatchConfiguration config, Object receiver, String method, Object arg1, Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
@@ -125,7 +125,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(null, receiver, method, rubyArgs, PRIVATE, null);
     }
 
-    public Object call(Object receiver, String method, DispatchConfiguration config, Object[] arguments) {
+    public Object call(DispatchConfiguration config, Object receiver, String method, Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
@@ -171,7 +171,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(null, receiver, method, rubyArgs, PRIVATE, null);
     }
 
-    public Object callWithBlock(Object receiver, String method, DispatchConfiguration config, Object block, Object arg1,
+    public Object callWithBlock(DispatchConfiguration config, Object receiver, String method, Object block, Object arg1,
             Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -182,7 +182,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(null, receiver, method, rubyArgs, config, null);
     }
 
-    public Object callWithBlock(Object receiver, String method, DispatchConfiguration config, Object block, Object arg1,
+    public Object callWithBlock(DispatchConfiguration config, Object receiver, String method, Object block, Object arg1,
             Object arg2, Object arg3) {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -218,7 +218,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(frame, receiver, method, rubyArgs, PRIVATE, null);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, DispatchConfiguration config,
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,
             Object arg1) {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -228,7 +228,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(frame, receiver, method, rubyArgs, config, null);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, DispatchConfiguration config, Object arg1,
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method, Object arg1,
             Object arg2) {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -239,7 +239,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(frame, receiver, method, rubyArgs, config, null);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, DispatchConfiguration config, Object arg1,
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method, Object arg1,
             Object arg2, Object arg3) {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -251,7 +251,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(frame, receiver, method, rubyArgs, config, null);
     }
 
-    public Object callWithFrame(Frame frame, Object receiver, String method, DispatchConfiguration config,
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,
             Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
@@ -261,9 +261,8 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return execute(frame, receiver, method, rubyArgs, config, null);
     }
 
-    public final Object callWithFrameAndBlock(Frame frame, Object receiver, String methodName,
-            DispatchConfiguration config, Object block,
-            ArgumentsDescriptor descriptor, Object[] arguments) {
+    public final Object callWithFrameAndBlock(DispatchConfiguration config, Frame frame, Object receiver,
+            String methodName, Object block, ArgumentsDescriptor descriptor, Object[] arguments) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);

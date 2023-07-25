@@ -38,7 +38,7 @@ public abstract class HashCastNode extends RubyBaseNode {
     protected RubyHash cast(Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toHashNode) {
-        final Object result = toHashNode.call(object, "to_hash", PRIVATE_RETURN_MISSING);
+        final Object result = toHashNode.call(PRIVATE_RETURN_MISSING, object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
             errorProfile.enter(this);

@@ -33,7 +33,7 @@ public abstract class ArrayConvertNode extends RubyBaseNode {
             @Cached ConditionProfile canCast,
             @Cached ArrayBuilderNode arrayBuilder,
             @Cached DispatchNode toArrayNode) {
-        final Object result = toArrayNode.call(object, "to_ary", PRIVATE_RETURN_MISSING);
+        final Object result = toArrayNode.call(PRIVATE_RETURN_MISSING, object, "to_ary");
         if (canCast.profile(result instanceof RubyArray)) {
             return (RubyArray) result;
         } else {

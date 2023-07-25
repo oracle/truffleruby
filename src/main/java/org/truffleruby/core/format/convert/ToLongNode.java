@@ -82,7 +82,7 @@ public abstract class ToLongNode extends FormatNode {
             @Cached InlinedBranchProfile noConversionAvailable,
             @Bind("this") Node node) {
 
-        Object result = toIntNode.call(object, "to_int", PRIVATE_RETURN_MISSING);
+        Object result = toIntNode.call(PRIVATE_RETURN_MISSING, object, "to_int");
         if (result == DispatchNode.MISSING) {
             noConversionAvailable.enter(node);
             throw new CantConvertException("can't convert Object to Integer");

@@ -54,7 +54,7 @@ public final class ShouldDestructureNode extends RubyContextSourceNode {
             respondToToAry = insert(DispatchNode.create());
         }
 
-        var respondToCallResult = respondToToAry.call(singleArgument, "respond_to?", PRIVATE_RETURN_MISSING,
+        var respondToCallResult = respondToToAry.call(PRIVATE_RETURN_MISSING, singleArgument, "respond_to?",
                 getLanguage().coreSymbols.TO_ARY);
         // the object may not have the #respond_to? method (e.g. an instance of BasicObject class)
         if (respondToCallResult == DispatchNode.MISSING) {

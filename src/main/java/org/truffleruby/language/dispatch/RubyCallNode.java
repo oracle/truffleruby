@@ -351,7 +351,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
             final InternalMethod method = lookupMethodNode.execute(frame, receiverObject, methodName, dispatchConfig);
 
             if (methodNotFoundProfile.profile(this, method == null)) {
-                final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", PRIVATE_RETURN_MISSING,
+                final Object r = respondToMissing.call(PRIVATE_RETURN_MISSING, receiverObject, "respond_to_missing?",
                         methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.execute(this, r)) {

@@ -1438,7 +1438,7 @@ public abstract class ArrayNodes {
             int n = start;
             try {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    accumulator = dispatch.callWithFrame(frame, accumulator, symbol, PUBLIC, stores.read(store, n));
+                    accumulator = dispatch.callWithFrame(PUBLIC, frame, accumulator, symbol, stores.read(store, n));
                     TruffleSafepoint.poll(this);
                 }
             } finally {
