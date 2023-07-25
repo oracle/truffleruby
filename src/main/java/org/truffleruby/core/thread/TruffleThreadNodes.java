@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -22,24 +23,11 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
 
 @CoreModule("Truffle::ThreadOperations")
 public abstract class TruffleThreadNodes {
-
-    private static final class FrameAndCallNode {
-
-        public final Frame frame;
-        public final Node callNode;
-
-        public FrameAndCallNode(Frame frame, Node callNode) {
-            this.frame = frame;
-            this.callNode = callNode;
-        }
-    }
 
     @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
@@ -53,15 +41,13 @@ public abstract class TruffleThreadNodes {
                 @Cached GetSpecialVariableStorage storageNode) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(store, 0, modulesSize);
-            FrameAndCallNode data = getContext()
+            MaterializedFrame frame = getContext()
                     .getCallStack()
-                    .iterateFrameNotInModules(
-                            moduleArray,
-                            f -> new FrameAndCallNode(f.getFrame(FrameAccess.MATERIALIZE), f.getCallNode()));
-            if (data == null) {
+                    .iterateFrameNotInModules(moduleArray, f -> f.getFrame(FrameAccess.MATERIALIZE).materialize());
+            if (frame == null) {
                 return nil;
             } else {
-                Object variables = storageNode.execute(data.frame.materialize());
+                Object variables = storageNode.execute(frame.materialize());
                 getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;
             }
