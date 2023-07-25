@@ -76,7 +76,7 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = { "stringsId.isRubyString(langId)", "stringsSource.isRubyString(code)" },
-                replaces = "evalCached", limit = "1")
+                replaces = "evalCached")
         protected static Object evalUncached(Object langId, Object code,
                 @Shared @Cached RubyStringLibrary stringsId,
                 @Shared @Cached RubyStringLibrary stringsSource,
@@ -115,7 +115,7 @@ public abstract class PolyglotNodes {
     public abstract static class EvalFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "stringsId.isRubyString(fileName)", limit = "1")
+        @Specialization(guards = "stringsId.isRubyString(fileName)")
         protected Object evalFile(Object fileName, NotProvided id,
                 @Shared @Cached RubyStringLibrary stringsId) {
             final Source source;
@@ -248,7 +248,7 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
-                replaces = "evalCached", limit = "1")
+                replaces = "evalCached")
         protected static Object evalUncached(
                 RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @Shared @Cached RubyStringLibrary idLib,

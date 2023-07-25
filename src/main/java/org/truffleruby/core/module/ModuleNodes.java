@@ -445,7 +445,7 @@ public abstract class ModuleNodes {
     @GenerateUncached
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "!isFrozenNode.execute(self)", limit = "1")
+        @Specialization(guards = "!isFrozenNode.execute(self)")
         protected Object writer(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared IsFrozenNode isFrozenNode,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
@@ -457,7 +457,7 @@ public abstract class ModuleNodes {
             return value;
         }
 
-        @Specialization(guards = "isFrozenNode.execute(self)", limit = "1")
+        @Specialization(guards = "isFrozenNode.execute(self)")
         protected Object frozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared IsFrozenNode isFrozenNode) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
@@ -1012,7 +1012,7 @@ public abstract class ModuleNodes {
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName, name)" },
-                replaces = "getConstantStringCached", limit = "1")
+                replaces = "getConstantStringCached")
         protected Object getConstantString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
@@ -1021,7 +1021,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName, name)" }, limit = "1")
+                guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName, name)" })
         protected Object getConstantNoInheritString(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
@@ -1030,7 +1030,7 @@ public abstract class ModuleNodes {
         }
 
         // Scoped String
-        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name)" }, limit = "1")
+        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name)" })
         protected Object getConstantScoped(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName) {

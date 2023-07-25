@@ -244,7 +244,7 @@ public abstract class TruffleSystemNodes {
             return nil;
         }
 
-        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached", limit = "1")
+        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
         protected Object log(RubySymbol level, Object message,
                 @Shared @Cached RubyStringLibrary strings,
                 @Shared @Cached ToJavaStringNode toJavaStringNode) {

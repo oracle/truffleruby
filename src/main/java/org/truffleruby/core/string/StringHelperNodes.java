@@ -174,7 +174,7 @@ public abstract class StringHelperNodes {
 
         public abstract int execute(Object string, TStringWithEncoding[] tstringsWithEncs);
 
-        @Specialization(guards = "libString.getTString(string).isEmpty()", limit = "1")
+        @Specialization(guards = "libString.getTString(string).isEmpty()")
         protected int count(Object string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString) {
             return 0;
@@ -206,7 +206,7 @@ public abstract class StringHelperNodes {
             return StringSupport.strCount(byteArray, codeRange, squeeze, tables, compatEncoding.jcoding, this);
         }
 
-        @Specialization(guards = "!libString.getTString(string).isEmpty()", limit = "1")
+        @Specialization(guards = "!libString.getTString(string).isEmpty()")
         protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,

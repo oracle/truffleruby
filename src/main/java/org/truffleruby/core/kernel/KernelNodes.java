@@ -230,7 +230,7 @@ public abstract class KernelNodes {
 
         public abstract boolean execute(Object a, Object b);
 
-        @Specialization(guards = "referenceEqual.execute(this, a, b)", limit = "1")
+        @Specialization(guards = "referenceEqual.execute(this, a, b)")
         protected boolean refEqual(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
@@ -749,9 +749,8 @@ public abstract class KernelNodes {
             return callNode.call(rubyArgs);
         }
 
-        @Specialization(
-                guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
-                replaces = "evalCached", limit = "1")
+        @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
+                replaces = "evalCached")
         protected static Object evalBindingUncached(
                 Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
@@ -923,14 +922,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1, alwaysInlined = true)
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "equalNode.execute(this, self, from)", limit = "1")
+        @Specialization(guards = "equalNode.execute(this, self, from)")
         protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode) {
             return self;
         }
 
-        @Specialization(guards = "!equalNode.execute(this, self, from)", limit = "1")
+        @Specialization(guards = "!equalNode.execute(this, self, from)")
         protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode,
@@ -1667,9 +1666,7 @@ public abstract class KernelNodes {
             return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
-        @Specialization(
-                guards = "libFormat.isRubyString(format)",
-                replaces = "formatCached", limit = "1")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,

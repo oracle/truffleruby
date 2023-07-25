@@ -246,7 +246,7 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
-                replaces = "evalCached", limit = "1")
+                replaces = "evalCached")
         protected static Object evalUncached(Object mimeType, RubyString source,
                 @Shared @Cached RubyStringLibrary stringsMimeType,
                 @Shared @Cached RubyStringLibrary stringsSource,

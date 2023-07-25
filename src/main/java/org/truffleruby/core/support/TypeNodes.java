@@ -131,7 +131,7 @@ public abstract class TypeNodes {
             return self;
         }
 
-        @Specialization(guards = "!metaClass.isSingleton", limit = "1")
+        @Specialization(guards = "!metaClass.isSingleton")
         protected Object freezeNormalObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Shared MetaClassNode metaClassNode,
@@ -140,7 +140,7 @@ public abstract class TypeNodes {
             return self;
         }
 
-        @Specialization(guards = "metaClass.isSingleton", limit = "1")
+        @Specialization(guards = "metaClass.isSingleton")
         protected static Object freezeSingletonObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Exclusive FreezeNode freezeMetaClasNode,

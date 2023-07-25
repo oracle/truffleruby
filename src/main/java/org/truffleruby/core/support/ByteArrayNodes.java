@@ -157,8 +157,7 @@ public abstract class ByteArrayNodes {
     @Primitive(name = "bytearray_locate", lowerFixnum = { 2, 3 })
     public abstract static class LocateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(
-                guards = "isSingleBytePattern(patternTString, patternEncoding)", limit = "1")
+        @Specialization(guards = "isSingleBytePattern(patternTString, patternEncoding)")
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached InlinedBranchProfile tooSmallStartProfile,
@@ -185,8 +184,7 @@ public abstract class ByteArrayNodes {
             return index == -1 ? nil : index + 1;
         }
 
-        @Specialization(
-                guards = "!isSingleBytePattern(patternTString, patternEncoding)", limit = "1")
+        @Specialization(guards = "!isSingleBytePattern(patternTString, patternEncoding)")
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,

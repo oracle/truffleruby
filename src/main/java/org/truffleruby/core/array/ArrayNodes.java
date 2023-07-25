@@ -284,7 +284,7 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = "isArithmeticSequence(enumerator, isANode)", limit = "1")
+        @Specialization(guards = "isArithmeticSequence(enumerator, isANode)")
         protected Object indexArithmeticSequence(RubyArray array, Object enumerator, NotProvided length,
                 @Cached @Shared IsANode isANode,
                 @Cached DispatchNode callSliceArithmeticSequence) {
@@ -295,8 +295,7 @@ public abstract class ArrayNodes {
                 guards = {
                         "!isInteger(index)",
                         "!isRubyRange(index)",
-                        "!isArithmeticSequence(index, isANode)" },
-                limit = "1")
+                        "!isArithmeticSequence(index, isANode)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached @Shared IsANode isANode,
                 @Cached AtNode accessWithIndexConversion) {
@@ -1558,7 +1557,7 @@ public abstract class ArrayNodes {
             return finishPack(node, cachedFormatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached", limit = "1")
+        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
         protected static RubyString packUncached(Node node, RubyArray array, Object format,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
