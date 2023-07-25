@@ -161,6 +161,11 @@ public abstract class CExtNodes {
         return pointer;
     }
 
+    public static Pointer newZeroedNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
+        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
+        return Pointer.callocAutoRelease(language, context, capacity + 4);
+    }
+
     private static long getNativeStringCapacity(Pointer pointer) {
         final long nativeBufferSize = pointer.getSize();
         assert nativeBufferSize > 0;
@@ -783,7 +788,7 @@ public abstract class CExtNodes {
         @Specialization
         protected RubyString rbStrNewNul(int byteLength,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            final Pointer pointer = Pointer.callocAutoRelease(getLanguage(), getContext(), byteLength + 1);
+            final Pointer pointer = newZeroedNativeStringPointer(getLanguage(), getContext(), byteLength);
             var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, Encodings.BINARY.tencoding,
                     false);
             return createMutableString(nativeTString, Encodings.BINARY);
