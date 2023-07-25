@@ -61,7 +61,6 @@ public abstract class TruffleThreadNodes {
             if (data == null) {
                 return nil;
             } else {
-                //ReadCallerVariablesNode.notifyCallerToSendSpecialVariables(data.callNode);
                 Object variables = storageNode.execute(data.frame.materialize());
                 getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;

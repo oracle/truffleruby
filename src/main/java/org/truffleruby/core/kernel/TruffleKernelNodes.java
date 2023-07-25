@@ -222,6 +222,10 @@ public abstract class TruffleKernelNodes {
             return GetSpecialVariableStorageNodeGen.create();
         }
 
+        public static GetSpecialVariableStorage getUncached() {
+            return GetSpecialVariableStorageNodeGen.getUncached();
+        }
+
         public abstract SpecialVariableStorage execute(Frame frame);
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
@@ -248,7 +252,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        public static SpecialVariableStorage getSlow(MaterializedFrame aFrame) {
+        private static SpecialVariableStorage getSlow(MaterializedFrame aFrame) {
             MaterializedFrame frame = FindDeclarationVariableNodes.getOuterDeclarationFrame(aFrame);
             Object variables = SpecialVariableStorage.get(frame);
             if (variables == Nil.INSTANCE) {

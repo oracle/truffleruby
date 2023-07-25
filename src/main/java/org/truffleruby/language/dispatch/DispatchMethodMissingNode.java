@@ -34,10 +34,8 @@ import static org.truffleruby.language.dispatch.DispatchNode.MISSING;
 @ImportStatic(MissingBehavior.class)
 public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
-
     public abstract Object execute(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
             DispatchConfiguration config, LiteralCallNode literalCallNode);
-
 
     @Specialization(guards = "config.missingBehavior == RETURN_MISSING")
     protected static Object dispatchReturnMissing(

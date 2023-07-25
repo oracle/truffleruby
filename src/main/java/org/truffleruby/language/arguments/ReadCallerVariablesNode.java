@@ -53,6 +53,6 @@ public class ReadCallerVariablesNode extends RubyBaseNode {
                             this));
         }
 
-        return GetSpecialVariableStorage.getSlow(callerFrame);
+        return GetSpecialVariableStorage.getUncached().execute(callerFrame);
     }
 }
