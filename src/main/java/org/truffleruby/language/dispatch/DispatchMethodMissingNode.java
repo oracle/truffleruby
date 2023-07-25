@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
@@ -22,7 +23,6 @@ import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
@@ -31,6 +31,7 @@ import static org.truffleruby.language.dispatch.DispatchNode.MISSING;
 
 @GenerateInline(false)
 @GenerateUncached
+@ImportStatic(MissingBehavior.class)
 public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
 
@@ -38,7 +39,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
             DispatchConfiguration config, LiteralCallNode literalCallNode);
 
 
-    @Specialization(guards = "isReturnMissing(config)")
+    @Specialization(guards = "config.missingBehavior == RETURN_MISSING")
     protected static Object dispatchReturnMissing(
             Frame frame,
             Object receiver,
@@ -50,7 +51,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
     }
 
     @InliningCutoff
-    @Specialization(guards = "isForeignObject(config, receiver)")
+    @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "isForeignObject(receiver)" })
     protected static Object dispatchForeign(
             Frame frame,
             Object receiver,
@@ -65,7 +66,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
     }
 
     @InliningCutoff
-    @Specialization(guards = "isMethodMissing(config, receiver)")
+    @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "!isForeignObject(receiver)" })
     protected static Object dispatchMissingMethod(
             Frame frame,
             Object receiver,
@@ -96,17 +97,5 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
         }
 
         return result;
-    }
-
-    protected static boolean isReturnMissing(DispatchConfiguration config) {
-        return config.missingBehavior == MissingBehavior.RETURN_MISSING;
-    }
-
-    protected static boolean isForeignObject(DispatchConfiguration config, Object receiver) {
-        return config.missingBehavior == MissingBehavior.CALL_METHOD_MISSING && RubyGuards.isForeignObject(receiver);
-    }
-
-    protected static boolean isMethodMissing(DispatchConfiguration config, Object receiver) {
-        return config.missingBehavior == MissingBehavior.CALL_METHOD_MISSING && !RubyGuards.isForeignObject(receiver);
     }
 }

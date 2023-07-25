@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -303,6 +304,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
             Assumption specialVariableAssumption,
             LazyDispatchMethodMissingNode lazyDispatchMethodMissingNode) {
         assert RubyArguments.getSelf(rubyArgs) == receiver;
+        CompilerAsserts.partialEvaluationConstant(config);
 
         final RubyClass metaclass = metaClassNode.execute(this, receiver);
         final InternalMethod method = lookupMethodNode.execute(frame, metaclass, methodName, config);
