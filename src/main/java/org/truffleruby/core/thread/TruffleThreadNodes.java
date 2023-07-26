@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -22,25 +24,11 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 @CoreModule("Truffle::ThreadOperations")
 public abstract class TruffleThreadNodes {
-
-    private static final class FrameAndCallNode {
-
-        public final Frame frame;
-        public final Node callNode;
-
-        public FrameAndCallNode(Frame frame, Node callNode) {
-            this.frame = frame;
-            this.callNode = callNode;
-        }
-    }
 
     @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
@@ -48,23 +36,21 @@ public abstract class TruffleThreadNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object findRubyCaller(RubyArray modules,
+        protected static Object findRubyCaller(RubyArray modules,
                 @Bind("modules.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached GetSpecialVariableStorage storageNode) {
+                @Cached GetSpecialVariableStorage storageNode,
+                @Bind("this") Node node) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(store, 0, modulesSize);
-            FrameAndCallNode data = getContext()
+            MaterializedFrame frame = getContext(node)
                     .getCallStack()
-                    .iterateFrameNotInModules(
-                            moduleArray,
-                            f -> new FrameAndCallNode(f.getFrame(FrameAccess.MATERIALIZE), f.getCallNode()));
-            if (data == null) {
+                    .iterateFrameNotInModules(moduleArray, f -> f.getFrame(FrameAccess.MATERIALIZE).materialize());
+            if (frame == null) {
                 return nil;
             } else {
-                ReadCallerVariablesNode.notifyCallerToSendSpecialVariables(data.callNode);
-                Object variables = storageNode.execute(data.frame.materialize());
-                getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
+                Object variables = storageNode.execute(frame.materialize(), node);
+                getLanguage(node).getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;
             }
         }

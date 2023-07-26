@@ -74,7 +74,7 @@ public final class BlockDefinitionNode extends RubyContextSourceNode {
                 sharedMethodInfo,
                 callTargets,
                 frame.materialize(),
-                readSpecialVariableStorageNode.execute(frame),
+                readSpecialVariableStorageNode.executeCached(frame),
                 RubyArguments.getMethod(frame),
                 frameOnStackMarker,
                 executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));

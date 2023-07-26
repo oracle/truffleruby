@@ -9,11 +9,14 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
+import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 /** Some Ruby methods need access to the caller special variables: see usages of {@link ReadCallerVariablesNode}. This
@@ -30,33 +33,24 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * stack.
  *
  * <p>
- * This class works in tandem with {@link GetSpecialVariableStorage} for this purpose. At first, we don't send down the
- * {@link SpecialVariableStorage}. If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow).
- * It will also call {@link #startSendingOwnVariables()}, so that the next time the method is called, the special
- * variables will be passed down and the method does not need further de-optimizations.
- *
- * <p>
- * {@link ReadCallerVariablesNode} is used by child nodes that require access to this storage and this mechanism ensures
- * they receive an object that will not require CallTarget splitting to be accessed efficiently (i.e., part of the
- * calling convention and not having to find the value in the caller frame). */
+ * This class works in tandem with {@link GetSpecialVariableStorage} and {@link ReadCallerVariablesNode}. When those two
+ * classes don't have {@link SpecialVariableStorage} in the frame they will invalidate the exception, so that the next
+ * time the method is called, the special variables will be passed down. */
 @SuppressFBWarnings("IS")
 public abstract class SpecialVariablesSendingNode extends RubyBaseNode {
 
-    @Child protected GetSpecialVariableStorage readingNode;
-
-    public void startSendingOwnVariables() {
-        synchronized (this) {
-            if (readingNode == null) {
-                readingNode = insert(GetSpecialVariableStorage.create());
-            }
+    @NeverDefault
+    protected Assumption getSpecialVariableAssumption(Frame frame) {
+        if (frame == null) {
+            return Assumption.ALWAYS_VALID;
         }
-    }
 
-    public SpecialVariableStorage getSpecialVariablesIfRequired(Frame frame) {
-        if (readingNode == null) {
-            return null;
+        var outerFrameDescriptor = FindDeclarationVariableNodes.getOuterFrameDescriptor(frame.getFrameDescriptor());
+
+        if (SpecialVariableStorage.hasSpecialVariableAssumption(outerFrameDescriptor)) {
+            return SpecialVariableStorage.getAssumption(outerFrameDescriptor);
         } else {
-            return readingNode.execute(frame);
+            return Assumption.ALWAYS_VALID;
         }
     }
 

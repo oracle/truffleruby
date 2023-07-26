@@ -41,6 +41,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
@@ -261,10 +262,9 @@ public abstract class ClassNodes {
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode allocateNode = DispatchNode.create();
-
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass) {
+        protected Object newInstance(RubyClass rubyClass,
+                @Cached DispatchNode allocateNode) {
             return allocateNode.call(rubyClass, "__allocate__");
         }
 
@@ -288,7 +288,8 @@ public abstract class ClassNodes {
                 @Cached DispatchNode allocateNode,
                 @Cached DispatchNode initializeNode) {
             final Object instance = allocateNode.call(rubyClass, "__allocate__");
-            initializeNode.dispatch(null, instance, "initialize", RubyArguments.repack(rubyArgs, instance));
+            initializeNode.execute(null, instance, "initialize", RubyArguments.repack(rubyArgs, instance), PRIVATE,
+                    null);
             return instance;
         }
 

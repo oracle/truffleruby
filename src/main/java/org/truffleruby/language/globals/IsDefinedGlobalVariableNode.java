@@ -11,6 +11,7 @@ package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyBaseNode;
@@ -55,12 +56,13 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
-    protected Object hooksWithBinding(VirtualFrame frame,
+    protected static Object hooksWithBinding(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,
-            @Cached GetSpecialVariableStorage readStorage) {
-        return yieldNode.yield(storage.getIsDefined(), readStorage.execute(frame));
+            @Cached GetSpecialVariableStorage readStorage,
+            @Bind("this") Node node) {
+        return yieldNode.yield(storage.getIsDefined(), readStorage.execute(frame, node));
     }
 
     protected int isDefinedArity(GlobalVariableStorage storage) {

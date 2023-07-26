@@ -69,7 +69,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
         yieldNode.yield(
                 storage.getSetter(),
                 value,
-                storageNode.execute(frame));
+                storageNode.execute(frame, this));
         return value;
     }
 
