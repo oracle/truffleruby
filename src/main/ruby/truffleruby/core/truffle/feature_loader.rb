@@ -35,6 +35,9 @@ module Truffle
     # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
     @loaded_features_version = -1
 
+    @features_realpath_cache = {}
+    @loaded_features_realpaths = {}
+
     @expanded_load_path = []
     # A snapshot of $LOAD_PATH, to check if the @expanded_load_path cache is up to date.
     @load_path_version = -1
@@ -138,6 +141,16 @@ module Truffle
           end
         end
       end
+    end
+
+    def self.load_unless_realpath_loaded(feature, path)
+      # TODO: does this need to be synchronized?
+      realpath = (@features_realpath_cache[path] ||= File.realpath(path) || path)
+      return false if @loaded_features_realpaths.key?(realpath)
+
+      result = Primitive.load_feature(feature, path)
+      @loaded_features_realpaths[realpath] = path
+      result
     end
 
     def self.expanded_path_provided(path, ext, use_feature_provided)
@@ -292,6 +305,9 @@ module Truffle
       unless @loaded_features_version == $LOADED_FEATURES.version
         raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
         @loaded_features_index.clear
+        previous_realpaths = @features_realpath_cache.dup
+        @features_realpath_cache.clear
+        @loaded_features_realpaths.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
           #val.freeze # TODO freeze these but post-boot.rb issue using replace
@@ -299,6 +315,14 @@ module Truffle
         end
         $LOADED_FEATURES.each_with_index do |val, idx|
           features_index_add(val, idx)
+          # TODO: do we need to do this in a separate loop on a copy to avoid
+          # concurrency issues? it's already called from with_synchronized_features.
+          # https://github.com/ruby/ruby/pull/4887/commits/972f2744d8145db965f1c4218313bd200ea0a740#:~:text=To%20avoid%20concurrency%20issues%20when%20rebuilding%20the%20loaded%20features%0Aindex%2C%20the%20building%20of%20the%20index%20itself%20is%20left%20alone%2C%20and%0Aafterwards%2C%20a%20separate%20loop%20is%20done%20on%20a%20copy%20of%20the%20loaded%20feature%0Asnapshot%20in%20order%20to%20rebuild%20the%20realpaths%20hash.
+        # end
+        # $LOADED_FEATURES.dup.each_with_index do |val, idx|
+          realpath = previous_realpaths[val] || (File.exist?(val) ? File.realpath(val) : val)
+          @features_realpath_cache[val] = realpath
+          @loaded_features_realpaths[realpath] = val
         end
         @loaded_features_version = $LOADED_FEATURES.version
       end
