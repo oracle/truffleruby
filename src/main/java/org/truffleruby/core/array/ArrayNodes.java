@@ -251,7 +251,7 @@ public abstract class ArrayNodes {
                 @Cached FixnumLowerNode lowerNode,
                 @Cached AtNode atNode,
                 @Bind("this") Node node) {
-            return atNode.executeAt(array, lowerNode.executeLower(toLongNode.execute(node, index)));
+            return atNode.executeAt(array, lowerNode.execute(node, toLongNode.execute(node, index)));
         }
     }
 

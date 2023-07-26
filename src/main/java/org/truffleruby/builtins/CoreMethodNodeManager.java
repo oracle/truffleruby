@@ -27,7 +27,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.numeric.FixnumLowerNodeGen.FixnumLowerASTNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
@@ -435,7 +435,7 @@ public final class CoreMethodNodeManager {
 
     private static RubyNode transformArgument(CoreMethod method, RubyNode argument, int n) {
         if (ArrayUtils.contains(method.lowerFixnum(), n)) {
-            argument = FixnumLowerNodeGen.create(argument);
+            argument = FixnumLowerASTNodeGen.create(argument);
         }
 
         if (n == 0 && method.raiseIfFrozenSelf()) {

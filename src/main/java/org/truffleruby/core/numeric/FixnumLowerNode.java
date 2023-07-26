@@ -9,9 +9,14 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.numeric.FixnumLowerNodeGen.FixnumLowerASTNodeGen;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -24,45 +29,49 @@ import org.truffleruby.language.RubyNode;
  *
  * <p>
  * See {@link org.truffleruby.core.cast.ToIntNode} for a comparison of different integer conversion nodes. */
-@NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
-public abstract class FixnumLowerNode extends RubyContextSourceNode {
+@GenerateCached(false)
+@GenerateInline
+public abstract class FixnumLowerNode extends RubyBaseNode {
 
-    @NeverDefault
-    public static FixnumLowerNode create() {
-        return FixnumLowerNodeGen.create(null);
-    }
-
-    public static FixnumLowerNode create(RubyBaseNodeWithExecute value) {
-        return FixnumLowerNodeGen.create(value);
-    }
-
-    public abstract Object executeLower(Object value);
-
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract Object execute(Node node, Object value);
 
     @Specialization
-    protected int lower(int value) {
+    protected static int lower(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected int lower(long value) {
+    protected static int lower(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected long lowerFails(long value) {
+    protected static long lowerFails(long value) {
         return value;
     }
 
     @Specialization(guards = "!isImplicitLong(value)")
-    protected Object passThrough(Object value) {
+    protected static Object passThrough(Object value) {
         return value;
     }
 
-    public RubyNode cloneUninitialized() {
-        var copy = create(getValueNode().cloneUninitialized());
-        return copy.copyFlags(this);
+    @NodeChild(value = "valueNode", type = RubyBaseNodeWithExecute.class)
+    public abstract static class FixnumLowerASTNode extends RubyContextSourceNode {
+
+        protected abstract RubyBaseNodeWithExecute getValueNode();
+
+        @Specialization
+        protected Object doFixnumLower(Object value,
+                @Cached FixnumLowerNode fixnumLowerNode) {
+            return fixnumLowerNode.execute(this, value);
+
+        }
+
+        @Override
+        public RubyNode cloneUninitialized() {
+            var copy = FixnumLowerASTNodeGen.create(getValueNode().cloneUninitialized());
+            return copy.copyFlags(this);
+        }
     }
 
 }
