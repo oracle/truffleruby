@@ -303,7 +303,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setMethod(rubyArgs, method);
 
         if (!specialVariableAssumption.isValid()) {
-            RubyArguments.setCallerSpecialVariables(rubyArgs, readingNode.execute(frame));
+            RubyArguments.setCallerSpecialVariables(rubyArgs, readingNode.execute(frame, this));
         }
         assert RubyArguments.assertFrameArguments(rubyArgs);
 

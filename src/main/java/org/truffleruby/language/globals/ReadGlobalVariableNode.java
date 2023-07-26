@@ -55,7 +55,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
             @Bind("getterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode) {
-        return yieldNode.yield(storage.getGetter(), storageNode.execute(frame));
+        return yieldNode.yield(storage.getGetter(), storageNode.execute(frame, this));
     }
 
     protected int getterArity(GlobalVariableStorage storage) {

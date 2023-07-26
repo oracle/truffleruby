@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -35,20 +36,21 @@ public abstract class TruffleThreadNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object findRubyCaller(RubyArray modules,
+        protected static Object findRubyCaller(RubyArray modules,
                 @Bind("modules.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
-                @Cached GetSpecialVariableStorage storageNode) {
+                @Cached GetSpecialVariableStorage storageNode,
+                @Bind("this") Node node) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(store, 0, modulesSize);
-            MaterializedFrame frame = getContext()
+            MaterializedFrame frame = getContext(node)
                     .getCallStack()
                     .iterateFrameNotInModules(moduleArray, f -> f.getFrame(FrameAccess.MATERIALIZE).materialize());
             if (frame == null) {
                 return nil;
             } else {
-                Object variables = storageNode.execute(frame.materialize());
-                getLanguage().getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
+                Object variables = storageNode.execute(frame.materialize(), node);
+                getLanguage(node).getCurrentFiber().extensionCallStack.setSpecialVariables(variables);
                 return variables;
             }
         }

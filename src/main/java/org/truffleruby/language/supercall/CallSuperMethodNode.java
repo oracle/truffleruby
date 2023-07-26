@@ -61,7 +61,7 @@ public final class CallSuperMethodNode extends SpecialVariablesSendingNode {
 
         SpecialVariableStorage callerSpecialVariables = null;
         if (!getSpecialVariableStorageAssumption(frame).isValid()) {
-            callerSpecialVariables = getReadingNode().execute(frame);
+            callerSpecialVariables = getReadingNode().executeCached(frame);
         }
 
         final Object[] rubyArgs = RubyArguments.pack(

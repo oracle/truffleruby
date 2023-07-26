@@ -12,9 +12,11 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -215,6 +217,7 @@ public abstract class TruffleKernelNodes {
 
     @ImportStatic(TruffleKernelNodes.class)
     @GenerateUncached
+    @GenerateInline(inlineByDefault = true)
     public abstract static class GetSpecialVariableStorage extends RubyBaseNode {
 
         @NeverDefault
@@ -222,14 +225,18 @@ public abstract class TruffleKernelNodes {
             return GetSpecialVariableStorageNodeGen.create();
         }
 
-        public static GetSpecialVariableStorage getUncached() {
-            return GetSpecialVariableStorageNodeGen.getUncached();
+        public final SpecialVariableStorage executeCached(Frame frame) {
+            return execute(frame, this);
         }
 
-        public abstract SpecialVariableStorage execute(Frame frame);
+        public static SpecialVariableStorage executeUncached(Frame frame) {
+            return GetSpecialVariableStorageNodeGen.getUncached().execute(frame, null);
+        }
+
+        public abstract SpecialVariableStorage execute(Frame frame, Node node);
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
-        protected SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
+        protected static SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
             Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
@@ -247,7 +254,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(replaces = "getFromKnownFrameDescriptor")
-        protected SpecialVariableStorage slowPath(Frame frame) {
+        protected static SpecialVariableStorage slowPath(Frame frame) {
             return getSlow(frame.materialize());
         }
 
