@@ -613,17 +613,26 @@ module Utilities
     end
   end
 
-  def mx(*args, java_home: find_java_home, **options)
+  def mx(*args, java_home: find_java_home, primary_suite: nil, **options)
     mx_args = args.dup
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
+
     if java_home == :use_env_java_home
       # mx reads $JAVA_HOME
     elsif java_home == :none
       # Make sure $JAVA_HOME is not set, as a wrong value causes mx to abort
       env['JAVA_HOME'] = nil
     else
-      mx_args.unshift '--java-home', java_home
+      if java_home.start_with?(JDKS_CACHE_DIR)
+        mx_args.unshift '--java-home', java_home[JDKS_CACHE_DIR.size+1..-1]
+      else
+        mx_args.unshift '--java-home', java_home
+      end
+    end
+
+    if primary_suite and Dir.pwd != primary_suite
+      mx_args.unshift '-p', primary_suite
     end
 
     sh(env, find_mx, *mx_args, **options)
@@ -2396,7 +2405,7 @@ module Commands
   end
 
   def checkout_enterprise_revision(env = 'jvm-ee')
-    mx('-p', TRUFFLERUBY_DIR, '--env', env, 'checkout-downstream', 'compiler', 'graal-enterprise')
+    mx('--env', env, 'checkout-downstream', 'compiler', 'graal-enterprise', primary_suite: TRUFFLERUBY_DIR)
   end
 
   def bootstrap_toolchain
@@ -2408,8 +2417,8 @@ module Commands
     destination = File.join(toolchain_dir, graal_version)
     unless File.exist? destination
       puts "Building toolchain for: #{graal_version}"
-      mx '-p', sulong_home, '--env', 'toolchain-only', 'build'
-      toolchain_graalvm = mx('-p', sulong_home, '--env', 'toolchain-only', 'graalvm-home', capture: :out).lines.last.chomp
+      mx '--env', 'toolchain-only', 'build', primary_suite: sulong_home
+      toolchain_graalvm = mx('--env', 'toolchain-only', 'graalvm-home', primary_suite: sulong_home, capture: :out).lines.last.chomp
       FileUtils.mkdir_p destination
       FileUtils.cp_r toolchain_graalvm + '/.', destination
     end
@@ -2429,7 +2438,7 @@ module Commands
   end
 
   private def sforceimports?(mx_base_args)
-    scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', capture: :both)
+    scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', primary_suite: TRUFFLERUBY_DIR, capture: :both)
 
     unless scheckimports_output.empty?
       # Don't ask to update, just warn.
@@ -2495,7 +2504,7 @@ module Commands
                  end
 
     name = "truffleruby-#{@ruby_name}"
-    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
+    mx_base_args = ['--env', env]
 
     # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
     ee = ee?
@@ -2503,14 +2512,14 @@ module Commands
     checkout_enterprise_revision(env) if cloned
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
-      mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
+      mx('sforceimports', primary_suite: TRUFFLERUBY_DIR)
       if ee
         checkout_enterprise_revision(env) if !cloned
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
-        mx('-p', vm_enterprise, '--env', env_path(env), 'sforceimports')
+        mx('--env', env_path(env), 'sforceimports', primary_suite: vm_enterprise)
         # And still make sure we import the graal revision as in mx.truffleruby/suite.py
-        mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
+        mx('sforceimports', primary_suite: TRUFFLERUBY_DIR)
       end
     end
 
@@ -2519,8 +2528,8 @@ module Commands
 
     process_env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
 
-    mx(process_env, *mx_args, 'build', *mx_build_options)
-    build_dir = mx(*mx_args, 'graalvm-home', capture: :out).lines.last.chomp
+    mx(process_env, *mx_args, 'build', *mx_build_options, primary_suite: TRUFFLERUBY_DIR)
+    build_dir = mx(*mx_args, 'graalvm-home', primary_suite: TRUFFLERUBY_DIR, capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     dest_ruby = "#{dest}/languages/ruby"
