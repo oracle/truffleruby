@@ -127,7 +127,6 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
@@ -163,7 +162,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -237,12 +235,12 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class MulNode extends CoreMethodNode {
 
-        @CreateCast("times")
-        protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
-            // Not ToIntNode, because this works with empty strings, and must throw a different error
-            // for long values that don't fit in an int.
-            return FixnumLowerNode.create(ToLongNode.create(times));
-        }
+        //        @CreateCast("times")
+        //        protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
+        //            // Not ToIntNode, because this works with empty strings, and must throw a different error
+        //            // for long values that don't fit in an int.
+        //            return FixnumLowerNode.create(ToLongNode.create(times));
+        //        }
 
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(Object string, int times,
@@ -547,8 +545,9 @@ public abstract class StringNodes {
                         "!isRubyRegexp(index)",
                         "isNotRubyString(index)" })
         protected Object getIndex(Object string, Object index, NotProvided length,
+                @Cached @Shared ToLongNode toLongNode,
                 @Cached @Shared RubyStringLibrary strings) {
-            long indexLong = toLong(index);
+            long indexLong = toLongNode.execute(this, index);
             int indexInt = (int) indexLong;
             return indexInt != indexLong
                     ? outOfBoundsNil()
@@ -577,8 +576,9 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "wasProvided(length)")
-        protected Object slice(Object string, long start, Object length) {
-            return slice(string, start, toLong(length));
+        protected Object slice(Object string, long start, Object length,
+                @Cached @Shared ToLongNode toLongNode) {
+            return slice(string, start, toLongNode.execute(this, length));
         }
 
         @Specialization(
@@ -587,8 +587,9 @@ public abstract class StringNodes {
                         "!isRubyRegexp(start)",
                         "isNotRubyString(start)",
                         "wasProvided(length)" })
-        protected Object slice(Object string, Object start, Object length) {
-            return slice(string, toLong(start), toLong(length));
+        protected Object slice(Object string, Object start, Object length,
+                @Cached @Shared ToLongNode toLongNode) {
+            return slice(string, toLongNode.execute(this, start), toLongNode.execute(this, length));
         }
 
         // endregion
@@ -686,16 +687,6 @@ public abstract class StringNodes {
             }
 
             return substringNode.execute(string, start, length);
-        }
-
-        private long toLong(Object value) {
-            if (toLongNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toLongNode = insert(ToLongNode.create());
-            }
-
-            // The long cast is necessary to avoid the invalid `(long) Integer` situation.
-            return toLongNode.execute(value);
         }
 
         private int codePointLength(AbstractTruffleString string, RubyEncoding encoding) {
@@ -2489,10 +2480,11 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isImplicitLong(bits)", "wasProvided(bits)" })
-        protected Object sum(Object string, Object bits,
+        protected static Object sum(Object string, Object bits,
                 @Cached ToLongNode toLongNode,
-                @Cached SumNode sumNode) {
-            return sumNode.executeSum(string, toLongNode.execute(bits));
+                @Cached SumNode sumNode,
+                @Bind("this") Node node) {
+            return sumNode.executeSum(string, toLongNode.execute(node, bits));
         }
 
     }

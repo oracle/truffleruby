@@ -414,11 +414,10 @@ public abstract class TypeNodes {
 
     @Primitive(name = "rb_num2long")
     public abstract static class RbNum2LongPrimitiveNode extends PrimitiveArrayArgumentsNode {
-        @Child private ToLongNode toLongNode = ToLongNode.create();
-
         @Specialization
-        protected long numToLong(Object value) {
-            return toLongNode.execute(value);
+        protected long numToLong(Object value,
+                @Cached ToLongNode toLongNode) {
+            return toLongNode.execute(this, value);
         }
     }
 

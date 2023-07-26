@@ -246,11 +246,12 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isImplicitLong(index)")
-        protected Object at(RubyArray array, Object index,
+        protected static Object at(RubyArray array, Object index,
                 @Cached ToLongNode toLongNode,
                 @Cached FixnumLowerNode lowerNode,
-                @Cached AtNode atNode) {
-            return atNode.executeAt(array, lowerNode.executeLower(toLongNode.execute(index)));
+                @Cached AtNode atNode,
+                @Bind("this") Node node) {
+            return atNode.executeAt(array, lowerNode.executeLower(toLongNode.execute(node, index)));
         }
     }
 
