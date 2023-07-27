@@ -117,7 +117,7 @@ public class RubyDebugTest {
     @Test
     public void testBreakpoint() throws Throwable {
         Source factorial = getSource("factorial.rb");
-        int breakpointLine = 13;
+        int breakpointLine = 15;
 
         run.addLast(() -> {
             assertNull(suspendedEvent);
@@ -167,10 +167,10 @@ public class RubyDebugTest {
             debuggerSession.suspendNextExecution();
         });
 
-        assertLocation(23, "res = fac(2)", "res", "nil");
+        assertLocation(25, "res = fac(2)", "res", "nil");
         stepInto(1);
         assertLocation(
-                12,
+                14,
                 "if n <= 1",
                 "n",
                 "2",
@@ -182,7 +182,7 @@ public class RubyDebugTest {
                 "nil");
         stepOver(1);
         assertLocation(
-                15,
+                17,
                 "nMinusOne = n - 1",
                 "n",
                 "2",
@@ -194,7 +194,7 @@ public class RubyDebugTest {
                 "nil");
         stepOver(1);
         assertLocation(
-                16,
+                18,
                 "nMOFact = fac(nMinusOne)",
                 "n",
                 "2",
@@ -206,7 +206,7 @@ public class RubyDebugTest {
                 "nil");
         stepOver(1);
         assertLocation(
-                17,
+                19,
                 "res = n * nMOFact",
                 "n",
                 "2",
@@ -238,11 +238,11 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNotNull(suspendedEvent);
             int currentLine = suspendedEvent.getSourceSection().getStartLine();
-            assertEquals(11, currentLine);
+            assertEquals(13, currentLine);
             run.removeFirst().run();
         });
         stepOver(2);
-        assertLocation(21, "shortArg 10");
+        assertLocation(23, "shortArg 10");
         run.addLast(() -> {
             assertNotNull(suspendedEvent);
             try {
