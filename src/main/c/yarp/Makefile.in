@@ -36,12 +36,12 @@ build/librubyparser.a: $(STATIC_OBJECTS)
 build/shared/%.o: src/%.c Makefile $(HEADERS)
 	$(ECHO) "compiling $@"
 	$(Q) mkdir -p $(@D)
-	$(Q) $(CC) $(DEBUG_FLAGS) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(Q) $(CC) $(DEBUG_FLAGS) -DYP_EXPORT_SYMBOLS $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 build/static/%.o: src/%.c Makefile $(HEADERS)
 	$(ECHO) "compiling $@"
 	$(Q) mkdir -p $(@D)
-	$(Q) $(CC) $(DEBUG_FLAGS) -DYP_STATIC $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(Q) $(CC) $(DEBUG_FLAGS) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 build/fuzz.%: $(SOURCES) fuzz/%.c fuzz/fuzz.c
 	$(ECHO) "building $* fuzzer"

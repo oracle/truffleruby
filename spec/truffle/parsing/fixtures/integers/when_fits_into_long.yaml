@@ -1,0 +1,10 @@
+subject: "Integer"
+description: "when fits into Java Long (64 bits)"
+focused_on_node: "org.truffleruby.language.literal.LongFixnumLiteralNode"
+ruby: |
+  2147483648
+ast: |
+  LongFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 2147483648

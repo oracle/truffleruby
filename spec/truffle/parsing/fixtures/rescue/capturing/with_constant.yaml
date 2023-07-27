@@ -1,7 +1,8 @@
 subject: "Rescue keyword"
 description: "capturing / with a constant"
+yarp_specific: true
 notes: >
-  A local variable is represented with the following simplified AST:
+  A constant capturing is represented with the following simplified AST:
   
     (WriteConstantNode name = ERROR
       (ObjectLiteralNode object =  :: Object)
@@ -24,7 +25,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueClassesNode
@@ -52,27 +53,26 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteConstantNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              name = "ERROR"
                                           children:
-                                              moduleNode =
-                                                  LexicalScopeNode
+                                              rescueVariableNode =
+                                                  WriteConstantNode
                                                       attributes:
                                                           flags = 0
-                                                          lexicalScope =  :: Object
-                                              valueNode =
-                                                  ReadGlobalVariableNodeGen
-                                                      attributes:
-                                                          flags = 0
-                                                          name = "$!"
+                                                          name = "ERROR"
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          moduleNode =
+                                                              LexicalScopeNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      flags = 0
+                                                                      lexicalScope =  :: Object
+                                                          valueNode =
+                                                              DeadNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitConstantPathWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

@@ -1482,17 +1482,12 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitFixnumNode(FixnumParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         final long value = node.getValue();
-        final RubyNode ret;
+        final RubyNode ret = integerOrLongLiteralNode(value);
 
-        if (CoreLibrary.fitsIntoInteger(value)) {
-            ret = new IntegerFixnumLiteralNode((int) value);
-        } else {
-            ret = new LongFixnumLiteralNode(value);
-        }
         ret.unsafeSetSourceSection(sourceSection);
-
         return addNewlineIfNeeded(node, ret);
     }
+
 
     @Override
     public RubyNode visitFlipNode(FlipParseNode node) {
@@ -2537,13 +2532,17 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitRationalNode(RationalParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        // TODO(CS): use IntFixnumLiteralNode where possible
+        long numerator = node.getNumerator();
+        final RubyNode numeratorNode = integerOrLongLiteralNode(numerator);
+
+        long denominator = node.getDenominator();
+        final RubyNode denominatorNode = integerOrLongLiteralNode(denominator);
 
         final RubyNode ret = translateRationalComplex(
                 sourceSection,
                 "Rational",
-                new LongFixnumLiteralNode(node.getNumerator()),
-                new LongFixnumLiteralNode(node.getDenominator()));
+                numeratorNode,
+                denominatorNode);
 
         return addNewlineIfNeeded(node, ret);
     }

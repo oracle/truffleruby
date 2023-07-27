@@ -1,0 +1,33 @@
+subject: "Rescue keyword"
+description: "modifier / backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)"
+notes: >
+  Optimization is disabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = false
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  "foo" rescue 0..42
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = org.truffleruby.core.range.RubyIntRange@...(begin = 0, end = 42, excludedEnd = false)
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

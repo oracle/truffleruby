@@ -1,7 +1,8 @@
 subject: "Rescue keyword"
 description: "capturing / with a global variable"
+yarp_specific: true
 notes: >
-  A local variable is represented with the following simplified AST:
+  A global variable capturing is represented with the following simplified AST:
   
     (WriteGlobalVariableNodeGen name = $error
       (ReadGlobalVariableNodeGen name = $!
@@ -23,7 +24,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueClassesNode
@@ -51,27 +52,26 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteGlobalVariableNodeGen
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              name = "$error"
                                           children:
-                                              lookupGlobalVariableStorageNode =
-                                                  LookupGlobalVariableStorageNodeGen
-                                                      attributes:
-                                                          index = -1
-                                                          name = "$error"
-                                              valueNode_ =
-                                                  ReadGlobalVariableNodeGen
+                                              rescueVariableNode =
+                                                  WriteGlobalVariableNodeGen
                                                       attributes:
                                                           flags = 0
-                                                          name = "$!"
+                                                          name = "$error"
                                                       children:
                                                           lookupGlobalVariableStorageNode =
                                                               LookupGlobalVariableStorageNodeGen
                                                                   attributes:
                                                                       index = -1
-                                                                      name = "$!"
+                                                                      name = "$error"
+                                                          valueNode_ =
+                                                              DeadNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitGlobalVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

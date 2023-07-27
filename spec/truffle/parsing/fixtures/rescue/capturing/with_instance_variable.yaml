@@ -1,7 +1,8 @@
 subject: "Rescue keyword"
 description: "capturing / with an instance variable"
+yarp_specific: true
 notes: >
-  A local variable is represented with the following simplified AST:
+  An instance variable capturing is represented with the following simplified AST:
   
     (WriteInstanceVariableNode name = @error
       (ReadFrameSlotNodeGen)
@@ -24,7 +25,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueClassesNode
@@ -52,27 +53,26 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteInstanceVariableNodeGen
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              frozenProfile = false
-                                              name = "@error"
                                           children:
-                                              readSelfSlotNode =
-                                                  ReadFrameSlotNodeGen
-                                                      attributes:
-                                                          frameSlot = 0
-                                              rhs =
-                                                  ReadGlobalVariableNodeGen
+                                              rescueVariableNode =
+                                                  WriteInstanceVariableNodeGen
                                                       attributes:
                                                           flags = 0
-                                                          name = "$!"
+                                                          frozenProfile = false
+                                                          name = "@error"
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          readSelfSlotNode =
+                                                              ReadFrameSlotNodeGen
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      frameSlot = 0
+                                                          rhs =
+                                                              DeadNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitInstanceVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

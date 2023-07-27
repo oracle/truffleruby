@@ -1,0 +1,38 @@
+subject: "Rescue keyword"
+description: "backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)"
+notes: >
+  Optimization is enabled:
+  
+    TryNodeGen:
+      canOmitBacktrace = true
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue
+    __FILE__
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = true
+          flags = 1
+      children:
+          rescueParts = [
+              RescueStandardErrorNode
+                  attributes:
+                      flags = 0
+                  children:
+                      rescueBody =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = <parse_ast>
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 0
+                      tstring = foo

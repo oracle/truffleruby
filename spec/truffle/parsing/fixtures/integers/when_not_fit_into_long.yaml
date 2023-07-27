@@ -1,5 +1,5 @@
 subject: "Integer"
-description: "Big Integer literal (that takes >= 64 bits)"
+description: "when doesn't fit into Java Long (>= 64 bits)"
 focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
 ruby: |
   18446744073709551617

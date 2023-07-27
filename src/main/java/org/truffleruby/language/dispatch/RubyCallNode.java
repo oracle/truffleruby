@@ -41,6 +41,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
+import org.truffleruby.parser.DeadNode;
 
 import java.util.Map;
 
@@ -136,10 +137,16 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         return doCall(frame, receiverObject, descriptor, rubyArgs, ruby2KeywordsHash);
     }
 
+    // Assignment in context of method call means implicit assignment:
+    // - of attribute (a.b = c) or
+    // - element reference (a[:b] = c)
+    // e.g. in the following cases:
+    // - multiple assignment (a.b, c = 1, 2)
+    // - exception in rescue (rescue => a.b)
     @Override
     public void assign(VirtualFrame frame, Object value) {
-        assert (getLastArgumentNode() instanceof NilLiteralNode &&
-                ((NilLiteralNode) getLastArgumentNode()).isImplicit()) : getLastArgumentNode();
+        assert ((getLastArgumentNode() instanceof NilLiteralNode nilNode && nilNode.isImplicit()) ||
+                getLastArgumentNode() instanceof DeadNode) : getLastArgumentNode();
 
         final Object receiverObject = receiver.execute(frame);
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
@@ -148,7 +155,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
 
-        executeArguments(frame, rubyArgs);
+        executeArgumentsToAssign(frame, rubyArgs);
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
         }
@@ -214,6 +221,21 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         }
     }
 
+    @ExplodeLoop
+    private void executeArgumentsToAssign(VirtualFrame frame, Object[] rubyArgs) {
+        for (int i = 0; i < arguments.length - 1; i++) {
+            RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
+        }
+
+        // the last element should be either NilNode or DeadNode but DeadNode is disallowed to be executed
+        final int lastIndex = arguments.length - 1;
+        if (arguments[lastIndex] instanceof DeadNode) {
+            RubyArguments.setArgument(rubyArgs, lastIndex, nil);
+        } else {
+            RubyArguments.setArgument(rubyArgs, lastIndex, arguments[lastIndex].execute(frame));
+        }
+    }
+
     private Object[] splatArgs(Object receiverObject, Object[] rubyArgs) {
         if (splatToArgs == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -250,6 +272,10 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         return block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
     }
 
+    public RubyNode[] getArguments() {
+        return arguments;
+    }
+
     private RubyNode getLastArgumentNode() {
         final RubyNode lastArg = arguments[arguments.length - 1];
         if (isSplatted && lastArg instanceof ArrayAppendOneNode) {
@@ -283,6 +309,24 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
                 cloneUninitialized(block),
                 descriptor,
                 cloneUninitialized(arguments),
+                isSplatted,
+                dispatchConfig == PRIVATE,
+                isVCall,
+                isSafeNavigation,
+                isAttrAssign);
+        var copy = getLanguage().coreMethodAssumptions.createCallNode(parameters);
+        return copy.copyFlags(this);
+    }
+
+    public RubyNode cloneUninitializedWithArguments(RubyNode[] arguments) {
+        boolean isVCall = arguments.length == 0;
+
+        RubyCallNodeParameters parameters = new RubyCallNodeParameters(
+                receiver.cloneUninitialized(),
+                methodName,
+                cloneUninitialized(block),
+                descriptor,
+                arguments,
                 isSplatted,
                 dispatchConfig == PRIVATE,
                 isVCall,

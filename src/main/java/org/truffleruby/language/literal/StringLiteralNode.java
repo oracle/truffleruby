@@ -32,6 +32,14 @@ public final class StringLiteralNode extends RubyContextSourceNode {
         return createString(tstring, encoding);
     }
 
+    public TruffleString getTString() {
+        return tstring;
+    }
+
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new StringLiteralNode(tstring, encoding);
