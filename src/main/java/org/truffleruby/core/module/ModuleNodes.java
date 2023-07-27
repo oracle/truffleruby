@@ -1240,7 +1240,8 @@ public abstract class ModuleNodes {
             final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
 
-            return addMethod(module, name, (RubyMethod) method);
+            needCallerFrame(callerFrame, target);
+            return addMethod(module, name, (RubyMethod) method, callerFrame.materialize());
         }
 
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
@@ -1294,7 +1295,8 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method) {
+        private RubySymbol addMethod(RubyModule module, String name, RubyMethod method,
+                MaterializedFrame callerFrame) {
             final InternalMethod internalMethod = method.method;
 
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
@@ -1310,8 +1312,7 @@ public abstract class ModuleNodes {
                 }
             }
 
-            module.fields.addMethod(getContext(), this, internalMethod.withName(name));
-            return getSymbol(name);
+            return addInternalMethod(module, name, internalMethod, callerFrame);
         }
 
         @TruffleBoundary
