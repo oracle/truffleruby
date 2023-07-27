@@ -2365,7 +2365,7 @@ public abstract class ModuleNodes {
             List<RubySymbol> methodNames = new ArrayList<>();
 
             for (InternalMethod methodEntry : module.fields.getMethods()) {
-                if (methodEntry != null && methodEntry.isUndefined()) {
+                if (methodEntry.isUndefined()) {
                     methodNames.add(getLanguage().getSymbol(methodEntry.getName()));
                 }
             }
