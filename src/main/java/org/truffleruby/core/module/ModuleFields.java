@@ -458,6 +458,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         context.getFeatureLoader().addAutoload(autoloadConstant);
     }
 
+    @TruffleBoundary
     private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value,
             boolean autoload) {
         checkFrozen(context, currentNode);
@@ -497,8 +498,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         final CoreLibrary coreLibrary = context.getCoreLibrary();
         if (currentNode != null && coreLibrary != null && coreLibrary.isLoaded()) {
-            final RubySymbol constSymbol = context.getLanguageSlow().getSymbol(name);
-            RubyContext.send(currentNode, rubyModule, "const_added", constSymbol);
+            final RubySymbol nameSymbol = context.getLanguageSlow().getSymbol(name);
+            RubyContext.send(currentNode, rubyModule, "const_added", nameSymbol);
         }
 
         return autoload ? newConstant : previous;

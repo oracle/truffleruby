@@ -122,7 +122,9 @@ describe "Module#const_added" do
       ScratchPad.recorded.should == [line + 2, line + 4, line + 7, line + 11]
     end
 
-    it "is called when the constant is ready to be used" do
+    it "is called when the constant is already assigned a value" do
+      ScratchPad.record []
+
       mod = Module.new do
         def self.const_added(name)
           ScratchPad.record const_get(name)

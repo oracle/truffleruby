@@ -61,6 +61,9 @@ class Module
     ancestors.any? { |m| Primitive.equal?(mod, m) }
   end
 
+  private def const_added(name)
+  end
+
   private def method_added(name)
   end
 
@@ -103,9 +106,6 @@ class Module
       mod.__send__ :prepended, self
     end
     self
-  end
-
-  private def const_added(name)
   end
 
   def const_defined?(name, inherit = true)
