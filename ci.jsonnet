@@ -212,6 +212,9 @@ local part_definitions = {
         "--extra-image-builder-argument=rubyvm:-H:+TruffleHostInliningPrintExplored",
         "--extra-image-builder-argument=rubyvm:-Dgraal.LogFile=host-inlining.txt",
       ],
+      environment+: {
+        TRUFFLERUBY_HOST_INLINING_TEST: "1",
+      },
     },
   },
 
