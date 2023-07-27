@@ -50,7 +50,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.TruffleStackTraceElement;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -1048,8 +1047,6 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "each_caller_location", needsBlock = true, onSingleton = true)
     public abstract static class EachCallerLocationNode extends CoreMethodArrayArgumentsNode {
 
-        private static final Object STOP_ITERATE = new Object();
-
         // Skip the block of `Thread#each_caller_location` + its internal iteration.
         private static final int SKIP = 2;
 
@@ -1057,27 +1054,23 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected Object eachCallerLocation(VirtualFrame frame, RubyProc block) {
-            final List<TruffleStackTraceElement> stackTraceElements = new ArrayList<>();
+            final List<TruffleStackTraceElement> elements = new ArrayList<>();
 
             getContext().getCallStack().iterateFrameBindings(SKIP, frameInstance -> {
                 final Node location = frameInstance.getCallNode();
 
-                final RootCallTarget rootCallTarget = (RootCallTarget) frameInstance.getCallTarget();
-                final TruffleStackTraceElement stackTraceElement = TruffleStackTraceElement.create(
-                        location,
-                        rootCallTarget,
-                        frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY));
-                stackTraceElements.add(stackTraceElement);
+                final var rootCallTarget = (RootCallTarget) frameInstance.getCallTarget();
+                final var element = TruffleStackTraceElement.create(location, rootCallTarget, null);
+                elements.add(element);
 
-                final TruffleStackTraceElement[] finalStackTraceElements = stackTraceElements
-                        .toArray(TruffleStackTraceElement[]::new);
-                final boolean readyToYield = BacktraceFormatter.nextAvailableSourceSection(finalStackTraceElements,
+                final var elementsArray = elements.toArray(Backtrace.EMPTY_STACK_TRACE_ELEMENTS_ARRAY);
+                final boolean readyToYield = BacktraceFormatter.nextAvailableSourceSection(elementsArray,
                         0) != null;
 
                 if (readyToYield) {
-                    for (int i = 0; i < finalStackTraceElements.length; i++) {
-                        final Backtrace backtrace = new Backtrace(location, 0, finalStackTraceElements);
-                        RubyBacktraceLocation rubyBacktraceLocation = new RubyBacktraceLocation(
+                    for (int i = 0; i < elementsArray.length; i++) {
+                        final var backtrace = new Backtrace(location, 0, elementsArray);
+                        final var rubyBacktraceLocation = new RubyBacktraceLocation(
                                 getContext().getCoreLibrary().threadBacktraceLocationClass,
                                 getLanguage().threadBacktraceLocationShape,
                                 backtrace,
@@ -1085,7 +1078,7 @@ public abstract class ThreadNodes {
 
                         yieldNode.yield(block, rubyBacktraceLocation);
                     }
-                    stackTraceElements.clear();
+                    elements.clear();
                 }
 
                 return null;

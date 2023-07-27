@@ -77,6 +77,8 @@ public final class Backtrace {
     private TruffleStackTraceElement[] stackTrace;
     private int totalUnderlyingElements;
 
+    public static final TruffleStackTraceElement[] EMPTY_STACK_TRACE_ELEMENTS_ARRAY = new TruffleStackTraceElement[0];
+
     // endregion
     // region Constructors
 
@@ -248,8 +250,6 @@ public final class Backtrace {
     public TruffleStackTraceElement[] getStackTrace() {
         return getStackTrace(this.raiseException);
     }
-
-    private static final TruffleStackTraceElement[] EMPTY_STACK_TRACE_ELEMENTS_ARRAY = new TruffleStackTraceElement[0];
 
     /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
      * locations as requested ({@link #getOmitted()}). If more locations are omitted than are available, return a Ruby

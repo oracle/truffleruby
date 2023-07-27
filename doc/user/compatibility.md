@@ -145,6 +145,15 @@ When TruffleRuby is run as part of a polyglot application, any signals that are 
 
 TruffleRuby provides similar `GC.stat` statistics to MRI, but not all statistics are available, and some statistics may be approximations. Use `GC.stat.keys` to see which are provided with real or approximate values. Missing values will return `0`.
 
+### Caller locations
+
+Using `Kernel#caller_locations` or `Thread.each_caller_location` might contain engine specific location objects and/or
+paths. This is expected and should be filtered in application code where necessary.
+
+The enumerator returned by `Thread.to_enum(:each_caller_location)` is not supporting iteration with `.next`. In CRuby
+this raises a `StopIteration`, while in TruffleRuby it iterates on an undetermined (related to where and how `.next` is
+called) call stack. It is not recommended to use this in any circumstance (neither CRuby nor TruffleRuby).
+
 ## Features with Very Low Performance
 
 ### `ObjectSpace`
@@ -166,15 +175,6 @@ This is because TruffleRuby needs to undo optimizations that have been applied t
 It is not recommended to use exceptions for control flow on any implementation of Ruby anyway.
 
 To help alleviate this problem, backtraces are automatically disabled in cases where we can detect that they will not be used.
-
-### Caller locations
-
-Using `Kernel#caller_locations` or `Thread.each_caller_location` might contain engine specific location objects and/or
-paths. This is expected and should be filtered in application code where necessary.
-
-The enumerator returned by `Thread.to_enum(:each_caller_location)` is not supporting iteration with `.next`. In CRuby
-this raises a `StopIteration`, while in TruffleRuby it iterates on an undetermined (related to where and how `.next` is
-called) call stack. It is not recommended to use this in any circumstance (neither CRuby nor TruffleRuby).
 
 ## C Extension Compatibility
 
