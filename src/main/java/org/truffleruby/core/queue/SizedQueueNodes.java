@@ -144,14 +144,14 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected static Object pushBlocking(
+        protected static Object pushTimeout(
                 Node node, RubySizedQueue self, final Object value, boolean nonBlocking, long timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
             propagateSharingNode.execute(node, self, value);
             final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
 
-            var success = getContext(node).getThreadManager().runUntilResult(node, () -> {
+            boolean success = getContext(node).getThreadManager().runUntilResult(node, () -> {
                 final long currentTimeout = deadline - System.currentTimeMillis();
                 final Object result;
 
@@ -164,11 +164,14 @@ public abstract class SizedQueueNodes {
                 if (result == SizedQueue.CLOSED) {
                     throw new RaiseException(getContext(node), coreExceptions(node).closedQueueError(node));
                 }
-                return result;
+
+                return (boolean) result;
             });
-            if ((boolean) success) {
+
+            if (success) {
                 return self;
             }
+
             return nil;
         }
 

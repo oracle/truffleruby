@@ -37,7 +37,7 @@ describe :sizedqueue_enq, shared: true do
     q << 1
 
     t = Thread.new {
-      -> { q.send(@method, 2) }.should raise_error(ClosedQueueError)
+      -> { q.send(@method, 2) }.should raise_error(ClosedQueueError, "queue closed")
     }
 
     Thread.pass until q.num_waiting == 1
@@ -115,17 +115,20 @@ describe :sizedqueue_enq, shared: true do
         -> { q.send(@method, 2, timeout: 1) }.should raise_error(ClosedQueueError, "queue closed")
       end
 
-      it "raise ClosedQueueError when getting closed during wait" do
+      it "interrupts enqueuing threads with ClosedQueueError when the queue is closed" do
         q = @object.call(1)
-        q.push(1)
+        q << 1
 
         t = Thread.new {
-          -> { q.push(1, timeout: 0.1) }.should raise_error(ClosedQueueError, "queue closed")
+          -> { q.send(@method, 1, timeout: 0.1) }.should raise_error(ClosedQueueError, "queue closed")
         }
 
-        sleep(0.05)
+        Thread.pass until q.num_waiting == 1
+
         q.close
+
         t.join
+        q.pop.should == 1
       end
     end
   end
