@@ -233,35 +233,71 @@ class Enumerator
 
   def self.product(*enums, **kwargs, &block)
     Truffle::KernelOperations.validate_no_kwargs(kwargs)
-
     return Product.new(*enums) if Primitive.nil?(block)
-    product_iterator([], enums, &block)
+
+    Truffle::EnumeratorOperations.product_iterator([], enums, &block)
+
+    nil
   end
 
-  class << self
-    protected def product_iterator(current, rest_enums, &block)
-      return block.call(current) if rest_enums.empty?
-
-      rest_enums_tail = rest_enums[1..]
-      rest_enums.first.each_entry do |next_e|
-        product_iterator(current + [next_e], rest_enums_tail, &block)
-      end
-    end
-  end
-
-  class Product  < Enumerator
-    def initialize(*enums, **kwargs)
-      Truffle::KernelOperations.validate_no_kwargs(kwargs)
-
+  class Product < Enumerator
+    def initialize(*enums, **nil)
       @enums = enums
+
+      self
+    end
+
+    def initialize_copy(product)
+      return self if Primitive.equal?(self, product)
+
+      if Primitive.class(self) != Primitive.class(product)
+        raise TypeError, 'initialize_copy should take same class object'
+      end
+
+      unless product.instance_variable_defined?(:@enums)
+        raise ArgumentError, 'uninitialized product'
+      end
+
+      # don't check explicitly whether self is frozen
+      # because assigning @enum instance variable will raise FrozenError in this case anyway
+      @enums = product.instance_variable_get(:@enums)
+
+      self
     end
 
     def each(&block)
-      Primitive.class(self).product_iterator([], @enums, &block)
+      return to_enum(:each) { size } unless block_given?
+
+      Truffle::EnumeratorOperations.product_iterator([], @enums, &block)
+
+      self
+    end
+
+    def inspect
+      return "#<#{Primitive.class(self).name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
+        return "#<#{Primitive.class(self).name}: #{@enums || "uninitialized"}>"
+      end
+    end
+
+    def rewind
+      @enums.each do |e|
+        e.rewind if e.respond_to?(:rewind)
+      end
+
+      self
     end
 
     def size
-      @enums.map(&:size).reduce(1, &:*)
+      @enums.map do |enum|
+        return nil unless enum.respond_to?(:size)
+
+        size = enum.size
+
+        return size if Primitive.is_a?(size, Float) && size.infinite?
+        return nil unless Primitive.is_a?(size, Integer)
+
+        size
+      end.reduce(1, &:*)
     end
   end
 
@@ -276,7 +312,6 @@ class Enumerator
 
       self
     end
-    private :initialize
 
     def yield(*args, **kwargs)
       @proc.call(*args, **kwargs)
@@ -302,7 +337,6 @@ class Enumerator
 
       self
     end
-    private :initialize
 
     def each(*args, **kwargs, &block)
       Primitive.share_special_variables(Primitive.proc_special_variables(block)) if block
@@ -343,7 +377,6 @@ class Enumerator
 
       self
     end
-    private :initialize
 
     def to_enum(method_name = :each, *method_args, **method_kwargs, &block)
       size = block_given? ? block : nil
