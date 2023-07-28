@@ -4,7 +4,7 @@ source test/truffle/common.sh.inc
 
 file=${1:-host-inlining.txt}
 
-if [ -f "$file" ]; then
+if [ -n "$TRUFFLERUBY_HOST_INLINING_TEST" ]; then
   # shellcheck disable=SC2016
   ruby tool/extract_host_inlining.rb 'org.truffleruby.language.methods.CallForeignMethodNodeGen.execute' "$file" > out.txt
   # shellcheck disable=SC2016

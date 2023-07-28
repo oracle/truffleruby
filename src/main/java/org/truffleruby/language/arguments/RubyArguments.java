@@ -386,7 +386,7 @@ public final class RubyArguments {
         assert level >= 0;
 
         CompilerAsserts.partialEvaluationConstant(level);
-        return level <= RubyBaseNode.MAX_EXPLODE_SIZE
+        return (CompilerDirectives.inCompiledCode() && level <= RubyBaseNode.MAX_EXPLODE_SIZE)
                 ? getDeclarationFrameExplode(frame, level)
                 : getDeclarationFrameLoop(frame, level);
     }
