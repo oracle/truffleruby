@@ -4,7 +4,7 @@ Here is how the various env files relate to each other:
     * `jvm-ce-ntl`: + native toolchain launchers
       * `jvm-ce-libgraal`: + libgraal
       * `native`: + librubyvm
-  * `jvm-ee`: + Oracle GraalVM Compiler
+  * `jvm-ee`: + Oracle GraalVM Compiler & Oracle GraalVM Truffle
     * `jvm-ee-ntl`: + native toolchain launchers
       * `jvm-ee-libgraal`: + libgraal
       * `native-ee`: + librubyvm

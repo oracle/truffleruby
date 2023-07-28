@@ -1,4 +1,4 @@
 GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/graal-enterprise,/substratevm-enterprise
-COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,SubstrateVM Enterprise
+COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise,SubstrateVM Enterprise
 NATIVE_IMAGES=suite:sulong
