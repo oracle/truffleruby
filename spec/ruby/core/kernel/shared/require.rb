@@ -403,6 +403,19 @@ describe :kernel_require, shared: true do
           $".last.should == loaded_feature
           $LOAD_PATH[0].should == @symlink_to_dir
         end
+
+        ruby_version_is "3.1" do
+          it "requires the realpath only once" do
+            $LOAD_PATH.unshift(@symlink_to_dir)
+            @object.require("symfile").should be_true
+            loaded_feature = "#{@dir}/symfile.rb"
+            ScratchPad.recorded.should == [loaded_feature]
+            $".last.should == loaded_feature
+
+            @object.require("realfile").should be_false
+            ScratchPad.recorded.should == [loaded_feature]
+          end
+        end
       end
     end
 

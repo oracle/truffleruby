@@ -235,6 +235,24 @@ describe "Kernel#require_relative with a relative path" do
           features.should_not include(canonical_path)
         end
 
+        ruby_version_is "3.1" do
+          it "does not require symlinked target file twice" do
+            symlink_path = "#{@symlink_basename}/load_fixture.rb"
+            absolute_path = "#{tmp("")}#{symlink_path}"
+            canonical_path = "#{CODE_LOADING_DIR}/load_fixture.rb"
+            touch(@requiring_file) { |f|
+              f.puts "require_relative #{symlink_path.inspect}"
+              f.puts "require_relative #{canonical_path.inspect}"
+            }
+            load(@requiring_file)
+            ScratchPad.recorded.should == [:loaded]
+
+            features = $LOADED_FEATURES.select { |path| path.end_with?('load_fixture.rb') }
+            features.should include(absolute_path)
+            features.should_not include(canonical_path)
+          end
+        end
+
         it "stores the same path that __FILE__ returns in the required file" do
           symlink_path = "#{@symlink_basename}/load_fixture_and__FILE__.rb"
           touch(@requiring_file) { |f|

@@ -231,7 +231,7 @@ module Kernel
     when :feature_loaded
       false
     when :feature_found
-      Primitive.load_feature(feature, path)
+      Truffle::FeatureLoader.load_unless_realpath_loaded(feature, path)
     when :not_found
       raise Truffle::KernelOperations.load_error(feature)
     end
@@ -257,7 +257,7 @@ module Kernel
     when :feature_loaded
       false
     when :feature_found
-      Primitive.load_feature(feature, path)
+      Truffle::FeatureLoader.load_unless_realpath_loaded(feature, path)
     when :not_found
       if lazy_rubygems
         Truffle::KernelOperations.loading_rubygems = true
@@ -290,7 +290,7 @@ module Kernel
       false
     when :feature_found
       # The first argument needs to be the expanded path here for patching to work correctly
-      Primitive.load_feature(path, path)
+      Truffle::FeatureLoader.load_unless_realpath_loaded(path, path)
     when :not_found
       raise Truffle::KernelOperations.load_error(feature)
     end
