@@ -950,6 +950,7 @@ public abstract class ModuleNodes {
 
     @GenerateCached(false)
     @GenerateInline
+    @SuppressWarnings("truffle-inlining") //TODO [GR-46266] - Remove it when other nodes are converted to DSL inlinable
     public abstract static class ConstGetNode extends RubyBaseNode {
 
         public abstract Object execute(Node node, RubyModule module, Object name, boolean inherit,
