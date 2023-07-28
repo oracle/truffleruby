@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyNode;
 public abstract class PrimitiveNode extends RubyContextSourceNode {
 
     // The same as "undefined" in Ruby code
-    protected static final Object FAILURE = NotProvided.INSTANCE;
+    public static final Object FAILURE = NotProvided.INSTANCE;
 
     @Override
     public RubyNode cloneUninitialized() {

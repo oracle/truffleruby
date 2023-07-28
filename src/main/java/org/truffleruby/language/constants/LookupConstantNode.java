@@ -12,6 +12,7 @@ package org.truffleruby.language.constants;
 import java.util.ArrayList;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -35,6 +36,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     private final boolean ignoreVisibility;
     private final boolean lookInObject;
 
+    @NeverDefault
     public static LookupConstantNode create(boolean ignoreVisibility, boolean lookInObject) {
         return LookupConstantNodeGen.create(ignoreVisibility, lookInObject);
     }
@@ -47,7 +49,8 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     public abstract RubyConstant executeLookupConstant(Object module, String name, boolean checkName);
 
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
+    public RubyConstant lookupConstant(Node node, LexicalScope lexicalScope, RubyModule module, String name,
+            boolean checkName) {
         return executeLookupConstant(module, name, checkName);
     }
 

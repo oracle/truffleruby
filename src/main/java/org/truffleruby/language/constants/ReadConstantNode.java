@@ -99,7 +99,7 @@ public final class ReadConstantNode extends RubyContextSourceNode {
     public RubyConstant getConstantIfDefined(RubyModule module) {
         final RubyConstant constant;
         try {
-            constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name, true);
+            constant = getLookupConstantNode().lookupConstant(this, LexicalScope.IGNORE, module, name, true);
         } catch (RaiseException e) {
             if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant

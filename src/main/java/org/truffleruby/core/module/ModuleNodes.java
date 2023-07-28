@@ -40,7 +40,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
@@ -54,7 +53,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToPathNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
-import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -78,7 +76,6 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -131,9 +128,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -144,6 +139,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.builtins.PrimitiveNode.FAILURE;
 import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.BOTH;
 import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.READER;
 import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.WRITER;
@@ -941,51 +937,41 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_const_get")
-    @NodeChild(value = "moduleNode", type = RubyNode.class)
-    @NodeChild(value = "nameNode", type = RubyBaseNodeWithExecute.class)
-    @NodeChild(value = "inheritNode", type = RubyNode.class)
-    @NodeChild(value = "lookInObjectNode", type = RubyNode.class)
-    @NodeChild(value = "checkNameNode", type = RubyNode.class)
-    public abstract static class ConstGetNode extends PrimitiveNode {
-
-        @Child private LookupConstantNode lookupConstantLookInObjectNode = LookupConstantNode.create(true, true);
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
-        @Child private ByteIndexOfStringNode byteIndexOfStringNode;
-
-        public static ConstGetNode create(RubyNode module, RubyBaseNodeWithExecute name, RubyNode inherit,
-                RubyNode lookInObject, RubyNode checkName) {
-            return ModuleNodesFactory.ConstGetNodeFactory.create(module, name, inherit, lookInObject, checkName);
+    public abstract static class ConstGetNodePrimitiveNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object getConst(
+                RubyModule module, Object nameObject, boolean inherit, boolean lookInObject, boolean checkName,
+                @Cached ConstGetNode constGetNode,
+                @Cached ToStringOrSymbolNode toStringOrSymbolNode) {
+            var name = toStringOrSymbolNode.execute(this, nameObject);
+            return constGetNode.execute(this, module, name, inherit, lookInObject, checkName);
         }
+    }
 
-        abstract RubyNode getModuleNode();
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class ConstGetNode extends RubyBaseNode {
 
-        abstract RubyBaseNodeWithExecute getNameNode();
-
-        abstract RubyNode getInheritNode();
-
-        abstract RubyNode getLookInObjectNode();
-
-        abstract RubyNode getCheckNameNode();
-
-        @CreateCast("nameNode")
-        protected RubyBaseNodeWithExecute coerceToSymbolOrString(RubyBaseNodeWithExecute name) {
-            // We want to know if the name is a Symbol, as then scoped lookup is not tried
-            return ToStringOrSymbolNodeGen.create(name);
-        }
+        public abstract Object execute(Node node, RubyModule module, Object name, boolean inherit,
+                boolean lookInObject, boolean checkName);
 
         // Symbol
 
         @Specialization(guards = "inherit")
-        protected Object getConstant(
-                RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName) {
-            return getConstant(module, name.getString(), checkName, lookInObject);
+        protected static Object getConstant(
+                Node node, RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName,
+                @Cached @Shared GetConstantNode getConstantNode,
+                @Cached("create(true, false)") @Shared LookupConstantNode lookupConstantNode,
+                @Cached("create(true, true)") @Shared LookupConstantNode lookupConstantLookInObjectNode) {
+            return getConstant(module, name.getString(), checkName, lookInObject, getConstantNode, lookupConstantNode,
+                    lookupConstantLookInObjectNode);
         }
 
         @Specialization(guards = "!inherit")
-        protected Object getConstantNoInherit(
-                RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName) {
-            return getConstantNoInherit(module, name.getString(), checkName);
+        protected static Object getConstantNoInherit(
+                RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName,
+                @Cached @Shared GetConstantNode getConstantNode) {
+            return getConstantNoInherit(module, name.getString(), checkName, getConstantNode);
         }
 
         // String
@@ -998,46 +984,67 @@ public abstract class ModuleNodes {
                         "!scoped",
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
-        protected Object getConstantStringCached(
+        protected static Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
+                @Cached @Shared GetConstantNode getConstantNode,
+                @Cached("create(true, false)") @Shared LookupConstantNode lookupConstantNode,
+                @Cached("create(true, true)") @Shared LookupConstantNode lookupConstantLookInObjectNode,
                 @Cached("asTruffleStringUncached(name)") TruffleString cachedTString,
                 @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
                 @Cached("getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
                 @Cached StringHelperNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(module, cachedString, checkName, lookInObject);
+            return getConstant(module, cachedString, checkName, lookInObject, getConstantNode, lookupConstantNode,
+                    lookupConstantLookInObjectNode);
         }
 
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName, name)" },
+                guards = {
+                        "stringsName.isRubyString(name)",
+                        "inherit",
+                        "!isScoped(stringsName, name, byteIndexOfStringNode)" },
                 replaces = "getConstantStringCached")
-        protected Object getConstantString(
-                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+        protected static Object getConstantString(
+                Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+                @Cached @Shared GetConstantNode getConstantNode,
+                @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
+                @Cached("create(true, false)") @Shared LookupConstantNode lookupConstantNode,
+                @Cached("create(true, true)") @Shared LookupConstantNode lookupConstantLookInObjectNode,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstant(module, toJavaStringNode.execute(this, name), checkName, lookInObject);
+            return getConstant(module, toJavaStringNode.execute(node, name), checkName, lookInObject, getConstantNode,
+                    lookupConstantNode, lookupConstantLookInObjectNode);
         }
 
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName, name)" })
-        protected Object getConstantNoInheritString(
-                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+                guards = {
+                        "stringsName.isRubyString(name)",
+                        "!inherit",
+                        "!isScoped(stringsName, name, byteIndexOfStringNode)" })
+        protected static Object getConstantNoInheritString(
+                Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
+                @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
+                @Cached @Shared GetConstantNode getConstantNode,
                 @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            return getConstantNoInherit(module, toJavaStringNode.execute(this, name), checkName);
+            return getConstantNoInherit(module, toJavaStringNode.execute(node, name), checkName, getConstantNode);
         }
 
         // Scoped String
-        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name)" })
-        protected Object getConstantScoped(
+        @Specialization(
+                guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name, byteIndexOfStringNode)" })
+        protected static Object getConstantScoped(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+                @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
                 @Cached @Shared RubyStringLibrary stringsName) {
             return FAILURE;
         }
 
-        private Object getConstant(RubyModule module, String name, boolean checkName, boolean lookInObject) {
+        private static Object getConstant(RubyModule module, String name, boolean checkName, boolean lookInObject,
+                GetConstantNode getConstantNode, LookupConstantNode lookupConstantNode,
+                LookupConstantNode lookupConstantLookInObjectNode) {
             CompilerAsserts.partialEvaluationConstant(lookInObject);
             if (lookInObject) {
                 return getConstantNode
@@ -1050,25 +1057,22 @@ public abstract class ModuleNodes {
             }
         }
 
-        private Object getConstantNoInherit(RubyModule module, String name, boolean checkName) {
-            final LookupConstantInterface lookup = this::lookupConstantNoInherit;
+        private static Object getConstantNoInherit(RubyModule module, String name, boolean checkName,
+                GetConstantNode getConstantNode) {
+            final LookupConstantInterface lookup = ConstGetNode::lookupConstantNoInherit;
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookup, true);
         }
 
         @TruffleBoundary
-        private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, RubyModule module, String name,
-                boolean checkName) {
+        private static RubyConstant lookupConstantNoInherit(Node node, LexicalScope lexicalScope, RubyModule module,
+                String name, boolean checkName) {
             return ModuleOperations
-                    .lookupConstantWithInherit(getContext(), module, name, false, this, checkName)
+                    .lookupConstantWithInherit(getContext(node), module, name, false, node, checkName)
                     .getConstant();
         }
 
-        boolean isScoped(RubyStringLibrary libString, Object string) {
-            if (byteIndexOfStringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                byteIndexOfStringNode = insert(ByteIndexOfStringNode.create());
-            }
-
+        static boolean isScoped(RubyStringLibrary libString, Object string,
+                ByteIndexOfStringNode byteIndexOfStringNode) {
             var tstring = libString.getTString(string);
             var encoding = libString.getTEncoding(string);
             int byteLength = tstring.byteLength(encoding);
@@ -1076,29 +1080,13 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        boolean isScoped(String name) {
+        static boolean isScoped(String name) {
             return name.contains("::");
         }
 
         protected int getLimit() {
             return getLanguage().options.CONSTANT_CACHE;
         }
-
-        RubyBaseNodeWithExecute getNameBeforeCasting() {
-            return ((ToStringOrSymbolNode) getNameNode()).getChildNode();
-        }
-
-        @Override
-        public RubyNode cloneUninitialized() {
-            var copy = create(
-                    getModuleNode().cloneUninitialized(),
-                    getNameBeforeCasting().cloneUninitialized(),
-                    getInheritNode().cloneUninitialized(),
-                    getLookInObjectNode().cloneUninitialized(),
-                    getCheckNameNode().cloneUninitialized());
-            return copy.copyFlags(this);
-        }
-
     }
 
     @CoreMethod(names = "const_missing", required = 1)
@@ -1122,7 +1110,7 @@ public abstract class ModuleNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode) {
             final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
-            final var name = toStringOrSymbolNode.execute(nameObject);
+            final var name = toStringOrSymbolNode.execute(this, nameObject);
             return constSourceLocationNode.execute(this, module, name, inherit);
         }
     }

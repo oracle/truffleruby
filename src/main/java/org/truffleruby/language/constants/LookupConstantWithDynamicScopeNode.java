@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
@@ -33,7 +34,8 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
     public abstract RubyConstant executeLookupConstant(LexicalScope lexicalScope);
 
     @SuppressFBWarnings("ES")
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
+    public RubyConstant lookupConstant(Node node, LexicalScope lexicalScope, RubyModule module, String name,
+            boolean checkName) {
         assert name == this.name;
         return executeLookupConstant(lexicalScope);
     }
