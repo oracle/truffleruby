@@ -1,1 +1,0 @@
-fails:String#byterindex with object with multibyte codepoints raises an Encoding::CompatibilityError if the encodings are incompatible
