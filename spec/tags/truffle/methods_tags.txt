@@ -115,3 +115,4 @@ fails:Public methods on UnboundMethod should include protected?
 fails:Public methods on UnboundMethod should include public?
 fails:Public methods on String should not include bytesplice
 fails:Public methods on Module should not include refinements
+fails:Public methods on Module should not include undefined_instance_methods
