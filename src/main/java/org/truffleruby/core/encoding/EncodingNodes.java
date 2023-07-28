@@ -245,7 +245,7 @@ public abstract class EncodingNodes {
             return firstEncoding;
         }
 
-        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" }, limit = "1")
+        @Specialization(guards = { "libFirst.isRubyString(first)", "libSecond.isRubyString(second)" })
         protected static RubyEncoding negotiateStringStringEncoding(
                 Node node, Object first, RubyEncoding firstEncoding, Object second, RubyEncoding secondEncoding,
                 @Cached @Shared RubyStringLibrary libFirst,
@@ -285,7 +285,7 @@ public abstract class EncodingNodes {
                         "libFirst.isRubyString(first)",
                         "firstEncoding != secondEncoding",
                         "isNotRubyString(second)" },
-                replaces = "negotiateStringObjectCached", limit = "1")
+                replaces = "negotiateStringObjectCached")
         protected static RubyEncoding negotiateStringObjectUncached(
                 Object first, RubyEncoding firstEncoding, Object second, RubyEncoding secondEncoding,
                 @Cached(inline = false) @Shared TruffleString.GetByteCodeRangeNode codeRangeNode,
@@ -314,8 +314,7 @@ public abstract class EncodingNodes {
                 guards = {
                         "libSecond.isRubyString(second)",
                         "firstEncoding != secondEncoding",
-                        "isNotRubyString(first)" },
-                limit = "1")
+                        "isNotRubyString(first)" })
         protected static RubyEncoding negotiateObjectString(
                 Object first, RubyEncoding firstEncoding, Object second, RubyEncoding secondEncoding,
                 @Cached @Shared RubyStringLibrary libSecond,

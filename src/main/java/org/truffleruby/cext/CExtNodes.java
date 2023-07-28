@@ -1970,7 +1970,7 @@ public abstract class CExtNodes {
             return cachedTypes;
         }
 
-        @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
+        @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyArray typesUncached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat) {
             return compileArgTypes(libFormat.getTString(format), libFormat.getEncoding(format), byteArrayNode);
@@ -2021,9 +2021,7 @@ public abstract class CExtNodes {
             return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
         }
 
-        @Specialization(
-                guards = "libFormat.isRubyString(format)",
-                replaces = "formatCached", limit = "1")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
         protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
                 @Cached IndirectCallNode formatNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,

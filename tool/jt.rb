@@ -1025,7 +1025,7 @@ module Commands
       when '--check-compilation'
         add_experimental_options.call
         vm_args << '--engine.CompilationFailureAction=ExitVM'
-        vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
+        vm_args << '--compiler.TreatPerformanceWarningsAsErrors=all'
       when '--stress'
         add_experimental_options.call
         vm_args << '--engine.CompileImmediately'
@@ -1044,7 +1044,7 @@ module Commands
         if truffleruby_jvm?
           vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
         end
-        vm_args << '--engine.NodeSourcePositions=true'
+        vm_args << '--compiler.NodeSourcePositions=true'
       when '--fg'
         add_experimental_options.call
         vm_args << '--engine.BackgroundCompilation=false'
@@ -2195,7 +2195,7 @@ module Commands
       '--engine.BackgroundCompilation=false',
       "--engine.CompileOnly=#{method}",
       '--engine.MultiTier=false',
-      '--engine.NodeSourcePositions',
+      '--compiler.NodeSourcePositions',
       '--vm.Dgraal.PrintGraphWithSchedule=true',
       *('--vm.Dgraal.PrintBackendCFG=true' if cfg2asm),
       '--vm.Dgraal.Dump=Truffle:1',

@@ -447,7 +447,7 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached", limit = "1")
+        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached @Shared TruffleString.ConcatNode concatNode,

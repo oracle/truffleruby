@@ -84,7 +84,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(file)")
         protected boolean load(Object file, Nil wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
@@ -111,7 +111,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(file)")
         protected boolean load(Object file, RubyModule wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {

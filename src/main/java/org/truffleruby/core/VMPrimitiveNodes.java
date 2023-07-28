@@ -296,7 +296,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libSignalString.isRubyString(signalString)", limit = "1")
+        @Specialization(guards = "libSignalString.isRubyString(signalString)")
         protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
                 @Shared @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();

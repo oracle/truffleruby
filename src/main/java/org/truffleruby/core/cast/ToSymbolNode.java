@@ -74,7 +74,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return rubySymbol;
     }
 
-    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString", limit = "1")
+    @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
     protected static RubySymbol rubyStringUncached(Node node, Object str,
             @Cached @Shared RubyStringLibrary strings) {
         return getSymbol(node, strings.getTString(str), strings.getEncoding(str));
