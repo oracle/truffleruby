@@ -45,6 +45,11 @@ ruby_version_is "3.2" do
       enum.each.to_a.should == [[1, :a], [1, :b], [2, :a], [2, :b]]
     end
 
+    it "returns self if given a block" do
+      enum = Enumerator::Product.new([1, 2], [:a, :b])
+      enum.each {}.should.equal?(enum)
+    end
+
     it "doesn't accept arguments" do
       Enumerator::Product.instance_method(:each).arity.should == 0
     end
