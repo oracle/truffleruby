@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.Helpers;
@@ -153,7 +154,7 @@ public final class ArgsParseNode extends ParseNode {
             final List<String> keywords = new ArrayList<>(requiredKeywords);
             keywords.addAll(optionalKeywords);
 
-            keywordArguments = keywords.toArray(String[]::new);
+            keywordArguments = keywords.toArray(StringUtils.EMPTY_STRING_ARRAY);
             requiredKeywordArgumentsCount = requiredKeywords.size();
         } else {
             keywordArguments = Arity.NO_KEYWORDS;

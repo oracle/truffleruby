@@ -195,15 +195,19 @@
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='\.toArray\(new \w+\[\w+\.size\(\)\]\)'/>
-      <property name="message" value='Use toArray(new Type[0]) instead.'/>
+      <property name="message" value='Use toArray(Type.EMPTY_ARRAY) instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='new\s+\w+\[\]\s*\{\s*\}'/>
-      <property name="message" value='Use new Type[0] instead.'/>
+      <property name="message" value='Use EMPTY_ARRAY = new Type[0] instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value='(?!=)\S\s*new\s+\w+\[0\]'/>
-      <property name="message" value='Use a EMPTY_type_ARRAY constant instead.'/>
+      <property name="message" value='Use a Type.EMPTY_ARRAY or EMPTY_type_ARRAY constant instead.'/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='.toArray\(.+\[\]::new\)'/>
+      <property name="message" value='Use .toArray(Type.EMPTY_ARRAY) instead, because this avoids extra allocations.'/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value="transferToInterpreterOnException"/>
