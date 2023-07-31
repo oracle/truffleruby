@@ -44,10 +44,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -95,6 +97,7 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -1038,6 +1041,55 @@ public abstract class ThreadNodes {
                     this);
             // Convert byte, short & float from NFI to int & double
             return foreignToRubyNode.execute(this, result);
+        }
+    }
+
+    @CoreMethod(names = "each_caller_location", needsBlock = true, onSingleton = true)
+    public abstract static class EachCallerLocationNode extends CoreMethodArrayArgumentsNode {
+
+        // Skip the block of `Thread#each_caller_location` + its internal iteration.
+        private static final int SKIP = 2;
+
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
+
+        @Specialization
+        protected Object eachCallerLocation(VirtualFrame frame, RubyProc block) {
+            final List<TruffleStackTraceElement> elements = new ArrayList<>();
+
+            getContext().getCallStack().iterateFrameBindings(SKIP, frameInstance -> {
+                final Node location = frameInstance.getCallNode();
+
+                final var rootCallTarget = (RootCallTarget) frameInstance.getCallTarget();
+                final var element = TruffleStackTraceElement.create(location, rootCallTarget, null);
+                elements.add(element);
+
+                final var elementsArray = elements.toArray(Backtrace.EMPTY_STACK_TRACE_ELEMENTS_ARRAY);
+                final boolean readyToYield = BacktraceFormatter.nextAvailableSourceSection(elementsArray,
+                        0) != null;
+
+                if (readyToYield) {
+                    for (int i = 0; i < elementsArray.length; i++) {
+                        final var backtrace = new Backtrace(location, 0, elementsArray);
+                        final var rubyBacktraceLocation = new RubyBacktraceLocation(
+                                getContext().getCoreLibrary().threadBacktraceLocationClass,
+                                getLanguage().threadBacktraceLocationShape,
+                                backtrace,
+                                i);
+
+                        yieldNode.yield(block, rubyBacktraceLocation);
+                    }
+                    elements.clear();
+                }
+
+                return null;
+            });
+
+            return nil;
+        }
+
+        @Specialization
+        protected Object eachCallerLocation(VirtualFrame frame, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
     }
 }
