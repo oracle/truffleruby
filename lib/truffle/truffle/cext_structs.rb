@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # truffleruby_primitives: true
 
 # Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This

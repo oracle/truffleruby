@@ -1,4 +1,5 @@
 # frozen_string_literal: false
+
 # From MRI ext/io/console/lib/console/size.rb
 # fallback to console window size
 def IO.default_console_size

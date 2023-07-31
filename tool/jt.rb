@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+# frozen_string_literal: true
 
 # Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -2988,7 +2989,7 @@ module Commands
 
     def iterate(&update)
       each_file do |content|
-        new_content = ''
+        new_content = +''
         lines = content.lines.to_a
 
         while (line = lines.shift)
