@@ -50,5 +50,15 @@ class Thread
     end
     alias_method :shift, :pop
     alias_method :deq, :pop
+
+    def push(value, non_block = false, timeout: nil)
+      Primitive.sized_queue_push(
+        self,
+        value,
+        Primitive.as_boolean(non_block),
+        Truffle::QueueOperations.validate_and_prepare_timeout_in_milliseconds(non_block, timeout))
+    end
+    alias_method :<<, :push
+    alias_method :enq, :push
   end
 end

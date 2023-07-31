@@ -29,6 +29,9 @@ spec/ruby/core/queue/shift_spec.rb
 spec/ruby/core/sizedqueue/deq_spec.rb
 spec/ruby/core/sizedqueue/pop_spec.rb
 spec/ruby/core/sizedqueue/shift_spec.rb
+spec/ruby/core/sizedqueue/append_spec.rb
+spec/ruby/core/sizedqueue/enq_spec.rb
+spec/ruby/core/sizedqueue/push_spec.rb
 
 spec/ruby/core/module/refinements_spec.rb
 spec/ruby/core/module/undefined_instance_methods_spec.rb
