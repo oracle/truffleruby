@@ -2,7 +2,7 @@
 
 set -e
 
-for f in src/main/c/cext/*.c
+for f in src/main/c/cext/*.c spec/ruby/optional/capi/ext/*.c
 do
   if [[ "$f" == "src/main/c/cext/st.c" ]]; then
    continue

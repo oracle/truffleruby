@@ -27,7 +27,7 @@ VALUE exception_spec_rb_exc_new3(VALUE self, VALUE str) {
 }
 
 VALUE exception_spec_rb_exc_raise(VALUE self, VALUE exc) {
-    if (self != Qundef) rb_exc_raise(exc);
+  if (self != Qundef) rb_exc_raise(exc);
   return Qnil;
 }
 
