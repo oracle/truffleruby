@@ -42,6 +42,7 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
 
         final Object errnoDescription;
         final RubyClass errnoClass;
+
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
             errnoDescription = nil;
@@ -52,11 +53,9 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
                 errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
             }
 
-
             errnoDescription = createString(fromJavaStringNode, ErrnoDescriptions.getDescription(errnoName),
                     Encodings.UTF_8);
         }
-
 
         final RubyString errorMessage = formatMessage(errnoDescription, errno, extraMessage);
 
@@ -66,10 +65,12 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
 
     private RubyString formatMessage(Object errnoDescription, int errno, Object extraMessage) {
         assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString;
+
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             formatMessageNode = insert(DispatchNode.create());
         }
+
         return (RubyString) formatMessageNode.call(
                 getContext().getCoreLibrary().truffleExceptionOperationsModule,
                 "format_errno_error_message",

@@ -37,11 +37,13 @@ VALUE exception_spec_rb_set_errinfo(VALUE self, VALUE exc) {
 }
 
 VALUE exception_spec_rb_syserr_new(VALUE self, VALUE num, VALUE msg) {
-  char *cstr;
-  if(msg != Qnil) {
+  int n = NUM2INT(num);
+  char *cstr = NULL;
+
+  if (msg != Qnil) {
     cstr = StringValuePtr(msg);
   }
-  int n = NUM2INT(num);
+
   return rb_syserr_new(n, cstr);
 }
 
