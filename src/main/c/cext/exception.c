@@ -72,6 +72,11 @@ void rb_sys_fail(const char *message) {
   rb_syserr_fail(n, message);
 }
 
+VALUE rb_syserr_new(int n, const char *mesg) {
+  VALUE arg = mesg ? rb_str_new_cstr(mesg) : Qnil;
+  return rb_syserr_new_str(n, arg);
+}
+
 VALUE rb_syserr_new_str(int n, VALUE mesg) {
   return RUBY_CEXT_INVOKE("rb_syserr_new", INT2FIX(n), mesg);
 }
