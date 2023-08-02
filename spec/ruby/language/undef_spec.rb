@@ -47,7 +47,7 @@ describe "The undef keyword" do
 
     it "with an interpolated symbol when interpolated expression is not a String literal" do
       @undef_class.class_eval do
-        undef :"#{'meth'.to_sym.to_s}"
+        undef :"#{'meth'.to_sym}"
       end
       -> { @obj.meth(5) }.should raise_error(NoMethodError)
     end
