@@ -20,5 +20,14 @@ module Truffle
         meth
       end
     end
+
+    def self.product_iterator(current, rest_enums, &block)
+      return block.call(current) if rest_enums.empty?
+
+      rest_enums_tail = rest_enums[1..]
+      rest_enums.first.each_entry do |next_e|
+        product_iterator(current + [next_e], rest_enums_tail, &block)
+      end
+    end
   end
 end

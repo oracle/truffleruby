@@ -40,3 +40,4 @@ spec/ruby/core/module/used_refinements_spec.rb
 spec/ruby/optional/capi/hash_spec.rb
 
 spec/ruby/core/thread/each_caller_location_spec.rb
+spec/ruby/core/enumerator/product_spec.rb

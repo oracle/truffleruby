@@ -1107,9 +1107,9 @@ describe "A method" do
       m({a: 1}).should == {a: 1}
       m({"a" => 1}).should == {"a" => 1}
 
-      -> { m(a: 1) }.should raise_error(ArgumentError)
-      -> { m(**{a: 1}) }.should raise_error(ArgumentError)
-      -> { m("a" => 1) }.should raise_error(ArgumentError)
+      -> { m(a: 1) }.should raise_error(ArgumentError, 'no keywords accepted')
+      -> { m(**{a: 1}) }.should raise_error(ArgumentError, 'no keywords accepted')
+      -> { m("a" => 1) }.should raise_error(ArgumentError, 'no keywords accepted')
     end
 
     evaluate <<-ruby do

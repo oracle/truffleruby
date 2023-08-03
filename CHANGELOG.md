@@ -35,6 +35,7 @@ Compatibility:
 * Add `Thread.each_caller_location` (#3039, @itarato).
 * Add `timeout` argument to `Thread::SizedQueue#push` (#3039, @itarato).
 * Add `rb_syserr_new` function (@rwstauner).
+* Add `Enumerator#product` (#3039, @itarato).
 
 Performance:
 
