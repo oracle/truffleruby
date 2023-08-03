@@ -139,8 +139,8 @@ public final class CoreExceptions {
                 null);
     }
 
-    public RubyException argumentErrorTimeIntervalPositive(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.createInstance(currentNode.getContext()),
+    public RubyException argumentErrorTimeIntervalPositive(Node currentNode) {
+        return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.createInstance(RubyContext.get(currentNode)),
                 currentNode, null);
     }
 

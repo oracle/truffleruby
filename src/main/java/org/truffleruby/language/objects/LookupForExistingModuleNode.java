@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -33,7 +34,8 @@ public final class LookupForExistingModuleNode extends LookupConstantBaseNode im
     }
 
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
+    public RubyConstant lookupConstant(Node node, LexicalScope lexicalScope, RubyModule module, String name,
+            boolean checkName) {
         final RubyModule lexicalParent = module;
         return deepConstantSearch(name, lexicalScope, lexicalParent);
     }

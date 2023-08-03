@@ -102,7 +102,6 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -144,9 +143,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.DeferredRaiseException;
@@ -163,10 +160,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -232,65 +227,74 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "*", required = 1)
-    @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "times", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class MulNode extends CoreMethodNode {
+    public abstract static class StringMulNode extends CoreMethodArrayArgumentsNode {
 
-        @CreateCast("times")
-        protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
-            // Not ToIntNode, because this works with empty strings, and must throw a different error
-            // for long values that don't fit in an int.
-            return FixnumLowerNode.create(ToLongNode.create(times));
+        // Not ToIntNode, because this works with empty strings, and must throw a different error
+        // for long values that don't fit in an int.
+        @Specialization
+        protected RubyString doMul(Object string, Object timesObject,
+                @Cached FixnumLowerNode fixnumLowerNode,
+                @Cached ToLongNode toLongNode,
+                @Cached MulNode mulNode) {
+            var times = fixnumLowerNode.execute(this, toLongNode.execute(this, timesObject));
+            return mulNode.execute(this, string, times);
         }
+    }
+
+    @GenerateCached(false)
+    @GenerateInline
+    public abstract static class MulNode extends RubyBaseNode {
+
+        public abstract RubyString execute(Node node, Object String, Object times);
 
         @Specialization(guards = "times == 0")
-        protected RubyString multiplyZero(Object string, int times,
+        protected static RubyString multiplyZero(Node node, Object string, int times,
                 @Cached @Shared RubyStringLibrary libString) {
             final RubyEncoding encoding = libString.getEncoding(string);
-            return createString(encoding.tencoding.getEmpty(), encoding);
+            return createString(node, encoding.tencoding.getEmpty(), encoding);
         }
 
         @Specialization(guards = "times < 0")
-        protected RubyString multiplyTimesNegative(Object string, long times) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
+        protected static RubyString multiplyTimesNegative(Node node, Object string, long times) {
+            throw new RaiseException(getContext(node), coreExceptions(node).argumentError("negative argument", node));
         }
 
         @Specialization(guards = { "times > 0", "!libString.getTString(string).isEmpty()" })
-        protected RubyString multiply(Object string, int times,
+        protected static RubyString multiply(Node node, Object string, int times,
                 @Cached InlinedBranchProfile tooBigProfile,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached TruffleString.RepeatNode repeatNode) {
+                @Cached(inline = false) TruffleString.RepeatNode repeatNode) {
             var tstring = libString.getTString(string);
             var encoding = libString.getEncoding(string);
 
             long longLength = (long) times * tstring.byteLength(encoding.tencoding);
             if (longLength > Integer.MAX_VALUE) {
-                tooBigProfile.enter(this);
-                throw tooBig();
+                tooBigProfile.enter(node);
+                throw tooBig(node);
             }
 
-            return createString(repeatNode.execute(tstring, times, encoding.tencoding), encoding);
+            return createString(node, repeatNode.execute(tstring, times, encoding.tencoding), encoding);
         }
 
         @Specialization(guards = { "times > 0", "libString.getTString(string).isEmpty()" })
-        protected RubyString multiplyEmpty(Object string, long times,
+        protected static RubyString multiplyEmpty(Node node, Object string, long times,
                 @Cached @Shared RubyStringLibrary libString) {
             var encoding = libString.getEncoding(string);
-            return createString(encoding.tencoding.getEmpty(), encoding);
+            return createString(node, encoding.tencoding.getEmpty(), encoding);
         }
 
         @Specialization(guards = { "times > 0", "!libString.getTString(string).isEmpty()" })
-        protected RubyString multiplyNonEmpty(Object string, long times,
+        protected static RubyString multiplyNonEmpty(Node node, Object string, long times,
                 @Cached @Shared RubyStringLibrary libString) {
             assert !CoreLibrary.fitsIntoInteger(times);
-            throw tooBig();
+            throw tooBig(node);
         }
 
-        private RaiseException tooBig() {
+        private static RaiseException tooBig(Node node) {
             // MRI throws this error whenever the total size of the resulting string would exceed LONG_MAX.
             // In TruffleRuby, strings have max length Integer.MAX_VALUE.
-            return new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
+            return new RaiseException(getContext(node), coreExceptions(node).argumentError("argument too big", node));
         }
     }
 
@@ -547,8 +551,9 @@ public abstract class StringNodes {
                         "!isRubyRegexp(index)",
                         "isNotRubyString(index)" })
         protected Object getIndex(Object string, Object index, NotProvided length,
+                @Cached @Shared ToLongNode toLongNode,
                 @Cached @Shared RubyStringLibrary strings) {
-            long indexLong = toLong(index);
+            long indexLong = toLongNode.execute(this, index);
             int indexInt = (int) indexLong;
             return indexInt != indexLong
                     ? outOfBoundsNil()
@@ -577,8 +582,9 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "wasProvided(length)")
-        protected Object slice(Object string, long start, Object length) {
-            return slice(string, start, toLong(length));
+        protected Object slice(Object string, long start, Object length,
+                @Cached @Shared ToLongNode toLongNode) {
+            return slice(string, start, toLongNode.execute(this, length));
         }
 
         @Specialization(
@@ -587,8 +593,9 @@ public abstract class StringNodes {
                         "!isRubyRegexp(start)",
                         "isNotRubyString(start)",
                         "wasProvided(length)" })
-        protected Object slice(Object string, Object start, Object length) {
-            return slice(string, toLong(start), toLong(length));
+        protected Object slice(Object string, Object start, Object length,
+                @Cached @Shared ToLongNode toLongNode) {
+            return slice(string, toLongNode.execute(this, start), toLongNode.execute(this, length));
         }
 
         // endregion
@@ -686,16 +693,6 @@ public abstract class StringNodes {
             }
 
             return substringNode.execute(string, start, length);
-        }
-
-        private long toLong(Object value) {
-            if (toLongNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toLongNode = insert(ToLongNode.create());
-            }
-
-            // The long cast is necessary to avoid the invalid `(long) Integer` situation.
-            return toLongNode.execute(value);
         }
 
         private int codePointLength(AbstractTruffleString string, RubyEncoding encoding) {
@@ -2489,10 +2486,11 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isImplicitLong(bits)", "wasProvided(bits)" })
-        protected Object sum(Object string, Object bits,
+        protected static Object sum(Object string, Object bits,
                 @Cached ToLongNode toLongNode,
-                @Cached SumNode sumNode) {
-            return sumNode.executeSum(string, toLongNode.execute(bits));
+                @Cached SumNode sumNode,
+                @Bind("this") Node node) {
+            return sumNode.executeSum(string, toLongNode.execute(node, bits));
         }
 
     }

@@ -1229,7 +1229,7 @@ public abstract class KernelNodes {
         protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
-            Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            Object name = toStringOrSymbolNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             return getMethodObjectNode.execute(callerFrame, self, name, PRIVATE);
         }
 
@@ -1359,7 +1359,7 @@ public abstract class KernelNodes {
         protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
-            Object name = toStringOrSymbolNode.execute(RubyArguments.getArgument(rubyArgs, 0));
+            Object name = toStringOrSymbolNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             return getMethodObjectNode.execute(callerFrame, self, name, PUBLIC);
         }
 

@@ -295,13 +295,14 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public long getHashSize(
             @Exclusive @Cached DispatchNode dispatchNode,
             @Shared @Cached BranchProfile errorProfile,
-            @Exclusive @Cached ToLongNode toInt) throws UnsupportedMessageException {
+            @Exclusive @Cached ToLongNode toInt,
+            @Bind("$node") Node node) throws UnsupportedMessageException {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_size");
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
-        return toInt.execute(value);
+        return toInt.execute(node, value);
     }
 
     @ExportMessage

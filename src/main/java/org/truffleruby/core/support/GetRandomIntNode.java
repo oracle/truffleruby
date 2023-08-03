@@ -48,7 +48,8 @@ public abstract class GetRandomIntNode extends RubyBaseNode {
     protected int genRandFallback(RubyCustomRandomizer randomizer,
             @Cached DispatchNode randomIntNode,
             @Cached FixnumLowerNode fixnumLowerNode) {
-        return (int) fixnumLowerNode.executeLower(
+        return (int) fixnumLowerNode.execute(
+                this,
                 randomIntNode.call(
                         getContext().getCoreLibrary().truffleRandomOperationsModule,
                         "obj_random_int",

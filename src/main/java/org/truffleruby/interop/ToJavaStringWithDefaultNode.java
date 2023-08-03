@@ -9,43 +9,31 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided. */
-@NodeChild(value = "valueNode", type = RubyNode.class)
-public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode {
+@GenerateInline
+@GenerateCached(false)
+public abstract class ToJavaStringWithDefaultNode extends RubyBaseNode {
 
-    private final String defaultValue;
-
-    public ToJavaStringWithDefaultNode(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    abstract RubyNode getValueNode();
+    public abstract String execute(Node node, Object value, String defaultValue);
 
     @Specialization
-    protected String doDefault(NotProvided value) {
+    protected static String doDefault(NotProvided value, String defaultValue) {
         return defaultValue;
     }
 
     @Specialization(guards = "wasProvided(value)")
-    protected String doProvided(Object value,
+    protected static String doProvided(Node node, Object value, String defaultValue,
             @Cached ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.execute(this, value);
-    }
-
-    @Override
-    public RubyNode cloneUninitialized() {
-        var copy = ToJavaStringWithDefaultNodeGen.create(
-                defaultValue,
-                getValueNode().cloneUninitialized());
-        return copy.copyFlags(this);
+        return toJavaStringNode.execute(node, value);
     }
 
 }

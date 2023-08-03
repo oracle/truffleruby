@@ -44,13 +44,13 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
     public Object lookupAndResolveConstant(LexicalScope lexicalScope, RubyModule module, String name,
             LookupConstantInterface lookupConstantNode, boolean callConstMissing) {
-        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
+        final RubyConstant constant = lookupConstantNode.lookupConstant(this, lexicalScope, module, name, true);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode, callConstMissing);
     }
 
     public Object lookupAndResolveConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName,
             LookupConstantInterface lookupConstantNode, boolean callConstMissing) {
-        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name, checkName);
+        final RubyConstant constant = lookupConstantNode.lookupConstant(this, lexicalScope, module, name, checkName);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode, callConstMissing);
     }
 
@@ -171,7 +171,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = autoloadConstantModule.fields;
 
-        RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
+        RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(this, lexicalScope, module, name, true);
 
         // check if the constant was set in the ancestors of autoloadConstantModule
         if (resolvedConstant != null &&
@@ -185,7 +185,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             logAutoloadResult(getContext(), autoloadConstant, undefined);
 
             // redo lookup, to consider the undefined constant
-            resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
+            resolvedConstant = lookupConstantNode.lookupConstant(this, lexicalScope, module, name, true);
         }
 
         return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode, callConstMissing);

@@ -44,13 +44,12 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
+import org.truffleruby.interop.ToJavaStringWithDefaultNode;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -122,20 +121,15 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "readline", isModuleFunction = true, optional = 2)
-    @NodeChild(value = "prompt", type = RubyNode.class)
-    @NodeChild(value = "addToHistory", type = RubyBaseNodeWithExecute.class)
-    public abstract static class ReadlineNode extends CoreMethodNode {
-
-        @CreateCast("prompt")
-        protected RubyNode coercePromptToJavaString(RubyNode prompt) {
-            return ToJavaStringWithDefaultNodeGen.create("", prompt);
-        }
+    public abstract static class ReadlineNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected Object readline(String prompt, Object maybeAddToHistory,
+        protected Object readline(Object maybePromptObject, Object maybeAddToHistory,
+                @Cached ToJavaStringWithDefaultNode toJavaStringWithDefaultNode,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
+            final var prompt = toJavaStringWithDefaultNode.execute(this, maybePromptObject, "");
             final boolean addToHistory = booleanCastWithDefaultNode.execute(this, maybeAddToHistory, false);
             final LineReader readline = getContext().getConsoleHolder().getReadline();
 

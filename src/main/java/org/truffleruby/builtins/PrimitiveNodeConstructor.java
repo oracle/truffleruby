@@ -12,7 +12,7 @@ package org.truffleruby.builtins;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.numeric.FixnumLowerNodeGen.FixnumLowerASTNodeGen;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
@@ -49,7 +49,7 @@ public final class PrimitiveNodeConstructor {
 
         for (int n = 0; n < arguments.length; n++) {
             if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
-                arguments[n] = FixnumLowerNodeGen.create(arguments[n]);
+                arguments[n] = FixnumLowerASTNodeGen.create(arguments[n]);
             }
             if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
                 arguments[n] = TypeNodes.TypeCheckFrozenNode.create(arguments[n]);
