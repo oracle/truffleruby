@@ -265,6 +265,10 @@
       <property name="format" value='isNativeAccessAllowed\(\)'/>
       <property name="message" value='Use context.getOptions().NATIVE_PLATFORM instead.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="@CreateCast"/>
+      <property name="message" value="Do not use @CreateCast. Use DSL inlining nodes instead."/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="PrintWriter"/>
