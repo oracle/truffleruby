@@ -1,5 +1,6 @@
 package org.yarp;
 
+// Keep in sync with Ruby MarkNewlinesVisitor
 final class MarkNewlinesVisitor extends AbstractNodeVisitor<Void> {
 
     private final Nodes.Source source;

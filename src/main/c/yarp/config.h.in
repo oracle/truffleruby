@@ -23,6 +23,3 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* _XOPEN_SOURCE */
-#undef _XOPEN_SOURCE
