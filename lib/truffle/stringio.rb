@@ -107,6 +107,8 @@ end
 
 class StringIO
 
+  VERSION = '3.0.1' # Same version as the default gem in CRuby 3.1.3
+
   include Enumerable
   include Truffle::CExt.rb_define_module_under(IO, 'generic_readable')
   include Truffle::CExt.rb_define_module_under(IO, 'generic_writable')
