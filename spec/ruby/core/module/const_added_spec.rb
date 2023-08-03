@@ -147,10 +147,12 @@ describe "Module#const_added" do
         end
       end
 
-      mod.module_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-        TEST = 123
-        TEST = 456
-      RUBY
+      -> {
+        mod.module_eval(<<-RUBY, __FILE__, __LINE__ + 1)
+          TEST = 123
+          TEST = 456
+        RUBY
+      }.should complain(/warning: already initialized constant .+::TEST/)
 
       ScratchPad.recorded.should == [123, 456]
     end
