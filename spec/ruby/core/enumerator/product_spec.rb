@@ -48,6 +48,7 @@ ruby_version_is "3.2" do
       Enumerator.product(1..2) {}.should == nil
     end
 
+    # https://bugs.ruby-lang.org/issues/19829
     it "reject keyword arguments" do
       -> {
         Enumerator.product(1..3, foo: 1, bar: 2)

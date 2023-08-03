@@ -231,12 +231,9 @@ class Enumerator
     end
   end
 
-  def self.product(*enums, **kwargs, &block)
-    Truffle::KernelOperations.validate_no_kwargs(kwargs)
+  def self.product(*enums, **nil, &block)
     return Product.new(*enums) if Primitive.nil?(block)
-
     Truffle::EnumeratorOperations.product_iterator([], enums, &block)
-
     nil
   end
 

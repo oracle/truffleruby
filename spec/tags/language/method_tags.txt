@@ -6,3 +6,4 @@ fails:kwarg with omitted value in a method call accepts short notation 'kwarg' i
 fails:"kwarg with omitted value in a method call with methods and local variables for definition \n    def call(*args, **kwargs) = [args, kwargs]\n    def bar\n      "baz"\n    end\n    def foo(val)\n      call bar:, val:\n    end"
 fails:An endless method definition without arguments without parenthesis for definition 'def m = 42'
 fails:Inside 'endless' method definitions allows method calls without parenthesis
+fails:A method assigns local variables from method parameters for definition 'def m(a, **nil); a end;'

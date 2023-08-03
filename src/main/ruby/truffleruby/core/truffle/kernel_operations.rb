@@ -242,13 +242,6 @@ module Truffle
       KERNEL_FROZEN.bind(value).call
     end
 
-    def self.validate_no_kwargs(kwargs)
-      return if (kwargs_size = kwargs.size) == 0
-
-      raise ArgumentError, "unknown keyword: #{kwargs.keys.first.inspect}" if kwargs_size == 1
-      raise ArgumentError, "unknown keywords: #{kwargs.keys.map(&:inspect).join(', ')}"
-    end
-
     # To get the class even if the value's class does not include `Kernel`, use `Primitive.class`.
   end
 end
