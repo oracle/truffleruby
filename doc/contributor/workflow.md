@@ -322,6 +322,9 @@ When working on a feature from the next version of Ruby, add the spec file in
 the corresponding files list in `spec/truffleruby.next-specs` so that the specs
 are run in CI too.
 
+However this does not work for C-API specs,
+because those use `#ifdef RUBY_VERSION_IS_3_2` and that version cannot be faked.
+
 ## How to fix a failing MRI test
 
 Remove the exclusion of either the file (`test/mri/failing.exclude`) or the
