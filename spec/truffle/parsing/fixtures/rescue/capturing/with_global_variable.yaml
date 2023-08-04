@@ -1,6 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with a global variable"
-yarp_specific: true
+yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   A global variable capturing is represented with the following simplified AST:
   

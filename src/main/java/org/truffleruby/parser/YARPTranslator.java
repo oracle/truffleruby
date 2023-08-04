@@ -582,44 +582,23 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
-        assert node.target instanceof Nodes.ConstantPathNode || node.target instanceof Nodes.ConstantReadNode;
+        assert node.target instanceof Nodes.ConstantPathNode;
 
         final RubyNode rubyNode;
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
+        final var pathNode = (Nodes.ConstantPathNode) node.target;
+        final String name = toString(pathNode.child);
+        final RubyNode moduleNode;
 
-        if (node.target instanceof Nodes.ConstantPathNode pathNode) {
-            final String name = toString(pathNode.child);
-            final RubyNode moduleNode;
-
-            if (pathNode.parent != null) {
-                // FOO::BAR = 1
-                moduleNode = pathNode.parent.accept(this);
-            } else {
-                // ::FOO = 1
-                moduleNode = new ObjectClassLiteralNode();
-            }
-
-            rubyNode = new WriteConstantNode(name, moduleNode, value);
-        } else if (node.target instanceof Nodes.ConstantReadNode readNode) {
-            // FOO = 1
-            final String name = toString(readNode);
-            final RubyNode moduleNode;
-
-            if (environment.isDynamicConstantLookup()) {
-                if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    RubyLanguage.LOGGER.info(() -> "set dynamic constant at " +
-                            RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
-                }
-
-                moduleNode = new DynamicLexicalScopeNode();
-            } else {
-                moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
-            }
-
-            rubyNode = new WriteConstantNode(name, moduleNode, value);
+        if (pathNode.parent != null) {
+            // FOO::BAR = 1
+            moduleNode = pathNode.parent.accept(this);
         } else {
-            throw CompilerDirectives.shouldNotReachHere();
+            // ::FOO = 1
+            moduleNode = new ObjectClassLiteralNode();
         }
+
+        rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -644,6 +623,30 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
+
+    public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
+        final RubyNode rubyNode;
+        final String name = toString(node.name_loc);
+        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantWriteNode");
+        final RubyNode moduleNode;
+
+        if (environment.isDynamicConstantLookup()) {
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                RubyLanguage.LOGGER.info(() -> "set dynamic constant at " +
+                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+            }
+
+            moduleNode = new DynamicLexicalScopeNode();
+        } else {
+            moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
+        }
+
+        rubyNode = new WriteConstantNode(name, moduleNode, value);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
 
     public RubyNode visitDefNode(Nodes.DefNode node) {
         return defaultVisit(node);

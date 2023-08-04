@@ -1,6 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with element reference"
-yarp_specific: true
+yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   Capturing exception to element reference is represented as a `a.[]=()` method call.
   
