@@ -3,6 +3,7 @@
 
 #include "ruby.h"
 #include <internal/bits.h>
+#include <ruby/encoding.h>
 
 #define STR_EMBED_P(str) (false)
 #define STR_SHARED_P(str) (false)
@@ -85,6 +86,12 @@ static inline const char* search_nonascii(const char *p, const char *e) {
     case 1: if (e[-1]&0x80) return e-1;
     case 0: return NULL;
   }
+}
+
+static inline bool
+is_ascii_string(VALUE str)
+{
+    return rb_enc_str_coderange(str) == ENC_CODERANGE_7BIT;
 }
 
 #endif /* INTERNAL_STRING_H */
