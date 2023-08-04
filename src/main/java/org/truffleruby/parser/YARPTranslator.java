@@ -625,7 +625,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
-        final RubyNode rubyNode;
         final String name = toString(node.name_loc);
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantWriteNode");
         final RubyNode moduleNode;
@@ -641,7 +640,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
         }
 
-        rubyNode = new WriteConstantNode(name, moduleNode, value);
+        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -966,21 +965,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitInterpolatedSymbolNode(Nodes.InterpolatedSymbolNode node) {
         final ToSNode[] children = new ToSNode[node.parts.length];
 
-        // a special case for `:"abc"` literal - convert to Symbol ourselves
-        if (node.parts.length == 1 && node.parts[0] instanceof Nodes.StringNode s) {
-            final RubySymbol symbol = language.getSymbol(toString(s));
-            final RubyNode rubyNode = new ObjectLiteralNode(symbol);
-
-            assignNodePositionInSource(node, rubyNode);
-            copyNewlineFlag(s, rubyNode);
-
-            return rubyNode;
-        }
-
         for (int i = 0; i < node.parts.length; i++) {
-            var part = node.parts[i];
-
-            children[i] = ToSNodeGen.create(part.accept(this));
+            final RubyNode expression = node.parts[i].accept(this);
+            children[i] = ToSNodeGen.create(expression);
         }
 
         final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
