@@ -51,3 +51,4 @@ fails:Pattern matching Hash pattern calls #deconstruct_keys per pattern
 fails:Pattern matching Hash pattern can match partially
 fails:Pattern matching Hash pattern matches {} with {}
 fails:Pattern matching refinements are used for #deconstruct
+fails:Pattern matching can be standalone assoc operator that deconstructs value and properly scopes variables
