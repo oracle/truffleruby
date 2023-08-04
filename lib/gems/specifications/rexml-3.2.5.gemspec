@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Kouhei Sutou".freeze]
   s.bindir = "exe".freeze
-  s.date = "2021-04-05"
+  s.date = "2023-03-30"
   s.description = "An XML toolkit for Ruby".freeze
   s.email = ["kou@cozmixng.org".freeze]
   s.extra_rdoc_files = ["LICENSE.txt".freeze, "NEWS.md".freeze, "README.md".freeze, "doc/rexml/context.rdoc".freeze, "doc/rexml/tasks/rdoc/child.rdoc".freeze, "doc/rexml/tasks/rdoc/document.rdoc".freeze, "doc/rexml/tasks/rdoc/element.rdoc".freeze, "doc/rexml/tasks/rdoc/node.rdoc".freeze, "doc/rexml/tasks/rdoc/parent.rdoc".freeze, "doc/rexml/tasks/tocs/child_toc.rdoc".freeze, "doc/rexml/tasks/tocs/document_toc.rdoc".freeze, "doc/rexml/tasks/tocs/element_toc.rdoc".freeze, "doc/rexml/tasks/tocs/master_toc.rdoc".freeze, "doc/rexml/tasks/tocs/node_toc.rdoc".freeze, "doc/rexml/tasks/tocs/parent_toc.rdoc".freeze]
@@ -17,22 +17,14 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/rexml".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.rdoc_options = ["--main".freeze, "README.md".freeze]
-  s.rubygems_version = "3.3.26".freeze
+  s.rubygems_version = "3.4.10".freeze
   s.summary = "An XML toolkit for Ruby".freeze
 
-  s.installed_by_version = "3.3.26" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.4.10" if s.respond_to? :installed_by_version
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-  end
+  s.specification_version = 4
 
-  if s.respond_to? :add_runtime_dependency then
-    s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
-    s.add_development_dependency(%q<rake>.freeze, [">= 0"])
-    s.add_development_dependency(%q<test-unit>.freeze, [">= 0"])
-  else
-    s.add_dependency(%q<bundler>.freeze, [">= 0"])
-    s.add_dependency(%q<rake>.freeze, [">= 0"])
-    s.add_dependency(%q<test-unit>.freeze, [">= 0"])
-  end
+  s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+  s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+  s.add_development_dependency(%q<test-unit>.freeze, [">= 0"])
 end

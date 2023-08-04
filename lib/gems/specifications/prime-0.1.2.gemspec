@@ -9,26 +9,19 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Marc-Andre Lafortune".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-12-09"
+  s.date = "2023-03-30"
   s.description = "Prime numbers and factorization library.".freeze
   s.email = ["ruby-core@marc-andre.ca".freeze]
   s.homepage = "https://github.com/ruby/prime".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.3.26".freeze
+  s.rubygems_version = "3.4.10".freeze
   s.summary = "Prime numbers and factorization library.".freeze
 
-  s.installed_by_version = "3.3.26" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.4.10" if s.respond_to? :installed_by_version
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-  end
+  s.specification_version = 4
 
-  if s.respond_to? :add_runtime_dependency then
-    s.add_runtime_dependency(%q<singleton>.freeze, [">= 0"])
-    s.add_runtime_dependency(%q<forwardable>.freeze, [">= 0"])
-  else
-    s.add_dependency(%q<singleton>.freeze, [">= 0"])
-    s.add_dependency(%q<forwardable>.freeze, [">= 0"])
-  end
+  s.add_runtime_dependency(%q<singleton>.freeze, [">= 0"])
+  s.add_runtime_dependency(%q<forwardable>.freeze, [">= 0"])
 end
