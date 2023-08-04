@@ -24,6 +24,7 @@ module Bundler
 
         name = dep[0].name
         platform = dep[1]
+        incomplete = false
 
         key = [name, platform]
         next if handled.key?(key)
@@ -36,14 +37,19 @@ module Bundler
 
           specs_for_dep.first.dependencies.each do |d|
             next if d.type == :development
+            incomplete = true if d.name != "bundler" && lookup[d.name].empty?
             deps << [d, dep[1]]
           end
-        elsif check
-          @incomplete_specs += lookup[name]
+        else
+          incomplete = true
+        end
+
+        if incomplete && check
+          @incomplete_specs += lookup[name].any? ? lookup[name] : [LazySpecification.new(name, nil, nil)]
         end
       end
 
-      specs
+      specs.uniq
     end
 
     def [](key)
@@ -95,6 +101,10 @@ module Bundler
     end
 
     def incomplete_ruby_specs?(deps)
+      return false if @specs.empty?
+
+      @incomplete_specs = []
+
       self.for(deps, true, [Gem::Platform::RUBY])
 
       @incomplete_specs.any?
@@ -122,8 +132,8 @@ module Bundler
       @specs.detect {|spec| spec.name == name && spec.match_platform(platform) }
     end
 
-    def delete_by_name_and_version(name, version)
-      @specs.reject! {|spec| spec.name == name && spec.version == version }
+    def delete_by_name(name)
+      @specs.reject! {|spec| spec.name == name }
       @lookup = nil
       @sorted = nil
     end
@@ -165,7 +175,7 @@ module Bundler
         cgems = extract_circular_gems(error)
         raise CyclicDependencyError, "Your bundle requires gems that depend" \
           " on each other, creating an infinite loop. Please remove either" \
-          " gem '#{cgems[1]}' or gem '#{cgems[0]}' and try again."
+          " gem '#{cgems[0]}' or gem '#{cgems[1]}' and try again."
       end
     end
 
@@ -190,12 +200,10 @@ module Bundler
 
     def specs_for_dependency(dep, platform)
       specs_for_name = lookup[dep.name]
-      if platform.nil?
-        matching_specs = specs_for_name.map {|s| s.materialize_for_installation if Gem::Platform.match_spec?(s) }.compact
-        GemHelpers.sort_best_platform_match(matching_specs, Bundler.local_platform)
-      else
-        GemHelpers.select_best_platform_match(specs_for_name, dep.force_ruby_platform ? Gem::Platform::RUBY : platform)
-      end
+      target_platform = dep.force_ruby_platform ? Gem::Platform::RUBY : (platform || Bundler.local_platform)
+      matching_specs = GemHelpers.select_best_platform_match(specs_for_name, target_platform)
+      matching_specs.map!(&:materialize_for_installation).compact! if platform.nil?
+      matching_specs
     end
 
     def tsort_each_child(s)

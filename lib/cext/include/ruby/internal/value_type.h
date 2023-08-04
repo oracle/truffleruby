@@ -166,10 +166,6 @@ RBIMPL_ATTR_COLD()
  * like a function prototype.  We can no longer change this API.
  */
 void rb_check_type(VALUE obj, int t);
-#ifdef TRUFFLERUBY
-enum ruby_value_type rb_type(VALUE obj);
-bool RB_TYPE_P(VALUE value, enum ruby_value_type type);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -186,9 +182,6 @@ RB_BUILTIN_TYPE(VALUE obj)
 {
     RBIMPL_ASSERT_OR_ASSUME(! RB_SPECIAL_CONST_P(obj));
 
-#ifdef TRUFFLERUBY
-    return rb_type(obj);
-#else
 #if 0 && defined __GNUC__ && !defined __clang__
     /* Don't move the access to `flags` before the preceding
      * RB_SPECIAL_CONST_P check. */
@@ -196,12 +189,7 @@ RB_BUILTIN_TYPE(VALUE obj)
 #endif
     VALUE ret = RBASIC(obj)->flags & RUBY_T_MASK;
     return RBIMPL_CAST((enum ruby_value_type)ret);
-#endif
 }
-
-#ifdef TRUFFLERUBY
-#define RB_BUILTIN_TYPE_NATIVE(x) RBIMPL_CAST((enum ruby_value_type) (((struct RBasic*)(x))->flags & RUBY_T_MASK))
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 /**
@@ -214,9 +202,6 @@ RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 static inline bool
 rb_integer_type_p(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_integer_type_p", rb_tr_unwrap(obj)));
-#else
     if (RB_FIXNUM_P(obj)) {
         return true;
     }
@@ -226,10 +211,8 @@ rb_integer_type_p(VALUE obj)
     else {
         return RB_BUILTIN_TYPE(obj) == RUBY_T_BIGNUM;
     }
-#endif
 }
 
-#ifndef TRUFFLERUBY // declared above
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 /**
  * Identical to RB_BUILTIN_TYPE(), except it can also accept special constants.
@@ -266,7 +249,6 @@ rb_type(VALUE obj)
         return RUBY_T_FLOAT;
     }
 }
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
@@ -280,10 +262,6 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_FLOAT_TYPE_P(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    /* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
-    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(obj)));
-#else
     if (RB_FLONUM_P(obj)) {
         return true;
     }
@@ -293,7 +271,6 @@ RB_FLOAT_TYPE_P(VALUE obj)
     else {
         return RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT;
     }
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -328,14 +305,9 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_SYMBOL_P(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", rb_tr_unwrap(obj)));
-#else
     return RB_STATIC_SYM_P(obj) || RB_DYNAMIC_SYM_P(obj);
-#endif
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 RBIMPL_ATTR_FORCEINLINE()
@@ -444,7 +416,6 @@ RBIMPL_ATTR_ARTIFICIAL()
  * Defined in ruby/internal/core/rtypeddata.h
  */
 static inline bool rbimpl_rtypeddata_p(VALUE obj);
-#endif // TRUFFLERUBY
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -460,9 +431,6 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 Check_Type(VALUE v, enum ruby_value_type t)
 {
-#ifdef TRUFFLERUBY
-    rb_check_type(v, t);
-#else
     if (RB_UNLIKELY(! RB_TYPE_P(v, t))) {
         goto unexpected_type;
     }
@@ -476,7 +444,6 @@ Check_Type(VALUE v, enum ruby_value_type t)
 
   unexpected_type:
     rb_unexpected_type(v, t);
-#endif // TRUFFLERUBY
 }
 
 #endif /* RBIMPL_VALUE_TYPE_H */

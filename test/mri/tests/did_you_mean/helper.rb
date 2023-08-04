@@ -10,10 +10,7 @@ module DidYouMean
       end
     end
 
-    if defined?(::TruffleRuby)
-      @root = File.expand_path('../../../../lib/mri/did_you_mean.rb', __dir__)
-      require 'did_you_mean'
-    elsif File.file?(File.expand_path('../lib/did_you_mean.rb', __dir__))
+    if File.file?(File.expand_path('../lib/did_you_mean.rb', __dir__))
       # In this case we're being run from inside the gem, so we just want to
       # require the root of the library
 
@@ -32,5 +29,15 @@ module DidYouMean
     def assert_correction(expected, array)
       assert_equal Array(expected), array, "Expected #{array.inspect} to only include #{expected.inspect}"
     end
+
+    def get_message(err)
+      if err.respond_to?(:detailed_message)
+        err.detailed_message(highlight: false)
+      else
+        err.to_s
+      end
+    end
+
+    module_function :get_message
   end
 end

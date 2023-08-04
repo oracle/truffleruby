@@ -90,6 +90,13 @@ class OpenSSL::TestEC < OpenSSL::PKeyTestCase
     assert_equal(true, key2.public?)
     assert_equal(true, key2.check_key)
 
+    # Behavior of EVP_PKEY_public_check changes between OpenSSL 1.1.1 and 3.0
+    key4 = Fixtures.pkey("p256_too_large")
+    assert_raise(OpenSSL::PKey::ECError) { key4.check_key }
+
+    key5 = Fixtures.pkey("p384_invalid")
+    assert_raise(OpenSSL::PKey::ECError) { key5.check_key }
+
     # EC#private_key= is deprecated in 3.0 and won't work on OpenSSL 3.0
     if !openssl?(3, 0, 0)
       key2.private_key += 1
@@ -100,8 +107,8 @@ class OpenSSL::TestEC < OpenSSL::PKeyTestCase
   def test_sign_verify
     p256 = Fixtures.pkey("p256")
     data = "Sign me!"
-    signature = p256.sign("SHA1", data)
-    assert_equal true, p256.verify("SHA1", signature, data)
+    signature = p256.sign("SHA256", data)
+    assert_equal true, p256.verify("SHA256", signature, data)
 
     signature0 = (<<~'end;').unpack("m")[0]
       MEQCIEOTY/hD7eI8a0qlzxkIt8LLZ8uwiaSfVbjX2dPAvN11AiAQdCYx56Fq

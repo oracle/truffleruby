@@ -36,6 +36,19 @@ class TestSymbol < Test::Unit::TestCase
     assert_eval_inspected(:"@@1", false)
     assert_eval_inspected(:"@", false)
     assert_eval_inspected(:"@@", false)
+    assert_eval_inspected(:"[]=")
+    assert_eval_inspected(:"[][]", false)
+    assert_eval_inspected(:"[][]=", false)
+    assert_eval_inspected(:"@=", false)
+    assert_eval_inspected(:"@@=", false)
+    assert_eval_inspected(:"@x=", false)
+    assert_eval_inspected(:"@@x=", false)
+    assert_eval_inspected(:"$$=", false)
+    assert_eval_inspected(:"$==", false)
+    assert_eval_inspected(:"$x=", false)
+    assert_eval_inspected(:"$$$=", false)
+    assert_eval_inspected(:"foo?=", false)
+    assert_eval_inspected(:"foo!=", false)
   end
 
   def assert_inspect_evaled(n)
@@ -531,7 +544,7 @@ class TestSymbol < Test::Unit::TestCase
 
   def test_symbol_fstr_memory_leak
     bug10686 = '[ruby-core:67268] [Bug #10686]'
-    assert_no_memory_leak([], "#{<<~"begin;"}\n#{<<~'else;'}", "#{<<~'end;'}", bug10686, limit: 1.9, rss: true, timeout: 20)
+    assert_no_memory_leak([], "#{<<~"begin;"}\n#{<<~'else;'}", "#{<<~'end;'}", bug10686, limit: 1.71, rss: true, timeout: 20)
     begin;
       n = 100_000
       n.times { |i| i.to_s.to_sym }

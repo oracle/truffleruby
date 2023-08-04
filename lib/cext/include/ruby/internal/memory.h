@@ -157,12 +157,6 @@ typedef uint128_t DSIZE_T;
  * @param  v  A variable of ::VALUE type.
  * @post   `v` is still alive.
  */
-#ifdef TRUFFLERUBY
-RBIMPL_SYMBOL_EXPORT_BEGIN()
-VALUE rb_tr_gc_guard(VALUE value);
-RBIMPL_SYMBOL_EXPORT_END()
-#define RB_GC_GUARD(v) rb_tr_gc_guard(v)
-#else
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
@@ -175,7 +169,6 @@ RBIMPL_SYMBOL_EXPORT_END()
 #else
 #define HAVE_RB_GC_GUARDED_PTR_VAL 1
 #define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
-#endif
 #endif
 
 /* Casts needed because void* is NOT compatible with others in C++. */
@@ -294,12 +287,12 @@ RBIMPL_SYMBOL_EXPORT_END()
     RBIMPL_CAST((type *)alloca(rbimpl_size_mul_or_raise(sizeof(type), (n))))
 
 /**
- * Identical to #RB_ALLOCV_N(), except it  implicitly assumes the type of array
- * is ::VALUE.
+ * Identical to #RB_ALLOCV_N(), except that it allocates a number of bytes and
+ * returns a void* .
  *
  * @param   v  A variable to hold the just-in-case opaque Ruby object.
  * @param   n  Size of allocation, in bytes.
- * @return  An array of `n` bytes of ::VALUE.
+ * @return  A void pointer to `n` bytes storage.
  * @note    `n` may be evaluated twice.
  */
 #define RB_ALLOCV(v, n)        \
@@ -370,7 +363,7 @@ RBIMPL_SYMBOL_EXPORT_END()
  * @return  `p1`.
  * @post    First `n` elements of `p2` are copied into `p1`.
  */
-#define MEMCPY(p1,p2,type,n) memcpy((p1), (p2), rbimpl_size_mul_or_raise(sizeof(type), (n)))
+#define MEMCPY(p1,p2,type,n) ruby_nonempty_memcpy((p1), (p2), rbimpl_size_mul_or_raise(sizeof(type), (n)))
 
 /**
  * Handy macro to call memmove.
@@ -651,8 +644,6 @@ rb_alloc_tmp_buffer2(volatile VALUE *store, long count, size_t elsize)
     return rb_alloc_tmp_buffer_with_count(store, total_size, cnt);
 }
 
-#ifndef TRUFFLERUBY
-#if ! defined(__MINGW32__) && ! defined(__DOXYGEN__)
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_NONNULL((1))
@@ -671,9 +662,5 @@ ruby_nonempty_memcpy(void *dest, const void *src, size_t n)
     }
 }
 RBIMPL_SYMBOL_EXPORT_END()
-#undef memcpy
-#define memcpy ruby_nonempty_memcpy
-#endif
-#endif
 
 #endif /* RBIMPL_MEMORY_H */

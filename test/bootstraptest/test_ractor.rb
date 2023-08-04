@@ -283,8 +283,9 @@ assert_equal 30.times.map { 'ok' }.to_s, %q{
   30.times.map{|i|
     test i
   }
-} unless ENV['RUN_OPTS'] =~ /--jit-min-calls=5/ || # This always fails with --jit-wait --jit-min-calls=5
-  (ENV.key?('TRAVIS') && ENV['TRAVIS_CPU_ARCH'] == 'arm64') # https://bugs.ruby-lang.org/issues/17878
+} unless ENV['RUN_OPTS'] =~ /--mjit-call-threshold=5/ || # This always fails with --mjit-wait --mjit-call-threshold=5
+  (ENV.key?('TRAVIS') && ENV['TRAVIS_CPU_ARCH'] == 'arm64') || # https://bugs.ruby-lang.org/issues/17878
+  true # too flaky everywhere http://ci.rvm.jp/results/trunk@ruby-sp1/4321096
 
 # Exception for empty select
 assert_match /specify at least one ractor/, %q{
@@ -501,7 +502,7 @@ assert_equal '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]', %q{
     rs.delete r
     n
   }.sort
-}
+} unless /mswin/ =~ RUBY_PLATFORM # randomly hangs on mswin https://github.com/ruby/ruby/actions/runs/3753871445/jobs/6377551069#step:20:131
 
 # Ractor.select also support multiple take, receive and yield
 assert_equal '[true, true, true]', %q{
@@ -1472,7 +1473,7 @@ assert_equal "#{N}#{N}", %Q{
 }
 
 # enc_table
-assert_equal "#{N/10}", %Q{
+assert_equal "100", %Q{
   Ractor.new do
     loop do
       Encoding.find("test-enc-#{rand(5_000)}").inspect
@@ -1481,7 +1482,7 @@ assert_equal "#{N/10}", %Q{
   end
 
   src = Encoding.find("UTF-8")
-  #{N/10}.times{|i|
+  100.times{|i|
     src.replicate("test-enc-\#{i}")
   }
 }
@@ -1577,6 +1578,45 @@ assert_equal "ok", %q{
   rescue Ractor::IsolationError
     "ok"
   end
+}
+
+assert_equal "ok", %q{
+  module M
+    def foo
+      @foo
+    end
+  end
+
+  class A
+    include M
+
+    def initialize
+      100.times { |i| instance_variable_set(:"@var_#{i}", "bad: #{i}") }
+      @foo = 2
+    end
+  end
+
+  class B
+    include M
+
+    def initialize
+      @foo = 1
+    end
+  end
+
+  Ractor.new do
+    b = B.new
+    100_000.times do
+      raise unless b.foo == 1
+    end
+  end
+
+  a = A.new
+  100_000.times do
+    raise unless a.foo == 2
+  end
+
+  "ok"
 }
 
 assert_match /\Atest_ractor\.rb:1:\s+warning:\s+Ractor is experimental/, %q{

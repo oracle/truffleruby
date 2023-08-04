@@ -12,8 +12,7 @@ def main
       raise 'missing bison; abort'
     end
   end
-  # TruffleRuby compiles additional objects required for ripper (parse.o and node.o).
-  $objs = %w(ripper.o parse.o node.o)
+  $objs = %w(ripper.o)
   $distcleanfiles.concat %w(ripper.y ripper.c eventids1.c eventids2table.c)
   $cleanfiles.concat %w(ripper.E ripper.output y.output .eventids2-check)
   $defs << '-DRIPPER'

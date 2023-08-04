@@ -130,7 +130,13 @@ enum ruby_rarray_flags {
      * 3rd parties must  not be aware that  there even is more than  one way to
      * store array elements.  It was a bad idea to expose this to them.
      */
+#if USE_RVARGC
+    RARRAY_EMBED_LEN_MASK  = RUBY_FL_USER9 | RUBY_FL_USER8 | RUBY_FL_USER7 | RUBY_FL_USER6 |
+                                 RUBY_FL_USER5 | RUBY_FL_USER4 | RUBY_FL_USER3
+#else
     RARRAY_EMBED_LEN_MASK  = RUBY_FL_USER4 | RUBY_FL_USER3
+#endif
+
 #if USE_TRANSIENT_HEAP
     ,
 
@@ -156,10 +162,14 @@ enum ruby_rarray_flags {
  */
 enum ruby_rarray_consts {
     /** Where ::RARRAY_EMBED_LEN_MASK resides. */
-    RARRAY_EMBED_LEN_SHIFT = RUBY_FL_USHIFT + 3,
+    RARRAY_EMBED_LEN_SHIFT = RUBY_FL_USHIFT + 3
+
+#if !USE_RVARGC
+    ,
 
     /** Max possible number elements that can be embedded. */
     RARRAY_EMBED_LEN_MAX   = RBIMPL_EMBED_LEN_MAX_OF(VALUE)
+#endif
 };
 
 /** Ruby's array. */
@@ -218,7 +228,16 @@ struct RArray {
          * to store its elements.  In this  case the length is encoded into the
          * flags.
          */
+#if USE_RVARGC
+        /* This is a length 1 array because:
+         *   1. GCC has a bug that does not optimize C flexible array members
+         *      (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=102452)
+         *   2. Zero length arrays are not supported by all compilers
+         */
+        const VALUE ary[1];
+#else
         const VALUE ary[RARRAY_EMBED_LEN_MAX];
+#endif
     } as;
 };
 
@@ -255,13 +274,6 @@ void rb_ary_ptr_use_end(VALUE a);
  */
 void rb_ary_detransient(VALUE a);
 #endif
-#ifdef TRUFFLERUBY
-long rb_array_len(VALUE a);
-int RARRAY_LENINT(VALUE ary);
-VALUE *RARRAY_PTR_IMPL(VALUE array);
-void rb_ary_store(VALUE, long, VALUE);
-VALUE RARRAY_AREF(VALUE array, long index);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -293,7 +305,6 @@ RARRAY_EMBED_LEN(VALUE ary)
     return RBIMPL_CAST((long)f);
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 /**
  * Queries the length of the array.
@@ -314,9 +325,7 @@ rb_array_len(VALUE a)
         return RARRAY(a)->as.heap.len;
     }
 }
-#endif
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Identical to rb_array_len(), except it differs for the return type.
@@ -335,7 +344,6 @@ RARRAY_LENINT(VALUE ary)
 {
     return rb_long2int(RARRAY_LEN(ary));
 }
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
@@ -353,11 +361,7 @@ RBIMPL_ATTR_ARTIFICIAL()
  * extension libraries.
  */
 static inline bool
-#ifdef TRUFFLERUBY
-RARRAY_TRANSIENT_P(RB_UNUSED_VAR(VALUE ary))
-#else
 RARRAY_TRANSIENT_P(VALUE ary)
-#endif
 {
     RBIMPL_ASSERT_TYPE(ary, RUBY_T_ARRAY);
 
@@ -383,16 +387,12 @@ rb_array_const_ptr_transient(VALUE a)
 {
     RBIMPL_ASSERT_TYPE(a, RUBY_T_ARRAY);
 
-#ifdef TRUFFLERUBY
-    return FIX_CONST_VALUE_PTR(RARRAY_PTR_IMPL(a));
-#else
     if (RB_FL_ANY_RAW(a, RARRAY_EMBED_FLAG)) {
         return FIX_CONST_VALUE_PTR(RARRAY(a)->as.ary);
     }
     else {
         return FIX_CONST_VALUE_PTR(RARRAY(a)->as.heap.ptr);
     }
-#endif
 }
 
 #if ! USE_TRANSIENT_HEAP
@@ -420,8 +420,6 @@ rb_array_const_ptr(VALUE a)
 #endif
     return rb_array_const_ptr_transient(a);
 }
-
-#ifndef TRUFFLERUBY
 
 /**
  * @private
@@ -469,7 +467,6 @@ rb_array_ptr_use_end(VALUE a,
     RBIMPL_ASSERT_TYPE(a, RUBY_T_ARRAY);
     rb_ary_ptr_use_end(a);
 }
-#endif /* TRUFFLERUBY */
 
 /**
  * @private
@@ -484,14 +481,6 @@ rb_array_ptr_use_end(VALUE a,
     expr;                                                   \
     rb_array_ptr_use_end(rbimpl_ary, (flag));                \
 } while (0)
-
-/**
- * @private
- *
- * This is an  implementation detail of #RARRAY_PTR_USE.  People do  not use it
- * directly.
- */
-#define RARRAY_PTR_USE_START(a) rb_array_ptr_use_start(a, 0)
 
 /**
  * @private
@@ -530,22 +519,6 @@ rb_array_ptr_use_end(VALUE a,
     RBIMPL_RARRAY_STMT(0, ary, ptr_name, expr)
 
 /**
- * @private
- *
- * This is  an implementation  detail of #RARRAY_PTR_USE_TRANSIENT.   People do
- * not use it directly.
- */
-#define RARRAY_PTR_USE_START_TRANSIENT(a) rb_array_ptr_use_start(a, 1)
-
-/**
- * @private
- *
- * This is  an implementation  detail of #RARRAY_PTR_USE_TRANSIENT.   People do
- * not use it directly.
- */
-#define RARRAY_PTR_USE_END_TRANSIENT(a) rb_array_ptr_use_end(a, 1)
-
-/**
  * Identical to #RARRAY_PTR_USE, except the pointer can be a transient one.
  *
  * @param  ary       An object of ::RArray.
@@ -574,12 +547,8 @@ RARRAY_PTR(VALUE ary)
 {
     RBIMPL_ASSERT_TYPE(ary, RUBY_T_ARRAY);
 
-#ifdef TRUFFLERUBY
-    return RARRAY_PTR_IMPL(ary);
-#else
     VALUE tmp = RB_OBJ_WB_UNPROTECT_FOR(ARRAY, ary);
     return RBIMPL_CAST((VALUE *)RARRAY_CONST_PTR(tmp));
-#endif
 }
 
 /**
@@ -596,12 +565,8 @@ RARRAY_PTR(VALUE ary)
 static inline void
 RARRAY_ASET(VALUE ary, long i, VALUE v)
 {
-#ifdef TRUFFLERUBY
-    rb_ary_store(ary, i, v);
-#else
     RARRAY_PTR_USE_TRANSIENT(ary, ptr,
         RB_OBJ_WRITE(ary, &ptr[i], v));
-#endif
 }
 
 /**
@@ -615,10 +580,6 @@ RARRAY_ASET(VALUE ary, long i, VALUE v)
  * remains as  it is due to  that.  If we could  warn such usages we  can set a
  * transition path, but currently no way is found to do so.
  */
-#ifdef TRUFFLERUBY
-#define RARRAY_AREF RARRAY_AREF
-#else
 #define RARRAY_AREF(a, i) RARRAY_CONST_PTR_TRANSIENT(a)[i]
-#endif
 
 #endif /* RBIMPL_RARRAY_H */

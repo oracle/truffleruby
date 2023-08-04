@@ -890,9 +890,8 @@ class CSV
       if @mode == :row or @mode == :col_or_row  # by index
         @table.delete_if(&block)
       else                                      # by header
-        deleted = []
         headers.each do |header|
-          deleted << delete(header) if yield([header, self[header]])
+          delete(header) if yield([header, self[header]])
         end
       end
 

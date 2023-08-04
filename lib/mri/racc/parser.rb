@@ -20,7 +20,7 @@ module Racc
   class ParseError < StandardError; end
 end
 unless defined?(::ParseError)
-  ParseError = Racc::ParseError
+  ParseError = Racc::ParseError # :nodoc:
 end
 
 # Racc is a LALR(1) parser generator.
@@ -189,7 +189,6 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
 
     begin
-      raise LoadError if defined?(::TruffleRuby) # avoid force loading RubyGems
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'jruby'
         require 'racc/cparse-jruby.jar'

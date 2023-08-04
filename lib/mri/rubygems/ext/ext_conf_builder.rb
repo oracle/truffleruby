@@ -21,8 +21,7 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
     destdir = ENV["DESTDIR"]
 
     begin
-      require "shellwords"
-      cmd = Gem.ruby.shellsplit << "-I" << File.expand_path("../..", __dir__) << File.basename(extension)
+      cmd = ruby << File.basename(extension)
       cmd.push(*args)
 
       run(cmd, results, class_name, extension_dir) do |s, r|
@@ -55,6 +54,8 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
         destent = ent.class.new(dest_path, ent.rel)
         destent.exist? || FileUtils.mv(ent.path, destent.path)
       end
+
+      make dest_path, results, extension_dir, tmp_dest_relative, ["clean"]
     ensure
       ENV["DESTDIR"] = destdir
     end

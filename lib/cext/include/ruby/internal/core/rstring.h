@@ -61,12 +61,6 @@
  * @{
  */
 
-#ifdef TRUFFLERUBY
-#define StringValue(v)     rb_tr_string_value(&(v))
-#define StringValuePtr(v)  rb_tr_string_value_ptr(&(v))
-#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
-#else
-
 /**
  * Ensures that the parameter object is a  String.  This is done by calling its
  * `to_str` method.
@@ -99,7 +93,6 @@
  * @post           `v` is a String.
  */
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
-#endif // TRUFFLERUBY
 
 /**
  * @private
@@ -287,7 +280,7 @@ struct RString {
         /** Embedded contents. */
         struct {
 #if USE_RVARGC
-            short len;
+            long len;
             /* This is a length 1 array because:
              *   1. GCC has a bug that does not optimize C flexible array members
              *      (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=102452)
@@ -320,12 +313,6 @@ RBIMPL_SYMBOL_EXPORT_BEGIN()
  * @see        rb_ary_to_ary
  */
 VALUE rb_str_to_str(VALUE obj);
-
-#ifdef TRUFFLERUBY
-VALUE rb_string_value(VALUE *ptr);
-char *rb_string_value_ptr(VALUE *ptr);
-char *rb_string_value_cstr(VALUE *ptr);
-#else
 
 /**
  * Identical to  rb_str_to_str(), except it  fills the passed pointer  with the
@@ -361,7 +348,6 @@ char *rb_string_value_ptr(volatile VALUE *ptr);
  * @return         Pointer to the contents of the return value.
  */
 char *rb_string_value_cstr(volatile VALUE *ptr);
-#endif // TRUFFLERUBY
 
 /**
  * Identical  to rb_str_to_str(),  except it  additionally converts  the string
@@ -414,13 +400,6 @@ void rb_check_safe_str(VALUE);
  * @param[in]  func           The function name where encountered NULL pointer.
  */
 void rb_debug_rstring_null_ptr(const char *func);
-
-#ifdef TRUFFLERUBY
-int rb_tr_str_len(VALUE string);
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
-#endif
-
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -447,13 +426,14 @@ RSTRING_EMBED_LEN(VALUE str)
     RBIMPL_ASSERT_OR_ASSUME(! RB_FL_ANY_RAW(str, RSTRING_NOEMBED));
 
 #if USE_RVARGC
-    short f = RSTRING(str)->as.embed.len;
+    long f = RSTRING(str)->as.embed.len;
+    return f;
 #else
     VALUE f = RBASIC(str)->flags;
     f &= RSTRING_EMBED_LEN_MASK;
     f >>= RSTRING_EMBED_LEN_SHIFT;
-#endif
     return RBIMPL_CAST((long)f);
+#endif
 }
 
 RBIMPL_WARNING_PUSH()
@@ -503,11 +483,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline long
 RSTRING_LEN(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_str_len(str);
-#else
     return rbimpl_rstring_getmem(str).as.heap.len;
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -521,9 +497,6 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline char *
 RSTRING_PTR(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return RSTRING_PTR_IMPL(str);
-#else
     char *ptr = rbimpl_rstring_getmem(str).as.heap.ptr;
 
     if (RB_UNLIKELY(! ptr)) {
@@ -541,7 +514,6 @@ RSTRING_PTR(VALUE str)
     }
 
     return ptr;
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -555,9 +527,6 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline char *
 RSTRING_END(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return RSTRING_END_IMPL(str);
-#else
     struct RString buf = rbimpl_rstring_getmem(str);
 
     if (RB_UNLIKELY(! buf.as.heap.ptr)) {
@@ -566,7 +535,6 @@ RSTRING_END(VALUE str)
     }
 
     return &buf.as.heap.ptr[buf.as.heap.len];
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -585,11 +553,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline int
 RSTRING_LENINT(VALUE str)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_str_len(str);
-#else
     return rb_long2int(RSTRING_LEN(str));
-#endif
 }
 
 /**
@@ -599,13 +563,6 @@ RSTRING_LENINT(VALUE str)
  * @param  ptrvar  Variable where its contents is stored.
  * @param  lenvar  Variable where its length is stored.
  */
-#ifdef TRUFFLERUBY
-#define RSTRING_GETMEM(string, ptrvar, lenvar) \
-    __extension__ ({ \
-        (ptrvar) = RSTRING_PTR(string); \
-        (lenvar) = RSTRING_LEN(string); \
-    })
-#else
 #ifdef HAVE_STMT_AND_DECL_IN_EXPR
 # define RSTRING_GETMEM(str, ptrvar, lenvar) \
     __extension__ ({ \
@@ -618,5 +575,4 @@ RSTRING_LENINT(VALUE str)
     ((ptrvar) = RSTRING_PTR(str),           \
      (lenvar) = RSTRING_LEN(str))
 #endif /* HAVE_STMT_AND_DECL_IN_EXPR */
-#endif /* TRUFFLERUBY */
 #endif /* RBIMPL_RSTRING_H */

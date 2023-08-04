@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 require_relative "helper"
+require_relative "test_gem_update_suggestion"
 require "rubygems/commands/install_command"
 require "rubygems/request_set"
 require "rubygems/rdoc"
 
 class TestGemCommandsInstallCommand < Gem::TestCase
   def setup
+    @orig_args = Gem::Command.build_args
     super
     common_installer_setup
 
@@ -13,7 +15,6 @@ class TestGemCommandsInstallCommand < Gem::TestCase
     @cmd.options[:document] = []
 
     @gemdeps = "tmp_install_gemdeps"
-    @orig_args = Gem::Command.build_args
 
     common_installer_setup
   end
@@ -1549,5 +1550,23 @@ ERROR:  Possible alternatives: non_existent_with_hint
     assert_equal "Gems to install:", out.shift
     assert_equal "  a-3", out.shift
     assert_empty out
+  end
+
+  def test_suggest_update_if_enabled
+    TestUpdateSuggestion.with_eglible_environment(cmd: @cmd) do
+      spec_fetcher do |fetcher|
+        fetcher.gem "a", 2
+      end
+
+      @cmd.options[:args] = %w[a]
+
+      use_ui @ui do
+        assert_raise Gem::MockGemUi::SystemExitException, @ui.error do
+          @cmd.execute
+        end
+      end
+
+      assert_includes @ui.output, "A new release of RubyGems is available: 1.2.3 → 2.0.0!"
+    end
   end
 end

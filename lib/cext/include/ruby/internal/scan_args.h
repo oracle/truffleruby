@@ -100,7 +100,7 @@ RBIMPL_ATTR_NONNULL((2, 3))
  * param-arg-spec        := pre-arg-spec [post-arg-spec] / post-arg-spec /
  *                          pre-opt-post-arg-spec
  * pre-arg-spec          := num-of-leading-mandatory-args
-                            [num-of-optional-args]
+ *                          [num-of-optional-args]
  * post-arg-spec         := sym-for-variable-length-args
  *                          [num-of-trailing-mandatory-args]
  * pre-opt-post-arg-spec := num-of-leading-mandatory-args num-of-optional-args
@@ -188,8 +188,6 @@ void rb_scan_args_length_mismatch(const char*,int);
 RBIMPL_SYMBOL_EXPORT_END()
 
 /** @cond INTERNAL_MACRO */
-
-#ifndef TRUFFLERUBY
 
 /* If we could use constexpr the following macros could be inline functions
  * ... but sadly we cannot. */
@@ -532,6 +530,5 @@ rb_scan_args_set(int kw_flag, int argc, const VALUE *argv,
             ((VALUE*[]){__VA_ARGS__})),                       \
         (rb_scan_args_kw)(kw_flag, argc, argvp, fmt, __VA_ARGS__ /**/))
 #endif
-#endif // TRUFFLERUBY
 
 #endif /* RBIMPL_SCAN_ARGS_H */

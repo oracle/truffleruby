@@ -823,6 +823,8 @@ class Rational_Test < Test::Unit::TestCase
     ng[5, 1, '5/_3']
     ng[5, 3, '5/3_']
     ng[5, 3, '5/3x']
+
+    ng[5, 1, '5/-3']
   end
 
   def test_parse_zero_denominator
@@ -992,7 +994,7 @@ class Rational_Test < Test::Unit::TestCase
     assert_no_memory_leak([], "#{<<-"begin;"}", "#{<<-"end;"}", limit: 1.2, rss: true)
     x = (1<<121) + 1
     y = (1<<99) + 1
-    100.times {1000.times{x.gcd(y)}}
+    1000.times{x.gcd(y)}
     begin;
       100.times {1000.times{x.gcd(y)}}
     end;

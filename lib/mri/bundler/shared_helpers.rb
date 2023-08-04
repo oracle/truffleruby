@@ -160,7 +160,7 @@ module Bundler
         " (was expecting #{old_deps.map(&:to_s)}, but the real spec has #{new_deps.map(&:to_s)})"
       raise APIResponseMismatchError,
         "Downloading #{spec.full_name} revealed dependencies not in the API or the lockfile (#{extra_deps.join(", ")})." \
-        "\nEither installing with `--full-index` or running `bundle update #{spec.name}` should fix the problem."
+        "\nRunning `bundle update #{spec.name}` should fix the problem."
     end
 
     def pretty_dependency(dep)
@@ -284,6 +284,7 @@ module Bundler
       Bundler::SharedHelpers.set_env "BUNDLE_BIN_PATH", exe_file
       Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", find_gemfile.to_s
       Bundler::SharedHelpers.set_env "BUNDLER_VERSION", Bundler::VERSION
+      Bundler::SharedHelpers.set_env "BUNDLER_SETUP", File.expand_path("setup", __dir__) unless RUBY_VERSION < "2.7"
     end
 
     def set_path

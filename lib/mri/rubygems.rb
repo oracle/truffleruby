@@ -8,7 +8,7 @@
 require "rbconfig"
 
 module Gem
-  VERSION = "3.3.26".freeze
+  VERSION = "3.4.10"
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -119,10 +119,6 @@ module Gem
   # to avoid deprecation warnings in Ruby 2.7.
   UNTAINT = RUBY_VERSION < "2.7" ? :untaint.to_sym : proc {}
 
-  # When https://bugs.ruby-lang.org/issues/17259 is available, there is no need to override Kernel#warn
-  KERNEL_WARN_IGNORES_INTERNAL_ENTRIES = RUBY_ENGINE == "truffleruby" ||
-                                         (RUBY_ENGINE == "ruby" && RUBY_VERSION >= "3.0")
-
   ##
   # An Array of Regexps that match windows Ruby platforms.
 
@@ -184,6 +180,8 @@ module Gem
   @post_reset_hooks     ||= []
 
   @default_source_date_epoch = nil
+
+  @discover_gems_on_require = true
 
   ##
   # Try to activate a gem containing +path+. Returns true if
@@ -774,6 +772,10 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
     open_file(path, "wb") do |io|
       io.write data
     end
+  rescue Errno::ENOSPC
+    # If we ran out of space but the file exists, it's *guaranteed* to be corrupted.
+    File.delete(path) if File.exist?(path)
+    raise
   end
 
   ##
@@ -822,7 +824,7 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   def self.env_requirement(gem_name)
     @env_requirements_by_name ||= {}
     @env_requirements_by_name[gem_name] ||= begin
-      req = ENV["GEM_REQUIREMENT_#{gem_name.upcase}"] || ">= 0".freeze
+      req = ENV["GEM_REQUIREMENT_#{gem_name.upcase}"] || ">= 0"
       Gem::Requirement.create(req)
     end
   end
@@ -1010,7 +1012,7 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   # Is this platform Solaris?
 
   def self.solaris_platform?
-    RUBY_PLATFORM =~ /solaris/
+    RUBY_PLATFORM.include?("solaris")
   end
 
   ##
@@ -1163,7 +1165,15 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
     # RubyGems distributors (like operating system package managers) can
     # disable RubyGems update by setting this to error message printed to
     # end-users on gem update --system instead of actual update.
+
     attr_accessor :disable_system_update_message
+
+    ##
+    # Whether RubyGems should enhance builtin `require` to automatically
+    # check whether the path required is present in installed gems, and
+    # automatically activate them and add them to `$LOAD_PATH`.
+
+    attr_accessor :discover_gems_on_require
 
     ##
     # Hash of loaded Gem::Specification keyed by name
@@ -1291,9 +1301,8 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   ##
   # Location of Marshal quick gemspecs on remote repositories
 
-  MARSHAL_SPEC_DIR = "quick/Marshal.#{Gem.marshal_version}/".freeze
+  MARSHAL_SPEC_DIR = "quick/Marshal.#{Gem.marshal_version}/"
 
-  autoload :BundlerVersionFinder, File.expand_path("rubygems/bundler_version_finder", __dir__)
   autoload :ConfigFile,         File.expand_path("rubygems/config_file", __dir__)
   autoload :Dependency,         File.expand_path("rubygems/dependency", __dir__)
   autoload :DependencyList,     File.expand_path("rubygems/dependency_list", __dir__)
@@ -1346,5 +1355,16 @@ end
 Gem::Specification.load_defaults
 
 require_relative "rubygems/core_ext/kernel_gem"
-require_relative "rubygems/core_ext/kernel_require"
-require_relative "rubygems/core_ext/kernel_warn"
+
+path = File.join(__dir__, "rubygems/core_ext/kernel_require.rb")
+# When https://bugs.ruby-lang.org/issues/17259 is available, there is no need to override Kernel#warn
+if RUBY_ENGINE == "truffleruby" ||
+   (RUBY_ENGINE == "ruby" && RUBY_VERSION >= "3.0")
+  file = "<internal:#{path}>"
+else
+  require_relative "rubygems/core_ext/kernel_warn"
+  file = path
+end
+eval File.read(path), nil, file
+
+require ENV["BUNDLER_SETUP"] if ENV["BUNDLER_SETUP"] && !defined?(Bundler)

@@ -76,7 +76,7 @@ class TestGemCommandManager < Gem::TestCase
 
     message = "Unknown command pish".dup
 
-    if RUBY_VERSION >= "2.4" && defined?(DidYouMean::SPELL_CHECKERS) && defined?(DidYouMean::Correctable)
+    if defined?(DidYouMean::SPELL_CHECKERS) && defined?(DidYouMean::Correctable)
       message << "\nDid you mean?  \"push\""
     end
 
@@ -124,6 +124,46 @@ class TestGemCommandManager < Gem::TestCase
   ensure
     $:.replace old_load_path
     @command_manager.unregister_command :crash
+  end
+
+  def test_process_args_with_c_flag
+    custom_start_point = File.join @tempdir, "nice_folder"
+    FileUtils.mkdir_p custom_start_point
+
+    execution_path = nil
+    use_ui @ui do
+      @command_manager[:install].when_invoked do
+        execution_path = Dir.pwd
+        true
+      end
+      @command_manager.process_args %W[-C #{custom_start_point} install net-scp-4.0.0.gem --local]
+    end
+
+    assert_equal custom_start_point, execution_path
+  end
+
+  def test_process_args_with_c_flag_without_path
+    use_ui @ui do
+      assert_raise Gem::MockGemUi::TermError do
+        @command_manager.process_args %w[-C install net-scp-4.0.0.gem --local]
+      end
+    end
+
+    assert_match(/install isn't a directory./i, @ui.error)
+  end
+
+  def test_process_args_with_c_flag_path_not_found
+    custom_start_point = File.join @tempdir, "nice_folder"
+    FileUtils.mkdir_p custom_start_point
+    custom_start_point.tr!("_", "-")
+
+    use_ui @ui do
+      assert_raise Gem::MockGemUi::TermError do
+        @command_manager.process_args %W[-C #{custom_start_point} install net-scp-4.0.0.gem --local]
+      end
+    end
+
+    assert_match(/#{custom_start_point} isn't a directory./i, @ui.error)
   end
 
   def test_process_args_bad_arg
@@ -328,6 +368,31 @@ class TestGemCommandManager < Gem::TestCase
 
     assert_equal "pew pew!\n", @ui.output
     assert_match(/WARNING:  foo command is deprecated. It will be removed in Rubygems [0-9]+/, @ui.error)
+  ensure
+    Gem::Commands.send(:remove_const, :FooCommand)
+  end
+
+  def test_deprecated_command_with_version
+    require "rubygems/command"
+    foo_command = Class.new(Gem::Command) do
+      extend Gem::Deprecate
+
+      rubygems_deprecate_command("9.9.9")
+
+      def execute
+        say "pew pew!"
+      end
+    end
+
+    Gem::Commands.send(:const_set, :FooCommand, foo_command)
+    @command_manager.register_command(:foo, foo_command.new("foo"))
+
+    use_ui @ui do
+      @command_manager.process_args(%w[foo])
+    end
+
+    assert_equal "pew pew!\n", @ui.output
+    assert_match(/WARNING:  foo command is deprecated. It will be removed in Rubygems 9.9.9/, @ui.error)
   ensure
     Gem::Commands.send(:remove_const, :FooCommand)
   end

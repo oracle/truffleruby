@@ -416,6 +416,26 @@ class Struct # :nodoc:
   end
 end
 
+class Data # :nodoc:
+  def pretty_print(q) # :nodoc:
+    q.group(1, sprintf("#<data %s", PP.mcall(self, Kernel, :class).name), '>') {
+      q.seplist(PP.mcall(self, Data, :members), lambda { q.text "," }) {|member|
+        q.breakable
+        q.text member.to_s
+        q.text '='
+        q.group(1) {
+          q.breakable ''
+          q.pp public_send(member)
+        }
+      }
+    }
+  end
+
+  def pretty_print_cycle(q) # :nodoc:
+    q.text sprintf("#<data %s:...>", PP.mcall(self, Kernel, :class).name)
+  end
+end if "3.2" <= RUBY_VERSION
+
 class Range # :nodoc:
   def pretty_print(q) # :nodoc:
     q.pp self.begin
@@ -584,7 +604,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
       }
     end
   end
-end if defined?(RubyVM::AbstractSyntaxTree::Node)
+end
 
 class Object < BasicObject # :nodoc:
   include PP::ObjectMixin

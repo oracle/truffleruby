@@ -35,7 +35,7 @@ module Reline::Terminfo
       # Gem module isn't defined in test-all of the Ruby repository, and
       # Fiddle in Ruby 3.0.0 or later supports Fiddle::TYPE_VARIADIC.
       fiddle_supports_variadic = true
-    elsif Fiddle.const_defined?(:VERSION) and Gem::Version.create(Fiddle::VERSION) >= Gem::Version.create('1.0.1')
+    elsif Fiddle.const_defined?(:VERSION,false) and Gem::Version.create(Fiddle::VERSION) >= Gem::Version.create('1.0.1')
       # Fiddle::TYPE_VARIADIC is supported from Fiddle 1.0.1.
       fiddle_supports_variadic = true
     else
@@ -92,9 +92,9 @@ module Reline::Terminfo
   end
 
   def self.setupterm(term, fildes)
-    errret_int = String.new("\x00" * 8, encoding: 'ASCII-8BIT')
+    errret_int = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
     ret = @setupterm.(term, fildes, errret_int)
-    errret = errret_int.unpack1('i')
+    errret = errret_int[0, Fiddle::SIZEOF_INT].unpack1('i')
     case ret
     when 0 # OK
       0
@@ -121,6 +121,7 @@ module Reline::Terminfo
   end
 
   def self.tigetstr(capname)
+    raise TerminfoError, "capname is not String: #{capname.inspect}" unless capname.is_a?(String)
     capability = @tigetstr.(capname)
     case capability.to_i
     when 0, -1
@@ -138,6 +139,7 @@ module Reline::Terminfo
   end
 
   def self.tigetflag(capname)
+    raise TerminfoError, "capname is not String: #{capname.inspect}" unless capname.is_a?(String)
     flag = @tigetflag.(capname).to_i
     case flag
     when -1
@@ -149,6 +151,7 @@ module Reline::Terminfo
   end
 
   def self.tigetnum(capname)
+    raise TerminfoError, "capname is not String: #{capname.inspect}" unless capname.is_a?(String)
     num = @tigetnum.(capname).to_i
     case num
     when -2

@@ -60,11 +60,7 @@
  * @param   obj  An object, which is in fact an ::RData.
  * @return  The passed object casted to ::RData.
  */
-#ifdef TRUFFLERUBY
-#define RDATA(obj)                (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
-#else
 #define RDATA(obj)                RBIMPL_CAST((struct RData *)(obj))
-#endif
 
 /**
  * Convenient getter macro.
@@ -153,10 +149,6 @@ struct RData {
     /** Pointer to the actual C level struct that you want to wrap. */
     void *data;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RData)
-#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
@@ -319,12 +311,8 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 static inline void *
 rb_data_object_get(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return polyglot_invoke(RUBY_CEXT, "RDATA_PTR", rb_tr_unwrap(obj));
-#else
     Check_Type(obj, RUBY_T_DATA);
     return DATA_PTR(obj);
-#endif
 }
 
 RBIMPL_ATTRSET_UNTYPED_DATA_FUNC()
@@ -380,30 +368,6 @@ rb_data_object_alloc(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FU
 {
     return rb_data_object_wrap(klass, data, dmark, dfree);
 }
-
-RBIMPL_ATTR_DEPRECATED(("by: rb_cObject.  Will be removed in 3.1."))
-RBIMPL_ATTR_PURE()
-/**
- * @private
- *
- * @deprecated  There  once was  a variable  called rb_cData,  which no  longer
- *              exists  today.  This  function is  a function  because we  want
- *              warnings for the usages.
- */
-static inline VALUE
-rb_cData(void)
-{
-    return rb_cObject;
-}
-
-/**
- * @private
- *
- * @deprecated  This macro once was a thing in the old days, but makes no sense
- *              any  longer today.   Exists  here  for backwards  compatibility
- *              only.  You can safely forget about it.
- */
-#define rb_cData rb_cData()
 
 /** @cond INTERNAL_MACRO */
 #define rb_data_object_wrap_0 rb_data_object_wrap

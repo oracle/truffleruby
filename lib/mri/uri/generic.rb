@@ -564,14 +564,24 @@ module URI
       end
     end
 
-    # Returns the user component.
+    # Returns the user component (without URI decoding).
     def user
       @user
     end
 
-    # Returns the password component.
+    # Returns the password component (without URI decoding).
     def password
       @password
+    end
+
+    # Returns the user component after URI decoding.
+    def decoded_user
+      URI.decode_uri_component(@user) if @user
+    end
+
+    # Returns the password component after URI decoding.
+    def decoded_password
+      URI.decode_uri_component(@password) if @password
     end
 
     #
@@ -587,17 +597,9 @@ module URI
       if @opaque
         raise InvalidURIError,
           "can not set host with registry or opaque"
-      else
-        if defined?(::TruffleRuby)
-          bad = !parser.regexp[:HOST].match(v)
-        else
-          bad = parser.regexp[:HOST] !~ v
-        end
-        
-        if bad
-          raise InvalidComponentError,
-            "bad component(expected host component): #{v}"
-        end
+      elsif parser.regexp[:HOST] !~ v
+        raise InvalidComponentError,
+          "bad component(expected host component): #{v}"
       end
 
       return true

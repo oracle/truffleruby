@@ -89,7 +89,7 @@ class TestModule < Test::Unit::TestCase
 
   OtherSetup = -> do
     remove_const :Other if defined? ::TestModule::Other
-    Other = Module.new do
+    module Other
       def other
       end
     end
@@ -535,7 +535,7 @@ class TestModule < Test::Unit::TestCase
         super
       end
     end.new
-    assert_equal(true, m < Enumerable)
+    assert_operator(m, :<, Enumerable)
   end
 
   def test_prepend_self
@@ -570,6 +570,26 @@ class TestModule < Test::Unit::TestCase
       def b; 1 end
     end
     assert_equal(2, a2.b)
+  end
+
+  def test_ancestry_of_duped_classes
+    m = Module.new
+    sc = Class.new
+    a = Class.new(sc) do
+      def b; 2 end
+      prepend m
+    end
+
+    a2 = a.dup.new
+
+    assert_kind_of Object, a2
+    assert_kind_of sc, a2
+    refute_kind_of a, a2
+    assert_kind_of m, a2
+
+    assert_kind_of Class, a2.class
+    assert_kind_of sc.singleton_class, a2.class
+    assert_same sc, a2.class.superclass
   end
 
   def test_gc_prepend_chain
@@ -754,6 +774,25 @@ class TestModule < Test::Unit::TestCase
     sc.prepend m1
     sc.prepend m1
     assert_equal([:m1, :m0, :m, :sc, :m1, :m0, :c], sc.new.m)
+  end
+
+  def test_protected_include_into_included_module
+    m1 = Module.new do
+      def other_foo(other)
+        other.foo
+      end
+
+      protected
+      def foo
+        :ok
+      end
+    end
+    m2 = Module.new
+    c1 = Class.new { include m2 }
+    c2 = Class.new { include m2 }
+    m2.include(m1)
+
+    assert_equal :ok, c1.new.other_foo(c2.new)
   end
 
   def test_instance_methods
@@ -1289,8 +1328,6 @@ class TestModule < Test::Unit::TestCase
       end
     end
     include LangModuleSpecInObject
-    module LangModuleTop
-    end
     puts "ok" if LangModuleSpecInObject::LangModuleTop == LangModuleTop
     INPUT
 
@@ -1691,6 +1728,45 @@ class TestModule < Test::Unit::TestCase
     assert_equal("TestModule::C\u{df}", c.name, '[ruby-core:24600]')
     c = Module.new.module_eval("class X\u{df} < Module; self; end")
     assert_match(/::X\u{df}:/, c.new.to_s)
+  end
+
+
+  def test_const_added
+    eval(<<~RUBY)
+      module TestConstAdded
+        @memo = []
+        class << self
+          attr_accessor :memo
+
+          def const_added(sym)
+            memo << sym
+          end
+        end
+        CONST = 1
+        module SubModule
+        end
+
+        class SubClass
+        end
+      end
+      TestConstAdded::OUTSIDE_CONST = 2
+      module TestConstAdded::OutsideSubModule; end
+      class TestConstAdded::OutsideSubClass; end
+    RUBY
+    TestConstAdded.const_set(:CONST_SET, 3)
+    assert_equal [
+      :CONST,
+      :SubModule,
+      :SubClass,
+      :OUTSIDE_CONST,
+      :OutsideSubModule,
+      :OutsideSubClass,
+      :CONST_SET,
+    ], TestConstAdded.memo
+  ensure
+    if self.class.const_defined? :TestConstAdded
+      self.class.send(:remove_const, :TestConstAdded)
+    end
   end
 
   def test_method_added
@@ -2272,6 +2348,18 @@ class TestModule < Test::Unit::TestCase
       end
     end
     assert_equal(:foo, removed)
+  end
+
+  def test_frozen_prepend_remove_method
+    [Module, Class].each do |klass|
+      mod = klass.new do
+        prepend(Module.new)
+        def foo; end
+      end
+      mod.freeze
+      assert_raise(FrozenError, '[Bug #19166]') { mod.send(:remove_method, :foo) }
+      assert_equal([:foo], mod.instance_methods(false))
+    end
   end
 
   def test_prepend_class_ancestors
@@ -3084,6 +3172,7 @@ class TestModule < Test::Unit::TestCase
   end
 
   def test_redefinition_mismatch
+    omit "Investigating trunk-mjit failure on ci.rvm.jp" if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled?
     m = Module.new
     m.module_eval "A = 1", __FILE__, line = __LINE__
     e = assert_raise_with_message(TypeError, /is not a module/) {

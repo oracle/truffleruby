@@ -18,7 +18,6 @@ class Gem::Platform
   end
 
   def self.match(platform)
-    warn 'Gem::Platform.match should not be used on TruffleRuby, use match_spec? instead', uplevel: 1
     match_platforms?(platform, Gem.platforms)
   end
 
@@ -36,15 +35,10 @@ class Gem::Platform
     match_gem?(spec.platform, spec.name)
   end
 
-  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sorbet-static]
-
   def self.match_gem?(platform, gem_name)
-    raise unless String === gem_name
-    if REUSE_AS_BINARY_ON_TRUFFLERUBY.include?(gem_name)
-      match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
-    else
-      match_platforms?(platform, Gem.platforms)
-    end
+    # Note: this method might be redefined by Ruby implementations to
+    # customize behavior per RUBY_ENGINE, gem_name or other criteria.
+    match_platforms?(platform, Gem.platforms)
   end
 
   def self.sort_priority(platform)
@@ -103,7 +97,6 @@ class Gem::Platform
       when /darwin(\d+)?/ then          [ "darwin",    $1  ]
       when /^macruby$/ then             [ "macruby",   nil ]
       when /freebsd(\d+)?/ then         [ "freebsd",   $1  ]
-      when /hpux(\d+)?/ then            [ "hpux",      $1  ]
       when /^java$/, /^jruby$/ then     [ "java",      nil ]
       when /^java([\d.]*)/ then         [ "java",      $1  ]
       when /^dalvik(\d+)?$/ then        [ "dalvik",    $1  ]
@@ -118,7 +111,6 @@ class Gem::Platform
         [os, version]
       when /netbsdelf/ then             [ "netbsdelf", nil ]
       when /openbsd(\d+\.\d+)?/ then    [ "openbsd",   $1  ]
-      when /bitrig(\d+\.\d+)?/ then     [ "bitrig",    $1  ]
       when /solaris(\d+\.\d+)?/ then    [ "solaris",   $1  ]
       # test
       when /^(\w+_platform)(\d+)?/ then [ $1,          $2  ]
@@ -166,7 +158,7 @@ class Gem::Platform
   # Of note, this method is not commutative. Indeed the OS 'linux' has a
   # special case: the version is the libc name, yet while "no version" stands
   # as a wildcard for a binary gem platform (as for other OSes), for the
-  # runtime platform "no version" stands for 'gnu'. To be able to disinguish
+  # runtime platform "no version" stands for 'gnu'. To be able to distinguish
   # these, the method receiver is the gem platform, while the argument is
   # the runtime platform.
   #
@@ -243,11 +235,11 @@ class Gem::Platform
   # A pure-Ruby gem that may use Gem::Specification#extensions to build
   # binary files.
 
-  RUBY = "ruby".freeze
+  RUBY = "ruby"
 
   ##
   # A platform-specific gem that is built for the packaging Ruby's platform.
   # This will be replaced with Gem::Platform::local.
 
-  CURRENT = "current".freeze
+  CURRENT = "current"
 end

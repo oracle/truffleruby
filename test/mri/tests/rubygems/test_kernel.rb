@@ -5,22 +5,14 @@ class TestKernel < Gem::TestCase
   def setup
     super
 
-    @old_path = $:.dup
-
     util_make_gems
 
     without_any_upwards_gemfiles
   end
 
-  def teardown
-    super
-
-    $:.replace @old_path
-  end
-
   def test_gem
     assert gem("a", "= 1"), "Should load"
-    assert $:.any? {|p| %r{a-1/lib} =~ p }
+    assert $:.any? {|p| p.include?("a-1/lib") }
   end
 
   def test_gem_default
@@ -50,13 +42,13 @@ class TestKernel < Gem::TestCase
   def test_gem_redundant
     assert gem("a", "= 1"), "Should load"
     refute gem("a", "= 1"), "Should not load"
-    assert_equal 1, $:.select {|p| %r{a-1/lib} =~ p }.size
+    assert_equal 1, $:.select {|p| p.include?("a-1/lib") }.size
   end
 
   def test_gem_overlapping
     assert gem("a", "= 1"), "Should load"
     refute gem("a", ">= 1"), "Should not load"
-    assert_equal 1, $:.select {|p| %r{a-1/lib} =~ p }.size
+    assert_equal 1, $:.select {|p| p.include?("a-1/lib") }.size
   end
 
   def test_gem_prerelease
@@ -83,13 +75,13 @@ class TestKernel < Gem::TestCase
     assert_match(/activated a-1/, ex.message)
     assert_equal "a", ex.name
 
-    assert $:.any? {|p| %r{a-1/lib} =~ p }
-    refute $:.any? {|p| %r{a-2/lib} =~ p }
+    assert $:.any? {|p| p.include?("a-1/lib") }
+    refute $:.any? {|p| p.include?("a-2/lib") }
   end
 
   def test_gem_not_adding_bin
     assert gem("a", "= 1"), "Should load"
-    refute $:.any? {|p| %r{a-1/bin} =~ p }
+    refute $:.any? {|p| p.include?("a-1/bin") }
   end
 
   def test_gem_failing_inside_require_doesnt_cause_double_exceptions
@@ -114,16 +106,18 @@ class TestKernel < Gem::TestCase
     quick_gem "bundler", "2.a"
 
     assert gem("bundler")
-    assert $:.any? {|p| %r{bundler-1/lib} =~ p }
+    assert $:.any? {|p| p.include?("bundler-1/lib") }
   end
 
   def test_gem_bundler_inferred_bundler_version
+    require "rubygems/bundler_version_finder"
+
     Gem::BundlerVersionFinder.stub(:bundler_version, Gem::Version.new("1")) do
       quick_gem "bundler", "1"
       quick_gem "bundler", "2.a"
 
       assert gem("bundler", ">= 0.a")
-      assert $:.any? {|p| %r{bundler-1/lib} =~ p }
+      assert $:.any? {|p| p.include?("bundler-1/lib") }
     end
   end
 end

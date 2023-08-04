@@ -19,8 +19,6 @@
  *             extension libraries.  They could be written in C++98.
  * @brief      Thin wrapper to ruby/config.h
  */
-// Must be first, as it defines feature test macros like _GNU_SOURCE,
-// which influences the definitions exposed by system header files.
 #include "ruby/config.h"
 
 #ifdef RUBY_EXTCONF_H
@@ -115,6 +113,8 @@
 # define UNALIGNED_WORD_ACCESS 1
 #elif defined(__powerpc64__)
 # define UNALIGNED_WORD_ACCESS 1
+#elif defined(__POWERPC__) // __POWERPC__ is defined for ppc and ppc64 on Darwin
+# define UNALIGNED_WORD_ACCESS 1
 #elif defined(__aarch64__)
 # define UNALIGNED_WORD_ACCESS 1
 #elif defined(__mc68020__)
@@ -149,11 +149,7 @@
 #endif /* HAVE_VA_ARGS_MACRO */
 
 #ifndef USE_RVARGC
-# define USE_RVARGC 0
+# define USE_RVARGC 1
 #endif
-
-#define TRUFFLERUBY
-// Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
-#include <truffleruby/truffleruby-pre.h>
 
 #endif /* RBIMPL_CONFIG_H */

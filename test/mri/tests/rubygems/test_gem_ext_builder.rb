@@ -5,6 +5,8 @@ require "rubygems/installer"
 
 class TestGemExtBuilder < Gem::TestCase
   def setup
+    @orig_DESTDIR = ENV["DESTDIR"]
+    @orig_make = ENV["make"]
     super
 
     @ext = File.join @tempdir, "ext"
@@ -13,19 +15,15 @@ class TestGemExtBuilder < Gem::TestCase
     FileUtils.mkdir_p @ext
     FileUtils.mkdir_p @dest_path
 
-    @orig_DESTDIR = ENV["DESTDIR"]
-    @orig_make = ENV["make"]
-
     @spec = util_spec "a"
 
     @builder = Gem::Ext::Builder.new @spec, ""
   end
 
   def teardown
+    super
     ENV["DESTDIR"] = @orig_DESTDIR
     ENV["make"] = @orig_make
-
-    super
   end
 
   def test_class_make
@@ -106,7 +104,7 @@ install:
   end
 
   def test_build_extensions
-    pend if /mswin/ =~ RUBY_PLATFORM && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
+    pend if RUBY_PLATFORM.include?("mswin") && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
     @spec.extensions << "ext/extconf.rb"
 
     ext_dir = File.join @spec.gem_dir, "ext"
@@ -142,7 +140,7 @@ install:
   end
 
   def test_build_extensions_with_gemhome_with_space
-    pend if /mswin/ =~ RUBY_PLATFORM && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
+    pend if RUBY_PLATFORM.include?("mswin") && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
     new_gemhome = File.join @tempdir, "gem home"
     File.rename(@gemhome, new_gemhome)
     @gemhome = new_gemhome
@@ -163,7 +161,7 @@ install:
         false
       end
     end
-    pend if /mswin/ =~ RUBY_PLATFORM && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
+    pend if RUBY_PLATFORM.include?("mswin") && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
 
     @spec.extensions << "ext/extconf.rb"
 

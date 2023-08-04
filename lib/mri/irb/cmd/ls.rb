@@ -4,10 +4,23 @@ require "reline"
 require_relative "nop"
 require_relative "../color"
 
-# :stopdoc:
 module IRB
+  # :stopdoc:
+
   module ExtendCommand
     class Ls < Nop
+      category "Context"
+      description "Show methods, constants, and variables. `-g [query]` or `-G [query]` allows you to filter out the output."
+
+      def self.transform_args(args)
+        if match = args&.match(/\A(?<args>.+\s|)(-g|-G)\s+(?<grep>[^\s]+)\s*\n\z/)
+          args = match[:args]
+          "#{args}#{',' unless args.chomp.empty?} grep: /#{match[:grep]}/"
+        else
+          args
+        end
+      end
+
       def execute(*arg, grep: nil)
         o = Output.new(grep: grep)
 
@@ -20,6 +33,7 @@ module IRB
         o.dump("instance variables", obj.instance_variables)
         o.dump("class variables", klass.class_variables)
         o.dump("locals", locals)
+        nil
       end
 
       def dump_methods(o, klass, obj)
@@ -97,5 +111,6 @@ module IRB
       private_constant :Output
     end
   end
+
+  # :startdoc:
 end
-# :startdoc:

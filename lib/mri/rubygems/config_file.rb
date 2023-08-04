@@ -43,12 +43,7 @@ class Gem::ConfigFile
   DEFAULT_BULK_THRESHOLD = 1000
   DEFAULT_VERBOSITY = true
   DEFAULT_UPDATE_SOURCES = true
-  if defined?(::TruffleRuby)
-    # GR-18264: Gem::Specification._all does not seem thread safe and raises "nil spec! included in"
-    DEFAULT_CONCURRENT_DOWNLOADS = 1
-  else
-    DEFAULT_CONCURRENT_DOWNLOADS = 8
-  end
+  DEFAULT_CONCURRENT_DOWNLOADS = 8
   DEFAULT_CERT_EXPIRATION_LENGTH_DAYS = 365
   DEFAULT_IPV4_FALLBACK_ENABLED = false
 
@@ -376,9 +371,42 @@ if you believe they were disclosed to a third party.
     @backtrace || $DEBUG
   end
 
+  # Check state file is writable. Creates empty file if not present to ensure we can write to it.
+  def state_file_writable?
+    if File.exist?(state_file_name)
+      File.writable?(state_file_name)
+    else
+      require "fileutils"
+      FileUtils.mkdir_p File.dirname(state_file_name)
+      File.open(state_file_name, "w") {}
+      true
+    end
+  rescue Errno::EACCES
+    false
+  end
+
   # The name of the configuration file.
   def config_file_name
     @config_file_name || Gem.config_file
+  end
+
+  # The name of the state file.
+  def state_file_name
+    Gem.state_file
+  end
+
+  # Reads time of last update check from state file
+  def last_update_check
+    if File.readable?(state_file_name)
+      File.read(state_file_name).to_i
+    else
+      0
+    end
+  end
+
+  # Writes time of last update check to state file
+  def last_update_check=(timestamp)
+    File.write(state_file_name, timestamp.to_s) if state_file_writable?
   end
 
   # Delegates to @hash

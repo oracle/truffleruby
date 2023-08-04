@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 require 'test/unit'
 require 'c/thread_fd'
-require 'io/wait'
 
 class TestThreadFdClose < Test::Unit::TestCase
 
