@@ -19,11 +19,11 @@ See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 ## MRI
 
 The standard implementation of Ruby is MRI. TruffleRuby contains code from MRI
-version 3.1.3, including:
+version 3.2.2, including:
 
 * the standard library in `lib/mri`, 
 * Ruby C extension API in `lib/cext/include` and `src/main/c/cext`, 
-* C extensions in `src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}`
+* C extensions in `src/main/c/{bigdecimal,date,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}`
 
 MRI is copyright Yukihiro Matsumoto. It is made available under the terms of the
 2-clause BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.
@@ -96,47 +96,69 @@ are copyright 2013 Brian Shirai and are licensed under the 3-clause BSD license.
 In some cases this code is just code from MRI, and covered by their licence. In
 some cases we have modified this code.
 
-# Included gems
+# Bundled gems
 
+This list is from [bundled_gems](bundled_gems) and `grep licenses lib/gems/specifications/*.gemspec`.
 Versions as used in MRI unless otherwise specified.
 
-#### did_you_mean
+#### debug
 
-did_you_mean is copyright 2014 Yuki Nishijima and is available under an MIT
-licence (see `mit.txt`).
+debug is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
+
+#### matrix
+
+matrix is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
 
 #### minitest
 
-minitest is copyright Ryan Davis and is available under an MIT licence (see
-`mit.txt`).
+minitest is copyright Ryan Davis and is available under an MIT licence (see `mit.txt`).
 
-#### net-telnet
+#### net-ftp, net-imap, net-pop, net-smtp
 
-net-telnet is under the same copyright and licence as MRI.
+These 4 bundled gems are under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
 
 #### power_assert
 
-power_assert copyright Kazuki Tsujimoto, but available under the same licence as
-MRI.
+power_assert is copyright Kazuki Tsujimoto and is available under the same licence as MRI (see `ruby-bsdl.txt`).
 
-#### Rake
+#### prime
 
-Rake is copyright Jim Weirich and is available under an MIT licence (see
-`mit.txt`).
+prime is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
+
+#### rake
+
+Rake is copyright Jim Weirich and is available under an MIT licence (see `mit.txt`).
+
+#### rbs
+
+rbs is copyright Soutaro Matsumoto and is available under the same licence as MRI (see `ruby-bsdl.txt`).
+
+#### rexml
+
+rexml is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
+
+#### rss
+
+rss is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
 
 #### test-unit
 
-test-unit is copyright Kouhei Sutou, Ryan Davis, and Nathaniel Talbott and is
-available under the terms of the GPL 2 (see `gpl-2.txt`), or the same custom
-licence as MRI (see `ruby-licence.txt`).
+test-unit is copyright Sutou Kouhei, Ryan Davis, and Nathaniel Talbott
+and is available under the same licence as MRI (see `ruby-bsdl.txt`).
 
-#### JSON
+#### typeprof
 
-The JSON gem is available under the same licence as MRI.
+typeprof is copyright Yusuke Endoh and is available under an MIT licence (see `mit.txt`).
+
+# Other gems
+
+#### json
+
+The json gem is available under the same licence as MRI (see `ruby-bsdl.txt`).
 
 #### RDoc
 
-It's part of the standard library, not an included gem, but RDoc is copyright
+It's part of the standard library, not a bundled gem. RDoc is copyright
 Dave Thomas and Eric Hodel and is available under the terms of the GPL 2 (see
 `gpl-2.txt`), or the same custom licence as MRI (see `ruby-licence.txt`). Some
 other files in RDoc have different, but compatible, licences detailed in the

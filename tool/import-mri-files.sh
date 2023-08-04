@@ -111,6 +111,7 @@ rm -f test/bootstraptest/test_yjit*
 # Licences
 cp ../ruby/BSDL doc/legal/ruby-bsdl.txt
 cp ../ruby/COPYING doc/legal/ruby-licence.txt
+cp ../ruby/gems/bundled_gems doc/legal/bundled_gems
 cp lib/cext/include/ccan/licenses/BSD-MIT doc/legal/ccan-bsd-mit.txt
 cp lib/cext/include/ccan/licenses/CC0 doc/legal/ccan-cc0.txt
 

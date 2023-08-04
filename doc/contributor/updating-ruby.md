@@ -150,7 +150,7 @@ Update all of these:
 * This is a good time to get `jt build` working.
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
-* Update `doc/legal/legal.md`, notably the `Included gems` section with the list of bundled gems (from `cat ../ruby/gems/bundled_gems`)
+* Update `doc/legal/legal.md`, notably the `Bundled gems` section
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Build TruffleRuby (`jt build`).
 * Run `jt test gems default-bundled-gems`
