@@ -36,6 +36,7 @@ ruby-install ruby $VERSION
 rm -rf ~/.rubies/ruby-$VERSION
 ruby-build $VERSION ~/.rubies/ruby-$VERSION
 ruby-install --no-install-deps -r ~/tmp ruby $VERSION
+rm -rf ~/tmp/ruby-$VERSION
 ```
 
 `ruby-build` does not keep the build directory
@@ -148,7 +149,7 @@ Update all of these:
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
-* Update `doc/legal/legal.md`
+* Update `doc/legal/legal.md`, notably the `Included gems` section with the list of bundled gems (from `cat ../ruby/gems/bundled_gems`)
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Build TruffleRuby (`jt build`).
 * Run `jt test gems default-bundled-gems`
