@@ -169,7 +169,7 @@ psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h
 $(DEBUG_GEM_EXT)/Makefile: $(DEBUG_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd $(DEBUG_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c $(DEBUG_GEM_EXT)/*.h
+$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c
 	$(Q) cd $(DEBUG_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 $(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)

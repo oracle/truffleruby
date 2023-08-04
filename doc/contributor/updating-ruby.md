@@ -147,6 +147,7 @@ Update all of these:
 * Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems | sort`, `ls -l lib/gems/specifications/default` and `grep 'VERSION =' lib/mri/rubygems.rb`)
 * Also update version numbers in `src/main/c/Makefile`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
+* This is a good time to get `jt build` working.
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`, notably the `Included gems` section with the list of bundled gems (from `cat ../ruby/gems/bundled_gems`)
