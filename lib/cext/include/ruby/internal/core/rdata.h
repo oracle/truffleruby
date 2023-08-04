@@ -60,7 +60,11 @@
  * @param   obj  An object, which is in fact an ::RData.
  * @return  The passed object casted to ::RData.
  */
+#ifdef TRUFFLERUBY
+#define RDATA(obj)                (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#else
 #define RDATA(obj)                RBIMPL_CAST((struct RData *)(obj))
+#endif
 
 /**
  * Convenient getter macro.
@@ -149,6 +153,10 @@ struct RData {
     /** Pointer to the actual C level struct that you want to wrap. */
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RData)
+#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
@@ -311,8 +319,12 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 static inline void *
 rb_data_object_get(VALUE obj)
 {
+#ifdef TRUFFLERUBY
+    return polyglot_invoke(RUBY_CEXT, "RDATA_PTR", rb_tr_unwrap(obj));
+#else
     Check_Type(obj, RUBY_T_DATA);
     return DATA_PTR(obj);
+#endif
 }
 
 RBIMPL_ATTRSET_UNTYPED_DATA_FUNC()

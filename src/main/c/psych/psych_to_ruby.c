@@ -10,7 +10,11 @@ static VALUE build_exception(VALUE self, VALUE klass, VALUE mesg)
 {
     VALUE e = rb_obj_alloc(klass);
 
+#ifdef TRUFFLERUBY
+    RUBY_CEXT_INVOKE("rb_exception_set_message", e, mesg);
+#else
     rb_iv_set(e, "mesg", mesg);
+#endif
 
     return e;
 }

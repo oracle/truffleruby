@@ -53,6 +53,7 @@ class OpenSSL::TestPKey < OpenSSL::PKeyTestCase
       pend "unstable test on OpenSSL 3.0.[0-5]"
     end
     assert_not_empty cb_called
+    assert_nil $!
   end
 
   def test_s_generate_key
