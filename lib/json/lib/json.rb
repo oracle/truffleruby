@@ -576,11 +576,7 @@ module JSON
   require 'json/version'
 
   begin
-    if defined?(::TruffleRuby)
-      require 'json/pure' # avoid the LoadError which would force loading RubyGems
-    else
-      require 'json/ext'
-    end
+    require 'json/ext'
   rescue LoadError
     require 'json/pure'
   end
