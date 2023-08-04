@@ -33,7 +33,7 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
                   set warning level; 0=silence, 1=medium, 2=verbose
   -x[directory]   strip off text before #!ruby line and perhaps cd to directory
   --copyright     print the copyright
-  --enable={rubyopt|...}[,...], --disable={rubyopt|...}[,...]
+  --enable={jit|rubyopt|...}[,...], --disable={jit|rubyopt|...}[,...]
                   enable or disable features. see below for available features
   --external-encoding=encoding, --internal-encoding=encoding
                   specify the default external or internal character encoding
@@ -45,7 +45,9 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
 
 Features:
   gems            rubygems (only for debugging, default: enabled)
+  error_highlight error_highlight (default: enabled)
   did_you_mean    did_you_mean (default: enabled)
+  syntax_suggest  syntax_suggest (default: enabled)
   rubyopt         RUBYOPT environment variable (default: enabled)
   frozen-string-literal
                   freeze all string literals (default: disabled)
@@ -66,13 +68,14 @@ Runtime options:
   --help                                       Print this help message.
   --help:vm                                    Print options for the host VM.
   --help:engine                                Print engine options.
+  --help:compiler                              Print engine compiler options.
   --help:all                                   Print all options.
   --version:graalvm                            Print GraalVM version information and exit.
   --show-version:graalvm                       Print GraalVM version information and continue execution.
 
 Languages:
   [id]        [name]                  [website]
-  llvm        LLVM                    https://www.graalvm.org/22.1/reference-manual/llvm/
+  llvm        LLVM                    https://www.graalvm.org/dev/reference-manual/llvm/
   ruby        Ruby                    https://www.graalvm.org/ruby/
 
 Tools:
