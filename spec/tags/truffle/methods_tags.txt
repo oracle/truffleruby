@@ -100,12 +100,6 @@ fails:Public methods on IO should include timeout=
 fails:Public methods on IO should include to_path
 fails:Public methods on Integer should include ceildiv
 fails:Public methods on Kernel should not include =~
-fails:Public methods on Kernel should not include taint
-fails:Public methods on Kernel should not include tainted?
-fails:Public methods on Kernel should not include trust
-fails:Public methods on Kernel should not include untaint
-fails:Public methods on Kernel should not include untrust
-fails:Public methods on Kernel should not include untrusted?
 fails:Public methods on MatchData should include byteoffset
 fails:Public methods on MatchData should include deconstruct
 fails:Public methods on MatchData should include deconstruct_keys

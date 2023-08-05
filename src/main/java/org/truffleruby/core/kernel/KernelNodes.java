@@ -104,7 +104,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarnNode;
-import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -1738,70 +1737,6 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "taint")
-    public abstract static class KernelTaintNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object taint(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#taint is deprecated and will be removed in Ruby 3.2.");
-            }
-            return object;
-        }
-
-    }
-
-    @CoreMethod(names = "trust")
-    public abstract static class KernelTrustNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object trust(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#trust is deprecated and will be removed in Ruby 3.2.");
-            }
-            return object;
-        }
-
-    }
-
-    @CoreMethod(names = "tainted?")
-    public abstract static class KernelIsTaintedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean isTainted(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#tainted? is deprecated and will be removed in Ruby 3.2.");
-            }
-            return false;
-        }
-
-    }
-
-    @CoreMethod(names = "untrusted?")
-    public abstract static class KernelIsUntrustedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean isUntrusted(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#untrusted? is deprecated and will be removed in Ruby 3.2.");
-            }
-            return false;
-        }
-
-    }
-
     @Primitive(name = "kernel_to_hex")
     public abstract static class KernelToHexStringNode extends PrimitiveArrayArgumentsNode {
 
@@ -1896,38 +1831,6 @@ public abstract class KernelNodes {
 
             return "#<" + className + ":0x" + hexID + ">";
         }
-    }
-
-    @CoreMethod(names = "untaint")
-    public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object untaint(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#untaint is deprecated and will be removed in Ruby 3.2.");
-            }
-            return object;
-        }
-
-    }
-
-    @CoreMethod(names = "untrust")
-    public abstract static class UntrustNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object untrust(Object object,
-                @Cached("new()") WarningNode warningNode) {
-            if (warningNode.shouldWarn()) {
-                warningNode.warningMessage(
-                        getSourceSection(),
-                        "Object#untrust is deprecated and will be removed in Ruby 3.2.");
-            }
-            return object;
-        }
-
     }
 
     @Primitive(name = "warning_get_category")

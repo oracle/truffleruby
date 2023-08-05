@@ -468,9 +468,6 @@ void rb_freeze_singleton_class(VALUE klass);
 #ifdef TRUFFLERUBY
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
-bool rb_tr_obj_taintable_p(VALUE object);
-bool rb_tr_obj_tainted_p(VALUE object);
-void rb_tr_obj_infect(VALUE a, VALUE b);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
