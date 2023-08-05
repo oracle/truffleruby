@@ -68,7 +68,7 @@ module Truffle::FiddleBackend
   def self.type_from_config(type)
     case type
     when 'long'
-      Fiddle::TYPE_LONG
+      Fiddle::Types::LONG
     else
       raise NotImplementedError, "integer #{type} not known"
     end
@@ -130,15 +130,39 @@ module Fiddle
   class DLError < StandardError
   end
 
-  TYPE_VOID         = 0
-  TYPE_VOIDP        = 1
-  TYPE_CHAR         = 2
-  TYPE_SHORT        = 3
-  TYPE_INT          = 4
-  TYPE_LONG         = 5
-  TYPE_LONG_LONG    = 6
-  TYPE_FLOAT        = 7
-  TYPE_DOUBLE       = 8
+  module Types
+    VOID         = 0
+    VOIDP        = 1
+    CHAR         = 2
+    SHORT        = 3
+    INT          = 4
+    LONG         = 5
+    LONG_LONG    = 6
+    FLOAT        = 7
+    DOUBLE       = 8
+
+    UCHAR = -CHAR
+    USHORT = -SHORT
+    UINT = -INT
+    ULONG = -LONG
+    ULONG_LONG = -LONG_LONG
+
+    INT8_T  = CHAR
+    INT16_T = SHORT
+    INT32_T = INT
+    INT64_T = LONG
+
+    UINT8_T  = -INT8_T
+    UINT16_T = -INT16_T
+    UINT32_T = -INT32_T
+    UINT64_T = -INT64_T
+
+    SSIZE_T      = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ssize_t'))
+    SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * SSIZE_T
+    PTRDIFF_T    = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ptrdiff_t'))
+    INTPTR_T     = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.intptr_t'))
+    UINTPTR_T    = -INTPTR_T
+  end
 
   SIZEOF_VOIDP      = Primitive.pointer_find_type_size(:pointer)
   SIZEOF_CHAR       = Primitive.pointer_find_type_size(:char)
@@ -149,21 +173,21 @@ module Fiddle
   SIZEOF_FLOAT      = Primitive.pointer_find_type_size(:float)
   SIZEOF_DOUBLE     = Primitive.pointer_find_type_size(:double)
 
-  TYPE_INT8_T  = TYPE_CHAR
-  TYPE_INT16_T = TYPE_SHORT
-  TYPE_INT32_T = TYPE_INT
-  TYPE_INT64_T = TYPE_LONG
+  SIZEOF_UCHAR = SIZEOF_CHAR
+  SIZEOF_USHORT = SIZEOF_SHORT
+  SIZEOF_UINT = SIZEOF_INT
+  SIZEOF_ULONG = SIZEOF_LONG
+  SIZEOF_ULONG_LONG = SIZEOF_LONG_LONG
 
   SIZEOF_INT8_T  = 1
   SIZEOF_INT16_T = 2
   SIZEOF_INT32_T = 4
   SIZEOF_INT64_T = 8
 
-  TYPE_SSIZE_T      = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ssize_t'))
-  TYPE_SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
-  TYPE_PTRDIFF_T    = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ptrdiff_t'))
-  TYPE_INTPTR_T     = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.intptr_t'))
-  TYPE_UINTPTR_T    = -TYPE_INTPTR_T
+  SIZEOF_UINT8_T  = 1
+  SIZEOF_UINT16_T = 2
+  SIZEOF_UINT32_T = 4
+  SIZEOF_UINT64_T = 8
 
   SIZEOF_SSIZE_T    = Primitive.pointer_find_type_size(:ssize_t)
   SIZEOF_SIZE_T     = Primitive.pointer_find_type_size(:size_t)
@@ -181,6 +205,12 @@ module Fiddle
   ALIGN_LONG_LONG   = SIZEOF_LONG_LONG
   ALIGN_FLOAT       = SIZEOF_FLOAT
   ALIGN_DOUBLE      = SIZEOF_DOUBLE
+
+  ALIGN_INT8_T      = SIZEOF_INT8_T
+  ALIGN_INT16_T     = SIZEOF_INT16_T
+  ALIGN_INT32_T     = SIZEOF_INT32_T
+  ALIGN_INT64_T     = SIZEOF_INT64_T
+
   ALIGN_SIZE_T      = SIZEOF_SIZE_T
   ALIGN_SSIZE_T     = SIZEOF_SSIZE_T
   ALIGN_PTRDIFF_T   = SIZEOF_PTRDIFF_T
