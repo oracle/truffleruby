@@ -31,6 +31,12 @@
 #define RUBY_SYMBOL_EXPORT_BEGIN _Pragma("GCC visibility push(default)")
 #define RUBY_SYMBOL_EXPORT_END _Pragma("GCC visibility pop")
 #define HAVE_STMT_AND_DECL_IN_EXPR 1
+#define HAVE_PTHREAD_H 1
+#define _REENTRANT 1
+#define _THREAD_SAFE 1
+#define HAVE_LIBPTHREAD 1
+#define THREAD_IMPL_H "thread_pthread.h"
+#define THREAD_IMPL_SRC "thread_pthread.c"
 #define BROKEN_CRYPT 1
 #define HAVE_CRT_EXTERNS_H 1
 #define HAVE_LIBDL 1
@@ -50,6 +56,7 @@
 #define HAVE_SANITIZER_ASAN_INTERFACE_H 1
 #define HAVE_SANITIZER_MSAN_INTERFACE_H 1
 #define HAVE_STDALIGN_H 1
+#define HAVE_STDIO_H 1
 #define HAVE_SYS_ATTR_H 1
 #define HAVE_SYS_FCNTL_H 1
 #define HAVE_SYS_FILE_H 1
@@ -250,6 +257,8 @@
 #define HAVE_ARC4RANDOM_BUF 1
 #define HAVE_ATAN2L 1
 #define HAVE_ATAN2F 1
+#define HAVE_CHMOD 1
+#define HAVE_CHOWN 1
 #define HAVE_CHROOT 1
 #define HAVE_CLOCK_GETTIME 1
 #define HAVE_COSH 1
@@ -257,6 +266,10 @@
 #define HAVE_DLOPEN 1
 #define HAVE_DLADDR 1
 #define HAVE_ENDGRENT 1
+#define HAVE_EXECL 1
+#define HAVE_EXECLE 1
+#define HAVE_EXECV 1
+#define HAVE_EXECVE 1
 #define HAVE_FCOPYFILE 1
 #define HAVE_FCHMOD 1
 #define HAVE_FCHOWN 1
@@ -269,7 +282,10 @@
 #define HAVE_FTRUNCATE 1
 #define HAVE_GETATTRLIST 1
 #define HAVE_GETCWD 1
+#define HAVE_GETEGID 1
 #define HAVE_GETENTROPY 1
+#define HAVE_GETEUID 1
+#define HAVE_GETGID 1
 #define HAVE_GETGRNAM 1
 #define HAVE_GETGRNAM_R 1
 #define HAVE_GETGROUPS 1
@@ -277,6 +293,7 @@
 #define HAVE_GETLOGIN_R 1
 #define HAVE_GETPGID 1
 #define HAVE_GETPGRP 1
+#define HAVE_GETPPID 1
 #define HAVE_GETPRIORITY 1
 #define HAVE_GETPWNAM 1
 #define HAVE_GETPWNAM_R 1
@@ -285,11 +302,13 @@
 #define HAVE_GETRLIMIT 1
 #define HAVE_GETSID 1
 #define HAVE_GETTIMEOFDAY 1
+#define HAVE_GETUID 1
 #define HAVE_GMTIME_R 1
 #define HAVE_GRANTPT 1
 #define HAVE_INITGROUPS 1
 #define HAVE_IOCTL 1
 #define HAVE_ISSETUGID 1
+#define HAVE_KILL 1
 #define HAVE_KILLPG 1
 #define HAVE_LCHMOD 1
 #define HAVE_LCHOWN 1
@@ -309,7 +328,11 @@
 #define HAVE_MKTIME 1
 #define HAVE_MMAP 1
 #define HAVE_OPENAT 1
+#define HAVE_PCLOSE 1
+#define HAVE_PIPE 1
 #define HAVE_POLL 1
+#define HAVE_POPEN 1
+#define HAVE_POSIX_MADVISE 1
 #define HAVE_POSIX_MEMALIGN 1
 #define HAVE_PREAD 1
 #define HAVE_PWRITE 1
@@ -340,11 +363,14 @@
 #define HAVE_SINH 1
 #define HAVE_SYMLINK 1
 #define HAVE_SYSCONF 1
+#define HAVE_SYSTEM 1
 #define HAVE_TANH 1
 #define HAVE_TELLDIR 1
 #define HAVE_TIMEGM 1
 #define HAVE_TIMES 1
 #define HAVE_TRUNCATE 1
+#define HAVE_TZSET 1
+#define HAVE_UMASK 1
 #define HAVE_UNSETENV 1
 #define HAVE_UTIMENSAT 1
 #define HAVE_UTIMES 1
@@ -390,9 +416,6 @@
 #define HAVE__SC_CLK_TCK 1
 #define STACK_GROW_DIRECTION -1
 #define COROUTINE_H "coroutine/arm64/Context.h"
-#define _REENTRANT 1
-#define _THREAD_SAFE 1
-#define HAVE_LIBPTHREAD 1
 #define HAVE_SCHED_YIELD 1
 #define HAVE_PTHREAD_ATTR_SETINHERITSCHED 1
 #define HAVE_PTHREAD_ATTR_GETSTACK 1
@@ -411,6 +434,10 @@
 #define HAVE_LIBPROC_H 1
 #define HAVE_EXECINFO_H 1
 #define HAVE_LIBUNWIND_H 1
+#define HAVE_MACH_TASK_H 1
+#define HAVE_MACH_MACH_INIT_H 1
+#define HAVE_MACH_MACH_PORT_H 1
+#define HAVE_MACH_TASK_EXCEPTION_PORTS 1
 #define HAVE_BACKTRACE 1
 #define BROKEN_BACKTRACE 1
 #define DLEXT_MAXLEN 7
@@ -421,8 +448,6 @@
 #define RUBY_LONGJMP(env,val) siglongjmp((env),val)
 #define RUBY_JMP_BUF sigjmp_buf
 #define USE_MJIT 1
-#define HAVE_PTHREAD_H 1
-#define THREAD_IMPL_H "thread_pthread.h"
-#define THREAD_IMPL_SRC "thread_pthread.c"
+#define USE_YJIT 0
 #define RUBY_PLATFORM "arm64-darwin20"
 #endif /* INCLUDE_RUBY_CONFIG_H */
