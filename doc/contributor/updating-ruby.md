@@ -154,6 +154,7 @@ Update all of these:
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Build TruffleRuby (`jt build`).
 * Run `jt test gems default-bundled-gems`
+* Get `jt test spec/truffle/rubygems/default_gems_list_spec.rb` to pass
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
