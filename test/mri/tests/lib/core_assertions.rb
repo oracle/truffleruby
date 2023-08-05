@@ -58,7 +58,7 @@ module Test
 
       def assert_in_out_err(args, test_stdin = "", test_stdout = [], test_stderr = [], message = nil,
                             success: nil, **opt)
-        skip 'assert_in_out_err is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+        omit 'assert_in_out_err is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
 
         args = Array(args).dup
         args.insert((Hash === args[0] ? 1 : 0), '--disable=gems')
@@ -116,7 +116,7 @@ module Test
 
       def assert_no_memory_leak(args, prepare, code, message=nil, limit: 2.0, rss: false, **opt)
         # TODO: consider choosing some appropriate limit for RJIT and stop skipping this once it does not randomly fail
-        skip 'assert_no_memory_leak fails transiently on TruffleRuby and is too slow' if defined?(::TruffleRuby)
+        omit 'assert_no_memory_leak fails transiently on TruffleRuby and is too slow' if defined?(::TruffleRuby)
         pend 'assert_no_memory_leak may consider RJIT memory usage as leak' if defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled?
         # For previous versions which implemented MJIT
         pend 'assert_no_memory_leak may consider MJIT memory usage as leak' if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled?
@@ -229,7 +229,7 @@ module Test
       end
 
       def assert_normal_exit(testsrc, message = '', child_env: nil, **opt)
-        skip 'assert_normal_exit is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+        omit 'assert_normal_exit is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
 
         assert_valid_syntax(testsrc, caller_locations(1, 1)[0])
         if child_env
@@ -242,7 +242,7 @@ module Test
       end
 
       def assert_ruby_status(args, test_stdin="", message=nil, **opt)
-        skip 'assert_ruby_status is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+        omit 'assert_ruby_status is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
 
         out, _, status = EnvUtil.invoke_ruby(args, test_stdin, true, :merge_to_stdout, **opt)
         desc = FailDesc[status, message, out]
@@ -267,7 +267,7 @@ module Test
       end
 
       def assert_separately(args, file = nil, line = nil, src, ignore_stderr: nil, **opt)
-        skip 'assert_separately is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
+        omit 'assert_separately is too slow on TruffleRuby' unless ALLOW_SUBPROCESSES
 
         unless file and line
           loc, = caller_locations(1,1)
