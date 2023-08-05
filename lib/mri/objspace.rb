@@ -8,7 +8,7 @@ module ObjectSpace
   class << self
     private :_dump
     private :_dump_all
-    private :_dump_shapes
+    private :_dump_shapes if method_defined?(:_dump_shapes)
   end
 
   module_function
