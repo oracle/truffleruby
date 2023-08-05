@@ -327,6 +327,8 @@ module Kernel
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
+      elsif Primitive.is_a?(mod, Refinement)
+        raise TypeError, 'Cannot extend object with refinement'
       end
 
       mod.__send__ :extend_object, self
