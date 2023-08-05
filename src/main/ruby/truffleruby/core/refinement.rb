@@ -8,7 +8,9 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-class Refinement
+class Refinement < Module
+
+  undef_method :extend_object
 
   def import_methods(*modules)
     modules.each do |mod|
@@ -25,4 +27,5 @@ class Refinement
     end
     self
   end
+
 end
