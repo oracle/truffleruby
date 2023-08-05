@@ -6,9 +6,9 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-example "nil.object_id", 4
+example "nil.object_id", 2
 
-example "true.object_id", 2
+example "true.object_id", 6
 
 example "false.object_id", 0
 

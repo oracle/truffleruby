@@ -108,7 +108,7 @@ public abstract class ObjectIDOperations {
     }
 
     public static boolean isBasicObjectID(long id) {
-        return id != 0 && (id & ValueWrapperManager.TAG_MASK) == 0;
+        return id != FALSE && (id & ValueWrapperManager.IMMEDIATE_MASK) == 0;
     }
 
     @TruffleBoundary // BigInteger
