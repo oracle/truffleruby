@@ -1,0 +1,1 @@
+fails:UnboundMethod#inspect returns a String including all details

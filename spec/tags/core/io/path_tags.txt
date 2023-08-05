@@ -1,0 +1,1 @@
+fails:IO#path returns the path of the file associated with the IO object

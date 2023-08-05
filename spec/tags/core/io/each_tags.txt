@@ -1,0 +1,1 @@
+fails:IO#each when passed chomp and nil as a separator yields self's content

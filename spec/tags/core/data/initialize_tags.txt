@@ -1,0 +1,7 @@
+fails:Data#initialize accepts positional arguments
+fails:Data#initialize accepts alternative positional arguments
+fails:Data#initialize accepts keyword arguments
+fails:Data#initialize accepts alternative keyword arguments
+fails:Data#initialize raises ArgumentError if no arguments are given
+fails:Data#initialize raises ArgumentError if at least one argument is missing
+fails:Data#initialize raises ArgumentError if unknown keyword is given

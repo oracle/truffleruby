@@ -1,1 +1,4 @@
 fails(immutable regexp):Regexp.new works by default for subclasses with overridden #initialize
+fails:Regexp.new given a String warns any non-Integer, non-nil, non-false second argument
+fails:Regexp.new given a String accepts a String of supported flags as the second argument
+fails:Regexp.new given a String raises an Argument error if the second argument contains unsupported chars

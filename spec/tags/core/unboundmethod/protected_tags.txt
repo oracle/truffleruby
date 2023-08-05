@@ -1,0 +1,1 @@
+fails:UnboundMethod#protected? has been removed

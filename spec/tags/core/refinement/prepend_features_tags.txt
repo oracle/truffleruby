@@ -1,0 +1,2 @@
+fails:Refinement#prepend_features is not defined
+fails:Refinement#prepend_features is not called by Module#prepend

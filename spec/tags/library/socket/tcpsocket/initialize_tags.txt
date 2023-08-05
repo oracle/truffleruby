@@ -1,2 +1,3 @@
 fails:TCPSocket#initialize raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address
 fails:TCPSocket#initialize with a running server connects to a server when passed connect_timeout argument
+fails:TCPSocket#initialize raises IO::TimeoutError with :connect_timeout when no server is listening on the given address

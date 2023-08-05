@@ -1,0 +1,1 @@
+fails:ENV.merge! adds the multiple parameter hashes to ENV, returning ENV

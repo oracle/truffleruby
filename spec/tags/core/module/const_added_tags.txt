@@ -1,0 +1,8 @@
+fails:Module#const_added is a private instance method
+fails:Module#const_added returns nil in the default implementation
+fails:Module#const_added is called when a new constant is assigned on self
+fails:Module#const_added is called when a new constant is assigned on self through const_set
+fails:Module#const_added is called when a new module is defined under self
+fails:Module#const_added is called when a new class is defined under self
+fails:Module#const_added is called when an autoload is defined
+fails:Module#const_added is called with a precise caller location with the line of definition

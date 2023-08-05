@@ -1,0 +1,14 @@
+fails:Fiber.new(storage:) creates a Fiber with the given storage
+fails:Fiber.new(storage:) creates a fiber with lazily initialized storage
+fails:Fiber.new(storage:) creates a fiber by inheriting the storage of the parent fiber
+fails:Fiber.new(storage:) cannot create a fiber with non-hash storage
+fails:Fiber#storage= can clear the storage of the fiber
+fails:Fiber#storage= can set the storage of the fiber
+fails:Fiber#storage= can't set the storage of the fiber to non-hash
+fails:Fiber#storage= can't set the storage of the fiber to a frozen hash
+fails:Fiber#storage= can't set the storage of the fiber to a hash with non-symbol keys
+fails:Fiber.[] returns the value of the given key in the storage of the current fiber
+fails:Fiber.[] returns nil if the key is not present in the storage of the current fiber
+fails:Fiber.[] returns nil if the current fiber has no storage
+fails:Fiber.[]= sets the value of the given key in the storage of the current fiber
+fails:Thread.new creates a thread with the storage of the current fiber

@@ -1,0 +1,1 @@
+fails:UnboundMethod#private? has been removed

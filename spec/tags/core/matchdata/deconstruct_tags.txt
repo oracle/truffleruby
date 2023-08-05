@@ -1,0 +1,2 @@
+fails:MatchData#deconstruct returns an array of the match captures
+fails:MatchData#deconstruct returns instances of String when given a String subclass
