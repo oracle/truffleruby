@@ -162,7 +162,7 @@ Update all of these:
 
 For a new major version:
 * Update `TargetRubyVersion` in `.rubocop.yml`
-* Update the list of `:next` specs.
+* Update `spec/truffleruby.next-specs` and remove `/spec/truffleruby.next-specs merge=union` in `.gitattributes`
 * Update the docs for next version specs in [workflow.md](workflow.md).
 * Update the versions in the `ruby/spec on CRuby` job of `.github/workflows/ci.yml`.
 
