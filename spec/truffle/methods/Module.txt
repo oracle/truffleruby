@@ -50,8 +50,10 @@ public_constant
 public_instance_method
 public_instance_methods
 public_method_defined?
+refinements
 remove_class_variable
 remove_method
 singleton_class?
 to_s
 undef_method
+undefined_instance_methods

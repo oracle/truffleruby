@@ -16,9 +16,7 @@ fails:Public methods on IO should not include nonblock=
 fails:Public methods on IO should not include nonblock?
 fails:Public methods on Numeric should include dup
 fails:Public methods on Range should include entries
-fails:Public methods on Range should not include clone
 fails:Public methods on Range should not include collect
-fails:Public methods on Range should not include dup
 fails:Public methods on Range should not include map
 fails:Public methods on Rational should include -@
 fails:Public methods on Rational should include fdiv
@@ -31,8 +29,6 @@ fails:Public methods on Digest.singleton_class should include const_missing
 fails:Public methods on Digest::Instance should not include finish
 fails:Public methods on Dir should not include closed?
 fails:Public methods on Exception should include respond_to?
-fails:Public methods on Fiber should not include alive?
-fails:Public methods on Fiber should not include transfer
 fails:Public methods on Mutex should not include marshal_dump
 fails:Public methods on Thread should not include freeze
 fails:Public methods on Thread should include add_trace_func
@@ -41,7 +37,6 @@ fails:Public methods on MatchData should include hash
 fails:Public methods on Method should include clone
 fails:Public methods on Method should include original_name
 fails:Public methods on UnboundMethod should include clone
-fails:Public methods on UnboundMethod should include original_name
 fails:Public methods on Symbol should not include eql?
 fails:Public methods on Symbol should not include hash
 fails:Public methods on TracePoint should include callee_id
@@ -65,17 +60,10 @@ fails:Public methods on Socket::Option should include ipv4_multicast_ttl
 fails:Public methods on ENV.singleton_class should not include index
 fails:Public methods on Fiber should include backtrace
 fails:Public methods on Fiber should include backtrace_locations
-fails:Public methods on Fiber should include blocking?
-fails:Public methods on IO should include wait_priority
-fails:Public methods on Proc should include ==
-fails:Public methods on Proc should include eql?
 fails:Public methods on Random should not include bytes
 fails:Public methods on Random should not include rand
 fails:Public methods on Random should not include seed
-fails:Public methods on GC should not include measure_total_time
-fails:Public methods on GC should not include total_time
 fails:Public methods on GC.singleton_class should not include heap_stats
-fails:Public methods on GC.singleton_class should not include measure_total_time=
 fails:Public methods on GC.singleton_class should not include run
 fails:Public methods on GC.singleton_class should include compact
 fails:Public methods on GC.singleton_class should include latest_compact_info
@@ -83,8 +71,6 @@ fails:Public methods on GC.singleton_class should include latest_gc_info
 fails:Public methods on GC.singleton_class should include verify_compaction_references
 fails:Public methods on GC.singleton_class should include verify_internal_consistency
 fails:Public methods on GC.singleton_class should include verify_transient_heap_internal_consistency
-fails:Public methods on GC.singleton_class should not include measure_total_time
-fails:Public methods on GC.singleton_class should not include total_time
 fails:Public methods on Pathname should include birthtime
 fails:Public methods on StringIO should not include __data__
 fails:Public methods on StringIO should not include encode_with
@@ -94,25 +80,41 @@ fails:Public methods on StringIO should not include marshal_dump
 fails:Public methods on StringIO should not include to_yaml_properties
 fails:Public methods on StringIO should not include yaml_initialize
 fails:Public methods on StringIO should include set_encoding_by_bom
-fails:Public methods on Process.singleton_class should include argv0
 fails:Public methods on Process.singleton_class should include getsid
-fails:Public methods on Array should include intersect?
-fails:Public methods on Class should include subclasses
 fails:Public methods on ENV.singleton_class should include clone
 fails:Public methods on ENV.singleton_class should include dup
-fails:Public methods on Enumerable should include compact
-fails:Public methods on Enumerator::Lazy should include compact
 fails:Public methods on GC.singleton_class should include using_rvargc?
-fails:Public methods on MatchData should include match
-fails:Public methods on MatchData should include match_length
-fails:Public methods on Method should include private?
-fails:Public methods on Method should include protected?
-fails:Public methods on Method should include public?
-fails:Public methods on Process.singleton_class should include _fork
-fails:Public methods on Thread should include native_thread_id
-fails:Public methods on UnboundMethod should include private?
-fails:Public methods on UnboundMethod should include protected?
-fails:Public methods on UnboundMethod should include public?
-fails:Public methods on String should not include bytesplice
-fails:Public methods on Module should not include refinements
-fails:Public methods on Module should not include undefined_instance_methods
+fails:Public methods on Class should include attached_object
+fails:Public methods on Enumerable should include to_set
+fails:Public methods on Exception should include detailed_message
+fails:Public methods on Fiber should include storage
+fails:Public methods on Fiber should include storage=
+fails:Public methods on File should not include path
+fails:Public methods on File should not include to_path
+fails:Public methods on GC.singleton_class should include stat_heap
+fails:Public methods on IO should not include nread
+fails:Public methods on IO should not include ready?
+fails:Public methods on IO should include path
+fails:Public methods on IO should include timeout
+fails:Public methods on IO should include timeout=
+fails:Public methods on IO should include to_path
+fails:Public methods on Integer should include ceildiv
+fails:Public methods on Kernel should not include =~
+fails:Public methods on Kernel should not include taint
+fails:Public methods on Kernel should not include tainted?
+fails:Public methods on Kernel should not include trust
+fails:Public methods on Kernel should not include untaint
+fails:Public methods on Kernel should not include untrust
+fails:Public methods on Kernel should not include untrusted?
+fails:Public methods on MatchData should include byteoffset
+fails:Public methods on MatchData should include deconstruct
+fails:Public methods on MatchData should include deconstruct_keys
+fails:Public methods on Method should not include private?
+fails:Public methods on Method should not include protected?
+fails:Public methods on Method should not include public?
+fails:Public methods on Regexp should include timeout
+fails:Public methods on UnboundMethod should not include private?
+fails:Public methods on UnboundMethod should not include protected?
+fails:Public methods on UnboundMethod should not include public?
+fails:Public methods on Pathname should include lutime
+fails:Public methods on StringScanner should include named_captures

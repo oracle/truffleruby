@@ -13,5 +13,6 @@ named_captures
 names
 options
 source
+timeout
 to_s
 ~

@@ -20,6 +20,7 @@ match?
 matched
 matched?
 matched_size
+named_captures
 peek
 peep
 pointer

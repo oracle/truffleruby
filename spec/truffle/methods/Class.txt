@@ -1,4 +1,5 @@
 allocate
+attached_object
 new
 subclasses
 superclass

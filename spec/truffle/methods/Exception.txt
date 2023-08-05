@@ -2,6 +2,7 @@
 backtrace
 backtrace_locations
 cause
+detailed_message
 exception
 full_message
 inspect

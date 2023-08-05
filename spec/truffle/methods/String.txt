@@ -17,6 +17,7 @@ byterindex
 bytes
 bytesize
 byteslice
+bytesplice
 capitalize
 capitalize!
 casecmp

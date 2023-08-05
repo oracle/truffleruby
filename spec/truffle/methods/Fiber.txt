@@ -5,5 +5,7 @@ blocking?
 inspect
 raise
 resume
+storage
+storage=
 to_s
 transfer
