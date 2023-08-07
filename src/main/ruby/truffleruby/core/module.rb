@@ -61,6 +61,9 @@ class Module
     ancestors.any? { |m| Primitive.equal?(mod, m) }
   end
 
+  private def const_added(name)
+  end
+
   private def method_added(name)
   end
 

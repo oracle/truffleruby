@@ -33,6 +33,7 @@ spec/ruby/core/sizedqueue/append_spec.rb
 spec/ruby/core/sizedqueue/enq_spec.rb
 spec/ruby/core/sizedqueue/push_spec.rb
 
+spec/ruby/core/module/const_added_spec.rb
 spec/ruby/core/module/refinements_spec.rb
 spec/ruby/core/module/undefined_instance_methods_spec.rb
 spec/ruby/core/refinement/refined_class_spec.rb

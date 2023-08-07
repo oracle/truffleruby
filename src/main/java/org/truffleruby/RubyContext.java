@@ -159,6 +159,11 @@ public final class RubyContext {
     public long nativeArgv = 0L;
     public long nativeArgvLength = -1L;
 
+    // Whether or not a custom Module.const_added callback was defined.
+    // Optimization to avoid calling a default (empty) callback if there
+    // are no user-defined callbacks.
+    private volatile boolean constAddedDefined = false;
+
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
@@ -444,7 +449,7 @@ public final class RubyContext {
 
     @TruffleBoundary
     public static Object send(Node currentNode, Object receiver, String methodName, Object... arguments) {
-        if (currentNode.isAdoptable()) {
+        if (currentNode != null && currentNode.isAdoptable()) {
             final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
             final Node prev = callNodeRef.set(currentNode);
             try {
@@ -778,5 +783,13 @@ public final class RubyContext {
 
     public ImmutableRubyString getMainScriptName() {
         return this.mainScriptName;
+    }
+
+    public boolean isConstAddedEverDefined() {
+        return constAddedDefined;
+    }
+
+    public void constAddedIsDefined() {
+        constAddedDefined = true;
     }
 }

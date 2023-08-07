@@ -36,6 +36,7 @@ Compatibility:
 * Add `timeout` argument to `Thread::SizedQueue#push` (#3039, @itarato).
 * Add `rb_syserr_new` function (@rwstauner).
 * Add `Enumerator#product` (#3039, @itarato).
+* Add `Module#const_added` (#3039,  @itarato).
 
 Performance:
 
