@@ -8,10 +8,8 @@ jt ruby gems2gemfile.rb
 
 cat Gemfile
 
-if [[ "$(jt ruby -S bundle config path)" =~ "Set for " ]]; then
-    echo "This test only works with no bundle path"
-    exit 2
-fi
+# This test only works with no bundle path set
+bundle config set --local path.system true
 
 jt ruby -S bundle install --local
 
