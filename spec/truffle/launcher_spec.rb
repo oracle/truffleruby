@@ -332,8 +332,8 @@ describe "The launcher" do
       out.should include("--jvm")
     end
 
-    if TruffleRuby.graalvm_home
-      # These options are only shown in GraalVM, as they are not available in a standalone distribution
+    if TruffleRuby.graalvm_home or !TruffleRuby.native?
+      # These options are only shown in GraalVM, they are not available in a native standalone
       out.should include("--polyglot")
     end
   end
