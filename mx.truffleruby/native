@@ -1,6 +1,6 @@
 GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/compiler,/substratevm
-COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM,Native Image,Truffle Macro
+COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM,Truffle Macro
 NATIVE_IMAGES=suite:sulong,lib:rubyvm
 EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:BuildOutputJSONFile=native-image-build-rubyvm.json
 # To also create the standalone
