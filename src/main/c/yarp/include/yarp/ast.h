@@ -346,8 +346,8 @@ typedef enum {
 // We store the node type enum in every node in the tree. We don't have nearly
 // as many node types as we do bits in an enum, so we're going to use the top
 // half of the enum to store flags about the node.
-static const unsigned int YP_NODE_FLAGS_SHIFT = sizeof(yp_node_type_t) * 8 / 2;
-static const unsigned int YP_NODE_FLAG_NEWLINE = 1 << YP_NODE_FLAGS_SHIFT;
+#define YP_NODE_FLAGS_SHIFT (sizeof(yp_node_type_t) * 8 / 2)
+#define YP_NODE_FLAG_NEWLINE (1U << YP_NODE_FLAGS_SHIFT)
 
 // For easy access, we define some macros that manipulate only the bottom half
 // of the node type enum.
