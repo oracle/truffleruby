@@ -298,8 +298,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                             final RubyNode splatTranslated = translateNodeOrNil(splatNode.expression);
                             RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
-                            if (rescueClause.exception != null) {
-                                final RubyNode exceptionWriteNode = translateRescueException(rescueClause.exception);
+                            if (rescueClause.reference != null) {
+                                final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                                 translatedBody = sequence(rescueClause,
                                         Arrays.asList(exceptionWriteNode, translatedBody));
                             }
@@ -325,8 +325,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     // exception class isn't specified explicitly so use Ruby StandardError class
                     RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
-                    if (rescueClause.exception != null) {
-                        final RubyNode exceptionWriteNode = translateRescueException(rescueClause.exception);
+                    if (rescueClause.reference != null) {
+                        final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                         translatedBody = sequence(rescueClause, Arrays.asList(exceptionWriteNode, translatedBody));
                     }
 
@@ -351,7 +351,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
             // TODO: this flag should be per RescueNode, not per TryNode
             boolean canOmitBacktrace = language.options.BACKTRACES_OMIT_UNUSED &&
-                    rescueClause.exception == null &&
+                    rescueClause.reference == null &&
                     rescueClause.consequent == null &&
                     (rescueClause.statements == null || rescueClause.statements.body.length == 1 &&
                             isSideEffectFreeRescueExpression(rescueClause.statements.body[0]));
@@ -384,9 +384,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             handlingClasses[i] = exceptionNodesArray[i].accept(this);
         }
 
-        if (rescueClause.exception != null) {
+        if (rescueClause.reference != null) {
             final RubyNode exceptionWriteNode = translateRescueException(
-                    rescueClause.exception);
+                    rescueClause.reference);
             translatedBody = sequence(rescueClause,
                     Arrays.asList(exceptionWriteNode, translatedBody));
         }
