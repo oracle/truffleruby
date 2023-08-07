@@ -7,13 +7,6 @@ end
 
 require Primitive.get_original_require(__FILE__)
 
-# Add TruffleRuby rubygems hooks to install and uninstall executables from additional
-# GraalVM bin directories (./bin, ./jre/bin on JDK8)
-unless RbConfig::CONFIG['extra_bindirs'].empty?
-  require 'rubygems/extra_executables_installer'
-  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs'].split(File::PATH_SEPARATOR)
-end
-
 # Make sure we don't use foreign gem directories
 unless Truffle::Boot.get_option 'testing-rubygems'
   require 'rubygems/gem_dirs_verification'

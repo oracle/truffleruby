@@ -35,15 +35,6 @@ slow:The launcher runs irb as an -S command
 slow:The launcher runs rake as an -S command
 slow:The launcher runs rdoc as an -S command
 slow:The launcher runs ri as an -S command
-slow:The launcher supports running bundle in any of the bin/ directories
-slow:The launcher supports running bundler in any of the bin/ directories
-slow:The launcher supports running gem in any of the bin/ directories
-slow:The launcher supports running irb in any of the bin/ directories
-slow:The launcher supports running rake in any of the bin/ directories
-slow:The launcher supports running rdoc in any of the bin/ directories
-slow:The launcher supports running ri in any of the bin/ directories
-slow:The launcher supports running ruby in any of the bin/ directories
-slow:The launcher supports running truffleruby in any of the bin/ directories
 slow:The launcher for gem can install and uninstall the hello-world gem
 slow:The launcher for gem shows that bundled gems are installed
 slow:The launcher '--vm.cp=' or '--vm.classpath=' add the jar
@@ -68,19 +59,26 @@ slow:The launcher runs erb as an -S command
 slow:The launcher runs racc as an -S command
 slow:The launcher runs racc2y as an -S command
 slow:The launcher runs y2racc as an -S command
-slow:The launcher supports running erb in any of the bin/ directories
-slow:The launcher supports running racc in any of the bin/ directories
-slow:The launcher supports running racc2y in any of the bin/ directories
-slow:The launcher supports running y2racc in any of the bin/ directories
 slow:The launcher supports running erb symlinked
 slow:The launcher supports running racc symlinked
 slow:The launcher supports running racc2y symlinked
 slow:The launcher supports running y2racc symlinked
 slow:The launcher warns if the locale is not set properly
 slow:The launcher runs rbs as an -S command
-slow:The launcher supports running rbs in any of the bin/ directories
 slow:The launcher supports running rbs symlinked
 slow:The launcher prints help:ruby containing ruby language options
 slow:The launcher runs rdbg as an -S command
-slow:The launcher supports running rdbg in any of the bin/ directories
 slow:The launcher supports running rdbg symlinked
+slow:The launcher supports running bundle in bin/
+slow:The launcher supports running bundler in bin/
+slow:The launcher supports running erb in bin/
+slow:The launcher supports running gem in bin/
+slow:The launcher supports running irb in bin/
+slow:The launcher supports running racc in bin/
+slow:The launcher supports running rake in bin/
+slow:The launcher supports running rbs in bin/
+slow:The launcher supports running rdbg in bin/
+slow:The launcher supports running rdoc in bin/
+slow:The launcher supports running ri in bin/
+slow:The launcher supports running ruby in bin/
+slow:The launcher supports running truffleruby in bin/

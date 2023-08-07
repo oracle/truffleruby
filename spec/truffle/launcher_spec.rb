@@ -34,9 +34,7 @@ describe "The launcher" do
   }
 
   before :all do
-    @default_bindir = RbConfig::CONFIG['bindir']
-    @bin_dirs = [RbConfig::CONFIG['bindir']]
-    @bin_dirs += RbConfig::CONFIG['extra_bindirs'].to_s.split(File::PATH_SEPARATOR) if defined?(::TruffleRuby)
+    @bindir = RbConfig::CONFIG['bindir']
   end
 
   before :each do
@@ -76,7 +74,7 @@ describe "The launcher" do
   end
 
   it "is in the bindir" do
-    File.dirname(RbConfig.ruby).should == @default_bindir
+    File.dirname(RbConfig.ruby).should == @bindir
   end
 
   it "all launchers are in @launchers" do
@@ -98,13 +96,11 @@ describe "The launcher" do
   end
 
   @launchers.each do |launcher, test|
-    it "supports running #{launcher} in any of the bin/ directories" do
+    it "supports running #{launcher} in bin/" do
       redirect = launcher == :erb ? (touch @stderr; '2>&1') : @redirect
-      @bin_dirs.each do |bin_dir|
-        out = `#{bin_dir}/#{launcher} --version #{redirect}`
-        check_status_and_empty_stderr
-        out.should =~ test
-      end
+      out = `#{@bindir}/#{launcher} --version #{redirect}`
+      check_status_and_empty_stderr
+      out.should =~ test
     end
   end
 
@@ -112,16 +108,14 @@ describe "The launcher" do
     it "supports running #{launcher} symlinked" do
       redirect = launcher == :erb ? (touch @stderr; '2>&1') : @redirect
       require 'tmpdir'
-      @bin_dirs.each do |bin_dir|
-        # Use the system tmp dir to not be under the Ruby home dir
-        Dir.mktmpdir do |path|
-          Dir.chdir(path) do
-            linkname = "linkto#{launcher}"
-            File.symlink("#{bin_dir}/#{launcher}", linkname)
-            out = `./#{linkname} --version #{redirect}`
-            check_status_and_empty_stderr
-            out.should =~ test
-          end
+      # Use the system tmp dir to not be under the Ruby home dir
+      Dir.mktmpdir do |path|
+        Dir.chdir(path) do
+          linkname = "linkto#{launcher}"
+          File.symlink("#{@bindir}/#{launcher}", linkname)
+          out = `./#{linkname} --version #{redirect}`
+          check_status_and_empty_stderr
+          out.should =~ test
         end
       end
     end
@@ -130,35 +124,31 @@ describe "The launcher" do
   it "for gem can install and uninstall the hello-world gem" do
     # install
     Dir.chdir(__dir__ + '/fixtures/hello-world') do
-      `"#{@default_bindir}/gem" build hello-world.gemspec #{@redirect}`
+      `"#{@bindir}/gem" build hello-world.gemspec #{@redirect}`
       check_status_and_empty_stderr
-      `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem #{@redirect}`
+      `"#{@bindir}/gem" install --local hello-world-0.0.1.gem #{@redirect}`
       check_status_and_empty_stderr
     end
 
     begin
-      # check that hello-world launchers are created and work
-      @bin_dirs.each do |bin_dir|
-        path = "#{bin_dir}/hello-world.rb"
-        shebang = File.binread(path).lines.first.chomp
-        if shebang.size > 127
-          skip "shebang of #{path} is too long and might fail in execve(): #{shebang.size}\n#{shebang}"
-        end
-        out = `#{path} 2>&1`
-        out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
+      # check that hello-world launcher is created and works
+      path = "#{@bindir}/hello-world.rb"
+      shebang = File.binread(path).lines.first.chomp
+      if shebang.size > 127
+        skip "shebang of #{path} is too long and might fail in execve(): #{shebang.size}\n#{shebang}"
       end
+      out = `#{path} 2>&1`
+      out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
     ensure
       # uninstall
-      `#{@default_bindir}/gem uninstall hello-world -x #{@redirect}`
+      `#{@bindir}/gem uninstall hello-world -x #{@redirect}`
       check_status_and_empty_stderr
-      @bin_dirs.each do |bin_dir|
-        File.exist?(bin_dir + '/hello-world.rb').should == false
-      end
+      File.should_not.exist?(@bindir + '/hello-world.rb')
     end
   end
 
   it "for gem shows that bundled gems are installed" do
-    gem_list = `#{@default_bindir}/gem list #{@redirect}`
+    gem_list = `#{@bindir}/gem list #{@redirect}`
     check_status_and_empty_stderr
     # see doc/contributor/stdlib.md
     @bundled_gems.each_pair do |gem, version|
