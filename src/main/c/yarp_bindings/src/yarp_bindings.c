@@ -11,7 +11,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_yarp_Parser_parseAndSerialize(JNIEnv *env,
   yp_buffer_t buffer;
   yp_buffer_init(&buffer);
 
-  yp_parse_serialize((char*) bytes, size, &buffer);
+  yp_parse_serialize((char*) bytes, size, &buffer, NULL);
 
   free(bytes);
 
