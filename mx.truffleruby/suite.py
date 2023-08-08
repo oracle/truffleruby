@@ -1,13 +1,26 @@
 suite = {
-    "mxversion": "6.27.6",
+    "mxversion": "6.37.0",
     "name": "truffleruby",
+    "groupId": "org.graalvm.ruby",
+    "url": "https://www.graalvm.org/ruby/",
+    "developer": {
+        "name": "GraalVM Development",
+        "email": "graalvm-dev@oss.oracle.com",
+        "organization": "Oracle Corporation",
+        "organizationUrl": "http://www.graalvm.org/",
+    },
+    "scm": {
+        "url": "https://github.com/oracle/truffleruby",
+        "read": "https://github.com/oracle/truffleruby.git",
+        "write": "git@github.com:oracle/truffleruby.git",
+    },
 
     "imports": {
         "suites": [
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "f0f46b2161b7d1538f8f5b0f7cd188b5a2cf3f49",
+                "version": "9f016aa100ac1fd33360331574b06cae5583ef2c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -16,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "f0f46b2161b7d1538f8f5b0f7cd188b5a2cf3f49",
+                "version": "9f016aa100ac1fd33360331574b06cae5583ef2c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -396,7 +409,11 @@ suite = {
                 "org.truffleruby.annotations"
             ],
             "description": "TruffleRuby Annotations",
-            "license": ["EPL-2.0"]
+            "license": ["EPL-2.0"],
+            "maven": {
+                "artifactId": "ruby-annotations",
+            },
+            "noMavenJavadoc": True,
         },
 
         # Required to share code between the launcher and the rest,
@@ -418,7 +435,11 @@ suite = {
                 "sdk:GRAAL_SDK",
             ],
             "description": "TruffleRuby Shared constants and predicates",
-            "license": ["EPL-2.0"]
+            "license": ["EPL-2.0"],
+            "maven": {
+                "artifactId": "ruby-shared",
+            },
+            "noMavenJavadoc": True,
         },
 
         "TRUFFLERUBY-PROCESSOR": {
@@ -431,6 +452,7 @@ suite = {
             ],
             "description": "TruffleRuby Annotation Processor",
             "license": ["EPL-2.0"],
+            "maven": False,
         },
 
         "TRUFFLERUBY-SERVICES": {
@@ -447,7 +469,8 @@ suite = {
                 "sdk:GRAAL_SDK",
             ],
             "description": "TruffleRuby services",
-            "license": ["EPL-2.0"]
+            "license": ["EPL-2.0"],
+            "maven": False,
         },
 
         "TRUFFLERUBY": {
@@ -472,7 +495,29 @@ suite = {
                 "truffleruby:JCODINGS",
                 "truffleruby:JONI",
             ],
-            "description": "TruffleRuby",
+            "description": "Core module of Ruby on Truffle",
+            "license": [
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-new",          # Rubinius
+                "BSD-simplified",   # MRI
+                "MIT",              # Joni, JCodings
+            ],
+            "maven": {
+                "artifactId": "ruby-language",
+            },
+            "noMavenJavadoc": True,
+        },
+
+        "TRUFFLERUBY_COMMUNITY": {
+            "type": "pom",
+            "runtimeDependencies": [
+                "TRUFFLERUBY",
+                "truffle:TRUFFLE_RUNTIME",
+            ],
+            "description": "TruffleRuby (GraalVM Ruby)",
+            "maven": {
+                "artifactId": "ruby-community",
+            },
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -488,6 +533,7 @@ suite = {
             },
             "description": "TruffleRuby Bootstrap Launcher to build core C extensions",
             "license": ["EPL-2.0"],
+            "maven": False,
         },
 
         "TRUFFLERUBY-LAUNCHER": {
@@ -508,6 +554,7 @@ suite = {
             ],
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
+            "maven": False,
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT": {
@@ -570,6 +617,7 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
             ],
+            "maven": False,
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES": {
@@ -608,6 +656,7 @@ suite = {
                     "file:src/main/c/psych/psych*.h",
                 ],
             },
+            "maven": False,
         },
 
         "TRUFFLERUBY_GRAALVM_LICENSES": {
@@ -640,6 +689,7 @@ suite = {
                 "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
             },
             "license": ["EPL-2.0"],
+            "maven": False,
         },
 
         "TRUFFLERUBY-TCK": {
@@ -650,6 +700,7 @@ suite = {
                 "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
             },
             "license": ["EPL-2.0"],
+            "maven": False,
         },
     },
 }
