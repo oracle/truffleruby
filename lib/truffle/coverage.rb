@@ -22,12 +22,19 @@ module Coverage
     Truffle::Coverage.enable
   end
 
-  def self.result
+  def self.result(stop: true, clear: true)
     result = peek_result
-    Truffle::Coverage.disable
+    Truffle::Coverage.disable if stop || clear
+    Truffle::Coverage.enable if !stop && clear
     # We have to wrap the coverage lines array in a hash with the :lines key if
     # the :lines option was given
-    result.transform_values! { |_,lines_array| {lines: lines_array} } if @lines
+    if @lines
+      result.transform_values! do |_,*lines_array|
+        # need to add nil to the beginning of each lines array, because the
+        # first line has index 1 and not 0
+        { lines: lines_array.unshift(nil) }
+      end
+    end
     result
   end
 
