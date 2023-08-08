@@ -8,7 +8,7 @@ module ObjectSpace
   class << self
     private :_dump
     private :_dump_all
-    private :_dump_shapes if method_defined?(:_dump_shapes)
+    private :_dump_shapes unless defined?(::TruffleRuby)
   end
 
   module_function
@@ -140,5 +140,5 @@ module ObjectSpace
     ret = _dump_shapes(out, since)
     return nil if output == :stdout
     ret
-  end
+  end unless defined?(::TruffleRuby)
 end

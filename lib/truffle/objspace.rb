@@ -120,7 +120,7 @@ module ObjectSpace
   end
 
   # Helper method for ObjectSpace.dump_all
-  def _dump_all(output, full, since)
+  def _dump_all(output, full, since, shapes)
     if Primitive.is_a?(output, String)
       objects = []
       ObjectSpace.each_object do |object|
@@ -129,7 +129,7 @@ module ObjectSpace
       objects.join("\n")
     else
       # IO
-      output.write _dump_all('', full, since)
+      output.write _dump_all('', full, since, shapes)
       output
     end
   end
