@@ -59,8 +59,6 @@ module RbConfig
   rmdir = Truffle::Platform.linux? ? 'rmdir --ignore-fail-on-non-empty' : 'rmdir'
 
   prefix = ruby_home
-  graalvm_home = TruffleRuby.graalvm_home
-  extra_bindirs = graalvm_home ? ["#{graalvm_home}/bin"] : []
   rubyhdrdir = "#{prefix}/lib/cext/include"
 
   ar = Truffle::Boot.toolchain_executable(:AR)
@@ -149,7 +147,6 @@ module RbConfig
     'exeext'            => '',
     'EXEEXT'            => '',
     'EXTOUT'            => '.ext',
-    'extra_bindirs'     => extra_bindirs.join(File::PATH_SEPARATOR),
     'host_alias'        => '',
     'host_cpu'          => host_cpu,
     'host'              => host,
