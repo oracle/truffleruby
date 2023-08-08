@@ -23,7 +23,6 @@ public final class TBytesKey {
     private final byte[] bytes;
     private final int offset;
     private final int length;
-    private final boolean isImmutable;
     private RubyEncoding encoding;
     private final int bytesHashCode;
 
@@ -31,27 +30,24 @@ public final class TBytesKey {
             byte[] bytes,
             int offset,
             int length,
-            boolean isImmutable,
             int bytesHashCode,
             RubyEncoding encoding) {
         this.bytes = bytes;
         this.offset = offset;
         this.length = length;
-        this.isImmutable = isImmutable;
         this.bytesHashCode = bytesHashCode;
         this.encoding = encoding;
     }
 
     public TBytesKey(byte[] bytes, RubyEncoding encoding) {
-        this(bytes, 0, bytes.length, true, Arrays.hashCode(bytes), encoding);
+        this(bytes, 0, bytes.length, Arrays.hashCode(bytes), encoding);
     }
 
-    public TBytesKey(InternalByteArray byteArray, boolean isImmutable, RubyEncoding encoding) {
+    public TBytesKey(InternalByteArray byteArray, RubyEncoding encoding) {
         this(
                 byteArray.getArray(),
                 byteArray.getOffset(),
                 byteArray.getLength(),
-                isImmutable,
                 hashCode(byteArray),
                 encoding);
     }
@@ -121,7 +117,7 @@ public final class TBytesKey {
         return offset == 0 && length == bytes.length;
     }
 
-    public TBytesKey makeCacheable() {
+    public TBytesKey makeCacheable(boolean isImmutable) {
         if (isImmutable && isPerfectFit()) {
             return new TBytesKey(bytes, encoding);
         }
@@ -131,7 +127,7 @@ public final class TBytesKey {
     }
 
     public TBytesKey withNewEncoding(RubyEncoding encoding) {
-        return new TBytesKey(bytes, offset, length, isImmutable, bytesHashCode, encoding);
+        return new TBytesKey(bytes, offset, length, bytesHashCode, encoding);
     }
 
     public TruffleString toTruffleString() {
