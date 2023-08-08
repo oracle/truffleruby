@@ -75,28 +75,27 @@ public final class TStringCache {
         assert rubyEncoding != null;
 
         var byteArray = string.getInternalByteArrayUncached(rubyEncoding.tencoding);
-        final TBytesKey key = new TBytesKey(byteArray, TStringUtils.hasImmutableInternalByteArray(string),
-                rubyEncoding);
+        final TBytesKey key = new TBytesKey(byteArray, rubyEncoding);
 
-        return getTString(key);
+        return getTString(key, TStringUtils.hasImmutableInternalByteArray(string));
     }
 
     @TruffleBoundary
     public TruffleString getTString(InternalByteArray byteArray, boolean isImmutable, RubyEncoding rubyEncoding) {
         assert rubyEncoding != null;
 
-        return getTString(new TBytesKey(byteArray, isImmutable, rubyEncoding));
+        return getTString(new TBytesKey(byteArray, rubyEncoding), isImmutable);
     }
 
     @TruffleBoundary
     public TruffleString getTString(byte[] bytes, RubyEncoding rubyEncoding) {
         assert rubyEncoding != null;
 
-        return getTString(new TBytesKey(bytes, rubyEncoding));
+        return getTString(new TBytesKey(bytes, rubyEncoding), true);
     }
 
     @TruffleBoundary
-    private TruffleString getTString(TBytesKey lookupKey) {
+    private TruffleString getTString(TBytesKey lookupKey, boolean isLookupKeyImmutable) {
         final TruffleString tstring = bytesToTString.get(lookupKey);
         var rubyEncoding = lookupKey.getMatchedEncoding();
 
@@ -128,7 +127,7 @@ public final class TStringCache {
         }
 
         // Use the new TruffleString bytes in the cache, so we do not keep bytes alive unnecessarily.
-        return bytesToTString.addInCacheIfAbsent(lookupKey.makeCacheable(), newTString);
+        return bytesToTString.addInCacheIfAbsent(lookupKey.makeCacheable(isLookupKeyImmutable), newTString);
     }
 
     public boolean contains(TruffleString string, RubyEncoding encoding) {
