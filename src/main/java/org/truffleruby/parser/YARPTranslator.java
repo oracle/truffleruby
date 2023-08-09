@@ -889,18 +889,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitInterpolatedStringNode(Nodes.InterpolatedStringNode node) {
         final ToSNode[] children = new ToSNode[node.parts.length];
 
-        // a special case for `:"abc"` literal - convert to Symbol ourselves
-        if (node.parts.length == 1 && node.parts[0] instanceof Nodes.StringNode s) {
-            final TruffleString tstring = TStringUtils.fromByteArray(s.unescaped, sourceEncoding);
-            final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
-            final RubyNode rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
-
-            assignNodePositionInSource(node, rubyNode);
-            copyNewlineFlag(s, rubyNode);
-
-            return rubyNode;
-        }
-
         for (int i = 0; i < node.parts.length; i++) {
             var part = node.parts[i];
 
@@ -1644,10 +1632,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.ClassVariableReadNode ||
                 node instanceof Nodes.StringNode ||
                 node instanceof Nodes.SymbolNode ||
-                // See https://github.com/ruby/yarp/issues/1120
-                (node instanceof Nodes.InterpolatedSymbolNode isn && // :"abc"
-                        isn.parts.length == 1 &&
-                        isn.parts[0] instanceof Nodes.StringNode) ||
                 node instanceof Nodes.IntegerNode ||
                 node instanceof Nodes.FloatNode ||
                 node instanceof Nodes.ImaginaryNode ||
