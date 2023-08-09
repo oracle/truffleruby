@@ -582,23 +582,20 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
-        assert node.target instanceof Nodes.ConstantPathNode;
-
-        final RubyNode rubyNode;
-        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
-        final var pathNode = (Nodes.ConstantPathNode) node.target;
-        final String name = toString(pathNode.child);
+        final Nodes.ConstantPathNode constantPathNode = node.target;
         final RubyNode moduleNode;
 
-        if (pathNode.parent != null) {
+        if (constantPathNode.parent != null) {
             // FOO::BAR = 1
-            moduleNode = pathNode.parent.accept(this);
+            moduleNode = constantPathNode.parent.accept(this);
         } else {
             // ::FOO = 1
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        rubyNode = new WriteConstantNode(name, moduleNode, value);
+        final String name = toString(constantPathNode.child);
+        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
+        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
