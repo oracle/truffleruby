@@ -24,8 +24,15 @@ public abstract class Nodes {
         // &. operator
         public static final int SAFE_NAVIGATION = 1 << 0;
 
+        // a call that could have been a local variable
+        public static final int VARIABLE_CALL = 1 << 1;
+
         public static boolean isSafeNavigation(int flags) {
             return (flags & SAFE_NAVIGATION) != 0;
+        }
+
+        public static boolean isVariableCall(int flags) {
+            return (flags & VARIABLE_CALL) != 0;
         }
 
         private final int flags;
@@ -55,6 +62,50 @@ public abstract class Nodes {
 
         public boolean isSafeNavigation() {
             return (flags & SAFE_NAVIGATION) != 0;
+        }
+
+        public boolean isVariableCall() {
+            return (flags & VARIABLE_CALL) != 0;
+        }
+
+    }
+
+    public static final class LoopFlags implements Comparable<LoopFlags> {
+
+        // a loop after a begin statement, so the body is executed first before the condition
+        public static final int BEGIN_MODIFIER = 1 << 0;
+
+        public static boolean isBeginModifier(int flags) {
+            return (flags & BEGIN_MODIFIER) != 0;
+        }
+
+        private final int flags;
+
+        public LoopFlags(int flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof LoopFlags)) {
+                return false;
+            }
+
+            return flags == ((LoopFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(LoopFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isBeginModifier() {
+            return (flags & BEGIN_MODIFIER) != 0;
         }
 
     }
@@ -1491,13 +1542,16 @@ public abstract class Nodes {
         }
     }
 
-    // Represents writing to a constant.
+    // Represents writing to a constant path.
     // 
-    //     Foo = 1
-    //     ^^^^^^^
+    //     ::Foo = 1
+    //     ^^^^^^^^^
     // 
     //     Foo::Bar = 1
     //     ^^^^^^^^^^^^
+    // 
+    //     ::Foo::Bar = 1
+    //     ^^^^^^^^^^^^^^
     public static final class ConstantPathWriteNode extends Node {
         public final Node target;
         public final Location operator_loc; // optional
@@ -1547,6 +1601,38 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantReadNode(this);
+        }
+    }
+
+    // Represents writing to a constant.
+    // 
+    //     Foo = 1
+    //     ^^^^^^^
+    public static final class ConstantWriteNode extends Node {
+        public final Location name_loc;
+        public final Node value; // optional
+        public final Location operator_loc; // optional
+
+        public ConstantWriteNode(Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+            super(startOffset, length);
+            this.name_loc = name_loc;
+            this.value = value;
+            this.operator_loc = operator_loc;
+        }
+
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.value != null) {
+                this.value.accept(visitor);
+            }
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitConstantWriteNode(this);
         }
     }
 
@@ -3759,16 +3845,16 @@ public abstract class Nodes {
         public final Location keyword_loc;
         public final Node[] exceptions;
         public final Location operator_loc; // optional
-        public final Node exception; // optional
+        public final Node reference; // optional
         public final StatementsNode statements; // optional
         public final RescueNode consequent; // optional
 
-        public RescueNode(Location keyword_loc, Node[] exceptions, Location operator_loc, Node exception, StatementsNode statements, RescueNode consequent, int startOffset, int length) {
+        public RescueNode(Location keyword_loc, Node[] exceptions, Location operator_loc, Node reference, StatementsNode statements, RescueNode consequent, int startOffset, int length) {
             super(startOffset, length);
             this.keyword_loc = keyword_loc;
             this.exceptions = exceptions;
             this.operator_loc = operator_loc;
-            this.exception = exception;
+            this.reference = reference;
             this.statements = statements;
             this.consequent = consequent;
         }
@@ -3778,8 +3864,8 @@ public abstract class Nodes {
             for (Nodes.Node child : this.exceptions) {
                 child.accept(visitor);
             }
-            if (this.exception != null) {
-                this.exception.accept(visitor);
+            if (this.reference != null) {
+                this.reference.accept(visitor);
             }
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -3792,7 +3878,7 @@ public abstract class Nodes {
         public Node[] childNodes() {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.addAll(Arrays.asList(this.exceptions));
-            childNodes.add(this.exception);
+            childNodes.add(this.reference);
             childNodes.add(this.statements);
             childNodes.add(this.consequent);
             return childNodes.toArray(EMPTY_ARRAY);
@@ -4329,12 +4415,14 @@ public abstract class Nodes {
         public final Location keyword_loc;
         public final Node predicate;
         public final StatementsNode statements; // optional
+        public final int flags;
 
-        public UntilNode(Location keyword_loc, Node predicate, StatementsNode statements, int startOffset, int length) {
+        public UntilNode(Location keyword_loc, Node predicate, StatementsNode statements, int flags, int startOffset, int length) {
             super(startOffset, length);
             this.keyword_loc = keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
+            this.flags = flags;
         }
 
         @Override
@@ -4407,12 +4495,14 @@ public abstract class Nodes {
         public final Location keyword_loc;
         public final Node predicate;
         public final StatementsNode statements; // optional
+        public final int flags;
 
-        public WhileNode(Location keyword_loc, Node predicate, StatementsNode statements, int startOffset, int length) {
+        public WhileNode(Location keyword_loc, Node predicate, StatementsNode statements, int flags, int startOffset, int length) {
             super(startOffset, length);
             this.keyword_loc = keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
+            this.flags = flags;
         }
 
         @Override

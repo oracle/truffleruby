@@ -3196,9 +3196,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-printf "%s\n" "#define _XOPEN_SOURCE 700" >>confdefs.h
-
-
 
 ac_fn_c_check_func "$LINENO" "mmap" "ac_cv_func_mmap"
 if test "x$ac_cv_func_mmap" = xyes

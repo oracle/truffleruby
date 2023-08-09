@@ -4,7 +4,7 @@
 
 * Clone `yarp` as a sibling of `truffleruby-ws`.
 * Run `tool/import-yarp.sh` in the truffleruby repo.
-* Commit the result with message `Import Shopify/yarp@COMMIT`
+* Commit the result with message `Import ruby/yarp@COMMIT`
 
 ## Print Detailed YARP AST
 

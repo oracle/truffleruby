@@ -298,8 +298,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                             final RubyNode splatTranslated = translateNodeOrNil(splatNode.expression);
                             RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
-                            if (rescueClause.exception != null) {
-                                final RubyNode exceptionWriteNode = translateRescueException(rescueClause.exception);
+                            if (rescueClause.reference != null) {
+                                final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                                 translatedBody = sequence(rescueClause,
                                         Arrays.asList(exceptionWriteNode, translatedBody));
                             }
@@ -325,8 +325,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     // exception class isn't specified explicitly so use Ruby StandardError class
                     RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
-                    if (rescueClause.exception != null) {
-                        final RubyNode exceptionWriteNode = translateRescueException(rescueClause.exception);
+                    if (rescueClause.reference != null) {
+                        final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                         translatedBody = sequence(rescueClause, Arrays.asList(exceptionWriteNode, translatedBody));
                     }
 
@@ -351,7 +351,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
             // TODO: this flag should be per RescueNode, not per TryNode
             boolean canOmitBacktrace = language.options.BACKTRACES_OMIT_UNUSED &&
-                    rescueClause.exception == null &&
+                    rescueClause.reference == null &&
                     rescueClause.consequent == null &&
                     (rescueClause.statements == null || rescueClause.statements.body.length == 1 &&
                             isSideEffectFreeRescueExpression(rescueClause.statements.body[0]));
@@ -384,9 +384,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             handlingClasses[i] = exceptionNodesArray[i].accept(this);
         }
 
-        if (rescueClause.exception != null) {
+        if (rescueClause.reference != null) {
             final RubyNode exceptionWriteNode = translateRescueException(
-                    rescueClause.exception);
+                    rescueClause.reference);
             translatedBody = sequence(rescueClause,
                     Arrays.asList(exceptionWriteNode, translatedBody));
         }
@@ -582,44 +582,23 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
-        assert node.target instanceof Nodes.ConstantPathNode || node.target instanceof Nodes.ConstantReadNode;
+        assert node.target instanceof Nodes.ConstantPathNode;
 
         final RubyNode rubyNode;
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
+        final var pathNode = (Nodes.ConstantPathNode) node.target;
+        final String name = toString(pathNode.child);
+        final RubyNode moduleNode;
 
-        if (node.target instanceof Nodes.ConstantPathNode pathNode) {
-            final String name = toString(pathNode.child);
-            final RubyNode moduleNode;
-
-            if (pathNode.parent != null) {
-                // FOO::BAR = 1
-                moduleNode = pathNode.parent.accept(this);
-            } else {
-                // ::FOO = 1
-                moduleNode = new ObjectClassLiteralNode();
-            }
-
-            rubyNode = new WriteConstantNode(name, moduleNode, value);
-        } else if (node.target instanceof Nodes.ConstantReadNode readNode) {
-            // FOO = 1
-            final String name = toString(readNode);
-            final RubyNode moduleNode;
-
-            if (environment.isDynamicConstantLookup()) {
-                if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    RubyLanguage.LOGGER.info(() -> "set dynamic constant at " +
-                            RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
-                }
-
-                moduleNode = new DynamicLexicalScopeNode();
-            } else {
-                moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
-            }
-
-            rubyNode = new WriteConstantNode(name, moduleNode, value);
+        if (pathNode.parent != null) {
+            // FOO::BAR = 1
+            moduleNode = pathNode.parent.accept(this);
         } else {
-            throw CompilerDirectives.shouldNotReachHere();
+            // ::FOO = 1
+            moduleNode = new ObjectClassLiteralNode();
         }
+
+        rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -644,6 +623,29 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
+
+    public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
+        final String name = toString(node.name_loc);
+        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantWriteNode");
+        final RubyNode moduleNode;
+
+        if (environment.isDynamicConstantLookup()) {
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                RubyLanguage.LOGGER.info(() -> "set dynamic constant at " +
+                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+            }
+
+            moduleNode = new DynamicLexicalScopeNode();
+        } else {
+            moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
+        }
+
+        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
 
     public RubyNode visitDefNode(Nodes.DefNode node) {
         return defaultVisit(node);
@@ -963,21 +965,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitInterpolatedSymbolNode(Nodes.InterpolatedSymbolNode node) {
         final ToSNode[] children = new ToSNode[node.parts.length];
 
-        // a special case for `:"abc"` literal - convert to Symbol ourselves
-        if (node.parts.length == 1 && node.parts[0] instanceof Nodes.StringNode s) {
-            final RubySymbol symbol = language.getSymbol(toString(s));
-            final RubyNode rubyNode = new ObjectLiteralNode(symbol);
-
-            assignNodePositionInSource(node, rubyNode);
-            copyNewlineFlag(s, rubyNode);
-
-            return rubyNode;
-        }
-
         for (int i = 0; i < node.parts.length; i++) {
-            var part = node.parts[i];
-
-            children[i] = ToSNodeGen.create(part.accept(this));
+            final RubyNode expression = node.parts[i].accept(this);
+            children[i] = ToSNodeGen.create(expression);
         }
 
         final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);

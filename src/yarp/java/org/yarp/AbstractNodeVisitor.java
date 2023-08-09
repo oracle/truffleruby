@@ -156,6 +156,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitConstantWriteNode(Nodes.ConstantWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitDefNode(Nodes.DefNode node) {
         return defaultVisit(node);
     }

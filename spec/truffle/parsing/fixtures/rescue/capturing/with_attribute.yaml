@@ -1,6 +1,6 @@
 subject: "Rescue keyword"
 description: "capturing / with an attribute"
-yarp_specific: true
+yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   Capturing exception to a setter is represented as a `a.foo=()` method call.
   
