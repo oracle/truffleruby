@@ -654,7 +654,7 @@ typedef struct yp_constant_path_operator_write_node {
 // ConstantPathWriteNode
 typedef struct yp_constant_path_write_node {
     yp_node_t base;
-    struct yp_node *target;
+    struct yp_constant_path_node *target;
     yp_location_t operator_loc;
     struct yp_node *value;
 } yp_constant_path_write_node_t;

@@ -1553,11 +1553,11 @@ public abstract class Nodes {
     //     ::Foo::Bar = 1
     //     ^^^^^^^^^^^^^^
     public static final class ConstantPathWriteNode extends Node {
-        public final Node target;
+        public final ConstantPathNode target;
         public final Location operator_loc; // optional
         public final Node value; // optional
 
-        public ConstantPathWriteNode(Node target, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantPathWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
             this.operator_loc = operator_loc;

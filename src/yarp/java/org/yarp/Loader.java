@@ -64,7 +64,7 @@ public class Loader {
         expect((byte) 'P');
 
         expect((byte) 0);
-        expect((byte) 4);
+        expect((byte) 6);
         expect((byte) 0);
 
         // This loads the name of the encoding. We don't actually do anything
@@ -103,7 +103,7 @@ public class Loader {
 
     private ParseResult.Error[] loadSyntaxErrors() {
         int count = loadVarInt();
-        var errors = new ParseResult.Error[count];
+        ParseResult.Error[] errors = new ParseResult.Error[count];
 
         // error messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
@@ -111,7 +111,7 @@ public class Loader {
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
 
-            var error = new ParseResult.Error(message, location);
+            ParseResult.Error error = new ParseResult.Error(message, location);
             errors[i] = error;
         }
 
@@ -120,7 +120,7 @@ public class Loader {
 
     private ParseResult.Warning[] loadWarnings() {
         int count = loadVarInt();
-        var warnings = new ParseResult.Warning[count];
+        ParseResult.Warning[] warnings = new ParseResult.Warning[count];
 
         // warning messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
@@ -128,7 +128,7 @@ public class Loader {
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
 
-            var warning = new ParseResult.Warning(message, location);
+            ParseResult.Warning warning = new ParseResult.Warning(message, location);
             warnings[i] = warning;
         }
 
@@ -289,7 +289,7 @@ public class Loader {
             case 34:
                 return new Nodes.ConstantPathOperatorWriteNode((Nodes.ConstantPathNode) loadNode(), loadLocation(), loadNode(), loadConstant(), startOffset, length);
             case 35:
-                return new Nodes.ConstantPathWriteNode(loadNode(), loadOptionalLocation(), loadOptionalNode(), startOffset, length);
+                return new Nodes.ConstantPathWriteNode((Nodes.ConstantPathNode) loadNode(), loadOptionalLocation(), loadOptionalNode(), startOffset, length);
             case 36:
                 return new Nodes.ConstantReadNode(startOffset, length);
             case 37:
