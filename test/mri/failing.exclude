@@ -1,8 +1,8 @@
 # Explicitly unsupported
 
 ruby/test_ast.rb
-ruby/test_jit.rb
-ruby/test_jit_debug.rb
+ruby/test_mjit.rb
+ruby/test_mjit_debug.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 test_pty.rb
