@@ -146,3 +146,7 @@ exclude :test_non_local_return_across_multiple_define_methods, "ArgumentError: u
 exclude :test_allow_reentry, "NoMethodError: undefined method `allow_reentry' for TracePoint:Class"
 exclude :test_b_tracepoints_going_away, "ArgumentError: unknown event: call"
 exclude :test_target_different_bmethod_same_iseq, "ArgumentError: unknown event: call"
+exclude :test_c_return_no_binding, "ArgumentError: unknown event: c_return"
+exclude :test_multiple_tracepoints_same_bmethod, "ArgumentError: unknown event: return"
+exclude :test_c_call_removed_method, "ArgumentError: unknown event: c_call"
+exclude :test_c_call_no_binding, "ArgumentError: unknown event: c_call"
