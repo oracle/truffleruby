@@ -518,7 +518,12 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyDynamicObject copyRubyClass(RubyClass self,
-                @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
+                @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode,
+                @Cached InlinedBranchProfile rootClassProfile) {
+            if (self == coreLibrary().basicObjectClass) {
+                rootClassProfile.enter(this);
+                throw new RaiseException(getContext(), coreExceptions().typeError("can't copy the root class", this));
+            }
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
                     null, null, false, null, self.superclass);
             copyInstanceVariablesNode.execute(newClass, self);
