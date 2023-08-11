@@ -2113,7 +2113,7 @@ module Truffle::CExt
   end
 
   def rb_backref_set(value)
-    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, rb_get_special_vars())
+    Truffle::RegexpOperations::LAST_MATCH_SET.call(nil, value, rb_get_special_vars())
   end
 
   def rb_gv_set(name, value)
@@ -2152,7 +2152,7 @@ module Truffle::CExt
         nil)
     }
 
-    setter_proc = -> value {
+    setter_proc = -> _, value {
       Primitive.call_with_c_mutex_and_frame(
         POINTER3_TO_VOID_WRAPPER,
         [setter, Primitive.cext_wrap(value), Primitive.cext_wrap(id), gvar],
