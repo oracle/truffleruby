@@ -131,20 +131,6 @@ class YARPNativeProject(mx.NativeProject):
             results=kwArgs.pop('results'),
             output=path, d=path, vpath=False, **kwArgs)
 
-    def getBuildTask(self, args):
-        return YARPNativeBuildTask(args, self)
-
-class YARPNativeBuildTask(mx.NativeBuildTask):
-    def build(self):
-        mx.run(['./configure'], cwd=self.subject.dir)
-        super(YARPNativeBuildTask, self).build() # make
-
-    def clean(self, forBuild=False):
-        if exists(join(self.subject.dir, 'Makefile')):
-            super(YARPNativeBuildTask, self).clean(forBuild=forBuild)
-        else:
-            pass
-
 # Commands
 
 def jt(*args):
