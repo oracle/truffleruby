@@ -192,6 +192,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitFlipFlopNode(Nodes.FlipFlopNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitFloatNode(Nodes.FloatNode node) {
         return defaultVisit(node);
     }

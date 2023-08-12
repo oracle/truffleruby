@@ -87,6 +87,7 @@ extern yp_encoding_t yp_encoding_iso_8859_16;
 extern yp_encoding_t yp_encoding_koi8_r;
 extern yp_encoding_t yp_encoding_shift_jis;
 extern yp_encoding_t yp_encoding_utf_8;
+extern yp_encoding_t yp_encoding_utf8_mac;
 extern yp_encoding_t yp_encoding_windows_31j;
 extern yp_encoding_t yp_encoding_windows_1251;
 extern yp_encoding_t yp_encoding_windows_1252;

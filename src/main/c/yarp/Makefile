@@ -10,10 +10,9 @@ FUZZ_OUTPUT_DIR = $(shell pwd)/fuzz/output
 
 SOEXT := $(shell ruby -e 'puts RbConfig::CONFIG["SOEXT"]')
 
-DEFS := @DEFS@
-CPPFLAGS := @DEFS@ -Iinclude
-CFLAGS := @CFLAGS@ -std=c99 -Wall -Werror -Wextra -Wpedantic -Wundef -Wconversion -fPIC -fvisibility=hidden
-CC := @CC@
+CPPFLAGS := -Iinclude
+CFLAGS := -g -O2 -std=c99 -Wall -Werror -Wextra -Wpedantic -Wundef -Wconversion -fPIC -fvisibility=hidden
+CC := cc
 
 HEADERS := $(shell find include -name '*.h')
 SOURCES := $(shell find src -name '*.c')

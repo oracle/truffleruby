@@ -19,255 +19,6 @@ public abstract class Nodes {
 
     public static final byte[][] EMPTY_BYTE_ARRAY_ARRAY = {};
 
-    public static final class CallNodeFlags implements Comparable<CallNodeFlags> {
-
-        // &. operator
-        public static final int SAFE_NAVIGATION = 1 << 0;
-
-        // a call that could have been a local variable
-        public static final int VARIABLE_CALL = 1 << 1;
-
-        public static boolean isSafeNavigation(int flags) {
-            return (flags & SAFE_NAVIGATION) != 0;
-        }
-
-        public static boolean isVariableCall(int flags) {
-            return (flags & VARIABLE_CALL) != 0;
-        }
-
-        private final int flags;
-
-        public CallNodeFlags(int flags) {
-            this.flags = flags;
-        }
-
-        @Override
-        public int hashCode() {
-            return flags;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof CallNodeFlags)) {
-                return false;
-            }
-
-            return flags == ((CallNodeFlags) other).flags;
-        }
-
-        @Override
-        public int compareTo(CallNodeFlags other) {
-            return flags - other.flags;
-        }
-
-        public boolean isSafeNavigation() {
-            return (flags & SAFE_NAVIGATION) != 0;
-        }
-
-        public boolean isVariableCall() {
-            return (flags & VARIABLE_CALL) != 0;
-        }
-
-    }
-
-    public static final class LoopFlags implements Comparable<LoopFlags> {
-
-        // a loop after a begin statement, so the body is executed first before the condition
-        public static final int BEGIN_MODIFIER = 1 << 0;
-
-        public static boolean isBeginModifier(int flags) {
-            return (flags & BEGIN_MODIFIER) != 0;
-        }
-
-        private final int flags;
-
-        public LoopFlags(int flags) {
-            this.flags = flags;
-        }
-
-        @Override
-        public int hashCode() {
-            return flags;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof LoopFlags)) {
-                return false;
-            }
-
-            return flags == ((LoopFlags) other).flags;
-        }
-
-        @Override
-        public int compareTo(LoopFlags other) {
-            return flags - other.flags;
-        }
-
-        public boolean isBeginModifier() {
-            return (flags & BEGIN_MODIFIER) != 0;
-        }
-
-    }
-
-    public static final class RangeNodeFlags implements Comparable<RangeNodeFlags> {
-
-        // ... operator
-        public static final int EXCLUDE_END = 1 << 0;
-
-        public static boolean isExcludeEnd(int flags) {
-            return (flags & EXCLUDE_END) != 0;
-        }
-
-        private final int flags;
-
-        public RangeNodeFlags(int flags) {
-            this.flags = flags;
-        }
-
-        @Override
-        public int hashCode() {
-            return flags;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof RangeNodeFlags)) {
-                return false;
-            }
-
-            return flags == ((RangeNodeFlags) other).flags;
-        }
-
-        @Override
-        public int compareTo(RangeNodeFlags other) {
-            return flags - other.flags;
-        }
-
-        public boolean isExcludeEnd() {
-            return (flags & EXCLUDE_END) != 0;
-        }
-
-    }
-
-    public static final class RegularExpressionFlags implements Comparable<RegularExpressionFlags> {
-
-        // i - ignores the case of characters when matching
-        public static final int IGNORE_CASE = 1 << 0;
-
-        // m - allows $ to match the end of lines within strings
-        public static final int MULTI_LINE = 1 << 1;
-
-        // x - ignores whitespace and allows comments in regular expressions
-        public static final int EXTENDED = 1 << 2;
-
-        // e - forces the EUC-JP encoding
-        public static final int EUC_JP = 1 << 3;
-
-        // n - forces the ASCII-8BIT encoding
-        public static final int ASCII_8BIT = 1 << 4;
-
-        // s - forces the Windows-31J encoding
-        public static final int WINDOWS_31J = 1 << 5;
-
-        // u - forces the UTF-8 encoding
-        public static final int UTF_8 = 1 << 6;
-
-        // o - only interpolates values into the regular expression once
-        public static final int ONCE = 1 << 7;
-
-        public static boolean isIgnoreCase(int flags) {
-            return (flags & IGNORE_CASE) != 0;
-        }
-
-        public static boolean isMultiLine(int flags) {
-            return (flags & MULTI_LINE) != 0;
-        }
-
-        public static boolean isExtended(int flags) {
-            return (flags & EXTENDED) != 0;
-        }
-
-        public static boolean isEucJp(int flags) {
-            return (flags & EUC_JP) != 0;
-        }
-
-        public static boolean isAscii8bit(int flags) {
-            return (flags & ASCII_8BIT) != 0;
-        }
-
-        public static boolean isWindows31j(int flags) {
-            return (flags & WINDOWS_31J) != 0;
-        }
-
-        public static boolean isUtf8(int flags) {
-            return (flags & UTF_8) != 0;
-        }
-
-        public static boolean isOnce(int flags) {
-            return (flags & ONCE) != 0;
-        }
-
-        private final int flags;
-
-        public RegularExpressionFlags(int flags) {
-            this.flags = flags;
-        }
-
-        @Override
-        public int hashCode() {
-            return flags;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof RegularExpressionFlags)) {
-                return false;
-            }
-
-            return flags == ((RegularExpressionFlags) other).flags;
-        }
-
-        @Override
-        public int compareTo(RegularExpressionFlags other) {
-            return flags - other.flags;
-        }
-
-        public boolean isIgnoreCase() {
-            return (flags & IGNORE_CASE) != 0;
-        }
-
-        public boolean isMultiLine() {
-            return (flags & MULTI_LINE) != 0;
-        }
-
-        public boolean isExtended() {
-            return (flags & EXTENDED) != 0;
-        }
-
-        public boolean isEucJp() {
-            return (flags & EUC_JP) != 0;
-        }
-
-        public boolean isAscii8bit() {
-            return (flags & ASCII_8BIT) != 0;
-        }
-
-        public boolean isWindows31j() {
-            return (flags & WINDOWS_31J) != 0;
-        }
-
-        public boolean isUtf8() {
-            return (flags & UTF_8) != 0;
-        }
-
-        public boolean isOnce() {
-            return (flags & ONCE) != 0;
-        }
-
-    }
-
-
     public static final class Location {
 
         public static final Location[] EMPTY_ARRAY = {};
@@ -289,10 +40,30 @@ public abstract class Nodes {
         public final byte[] bytes;
         private final int[] lineOffsets;
 
+        public Source(byte[] bytes) {
+            this(bytes, computeLineOffsets(bytes));
+        }
+
         public Source(byte[] bytes, int[] lineOffsets) {
             assert lineOffsets[0] == 0;
             this.bytes = bytes;
             this.lineOffsets = lineOffsets;
+        }
+
+        public static int[] computeLineOffsets(byte[] bytes) {
+            int[] lineOffsets = new int[8];
+            int lineOffsetsSize = 0;
+            lineOffsets[lineOffsetsSize++] = 0;
+
+            for (int i = 0; i < bytes.length; i++) {
+                if (bytes[i] == '\n') {
+                    if (lineOffsetsSize == lineOffsets.length) {
+                        lineOffsets = Arrays.copyOf(lineOffsets, lineOffsets.length * 2);
+                    }
+                    lineOffsets[lineOffsetsSize++] = i + 1;
+                }
+            }
+            return Arrays.copyOf(lineOffsets, lineOffsetsSize);
         }
 
         public int line(int byteOffset) {
@@ -369,6 +140,253 @@ public abstract class Nodes {
         }
     }
 
+    public static final class CallNodeFlags implements Comparable<CallNodeFlags> {
+
+        // &. operator
+        public static final short SAFE_NAVIGATION = 1 << 0;
+
+        // a call that could have been a local variable
+        public static final short VARIABLE_CALL = 1 << 1;
+
+        public static boolean isSafeNavigation(short flags) {
+            return (flags & SAFE_NAVIGATION) != 0;
+        }
+
+        public static boolean isVariableCall(short flags) {
+            return (flags & VARIABLE_CALL) != 0;
+        }
+
+        private final short flags;
+
+        public CallNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof CallNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((CallNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(CallNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isSafeNavigation() {
+            return (flags & SAFE_NAVIGATION) != 0;
+        }
+
+        public boolean isVariableCall() {
+            return (flags & VARIABLE_CALL) != 0;
+        }
+
+    }
+
+    public static final class LoopFlags implements Comparable<LoopFlags> {
+
+        // a loop after a begin statement, so the body is executed first before the condition
+        public static final short BEGIN_MODIFIER = 1 << 0;
+
+        public static boolean isBeginModifier(short flags) {
+            return (flags & BEGIN_MODIFIER) != 0;
+        }
+
+        private final short flags;
+
+        public LoopFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof LoopFlags)) {
+                return false;
+            }
+
+            return flags == ((LoopFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(LoopFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isBeginModifier() {
+            return (flags & BEGIN_MODIFIER) != 0;
+        }
+
+    }
+
+    public static final class RangeFlags implements Comparable<RangeFlags> {
+
+        // ... operator
+        public static final short EXCLUDE_END = 1 << 0;
+
+        public static boolean isExcludeEnd(short flags) {
+            return (flags & EXCLUDE_END) != 0;
+        }
+
+        private final short flags;
+
+        public RangeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof RangeFlags)) {
+                return false;
+            }
+
+            return flags == ((RangeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(RangeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isExcludeEnd() {
+            return (flags & EXCLUDE_END) != 0;
+        }
+
+    }
+
+    public static final class RegularExpressionFlags implements Comparable<RegularExpressionFlags> {
+
+        // i - ignores the case of characters when matching
+        public static final short IGNORE_CASE = 1 << 0;
+
+        // m - allows $ to match the end of lines within strings
+        public static final short MULTI_LINE = 1 << 1;
+
+        // x - ignores whitespace and allows comments in regular expressions
+        public static final short EXTENDED = 1 << 2;
+
+        // e - forces the EUC-JP encoding
+        public static final short EUC_JP = 1 << 3;
+
+        // n - forces the ASCII-8BIT encoding
+        public static final short ASCII_8BIT = 1 << 4;
+
+        // s - forces the Windows-31J encoding
+        public static final short WINDOWS_31J = 1 << 5;
+
+        // u - forces the UTF-8 encoding
+        public static final short UTF_8 = 1 << 6;
+
+        // o - only interpolates values into the regular expression once
+        public static final short ONCE = 1 << 7;
+
+        public static boolean isIgnoreCase(short flags) {
+            return (flags & IGNORE_CASE) != 0;
+        }
+
+        public static boolean isMultiLine(short flags) {
+            return (flags & MULTI_LINE) != 0;
+        }
+
+        public static boolean isExtended(short flags) {
+            return (flags & EXTENDED) != 0;
+        }
+
+        public static boolean isEucJp(short flags) {
+            return (flags & EUC_JP) != 0;
+        }
+
+        public static boolean isAscii8bit(short flags) {
+            return (flags & ASCII_8BIT) != 0;
+        }
+
+        public static boolean isWindows31j(short flags) {
+            return (flags & WINDOWS_31J) != 0;
+        }
+
+        public static boolean isUtf8(short flags) {
+            return (flags & UTF_8) != 0;
+        }
+
+        public static boolean isOnce(short flags) {
+            return (flags & ONCE) != 0;
+        }
+
+        private final short flags;
+
+        public RegularExpressionFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof RegularExpressionFlags)) {
+                return false;
+            }
+
+            return flags == ((RegularExpressionFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(RegularExpressionFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isIgnoreCase() {
+            return (flags & IGNORE_CASE) != 0;
+        }
+
+        public boolean isMultiLine() {
+            return (flags & MULTI_LINE) != 0;
+        }
+
+        public boolean isExtended() {
+            return (flags & EXTENDED) != 0;
+        }
+
+        public boolean isEucJp() {
+            return (flags & EUC_JP) != 0;
+        }
+
+        public boolean isAscii8bit() {
+            return (flags & ASCII_8BIT) != 0;
+        }
+
+        public boolean isWindows31j() {
+            return (flags & WINDOWS_31J) != 0;
+        }
+
+        public boolean isUtf8() {
+            return (flags & UTF_8) != 0;
+        }
+
+        public boolean isOnce() {
+            return (flags & ONCE) != 0;
+        }
+
+    }
 
     // Represents the use of the `alias` keyword.
     // 
@@ -385,8 +403,7 @@ public abstract class Nodes {
             this.old_name = old_name;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.new_name.accept(visitor);
             this.old_name.accept(visitor);
@@ -416,8 +433,7 @@ public abstract class Nodes {
             this.right = right;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.left.accept(visitor);
             this.right.accept(visitor);
@@ -447,8 +463,7 @@ public abstract class Nodes {
             this.right = right;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.left.accept(visitor);
             this.right.accept(visitor);
@@ -474,8 +489,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.arguments = arguments;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.arguments) {
                 child.accept(visitor);
@@ -507,8 +521,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.elements) {
                 child.accept(visitor);
@@ -557,8 +570,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.constant != null) {
                 this.constant.accept(visitor);
@@ -603,8 +615,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.key.accept(visitor);
             if (this.value != null) {
@@ -634,8 +645,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -660,8 +670,7 @@ public abstract class Nodes {
         public BackReferenceReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -697,8 +706,7 @@ public abstract class Nodes {
             this.ensure_clause = ensure_clause;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             // Never mark BeginNode with a newline flag, mark children instead
         }
@@ -740,8 +748,7 @@ public abstract class Nodes {
             this.expression = expression;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.expression != null) {
                 this.expression.accept(visitor);
@@ -776,8 +783,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
@@ -810,8 +816,7 @@ public abstract class Nodes {
             this.name_loc = name_loc;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -845,8 +850,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
@@ -875,8 +879,7 @@ public abstract class Nodes {
             this.arguments = arguments;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
@@ -919,10 +922,10 @@ public abstract class Nodes {
         public final ArgumentsNode arguments; // optional
         public final Location closing_loc; // optional
         public final BlockNode block; // optional
-        public final int flags;
+        public final short flags;
         public final byte[] name;
 
-        public CallNode(Node receiver, Location operator_loc, Location message_loc, Location opening_loc, ArgumentsNode arguments, Location closing_loc, BlockNode block, int flags, byte[] name, int startOffset, int length) {
+        public CallNode(Node receiver, Location operator_loc, Location message_loc, Location opening_loc, ArgumentsNode arguments, Location closing_loc, BlockNode block, short flags, byte[] name, int startOffset, int length) {
             super(startOffset, length);
             this.receiver = receiver;
             this.operator_loc = operator_loc;
@@ -934,8 +937,15 @@ public abstract class Nodes {
             this.flags = flags;
             this.name = name;
         }
+        
+        public boolean isSafeNavigation() {
+            return CallNodeFlags.isSafeNavigation(this.flags);
+        }
 
-
+        public boolean isVariableCall() {
+            return CallNodeFlags.isVariableCall(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.receiver != null) {
                 this.receiver.accept(visitor);
@@ -972,8 +982,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1003,8 +1012,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1036,8 +1044,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_id = operator_id;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1067,8 +1074,7 @@ public abstract class Nodes {
             this.target = target;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
             this.target.accept(visitor);
@@ -1104,8 +1110,7 @@ public abstract class Nodes {
             this.case_keyword_loc = case_keyword_loc;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.predicate != null) {
                 this.predicate.accept(visitor);
@@ -1154,8 +1159,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.constant_path.accept(visitor);
             if (this.superclass != null) {
@@ -1190,8 +1194,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1220,8 +1223,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1252,8 +1254,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1276,8 +1277,7 @@ public abstract class Nodes {
         public ClassVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1305,8 +1305,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -1337,8 +1336,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1367,8 +1365,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1399,8 +1396,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1429,8 +1425,7 @@ public abstract class Nodes {
             this.child = child;
             this.delimiter_loc = delimiter_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parent != null) {
                 this.parent.accept(visitor);
@@ -1462,8 +1457,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1493,8 +1487,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1526,8 +1519,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             this.value.accept(visitor);
@@ -1563,8 +1555,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.target.accept(visitor);
             if (this.value != null) {
@@ -1590,8 +1581,7 @@ public abstract class Nodes {
         public ConstantReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1619,8 +1609,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -1670,8 +1659,7 @@ public abstract class Nodes {
             this.equal_loc = equal_loc;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.receiver != null) {
                 this.receiver.accept(visitor);
@@ -1710,8 +1698,7 @@ public abstract class Nodes {
             this.rparen_loc = rparen_loc;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -1740,8 +1727,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -1772,8 +1758,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -1802,8 +1787,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.variable = variable;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.variable.accept(visitor);
         }
@@ -1836,8 +1820,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -1862,8 +1845,7 @@ public abstract class Nodes {
         public FalseNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1903,8 +1885,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.constant != null) {
                 this.constant.accept(visitor);
@@ -1930,6 +1911,46 @@ public abstract class Nodes {
         }
     }
 
+    // Represents the use of the `..` or `...` operators to create flip flops.
+    // 
+    //     baz if foo .. bar
+    //            ^^^^^^^^^^
+    public static final class FlipFlopNode extends Node {
+        public final Node left; // optional
+        public final Node right; // optional
+        public final Location operator_loc;
+        public final short flags;
+
+        public FlipFlopNode(Node left, Node right, Location operator_loc, short flags, int startOffset, int length) {
+            super(startOffset, length);
+            this.left = left;
+            this.right = right;
+            this.operator_loc = operator_loc;
+            this.flags = flags;
+        }
+        
+        public boolean isExcludeEnd() {
+            return RangeFlags.isExcludeEnd(this.flags);
+        }
+        
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.left != null) {
+                this.left.accept(visitor);
+            }
+            if (this.right != null) {
+                this.right.accept(visitor);
+            }
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.left, this.right };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitFlipFlopNode(this);
+        }
+    }
+
     // Represents a floating point number literal.
     // 
     //     1.0
@@ -1939,8 +1960,7 @@ public abstract class Nodes {
         public FloatNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1976,8 +1996,7 @@ public abstract class Nodes {
             this.do_keyword_loc = do_keyword_loc;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.index.accept(visitor);
             this.collection.accept(visitor);
@@ -2006,8 +2025,7 @@ public abstract class Nodes {
         public ForwardingArgumentsNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2030,8 +2048,7 @@ public abstract class Nodes {
         public ForwardingParameterNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2055,8 +2072,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.block = block;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.block != null) {
                 this.block.accept(visitor);
@@ -2087,8 +2103,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2117,8 +2132,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2149,8 +2163,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2173,8 +2186,7 @@ public abstract class Nodes {
         public GlobalVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2202,8 +2214,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -2234,8 +2245,7 @@ public abstract class Nodes {
             this.elements = elements;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.elements) {
                 child.accept(visitor);
@@ -2273,8 +2283,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.constant != null) {
                 this.constant.accept(visitor);
@@ -2322,8 +2331,7 @@ public abstract class Nodes {
             this.consequent = consequent;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -2358,8 +2366,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.numeric = numeric;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.numeric.accept(visitor);
         }
@@ -2390,8 +2397,7 @@ public abstract class Nodes {
             this.in_loc = in_loc;
             this.then_loc = then_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.pattern.accept(visitor);
             if (this.statements != null) {
@@ -2423,8 +2429,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2453,8 +2458,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2485,8 +2489,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator = operator;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2509,8 +2512,7 @@ public abstract class Nodes {
         public InstanceVariableReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2538,8 +2540,7 @@ public abstract class Nodes {
             this.value = value;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -2564,8 +2565,7 @@ public abstract class Nodes {
         public IntegerNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2586,17 +2586,48 @@ public abstract class Nodes {
         public final Location opening_loc;
         public final Node[] parts;
         public final Location closing_loc;
-        public final int flags;
+        public final short flags;
 
-        public InterpolatedRegularExpressionNode(Location opening_loc, Node[] parts, Location closing_loc, int flags, int startOffset, int length) {
+        public InterpolatedRegularExpressionNode(Location opening_loc, Node[] parts, Location closing_loc, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.opening_loc = opening_loc;
             this.parts = parts;
             this.closing_loc = closing_loc;
             this.flags = flags;
         }
+        
+        public boolean isIgnoreCase() {
+            return RegularExpressionFlags.isIgnoreCase(this.flags);
+        }
 
-        @Override
+        public boolean isMultiLine() {
+            return RegularExpressionFlags.isMultiLine(this.flags);
+        }
+
+        public boolean isExtended() {
+            return RegularExpressionFlags.isExtended(this.flags);
+        }
+
+        public boolean isEucJp() {
+            return RegularExpressionFlags.isEucJp(this.flags);
+        }
+
+        public boolean isAscii8bit() {
+            return RegularExpressionFlags.isAscii8bit(this.flags);
+        }
+
+        public boolean isWindows31j() {
+            return RegularExpressionFlags.isWindows31j(this.flags);
+        }
+
+        public boolean isUtf8() {
+            return RegularExpressionFlags.isUtf8(this.flags);
+        }
+
+        public boolean isOnce() {
+            return RegularExpressionFlags.isOnce(this.flags);
+        }
+                @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2634,8 +2665,7 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2673,8 +2703,7 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2712,8 +2741,7 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2747,8 +2775,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.elements = elements;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.elements) {
                 child.accept(visitor);
@@ -2782,8 +2809,7 @@ public abstract class Nodes {
             this.name_loc = name_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -2813,8 +2839,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.name_loc = name_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2844,8 +2869,7 @@ public abstract class Nodes {
             this.parameters = parameters;
             this.statements = statements;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
@@ -2881,8 +2905,7 @@ public abstract class Nodes {
             this.value = value;
             this.constant_id = constant_id;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2913,8 +2936,7 @@ public abstract class Nodes {
             this.value = value;
             this.constant_id = constant_id;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2947,8 +2969,7 @@ public abstract class Nodes {
             this.constant_id = constant_id;
             this.operator_id = operator_id;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -2977,8 +2998,7 @@ public abstract class Nodes {
             this.constant_id = constant_id;
             this.depth = depth;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3010,8 +3030,7 @@ public abstract class Nodes {
             this.name_loc = name_loc;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.value != null) {
                 this.value.accept(visitor);
@@ -3042,8 +3061,7 @@ public abstract class Nodes {
             this.pattern = pattern;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
             this.pattern.accept(visitor);
@@ -3073,8 +3091,7 @@ public abstract class Nodes {
             this.pattern = pattern;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
             this.pattern.accept(visitor);
@@ -3096,8 +3113,7 @@ public abstract class Nodes {
         public MissingNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3129,8 +3145,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.constant_path.accept(visitor);
             if (this.statements != null) {
@@ -3166,8 +3181,7 @@ public abstract class Nodes {
             this.lparen_loc = lparen_loc;
             this.rparen_loc = rparen_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.targets) {
                 child.accept(visitor);
@@ -3202,8 +3216,7 @@ public abstract class Nodes {
             this.arguments = arguments;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
@@ -3228,8 +3241,7 @@ public abstract class Nodes {
         public NilNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3256,8 +3268,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3279,8 +3290,7 @@ public abstract class Nodes {
         public NumberedReferenceReadNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3311,8 +3321,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.value = value;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -3341,8 +3350,7 @@ public abstract class Nodes {
             this.right = right;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.left.accept(visitor);
             this.right.accept(visitor);
@@ -3381,8 +3389,7 @@ public abstract class Nodes {
             this.keyword_rest = keyword_rest;
             this.block = block;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.requireds) {
                 child.accept(visitor);
@@ -3439,8 +3446,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             // Never mark ParenthesesNode with a newline flag, mark children instead
         }
@@ -3478,8 +3484,7 @@ public abstract class Nodes {
             this.lparen_loc = lparen_loc;
             this.rparen_loc = rparen_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.expression.accept(visitor);
         }
@@ -3507,8 +3512,7 @@ public abstract class Nodes {
             this.variable = variable;
             this.operator_loc = operator_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.variable.accept(visitor);
         }
@@ -3539,8 +3543,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -3573,8 +3576,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.statements != null) {
                 this.statements.accept(visitor);
@@ -3600,8 +3602,7 @@ public abstract class Nodes {
             this.locals = locals;
             this.statements = statements;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.statements.accept(visitor);
         }
@@ -3626,17 +3627,20 @@ public abstract class Nodes {
         public final Node left; // optional
         public final Node right; // optional
         public final Location operator_loc;
-        public final int flags;
+        public final short flags;
 
-        public RangeNode(Node left, Node right, Location operator_loc, int flags, int startOffset, int length) {
+        public RangeNode(Node left, Node right, Location operator_loc, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
             this.operator_loc = operator_loc;
             this.flags = flags;
         }
-
-
+        
+        public boolean isExcludeEnd() {
+            return RangeFlags.isExcludeEnd(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.left != null) {
                 this.left.accept(visitor);
@@ -3666,8 +3670,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.numeric = numeric;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.numeric.accept(visitor);
         }
@@ -3690,8 +3693,7 @@ public abstract class Nodes {
         public RedoNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3713,9 +3715,9 @@ public abstract class Nodes {
         public final Location content_loc;
         public final Location closing_loc;
         public final byte[] unescaped;
-        public final int flags;
+        public final short flags;
 
-        public RegularExpressionNode(Location opening_loc, Location content_loc, Location closing_loc, byte[] unescaped, int flags, int startOffset, int length) {
+        public RegularExpressionNode(Location opening_loc, Location content_loc, Location closing_loc, byte[] unescaped, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.opening_loc = opening_loc;
             this.content_loc = content_loc;
@@ -3723,8 +3725,39 @@ public abstract class Nodes {
             this.unescaped = unescaped;
             this.flags = flags;
         }
+        
+        public boolean isIgnoreCase() {
+            return RegularExpressionFlags.isIgnoreCase(this.flags);
+        }
 
+        public boolean isMultiLine() {
+            return RegularExpressionFlags.isMultiLine(this.flags);
+        }
 
+        public boolean isExtended() {
+            return RegularExpressionFlags.isExtended(this.flags);
+        }
+
+        public boolean isEucJp() {
+            return RegularExpressionFlags.isEucJp(this.flags);
+        }
+
+        public boolean isAscii8bit() {
+            return RegularExpressionFlags.isAscii8bit(this.flags);
+        }
+
+        public boolean isWindows31j() {
+            return RegularExpressionFlags.isWindows31j(this.flags);
+        }
+
+        public boolean isUtf8() {
+            return RegularExpressionFlags.isUtf8(this.flags);
+        }
+
+        public boolean isOnce() {
+            return RegularExpressionFlags.isOnce(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3753,8 +3786,7 @@ public abstract class Nodes {
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.parameters) {
                 child.accept(visitor);
@@ -3782,8 +3814,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.constant_id = constant_id;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3811,8 +3842,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
             this.rescue_expression = rescue_expression;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.expression.setNewLineFlag(source, newlineMarked);
         }
@@ -3858,8 +3888,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.consequent = consequent;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.exceptions) {
                 child.accept(visitor);
@@ -3903,8 +3932,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.name_loc = name_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3926,8 +3954,7 @@ public abstract class Nodes {
         public RetryNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -3953,8 +3980,7 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
             this.arguments = arguments;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
@@ -3979,8 +4005,7 @@ public abstract class Nodes {
         public SelfNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4014,8 +4039,7 @@ public abstract class Nodes {
             this.statements = statements;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.expression.accept(visitor);
             if (this.statements != null) {
@@ -4041,8 +4065,7 @@ public abstract class Nodes {
         public SourceEncodingNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4066,8 +4089,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.filepath = filepath;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4089,8 +4111,7 @@ public abstract class Nodes {
         public SourceLineNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4116,8 +4137,7 @@ public abstract class Nodes {
             this.operator_loc = operator_loc;
             this.expression = expression;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.expression != null) {
                 this.expression.accept(visitor);
@@ -4144,8 +4164,7 @@ public abstract class Nodes {
             super(startOffset, length);
             this.body = body;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.body) {
                 child.accept(visitor);
@@ -4174,8 +4193,7 @@ public abstract class Nodes {
             this.left = left;
             this.right = right;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.left.accept(visitor);
             this.right.accept(visitor);
@@ -4214,8 +4232,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4250,8 +4267,7 @@ public abstract class Nodes {
             this.rparen_loc = rparen_loc;
             this.block = block;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
@@ -4290,8 +4306,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4313,8 +4328,7 @@ public abstract class Nodes {
         public TrueNode(int startOffset, int length) {
             super(startOffset, length);
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4340,8 +4354,7 @@ public abstract class Nodes {
             this.names = names;
             this.keyword_loc = keyword_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.names) {
                 child.accept(visitor);
@@ -4379,8 +4392,7 @@ public abstract class Nodes {
             this.consequent = consequent;
             this.end_keyword_loc = end_keyword_loc;
         }
-
-        @Override
+                        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -4415,17 +4427,20 @@ public abstract class Nodes {
         public final Location keyword_loc;
         public final Node predicate;
         public final StatementsNode statements; // optional
-        public final int flags;
+        public final short flags;
 
-        public UntilNode(Location keyword_loc, Node predicate, StatementsNode statements, int flags, int startOffset, int length) {
+        public UntilNode(Location keyword_loc, Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.keyword_loc = keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.flags = flags;
         }
-
-        @Override
+        
+        public boolean isBeginModifier() {
+            return LoopFlags.isBeginModifier(this.flags);
+        }
+                @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -4461,8 +4476,7 @@ public abstract class Nodes {
             this.conditions = conditions;
             this.statements = statements;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.conditions) {
                 child.accept(visitor);
@@ -4495,17 +4509,20 @@ public abstract class Nodes {
         public final Location keyword_loc;
         public final Node predicate;
         public final StatementsNode statements; // optional
-        public final int flags;
+        public final short flags;
 
-        public WhileNode(Location keyword_loc, Node predicate, StatementsNode statements, int flags, int startOffset, int length) {
+        public WhileNode(Location keyword_loc, Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.keyword_loc = keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.flags = flags;
         }
-
-        @Override
+        
+        public boolean isBeginModifier() {
+            return LoopFlags.isBeginModifier(this.flags);
+        }
+                @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -4543,8 +4560,7 @@ public abstract class Nodes {
             this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4574,8 +4590,7 @@ public abstract class Nodes {
             this.arguments = arguments;
             this.rparen_loc = rparen_loc;
         }
-
-
+                
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
