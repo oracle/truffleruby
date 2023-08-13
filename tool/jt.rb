@@ -1165,6 +1165,10 @@ module Commands
     require_ruby_launcher!
     path, *rest = args
 
+    if %w[unit unittest tck].include?(path)
+      puts bold "NOTE: You need `jt mx build` before running `jt test #{path}` to build the relevant test distributions"
+    end
+
     case path
     when nil
       %w[specs mri bundle cexts integration gems ecosystem compiler].each do |kind|
@@ -1187,7 +1191,8 @@ module Commands
       tests = tests.empty? ? ['org.truffleruby'] : tests
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       mx(*mx_options, 'unittest', *unittest_options, *tests)
-    when 'tck' then mx 'tck', *rest
+    when 'tck'
+      mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)

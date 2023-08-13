@@ -1,3 +1,6 @@
 GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/truffleruby-enterprise,/graal-enterprise
 COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise
+# To also create the standalone
+INSTALLABLES=TruffleRuby
+BUILD_TARGETS=GRAALVM,GRAALVM_STANDALONES
