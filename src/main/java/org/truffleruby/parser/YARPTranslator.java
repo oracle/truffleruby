@@ -442,7 +442,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         boolean ignoreVisibility = node.receiver == null;
-        boolean isVCall = arguments.length == 0 && (node.opening_loc == null || node.closing_loc == null); // only `foo` without arguments and `()`
+        boolean isVCall = node.isVariableCall();
         boolean isAttrAssign = methodName.endsWith("=");
         var rubyCallNode = new RubyCallNode(new RubyCallNodeParameters(receiver, methodName, null,
                 EmptyArgumentsDescriptor.INSTANCE, translatedArguments, false, ignoreVisibility, isVCall, false,

@@ -6,6 +6,7 @@
 /doc/
 /pkg/
 /spec/reports/
+/test/serialized/
 /top-100-gems/
 /tmp/
 /vendor/bundle
@@ -28,7 +29,6 @@ a.out
 /java/org/yarp/AbstractNodeVisitor.java
 /java/org/yarp/Loader.java
 /java/org/yarp/Nodes.java
-/java/org/yarp/ParseResult.java
 /lib/yarp/node.rb
 /lib/yarp/serialize.rb
 /src/node.c
@@ -39,13 +39,5 @@ a.out
 
 compile_commands.json
 .cache/
-
-autom4te.cache
-configure
-config.log
-config.status
-Makefile
-/include/yarp/config.h
-/config.h.in
 
 tags

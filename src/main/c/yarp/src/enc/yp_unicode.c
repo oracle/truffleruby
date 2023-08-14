@@ -2318,3 +2318,12 @@ yp_encoding_t yp_encoding_utf_8 = {
     .isupper_char = yp_encoding_utf_8_isupper_char,
     .multibyte = true
 };
+
+yp_encoding_t yp_encoding_utf8_mac = {
+    .name = "utf8-mac",
+    .char_width = yp_encoding_utf_8_char_width,
+    .alnum_char = yp_encoding_utf_8_alnum_char,
+    .alpha_char = yp_encoding_utf_8_alpha_char,
+    .isupper_char = yp_encoding_utf_8_isupper_char,
+    .multibyte = true
+};
