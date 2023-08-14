@@ -382,6 +382,10 @@ Style/UnlessElse:
   Description: Checks for unless expressions with else clauses.
   Enabled: true
 
+Style/WhileUntilDo:
+  Description: Checks for uses of do in multi-line while/until statements.
+  Enabled: true
+
 # Supports --auto-correct
 Layout/SpaceBeforeBlockBraces:
   Enabled: true

@@ -30,6 +30,17 @@ module Truffle
       ((a + b) * 1_000_000_000)
     end
 
+    def self.convert_duration_to_milliseconds(duration)
+      unless duration.respond_to?(:divmod)
+        raise TypeError, "can't convert #{Primitive.class(duration)} into time interval"
+      end
+
+      whole_seconds, fragments = duration.divmod(1)
+      raise ArgumentError, 'time interval must not be negative' if whole_seconds < 0
+
+      ((whole_seconds + fragments) * 1000).to_i
+    end
+
     def self.define_hooked_variable(name, getter, setter, defined = proc { 'global-variable' })
       define_hooked_variable_with_is_defined(name, getter, setter, defined)
     end
