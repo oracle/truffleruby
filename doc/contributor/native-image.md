@@ -84,7 +84,7 @@ the Native Image version of TruffleRuby using a tool distributed as part of Graa
 the Java version of TruffleRuby from GraalVM.
 
 ```bash
-native-image -H:Name=native-ruby --language:ruby
+native-image -o native-ruby --language:ruby
 ```
 
 `native-ruby` is the output file name.
