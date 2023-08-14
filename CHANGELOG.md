@@ -37,6 +37,7 @@ Compatibility:
 * Add `rb_syserr_new` function (@rwstauner).
 * Add `Enumerator#product` (#3039, @itarato).
 * Add `Module#const_added` (#3039,  @itarato).
+* Show the pointer size information (if available) in `FFI::Pointer#inspect` (@nirvdrum).
 
 Performance:
 

@@ -98,7 +98,12 @@ module Truffle::FFI
         sign = ''
       end
 
-      "#<#{Primitive.class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
+      size = Primitive.pointer_size(self)
+      if size != UNBOUNDED
+        "#<#{Primitive.class(self).name} address=#{sign}0x#{addr.to_s(16)} size=#{size}>"
+      else
+        "#<#{Primitive.class(self).name} address=#{sign}0x#{addr.to_s(16)}>"
+      end
     end
 
     def null?
