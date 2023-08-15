@@ -25,7 +25,7 @@
 #ifndef TRUFFLERUBY
 #define rb_id2sym(id) \
     RB_GNUC_EXTENSION_BLOCK(__builtin_constant_p(id) && !DYNAMIC_ID_P(id) ? \
-			    STATIC_ID2SYM(id) : rb_id2sym(id))
+                            STATIC_ID2SYM(id) : rb_id2sym(id))
 #endif
 #endif
 
@@ -56,10 +56,10 @@ static inline int
 id_type(ID id)
 {
     if (is_notop_id(id)) {
-	return (int)(id&ID_SCOPE_MASK);
+        return (int)(id&ID_SCOPE_MASK);
     }
     else {
-	return -1;
+        return -1;
     }
 }
 #endif
@@ -81,10 +81,10 @@ static inline rb_id_serial_t
 rb_id_to_serial(ID id)
 {
     if (is_notop_id(id)) {
-	return (rb_id_serial_t)(id >> ID_SCOPE_SHIFT);
+        return (rb_id_serial_t)(id >> ID_SCOPE_SHIFT);
     }
     else {
-	return (rb_id_serial_t)id;
+        return (rb_id_serial_t)id;
     }
 }
 
@@ -93,13 +93,13 @@ sym_type(VALUE sym)
 {
     ID id;
     if (STATIC_SYM_P(sym)) {
-	id = RSHIFT(sym, RUBY_SPECIAL_SHIFT);
-	if (id<=tLAST_OP_ID) {
-	    return -1;
-	}
+        id = RSHIFT(sym, RUBY_SPECIAL_SHIFT);
+        if (id<=tLAST_OP_ID) {
+            return -1;
+        }
     }
     else {
-	id = RSYMBOL(sym)->id;
+        id = RSYMBOL(sym)->id;
     }
     return (int)(id&ID_SCOPE_MASK);
 }

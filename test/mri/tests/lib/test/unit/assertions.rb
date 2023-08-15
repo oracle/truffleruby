@@ -529,11 +529,9 @@ module Test
       end
       alias omit pend
 
-      # TODO: Removed this and enabled to raise NoMethodError with skip
-      alias skip pend
-      # def skip(msg = nil, bt = caller)
-      #   raise NoMethodError, "use omit or pend", caller
-      # end
+      def skip(msg = nil, bt = caller)
+        raise NoMethodError, "use omit or pend", caller
+      end
 
       ##
       # Was this testcase skipped? Meant for #teardown.
@@ -563,10 +561,6 @@ module Test
       #    end
       def assert_block(*msgs)
         assert yield, *msgs
-      end
-
-      def assert_raises(*exp, &b)
-        raise NoMethodError, "use assert_raise", caller
       end
 
       # :call-seq:

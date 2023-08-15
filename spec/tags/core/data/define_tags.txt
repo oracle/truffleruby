@@ -1,0 +1,5 @@
+fails:Data.define accepts no arguments
+fails:Data.define accepts symbols
+fails:Data.define accepts strings
+fails:Data.define accepts a mix of strings and symbols
+fails:Data.define accepts a block

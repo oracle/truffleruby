@@ -201,11 +201,15 @@ class Gem::Command
   # respectively.
   def get_all_gem_names_and_versions
     get_all_gem_names.map do |name|
-      if /\A(.*):(#{Gem::Requirement::PATTERN_RAW})\z/ =~ name
-        [$1, $2]
-      else
-        [name]
-      end
+      extract_gem_name_and_version(name)
+    end
+  end
+
+  def extract_gem_name_and_version(name) # :nodoc:
+    if /\A(.*):(#{Gem::Requirement::PATTERN_RAW})\z/ =~ name
+      [$1, $2]
+    else
+      [name]
     end
   end
 
@@ -624,13 +628,17 @@ class Gem::Command
 
   # :stopdoc:
 
-  HELP = <<-HELP.freeze
+  HELP = <<-HELP
 RubyGems is a package manager for Ruby.
 
   Usage:
     gem -h/--help
     gem -v/--version
-    gem command [arguments...] [options...]
+    gem [global options...] command [arguments...] [options...]
+
+  Global options:
+    -C PATH                      run as if gem was started in <PATH>
+                                 instead of the current working directory
 
   Examples:
     gem install rake

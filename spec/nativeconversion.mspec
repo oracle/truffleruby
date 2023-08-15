@@ -1,5 +1,6 @@
 class NativeHandleChecker
   EXPECTED_FAILURES = {
+    "C language construct switch (VALUE) works for the default case" => 1,
     "C-API Debug function rb_debug_inspector_open creates a debug context and calls the given callback" => 2,
     "C-API Debug function rb_debug_inspector_frame_self_get returns self" => 2,
     "C-API Debug function rb_debug_inspector_frame_class_get returns the frame class" => 2,

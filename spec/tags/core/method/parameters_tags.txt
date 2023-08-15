@@ -1,0 +1,1 @@
+fails:Method#parameters adds * rest arg for "star" argument

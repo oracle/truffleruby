@@ -1,0 +1,65 @@
+---
+prelude: |
+  begin
+    require "mongo"  # gem install mongo
+    require "idn"    # gem install idn-ruby
+  rescue LoadError
+    warn "You must 'gem install mongo idn-ruby' for this benchmark."
+    raise
+  end
+
+  MStrPrep = Mongo::Auth::StringPrep
+
+  # this indirection will slow it down a little bit
+  def mongo_saslprep(string)
+    MStrPrep.prepare(string,
+                     MStrPrep::Profiles::SASL::MAPPINGS,
+                     MStrPrep::Profiles::SASL::PROHIBITED,
+                     normalize: true,
+                     bidi: true)
+  rescue Mongo::Error::FailedStringPrepValidation
+    nil
+  end
+
+  $LOAD_PATH.unshift "./lib"
+  require "net/imap"
+  def net_imap_saslprep(string)
+    Net::IMAP::SASL::SASLprep.saslprep string, exception: false
+  end
+
+  def libidn_saslprep(string)
+    IDN::Stringprep.with_profile(string, "SASLprep")
+  rescue IDN::Stringprep::StringprepError
+    nil
+  end
+
+benchmark:
+  - net_imap_saslprep "I\u00ADX"     # RFC example 1. IX
+  - net_imap_saslprep "user"         # RFC example 2. user
+  - net_imap_saslprep "USER"         # RFC example 3. user
+  - net_imap_saslprep "\u00aa"       # RFC example 4. a
+  - net_imap_saslprep "\u2168"       # RFC example 5. IX
+  - net_imap_saslprep "\u0007"       # RFC example 6. Error - prohibited character
+  - net_imap_saslprep "\u0627\u0031" # RFC example 7. Error - bidirectional check
+  - net_imap_saslprep "I\u2000X"     # map to space: I X
+  - net_imap_saslprep "a longer string, e.g. a password"
+
+  - libidn_saslprep "I\u00ADX"     # RFC example 1. IX
+  - libidn_saslprep "user"         # RFC example 2. user
+  - libidn_saslprep "USER"         # RFC example 3. user
+  - libidn_saslprep "\u00aa"       # RFC example 4. a
+  - libidn_saslprep "\u2168"       # RFC example 5. IX
+  - libidn_saslprep "\u0007"       # RFC example 6. Error - prohibited character
+  - libidn_saslprep "\u0627\u0031" # RFC example 7. Error - bidirectional check
+  - libidn_saslprep "I\u2000X"     # map to space: I X
+  - libidn_saslprep "a longer string, e.g. a password"
+
+  - mongo_saslprep "I\u00ADX"     # RFC example 1. IX
+  - mongo_saslprep "user"         # RFC example 2. user
+  - mongo_saslprep "USER"         # RFC example 3. user
+  - mongo_saslprep "\u00aa"       # RFC example 4. a
+  - mongo_saslprep "\u2168"       # RFC example 5. IX
+  - mongo_saslprep "\u0007"       # RFC example 6. Error - prohibited character
+  - mongo_saslprep "\u0627\u0031" # RFC example 7. Error - bidirectional check
+  - mongo_saslprep "I\u2000X"     # map to space: I X
+  - mongo_saslprep "a longer string, e.g. a password"

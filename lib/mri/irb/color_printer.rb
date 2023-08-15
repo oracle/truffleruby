@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'pp'
-require 'irb/color'
+require_relative 'color'
 
 module IRB
   class ColorPrinter < ::PP
@@ -37,6 +37,9 @@ module IRB
       width ||= str.length
 
       case str
+      when ''
+      when ',', '=>', '[', ']', '{', '}', '..', '...', /\A@\w+\z/
+        super(str, width)
       when /\A#</, '=', '>'
         super(Color.colorize(str, [:GREEN]), width)
       else

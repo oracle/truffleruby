@@ -22,6 +22,7 @@ allbits?
 anybits?
 bit_length
 ceil
+ceildiv
 chr
 coerce
 denominator

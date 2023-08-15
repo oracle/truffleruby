@@ -38,8 +38,6 @@
 #define rb_exc_new3             rb_exc_new_str  /**< @old{rb_exc_new_str} */
 
 /** @cond INTERNAL_MACRO */
-#define rb_check_trusted        rb_check_trusted
-#define rb_check_trusted_inline rb_check_trusted
 #define rb_check_arity          rb_check_arity
 /** @endcond */
 
@@ -204,12 +202,6 @@ RBIMPL_ATTR_NORETURN()
 void rb_error_frozen_object(VALUE what);
 
 /**
- * @deprecated  Does nothing.  This method is deprecated and will be removed in
- *              Ruby 3.2.
- */
-void rb_error_untrusted(VALUE);
-
-/**
  * Queries  if the  passed  object is  frozen.
  *
  * @param[in]  obj  Target object to test frozen-ness.
@@ -217,12 +209,6 @@ void rb_error_untrusted(VALUE);
  * @post       Upon successful return it is guaranteed _not_ frozen.
  */
 void rb_check_frozen(VALUE obj);
-
-/**
- * @deprecated  Does nothing.  This method is deprecated and will be removed in
- *              Ruby 3.2.
- */
-void rb_check_trusted(VALUE);
 
 /**
  * Ensures that the passed object  can be `initialize_copy` relationship.  When

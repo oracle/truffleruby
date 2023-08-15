@@ -22,7 +22,7 @@ describe "The launcher" do
     bundler: escape["Bundler version #{@default_gems['bundler']}"],
     erb: escape[@default_gems['erb']],
     gem: escape[@default_gems['gem']],
-    irb: escape["irb #{@default_gems['irb']} (2021-12-25)"],
+    irb: escape["irb #{@default_gems['irb']} (2022-12-13)"],
     racc: escape["racc version #{@default_gems['racc']}"],
     rake: escape["rake, version #{@bundled_gems['rake']}"],
     rbs: escape["rbs #{@bundled_gems['rbs']}"],

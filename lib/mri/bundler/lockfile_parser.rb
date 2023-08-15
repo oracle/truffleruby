@@ -4,15 +4,15 @@ module Bundler
   class LockfileParser
     attr_reader :sources, :dependencies, :specs, :platforms, :bundler_version, :ruby_version
 
-    BUNDLED      = "BUNDLED WITH".freeze
-    DEPENDENCIES = "DEPENDENCIES".freeze
-    PLATFORMS    = "PLATFORMS".freeze
-    RUBY         = "RUBY VERSION".freeze
-    GIT          = "GIT".freeze
-    GEM          = "GEM".freeze
-    PATH         = "PATH".freeze
-    PLUGIN       = "PLUGIN SOURCE".freeze
-    SPECS        = "  specs:".freeze
+    BUNDLED      = "BUNDLED WITH"
+    DEPENDENCIES = "DEPENDENCIES"
+    PLATFORMS    = "PLATFORMS"
+    RUBY         = "RUBY VERSION"
+    GIT          = "GIT"
+    GEM          = "GEM"
+    PATH         = "PATH"
+    PLUGIN       = "PLUGIN SOURCE"
+    SPECS        = "  specs:"
     OPTIONS      = /^  ([a-z]+): (.*)$/i.freeze
     SOURCE       = [GIT, GEM, PATH, PLUGIN].freeze
 
@@ -63,7 +63,7 @@ module Bundler
       @state        = nil
       @specs        = {}
 
-      if lockfile.match(/<<<<<<<|=======|>>>>>>>|\|\|\|\|\|\|\|/)
+      if lockfile.match?(/<<<<<<<|=======|>>>>>>>|\|\|\|\|\|\|\|/)
         raise LockfileError, "Your #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)} contains merge conflicts.\n" \
           "Run `git checkout HEAD -- #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)}` first to get a clean lock."
       end
@@ -80,13 +80,13 @@ module Bundler
           @state = :ruby
         elsif line == BUNDLED
           @state = :bundled_with
-        elsif line =~ /^[^\s]/
+        elsif /^[^\s]/.match?(line)
           @state = nil
         elsif @state
           send("parse_#{@state}", line)
         end
       end
-      @specs = @specs.values.sort_by(&:identifier)
+      @specs = @specs.values.sort_by(&:full_name)
     rescue ArgumentError => e
       Bundler.ui.debug(e)
       raise LockfileError, "Your lockfile is unreadable. Run `rm #{Bundler.default_lockfile.relative_path_from(SharedHelpers.pwd)}` " \
@@ -100,9 +100,9 @@ module Bundler
     private
 
     TYPES = {
-      GIT    => Bundler::Source::Git,
-      GEM    => Bundler::Source::Rubygems,
-      PATH   => Bundler::Source::Path,
+      GIT => Bundler::Source::Git,
+      GEM => Bundler::Source::Rubygems,
+      PATH => Bundler::Source::Path,
       PLUGIN => Bundler::Plugin,
     }.freeze
 
@@ -199,7 +199,7 @@ module Bundler
         @current_spec.source = @current_source
         @current_source.add_dependency_names(name)
 
-        @specs[@current_spec.identifier] = @current_spec
+        @specs[@current_spec.full_name] = @current_spec
       elsif spaces.size == 6
         version = version.split(",").map(&:strip) if version
         dep = Gem::Dependency.new(name, version)

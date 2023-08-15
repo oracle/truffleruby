@@ -159,7 +159,12 @@ module EnvUtil
     if RUBYLIB and lib = child_env["RUBYLIB"]
       child_env["RUBYLIB"] = [lib, RUBYLIB].join(File::PATH_SEPARATOR)
     end
-    child_env['ASAN_OPTIONS'] = ENV['ASAN_OPTIONS'] if ENV['ASAN_OPTIONS']
+
+    # remain env
+    %w(ASAN_OPTIONS RUBY_ON_BUG).each{|name|
+      child_env[name] = ENV[name] if ENV[name]
+    }
+
     args = [args] if args.kind_of?(String)
     pid = spawn(child_env, *precommand, rubybin, *args, opt)
     in_c.close
@@ -299,16 +304,24 @@ module EnvUtil
       cmd = @ruby_install_name if "ruby-runner#{RbConfig::CONFIG["EXEEXT"]}" == cmd
       path = DIAGNOSTIC_REPORTS_PATH
       timeformat = DIAGNOSTIC_REPORTS_TIMEFORMAT
-      pat = "#{path}/#{cmd}_#{now.strftime(timeformat)}[-_]*.crash"
+      pat = "#{path}/#{cmd}_#{now.strftime(timeformat)}[-_]*.{crash,ips}"
       first = true
       30.times do
         first ? (first = false) : sleep(0.1)
         Dir.glob(pat) do |name|
           log = File.read(name) rescue next
-          if /\AProcess:\s+#{cmd} \[#{pid}\]$/ =~ log
-            File.unlink(name)
-            File.unlink("#{path}/.#{File.basename(name)}.plist") rescue nil
-            return log
+          case name
+          when /\.crash\z/
+            if /\AProcess:\s+#{cmd} \[#{pid}\]$/ =~ log
+              File.unlink(name)
+              File.unlink("#{path}/.#{File.basename(name)}.plist") rescue nil
+              return log
+            end
+          when /\.ips\z/
+            if /^ *"pid" *: *#{pid},/ =~ log
+              File.unlink(name)
+              return log
+            end
           end
         end
       end

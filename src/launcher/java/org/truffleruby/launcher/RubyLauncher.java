@@ -381,14 +381,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     /*-
      * To update this:
-     *   - run `ruby --help | ruby -e 'puts STDIN.readlines.map { |line| "out.println(#{line.chomp.inspect});" }'`;
-     *   - replace "ruby" by "truffleruby" in the first line;
-     *   - remove unsupported flags;
+     *   - run `ruby --help | ruby -e 'puts STDIN.readlines.map { |line| "out.println(#{line.chomp.inspect});" }'`
+     *   - replace "ruby" by "truffleruby" in the first line
+     *   - remove unsupported flags (--*jit, --dump)
      *   - add an extra `out.println();` before:
      *     - `out.println("Features:");` and
-     *     - `out.println("Warning categories:");`;
-     *   - remove the "Dump List:" section;
-     *   - remove JIT-related lines.
+     *     - `out.println("Warning categories:");`
+     *   - remove the "Dump List:" section
+     *   - remove JIT-related lines
      */
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
@@ -415,7 +415,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("                  set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  --copyright     print the copyright");
-        out.println("  --enable={rubyopt|...}[,...], --disable={rubyopt|...}[,...]");
+        out.println("  --enable={jit|rubyopt|...}[,...], --disable={jit|rubyopt|...}[,...]");
         out.println("                  enable or disable features. see below for available features");
         out.println("  --external-encoding=encoding, --internal-encoding=encoding");
         out.println("                  specify the default external or internal character encoding");
@@ -427,7 +427,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println();
         out.println("Features:");
         out.println("  gems            rubygems (only for debugging, default: enabled)");
+        out.println("  error_highlight error_highlight (default: enabled)");
         out.println("  did_you_mean    did_you_mean (default: enabled)");
+        out.println("  syntax_suggest  syntax_suggest (default: enabled)");
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");

@@ -65,6 +65,7 @@ module Truffle::GemUtil
     'singleton' => true,
     'stringio' => true,
     'strscan' => true,
+    'syntax_suggest' => true,
     'syslog' => true,
     'tempfile' => true,
     'time' => true,

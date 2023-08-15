@@ -10,7 +10,7 @@ require "rubygems/installer"
 require "rubygems/platform"
 
 class TestGemSpecification < Gem::TestCase
-  LEGACY_YAML_SPEC = <<-EOF.freeze
+  LEGACY_YAML_SPEC = <<-EOF
 --- !ruby/object:Gem::Specification
 rubygems_version: "1.0"
 name: keyedlist
@@ -29,7 +29,7 @@ email: flgr@ccan.de
 has_rdoc: true
   EOF
 
-  LEGACY_RUBY_SPEC = <<-EOF.freeze
+  LEGACY_RUBY_SPEC = <<-EOF
 Gem::Specification.new do |s|
   s.name = %q{keyedlist}
   s.version = %q{0.4.0}
@@ -1866,9 +1866,9 @@ dependencies: []
 
   def test_full_name_windows
     test_cases = {
-      "i386-mswin32"      => "a-1-x86-mswin32-60",
-      "i386-mswin32_80"   => "a-1-x86-mswin32-80",
-      "i386-mingw32"      => "a-1-x86-mingw32",
+      "i386-mswin32" => "a-1-x86-mswin32-60",
+      "i386-mswin32_80" => "a-1-x86-mswin32-80",
+      "i386-mingw32" => "a-1-x86-mingw32",
     }
 
     test_cases.each do |arch, expected|
@@ -1969,10 +1969,10 @@ dependencies: []
     assert_equal Gem::Platform::RUBY, @a1.platform
 
     test_cases = {
-      "i386-mswin32"    => ["x86", "mswin32", "60"],
+      "i386-mswin32" => ["x86", "mswin32", "60"],
       "i386-mswin32_80" => ["x86", "mswin32", "80"],
-      "i386-mingw32"    => ["x86", "mingw32", nil ],
-      "x86-darwin8"     => ["x86", "darwin",  "8" ],
+      "i386-mingw32" => ["x86", "mingw32", nil ],
+      "x86-darwin8" => ["x86", "darwin", "8" ],
     }
 
     test_cases.each do |arch, expected|
@@ -2276,15 +2276,9 @@ Gem::Specification.new do |s|
   s.rubygems_version = "#{Gem::VERSION}".freeze
   s.summary = "this is a summary".freeze
 
-  if s.respond_to? :specification_version then
-    s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION}
-  end
+  s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION}
 
-  if s.respond_to? :add_runtime_dependency then
-    s.add_runtime_dependency(%q<b>.freeze, [\"= 1\"])
-  else
-    s.add_dependency(%q<b>.freeze, [\"= 1\"])
-  end
+  s.add_runtime_dependency(%q<b>.freeze, [\"= 1\"])
 end
     SPEC
 
@@ -2356,15 +2350,9 @@ Gem::Specification.new do |s|
 
   s.installed_by_version = "#{Gem::VERSION}" if s.respond_to? :installed_by_version
 
-  if s.respond_to? :specification_version then
-    s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION}
-  end
+  s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION}
 
-  if s.respond_to? :add_runtime_dependency then
-    s.add_runtime_dependency(%q<b>.freeze, [\"= 1\"])
-  else
-    s.add_dependency(%q<b>.freeze, [\"= 1\"])
-  end
+  s.add_runtime_dependency(%q<b>.freeze, [\"= 1\"])
 end
     SPEC
 
@@ -2415,19 +2403,11 @@ Gem::Specification.new do |s|
   s.summary = "this is a summary".freeze
   s.test_files = ["test/suite.rb".freeze]
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-  end
+  s.specification_version = 4
 
-  if s.respond_to? :add_runtime_dependency then
-    s.add_runtime_dependency(%q<rake>.freeze, [\"> 0.4\"])
-    s.add_runtime_dependency(%q<jabber4r>.freeze, [\"> 0.0.0\"])
-    s.add_runtime_dependency(%q<pqa>.freeze, [\"> 0.4\", \"<= 0.6\"])
-  else
-    s.add_dependency(%q<rake>.freeze, [\"> 0.4\"])
-    s.add_dependency(%q<jabber4r>.freeze, [\"> 0.0.0\"])
-    s.add_dependency(%q<pqa>.freeze, [\"> 0.4\", \"<= 0.6\"])
-  end
+  s.add_runtime_dependency(%q<rake>.freeze, [\"> 0.4\"])
+  s.add_runtime_dependency(%q<jabber4r>.freeze, [\"> 0.0.0\"])
+  s.add_runtime_dependency(%q<pqa>.freeze, [\"> 0.4\", \"<= 0.6\"])
 end
     SPEC
 
@@ -2697,6 +2677,23 @@ duplicate dependency on c (>= 1.2.3, development), (~> 1.2) use:
     end
   end
 
+  def test_validate_self_referencing_dependencies
+    util_setup_validate
+
+    Dir.chdir @tempdir do
+      @a1.add_runtime_dependency @a1.name, "1"
+
+      use_ui @ui do
+        @a1.validate
+      end
+
+      assert_equal <<-EXPECTED, @ui.error
+#{w}:  Self referencing dependency is unnecessary and strongly discouraged.
+#{w}:  See https://guides.rubygems.org/specification-reference/ for help
+      EXPECTED
+    end
+  end
+
   def test_validate_rake_extension_have_rake_dependency_warning
     util_setup_validate
 
@@ -2725,6 +2722,39 @@ duplicate dependency on c (>= 1.2.3, development), (~> 1.2) use:
       end
 
       refute_match(/add rake as a dependency/, @ui.error)
+    end
+  end
+
+  def test_validate_rust_extension_have_missing_cargo_toml_error
+    util_setup_validate
+
+    Dir.chdir @tempdir do
+      @a1.extensions = ["Cargo.toml"]
+      File.write File.join(@tempdir, "Cargo.toml"), ""
+
+      e = assert_raise Gem::InvalidSpecificationException do
+        use_ui @ui do
+          @a1.validate
+        end
+      end
+
+      assert_match(/but Cargo.lock is not part of the gem files/, e.message)
+    end
+  end
+
+  def test_validate_rust_extension_have_no_missing_cargo_toml_error
+    util_setup_validate
+
+    Dir.chdir @tempdir do
+      @a1.extensions = ["Cargo.toml"]
+      @a1.files << "Cargo.toml"
+      @a1.files << "Cargo.lock"
+      File.write File.join(@tempdir, "Cargo.toml"), ""
+      File.write File.join(@tempdir, "Cargo.lock"), ""
+
+      use_ui @ui do
+        @a1.validate
+      end
     end
   end
 
@@ -3469,10 +3499,10 @@ Did you mean 'Ruby'?
       @m1 = quick_gem "m", "1" do |s|
         s.files = %w[lib/code.rb]
         s.metadata = {
-          "one"          => "two",
-          "home"         => "three",
+          "one" => "two",
+          "home" => "three",
           "homepage_uri" => "https://example.com/user/repo",
-          "funding_uri"  => "https://example.com/donate",
+          "funding_uri" => "https://example.com/donate",
         }
       end
 
@@ -3694,6 +3724,23 @@ end
     end
 
     assert Gem::Specification.find_by_name "b", ">1"
+  end
+
+  def test_find_by_full_name
+    pl = Gem::Platform.new "x86_64-linux"
+
+    a = util_spec "a", "1"
+    install_specs a
+
+    a_pl = util_spec("a", "1") {|s| s.platform = pl }
+    install_specs a_pl
+
+    assert_equal a, Gem::Specification.find_by_full_name("a-1")
+    assert_equal a_pl, Gem::Specification.find_by_full_name("a-1-x86_64-linux")
+
+    assert_nil Gem::Specification.find_by_full_name("a-2")
+    assert_nil Gem::Specification.find_by_full_name("b-1")
+    assert_nil Gem::Specification.find_by_full_name("a-1-arm64-linux")
   end
 
   def test_find_by_path

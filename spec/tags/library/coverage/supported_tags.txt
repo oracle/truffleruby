@@ -1,0 +1,3 @@
+fails:Coverage.supported? returns true or false if coverage measurement is supported for the given mode
+fails:Coverage.supported? returns false for not existing modes
+fails:Coverage.supported? raise TypeError if argument is not Symbol

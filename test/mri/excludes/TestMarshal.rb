@@ -34,3 +34,4 @@ exclude :test_class_nonascii, "Encoding::CompatibilityError: incompatible charac
 exclude :test_regexp_subclass, "TypeError: no implicit conversion of Integer into String"
 exclude :test_regexp2, "RegexpError: too short escape sequence"
 exclude :test_range_subclass, "ArgumentError: wrong number of arguments (given 4, expected 2..3)"
+exclude :test_load_range_as_struct, "GH-6832."

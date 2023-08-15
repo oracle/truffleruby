@@ -42,21 +42,19 @@ public final class ValueWrapperManager {
 
     static final long UNSET_HANDLE = -2L;
 
-    /* These constants are taken from ruby.h, and are based on us not tagging doubles. */
+    /* These constants are taken from lib/cext/include/ruby/internal/special_consts.h with USE_FLONUM=false */
 
-    public static final int FALSE_HANDLE = 0b000;
-    public static final int TRUE_HANDLE = 0b010;
-    public static final int NIL_HANDLE = 0b100;
-    public static final int UNDEF_HANDLE = 0b110;
+    public static final int FALSE_HANDLE = 0b0000;
+    public static final int TRUE_HANDLE = 0b0110;
+    public static final int NIL_HANDLE = 0b0010;
+    public static final int UNDEF_HANDLE = 0b1010;
+    public static final long IMMEDIATE_MASK = 0b0011;
 
     public static final long LONG_TAG = 1;
     public static final long OBJECT_TAG = 0;
 
     public static final long MIN_FIXNUM_VALUE = -(1L << 62);
     public static final long MAX_FIXNUM_VALUE = (1L << 62) - 1;
-
-    public static final long TAG_MASK = 0b111;
-    public static final long TAG_BITS = 3;
 
     public final ValueWrapper trueWrapper = new ValueWrapper(true, TRUE_HANDLE, null);
     public final ValueWrapper falseWrapper = new ValueWrapper(false, FALSE_HANDLE, null);
@@ -177,9 +175,10 @@ public final class ValueWrapperManager {
         return counter.get();
     }
 
+    private static final long ADDRESS_ALIGN_BITS = 3;
     private static final int BLOCK_BITS = 15;
-    private static final int BLOCK_SIZE = 1 << (BLOCK_BITS - TAG_BITS);
-    private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << TAG_BITS;
+    private static final int BLOCK_SIZE = 1 << (BLOCK_BITS - ADDRESS_ALIGN_BITS);
+    private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << ADDRESS_ALIGN_BITS;
     private static final long BLOCK_MASK = -1L << BLOCK_BITS;
     private static final long OFFSET_MASK = ~BLOCK_MASK;
     public static final long ALLOCATION_BASE = 0x0badL << 48;
@@ -245,7 +244,7 @@ public final class ValueWrapperManager {
         }
 
         public ValueWrapper getWrapper(long handle) {
-            int offset = (int) (handle & OFFSET_MASK) >> TAG_BITS;
+            int offset = (int) (handle & OFFSET_MASK) >> ADDRESS_ALIGN_BITS;
             return wrappers[offset].get();
         }
 
@@ -371,7 +370,7 @@ public final class ValueWrapperManager {
     }
 
     public static boolean isTaggedObject(long handle) {
-        return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
+        return handle != FALSE_HANDLE && (handle & IMMEDIATE_MASK) == OBJECT_TAG;
     }
 
     public static boolean isMallocAligned(long handle) {

@@ -6,7 +6,5 @@ ctime
 flock
 lstat
 mtime
-path
 size
-to_path
 truncate

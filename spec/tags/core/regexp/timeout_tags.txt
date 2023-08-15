@@ -1,0 +1,3 @@
+fails:Regexp.timeout returns global timeout
+fails:Regexp.timeout raises Regexp::TimeoutError after global timeout elapsed
+fails:Regexp.timeout raises Regexp::TimeoutError after timeout keyword value elapsed

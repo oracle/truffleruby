@@ -36,6 +36,7 @@ ruby-install ruby $VERSION
 rm -rf ~/.rubies/ruby-$VERSION
 ruby-build $VERSION ~/.rubies/ruby-$VERSION
 ruby-install --no-install-deps -r ~/tmp ruby $VERSION
+rm -rf ~/tmp/ruby-$VERSION
 ```
 
 `ruby-build` does not keep the build directory
@@ -143,15 +144,17 @@ Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
-* Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
+* Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems | sort`, `ls -l lib/gems/specifications/default` and `grep 'VERSION =' lib/mri/rubygems.rb`)
 * Also update version numbers in `src/main/c/Makefile`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
+* This is a good time to get `jt build` working.
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
-* Update `doc/legal/legal.md`
+* Update `doc/legal/legal.md`, notably the `Bundled gems` section
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Build TruffleRuby (`jt build`).
 * Run `jt test gems default-bundled-gems`
+* Get `jt test spec/truffle/rubygems/default_gems_list_spec.rb` to pass
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, then run `jt build core-symbols` and check for correctness.
@@ -160,7 +163,7 @@ Update all of these:
 
 For a new major version:
 * Update `TargetRubyVersion` in `.rubocop.yml`
-* Update the list of `:next` specs.
+* Update `spec/truffleruby.next-specs` and remove `/spec/truffleruby.next-specs merge=union` in `.gitattributes`
 * Update the docs for next version specs in [workflow.md](workflow.md).
 * Update the versions in the `ruby/spec on CRuby` job of `.github/workflows/ci.yml`.
 

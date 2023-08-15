@@ -108,6 +108,7 @@ class TestMkmf < Test::Unit::TestCase
     end
 
     def teardown
+      return if @omitted
       rbconfig0 = @rbconfig
       mkconfig0 = @mkconfig
       RbConfig.module_eval {

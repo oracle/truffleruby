@@ -1976,6 +1976,8 @@ test_ok(p1.call == 5)
 test_ok(i7 == nil)
 end
 
+# WASI doesn't support spawning a new process for now.
+unless /wasi/ =~ RUBY_PLATFORM
 test_check "system"
 test_ok(`echo foobar` == "foobar\n")
 test_ok(`#{RUBY} -e 'print "foobar"'` == 'foobar')
@@ -2025,7 +2027,8 @@ tmp.close
 tagged # test_ok(done)
 
 File.unlink script_tmp or `/bin/rm -f "#{script_tmp}"` if File.exist?(script_tmp)
-File.unlink "#{script_tmp}.bak" or `/bin/rm -f "#{script_tmp}.bak"`  if File.exist?("#{script_tmp}.bak")
+File.unlink "#{script_tmp}.bak" or `/bin/rm -f "#{script_tmp}.bak"` if File.exist?("#{script_tmp}.bak")
+end # not /wasi/ =~ RUBY_PLATFORM
 
 test_check "const"
 TEST1 = 1

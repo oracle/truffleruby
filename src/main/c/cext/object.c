@@ -128,44 +128,6 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_call_init", object, rb_ary_new4(argc, argv), rb_block_proc());
 }
 
-// taint status
-
-VALUE rb_obj_tainted(VALUE obj) {
-  return rb_funcall(obj, rb_intern("tainted?"), 0);
-}
-
-VALUE rb_obj_taint(VALUE object) {
-  return RUBY_INVOKE(object, "taint");
-}
-
-VALUE rb_obj_untaint(VALUE obj) {
-  return rb_funcall(obj, rb_intern("untaint"), 0);
-}
-
-VALUE rb_obj_untrusted(VALUE obj) {
-  return rb_funcall(obj, rb_intern("untrusted?"), 0);
-}
-
-VALUE rb_obj_trust(VALUE obj) {
-  return rb_funcall(obj, rb_intern("trust"), 0);
-}
-
-VALUE rb_obj_untrust(VALUE obj) {
-  return rb_funcall(obj, rb_intern("untrust"), 0);
-}
-
-bool rb_tr_obj_taintable_p(VALUE object) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_OBJ_TAINTABLE", object));
-}
-
-bool rb_tr_obj_tainted_p(VALUE object) {
-  return RTEST(rb_obj_tainted(object));
-}
-
-void rb_tr_obj_infect(VALUE a, VALUE b) {
-  rb_warning("rb_obj_infect is deprecated and will be removed in Ruby 3.2.");
-}
-
 // frozen status
 
 VALUE rb_obj_frozen_p(VALUE object) {

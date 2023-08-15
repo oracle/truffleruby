@@ -1,2 +1,3 @@
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if using an existing local with the same name as the argument
 fails:Post-args with optional args with a circular argument reference raises a SyntaxError if there is an existing method with the same name as the argument
+fails:A block yielded a single Array does not autosplat single argument to required arguments when a keyword rest argument is present

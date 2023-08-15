@@ -30,12 +30,12 @@ BASIC_EXTCONF_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) 
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
 
-DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.6.3
+DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.7.1
 DEBUG_GEM_EXT := $(DEBUG_GEM)/ext/debug
 DEBUG_GEM_EXT_SO := $(DEBUG_GEM_EXT)/debug.$(DLEXT)
 DEBUG_GEM_LIB_SO := $(DEBUG_GEM)/lib/debug/debug.$(DLEXT)
 
-RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.7.0
+RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.8.2
 RBS_GEM_EXT := $(RBS_GEM)/ext/rbs_extension
 RBS_GEM_EXT_SO := $(RBS_GEM_EXT)/rbs_extension.$(DLEXT)
 RBS_GEM_LIB_SO := $(RBS_GEM)/lib/rbs_extension.$(DLEXT)
@@ -169,7 +169,7 @@ psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h
 $(DEBUG_GEM_EXT)/Makefile: $(DEBUG_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd $(DEBUG_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c $(DEBUG_GEM_EXT)/*.h
+$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c
 	$(Q) cd $(DEBUG_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 $(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)

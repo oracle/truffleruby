@@ -43,6 +43,7 @@ class Gem::CommandManager
     :contents,
     :dependency,
     :environment,
+    :exec,
     :fetch,
     :generate_index,
     :help,
@@ -73,8 +74,8 @@ class Gem::CommandManager
   ].freeze
 
   ALIAS_COMMANDS = {
-    "i"      => "install",
-    "login"  => "signin",
+    "i" => "install",
+    "login" => "signin",
     "logout" => "signout",
   }.freeze
 
@@ -175,14 +176,20 @@ class Gem::CommandManager
     when "-v", "--version" then
       say Gem::VERSION
       terminate_interaction 0
+    when "-C" then
+      args.shift
+      start_point = args.shift
+      if Dir.exist?(start_point)
+        Dir.chdir(start_point) { invoke_command(args, build_args) }
+      else
+        alert_error clean_text("#{start_point} isn't a directory.")
+        terminate_interaction 1
+      end
     when /^-/ then
       alert_error clean_text("Invalid option: #{args.first}. See 'gem --help'.")
       terminate_interaction 1
     else
-      cmd_name = args.shift.downcase
-      cmd = find_command cmd_name
-      cmd.deprecation_warning if cmd.deprecated?
-      cmd.invoke_with_build_args args, build_args
+      invoke_command(args, build_args)
     end
   end
 
@@ -236,5 +243,12 @@ class Gem::CommandManager
       alert_error clean_text("Loading command: #{command_name} (#{e.class})\n\t#{e}")
       ui.backtrace e
     end
+  end
+
+  def invoke_command(args, build_args)
+    cmd_name = args.shift.downcase
+    cmd = find_command cmd_name
+    cmd.deprecation_warning if cmd.deprecated?
+    cmd.invoke_with_build_args args, build_args
   end
 end

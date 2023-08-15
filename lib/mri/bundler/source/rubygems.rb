@@ -145,7 +145,7 @@ module Bundler
         end
 
         if installed?(spec) && !force
-          print_using_message "Using #{version_message(spec)}"
+          print_using_message "Using #{version_message(spec, options[:previous_spec])}"
           return nil # no post-install message
         end
 
@@ -160,27 +160,20 @@ module Bundler
 
         return if Bundler.settings[:no_install]
 
-        if requires_sudo?
-          install_path = Bundler.tmp(spec.full_name)
-          bin_path     = install_path.join("bin")
-        else
-          install_path = rubygems_dir
-          bin_path     = Bundler.system_bindir
-        end
-
-        Bundler.mkdir_p bin_path, :no_sudo => true unless spec.executables.empty? || Bundler.rubygems.provides?(">= 2.7.5")
+        install_path = rubygems_dir
+        bin_path     = Bundler.system_bindir
 
         require_relative "../rubygems_gem_installer"
 
         installer = Bundler::RubyGemsGemInstaller.at(
           path,
-          :security_policy     => Bundler.rubygems.security_policies[Bundler.settings["trust-policy"]],
-          :install_dir         => install_path.to_s,
-          :bin_dir             => bin_path.to_s,
+          :security_policy => Bundler.rubygems.security_policies[Bundler.settings["trust-policy"]],
+          :install_dir => install_path.to_s,
+          :bin_dir => bin_path.to_s,
           :ignore_dependencies => true,
-          :wrappers            => true,
-          :env_shebang         => true,
-          :build_args          => options[:build_args],
+          :wrappers => true,
+          :env_shebang => true,
+          :build_args => options[:build_args],
           :bundler_expected_checksum => spec.respond_to?(:checksum) && spec.checksum,
           :bundler_extension_cache_path => extension_cache_path(spec)
         )
@@ -209,34 +202,7 @@ module Bundler
         spec.full_gem_path = installed_spec.full_gem_path
         spec.loaded_from = installed_spec.loaded_from
 
-        # SUDO HAX
-        if requires_sudo?
-          Bundler.rubygems.repository_subdirectories.each do |name|
-            src = File.join(install_path, name, "*")
-            dst = File.join(rubygems_dir, name)
-            if name == "extensions" && Dir.glob(src).any?
-              src = File.join(src, "*/*")
-              ext_src = Dir.glob(src).first
-              ext_src.gsub!(src[0..-6], "")
-              dst = File.dirname(File.join(dst, ext_src))
-            end
-            SharedHelpers.filesystem_access(dst) do |p|
-              Bundler.mkdir_p(p)
-            end
-            Bundler.sudo "cp -R #{src} #{dst}" if Dir[src].any?
-          end
-
-          spec.executables.each do |exe|
-            SharedHelpers.filesystem_access(Bundler.system_bindir) do |p|
-              Bundler.mkdir_p(p)
-            end
-            Bundler.sudo "cp -R #{install_path}/bin/#{exe} #{Bundler.system_bindir}/"
-          end
-        end
-
         spec.post_install_message
-      ensure
-        Bundler.rm_rf(install_path) if requires_sudo?
       end
 
       def cache(spec, custom_path = nil)
@@ -326,7 +292,7 @@ module Bundler
       end
 
       def dependency_api_available?
-        api_fetchers.any?
+        @allow_remote && api_fetchers.any?
       end
 
       protected
@@ -371,8 +337,7 @@ module Bundler
       end
 
       def normalize_uri(uri)
-        uri = uri.to_s
-        uri = "#{uri}/" unless uri =~ %r{/$}
+        uri = URINormalizer.normalize_suffix(uri.to_s)
         require_relative "../vendored_uri"
         uri = Bundler::URI(uri)
         raise ArgumentError, "The source must be an absolute URI. For example:\n" \
@@ -415,7 +380,7 @@ module Bundler
           idx = @allow_local ? installed_specs.dup : Index.new
 
           Dir["#{cache_path}/*.gem"].each do |gemfile|
-            next if gemfile =~ /^bundler\-[\d\.]+?\.gem/
+            next if /^bundler\-[\d\.]+?\.gem/.match?(gemfile)
             s ||= Bundler.rubygems.spec_from_gem(gemfile)
             s.source = self
             idx << s
@@ -475,36 +440,16 @@ module Bundler
         gem_path = package_path(cache_path, spec)
         return gem_path if File.exist?(gem_path)
 
-        if requires_sudo?
-          download_path = Bundler.tmp(spec.full_name)
-          download_cache_path = default_cache_path_for(download_path)
-        else
-          download_cache_path = cache_path
-        end
-
-        SharedHelpers.filesystem_access(download_cache_path) do |p|
+        SharedHelpers.filesystem_access(cache_path) do |p|
           FileUtils.mkdir_p(p)
         end
-        download_gem(spec, download_cache_path, previous_spec)
-
-        if requires_sudo?
-          SharedHelpers.filesystem_access(cache_path) do |p|
-            Bundler.mkdir_p(p)
-          end
-          Bundler.sudo "mv #{package_path(download_cache_path, spec)} #{gem_path}"
-        end
+        download_gem(spec, cache_path, previous_spec)
 
         gem_path
-      ensure
-        Bundler.rm_rf(download_path) if requires_sudo?
       end
 
       def installed?(spec)
         installed_specs[spec].any? && !spec.deleted_gem?
-      end
-
-      def requires_sudo?
-        Bundler.requires_sudo?
       end
 
       def rubygems_dir

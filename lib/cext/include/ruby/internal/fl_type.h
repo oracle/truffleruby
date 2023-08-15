@@ -94,7 +94,11 @@
 #define FL_USER19       RBIMPL_CAST((VALUE)(unsigned int)RUBY_FL_USER19) /**< @old{RUBY_FL_USER19} */
 
 #define ELTS_SHARED          RUBY_ELTS_SHARED     /**< @old{RUBY_ELTS_SHARED} */
+#ifdef TRUFFLERUBY
+#define RB_OBJ_FREEZE        rb_obj_freeze
+#else
 #define RB_OBJ_FREEZE        rb_obj_freeze_inline /**< @alias{rb_obj_freeze_inline} */
+#endif
 
 /** @cond INTERNAL_MACRO */
 #define RUBY_ELTS_SHARED     RUBY_ELTS_SHARED
@@ -454,12 +458,6 @@ enum {
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 /**
- * @deprecated  Does nothing.  This method is deprecated and will be removed in
- *              Ruby 3.2.
- */
-void rb_obj_infect(VALUE victim, VALUE carrier);
-
-/**
  * This is an  implementation detail of #RB_OBJ_FREEZE().  People  don't use it
  * directly.
  *
@@ -470,9 +468,6 @@ void rb_freeze_singleton_class(VALUE klass);
 #ifdef TRUFFLERUBY
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
-bool rb_tr_obj_taintable_p(VALUE object);
-bool rb_tr_obj_tainted_p(VALUE object);
-void rb_tr_obj_infect(VALUE a, VALUE b);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
@@ -986,25 +981,10 @@ RB_OBJ_FREEZE_RAW(VALUE obj)
 #endif
 }
 
-/**
- * Prevents further modifications to the given object.  ::rb_eFrozenError shall
- * be raised if modification is attempted.
- *
- * @param[out]  x  Object in question.
- */
-static inline void
-rb_obj_freeze_inline(VALUE x)
-{
-#ifdef TRUFFLERUBY
-    rb_obj_freeze(x);
-#else
-    if (RB_FL_ABLE(x)) {
-        RB_OBJ_FREEZE_RAW(x);
-        if (RBASIC_CLASS(x) && !(RBASIC(x)->flags & RUBY_FL_SINGLETON)) {
-            rb_freeze_singleton_class(x);
-        }
-    }
+RUBY_SYMBOL_EXPORT_BEGIN
+#ifndef TRUFFLERUBY
+void rb_obj_freeze_inline(VALUE obj);
 #endif
-}
+RUBY_SYMBOL_EXPORT_END
 
 #endif /* RBIMPL_FL_TYPE_H */

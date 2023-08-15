@@ -42,6 +42,7 @@ bench/psd.rb/psd_native/ext/psd_native/Makefile
 lib/gems/extensions
 lib/gems/gems/*/ext/*/Makefile
 lib/gems/gems/*/ext/*/.*.time
+lib/gems/gems/debug-*/ext/debug/debug_version.h
 
 src/main/c/*/Makefile
 !src/main/c/spawn-helper/Makefile

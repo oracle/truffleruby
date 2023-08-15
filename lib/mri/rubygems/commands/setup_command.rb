@@ -107,7 +107,7 @@ class Gem::Commands::SetupCommand < Gem::Command
   end
 
   def check_ruby_version
-    required_version = Gem::Requirement.new ">= 2.3.0"
+    required_version = Gem::Requirement.new ">= 2.6.0"
 
     unless required_version.satisfied_by? Gem.ruby_version
       alert_error "Expected Ruby version #{required_version}, is #{Gem.ruby_version}"
@@ -576,7 +576,7 @@ abort "#{deprecation_message}"
     require_relative "../uninstaller"
 
     ui = Gem::Uninstaller.new("gemcutter", :all => true, :ignore => true,
-                              :version => "< 0.4")
+                                           :version => "< 0.4")
     ui.uninstall
   rescue Gem::InstallError
   end

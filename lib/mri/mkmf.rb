@@ -1837,7 +1837,7 @@ SRC
     hdr << "#endif\n"
     hdr = hdr.join("")
     log_src(hdr, "#{header} is")
-    unless (IO.read(header) == hdr rescue false)
+    unless (File.read(header) == hdr rescue false)
       File.open(header, "wb") do |hfile|
         hfile.write(hdr)
       end
@@ -1941,7 +1941,7 @@ SRC
     if pkgconfig = with_config("#{pkg}-config") and find_executable0(pkgconfig)
       # if and only if package specific config command is given
     elsif ($PKGCONFIG ||=
-           (pkgconfig = with_config("pkg-config", RbConfig::CONFIG["PKG_CONFIG"])) &&
+           (pkgconfig = with_config("pkg-config") {config_string("PKG_CONFIG") || "pkg-config"}) &&
            find_executable0(pkgconfig) && pkgconfig) and
         xsystem([*envs, $PKGCONFIG, "--exists", pkg])
       # default to pkg-config command
@@ -2378,7 +2378,7 @@ RULES
     RbConfig.expand(srcdir = srcprefix.dup)
 
     ext = ".#{$OBJEXT}"
-    orig_srcs = Dir[File.join(srcdir, "*.{#{SRC_EXT.join(%q{,})}}")].sort
+    orig_srcs = Dir[File.join(srcdir, "*.{#{SRC_EXT.join(%q{,})}}")]
     if not $objs
       srcs = $srcs || orig_srcs
       $objs = []
@@ -2388,7 +2388,7 @@ RULES
         h
       }
       unless objs.delete_if {|b, f| f.size == 1}.empty?
-        dups = objs.sort.map {|b, f|
+        dups = objs.map {|b, f|
           "#{b[/.*\./]}{#{f.collect {|n| n[/([^.]+)\z/]}.join(',')}}"
         }
         abort "source files duplication - #{dups.join(", ")}"
@@ -2470,11 +2470,19 @@ TIMESTAMP_DIR = #{$extout && $extmk ? '$(extout)/.timestamp' : '.'}
     install_dirs.each {|d| conf << ("%-14s= %s\n" % d) if /^[[:upper:]]/ =~ d[0]}
     sodir = $extout ? '$(TARGET_SO_DIR)' : '$(RUBYARCHDIR)'
     n = '$(TARGET_SO_DIR)$(TARGET)'
+    cleanobjs = ["$(OBJS)"]
+    if $extmk
+      %w[bc i s].each {|ex| cleanobjs << "$(OBJS:.#{$OBJEXT}=.#{ex})"}
+    end
+    if target
+      config_string('cleanobjs') {|t| cleanobjs << t.gsub(/\$\*/, "$(TARGET)#{deffile ? '-$(arch)': ''}")}
+    end
     conf << "\
 TARGET_SO_DIR =#{$extout ? " $(RUBYARCHDIR)/" : ''}
 TARGET_SO     = $(TARGET_SO_DIR)$(DLLIB)
 CLEANLIBS     = #{'$(TARGET_SO) ' if target}#{config_string('cleanlibs') {|t| t.gsub(/\$\*/) {n}}}
-CLEANOBJS     = *.#{$OBJEXT} #{config_string('cleanobjs') {|t| t.gsub(/\$\*/, "$(TARGET)#{deffile ? '-$(arch)': ''}")} if target} *.bak
+CLEANOBJS     = #{cleanobjs.join(' ')} *.bak
+TARGET_SO_DIR_TIMESTAMP = #{timestamp_file(sodir, target_prefix)}
 " #"
 
     conf = yield(conf) if block_given?
@@ -2508,7 +2516,7 @@ static: #{$extmk && !$static ? "all" : "$(STATIC_LIB)#{$extout ? " install-rb" :
     if target
       f = "$(DLLIB)"
       dest = "$(TARGET_SO)"
-      stamp = timestamp_file(dir, target_prefix)
+      stamp = '$(TARGET_SO_DIR_TIMESTAMP)'
       if $extout
         mfile.puts dest
         mfile.print "clean-so::\n"
@@ -2577,7 +2585,9 @@ static: #{$extmk && !$static ? "all" : "$(STATIC_LIB)#{$extout ? " install-rb" :
         end
       end
     end
-    dirs.unshift(sodir) if target and !dirs.include?(sodir)
+    if target and !dirs.include?(sodir)
+      mfile.print "$(TARGET_SO_DIR_TIMESTAMP):\n\t$(Q) $(MAKEDIRS) $(@D) #{sodir}\n\t$(Q) $(TOUCH) $@\n"
+    end
     dirs.each do |d|
       t = timestamp_file(d, target_prefix)
       mfile.print "#{t}:\n\t$(Q) $(MAKEDIRS) $(@D) #{d}\n\t$(Q) $(TOUCH) $@\n"
@@ -2621,7 +2631,7 @@ site-install-rb: install-rb
     mfile.print "$(TARGET_SO): "
     mfile.print "$(DEFFILE) " if makedef
     mfile.print "$(OBJS) Makefile"
-    mfile.print " #{timestamp_file(sodir, target_prefix)}" if $extout
+    mfile.print " $(TARGET_SO_DIR_TIMESTAMP)" if $extout
     mfile.print "\n"
     mfile.print "\t$(ECHO) linking shared-object #{target_prefix.sub(/\A\/(.*)/, '\1/')}$(DLLIB)\n"
     mfile.print "\t-$(Q)$(RM) $(@#{sep})\n"

@@ -144,13 +144,13 @@ EXAMPLES.each do |example|
             if value == example.expected_value
               report 'OK', example.code
             else
-              report 'INCORRECT', example.code, "was: #{$value.inspect} and not: #{example.expected_value.inspect}"
+              report 'INCORRECT', example.code, "was: #{value.inspect} and not: #{example.expected_value.inspect}"
               failed += 1
             end
           end
         else
           if constant
-            report 'QUERY', example.code, "wasn't supposed to be constant but it was (#{$value.inspect})"
+            report 'QUERY', example.code, "wasn't supposed to be constant but it was (#{value.inspect})"
             failed += 1
           else
             report 'OK (counter)', example.code

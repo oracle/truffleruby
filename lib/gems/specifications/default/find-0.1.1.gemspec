@@ -10,13 +10,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Kazuki Tsujimoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2022-12-06"
+  s.date = "2023-03-30"
   s.description = "This module supports top-down traversal of a set of file paths.".freeze
   s.email = ["kazuki@callcc.net".freeze]
-  s.files = ["find.rb".freeze]
+  s.files = ["lib/find.rb".freeze]
   s.homepage = "https://github.com/ruby/find".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.3.26".freeze
+  s.rubygems_version = "3.4.10".freeze
   s.summary = "This module supports top-down traversal of a set of file paths.".freeze
 end

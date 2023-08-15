@@ -66,6 +66,15 @@ class TestSyntax < Test::Unit::TestCase
     f&.close!
   end
 
+  def test_script_lines_encoding
+    require 'tmpdir'
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "script_lines.rb"), "SCRIPT_LINES__ = {}\n")
+      assert_in_out_err(%w"-r./script_lines -w -Ke", "puts __ENCODING__.name",
+                        %w"EUC-JP", /-K is specified/, chdir: dir)
+    end
+  end
+
   def test_anonymous_block_forwarding
     assert_syntax_error("def b; c(&); end", /no anonymous block parameter/)
     assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
@@ -130,6 +139,44 @@ class TestSyntax < Test::Unit::TestCase
         end
         assert_equal(10, all_kwrest(nil, nil, nil, nil, okw1: nil, okw2: nil){10})
     end;
+  end
+
+  def test_anonymous_rest_forwarding
+    assert_syntax_error("def b; c(*); end", /no anonymous rest parameter/)
+    assert_syntax_error("def b; c(1, *); end", /no anonymous rest parameter/)
+    assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
+    begin;
+        def b(*); c(*) end
+        def c(*a); a end
+        def d(*); b(*, *) end
+        assert_equal([1, 2], b(1, 2))
+        assert_equal([1, 2, 1, 2], d(1, 2))
+    end;
+  end
+
+  def test_anonymous_keyword_rest_forwarding
+    assert_syntax_error("def b; c(**); end", /no anonymous keyword rest parameter/)
+    assert_syntax_error("def b; c(k: 1, **); end", /no anonymous keyword rest parameter/)
+    assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
+    begin;
+        def b(**); c(**) end
+        def c(**kw); kw end
+        def d(**); b(k: 1, **) end
+        def e(**); b(**, k: 1) end
+        def f(a: nil, **); b(**) end
+        assert_equal({a: 1, k: 3}, b(a: 1, k: 3))
+        assert_equal({a: 1, k: 3}, d(a: 1, k: 3))
+        assert_equal({a: 1, k: 1}, e(a: 1, k: 3))
+        assert_equal({k: 3}, f(a: 1, k: 3))
+    end;
+  end
+
+  def test_argument_forwarding_with_anon_rest_kwrest_and_block
+    assert_syntax_error("def f(*, **, &); g(...); end", /unexpected \.\.\./)
+    assert_syntax_error("def f(...); g(*); end", /no anonymous rest parameter/)
+    assert_syntax_error("def f(...); g(0, *); end", /no anonymous rest parameter/)
+    assert_syntax_error("def f(...); g(**); end", /no anonymous keyword rest parameter/)
+    assert_syntax_error("def f(...); g(x: 1, **); end", /no anonymous keyword rest parameter/)
   end
 
   def test_newline_in_block_parameters
@@ -1671,6 +1718,8 @@ eom
     assert_syntax_error('def foo(...) foo[...] = x; end', /unexpected/)
     assert_syntax_error('def foo(...) foo(...) { }; end', /both block arg and actual block given/)
     assert_syntax_error('def foo(...) defined?(...); end', /unexpected/)
+    assert_syntax_error('def foo(*rest, ...) end', '... after rest argument')
+    assert_syntax_error('def foo(*, ...) end', '... after rest argument')
 
     obj1 = Object.new
     def obj1.bar(*args, **kws, &block)
@@ -1869,6 +1918,21 @@ eom
 
     exp = eval("-> (a: nil) {a...1}")
     assert_equal 0...1, exp.call(a: 0)
+  end
+
+  def test_class_module_Object_ancestors
+    assert_separately([], <<-RUBY)
+      m = Module.new
+      m::Bug18832 = 1
+      include m
+      class Bug18832; end
+    RUBY
+    assert_separately([], <<-RUBY)
+      m = Module.new
+      m::Bug18832 = 1
+      include m
+      module Bug18832; end
+    RUBY
   end
 
   def test_cdhash

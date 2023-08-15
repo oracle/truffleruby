@@ -255,7 +255,7 @@ class Gem::TestCase < Test::Unit::TestCase
   end
 
   def assert_contains_make_command(target, output, msg = nil)
-    if output.match(/\n/)
+    if output.include?("\n")
       msg = build_message(msg,
         "Expected output containing make command \"%s\", but was \n\nBEGIN_OF_OUTPUT\n%sEND_OF_OUTPUT" % [
           ("%s %s" % [make_command, target]).rstrip,
@@ -307,8 +307,10 @@ class Gem::TestCase < Test::Unit::TestCase
     ENV["XDG_CACHE_HOME"] = nil
     ENV["XDG_CONFIG_HOME"] = nil
     ENV["XDG_DATA_HOME"] = nil
+    ENV["XDG_STATE_HOME"] = nil
     ENV["SOURCE_DATE_EPOCH"] = nil
     ENV["BUNDLER_VERSION"] = nil
+    ENV["RUBYGEMS_PREVENT_UPDATE_SUGGESTION"] = "true"
 
     @current_dir = Dir.pwd
     @fetcher     = nil
@@ -326,6 +328,7 @@ class Gem::TestCase < Test::Unit::TestCase
 
     @gemhome  = File.join @tempdir, "gemhome"
     @userhome = File.join @tempdir, "userhome"
+    @statehome = File.join @tempdir, "statehome"
     ENV["GEM_SPEC_CACHE"] = File.join @tempdir, "spec_cache"
 
     @orig_ruby = if ENV["RUBY"]
@@ -334,7 +337,7 @@ class Gem::TestCase < Test::Unit::TestCase
       ruby
     end
 
-    @git = ENV["GIT"] || (win_platform? ? "git.exe" : "git")
+    @git = ENV["GIT"] || "git#{RbConfig::CONFIG['EXEEXT']}"
 
     Gem.ensure_gem_subdirectories @gemhome
     Gem.ensure_default_gem_subdirectories @gemhome
@@ -360,6 +363,7 @@ class Gem::TestCase < Test::Unit::TestCase
     Gem.instance_variable_set :@user_home, nil
     Gem.instance_variable_set :@config_home, nil
     Gem.instance_variable_set :@data_home, nil
+    Gem.instance_variable_set :@state_home, @statehome
     Gem.instance_variable_set :@gemdeps, nil
     Gem.instance_variable_set :@env_requirements_by_name, nil
     Gem.send :remove_instance_variable, :@ruby_version if
@@ -559,14 +563,13 @@ class Gem::TestCase < Test::Unit::TestCase
     Dir.chdir directory do
       unless File.exist? ".git"
         system @git, "init", "--quiet"
-        system @git, "checkout", "-b", "master", "--quiet"
         system @git, "config", "user.name",  "RubyGems Tests"
         system @git, "config", "user.email", "rubygems@example"
       end
 
       system @git, "add", gemspec
       system @git, "commit", "-a", "-m", "a non-empty commit message", "--quiet"
-      head = Gem::Util.popen(@git, "rev-parse", "master").strip
+      head = Gem::Util.popen(@git, "rev-parse", "HEAD").strip
     end
 
     return name, git_spec.version, directory, head
@@ -1259,7 +1262,7 @@ Also, a list:
     ruby = ENV["RUBY"]
     return ruby if ruby
     ruby = "ruby"
-    rubyexe = "#{ruby}.exe"
+    rubyexe = "#{ruby}#{RbConfig::CONFIG['EXEEXT']}"
 
     3.times do
       if File.exist?(ruby) && File.executable?(ruby) && !File.directory?(ruby)
@@ -1551,7 +1554,7 @@ Also, a list:
   # :stopdoc:
   # only available in RubyGems tests
 
-  PRIVATE_KEY_PASSPHRASE = "Foo bar".freeze
+  PRIVATE_KEY_PASSPHRASE = "Foo bar"
 
   begin
     PRIVATE_KEY                 = load_key "private"

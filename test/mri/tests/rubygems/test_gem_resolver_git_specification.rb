@@ -63,7 +63,7 @@ class TestGemResolverGitSpecification < Gem::TestCase
 
   def test_install_extension
     pend if Gem.java_platform?
-    pend if /mswin/ =~ RUBY_PLATFORM && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
+    pend if RUBY_PLATFORM.include?("mswin") && ENV.key?("GITHUB_ACTIONS") # not working from the beginning
     name, _, repository, = git_gem "a", 1 do |s|
       s.extensions << "ext/extconf.rb"
     end
@@ -84,7 +84,7 @@ class TestGemResolverGitSpecification < Gem::TestCase
       system @git, "commit", "--quiet", "-m", "Add extension files"
     end
 
-    source = Gem::Source::Git.new name, repository, "master", true
+    source = Gem::Source::Git.new name, repository, nil, true
 
     spec = source.specs.first
 

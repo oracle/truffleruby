@@ -14,7 +14,6 @@ require_relative 'magic-file'
 require_relative 'completion'
 require 'io/console'
 require 'reline'
-require 'rdoc'
 
 module IRB
   STDIN_FILE_NAME = "(line)" # :nodoc:
@@ -39,7 +38,7 @@ module IRB
     public :gets
 
     def winsize
-      if instance_variable_defined?(:@stdout) && (defined?(::TruffleRuby) ? @stdout.tty? : true)
+      if instance_variable_defined?(:@stdout) && @stdout.tty?
         @stdout.winsize
       else
         [24, 80]
@@ -138,7 +137,7 @@ module IRB
     # Creates a new input method object
     def initialize(file)
       super
-      @io = IRB::MagicFile.open(file)
+      @io = file.is_a?(IO) ? file : IRB::MagicFile.open(file)
       @external_encoding = @io.external_encoding
     end
     # The file name of this input method, usually given during initialization.
@@ -262,7 +261,7 @@ module IRB
     end
   end
 
-  class ReidlineInputMethod < InputMethod
+  class RelineInputMethod < InputMethod
     include Reline
 
     # Creates a new input method object using Reline
@@ -287,7 +286,8 @@ module IRB
         if IRB.conf[:USE_COLORIZE]
           proc do |output, complete: |
             next unless IRB::Color.colorable?
-            IRB::Color.colorize_code(output, complete: complete)
+            lvars = IRB.CurrentContext&.local_variables || []
+            IRB::Color.colorize_code(output, complete: complete, local_variables: lvars)
           end
         else
           proc do |output|
@@ -296,8 +296,13 @@ module IRB
         end
       Reline.dig_perfect_match_proc = IRB::InputCompletor::PerfectMatchedProc
       Reline.autocompletion = IRB.conf[:USE_AUTOCOMPLETE]
+
       if IRB.conf[:USE_AUTOCOMPLETE]
-        Reline.add_dialog_proc(:show_doc, SHOW_DOC_DIALOG, Reline::DEFAULT_DIALOG_CONTEXT)
+        begin
+          require 'rdoc'
+          Reline.add_dialog_proc(:show_doc, SHOW_DOC_DIALOG, Reline::DEFAULT_DIALOG_CONTEXT)
+        rescue LoadError
+        end
       end
     end
 
@@ -456,7 +461,7 @@ module IRB
     # For debug message
     def inspect
       config = Reline::Config.new
-      str = "ReidlineInputMethod with Reline #{Reline::VERSION}"
+      str = "RelineInputMethod with Reline #{Reline::VERSION}"
       if config.respond_to?(:inputrc_path)
         inputrc_path = File.expand_path(config.inputrc_path)
       else
@@ -464,6 +469,15 @@ module IRB
       end
       str += " and #{inputrc_path}" if File.exist?(inputrc_path)
       str
+    end
+  end
+
+  class ReidlineInputMethod < RelineInputMethod
+    def initialize
+      warn <<~MSG.strip
+        IRB::ReidlineInputMethod is deprecated, please use IRB::RelineInputMethod instead.
+      MSG
+      super
     end
   end
 end

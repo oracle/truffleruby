@@ -173,6 +173,7 @@ duplicate dependency on #{dep}, (#{prev.requirement}) use:
   end
 
   ##
+  # Checks that the gem does not depend on itself.
   # Checks that dependencies use requirements as we recommend.  Warnings are
   # issued when dependencies are open-ended or overly strict for semantic
   # versioning.
@@ -180,6 +181,10 @@ duplicate dependency on #{dep}, (#{prev.requirement}) use:
   def validate_dependencies # :nodoc:
     warning_messages = []
     @specification.dependencies.each do |dep|
+      if dep.name == @specification.name # warn on self reference
+        warning_messages << "Self referencing dependency is unnecessary and strongly discouraged."
+      end
+
       prerelease_dep = dep.requirements_list.any? do |req|
         Gem::Requirement.new(req).prerelease?
       end
@@ -460,6 +465,20 @@ http://spdx.org/licenses or '#{Gem::Licenses::NONSTANDARD}' for a nonstandard li
     require_relative "ext"
     builder = Gem::Ext::Builder.new(@specification)
 
+    validate_rake_extensions(builder)
+    validate_rust_extensions(builder)
+  end
+
+  def validate_rust_extensions(builder) # :nodoc:
+    rust_extension = @specification.extensions.any? {|s| builder.builder_for(s).is_a? Gem::Ext::CargoBuilder }
+    missing_cargo_lock = !@specification.files.any? {|f| f.end_with?("Cargo.lock") }
+
+    error <<-ERROR if rust_extension && missing_cargo_lock
+You have specified rust based extension, but Cargo.lock is not part of the gem files. Please run `cargo generate-lockfile` or any other command to generate Cargo.lock and ensure it is added to your gem files section in gemspec.
+    ERROR
+  end
+
+  def validate_rake_extensions(builder) # :nodoc:
     rake_extension = @specification.extensions.any? {|s| builder.builder_for(s) == Gem::Ext::RakeBuilder }
     rake_dependency = @specification.dependencies.any? {|d| d.name == "rake" }
 

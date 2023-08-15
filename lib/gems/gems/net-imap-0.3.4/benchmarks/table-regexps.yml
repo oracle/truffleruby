@@ -1,0 +1,39 @@
+prelude: |
+  require "json"
+  require "set"
+
+  all_codepoints = (0..0x10ffff).map{_1.chr("UTF-8") rescue nil}.compact
+
+  rfc3454_tables = Dir["rfcs/rfc3454*.json"]
+    .first
+    .then{File.read _1}
+    .then{JSON.parse _1}
+  titles = rfc3454_tables.delete("titles")
+
+  sets = rfc3454_tables
+    .transform_values{|t|t.keys rescue t}
+    .transform_values{|table|
+      table
+        .map{_1.split(?-).map{|i|Integer i, 16}}
+        .flat_map{_2 ? (_1.._2).to_a : _1}
+        .to_set
+    }
+
+  TABLE_A1_SET   = sets.fetch "A.1"
+  ASSIGNED_3_2   = /\p{AGE=3.2}/
+  UNASSIGNED_3_2 = /\P{AGE=3.2}/
+  TABLE_A1_REGEX = /(?-mix:[\u{0000}-\u{001f}\u{007f}-\u{00a0}\u{0340}-\u{0341}\u{06dd}\u{070f}\u{1680}\u{180e}\u{2000}-\u{200f}\u{2028}-\u{202f}\u{205f}-\u{2063}\u{206a}-\u{206f}\u{2ff0}-\u{2ffb}\u{3000}\u{e000}-\u{f8ff}\u{fdd0}-\u{fdef}\u{feff}\u{fff9}-\u{ffff}\u{1d173}-\u{1d17a}\u{1fffe}-\u{1ffff}\u{2fffe}-\u{2ffff}\u{3fffe}-\u{3ffff}\u{4fffe}-\u{4ffff}\u{5fffe}-\u{5ffff}\u{6fffe}-\u{6ffff}\u{7fffe}-\u{7ffff}\u{8fffe}-\u{8ffff}\u{9fffe}-\u{9ffff}\u{afffe}-\u{affff}\u{bfffe}-\u{bffff}\u{cfffe}-\u{cffff}\u{dfffe}-\u{dffff}\u{e0001}\u{e0020}-\u{e007f}\u{efffe}-\u{10ffff}])|(?-mix:\p{Cs})/.freeze
+
+benchmark:
+
+  # matches A.1
+  - script: "all_codepoints.grep(TABLE_A1_SET)"
+  - script: "all_codepoints.grep(TABLE_A1_REGEX)"
+  - script: "all_codepoints.grep(UNASSIGNED_3_2)"
+  - script: "all_codepoints.grep_v(ASSIGNED_3_2)"
+
+  # doesn't match A.1
+  - script: "all_codepoints.grep_v(TABLE_A1_SET)"
+  - script: "all_codepoints.grep_v(TABLE_A1_REGEX)"
+  - script: "all_codepoints.grep_v(UNASSIGNED_3_2)"
+  - script: "all_codepoints.grep(ASSIGNED_3_2)"

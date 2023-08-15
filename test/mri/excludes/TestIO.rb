@@ -60,3 +60,8 @@ exclude :test_copy_stream_megacontent_nonblock, "transient, and very slow on aar
 exclude :test_read_nonblock_zero_size, "Expected \"01234567\" to be empty."
 exclude :test_sysread_locktmp, "Exception(RuntimeError) with message matches to /can't modify string; temporarily locked/."
 exclude :test_autoclose_false_closed_by_finalizer, "too slow"
+exclude :test_sysread_with_negative_length, "[ArgumentError] exception expected, not #<Errno::EFAULT: Bad address>."
+exclude :test_gets_chomp_rs_nil, "[Bug #18770]."
+exclude :test_each_line, "[Bug #18770]."
+exclude :test_explicit_path, "Expected /Fake Path/ to match \"#<IO:fd 0>\"."
+exclude :test_dup_timeout, "NoMethodError: undefined method `timeout=' for #<IO:(closed)>"

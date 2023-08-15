@@ -1,7 +1,10 @@
 ==
 []
 begin
+byteoffset
 captures
+deconstruct
+deconstruct_keys
 end
 eql?
 hash

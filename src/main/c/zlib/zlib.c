@@ -25,7 +25,7 @@
 # define VALGRIND_MAKE_MEM_UNDEFINED(p, n) 0
 #endif
 
-#define RUBY_ZLIB_VERSION "2.1.1"
+#define RUBY_ZLIB_VERSION "3.0.0"
 
 #ifndef RB_PASS_CALLED_KEYWORDS
 # define rb_class_new_instance_kw(argc, argv, klass, kw_splat) rb_class_new_instance(argc, argv, klass)
@@ -42,6 +42,14 @@
 #else
 #define DEF_MEM_LEVEL  MAX_MEM_LEVEL
 #endif
+#endif
+
+#if defined(HAVE_TYPE_Z_SIZE_T)
+typedef uLong (*checksum_func)(uLong, const Bytef*, z_size_t);
+# define crc32 crc32_z
+# define adler32 adler32_z
+#else
+typedef uLong (*checksum_func)(uLong, const Bytef*, uInt);
 #endif
 
 #if SIZEOF_LONG > SIZEOF_INT
@@ -65,7 +73,7 @@ static ID id_dictionaries, id_read, id_buffer;
 
 static NORETURN(void raise_zlib_error(int, const char*));
 static VALUE rb_zlib_version(VALUE);
-static VALUE do_checksum(int, VALUE*, uLong (*)(uLong, const Bytef*, uInt));
+static VALUE do_checksum(int, VALUE*, checksum_func);
 static VALUE rb_zlib_adler32(int, VALUE*, VALUE);
 static VALUE rb_zlib_crc32(int, VALUE*, VALUE);
 static VALUE rb_zlib_crc_table(VALUE);
@@ -380,7 +388,7 @@ rb_zlib_version(VALUE klass)
 # define mask32(x) (x)
 #endif
 
-#if SIZEOF_LONG > SIZEOF_INT
+#if SIZEOF_LONG > SIZEOF_INT && !defined(HAVE_TYPE_Z_SIZE_T)
 static uLong
 checksum_long(uLong (*func)(uLong, const Bytef*, uInt), uLong sum, const Bytef *ptr, long len)
 {
@@ -395,11 +403,11 @@ checksum_long(uLong (*func)(uLong, const Bytef*, uInt), uLong sum, const Bytef *
     return sum;
 }
 #else
-#define checksum_long(func, sum, ptr, len) (func)((sum), (ptr), (len))
+#define checksum_long(func, sum, ptr, len) (func)(mask32(sum), (ptr), (len))
 #endif
 
 static VALUE
-do_checksum(int argc, VALUE *argv, uLong (*func)(uLong, const Bytef*, uInt))
+do_checksum(int argc, VALUE *argv, checksum_func func)
 {
     VALUE str, vsum;
     unsigned long sum;
@@ -467,7 +475,7 @@ rb_zlib_adler32(int argc, VALUE *argv, VALUE klass)
  *
  * call-seq: Zlib.adler32_combine(adler1, adler2, len2)
  *
- * Combine two Adler-32 check values in to one.  +alder1+ is the first Adler-32
+ * Combine two Adler-32 check values in to one.  +adler1+ is the first Adler-32
  * value, +adler2+ is the second Adler-32 value.  +len2+ is the length of the
  * string used to generate +adler2+.
  *

@@ -47,6 +47,7 @@ join
 lchmod
 lchown
 lstat
+lutime
 make_link
 make_symlink
 mkdir

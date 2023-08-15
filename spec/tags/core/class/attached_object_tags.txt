@@ -1,0 +1,4 @@
+fails:Class#attached_object returns the object that is attached to a singleton class
+fails:Class#attached_object returns the class object that is attached to a class's singleton class
+fails:Class#attached_object raises TypeError if the class is not a singleton class
+fails:Class#attached_object raises TypeError for special singleton classes

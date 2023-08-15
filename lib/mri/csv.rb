@@ -1005,7 +1005,7 @@ class CSV
     def instance(data = $stdout, **options)
       # create a _signature_ for this method call, data object and options
       sig = [data.object_id] +
-            options.values_at(*DEFAULT_OPTIONS.keys.sort_by { |sym| sym.to_s })
+            options.values_at(*DEFAULT_OPTIONS.keys)
 
       # fetch or create the instance for this signature
       @@instances ||= Hash.new
@@ -1144,7 +1144,7 @@ class CSV
     #   File.read('t.csv') # => "Name,Value\nFOO,0\nBAR,-1\nBAZ,-2\n"
     #
     # When neither +in_string_or_io+ nor +out_string_or_io+ given,
-    # parses from {ARGF}[https://docs.ruby-lang.org/en/master/ARGF.html]
+    # parses from {ARGF}[rdoc-ref:ARGF]
     # and generates to STDOUT.
     #
     # Without headers:
@@ -1202,7 +1202,7 @@ class CSV
       # parse options for input, output, or both
       in_options, out_options = Hash.new, {row_sep: InputRecordSeparator.value}
       options.each do |key, value|
-        case key.to_s
+        case key
         when /\Ain(?:put)?_(.+)\Z/
           in_options[$1.to_sym] = value
         when /\Aout(?:put)?_(.+)\Z/
@@ -1489,12 +1489,12 @@ class CSV
     # ---
     #
     # Returns the \String generated from an
-    #   CSV.generate_lines(['foo', '0'], ['bar', '1'], ['baz', '2']) # => "foo,0\nbar,1\nbaz.2\n"
+    #   CSV.generate_lines([['foo', '0'], ['bar', '1'], ['baz', '2']]) # => "foo,0\nbar,1\nbaz,2\n"
     #
     # ---
     #
     # Raises an exception
-    #   # Raises NoMethodError (undefined method `find' for :foo:Symbol)
+    #   # Raises NoMethodError (undefined method `each' for :foo:Symbol)
     #   CSV.generate_lines(:foo)
     #
     def generate_lines(rows, **options)
@@ -2551,7 +2551,13 @@ class CSV
   #     p row
   #   end
   def each(&block)
-    parser_enumerator.each(&block)
+    return to_enum(__method__) unless block_given?
+    begin
+      while true
+        yield(parser_enumerator.next)
+      end
+    rescue StopIteration
+    end
   end
 
   # :call-seq:

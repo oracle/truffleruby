@@ -130,7 +130,13 @@ enum ruby_rarray_flags {
      * 3rd parties must  not be aware that  there even is more than  one way to
      * store array elements.  It was a bad idea to expose this to them.
      */
+#if USE_RVARGC
+    RARRAY_EMBED_LEN_MASK  = RUBY_FL_USER9 | RUBY_FL_USER8 | RUBY_FL_USER7 | RUBY_FL_USER6 |
+                                 RUBY_FL_USER5 | RUBY_FL_USER4 | RUBY_FL_USER3
+#else
     RARRAY_EMBED_LEN_MASK  = RUBY_FL_USER4 | RUBY_FL_USER3
+#endif
+
 #if USE_TRANSIENT_HEAP
     ,
 
@@ -156,10 +162,14 @@ enum ruby_rarray_flags {
  */
 enum ruby_rarray_consts {
     /** Where ::RARRAY_EMBED_LEN_MASK resides. */
-    RARRAY_EMBED_LEN_SHIFT = RUBY_FL_USHIFT + 3,
+    RARRAY_EMBED_LEN_SHIFT = RUBY_FL_USHIFT + 3
+
+#if !USE_RVARGC
+    ,
 
     /** Max possible number elements that can be embedded. */
     RARRAY_EMBED_LEN_MAX   = RBIMPL_EMBED_LEN_MAX_OF(VALUE)
+#endif
 };
 
 /** Ruby's array. */
@@ -218,7 +228,16 @@ struct RArray {
          * to store its elements.  In this  case the length is encoded into the
          * flags.
          */
+#if USE_RVARGC
+        /* This is a length 1 array because:
+         *   1. GCC has a bug that does not optimize C flexible array members
+         *      (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=102452)
+         *   2. Zero length arrays are not supported by all compilers
+         */
+        const VALUE ary[1];
+#else
         const VALUE ary[RARRAY_EMBED_LEN_MAX];
+#endif
     } as;
 };
 
@@ -491,14 +510,6 @@ rb_array_ptr_use_end(VALUE a,
  * This is an  implementation detail of #RARRAY_PTR_USE.  People do  not use it
  * directly.
  */
-#define RARRAY_PTR_USE_START(a) rb_array_ptr_use_start(a, 0)
-
-/**
- * @private
- *
- * This is an  implementation detail of #RARRAY_PTR_USE.  People do  not use it
- * directly.
- */
 #define RARRAY_PTR_USE_END(a) rb_array_ptr_use_end(a, 0)
 
 /**
@@ -528,22 +539,6 @@ rb_array_ptr_use_end(VALUE a,
  */
 #define RARRAY_PTR_USE(ary, ptr_name, expr)     \
     RBIMPL_RARRAY_STMT(0, ary, ptr_name, expr)
-
-/**
- * @private
- *
- * This is  an implementation  detail of #RARRAY_PTR_USE_TRANSIENT.   People do
- * not use it directly.
- */
-#define RARRAY_PTR_USE_START_TRANSIENT(a) rb_array_ptr_use_start(a, 1)
-
-/**
- * @private
- *
- * This is  an implementation  detail of #RARRAY_PTR_USE_TRANSIENT.   People do
- * not use it directly.
- */
-#define RARRAY_PTR_USE_END_TRANSIENT(a) rb_array_ptr_use_end(a, 1)
 
 /**
  * Identical to #RARRAY_PTR_USE, except the pointer can be a transient one.

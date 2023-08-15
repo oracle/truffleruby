@@ -14,9 +14,6 @@ name
 original_name
 owner
 parameters
-private?
-protected?
-public?
 receiver
 source_location
 super_method
