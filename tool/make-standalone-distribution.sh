@@ -11,6 +11,7 @@ set -x
 
 # Build
 bin/jt build --env native
+bin/jt build --env native -- --dependencies=GRAALVM_STANDALONES
 
 standalone=$(bin/jt mx --env native standalone-home ruby)
 release_home="$PWD/mxbuild/truffleruby-standalone"
