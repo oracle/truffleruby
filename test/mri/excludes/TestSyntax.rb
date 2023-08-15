@@ -59,3 +59,5 @@ exclude :test_methoddef_endless_command, "/home/eregon/code/truffleruby-ws/truff
 exclude :test_argument_forwarding_with_anon_rest_kwrest_and_block, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_syntax.rb:175:in `test_argument_forwarding_with_anon_rest_kwrest_and_block'."
 exclude :test_anonymous_rest_forwarding, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_syntax.rb:145:in `test_anonymous_rest_forwarding'."
 exclude :test_anonymous_keyword_rest_forwarding, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_syntax.rb:158:in `test_anonymous_keyword_rest_forwarding'."
+exclude :test_script_lines_encoding, "pid 42586 exit 0."
+exclude :test_class_module_Object_ancestors, "TypeError: 1:Integer is not a class"

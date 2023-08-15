@@ -14,3 +14,4 @@ exclude :test_refinements, "TruffleRuby does not guarantee refinement list order
 exclude :test_refined_class, "TruffleRuby does not guarantee refinement list ordering"
 exclude :test_prepend_into_refinement, "TypeError expected but nothing was raised."
 exclude :test_include_into_refinement, "TypeError expected but nothing was raised."
+exclude :test_refined_protected_methods, "assert_separately failed with error message"

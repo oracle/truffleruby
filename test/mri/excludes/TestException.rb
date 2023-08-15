@@ -46,3 +46,4 @@ exclude :test_raise_with_cause, "[TypeError] exception expected, not #<RuntimeEr
 exclude :test_full_message_with_custom_detailed_message, "Expected /BOO!/ to match \"/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_exception.rb:1469:in `test_full_message_with_custom_detailed_message': \\e[1mmessage (\\e[1;4mRuntimeError\\e[m\\e[1m)\\e[m\\n\"."
 exclude :test_syntax_error_path, "NoMethodError: undefined method `path' for #<SyntaxError:0x6282d8>"
 exclude :test_detailed_message, "NoMethodError: undefined method `detailed_message' for #<RuntimeError: message>"
+exclude :test_syntax_error_detailed_message, "pid 32232 exit 1"

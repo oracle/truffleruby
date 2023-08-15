@@ -32,3 +32,6 @@ exclude :test_dump_string_coderange, "Expected \"{\\\"address\\\":\\\"0x2d8fe8\\
 exclude :test_dump_array, "Expected \"{\\\"address\\\":\\\"0x2d9048\\\",\\\"class\\\":\\\"0xa18\\\",\\\"memsize\\\":1,\\\"flags\\\":{},\\\"type\\\":\\\"ARRAY\\\",\\\"length\\\":0}\" to include \"\\\"length\\\":0, \\\"embedded\\\":true\"."
 exclude :test_dump_includes_slot_size, "NameError: uninitialized constant GC::INTERNAL_CONSTANTS"
 exclude :test_dump_shapes, "NoMethodError: undefined method `dump_shapes' for ObjectSpace:Module"
+exclude :test_load_allocation_path_load, "<1> expected but was"
+exclude :test_dump_objects_dumps_page_slot_sizes, "<\"true\"> expected but was"
+exclude :test_load_allocation_path_compile_file, "NameError: uninitialized constant RubyVM"

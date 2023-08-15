@@ -31,3 +31,4 @@ exclude :test_byterindex, "Encoding::CompatibilityError: incompatible character 
 exclude :test_rindex, "Encoding::CompatibilityError: incompatible character encodings: UTF-8 and ASCII-8BIT"
 exclude :test_byteindex, "Encoding::CompatibilityError: incompatible character encodings: UTF-8 and ASCII-8BIT"
 exclude :test_index, "Encoding::CompatibilityError: incompatible character encodings: UTF-8 and ASCII-8BIT"
+exclude :test_fs_setter, "Expected Exception(TypeError) was raised, but the message doesn't match."
