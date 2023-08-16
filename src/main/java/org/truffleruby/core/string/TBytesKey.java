@@ -43,6 +43,11 @@ public final class TBytesKey {
         this(bytes, 0, bytes.length, Arrays.hashCode(bytes), encoding);
     }
 
+    /** Supports the creation of a cache key using a subset of bytes. This key *must* be used for lookups only. If you
+     * want to insert into the cache, you *must* use the result of {@link #makeCacheable(boolean)}.
+     *
+     * @param byteArray A byte array retrieved from a {@link TruffleString}
+     * @param encoding The Ruby encoding object needed to properly decode the associated byte array */
     public TBytesKey(InternalByteArray byteArray, RubyEncoding encoding) {
         this(
                 byteArray.getArray(),
@@ -113,13 +118,27 @@ public final class TBytesKey {
         return offset == 0 && length == bytes.length;
     }
 
+    /** Returns a cache key suitable for insertion into the string cache. It's quite common that we want to cache a
+     * substring. Since we don't want to retain the entire original string, we resolve the substring by making a copy of
+     * the byte range that we need. However, that is a costly operation and that work is discarded in the event of a
+     * cache hit. To avoid incurring that cost unnecessarily, we allow cache keys to refer to a subset of a byte array.
+     * While that saves computation during a cache lookup, it means such keys are unsuitable for insertion into the
+     * cache. This method makes a key we can use safely for insertion.
+     *
+     * If we know that the key refers to an immutable byte array and the key does not refer to a substring, we can
+     * safely refer to the original byte array without needing to make an additional copy.
+     *
+     * @param isImmutable whether the key's byte array is immutable
+     * @return a cache key suitable for insertion */
     public TBytesKey makeCacheable(boolean isImmutable) {
         if (isImmutable && isPerfectFit()) {
-            return new TBytesKey(bytes, encoding);
+            return this;
         }
 
-        var simplified = ArrayUtils.extractRange(this.bytes, this.offset, this.offset + this.length);
-        return new TBytesKey(simplified, encoding);
+        // Make a copy of the substring's bytes so we can cache them without retaining the original byte array.
+        var resolvedSubstring = ArrayUtils.extractRange(this.bytes, this.offset, this.offset + this.length);
+
+        return new TBytesKey(resolvedSubstring, encoding);
     }
 
     public TBytesKey withNewEncoding(RubyEncoding encoding) {
