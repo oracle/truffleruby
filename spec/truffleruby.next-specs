@@ -9,35 +9,3 @@
 # Use spec/ruby/core/nil/nil_spec.rb as a dummy file to avoid being empty (what causes mspec to error)
 spec/ruby/core/nil/nil_spec.rb
 
-spec/ruby/core/array/slice_spec.rb
-spec/ruby/core/array/element_reference_spec.rb
-
-spec/ruby/core/hash/shift_spec.rb
-spec/ruby/core/range/size_spec.rb
-
-spec/ruby/core/string/dedup_spec.rb
-
-spec/ruby/core/string/bytesplice_spec.rb
-
-spec/ruby/core/string/byteindex_spec.rb
-spec/ruby/core/string/byterindex_spec.rb
-
-spec/ruby/core/queue/deq_spec.rb
-spec/ruby/core/queue/pop_spec.rb
-spec/ruby/core/queue/shift_spec.rb
-
-spec/ruby/core/sizedqueue/deq_spec.rb
-spec/ruby/core/sizedqueue/pop_spec.rb
-spec/ruby/core/sizedqueue/shift_spec.rb
-spec/ruby/core/sizedqueue/append_spec.rb
-spec/ruby/core/sizedqueue/enq_spec.rb
-spec/ruby/core/sizedqueue/push_spec.rb
-
-spec/ruby/core/module/const_added_spec.rb
-spec/ruby/core/module/refinements_spec.rb
-spec/ruby/core/module/undefined_instance_methods_spec.rb
-spec/ruby/core/refinement/refined_class_spec.rb
-spec/ruby/core/module/used_refinements_spec.rb
-
-spec/ruby/core/thread/each_caller_location_spec.rb
-spec/ruby/core/enumerator/product_spec.rb
