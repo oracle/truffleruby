@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "6.37.0",
+    "mxversion": "6.41.0",
     "name": "truffleruby",
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
@@ -412,6 +412,7 @@ suite = {
             "license": ["EPL-2.0"],
             "maven": {
                 "artifactId": "ruby-annotations",
+                "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
         },
@@ -438,6 +439,7 @@ suite = {
             "license": ["EPL-2.0"],
             "maven": {
                 "artifactId": "ruby-shared",
+                "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
         },
@@ -504,11 +506,12 @@ suite = {
             ],
             "maven": {
                 "artifactId": "ruby-language",
+                "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
         },
 
-        "TRUFFLERUBY_COMMUNITY": {
+        "RUBY_COMMUNITY": {
             "type": "pom",
             "runtimeDependencies": [
                 "TRUFFLERUBY",
@@ -516,7 +519,9 @@ suite = {
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
+                "groupId": "org.graalvm.polyglot",
                 "artifactId": "ruby-community",
+                "tag": ["default", "public"],
             },
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
