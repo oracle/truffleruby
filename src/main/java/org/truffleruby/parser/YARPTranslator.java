@@ -166,7 +166,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyRootNode translate(Nodes.Node node) {
         var body = node.accept(this);
-        var frameDescriptor = TranslatorEnvironment.newFrameDescriptorBuilder(null, true).build();
+        var frameDescriptor = TranslatorEnvironment.newFrameDescriptorBuilderForMethod().build();
         var sourceSection = CoreLibrary.JAVA_CORE_SOURCE_SECTION;
         var sharedMethodInfo = new SharedMethodInfo(sourceSection, null, Arity.NO_ARGUMENTS, "<main>", 0, "<main>",
                 null, null);

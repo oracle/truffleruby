@@ -67,9 +67,8 @@ public abstract class DebugHelpers {
                 RubyNode.EMPTY_ARGUMENTS);
 
 
-        var builder = TranslatorEnvironment.newFrameDescriptorBuilder(
-                new BlockFrameDescriptorInfo(currentFrameDescriptor),
-                false);
+        var builder = TranslatorEnvironment
+                .newFrameDescriptorBuilderForBlock(new BlockFrameDescriptorInfo(currentFrameDescriptor));
 
         for (int i = 0; i < nArgs; i++) {
             final Object identifier = arguments[i * 2];

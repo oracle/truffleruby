@@ -189,8 +189,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
     /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables. Any other
-     * root nodes should should use
-     * {@link TranslatorEnvironment#newFrameDescriptorBuilder(BlockFrameDescriptorInfo, boolean)}. */
+     * root nodes should should use either {@link TranslatorEnvironment#newFrameDescriptorBuilderForMethod()} or
+     * {@link TranslatorEnvironment#newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo)}. */
     public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(nil);
 
     private RubyThread getOrCreateForeignThread(RubyContext context, Thread thread) {
@@ -336,7 +336,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
      * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
      * descriptor in those cases. */
     public final FrameDescriptor emptyDeclarationDescriptor = TranslatorEnvironment
-            .newFrameDescriptorBuilder(null, true).build();
+            .newFrameDescriptorBuilderForMethod().build();
 
     public MaterializedFrame createEmptyDeclarationFrame(Object[] packedArgs, SpecialVariableStorage variables) {
         // createVirtualFrame().materialize() compiles better if this is in PE code

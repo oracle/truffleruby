@@ -81,10 +81,13 @@ public final class TranslatorEnvironment {
         this.parent = parent;
 
         if (descriptor == null) {
-            BlockFrameDescriptorInfo parentDescriptor = blockDepth > 0
-                    ? Objects.requireNonNull(parent.blockFrameDescriptorInfo)
-                    : null;
-            this.frameDescriptorBuilder = newFrameDescriptorBuilder(parentDescriptor, blockDepth == 0);
+            if (blockDepth > 0) {
+                BlockFrameDescriptorInfo parentBlockDescriptor = Objects
+                        .requireNonNull(parent.blockFrameDescriptorInfo);
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(parentBlockDescriptor);
+            } else {
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod();
+            }
             this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo();
         } else {
             this.frameDescriptor = descriptor;
@@ -143,36 +146,42 @@ public final class TranslatorEnvironment {
     }
 
     // region frame descriptor
-    public static FrameDescriptor.Builder newFrameDescriptorBuilder(BlockFrameDescriptorInfo parentDescriptor,
-            boolean canHaveSpecialVariables) {
-        if ((parentDescriptor != null) == canHaveSpecialVariables) {
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo parentBlockInfo) {
+        if (parentBlockInfo == null) {
             throw CompilerDirectives.shouldNotReachHere(
-                    "A descriptor should either be a method and have special variables, or be a block and have no special variables");
+                    "Frame descriptor for block has to have parent");
         }
 
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
-
-        if (parentDescriptor != null) {
-            builder.info(parentDescriptor);
-        } else if (canHaveSpecialVariables) {
-            // We need to access this Assumption from the FrameDescriptor,
-            // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
-            // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
-            final Assumption doesNotNeedSpecialVariableStorageAssumption = Assumption
-                    .create(SpecialVariableStorage.ASSUMPTION_NAME);
-            builder.info(doesNotNeedSpecialVariableStorageAssumption);
-        }
+        builder.info(parentBlockInfo);
 
         int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
         if (selfIndex != SelfNode.SELF_INDEX) {
             throw CompilerDirectives.shouldNotReachHere("(self) should be at index 0");
         }
 
-        if (canHaveSpecialVariables) {
-            int svarsSlot = builder.addSlot(FrameSlotKind.Illegal, SpecialVariableStorage.SLOT_NAME, null);
-            if (svarsSlot != SpecialVariableStorage.SLOT_INDEX) {
-                throw CompilerDirectives.shouldNotReachHere("svars should be at index 1");
-            }
+        return builder;
+    }
+
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod() {
+
+        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
+        // We need to access this Assumption from the FrameDescriptor,
+        // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
+        // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
+        final Assumption doesNotNeedSpecialVariableStorageAssumption = Assumption
+                .create(SpecialVariableStorage.ASSUMPTION_NAME);
+        builder.info(doesNotNeedSpecialVariableStorageAssumption);
+
+
+        int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
+        if (selfIndex != SelfNode.SELF_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("(self) should be at index 0");
+        }
+
+        int svarsSlot = builder.addSlot(FrameSlotKind.Illegal, SpecialVariableStorage.SLOT_NAME, null);
+        if (svarsSlot != SpecialVariableStorage.SLOT_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("svars should be at index 1");
         }
 
         return builder;

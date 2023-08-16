@@ -81,7 +81,7 @@ public abstract class BindingNodes {
     public static FrameDescriptor newFrameDescriptor(RubyBinding binding) {
         FrameDescriptor parentDescriptor = binding.getFrame().getFrameDescriptor();
         var ref = new BlockFrameDescriptorInfo(parentDescriptor);
-        return TranslatorEnvironment.newFrameDescriptorBuilder(ref, false).build();
+        return TranslatorEnvironment.newFrameDescriptorBuilderForBlock(ref).build();
     }
 
     static final int NEW_VAR_INDEX = 1;
@@ -91,7 +91,7 @@ public abstract class BindingNodes {
         assert name != null && !name.isEmpty();
 
         var ref = new BlockFrameDescriptorInfo(parentDescriptor);
-        var builder = TranslatorEnvironment.newFrameDescriptorBuilder(ref, false);
+        var builder = TranslatorEnvironment.newFrameDescriptorBuilderForBlock(ref);
         int index = builder.addSlot(FrameSlotKind.Illegal, name, null);
         if (index != NEW_VAR_INDEX) {
             throw CompilerDirectives.shouldNotReachHere("new binding variable not at index 1");
