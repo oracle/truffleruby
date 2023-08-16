@@ -267,8 +267,8 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',
         'truffleruby:TRUFFLERUBY-ANNOTATIONS',
-        # Libraries
         'sdk:JLINE3',
+        # Libraries
         'truffleruby:JCODINGS',
         'truffleruby:JONI',
     ],

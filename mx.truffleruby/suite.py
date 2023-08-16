@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "80dd3d3b90b44a4e5050046783bc904b02eb3669",
+                "version": "5d3f38217ee7bc80f1287640bf1e7499db37ae98",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "80dd3d3b90b44a4e5050046783bc904b02eb3669",
+                "version": "5d3f38217ee7bc80f1287640bf1e7499db37ae98",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -262,8 +262,8 @@ suite = {
                 "regex:TREGEX",
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
-                # Libraries, keep in sync with TRUFFLERUBY.exclude and truffle_jars (in mx_truffleruby.py)
                 "sdk:JLINE3",
+                # Libraries, keep in sync with TRUFFLERUBY.exclude and truffle_jars (in mx_truffleruby.py)
                 "truffleruby:JCODINGS",
                 "truffleruby:JONI",
             ],
@@ -423,8 +423,8 @@ suite = {
             "moduleInfo": {
                 "name": "org.graalvm.ruby.shared",
                 "exports": [
-                    "org.truffleruby.shared",
-                    "org.truffleruby.shared.options",
+                    "org.truffleruby.shared to org.graalvm.ruby, org.graalvm.ruby.launcher",
+                    "org.truffleruby.shared.options to org.graalvm.ruby, org.graalvm.ruby.launcher",
                 ],
             },
             "dependencies": [
@@ -489,9 +489,9 @@ suite = {
                 "regex:TREGEX",
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
+                "sdk:JLINE3",
             ],
             "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
-                "sdk:JLINE3",
                 "truffleruby:JCODINGS",
                 "truffleruby:JONI",
             ],
