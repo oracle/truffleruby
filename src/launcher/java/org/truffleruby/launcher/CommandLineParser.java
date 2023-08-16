@@ -361,6 +361,12 @@ public class CommandLineParser {
                             case ":no-experimental":
                                 config.setOption(OptionsCatalog.WARN_EXPERIMENTAL, false);
                                 break;
+                            case ":performance":
+                                config.setOption(OptionsCatalog.WARN_PERFORMANCE, true);
+                                break;
+                            case ":no-performance":
+                                config.setOption(OptionsCatalog.WARN_PERFORMANCE, false);
+                                break;
                             default:
                                 LOGGER.warning("unknown warning category: `" + temp.substring(1) + "'");
                                 break;
@@ -494,6 +500,7 @@ public class CommandLineParser {
     private void setAllWarningCategories(boolean value) {
         config.setOption(OptionsCatalog.WARN_DEPRECATED, value);
         config.setOption(OptionsCatalog.WARN_EXPERIMENTAL, value);
+        // WARN_PERFORMANCE is excluded here, it is not set by -w/-W2 on CRuby
     }
 
     private void enableDisableFeature(String name, boolean enable) {

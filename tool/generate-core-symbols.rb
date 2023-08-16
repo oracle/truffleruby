@@ -59,6 +59,7 @@ public final class CoreSymbols {
     public final RubySymbol ON_BLOCKING = createRubySymbol("on_blocking");
     public final RubySymbol DEPRECATED = createRubySymbol("deprecated");
     public final RubySymbol EXPERIMENTAL = createRubySymbol("experimental");
+    public final RubySymbol PERFORMANCE = createRubySymbol("performance");
     public final RubySymbol BIG = createRubySymbol("big");
     public final RubySymbol LITTLE = createRubySymbol("little");
     public final RubySymbol NATIVE = createRubySymbol("native");

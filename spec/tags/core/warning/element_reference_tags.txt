@@ -1,1 +1,2 @@
 slow:Warning.[] returns default values for categories :deprecated and :experimental
+slow:Warning.[] returns default values for :performance category

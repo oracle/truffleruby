@@ -57,6 +57,11 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
             return;
         }
 
+        // Only warn if Warning[:performance] is true
+        if (!getContext().getWarningCategoryPerformance().get()) {
+            return;
+        }
+
         log(message);
         throw new Warned();
     }

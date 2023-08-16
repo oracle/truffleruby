@@ -83,6 +83,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> WARN_PERFORMANCE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY = new OptionKey<>(false);
@@ -654,7 +655,7 @@ public final class OptionsCatalog {
 
     public static final OptionDescriptor WARN_DEPRECATED = OptionDescriptor
             .newBuilder(WARN_DEPRECATED_KEY, "ruby.warn-deprecated")
-            .help("Sets deprecated Warning category (configured by the -W Ruby option)")
+            .help("Sets the deprecated Warning category (configured by the -W Ruby option)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -662,7 +663,15 @@ public final class OptionsCatalog {
 
     public static final OptionDescriptor WARN_EXPERIMENTAL = OptionDescriptor
             .newBuilder(WARN_EXPERIMENTAL_KEY, "ruby.warn-experimental")
-            .help("Sets experimental Warning category (configured by the -W Ruby option)")
+            .help("Sets the experimental Warning category (configured by the -W Ruby option)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor WARN_PERFORMANCE = OptionDescriptor
+            .newBuilder(WARN_PERFORMANCE_KEY, "ruby.warn-performance")
+            .help("Sets the performance Warning category (configured by the -W Ruby option)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1436,6 +1445,8 @@ public final class OptionsCatalog {
                 return WARN_DEPRECATED;
             case "ruby.warn-experimental":
                 return WARN_EXPERIMENTAL;
+            case "ruby.warn-performance":
+                return WARN_PERFORMANCE;
             case "ruby.use-truffle-regex":
                 return USE_TRUFFLE_REGEX;
             case "ruby.warn-truffle-regex-compile-fallback":
@@ -1666,6 +1677,7 @@ public final class OptionsCatalog {
             CEXTS_LOG_WARNINGS,
             WARN_DEPRECATED,
             WARN_EXPERIMENTAL,
+            WARN_PERFORMANCE,
             USE_TRUFFLE_REGEX,
             WARN_TRUFFLE_REGEX_COMPILE_FALLBACK,
             WARN_TRUFFLE_REGEX_MATCH_FALLBACK,

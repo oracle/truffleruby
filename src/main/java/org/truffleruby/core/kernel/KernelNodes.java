@@ -1851,6 +1851,11 @@ public abstract class KernelNodes {
             return getContext().getWarningCategoryExperimental().get();
         }
 
+        @Specialization(guards = "category == coreSymbols().PERFORMANCE")
+        protected boolean getCategoryPerformance(RubySymbol category) {
+            return getContext().getWarningCategoryPerformance().get();
+        }
+
     }
 
     @Primitive(name = "warning_set_category")
@@ -1864,6 +1869,8 @@ public abstract class KernelNodes {
                 existingValue = getContext().getWarningCategoryDeprecated();
             } else if (category == coreSymbols().EXPERIMENTAL) {
                 existingValue = getContext().getWarningCategoryExperimental();
+            } else if (category == coreSymbols().PERFORMANCE) {
+                existingValue = getContext().getWarningCategoryPerformance();
             } else {
                 throw CompilerDirectives.shouldNotReachHere("unexpected warning category");
             }

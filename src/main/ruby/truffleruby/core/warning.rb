@@ -42,6 +42,8 @@ module Warning
       Primitive.warning_get_category(:deprecated)
     when :experimental
       Primitive.warning_get_category(:experimental)
+    when :performance
+      Primitive.warning_get_category(:performance)
     else
       raise ArgumentError, "unknown category: #{category}"
     end
@@ -55,6 +57,8 @@ module Warning
       Primitive.warning_set_category(:deprecated, Primitive.as_boolean(value))
     when :experimental
       Primitive.warning_set_category(:experimental, Primitive.as_boolean(value))
+    when :performance
+      Primitive.warning_set_category(:performance, Primitive.as_boolean(value))
     else
       raise ArgumentError, "unknown category: #{category}"
     end

@@ -11,7 +11,7 @@
 module Truffle
   module WarningOperations
     def self.check_category(category)
-      return if category == :deprecated || category == :experimental
+      return if category == :deprecated || category == :experimental || category == :performance
 
       raise ArgumentError, "unknown category: #{category}"
     end
