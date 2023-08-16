@@ -25,7 +25,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import org.truffleruby.parser.ParentFrameDescriptor;
+import org.truffleruby.parser.BlockFrameDescriptorInfo;
 
 public abstract class FindDeclarationVariableNodes {
     public static final class FrameSlotAndDepth {
@@ -51,7 +51,7 @@ public abstract class FindDeclarationVariableNodes {
     }
 
     public static FrameDescriptor getOuterFrameDescriptor(FrameDescriptor descriptor) {
-        while (descriptor.getInfo() instanceof ParentFrameDescriptor nextDescriptor) {
+        while (descriptor.getInfo() instanceof BlockFrameDescriptorInfo nextDescriptor) {
             descriptor = nextDescriptor.getDescriptor();
         }
         return descriptor;

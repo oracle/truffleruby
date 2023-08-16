@@ -46,7 +46,7 @@ public final class TranslatorEnvironment {
     private EconomicMap<Object, Integer> nameToIndex = EconomicMap.create();
     private FrameDescriptor.Builder frameDescriptorBuilder;
     private FrameDescriptor frameDescriptor;
-    private final ParentFrameDescriptor parentFrameDescriptor;
+    private final BlockFrameDescriptorInfo blockFrameDescriptorInfo;
 
     private final List<Integer> flipFlopStates = new ArrayList<>();
 
@@ -81,14 +81,14 @@ public final class TranslatorEnvironment {
         this.parent = parent;
 
         if (descriptor == null) {
-            ParentFrameDescriptor parentDescriptor = blockDepth > 0
-                    ? Objects.requireNonNull(parent.parentFrameDescriptor)
+            BlockFrameDescriptorInfo parentDescriptor = blockDepth > 0
+                    ? Objects.requireNonNull(parent.blockFrameDescriptorInfo)
                     : null;
             this.frameDescriptorBuilder = newFrameDescriptorBuilder(parentDescriptor, blockDepth == 0);
-            this.parentFrameDescriptor = new ParentFrameDescriptor();
+            this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo();
         } else {
             this.frameDescriptor = descriptor;
-            this.parentFrameDescriptor = new ParentFrameDescriptor(descriptor);
+            this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(descriptor);
 
             assert descriptor.getNumberOfAuxiliarySlots() == 0;
             int slots = descriptor.getNumberOfSlots();
@@ -143,7 +143,7 @@ public final class TranslatorEnvironment {
     }
 
     // region frame descriptor
-    public static FrameDescriptor.Builder newFrameDescriptorBuilder(ParentFrameDescriptor parentDescriptor,
+    public static FrameDescriptor.Builder newFrameDescriptorBuilder(BlockFrameDescriptorInfo parentDescriptor,
             boolean canHaveSpecialVariables) {
         if ((parentDescriptor != null) == canHaveSpecialVariables) {
             throw CompilerDirectives.shouldNotReachHere(
@@ -280,7 +280,7 @@ public final class TranslatorEnvironment {
         }
 
         frameDescriptor = frameDescriptorBuilder.build();
-        parentFrameDescriptor.set(frameDescriptor);
+        blockFrameDescriptorInfo.set(frameDescriptor);
         frameDescriptorBuilder = null;
         nameToIndex = null;
         return frameDescriptor;

@@ -13,24 +13,24 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-public final class ParentFrameDescriptor {
+public final class BlockFrameDescriptorInfo {
 
     @ExplodeLoop
     public static FrameDescriptor getDeclarationFrameDescriptor(FrameDescriptor topDescriptor, int depth) {
         assert depth > 0;
         FrameDescriptor descriptor = topDescriptor;
         for (int i = 0; i < depth; i++) {
-            descriptor = ((ParentFrameDescriptor) descriptor.getInfo()).getDescriptor();
+            descriptor = ((BlockFrameDescriptorInfo) descriptor.getInfo()).getDescriptor();
         }
         return descriptor;
     }
 
     @CompilationFinal private FrameDescriptor descriptor;
 
-    public ParentFrameDescriptor() {
+    public BlockFrameDescriptorInfo() {
     }
 
-    public ParentFrameDescriptor(FrameDescriptor descriptor) {
+    public BlockFrameDescriptorInfo(FrameDescriptor descriptor) {
         assert descriptor != null;
         this.descriptor = descriptor;
     }
