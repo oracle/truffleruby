@@ -451,7 +451,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             if (this.options == null) { // First context
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
-                setRubyHome(env, findRubyHome());
+                setRubyHome(env, findRubyHome(env));
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
@@ -461,7 +461,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         // Set rubyHomeTruffleFile every time, as pre-initialized contexts use a different FileSystem
         final String oldHome = this.rubyHome;
-        final String newHome = findRubyHome();
+        final String newHome = findRubyHome(env);
         if (!Objects.equals(newHome, oldHome)) {
             throw CompilerDirectives.shouldNotReachHere(
                     "home changed for the same RubyLanguage instance: " + oldHome + " vs " + newHome);
@@ -524,7 +524,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         synchronized (this) {
-            setRubyHome(newEnv, findRubyHome());
+            setRubyHome(newEnv, findRubyHome(newEnv));
             setupCleaner();
         }
 
@@ -737,48 +737,60 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         rubyHomeTruffleFile = home == null ? null : env.getInternalTruffleFile(rubyHome);
     }
 
-    private String findRubyHome() {
-        final String home = searchRubyHome();
-        if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
-            RubyLanguage.LOGGER.config("home: " + home);
+    private String findRubyHome(Env env) {
+        final String home = searchRubyHome(env);
+        if (LOGGER.isLoggable(Level.CONFIG)) {
+            LOGGER.config("home: " + home);
         }
         return home;
     }
 
     // Returns a canonical path to the home
-    private String searchRubyHome() {
+    private String searchRubyHome(Env env) {
         if (options.NO_HOME_PROVIDED) {
-            RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
+            LOGGER.config("--ruby.no-home-provided set");
             return null;
         }
 
         final String truffleReported = getLanguageHome();
         if (truffleReported != null) {
-            final File home = new File(truffleReported);
-            if (isRubyHome(home)) {
-                RubyLanguage.LOGGER.config(
-                        () -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
+            if (isRubyHome(env.getInternalTruffleFile(truffleReported))) {
+                LOGGER.config(() -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
                 return truffleReported;
             } else {
-                RubyLanguage.LOGGER.warning(
-                        String.format(
-                                "Truffle-reported home %s does not look like TruffleRuby's home",
-                                truffleReported));
+                TruffleFile homeResourceRelative;
+                try {
+                    homeResourceRelative = env.getInternalResource("ruby-home");
+                } catch (IOException e) {
+                    throw CompilerDirectives.shouldNotReachHere(e);
+                }
+
+                TruffleFile homeResource = homeResourceRelative.getAbsoluteFile();
+
+                if (isRubyHome(homeResource)) {
+                    LOGGER.config(() -> String.format("Using the internal resource %s as the Ruby home",
+                            homeResource.getPath()));
+                    return homeResource.getPath();
+                } else {
+                    LOGGER.warning(String.format(
+                            "Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home",
+                            truffleReported, homeResource.getPath()));
+                }
             }
         } else {
-            RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
+            LOGGER.config("Truffle-reported home not set, cannot determine home from it");
         }
 
-        RubyLanguage.LOGGER.warning(
+        LOGGER.warning(
                 "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
         return null;
     }
 
-    private boolean isRubyHome(File path) {
-        final File lib = new File(path, "lib");
-        return new File(lib, "truffle").isDirectory() &&
-                new File(lib, "gems").isDirectory() &&
-                new File(lib, "patches").isDirectory();
+    private boolean isRubyHome(TruffleFile path) {
+        var lib = path.resolve("lib");
+        return lib.resolve("truffle").isDirectory() &&
+                lib.resolve("gems").isDirectory() &&
+                lib.resolve("patches").isDirectory();
     }
 
     @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
