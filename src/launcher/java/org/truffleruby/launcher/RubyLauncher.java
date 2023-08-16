@@ -437,6 +437,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("Warning categories:");
         out.println("  deprecated      deprecated features");
         out.println("  experimental    experimental features");
+        out.println("  performance     performance issues");
     }
 
     // Same as above, but with "ruby -h"

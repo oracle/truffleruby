@@ -166,6 +166,7 @@ public final class RubyContext {
 
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
+    private final AssumedValue<Boolean> warningCategoryPerformance;
 
     private ImmutableRubyString mainScriptName;
 
@@ -189,6 +190,7 @@ public final class RubyContext {
 
         warningCategoryDeprecated = new AssumedValue<>(options.WARN_DEPRECATED);
         warningCategoryExperimental = new AssumedValue<>(options.WARN_EXPERIMENTAL);
+        warningCategoryPerformance = new AssumedValue<>(options.WARN_PERFORMANCE);
 
         safepointManager = new SafepointManager(this);
         coreExceptions = new CoreExceptions(this, language);
@@ -304,6 +306,9 @@ public final class RubyContext {
         }
         if (newOptions.WARN_EXPERIMENTAL != oldOptions.WARN_EXPERIMENTAL) {
             warningCategoryExperimental.set(newOptions.WARN_EXPERIMENTAL);
+        }
+        if (newOptions.WARN_PERFORMANCE != oldOptions.WARN_PERFORMANCE) {
+            warningCategoryPerformance.set(newOptions.WARN_PERFORMANCE);
         }
 
         // Re-read the value of $TZ as it can be different in the new process
@@ -756,6 +761,10 @@ public final class RubyContext {
 
     public AssumedValue<Boolean> getWarningCategoryExperimental() {
         return warningCategoryExperimental;
+    }
+
+    public AssumedValue<Boolean> getWarningCategoryPerformance() {
+        return warningCategoryPerformance;
     }
 
     public PrintStream getEnvOutStream() {

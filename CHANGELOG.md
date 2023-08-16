@@ -39,6 +39,7 @@ Compatibility:
 * Add `Enumerator#product` (#3039, @itarato).
 * Add `Module#const_added` (#3039,  @itarato).
 * Show the pointer size information (if available) in `FFI::Pointer#inspect` (@nirvdrum).
+* Implement performance warnings (`Warning[:performance]`) like in CRuby 3.3 (@eregon).
 
 Performance:
 

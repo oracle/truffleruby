@@ -131,6 +131,8 @@ public final class Options {
     public final boolean WARN_DEPRECATED;
     /** --warn-experimental=true */
     public final boolean WARN_EXPERIMENTAL;
+    /** --warn-performance=false */
+    public final boolean WARN_PERFORMANCE;
     /** --use-truffle-regex=true */
     public final boolean USE_TRUFFLE_REGEX;
     /** --warn-truffle-regex-compile-fallback=false */
@@ -262,6 +264,7 @@ public final class Options {
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
         WARN_DEPRECATED = options.get(OptionsCatalog.WARN_DEPRECATED_KEY);
         WARN_EXPERIMENTAL = options.get(OptionsCatalog.WARN_EXPERIMENTAL_KEY);
+        WARN_PERFORMANCE = options.get(OptionsCatalog.WARN_PERFORMANCE_KEY);
         USE_TRUFFLE_REGEX = options.get(OptionsCatalog.USE_TRUFFLE_REGEX_KEY);
         WARN_TRUFFLE_REGEX_COMPILE_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY);
         WARN_TRUFFLE_REGEX_MATCH_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY);
@@ -410,6 +413,8 @@ public final class Options {
                 return WARN_DEPRECATED;
             case "ruby.warn-experimental":
                 return WARN_EXPERIMENTAL;
+            case "ruby.warn-performance":
+                return WARN_PERFORMANCE;
             case "ruby.use-truffle-regex":
                 return USE_TRUFFLE_REGEX;
             case "ruby.warn-truffle-regex-compile-fallback":
