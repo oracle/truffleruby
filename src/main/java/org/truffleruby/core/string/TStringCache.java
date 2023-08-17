@@ -21,6 +21,10 @@ import org.truffleruby.core.symbol.RubySymbol;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+/** This cache caches (byte[], encoding) to TruffleString. The main value is from using it for string literals in files
+ * without {@code # frozen_string_literal: true}, so equivalent string literals are shared. For most other usages there
+ * is another higher-level cache but this cache then helps to deduplicate TruffleString's across the different
+ * higher-level caches. */
 public final class TStringCache {
 
     private final WeakValueCache<TBytesKey, TruffleString> bytesToTString = new WeakValueCache<>();
