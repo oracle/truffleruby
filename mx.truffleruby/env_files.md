@@ -8,8 +8,8 @@ Here is how the various env files relate to each other:
   * `jvm-ee`: + Oracle GraalVM Compiler + `Truffle enterprise`
     * `jvm-ee-ntl`: + native toolchain launchers
       * `jvm-ee-libgraal`: + libgraal
-      * `native-ee`: + librubyvm + `Truffle Macro Enterprise`
-        * `native-ee-g1`: + Native Image G1
+      * `native-ee`: + librubyvm + `Truffle Macro Enterprise` + Native Image G1
+        * `native-ee-aux`: + `AuxiliaryEngineCache`, - Native Image G1 (currently incompatible)
   * `jvm-gu`: + Graal Updater
   * `jvm-js`: + Graal.js
   * `jvm-py`: + GraalPython

@@ -1,1 +1,2 @@
 slow:GC.count increases as collections are run
+native-g1:GC.count increases as collections are run

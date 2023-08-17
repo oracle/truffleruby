@@ -204,6 +204,9 @@ local part_definitions = {
         HOST_VM_CONFIG: "graal-enterprise",
       },
     },
+    native_ee_aux: {
+      mx_env:: "native-ee-aux",
+    },
     host_inlining_log: {
       # Same as in mx.truffleruby/native-host-inlining
       mx_options+:: [
@@ -551,6 +554,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-ce-darwin-aarch64-new": $.platform.darwin_aarch64 + $.jdk.new + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-ee-linux-amd64":    $.platform.linux          + $.jdk.lts + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log + { timelimit: "01:30:00" },
       "ruby-test-svm-ee-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.lts + $.env.native_ee +                 gate + native_tests,
+      "ruby-test-svm-ee-aux-linux-amd64": $.platform.linux         + $.jdk.lts + $.env.native_ee_aux + $.env.gdb_svm + gate + native_tests + { timelimit: "01:30:00" },
     },
 
   local other_rubies = {

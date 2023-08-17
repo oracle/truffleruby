@@ -1082,8 +1082,21 @@ module Commands
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
-    if ci? and truffleruby_jvm?
-      vm_args << '--vm.Xlog:os+thread=off' # GR-23507: prevent thread warnings on stdout to break specs/tests
+    if ci?
+      # GR-23507: prevent thread warnings on stdout to break specs/tests/programs using execve().
+      # The problem happens if one thread is calling execve() and the other about the same time is calling pthread_create().
+      # In such case, pthread_create() can return EAGAIN "just because there is a concurrent execve()".
+      # See https://bugs.openjdk.org/browse/JDK-8268605?focusedCommentId=14473665#comment-14473665
+      # To solve this we move VM warnings to stderr instead of stdout to avoid breaking specs, and logging should be on stderr anyway.
+      # '--vm.Xlog:os+thread=off' '--vm.Xlog:gc+task=off' would also be a possibility, but unfortunately
+      # these flags don't seem to combine with moving all warnings to stderr so we have to pick one approach.
+      # Example warnings:
+      # JVM:
+      # [11.028s][warning][os,thread] Failed to start thread - pthread_create failed (EAGAIN) for attributes: stacksize: 2048k, guardsize: 0k, detached.
+      # SVM with G1:
+      # [0.094s][warning][os,thread] Failed to start thread "GC Thread#1" - pthread_create failed (EAGAIN) for attributes: stacksize: 1024k, guardsize: 4k, detached.
+      # [0.094s][error  ][gc,task  ] GC(0) Failed to create worker thread
+      vm_args << '--vm.Xlog:all=warning:stderr'
     end
 
     [vm_args, ruby_args + args, options]
@@ -1630,20 +1643,21 @@ module Commands
   private def test_specs(command, *args)
     env_vars = {}
     options = []
+    tag = ENV['TAG'] || 'fails'
 
     case command
     when 'run'
       options += %w[--excl-tag fails]
     when 'tag'
-      options += %w[--add fails --fail --excl-tag fails]
+      options += %W[--add #{tag} --fail --excl-tag fails]
     when 'untag'
-      options += %w[--del fails --pass]
+      options += %W[--del #{tag} --pass]
       command = 'tag'
     when 'purge'
       options += %w[--purge]
       command = 'tag'
     when 'tag_all'
-      options += %w[--unguarded --all --dry-run --add fails]
+      options += %W[--unguarded --all --dry-run --add #{tag}]
       command = 'tag'
     else
       raise command
@@ -2234,7 +2248,7 @@ module Commands
         # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
         method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
         if truffleruby_native?
-          method_glob_pattern = "Isolated:_#{method_glob_pattern}"
+          method_glob_pattern = "{Isolated:_,}#{method_glob_pattern}"
         end
 
         dumps = Dir.glob('graal_dumps/*').select { |path| File.directory?(path) }.sort.last

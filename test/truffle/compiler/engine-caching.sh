@@ -5,9 +5,18 @@ source test/truffle/common.sh.inc
 ruby_version=$(jt ruby -v)
 
 if [[ ! $ruby_version =~ "Oracle GraalVM Native" ]]; then
-  echo Oracle GraalVM Native not detected, no tests to run.
+  echo Oracle GraalVM Native not detected, skipping test
   exit 0
 fi
+
+set +x
+output=$(jt ruby --experimental-options --engine.CacheLoad=does-not-exist.image -e0 2>&1 || true)
+
+if [[ $output =~ "AuxiliaryEngineCache at image build time" ]]; then
+    echo Oracle GraalVM Native without AuxiliaryEngineCache, skipping test
+    exit 0
+fi
+set -x
 
 # Store the image
 jt ruby --experimental-options --engine.TraceCache --engine.CacheCompile=executed --engine.CacheStore=core.image test/truffle/compiler/engine_caching/engine_caching.rb

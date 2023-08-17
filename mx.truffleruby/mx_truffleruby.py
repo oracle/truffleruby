@@ -306,7 +306,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
             ],
             build_args_enterprise=[
                 '-J-Xmx7g', # Set Xmx to use a reliable amount of memory
-            ],
+            ] + (['--gc=G1', '-H:-ProtectionKeys'] if (mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ) else []), # G1 is only supported on linux currently
             language='ruby',
             option_vars=[
                 'RUBYOPT',
