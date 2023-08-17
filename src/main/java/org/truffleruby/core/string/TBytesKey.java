@@ -96,12 +96,8 @@ public final class TBytesKey {
         return hashCode(byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
     }
 
-    // A variant of <code>Arrays.hashCode</code> that allows for selecting a range within the array.
+    /** A variant of {@link Arrays#hashCode(byte[])} that allows for selecting a range within the array. */
     private static int hashCode(byte[] bytes, int offset, int length) {
-        if (bytes == null) {
-            return 0;
-        }
-
         int result = 1;
         for (int i = offset; i < offset + length; i++) {
             result = 31 * result + bytes[i];
@@ -124,7 +120,7 @@ public final class TBytesKey {
      * cache hit. To avoid incurring that cost unnecessarily, we allow cache keys to refer to a subset of a byte array.
      * While that saves computation during a cache lookup, it means such keys are unsuitable for insertion into the
      * cache. This method makes a key we can use safely for insertion.
-     *
+     * <p>
      * If we know that the key refers to an immutable byte array and the key does not refer to a substring, we can
      * safely refer to the original byte array without needing to make an additional copy.
      *
@@ -135,7 +131,7 @@ public final class TBytesKey {
             return this;
         }
 
-        // Make a copy of the substring's bytes so we can cache them without retaining the original byte array.
+        // Make a copy of the substring's bytes so we can cache them without retaining the larger original byte array.
         var resolvedSubstring = ArrayUtils.extractRange(this.bytes, this.offset, this.offset + this.length);
 
         return new TBytesKey(resolvedSubstring, encoding);
