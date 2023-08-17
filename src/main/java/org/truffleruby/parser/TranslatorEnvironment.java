@@ -85,10 +85,13 @@ public final class TranslatorEnvironment {
                 BlockFrameDescriptorInfo parentBlockDescriptor = Objects
                         .requireNonNull(parent.blockFrameDescriptorInfo);
                 this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(parentBlockDescriptor);
+                this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(
+                        parentBlockDescriptor.getSpecialVariableAssumption());
             } else {
-                this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod();
+                var specialVariableAssumption = createSpecialVariableAssumption();
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod(specialVariableAssumption);
+                this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(specialVariableAssumption);
             }
-            this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo();
         } else {
             this.frameDescriptor = descriptor;
             this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(descriptor);
@@ -163,15 +166,16 @@ public final class TranslatorEnvironment {
         return builder;
     }
 
-    public static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod() {
+    private static Assumption createSpecialVariableAssumption() {
+        return Assumption.create(SpecialVariableStorage.ASSUMPTION_NAME);
+    }
 
+    private static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod(Assumption specialVariableAssumption) {
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
         // We need to access this Assumption from the FrameDescriptor,
         // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
         // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
-        final Assumption doesNotNeedSpecialVariableStorageAssumption = Assumption
-                .create(SpecialVariableStorage.ASSUMPTION_NAME);
-        builder.info(doesNotNeedSpecialVariableStorageAssumption);
+        builder.info(specialVariableAssumption);
 
 
         int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
@@ -185,6 +189,12 @@ public final class TranslatorEnvironment {
         }
 
         return builder;
+    }
+
+
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod() {
+        var specialVariableAssumption = createSpecialVariableAssumption();
+        return newFrameDescriptorBuilderForMethod(specialVariableAssumption);
     }
 
     public int declareVar(Object name) {

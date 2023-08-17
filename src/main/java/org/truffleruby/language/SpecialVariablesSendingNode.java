@@ -16,8 +16,8 @@ import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
-import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
+import org.truffleruby.parser.BlockFrameDescriptorInfo;
 
 /** Some Ruby methods need access to the caller special variables: see usages of {@link ReadCallerVariablesNode}. This
  * is used for methods which need to access the last regexp MatchData or the last IO line.
@@ -45,10 +45,12 @@ public abstract class SpecialVariablesSendingNode extends RubyBaseNode {
             return Assumption.ALWAYS_VALID;
         }
 
-        var outerFrameDescriptor = FindDeclarationVariableNodes.getOuterFrameDescriptor(frame.getFrameDescriptor());
+        var descriptor = frame.getFrameDescriptor();
 
-        if (SpecialVariableStorage.hasSpecialVariableAssumption(outerFrameDescriptor)) {
-            return SpecialVariableStorage.getAssumption(outerFrameDescriptor);
+        if (SpecialVariableStorage.hasSpecialVariableAssumption(descriptor)) {
+            return SpecialVariableStorage.getAssumption(descriptor);
+        } else if (descriptor.getInfo() instanceof BlockFrameDescriptorInfo blockFrameDescriptorInfo) {
+            return blockFrameDescriptorInfo.getSpecialVariableAssumption();
         } else {
             return Assumption.ALWAYS_VALID;
         }

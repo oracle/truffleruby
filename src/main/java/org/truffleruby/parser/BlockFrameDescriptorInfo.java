@@ -9,9 +9,13 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
+
+import static org.truffleruby.language.threadlocal.SpecialVariableStorage.ASSUMPTION_NAME;
 
 public final class BlockFrameDescriptorInfo {
 
@@ -26,13 +30,25 @@ public final class BlockFrameDescriptorInfo {
     }
 
     @CompilationFinal private FrameDescriptor descriptor;
+    private final Assumption specialVariableAssumption;
 
-    public BlockFrameDescriptorInfo() {
+    public BlockFrameDescriptorInfo(Assumption specialVariableAssumption) {
+        assert specialVariableAssumption != null && specialVariableAssumption.getName() == ASSUMPTION_NAME;
+        this.specialVariableAssumption = specialVariableAssumption;
     }
 
     public BlockFrameDescriptorInfo(FrameDescriptor descriptor) {
-        assert descriptor != null;
+        assert descriptor != null && descriptor.getInfo() != null;
         this.descriptor = descriptor;
+        this.specialVariableAssumption = getSpecialVariableAssumptionFromDescriptor(descriptor);
+    }
+
+    private Assumption getSpecialVariableAssumptionFromDescriptor(FrameDescriptor descriptor) {
+        if (descriptor.getInfo() instanceof BlockFrameDescriptorInfo blockFrameDescriptorInfo) {
+            return blockFrameDescriptorInfo.getSpecialVariableAssumption();
+        } else {
+            return SpecialVariableStorage.getAssumption(descriptor);
+        }
     }
 
     public FrameDescriptor getDescriptor() {
@@ -43,5 +59,10 @@ public final class BlockFrameDescriptorInfo {
     void set(FrameDescriptor descriptor) {
         assert this.descriptor == null;
         this.descriptor = descriptor;
+    }
+
+    public Assumption getSpecialVariableAssumption() {
+        assert specialVariableAssumption != null;
+        return specialVariableAssumption;
     }
 }
