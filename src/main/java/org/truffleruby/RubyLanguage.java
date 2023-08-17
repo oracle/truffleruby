@@ -33,6 +33,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -786,6 +787,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
         return frozenStringLiterals.getFrozenStringLiteral(tstring, encoding);
+    }
+
+    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+            RubyEncoding encoding) {
+        return frozenStringLiterals.getFrozenStringLiteral(byteArray, isImmutable, encoding);
     }
 
     public long getNextObjectID() {

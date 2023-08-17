@@ -44,9 +44,13 @@ public final class TStringUtils {
     }
 
     public static TruffleString fromByteArray(byte[] bytes, TruffleString.Encoding tencoding) {
+        return fromByteArray(bytes, 0, bytes.length, tencoding);
+    }
+
+    public static TruffleString fromByteArray(byte[] bytes, int offset, int length, TruffleString.Encoding tencoding) {
         CompilerAsserts.neverPartOfCompilation(
                 "Use createString(TruffleString.FromByteArrayNode, byte[], RubyEncoding) instead");
-        return TruffleString.fromByteArrayUncached(bytes, 0, bytes.length, tencoding, false);
+        return TruffleString.fromByteArrayUncached(bytes, offset, length, tencoding, false);
     }
 
     public static TruffleString fromByteArray(byte[] bytes, RubyEncoding rubyEncoding) {
@@ -75,8 +79,7 @@ public final class TStringUtils {
     public static byte[] getBytesOrCopy(AbstractTruffleString tstring, RubyEncoding encoding) {
         CompilerAsserts.neverPartOfCompilation("uncached");
         var bytes = tstring.getInternalByteArrayUncached(encoding.tencoding);
-        if (tstring instanceof TruffleString && bytes.getOffset() == 0 &&
-                bytes.getLength() == bytes.getArray().length) {
+        if (tstring.isImmutable() && bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length) {
             return bytes.getArray();
         } else {
             return ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
@@ -88,8 +91,8 @@ public final class TStringUtils {
             TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
             InlinedConditionProfile noCopyProfile) {
         var bytes = getInternalByteArrayNode.execute(tstring, encoding);
-        if (noCopyProfile.profile(node, tstring instanceof TruffleString && bytes.getOffset() == 0 &&
-                bytes.getLength() == bytes.getArray().length)) {
+        if (noCopyProfile.profile(node,
+                tstring.isImmutable() && bytes.getOffset() == 0 && bytes.getLength() == bytes.getArray().length)) {
             return bytes.getArray();
         } else {
             return ArrayUtils.extractRange(bytes.getArray(), bytes.getOffset(), bytes.getEnd());
@@ -148,5 +151,11 @@ public final class TStringUtils {
         } else {
             return tstring.toJavaStringUncached();
         }
+    }
+
+    public static boolean hasImmutableInternalByteArray(AbstractTruffleString string) {
+        // Immutable strings trivially have immutable byte arrays.
+        // Native strings also have immutable byte arrays because we need to copy the data into Java.
+        return string.isImmutable() || string.isNative();
     }
 }

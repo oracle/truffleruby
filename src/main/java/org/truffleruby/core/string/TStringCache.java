@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.Encodings;
@@ -20,6 +21,10 @@ import org.truffleruby.core.symbol.RubySymbol;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+/** This cache caches (byte[], encoding) to TruffleString. The main value is from using it for string literals in files
+ * without {@code # frozen_string_literal: true}, so equivalent string literals are shared. For most other usages there
+ * is another higher-level cache but this cache then helps to deduplicate TruffleString's across the different
+ * higher-level caches. */
 public final class TStringCache {
 
     private final WeakValueCache<TBytesKey, TruffleString> bytesToTString = new WeakValueCache<>();
@@ -69,20 +74,38 @@ public final class TStringCache {
         }
     }
 
-    public TruffleString getTString(TruffleString string, RubyEncoding encoding) {
-        return getTString(TStringUtils.getBytesOrCopy(string, encoding), encoding);
+    @TruffleBoundary
+    public TruffleString getTString(TruffleString string, RubyEncoding rubyEncoding) {
+        assert rubyEncoding != null;
+
+        var byteArray = string.getInternalByteArrayUncached(rubyEncoding.tencoding);
+        final TBytesKey key = new TBytesKey(byteArray, rubyEncoding);
+
+        return getTString(key, TStringUtils.hasImmutableInternalByteArray(string));
+    }
+
+    @TruffleBoundary
+    public TruffleString getTString(InternalByteArray byteArray, boolean isImmutable, RubyEncoding rubyEncoding) {
+        assert rubyEncoding != null;
+
+        return getTString(new TBytesKey(byteArray, rubyEncoding), isImmutable);
     }
 
     @TruffleBoundary
     public TruffleString getTString(byte[] bytes, RubyEncoding rubyEncoding) {
         assert rubyEncoding != null;
 
-        final TBytesKey key = new TBytesKey(bytes, rubyEncoding);
+        return getTString(new TBytesKey(bytes, rubyEncoding), true);
+    }
 
-        final TruffleString tstring = bytesToTString.get(key);
+    @TruffleBoundary
+    private TruffleString getTString(TBytesKey lookupKey, boolean isLookupKeyImmutable) {
+        final TruffleString tstring = bytesToTString.get(lookupKey);
+        var rubyEncoding = lookupKey.getMatchedEncoding();
+
         if (tstring != null) {
             ++tstringsReusedCount;
-            tstringBytesSaved += tstring.byteLength(rubyEncoding.tencoding);
+            tstringBytesSaved += tstring.byteLength(lookupKey.getMatchedEncoding().tencoding);
 
             return tstring;
         }
@@ -92,7 +115,7 @@ public final class TStringCache {
         // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
         // we can make about the resulting TruffleString is that it would have the same logical byte[], but that's good enough
         // for our purposes.
-        TBytesKey keyNoEncoding = new TBytesKey(bytes, null);
+        TBytesKey keyNoEncoding = lookupKey.withNewEncoding(null);
         final TruffleString tstringWithSameBytesButDifferentEncoding = bytesToTString.get(keyNoEncoding);
 
         final TruffleString newTString;
@@ -104,12 +127,11 @@ public final class TStringCache {
             ++byteArrayReusedCount;
             tstringBytesSaved += newTString.byteLength(rubyEncoding.tencoding);
         } else {
-            newTString = TStringUtils.fromByteArray(bytes, rubyEncoding);
+            newTString = lookupKey.toTruffleString();
         }
 
         // Use the new TruffleString bytes in the cache, so we do not keep bytes alive unnecessarily.
-        final TBytesKey newKey = new TBytesKey(TStringUtils.getBytesOrCopy(newTString, rubyEncoding), rubyEncoding);
-        return bytesToTString.addInCacheIfAbsent(newKey, newTString);
+        return bytesToTString.addInCacheIfAbsent(lookupKey.makeCacheable(isLookupKeyImmutable), newTString);
     }
 
     public boolean contains(TruffleString string, RubyEncoding encoding) {

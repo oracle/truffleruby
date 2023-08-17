@@ -4357,10 +4357,11 @@ public abstract class StringNodes {
         @Specialization
         protected ImmutableRubyString internString(RubyString string,
                 @Cached RubyStringLibrary libString,
-                @Cached TruffleString.AsManagedNode asManagedNode) {
+                @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             var encoding = libString.getEncoding(string);
-            TruffleString immutableManagedString = asManagedNode.execute(string.tstring, encoding.tencoding);
-            return getLanguage().getFrozenStringLiteral(immutableManagedString, encoding);
+            var byteArray = getInternalByteArrayNode.execute(string.tstring, encoding.tencoding);
+            return getLanguage().getFrozenStringLiteral(byteArray,
+                    TStringUtils.hasImmutableInternalByteArray(string.tstring), encoding);
         }
     }
 

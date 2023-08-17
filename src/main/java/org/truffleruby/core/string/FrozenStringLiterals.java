@@ -11,6 +11,7 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -37,25 +38,23 @@ public final class FrozenStringLiterals {
 
     @TruffleBoundary
     public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        if (tstring.isNative()) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-
-        return getFrozenStringLiteral(TStringUtils.getBytesOrCopy(tstring, encoding), encoding);
+        return getFrozenStringLiteral(tstring.getInternalByteArrayUncached(encoding.tencoding),
+                TStringUtils.hasImmutableInternalByteArray(tstring),
+                encoding);
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+            RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
-        var cachedTString = tstringCache.getTString(bytes, encoding);
+        var cachedTString = tstringCache.getTString(byteArray, isImmutable, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
 
         final ImmutableRubyString string = values.get(tstringWithEncoding);
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(tstringWithEncoding,
-                    new ImmutableRubyString(cachedTString, encoding));
+            return values.addInCacheIfAbsent(tstringWithEncoding, new ImmutableRubyString(cachedTString, encoding));
         }
     }
 
