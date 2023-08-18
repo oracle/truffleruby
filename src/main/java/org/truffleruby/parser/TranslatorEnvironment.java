@@ -46,7 +46,10 @@ public final class TranslatorEnvironment {
     private EconomicMap<Object, Integer> nameToIndex = EconomicMap.create();
     private FrameDescriptor.Builder frameDescriptorBuilder;
     private FrameDescriptor frameDescriptor;
-    private final ParentFrameDescriptor parentFrameDescriptor;
+    /** The descriptor info is shared for all blocks at the same level (i.e., for TranslatorEnvironment direct
+     * children), in order to save footprint. It is therefore created in the parent TranslatorEnvironment of those
+     * blocks using that descriptor info. */
+    private final BlockDescriptorInfo descriptorInfoForChildren;
 
     private final List<Integer> flipFlopStates = new ArrayList<>();
 
@@ -81,14 +84,19 @@ public final class TranslatorEnvironment {
         this.parent = parent;
 
         if (descriptor == null) {
-            ParentFrameDescriptor parentDescriptor = blockDepth > 0
-                    ? Objects.requireNonNull(parent.parentFrameDescriptor)
-                    : null;
-            this.frameDescriptorBuilder = newFrameDescriptorBuilder(parentDescriptor, blockDepth == 0);
-            this.parentFrameDescriptor = new ParentFrameDescriptor();
+            if (blockDepth > 0) {
+                BlockDescriptorInfo descriptorInfo = Objects.requireNonNull(parent.descriptorInfoForChildren);
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(descriptorInfo);
+                this.descriptorInfoForChildren = new BlockDescriptorInfo(
+                        descriptorInfo.getSpecialVariableAssumption());
+            } else {
+                var specialVariableAssumption = createSpecialVariableAssumption();
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod(specialVariableAssumption);
+                this.descriptorInfoForChildren = new BlockDescriptorInfo(specialVariableAssumption);
+            }
         } else {
             this.frameDescriptor = descriptor;
-            this.parentFrameDescriptor = new ParentFrameDescriptor(descriptor);
+            this.descriptorInfoForChildren = new BlockDescriptorInfo(descriptor);
 
             assert descriptor.getNumberOfAuxiliarySlots() == 0;
             int slots = descriptor.getNumberOfSlots();
@@ -143,39 +151,46 @@ public final class TranslatorEnvironment {
     }
 
     // region frame descriptor
-    public static FrameDescriptor.Builder newFrameDescriptorBuilder(ParentFrameDescriptor parentDescriptor,
-            boolean canHaveSpecialVariables) {
-        if ((parentDescriptor != null) == canHaveSpecialVariables) {
-            throw CompilerDirectives.shouldNotReachHere(
-                    "A descriptor should either be a method and have special variables, or be a block and have no special variables");
-        }
-
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockDescriptorInfo descriptorInfo) {
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
-
-        if (parentDescriptor != null) {
-            builder.info(parentDescriptor);
-        } else if (canHaveSpecialVariables) {
-            // We need to access this Assumption from the FrameDescriptor,
-            // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
-            // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
-            final Assumption doesNotNeedSpecialVariableStorageAssumption = Assumption
-                    .create(SpecialVariableStorage.ASSUMPTION_NAME);
-            builder.info(doesNotNeedSpecialVariableStorageAssumption);
-        }
+        builder.info(Objects.requireNonNull(descriptorInfo));
 
         int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
         if (selfIndex != SelfNode.SELF_INDEX) {
             throw CompilerDirectives.shouldNotReachHere("(self) should be at index 0");
         }
 
-        if (canHaveSpecialVariables) {
-            int svarsSlot = builder.addSlot(FrameSlotKind.Illegal, SpecialVariableStorage.SLOT_NAME, null);
-            if (svarsSlot != SpecialVariableStorage.SLOT_INDEX) {
-                throw CompilerDirectives.shouldNotReachHere("svars should be at index 1");
-            }
+        return builder;
+    }
+
+    private static Assumption createSpecialVariableAssumption() {
+        return Assumption.create(SpecialVariableStorage.ASSUMPTION_NAME);
+    }
+
+    private static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod(Assumption specialVariableAssumption) {
+        var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
+        // We need to access this Assumption from the FrameDescriptor,
+        // and there is no way to get a RootNode from a FrameDescriptor, so we store it in the descriptor info.
+        // We do not store it as slot info for footprint, to avoid needing an info array per FrameDescriptor.
+        builder.info(specialVariableAssumption);
+
+
+        int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
+        if (selfIndex != SelfNode.SELF_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("(self) should be at index 0");
+        }
+
+        int svarsSlot = builder.addSlot(FrameSlotKind.Illegal, SpecialVariableStorage.SLOT_NAME, null);
+        if (svarsSlot != SpecialVariableStorage.SLOT_INDEX) {
+            throw CompilerDirectives.shouldNotReachHere("svars should be at index 1");
         }
 
         return builder;
+    }
+
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod() {
+        var specialVariableAssumption = createSpecialVariableAssumption();
+        return newFrameDescriptorBuilderForMethod(specialVariableAssumption);
     }
 
     public int declareVar(Object name) {
@@ -280,7 +295,7 @@ public final class TranslatorEnvironment {
         }
 
         frameDescriptor = frameDescriptorBuilder.build();
-        parentFrameDescriptor.set(frameDescriptor);
+        descriptorInfoForChildren.setParentDescriptor(frameDescriptor);
         frameDescriptorBuilder = null;
         nameToIndex = null;
         return frameDescriptor;

@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.annotations.Split;
-import org.truffleruby.parser.ParentFrameDescriptor;
+import org.truffleruby.parser.BlockDescriptorInfo;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -83,8 +83,8 @@ public class RubyRootNode extends RubyBaseRootNode {
     @Override
     public FrameDescriptor getParentFrameDescriptor() {
         var info = getFrameDescriptor().getInfo();
-        if (info instanceof ParentFrameDescriptor) {
-            return ((ParentFrameDescriptor) info).getDescriptor();
+        if (info instanceof BlockDescriptorInfo) {
+            return ((BlockDescriptorInfo) info).getParentDescriptor();
         } else {
             return null;
         }

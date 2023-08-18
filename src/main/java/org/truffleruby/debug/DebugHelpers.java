@@ -22,7 +22,7 @@ import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.parser.ParentFrameDescriptor;
+import org.truffleruby.parser.BlockDescriptorInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -67,8 +67,8 @@ public abstract class DebugHelpers {
                 RubyNode.EMPTY_ARGUMENTS);
 
 
-        var builder = TranslatorEnvironment.newFrameDescriptorBuilder(new ParentFrameDescriptor(currentFrameDescriptor),
-                false);
+        var builder = TranslatorEnvironment
+                .newFrameDescriptorBuilderForBlock(new BlockDescriptorInfo(currentFrameDescriptor));
 
         for (int i = 0; i < nArgs; i++) {
             final Object identifier = arguments[i * 2];

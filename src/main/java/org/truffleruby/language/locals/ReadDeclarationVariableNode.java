@@ -15,7 +15,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.parser.ParentFrameDescriptor;
+import org.truffleruby.parser.BlockDescriptorInfo;
 
 public final class ReadDeclarationVariableNode extends ReadLocalNode {
 
@@ -57,7 +57,7 @@ public final class ReadDeclarationVariableNode extends ReadLocalNode {
 
     @Override
     protected String getVariableName() {
-        var descriptor = ParentFrameDescriptor.getDeclarationFrameDescriptor(
+        var descriptor = BlockDescriptorInfo.getDeclarationFrameDescriptor(
                 getRootNode().getFrameDescriptor(), frameDepth);
         return descriptor.getSlotName(frameSlot).toString();
     }
