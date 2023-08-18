@@ -150,7 +150,7 @@ def ruby_check_heap_dump(input_args, out=None):
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
-    vm_args.append("org.truffleruby.LeakTest")
+    vm_args.append("org.truffleruby.test.LeakTest")
     out = mx.OutputCapture() if out is None else out
     retval = mx.run_java(vm_args + truffleruby_args, jdk=jdk, nonZeroIsFatal=False, out=out)
     if retval == 0:

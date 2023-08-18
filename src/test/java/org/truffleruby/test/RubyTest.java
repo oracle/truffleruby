@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -21,6 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;

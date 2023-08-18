@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.test;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;

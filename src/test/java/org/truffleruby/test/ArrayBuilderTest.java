@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,6 +24,7 @@ import org.graalvm.polyglot.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;

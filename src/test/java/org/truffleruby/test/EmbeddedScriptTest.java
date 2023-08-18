@@ -7,20 +7,22 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.loader;
+package org.truffleruby.test;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.loader.EmbeddedScript;
 
 public class EmbeddedScriptTest {
 
     @Test
     public void testLineContainsRubyFalse() {
         final byte[] bytes = bytes("foo bar baz");
-        assertFalse(EmbeddedScript.lineContainsRuby(bytes, 0, bytes.length));
+        TestCase.assertFalse(EmbeddedScript.lineContainsRuby(bytes, 0, bytes.length));
     }
 
     @Test

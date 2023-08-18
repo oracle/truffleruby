@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -24,6 +24,8 @@ import java.util.function.Consumer;
 
 import org.graalvm.polyglot.Source;
 import org.junit.Test;
+import org.truffleruby.RubyFileTypeDetector;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyRootNode;
 
 import com.oracle.truffle.api.TruffleFile;

@@ -7,12 +7,12 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.truffleruby.RubyTest.assertThrows;
+import static org.truffleruby.test.RubyTest.assertThrows;
 
 import org.junit.Test;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
