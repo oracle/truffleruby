@@ -10,16 +10,27 @@
 # GNU Lesser General Public License version 2.1.
 
 module Coverage
+  UNDEFINED = Object.new
 
   def self.supported?(mode)
     mode == :lines
   end
 
-  def self.start(*arguments, **options)
-    # We have to track if the :lines option was provided, as that calls for a
-    # different result format
-    @lines = !!options[:lines]
+  def self.start(modes = UNDEFINED)
+    if modes == :all || modes == UNDEFINED
+      options = {}
+    else
+      options = Truffle::Type.rb_convert_type(modes, Hash, :to_hash)
+    end
+
+    if options[:lines] && options[:oneshot_lines]
+      raise 'cannot enable lines and oneshot_lines simultaneously'
+    end
+
+    @lines = Primitive.as_boolean(options[:lines]) # presence of :lines affects `result`'s report format
     Truffle::Coverage.enable
+
+    nil
   end
 
   def self.result(stop: true, clear: true)
