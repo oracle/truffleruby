@@ -15,8 +15,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-import static org.truffleruby.language.threadlocal.SpecialVariableStorage.ASSUMPTION_NAME;
-
 public final class BlockFrameDescriptorInfo {
 
     @ExplodeLoop
@@ -33,12 +31,11 @@ public final class BlockFrameDescriptorInfo {
     private final Assumption specialVariableAssumption;
 
     public BlockFrameDescriptorInfo(Assumption specialVariableAssumption) {
-        assert specialVariableAssumption != null && specialVariableAssumption.getName() == ASSUMPTION_NAME;
+        assert SpecialVariableStorage.isSpecialVariableAssumption(specialVariableAssumption);
         this.specialVariableAssumption = specialVariableAssumption;
     }
 
     public BlockFrameDescriptorInfo(FrameDescriptor descriptor) {
-        assert descriptor != null && descriptor.getInfo() != null;
         this.descriptor = descriptor;
         this.specialVariableAssumption = getSpecialVariableAssumptionFromDescriptor(descriptor);
     }

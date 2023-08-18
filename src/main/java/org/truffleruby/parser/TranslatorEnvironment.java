@@ -191,7 +191,6 @@ public final class TranslatorEnvironment {
         return builder;
     }
 
-
     public static FrameDescriptor.Builder newFrameDescriptorBuilderForMethod() {
         var specialVariableAssumption = createSpecialVariableAssumption();
         return newFrameDescriptorBuilderForMethod(specialVariableAssumption);
