@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.embedding;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;

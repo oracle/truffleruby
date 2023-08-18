@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.embedding;
 
 import static org.junit.Assert.assertEquals;
 
@@ -17,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.junit.Test;
-import org.truffleruby.shared.TruffleRuby;
 
 public class PolyglotIOTest extends RubyTest {
 
@@ -27,7 +26,7 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayInputStream in = new ByteArrayInputStream("abc".getBytes());
 
         try (Context context = RubyTest.setupContext(Context.newBuilder()).out(out).in(in).build()) {
-            context.eval(Source.create(TruffleRuby.LANGUAGE_ID, "puts STDIN.read(3)"));
+            context.eval(Source.create("ruby", "puts STDIN.read(3)"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -38,7 +37,7 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try (Context context = RubyTest.setupContext(Context.newBuilder()).out(out).build()) {
-            context.eval(Source.create(TruffleRuby.LANGUAGE_ID, "puts 'abc'"));
+            context.eval(Source.create("ruby", "puts 'abc'"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -49,7 +48,7 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
         try (Context context = RubyTest.setupContext(Context.newBuilder()).err(err).build()) {
-            context.eval(Source.create(TruffleRuby.LANGUAGE_ID, "STDERR.puts 'abc'"));
+            context.eval(Source.create("ruby", "STDERR.puts 'abc'"));
         }
 
         assertEquals("abc\n", err.toString());

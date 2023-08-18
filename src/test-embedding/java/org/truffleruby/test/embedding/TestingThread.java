@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.embedding;
 
 /** If the Thread dies from an exception, rethrow it on join(). This Thread can then be used for assert*(). */
 public class TestingThread {

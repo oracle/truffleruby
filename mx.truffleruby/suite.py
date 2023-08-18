@@ -320,15 +320,31 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
-        "org.truffleruby.test": {
-            "dir": "src/test",
+        "org.truffleruby.test.embedding": {
+            "testProject": True,
+            "dir": "src/test-embedding",
+            "sourceDirs": ["java"],
+            "requires": ["java.scripting"],
+            "dependencies": [
+                # Distributions
+                "TRUFFLERUBY-SERVICES",
+                # Libraries
+                "mx:JUNIT",
+            ],
+            "javaCompliance": "17+",
+            "checkstyle": "org.truffleruby",
+            "license": ["EPL-2.0"],
+        },
+
+        "org.truffleruby.test.internal": {
+            "testProject": True,
+            "dir": "src/test-internal",
             "sourceDirs": ["java", "ruby"],
-            "requires": ["java.scripting", "java.management", "jdk.management"],
+            "requires": ["java.management", "jdk.management"],
             "dependencies": [
                 # Distributions
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
-                "TRUFFLERUBY-SERVICES",
                 # Libraries
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
@@ -675,15 +691,35 @@ suite = {
             },
         },
 
-        "TRUFFLERUBY-TEST": {
+        "TRUFFLERUBY-TEST-EMBEDDING": {
             "testDistribution": True,
             "dependencies": [
-                "org.truffleruby.test",
+                "org.truffleruby.test.embedding",
+            ],
+            "distDependencies": [
+                "TRUFFLERUBY-SERVICES",
+                # runtime-only dependencies
+                "TRUFFLERUBY",
+            ],
+            "exclude": [
+                "mx:HAMCREST",
+                "mx:JUNIT",
+            ],
+            "javaProperties": {
+                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+            },
+            "license": ["EPL-2.0"],
+            "maven": False,
+        },
+
+        "TRUFFLERUBY-TEST-INTERNAL": {
+            "testDistribution": True,
+            "dependencies": [
+                "org.truffleruby.test.internal",
             ],
             "distDependencies": [
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
-                "TRUFFLERUBY-SERVICES",
             ],
             "exclude": [
                 "mx:HAMCREST",

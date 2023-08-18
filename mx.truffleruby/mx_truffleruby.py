@@ -143,14 +143,14 @@ def build_truffleruby(args):
 
 def ruby_check_heap_dump(input_args, out=None):
     print("mx ruby_check_heap_dump " + " ".join(input_args))
-    dists = ['TRUFFLERUBY', 'TRUFFLE_NFI', 'SULONG_NATIVE', 'TRUFFLERUBY-TEST']
+    dists = ['TRUFFLERUBY', 'TRUFFLE_NFI', 'SULONG_NATIVE', 'TRUFFLERUBY-TEST-INTERNAL']
     mx.command_function('build')(['--dependencies', ','.join(dists)])
     args = input_args
     args.insert(0, "--experimental-options")
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
-    vm_args.append("org.truffleruby.test.LeakTest")
+    vm_args.append("org.truffleruby.test.internal.LeakTest")
     out = mx.OutputCapture() if out is None else out
     retval = mx.run_java(vm_args + truffleruby_args, jdk=jdk, nonZeroIsFatal=False, out=out)
     if retval == 0:

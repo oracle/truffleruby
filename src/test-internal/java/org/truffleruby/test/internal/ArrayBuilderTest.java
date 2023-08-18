@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.internal;
 
 import static org.junit.Assert.assertEquals;
 
@@ -243,7 +243,7 @@ public class ArrayBuilderTest {
     @Before
     public void before() {
         context = RubyTest.setupContext(Context.newBuilder()).out(out).err(err).build();
-        context.eval(getSource("init.rb"));
+        context.eval("ruby", ":init");
     }
 
     @After

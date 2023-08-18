@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.embedding;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -22,15 +22,14 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Test;
-import org.truffleruby.fixtures.FluidForce;
-import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.test.embedding.fixtures.FluidForce;
 
 public class PolyglotInteropTest {
 
     @Test
     public void testCreateContext() {
         try (Context polyglot = Context.create()) {
-            assertEquals(14, polyglot.eval(TruffleRuby.LANGUAGE_ID, "14").asInt());
+            assertEquals(14, polyglot.eval("ruby", "14").asInt());
         }
     }
 

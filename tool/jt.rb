@@ -47,7 +47,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
   src/main/ruby
-  src/test/ruby
+  src/test-internal/ruby
   tool/docker.rb
   tool/jt.rb
   spec/truffle
@@ -1165,10 +1165,6 @@ module Commands
     require_ruby_launcher!
     path, *rest = args
 
-    if %w[unit unittest tck].include?(path)
-      puts bold "NOTE: You need `jt mx build` before running `jt test #{path}` to build the relevant test distributions"
-    end
-
     case path
     when nil
       %w[specs mri bundle cexts integration gems ecosystem compiler].each do |kind|
@@ -1185,13 +1181,9 @@ module Commands
     when 'basictest' then test_basictest(*rest)
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
-    when 'unit', 'unittest'
-      unittest_args, mx_options = args_split(rest)
-      unittest_options, tests = unittest_args.partition { |arg| arg.start_with?('-') }
-      tests = tests.empty? ? ['org.truffleruby'] : tests
-      # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
-      mx(*mx_options, 'unittest', *unittest_options, *tests)
+    when 'unit', 'unittest' then test_unit(*rest)
     when 'tck'
+      puts bold 'NOTE: You need `jt mx build` before running `jt test tck` to build the relevant test distributions'
       mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
@@ -1199,6 +1191,22 @@ module Commands
       else
         test_specs('run', *args)
       end
+    end
+  end
+
+  def test_unit(*rest)
+    mx('build', '--dependencies', 'TRUFFLERUBY-TEST-EMBEDDING,TRUFFLERUBY-TEST-INTERNAL')
+    unittest_args, mx_options = args_split(rest)
+    unittest_options, tests = unittest_args.partition { |arg| arg.start_with?('-') }
+
+    if tests.empty?
+      mx(*mx_options, 'unittest', *unittest_options, 'org.truffleruby.test.embedding')
+      mx(*mx_options, 'unittest', *unittest_options, '--force-classpath', 'org.truffleruby.test.internal')
+    else
+      if tests.any? { |test| test.include?('internal') }
+        unittest_options << '--force-classpath'
+      end
+      mx(*mx_options, 'unittest', *unittest_options, *tests)
     end
   end
 

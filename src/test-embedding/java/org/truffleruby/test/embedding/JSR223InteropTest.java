@@ -7,9 +7,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.test;
+package org.truffleruby.test.embedding;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -25,9 +26,8 @@ import javax.script.ScriptException;
 
 import org.junit.After;
 import org.junit.Test;
-import org.truffleruby.fixtures.FluidForce;
+import org.truffleruby.test.embedding.fixtures.FluidForce;
 import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
-import org.truffleruby.shared.TruffleRuby;
 
 public class JSR223InteropTest {
 
@@ -51,7 +51,7 @@ public class JSR223InteropTest {
 
     @Test
     public void testVersion() {
-        assertEquals(TruffleRuby.getEngineVersion(), new TruffleRubyScriptEngineFactory().getEngineVersion());
+        assertNotNull(new TruffleRubyScriptEngineFactory().getEngineVersion());
     }
 
     @Test

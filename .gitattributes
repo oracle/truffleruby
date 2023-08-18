@@ -28,7 +28,8 @@
 /src/main/c/truffleposix/Makefile linguist-vendored
 /lib/gems/gems/*/bin/setup linguist-vendored
 /lib/truffle/post_install_hook.sh linguist-vendored
-/src/test/* linguist-vendored
+/src/test-embedding/* linguist-vendored
+/src/test-internal/* linguist-vendored
 /src/processor/* linguist-vendored
 
 # Generated code

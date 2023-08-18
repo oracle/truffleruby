@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.fixtures;
+package org.truffleruby.test.embedding.fixtures;
 
 import org.graalvm.polyglot.HostAccess;
 

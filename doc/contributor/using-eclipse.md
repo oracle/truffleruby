@@ -37,11 +37,7 @@ We can now import the projects:
 * Select this repository as root directory
 * Click `Finish`
 
-There should be now 4 projects in your workspace:
-* `truffleruby`
-* `truffleruby-test`
-* `TRUFFLERUBY-TEST.dist`
-* `TRUFFLERUBY.dist`
+There should be now some projects in your workspace, like `truffleruby` and `TRUFFLERUBY.dist`.
 
 ## Advanced Setup
 
