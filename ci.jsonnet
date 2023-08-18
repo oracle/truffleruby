@@ -302,7 +302,8 @@ local part_definitions = {
 
   run: {
     test_unit_tck: {
-      run+: jt(["test", "unit", "--verbose"]) +
+      run+: jt(["mx", "build"]) +
+            jt(["test", "unit", "--verbose"]) +
             jt(["test", "tck"])
     },
 
