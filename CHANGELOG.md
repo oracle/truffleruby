@@ -25,6 +25,7 @@ Compatibility:
 * Display "unhandled exception" as the message for `RuntimeError` instances with an empty message (#3255, @nirvdrum).
 * Set `RbConfig::CONFIG['configure_args']` for openssl and libyaml (#3170, #3303, @eregon).
 * Support `Socket.sockaddr_in(port, Socket::INADDR_ANY)` (#3361, @mtortonesi).
+* Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
 
 Performance:
 
