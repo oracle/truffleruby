@@ -57,7 +57,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
-import org.truffleruby.parser.BlockFrameDescriptorInfo;
+import org.truffleruby.parser.BlockDescriptorInfo;
 import org.truffleruby.parser.TranslatorEnvironment;
 
 @CoreModule(value = "Binding", isClass = true)
@@ -80,7 +80,7 @@ public abstract class BindingNodes {
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyBinding binding) {
         FrameDescriptor parentDescriptor = binding.getFrame().getFrameDescriptor();
-        var ref = new BlockFrameDescriptorInfo(parentDescriptor);
+        var ref = new BlockDescriptorInfo(parentDescriptor);
         return TranslatorEnvironment.newFrameDescriptorBuilderForBlock(ref).build();
     }
 
@@ -90,7 +90,7 @@ public abstract class BindingNodes {
     public static FrameDescriptor newFrameDescriptor(FrameDescriptor parentDescriptor, String name) {
         assert name != null && !name.isEmpty();
 
-        var ref = new BlockFrameDescriptorInfo(parentDescriptor);
+        var ref = new BlockDescriptorInfo(parentDescriptor);
         var builder = TranslatorEnvironment.newFrameDescriptorBuilderForBlock(ref);
         int index = builder.addSlot(FrameSlotKind.Illegal, name, null);
         if (index != NEW_VAR_INDEX) {

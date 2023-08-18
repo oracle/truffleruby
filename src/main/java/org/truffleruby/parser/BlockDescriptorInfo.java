@@ -17,14 +17,14 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 /** This is the {@link FrameDescriptor#getInfo() descriptor info} for blocks. The descriptor info for methods is an
  * {@link SpecialVariableStorage#getAssumption(FrameDescriptor) Assumption}. */
-public final class BlockFrameDescriptorInfo {
+public final class BlockDescriptorInfo {
 
     @ExplodeLoop
     public static FrameDescriptor getDeclarationFrameDescriptor(FrameDescriptor topDescriptor, int depth) {
         assert depth > 0;
         FrameDescriptor descriptor = topDescriptor;
         for (int i = 0; i < depth; i++) {
-            descriptor = ((BlockFrameDescriptorInfo) descriptor.getInfo()).getParentDescriptor();
+            descriptor = ((BlockDescriptorInfo) descriptor.getInfo()).getParentDescriptor();
         }
         return descriptor;
     }
@@ -32,19 +32,19 @@ public final class BlockFrameDescriptorInfo {
     @CompilationFinal private FrameDescriptor parentDescriptor;
     private final Assumption specialVariableAssumption;
 
-    public BlockFrameDescriptorInfo(Assumption specialVariableAssumption) {
+    public BlockDescriptorInfo(Assumption specialVariableAssumption) {
         assert SpecialVariableStorage.isSpecialVariableAssumption(specialVariableAssumption);
         this.specialVariableAssumption = specialVariableAssumption;
     }
 
-    public BlockFrameDescriptorInfo(FrameDescriptor parentDescriptor) {
+    public BlockDescriptorInfo(FrameDescriptor parentDescriptor) {
         this.parentDescriptor = parentDescriptor;
         this.specialVariableAssumption = getSpecialVariableAssumptionFromDescriptor(parentDescriptor);
     }
 
     private Assumption getSpecialVariableAssumptionFromDescriptor(FrameDescriptor descriptor) {
-        if (descriptor.getInfo() instanceof BlockFrameDescriptorInfo blockFrameDescriptorInfo) {
-            return blockFrameDescriptorInfo.getSpecialVariableAssumption();
+        if (descriptor.getInfo() instanceof BlockDescriptorInfo blockDescriptorInfo) {
+            return blockDescriptorInfo.getSpecialVariableAssumption();
         } else {
             return SpecialVariableStorage.getAssumption(descriptor);
         }

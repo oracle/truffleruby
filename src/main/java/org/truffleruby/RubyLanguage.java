@@ -110,7 +110,7 @@ import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.options.LanguageOptions;
-import org.truffleruby.parser.BlockFrameDescriptorInfo;
+import org.truffleruby.parser.BlockDescriptorInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
@@ -190,7 +190,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     /** This is a truly empty frame descriptor and should only by dummy root nodes which require no variables. Any other
      * root nodes should should use either {@link TranslatorEnvironment#newFrameDescriptorBuilderForMethod()} or
-     * {@link TranslatorEnvironment#newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo)}. */
+     * {@link TranslatorEnvironment#newFrameDescriptorBuilderForBlock(BlockDescriptorInfo)}. */
     public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(nil);
 
     private RubyThread getOrCreateForeignThread(RubyContext context, Thread thread) {

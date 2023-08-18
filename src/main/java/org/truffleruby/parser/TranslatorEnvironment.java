@@ -49,7 +49,7 @@ public final class TranslatorEnvironment {
     /** The descriptor info is shared for all blocks at the same level (i.e., for TranslatorEnvironment direct
      * children), in order to save footprint. It is therefore created in the parent TranslatorEnvironment of those
      * blocks using that descriptor info. */
-    private final BlockFrameDescriptorInfo descriptorInfoForChildren;
+    private final BlockDescriptorInfo descriptorInfoForChildren;
 
     private final List<Integer> flipFlopStates = new ArrayList<>();
 
@@ -85,18 +85,18 @@ public final class TranslatorEnvironment {
 
         if (descriptor == null) {
             if (blockDepth > 0) {
-                BlockFrameDescriptorInfo descriptorInfo = Objects.requireNonNull(parent.descriptorInfoForChildren);
+                BlockDescriptorInfo descriptorInfo = Objects.requireNonNull(parent.descriptorInfoForChildren);
                 this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(descriptorInfo);
-                this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(
+                this.descriptorInfoForChildren = new BlockDescriptorInfo(
                         descriptorInfo.getSpecialVariableAssumption());
             } else {
                 var specialVariableAssumption = createSpecialVariableAssumption();
                 this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod(specialVariableAssumption);
-                this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(specialVariableAssumption);
+                this.descriptorInfoForChildren = new BlockDescriptorInfo(specialVariableAssumption);
             }
         } else {
             this.frameDescriptor = descriptor;
-            this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(descriptor);
+            this.descriptorInfoForChildren = new BlockDescriptorInfo(descriptor);
 
             assert descriptor.getNumberOfAuxiliarySlots() == 0;
             int slots = descriptor.getNumberOfSlots();
@@ -151,7 +151,7 @@ public final class TranslatorEnvironment {
     }
 
     // region frame descriptor
-    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo descriptorInfo) {
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockDescriptorInfo descriptorInfo) {
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
         builder.info(Objects.requireNonNull(descriptorInfo));
 
