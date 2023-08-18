@@ -130,10 +130,6 @@ describe 'Coverage.result' do
   end
 
   ruby_version_is '3.2' do
-    it 'indicates support for different features' do
-      Coverage.supported?(:lines).should == true
-    end
-
     it 'returns the correct results when eval coverage is enabled' do
       Coverage.supported?(:eval).should == true
 
