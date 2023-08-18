@@ -128,7 +128,6 @@ suite = {
                 "test/truffle/ecosystem/blog6",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
-                "test/truffle/offline",
                 "tool/docker",
                 "rubyspec_temp",
             ]
@@ -327,7 +326,7 @@ suite = {
             "requires": ["java.scripting"],
             "dependencies": [
                 # Distributions
-                "TRUFFLERUBY-SERVICES",
+                "sdk:POLYGLOT",
                 # Libraries
                 "mx:JUNIT",
             ],
@@ -473,25 +472,6 @@ suite = {
             "description": "TruffleRuby Annotation Processor",
             "license": ["EPL-2.0"],
             "maven": False,
-        },
-
-        "TRUFFLERUBY-SERVICES": {
-            "moduleInfo": {
-                "name": "org.graalvm.ruby.services",
-                "exports": [
-                    "org.truffleruby.services.scriptengine",
-                ],
-            },
-            "dependencies": [
-                "org.truffleruby.services"
-            ],
-            "distDependencies": [
-                "sdk:GRAAL_SDK",
-            ],
-            "description": "TruffleRuby services",
-            "license": ["EPL-2.0"],
-            "maven": False,
-            "useModulePath": True,
         },
 
         "TRUFFLERUBY": {
@@ -705,7 +685,7 @@ suite = {
                 "org.truffleruby.test.embedding",
             ],
             "distDependencies": [
-                "TRUFFLERUBY-SERVICES",
+                "sdk:POLYGLOT",
                 # runtime-only dependencies
                 "TRUFFLERUBY",
             ],

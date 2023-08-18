@@ -21,10 +21,11 @@ The standalone distribution does not allow for Java interoperability.
 
 JRuby supports many different ways to embed Ruby in Java, including JSR 223 (also know as `javax.script`), the Bean Scripting Framework (BSF), JRuby Embed (also known as Red Bridge), and the JRuby direct embedding API.
 
-Thes best way to embed TruffleRuby is to use the Polyglot API, which is part of GraalVM.
+The best way to embed TruffleRuby is to use the Polyglot API, which is part of GraalVM.
 The API is different because it is designed to support many languages, not just Ruby.
 
 TruffleRuby also supports JSR 223, compatible with JRuby, to make it easier to run legacy JRuby code.
+See [this documentation](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#compatibility-with-jsr-223-scriptengine) for how to use it.
 
 You will need to use GraalVM to use both of these APIs.
 

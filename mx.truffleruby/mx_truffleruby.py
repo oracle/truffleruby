@@ -273,9 +273,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'truffleruby:JCODINGS',
         'truffleruby:JONI',
     ],
-    boot_jars=[
-        'truffleruby:TRUFFLERUBY-SERVICES'
-    ],
     support_distributions=[
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES',

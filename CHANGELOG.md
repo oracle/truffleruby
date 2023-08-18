@@ -49,6 +49,7 @@ Performance:
 
 Changes:
 
+* The TruffleRuby `ScriptEngine` implementation is removed in favor of the generic [ScriptEngine](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#compatibility-with-jsr-223-scriptengine) in GraalVM docs.
 
 Memory Footprint:
 
