@@ -84,7 +84,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     public FrameDescriptor getParentFrameDescriptor() {
         var info = getFrameDescriptor().getInfo();
         if (info instanceof BlockFrameDescriptorInfo) {
-            return ((BlockFrameDescriptorInfo) info).getDescriptor();
+            return ((BlockFrameDescriptorInfo) info).getParentDescriptor();
         } else {
             return null;
         }

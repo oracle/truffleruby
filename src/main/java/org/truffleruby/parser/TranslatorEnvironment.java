@@ -46,7 +46,10 @@ public final class TranslatorEnvironment {
     private EconomicMap<Object, Integer> nameToIndex = EconomicMap.create();
     private FrameDescriptor.Builder frameDescriptorBuilder;
     private FrameDescriptor frameDescriptor;
-    private final BlockFrameDescriptorInfo blockFrameDescriptorInfo;
+    /** The descriptor info is shared for all blocks at the same level (i.e., for TranslatorEnvironment direct
+     * children), in order to save footprint. It is therefore created in the parent TranslatorEnvironment of those
+     * blocks using that descriptor info. */
+    private final BlockFrameDescriptorInfo descriptorInfoForChildren;
 
     private final List<Integer> flipFlopStates = new ArrayList<>();
 
@@ -82,19 +85,18 @@ public final class TranslatorEnvironment {
 
         if (descriptor == null) {
             if (blockDepth > 0) {
-                BlockFrameDescriptorInfo parentBlockDescriptor = Objects
-                        .requireNonNull(parent.blockFrameDescriptorInfo);
-                this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(parentBlockDescriptor);
-                this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(
-                        parentBlockDescriptor.getSpecialVariableAssumption());
+                BlockFrameDescriptorInfo descriptorInfo = Objects.requireNonNull(parent.descriptorInfoForChildren);
+                this.frameDescriptorBuilder = newFrameDescriptorBuilderForBlock(descriptorInfo);
+                this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(
+                        descriptorInfo.getSpecialVariableAssumption());
             } else {
                 var specialVariableAssumption = createSpecialVariableAssumption();
                 this.frameDescriptorBuilder = newFrameDescriptorBuilderForMethod(specialVariableAssumption);
-                this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(specialVariableAssumption);
+                this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(specialVariableAssumption);
             }
         } else {
             this.frameDescriptor = descriptor;
-            this.blockFrameDescriptorInfo = new BlockFrameDescriptorInfo(descriptor);
+            this.descriptorInfoForChildren = new BlockFrameDescriptorInfo(descriptor);
 
             assert descriptor.getNumberOfAuxiliarySlots() == 0;
             int slots = descriptor.getNumberOfSlots();
@@ -149,14 +151,9 @@ public final class TranslatorEnvironment {
     }
 
     // region frame descriptor
-    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo parentBlockInfo) {
-        if (parentBlockInfo == null) {
-            throw CompilerDirectives.shouldNotReachHere(
-                    "Frame descriptor for block has to have parent");
-        }
-
+    public static FrameDescriptor.Builder newFrameDescriptorBuilderForBlock(BlockFrameDescriptorInfo descriptorInfo) {
         var builder = FrameDescriptor.newBuilder().defaultValue(Nil.INSTANCE);
-        builder.info(parentBlockInfo);
+        builder.info(Objects.requireNonNull(descriptorInfo));
 
         int selfIndex = builder.addSlot(FrameSlotKind.Illegal, SelfNode.SELF_IDENTIFIER, null);
         if (selfIndex != SelfNode.SELF_INDEX) {
@@ -298,7 +295,7 @@ public final class TranslatorEnvironment {
         }
 
         frameDescriptor = frameDescriptorBuilder.build();
-        blockFrameDescriptorInfo.set(frameDescriptor);
+        descriptorInfoForChildren.setParentDescriptor(frameDescriptor);
         frameDescriptorBuilder = null;
         nameToIndex = null;
         return frameDescriptor;

@@ -15,6 +15,8 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
+/** This is the {@link FrameDescriptor#getInfo() descriptor info} for blocks. The descriptor info for methods is an
+ * {@link SpecialVariableStorage#getAssumption(FrameDescriptor) Assumption}. */
 public final class BlockFrameDescriptorInfo {
 
     @ExplodeLoop
@@ -22,12 +24,12 @@ public final class BlockFrameDescriptorInfo {
         assert depth > 0;
         FrameDescriptor descriptor = topDescriptor;
         for (int i = 0; i < depth; i++) {
-            descriptor = ((BlockFrameDescriptorInfo) descriptor.getInfo()).getDescriptor();
+            descriptor = ((BlockFrameDescriptorInfo) descriptor.getInfo()).getParentDescriptor();
         }
         return descriptor;
     }
 
-    @CompilationFinal private FrameDescriptor descriptor;
+    @CompilationFinal private FrameDescriptor parentDescriptor;
     private final Assumption specialVariableAssumption;
 
     public BlockFrameDescriptorInfo(Assumption specialVariableAssumption) {
@@ -35,9 +37,9 @@ public final class BlockFrameDescriptorInfo {
         this.specialVariableAssumption = specialVariableAssumption;
     }
 
-    public BlockFrameDescriptorInfo(FrameDescriptor descriptor) {
-        this.descriptor = descriptor;
-        this.specialVariableAssumption = getSpecialVariableAssumptionFromDescriptor(descriptor);
+    public BlockFrameDescriptorInfo(FrameDescriptor parentDescriptor) {
+        this.parentDescriptor = parentDescriptor;
+        this.specialVariableAssumption = getSpecialVariableAssumptionFromDescriptor(parentDescriptor);
     }
 
     private Assumption getSpecialVariableAssumptionFromDescriptor(FrameDescriptor descriptor) {
@@ -48,14 +50,14 @@ public final class BlockFrameDescriptorInfo {
         }
     }
 
-    public FrameDescriptor getDescriptor() {
-        assert descriptor != null;
-        return descriptor;
+    public FrameDescriptor getParentDescriptor() {
+        assert parentDescriptor != null;
+        return parentDescriptor;
     }
 
-    void set(FrameDescriptor descriptor) {
-        assert this.descriptor == null;
-        this.descriptor = descriptor;
+    void setParentDescriptor(FrameDescriptor parentDescriptor) {
+        assert this.parentDescriptor == null;
+        this.parentDescriptor = parentDescriptor;
     }
 
     public Assumption getSpecialVariableAssumption() {
