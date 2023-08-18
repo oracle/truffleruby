@@ -119,7 +119,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
             '--disable-gems',
             '--disable-rubyopt',
         ]
-        command = [jdk.java] + jvm_args + [main_class] + ruby_options + ['"$@"']
+        command = [jdk.java] + jvm_args + ['-m', 'org.graalvm.ruby.launcher/' + main_class] + ruby_options + ['"$@"']
         return "#!/usr/bin/env bash\n" + "exec " + " ".join(command) + "\n"
 
 

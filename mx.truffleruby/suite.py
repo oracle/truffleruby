@@ -431,6 +431,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         # Required to share code between the launcher and the rest,
@@ -458,6 +459,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         "TRUFFLERUBY-PROCESSOR": {
@@ -489,6 +491,7 @@ suite = {
             "description": "TruffleRuby services",
             "license": ["EPL-2.0"],
             "maven": False,
+            "useModulePath": True,
         },
 
         "TRUFFLERUBY": {
@@ -508,6 +511,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                # runtime-only dependencies
+                "truffle:TRUFFLE_NFI_LIBFFI",
+                "sulong:SULONG_NATIVE",
             ],
             "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
                 "truffleruby:JCODINGS",
@@ -525,6 +531,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         "RUBY_COMMUNITY": {
@@ -576,6 +583,7 @@ suite = {
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
             "maven": False,
+            "useModulePath": True,
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT": {
