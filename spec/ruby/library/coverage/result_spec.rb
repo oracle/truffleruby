@@ -75,17 +75,6 @@ describe 'Coverage.result' do
     end
   end
 
-  ruby_version_is '3.1' do
-    it 'second Coverage.start give exception' do
-      Coverage.start
-      -> {
-        require @config_file.chomp('.rb')
-      }.should raise_error(RuntimeError, 'coverage measurement is already setup')
-    ensure
-      Coverage.result
-    end
-  end
-
   it 'does not include the file starting coverage since it is not tracked' do
     require @config_file.chomp('.rb')
     Coverage.result.should_not include(@config_file)
@@ -124,7 +113,7 @@ describe 'Coverage.result' do
       }
     end
 
-    it 'returns the correct results when eval coverage is enabled' do
+    it 'returns the correct results when eval coverage is disabled' do
       Coverage.supported?(:eval).should == true
 
       Coverage.start(lines: true, eval: false)

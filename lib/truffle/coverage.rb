@@ -17,6 +17,10 @@ module Coverage
   end
 
   def self.start(modes = UNDEFINED)
+    if Truffle::Coverage.enabled?
+      raise 'coverage measurement is already setup'
+    end
+
     if modes == :all || modes == UNDEFINED
       options = {}
     else
@@ -46,6 +50,7 @@ module Coverage
         { lines: lines_array.unshift(nil) }
       end
     end
+
     result
   end
 

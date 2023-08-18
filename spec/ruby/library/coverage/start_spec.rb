@@ -19,6 +19,16 @@ describe 'Coverage.start' do
     Coverage.start.should == nil
   end
 
+  ruby_version_is '3.1' do
+    it 'raises error when repeated Coverage.start call happens' do
+      Coverage.start
+
+      -> {
+        Coverage.start
+      }.should raise_error(RuntimeError, 'coverage measurement is already setup')
+    end
+  end
+
   ruby_version_is '3.2' do
     it "accepts :all optional argument" do
       Coverage.start(:all)
