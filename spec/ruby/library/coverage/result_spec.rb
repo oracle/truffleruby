@@ -26,6 +26,41 @@ describe 'Coverage.result' do
     }
   end
 
+  ruby_version_is "3.2" do
+    it 'returns results for each mode separately when enabled :all modes' do
+      Coverage.start(:all)
+      require @class_file.chomp('.rb')
+      result = Coverage.result
+
+      result.should == {
+        @class_file => {
+          :lines => [
+            nil, nil, 1, nil, nil, 1, nil, nil, 0, nil, nil, nil, nil, nil, nil, nil
+          ],
+          :branches => {},
+          :methods => {
+            [SomeClass, :some_method, 6, 2, 11, 5] => 0
+          }
+        }
+      }
+    end
+
+    it 'returns results for each mode separately when enabled any mode explicitly' do
+      Coverage.start(lines: true)
+      require @class_file.chomp('.rb')
+      result = Coverage.result
+
+      result.should == {
+        @class_file =>
+          {
+            :lines=> [
+              nil, nil, 1, nil, nil, 1, nil, nil, 0, nil, nil, nil, nil, nil, nil, nil
+            ]
+          }
+      }
+    end
+  end
+
   it 'no requires/loads should give empty hash' do
     Coverage.start
     result = Coverage.result

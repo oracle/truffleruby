@@ -31,7 +31,7 @@ module Coverage
       raise 'cannot enable lines and oneshot_lines simultaneously'
     end
 
-    @lines = Primitive.as_boolean(options[:lines]) # presence of :lines affects `result`'s report format
+    @default_mode = (modes == UNDEFINED)
     Truffle::Coverage.enable
 
     nil
@@ -41,10 +41,11 @@ module Coverage
     result = peek_result
     Truffle::Coverage.disable if stop || clear
     Truffle::Coverage.enable if !stop && clear
-    # We have to wrap the coverage lines array in a hash with the :lines key if
-    # the :lines option was given
-    if @lines
-      result.transform_values! do |_,*lines_array|
+
+    # if there is only the default mode (:lines only) - return result as array per file,
+    # otherwise return result for each mode separately (e.g. for :branches, :methods, :lines)
+    if !@default_mode
+      result.transform_values! do |_, *lines_array|
         # need to add nil to the beginning of each lines array, because the
         # first line has index 1 and not 0
         { lines: lines_array.unshift(nil) }
