@@ -497,24 +497,12 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node,
                 defineOrGetClass,
                 name,
-                node.statements,
+                node.body,
                 OpenModule.CLASS,
                 shouldUseDynamicConstantLookupForModuleBody(node));
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
-    }
-
-    public RubyNode visitClassVariableOperatorAndWriteNode(Nodes.ClassVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitClassVariableOperatorOrWriteNode(Nodes.ClassVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitClassVariableOperatorWriteNode(Nodes.ClassVariableOperatorWriteNode node) {
-        return defaultVisit(node);
     }
 
     public RubyNode visitClassVariableReadNode(Nodes.ClassVariableReadNode node) {
@@ -537,18 +525,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    public RubyNode visitConstantOperatorAndWriteNode(Nodes.ConstantOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitConstantOperatorOrWriteNode(Nodes.ConstantOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitConstantOperatorWriteNode(Nodes.ConstantOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
         assert node.child instanceof Nodes.ConstantReadNode;
 
@@ -567,18 +543,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
-    }
-
-    public RubyNode visitConstantPathOperatorAndWriteNode(Nodes.ConstantPathOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitConstantPathOperatorOrWriteNode(Nodes.ConstantPathOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitConstantPathOperatorWriteNode(Nodes.ConstantPathOperatorWriteNode node) {
-        return defaultVisit(node);
     }
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
@@ -737,18 +701,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitGlobalVariableOperatorAndWriteNode(Nodes.GlobalVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitGlobalVariableOperatorOrWriteNode(Nodes.GlobalVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitGlobalVariableOperatorWriteNode(Nodes.GlobalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitGlobalVariableReadNode(Nodes.GlobalVariableReadNode node) {
         final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(toString(node));
         assignNodePositionInSource(node, rubyNode);
@@ -861,18 +813,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitInNode(Nodes.InNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitInstanceVariableOperatorAndWriteNode(Nodes.InstanceVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitInstanceVariableOperatorOrWriteNode(Nodes.InstanceVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitInstanceVariableOperatorWriteNode(Nodes.InstanceVariableOperatorWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -992,18 +932,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
-    public RubyNode visitLocalVariableOperatorAndWriteNode(Nodes.LocalVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitLocalVariableOperatorOrWriteNode(Nodes.LocalVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public RubyNode visitLocalVariableOperatorWriteNode(Nodes.LocalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitLocalVariableReadNode(Nodes.LocalVariableReadNode node) {
         final String name = toString(node);
 
@@ -1075,7 +1003,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node,
                 defineModuleNode,
                 name,
-                node.statements,
+                node.body,
                 OpenModule.MODULE,
                 shouldUseDynamicConstantLookupForModuleBody(node));
 
@@ -1142,12 +1070,12 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitParenthesesNode(Nodes.ParenthesesNode node) {
-        if (node.statements == null) {
+        if (node.body == null) {
             final RubyNode rubyNode = new NilLiteralNode(true);
             assignNodePositionInSource(node, rubyNode);
             return rubyNode;
         }
-        return node.statements.accept(this);
+        return node.body.accept(this);
     }
 
     public RubyNode visitPinnedExpressionNode(Nodes.PinnedExpressionNode node) {

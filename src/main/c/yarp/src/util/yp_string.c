@@ -189,3 +189,10 @@ yp_string_mapped_init(yp_string_t *string, const char *filepath) {
     return true;
 #endif
 }
+
+// Returns the size of the yp_string_t struct. This is necessary to allocate the
+// correct amount of memory in the FFI backend.
+YP_EXPORTED_FUNCTION size_t
+yp_string_sizeof(void) {
+    return sizeof(yp_string_t);
+}
