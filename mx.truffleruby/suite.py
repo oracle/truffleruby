@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "6.41.0",
+    "mxversion": "6.42.0",
     "name": "truffleruby",
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
