@@ -38,6 +38,9 @@ racc/test_racc_command.rb
 # Parsing error for v [ ] += 42
 error_highlight/test_error_highlight.rb
 
+# Too slow to be worth running (causes timeouts)
+cext-ruby/string/test_enc_associate.rb
+
 # Other issues
 
 cext-ruby/array/test_to_ary_concat.rb # non-standard extension name and irrelevant
