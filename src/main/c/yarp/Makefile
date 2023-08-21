@@ -61,6 +61,8 @@ fuzz-docker-build: fuzz/docker/Dockerfile
 	$(Q) docker build -t yarp/fuzz fuzz/docker/
 
 fuzz-run-%: FORCE fuzz-docker-build
+	$(ECHO) "generating templates"
+	$(Q) bundle exec rake templates
 	$(ECHO) "running $* fuzzer"
 	$(Q) docker run --rm -v $(shell pwd):/yarp yarp/fuzz /bin/bash -c "FUZZ_FLAGS=\"$(FUZZ_FLAGS)\" make build/fuzz.$*"
 	$(ECHO) "starting AFL++ run"

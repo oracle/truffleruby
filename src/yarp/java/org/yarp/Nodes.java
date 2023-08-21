@@ -478,6 +478,36 @@ public abstract class Nodes {
         }
     }
 
+    // Represents the use of the `&&=` operator.
+    // 
+    //     target &&= value
+    //     ^^^^^^^^^^^^^^^^
+    public static final class AndWriteNode extends Node {
+        public final Node target;
+        public final Node value;
+        public final Location operator_loc;
+
+        public AndWriteNode(Node target, Node value, Location operator_loc, int startOffset, int length) {
+            super(startOffset, length);
+            this.target = target;
+            this.value = value;
+            this.operator_loc = operator_loc;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.target, this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitAndWriteNode(this);
+        }
+    }
+
     // Represents a set of arguments to a method or a keyword.
     // 
     //     return foo, bar, baz
@@ -706,7 +736,8 @@ public abstract class Nodes {
             this.ensure_clause = ensure_clause;
             this.end_keyword_loc = end_keyword_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             // Never mark BeginNode with a newline flag, mark children instead
         }
@@ -771,15 +802,15 @@ public abstract class Nodes {
     public static final class BlockNode extends Node {
         public final byte[][] locals;
         public final BlockParametersNode parameters; // optional
-        public final Node statements; // optional
+        public final Node body; // optional
         public final Location opening_loc;
         public final Location closing_loc;
 
-        public BlockNode(byte[][] locals, BlockParametersNode parameters, Node statements, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public BlockNode(byte[][] locals, BlockParametersNode parameters, Node body, Location opening_loc, Location closing_loc, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.parameters = parameters;
-            this.statements = statements;
+            this.body = body;
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
@@ -788,13 +819,13 @@ public abstract class Nodes {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
             }
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.parameters, this.statements };
+            return new Node[] { this.parameters, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1146,17 +1177,17 @@ public abstract class Nodes {
         public final Node constant_path;
         public final Location inheritance_operator_loc; // optional
         public final Node superclass; // optional
-        public final Node statements; // optional
+        public final Node body; // optional
         public final Location end_keyword_loc;
 
-        public ClassNode(byte[][] locals, Location class_keyword_loc, Node constant_path, Location inheritance_operator_loc, Node superclass, Node statements, Location end_keyword_loc, int startOffset, int length) {
+        public ClassNode(byte[][] locals, Location class_keyword_loc, Node constant_path, Location inheritance_operator_loc, Node superclass, Node body, Location end_keyword_loc, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.class_keyword_loc = class_keyword_loc;
             this.constant_path = constant_path;
             this.inheritance_operator_loc = inheritance_operator_loc;
             this.superclass = superclass;
-            this.statements = statements;
+            this.body = body;
             this.end_keyword_loc = end_keyword_loc;
         }
                 
@@ -1165,106 +1196,17 @@ public abstract class Nodes {
             if (this.superclass != null) {
                 this.superclass.accept(visitor);
             }
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.constant_path, this.superclass, this.statements };
+            return new Node[] { this.constant_path, this.superclass, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassNode(this);
-        }
-    }
-
-    // Represents the use of the `&&=` operator for assignment to a class variable.
-    // 
-    //     @@target &&= value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class ClassVariableOperatorAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ClassVariableOperatorAndWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitClassVariableOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to a class variable.
-    // 
-    //     @@target ||= value
-    //     ^^^^^^^^^^^^^^^^^^
-    public static final class ClassVariableOperatorOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ClassVariableOperatorOrWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitClassVariableOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to a class variable using an operator that isn't `=`.
-    // 
-    //     @@target += value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class ClassVariableOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] operator;
-
-        public ClassVariableOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.operator = operator;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitClassVariableOperatorWriteNode(this);
         }
     }
 
@@ -1321,95 +1263,6 @@ public abstract class Nodes {
         }
     }
 
-    // Represents the use of the `&&=` operator for assignment to a constant.
-    // 
-    //     Target &&= value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class ConstantOperatorAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ConstantOperatorAndWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to a constant.
-    // 
-    //     Target ||= value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class ConstantOperatorOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ConstantOperatorOrWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to a constant using an operator that isn't `=`.
-    // 
-    //     Target += value
-    //     ^^^^^^^^^^^^^^^
-    public static final class ConstantOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] operator;
-
-        public ConstantOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.operator = operator;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantOperatorWriteNode(this);
-        }
-    }
-
     // Represents accessing a constant through a path of `::` operators.
     // 
     //     Foo::Bar
@@ -1439,98 +1292,6 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathNode(this);
-        }
-    }
-
-    // Represents the use of the `&&=` operator for assignment to a constant path.
-    // 
-    //     Parent::Child &&= value
-    //     ^^^^^^^^^^^^^^^^^^^^^^^
-    public static final class ConstantPathOperatorAndWriteNode extends Node {
-        public final ConstantPathNode target;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ConstantPathOperatorAndWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.target = target;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantPathOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to a constant path.
-    // 
-    //     Parent::Child ||= value
-    //     ^^^^^^^^^^^^^^^^^^^^^^^
-    public static final class ConstantPathOperatorOrWriteNode extends Node {
-        public final ConstantPathNode target;
-        public final Location operator_loc;
-        public final Node value;
-
-        public ConstantPathOperatorOrWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.target = target;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantPathOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to a constant path using an operator that isn't `=`.
-    // 
-    //     Parent::Child += value
-    //     ^^^^^^^^^^^^^^^^^^^^^^
-    public static final class ConstantPathOperatorWriteNode extends Node {
-        public final ConstantPathNode target;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] operator;
-
-        public ConstantPathOperatorWriteNode(ConstantPathNode target, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
-            super(startOffset, length);
-            this.target = target;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.operator = operator;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitConstantPathOperatorWriteNode(this);
         }
     }
 
@@ -1635,7 +1396,7 @@ public abstract class Nodes {
         public final Location name_loc;
         public final Node receiver; // optional
         public final ParametersNode parameters; // optional
-        public final Node statements; // optional
+        public final Node body; // optional
         public final byte[][] locals;
         public final Location def_keyword_loc;
         public final Location operator_loc; // optional
@@ -1644,13 +1405,13 @@ public abstract class Nodes {
         public final Location equal_loc; // optional
         public final Location end_keyword_loc; // optional
 
-        public DefNode(int serializedLength, Location name_loc, Node receiver, ParametersNode parameters, Node statements, byte[][] locals, Location def_keyword_loc, Location operator_loc, Location lparen_loc, Location rparen_loc, Location equal_loc, Location end_keyword_loc, int startOffset, int length) {
+        public DefNode(int serializedLength, Location name_loc, Node receiver, ParametersNode parameters, Node body, byte[][] locals, Location def_keyword_loc, Location operator_loc, Location lparen_loc, Location rparen_loc, Location equal_loc, Location end_keyword_loc, int startOffset, int length) {
             super(startOffset, length);
             this.serializedLength = serializedLength;
             this.name_loc = name_loc;
             this.receiver = receiver;
             this.parameters = parameters;
-            this.statements = statements;
+            this.body = body;
             this.locals = locals;
             this.def_keyword_loc = def_keyword_loc;
             this.operator_loc = operator_loc;
@@ -1667,13 +1428,13 @@ public abstract class Nodes {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
             }
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.receiver, this.parameters, this.statements };
+            return new Node[] { this.receiver, this.parameters, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -2088,95 +1849,6 @@ public abstract class Nodes {
         }
     }
 
-    // Represents the use of the `&&=` operator for assignment to a global variable.
-    // 
-    //     $target &&= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class GlobalVariableOperatorAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public GlobalVariableOperatorAndWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitGlobalVariableOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to a global variable.
-    // 
-    //     $target ||= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class GlobalVariableOperatorOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public GlobalVariableOperatorOrWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitGlobalVariableOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to a global variable using an operator that isn't `=`.
-    // 
-    //     $target += value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class GlobalVariableOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] operator;
-
-        public GlobalVariableOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.operator = operator;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitGlobalVariableOperatorWriteNode(this);
-        }
-    }
-
     // Represents referencing a global variable.
     // 
     //     $foo
@@ -2331,7 +2003,8 @@ public abstract class Nodes {
             this.consequent = consequent;
             this.end_keyword_loc = end_keyword_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -2411,95 +2084,6 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInNode(this);
-        }
-    }
-
-    // Represents the use of the `&&=` operator for assignment to an instance variable.
-    // 
-    //     @target &&= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class InstanceVariableOperatorAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public InstanceVariableOperatorAndWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitInstanceVariableOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to an instance variable.
-    // 
-    //     @target ||= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class InstanceVariableOperatorOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-
-        public InstanceVariableOperatorOrWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitInstanceVariableOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to an instance variable using an operator that isn't `=`.
-    // 
-    //     @target += value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class InstanceVariableOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] operator;
-
-        public InstanceVariableOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.operator = operator;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitInstanceVariableOperatorWriteNode(this);
         }
     }
 
@@ -2627,7 +2211,8 @@ public abstract class Nodes {
         public boolean isOnce() {
             return RegularExpressionFlags.isOnce(this.flags);
         }
-                @Override
+        
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2665,7 +2250,8 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2703,7 +2289,8 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2741,7 +2328,8 @@ public abstract class Nodes {
             this.parts = parts;
             this.closing_loc = closing_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
             if (first != null) {
@@ -2860,126 +2448,31 @@ public abstract class Nodes {
         public final byte[][] locals;
         public final Location opening_loc;
         public final BlockParametersNode parameters; // optional
-        public final Node statements; // optional
+        public final Node body; // optional
 
-        public LambdaNode(byte[][] locals, Location opening_loc, BlockParametersNode parameters, Node statements, int startOffset, int length) {
+        public LambdaNode(byte[][] locals, Location opening_loc, BlockParametersNode parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.opening_loc = opening_loc;
             this.parameters = parameters;
-            this.statements = statements;
+            this.body = body;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
             }
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.parameters, this.statements };
+            return new Node[] { this.parameters, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLambdaNode(this);
-        }
-    }
-
-    // Represents the use of the `&&=` operator for assignment to a local variable.
-    // 
-    //     target &&= value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class LocalVariableOperatorAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] constant_id;
-
-        public LocalVariableOperatorAndWriteNode(Location name_loc, Location operator_loc, Node value, byte[] constant_id, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.constant_id = constant_id;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitLocalVariableOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator for assignment to a local variable.
-    // 
-    //     target ||= value
-    //     ^^^^^^^^^^^^^^^^
-    public static final class LocalVariableOperatorOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] constant_id;
-
-        public LocalVariableOperatorOrWriteNode(Location name_loc, Location operator_loc, Node value, byte[] constant_id, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.constant_id = constant_id;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitLocalVariableOperatorOrWriteNode(this);
-        }
-    }
-
-    // Represents assigning to a local variable using an operator that isn't `=`.
-    // 
-    //     target += value
-    //     ^^^^^^^^^^^^^^^
-    public static final class LocalVariableOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
-        public final Node value;
-        public final byte[] constant_id;
-        public final byte[] operator_id;
-
-        public LocalVariableOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] constant_id, byte[] operator_id, int startOffset, int length) {
-            super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.constant_id = constant_id;
-            this.operator_id = operator_id;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitLocalVariableOperatorWriteNode(this);
         }
     }
 
@@ -3134,27 +2627,27 @@ public abstract class Nodes {
         public final byte[][] locals;
         public final Location module_keyword_loc;
         public final Node constant_path;
-        public final Node statements; // optional
+        public final Node body; // optional
         public final Location end_keyword_loc;
 
-        public ModuleNode(byte[][] locals, Location module_keyword_loc, Node constant_path, Node statements, Location end_keyword_loc, int startOffset, int length) {
+        public ModuleNode(byte[][] locals, Location module_keyword_loc, Node constant_path, Node body, Location end_keyword_loc, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.module_keyword_loc = module_keyword_loc;
             this.constant_path = constant_path;
-            this.statements = statements;
+            this.body = body;
             this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.constant_path.accept(visitor);
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.constant_path, this.statements };
+            return new Node[] { this.constant_path, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3303,6 +2796,38 @@ public abstract class Nodes {
         }
     }
 
+    // Represents the use of an operator on a write.
+    // 
+    //     target += value
+    //     ^^^^^^^^^^^^^^^
+    public static final class OperatorWriteNode extends Node {
+        public final Node target;
+        public final Location operator_loc;
+        public final byte[] operator;
+        public final Node value;
+
+        public OperatorWriteNode(Node target, Location operator_loc, byte[] operator, Node value, int startOffset, int length) {
+            super(startOffset, length);
+            this.target = target;
+            this.operator_loc = operator_loc;
+            this.operator = operator;
+            this.value = value;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.target, this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitOperatorWriteNode(this);
+        }
+    }
+
     // Represents an optional parameter to a method, block, or lambda definition.
     // 
     //     def a(b = 1)
@@ -3362,6 +2887,36 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitOrNode(this);
+        }
+    }
+
+    // Represents the use of the `||=` operator.
+    // 
+    //     target ||= value
+    //     ^^^^^^^^^^^^^^^^
+    public static final class OrWriteNode extends Node {
+        public final Node target;
+        public final Node value;
+        public final Location operator_loc;
+
+        public OrWriteNode(Node target, Node value, Location operator_loc, int startOffset, int length) {
+            super(startOffset, length);
+            this.target = target;
+            this.value = value;
+            this.operator_loc = operator_loc;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.target.accept(visitor);
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.target, this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitOrWriteNode(this);
         }
     }
 
@@ -3436,29 +2991,30 @@ public abstract class Nodes {
     //     (10 + 34)
     //     ^^^^^^^^^
     public static final class ParenthesesNode extends Node {
-        public final Node statements; // optional
+        public final Node body; // optional
         public final Location opening_loc;
         public final Location closing_loc;
 
-        public ParenthesesNode(Node statements, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public ParenthesesNode(Node body, Location opening_loc, Location closing_loc, int startOffset, int length) {
             super(startOffset, length);
-            this.statements = statements;
+            this.body = body;
             this.opening_loc = opening_loc;
             this.closing_loc = closing_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             // Never mark ParenthesesNode with a newline flag, mark children instead
         }
 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.statements };
+            return new Node[] { this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3842,7 +3398,8 @@ public abstract class Nodes {
             this.keyword_loc = keyword_loc;
             this.rescue_expression = rescue_expression;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.expression.setNewLineFlag(source, newlineMarked);
         }
@@ -4027,28 +3584,28 @@ public abstract class Nodes {
         public final Location class_keyword_loc;
         public final Location operator_loc;
         public final Node expression;
-        public final Node statements; // optional
+        public final Node body; // optional
         public final Location end_keyword_loc;
 
-        public SingletonClassNode(byte[][] locals, Location class_keyword_loc, Location operator_loc, Node expression, Node statements, Location end_keyword_loc, int startOffset, int length) {
+        public SingletonClassNode(byte[][] locals, Location class_keyword_loc, Location operator_loc, Node expression, Node body, Location end_keyword_loc, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.class_keyword_loc = class_keyword_loc;
             this.operator_loc = operator_loc;
             this.expression = expression;
-            this.statements = statements;
+            this.body = body;
             this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.expression.accept(visitor);
-            if (this.statements != null) {
-                this.statements.accept(visitor);
+            if (this.body != null) {
+                this.body.accept(visitor);
             }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.expression, this.statements };
+            return new Node[] { this.expression, this.body };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -4392,7 +3949,8 @@ public abstract class Nodes {
             this.consequent = consequent;
             this.end_keyword_loc = end_keyword_loc;
         }
-                        @Override
+                
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -4440,7 +3998,8 @@ public abstract class Nodes {
         public boolean isBeginModifier() {
             return LoopFlags.isBeginModifier(this.flags);
         }
-                @Override
+        
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
@@ -4461,10 +4020,12 @@ public abstract class Nodes {
         }
     }
 
-    // case true
-    // when true
-    // ^^^^^^^^^
-    // end
+    // Represents the use of the `when` keyword within a case statement.
+    // 
+    //     case true
+    //     when true
+    //     ^^^^^^^^^
+    //     end
     public static final class WhenNode extends Node {
         public final Location keyword_loc;
         public final Node[] conditions;
@@ -4522,7 +4083,8 @@ public abstract class Nodes {
         public boolean isBeginModifier() {
             return LoopFlags.isBeginModifier(this.flags);
         }
-                @Override
+        
+        @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             this.predicate.setNewLineFlag(source, newlineMarked);
         }
