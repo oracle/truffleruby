@@ -786,6 +786,10 @@ suite = {
                 "mx:HAMCREST",
                 "mx:JUNIT",
             ],
+            "unittestConfig": "none",
+            "javaProperties": {
+                "polyglot.engine.WarnInterpreterOnly": "false",
+            },
             "license": ["EPL-2.0"],
             "maven": False,
         },
@@ -806,6 +810,11 @@ suite = {
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
             ],
+            "unittestConfig": "none",
+            "javaProperties": {
+                "polyglot.engine.WarnInterpreterOnly": "false",
+                "polyglotimpl.DisableClassPathIsolation": "true",
+            },
             "license": ["EPL-2.0"],
             "maven": False,
         },
