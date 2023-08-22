@@ -27,6 +27,10 @@ describe "Range#bsearch" do
     -> { ("a".."e").bsearch { true } }.should raise_error(TypeError)
   end
 
+  it "raises TypeError when non-Numeric begin/end and block not passed" do
+    -> { ("a".."e").bsearch }.should raise_error(TypeError)
+  end
+
   context "with Integer values" do
     context "with a block returning true or false" do
       it "returns nil if the block returns false for every element" do
@@ -94,6 +98,10 @@ describe "Range#bsearch" do
       (4..2).bsearch { 0 }.should == nil
       (4..2).bsearch { -1 }.should == nil
     end
+
+    it "returns enumerator when block not passed" do
+      (0...3).bsearch.kind_of?(Enumerator).should == true
+    end
   end
 
   context "with Float values" do
@@ -156,7 +164,6 @@ describe "Range#bsearch" do
 
       it "returns nil if the block returns greater than zero for every element" do
         (0.3..3.0).bsearch { |x| x <=> -1 }.should be_nil
-
       end
 
       it "returns nil if the block never returns zero" do
@@ -213,6 +220,10 @@ describe "Range#bsearch" do
         (0...inf).bsearch { |x| x >= Float::MAX ? 0 : 1 }.should == Float::MAX
       end
     end
+
+    it "returns enumerator when block not passed" do
+      (0.1...2.3).bsearch.kind_of?(Enumerator).should == true
+    end
   end
 
   context "with endless ranges and Integer values" do
@@ -249,6 +260,10 @@ describe "Range#bsearch" do
         result = eval("(0..)").bsearch { |x| x < 1 ? 1 : x > 3 ? -1 : 0 }
         [1, 2, 3].should include(result)
       end
+    end
+
+    it "returns enumerator when block not passed" do
+      eval("(-2..)").bsearch.kind_of?(Enumerator).should == true
     end
   end
 
@@ -327,8 +342,11 @@ describe "Range#bsearch" do
         eval("(0.0...)").bsearch { 0 }.should != inf
       end
     end
-  end
 
+    it "returns enumerator when block not passed" do
+      eval("(0.1..)").bsearch.kind_of?(Enumerator).should == true
+    end
+  end
 
   context "with beginless ranges and Integer values" do
     context "with a block returning true or false" do
@@ -360,6 +378,10 @@ describe "Range#bsearch" do
         result = (...10).bsearch { |x| x < 1 ? 1 : x > 3 ? -1 : 0 }
         [1, 2, 3].should include(result)
       end
+    end
+
+    it "returns enumerator when block not passed" do
+      (..10).bsearch.kind_of?(Enumerator).should == true
     end
   end
 
@@ -431,6 +453,10 @@ describe "Range#bsearch" do
         (..inf).bsearch { |x| 3 - x }.should == 3
         (...inf).bsearch { |x| 3 - x }.should == 3
       end
+    end
+
+    it "returns enumerator when block not passed" do
+      (..-0.1).bsearch.kind_of?(Enumerator).should == true
     end
   end
 end

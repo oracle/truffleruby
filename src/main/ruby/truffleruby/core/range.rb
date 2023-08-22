@@ -66,8 +66,6 @@ class Range
   end
 
   def bsearch(&block)
-    return to_enum :bsearch unless block_given?
-
     start = self.begin
     stop  = self.end
 
@@ -99,6 +97,8 @@ class Range
   end
 
   private def bsearch_float(&block)
+    return to_enum :bsearch_float unless block_given?
+
     normalized_begin = Primitive.nil?(self.begin) ? -Float::INFINITY : self.begin.to_f
     normalized_end = Primitive.nil?(self.end) ? Float::INFINITY : self.end.to_f
     normalized_end = normalized_end.prev_float if self.exclude_end?
@@ -187,6 +187,8 @@ class Range
   end
 
   private def bsearch_endless(&block)
+    return to_enum :bsearch_endless unless block_given?
+
     min = self.begin
     cur = min
     diff = 1
@@ -207,6 +209,8 @@ class Range
   end
 
   private def bsearch_beginless(&block)
+    return to_enum :bsearch_beginless unless block_given?
+
     max = self.end
     cur = max
     diff = 1
@@ -227,6 +231,8 @@ class Range
   end
 
   private def bsearch_integer(&block)
+    return to_enum :bsearch_integer unless block_given?
+
     min = self.begin
     max = self.end
     max -= 1 if Primitive.is_a?(max, Integer) and exclude_end?
