@@ -77,12 +77,12 @@ class Range
       elsif Primitive.is_a?(stop, Integer)
         bsearch_integer(&block)
       else
-        raise TypeError, "bsearch is not available for #{Primitive.class(stop)}"
+        raise TypeError, "can't do binary search for #{Primitive.class(stop)}"
       end
     elsif Primitive.nil?(start) && Primitive.is_a?(stop, Integer)
       bsearch_beginless(&block)
     else
-      raise TypeError, "bsearch is not available for #{Primitive.class(start)}"
+      raise TypeError, "can't do binary search for #{Primitive.class(start)}"
     end
   end
 
@@ -165,7 +165,7 @@ class Range
       when false, nil
         min = mid
       else
-        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
+        raise TypeError, "wrong argument type #{Primitive.class(result)} (must be numeric, true, false or nil)"
       end
     end
 
@@ -261,7 +261,7 @@ class Range
       when false, nil
         min = mid + 1
       else
-        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
+        raise TypeError, "wrong argument type #{Primitive.class(result)} (must be numeric, true, false or nil)"
       end
     end
 

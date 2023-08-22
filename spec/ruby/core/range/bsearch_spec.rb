@@ -9,26 +9,30 @@ describe "Range#bsearch" do
   it_behaves_like :enumeratorized_with_unknown_size, :bsearch, (1..3)
 
   it "raises a TypeError if the block returns an Object" do
-    -> { (0..1).bsearch { Object.new } }.should raise_error(TypeError)
+    -> { (0..1).bsearch { Object.new } }.should raise_error(TypeError, "wrong argument type Object (must be numeric, true, false or nil)")
   end
 
-  it "raises a TypeError if the block returns a String" do
-    -> { (0..1).bsearch { "1" } }.should raise_error(TypeError)
+  it "raises a TypeError if the block returns a String and boundaries are Integer values" do
+    -> { (0..1).bsearch { "1" } }.should raise_error(TypeError, "wrong argument type String (must be numeric, true, false or nil)")
+  end
+
+  it "raises a TypeError if the block returns a String and boundaries are Float values" do
+    -> { (0.0..1.0).bsearch { "1" } }.should raise_error(TypeError, "wrong argument type String (must be numeric, true, false or nil)")
   end
 
   it "raises a TypeError if the Range has Object values" do
     value = mock("range bsearch")
     r = Range.new value, value
 
-    -> { r.bsearch { true } }.should raise_error(TypeError)
+    -> { r.bsearch { true } }.should raise_error(TypeError, "can't do binary search for MockObject")
   end
 
   it "raises a TypeError if the Range has String values" do
-    -> { ("a".."e").bsearch { true } }.should raise_error(TypeError)
+    -> { ("a".."e").bsearch { true } }.should raise_error(TypeError, "can't do binary search for String")
   end
 
   it "raises TypeError when non-Numeric begin/end and block not passed" do
-    -> { ("a".."e").bsearch }.should raise_error(TypeError)
+    -> { ("a".."e").bsearch }.should raise_error(TypeError, "can't do binary search for String")
   end
 
   context "with Integer values" do
