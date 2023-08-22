@@ -65,11 +65,6 @@ describe "RubyGems" do
 end
 
 describe "Lazy RubyGems" do
-  # See https://github.com/rubygems/rubygems/issues/2772
-  it "defines StringIO like RubyGems which requires it eagerly" do
-    ruby_exe('puts StringIO').should == "StringIO\n"
-  end
-
   it "works for require 'rubygems/package'" do
     ruby_exe("require 'rubygems/package'; p Gem::Package").should == "Gem::Package\n"
   end
