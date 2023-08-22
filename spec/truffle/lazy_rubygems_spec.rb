@@ -72,4 +72,28 @@ describe "Lazy RubyGems" do
   it "works for require 'rubygems/specification'" do
     ruby_exe("require 'rubygems/specification'; p Gem::Specification").should == "Gem::Specification\n"
   end
+
+  it "after loading RubyGems both Kernel#require and Kernel.require do not use the original require with lazy-rubygems loading" do
+    code = <<~RUBY
+      p Kernel.instance_method(:require) == Truffle::KernelOperations::ORIGINAL_REQUIRE
+      p Kernel.method(:require) == Truffle::KernelOperations::ORIGINAL_MODULE_REQUIRE
+      p Gem
+      p Kernel.instance_method(:require) == Truffle::KernelOperations::ORIGINAL_REQUIRE
+      p Kernel.instance_method(:require).source_location[0].end_with?("/rubygems/core_ext/kernel_require.rb>")
+      p Kernel.method(:require) == Truffle::KernelOperations::ORIGINAL_MODULE_REQUIRE
+    RUBY
+    ruby_exe(code).should == <<~OUT
+      true
+      true
+      Gem
+      false
+      true
+      true
+    OUT
+  end
+
+  it "Kernel.require should not be able to load gems" do
+    code = 'begin; Kernel.require "prime"; rescue LoadError; p :load_error; end; require "prime"; p Prime'
+    ruby_exe(code).should == ":load_error\nPrime\n"
+  end
 end
