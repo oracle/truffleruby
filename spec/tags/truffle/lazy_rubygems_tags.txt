@@ -5,3 +5,5 @@ slow:Lazy RubyGems defines StringIO like RubyGems which requires it eagerly
 slow:Lazy RubyGems works for require 'rubygems/package'
 slow:Lazy RubyGems works for require 'rubygems/specification'
 slow:RubyGems is not loaded for default gems if there is no upgraded default gem
+slow:Lazy RubyGems after loading RubyGems both Kernel#require and Kernel.require do not use the original require with lazy-rubygems loading
+slow:Lazy RubyGems Kernel.require should not be able to load gems
