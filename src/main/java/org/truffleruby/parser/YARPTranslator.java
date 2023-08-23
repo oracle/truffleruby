@@ -1284,7 +1284,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitUntilNode(Nodes.UntilNode node) {
-        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true);
+        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true, !node.isBeginModifier());
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
@@ -1294,7 +1294,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitWhileNode(Nodes.WhileNode node) {
-        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, false);
+        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, false, !node.isBeginModifier());
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
@@ -1577,7 +1577,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private RubyNode translateWhileNode(Nodes.Node node, Nodes.Node predicate, Nodes.StatementsNode statements,
-            boolean conditionInversed) {
+            boolean conditionInversed, boolean evaluateConditionBeforeBody) {
         RubyNode condition = predicate.accept(this);
         if (conditionInversed) {
             condition = NotNodeGen.create(condition);
@@ -1601,11 +1601,10 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final RubyNode loop;
-        final boolean evaluateAtStart = !(statements != null && statements.body[0] instanceof Nodes.BeginNode);
 
         // in case of `begin ... end while ()`
         // the begin/end block is executed before condition
-        if (evaluateAtStart) {
+        if (evaluateConditionBeforeBody) {
             loop = new WhileNode(WhileNodeFactory.WhileRepeatingNodeGen.create(condition, body));
         } else {
             loop = new WhileNode(WhileNodeFactory.DoWhileRepeatingNodeGen.create(condition, body));
