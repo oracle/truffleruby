@@ -2869,8 +2869,8 @@ module Commands
           # Keep non-static @ExportMessage public
           [first, *rest]
         else
-          # Change to protected
-          [first.gsub(/^( *)(public |protected |private |)/, '\1protected '), *rest]
+          # Removes visibility modifier
+          [first.gsub(/^( *)(public |protected |private |)/, '\1'), *rest]
         end
       end
     end
@@ -3084,7 +3084,7 @@ module Commands
   def format_specializations_check
     any_failed = false
     [
-      [format_specializations_visibility, 'Some Specializations did not use the protected visibility.'],
+      [format_specializations_visibility, 'Some Specializations used public/protected/private visibility modifier.'],
       [format_specializations_arguments, 'Some Specializations were not properly formatted.'],
       [Formatting.format_imports, 'There were extra blank lines around imports.'],
       [final_classes, 'There were classes which should be marked as final but were not.'],
