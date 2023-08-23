@@ -75,7 +75,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     public abstract RubyClass execute(Node node, Object value);
 
     @Specialization(guards = "getTraits(object, interop) == cachedTraits", limit = "getInteropCacheLimit()")
-    protected static RubyClass cached(Node node, Object object,
+    static RubyClass cached(Node node, Object object,
             @CachedLibrary("object") InteropLibrary interop,
             @Cached("getTraits(object, interop)") int cachedTraits) {
         assert RubyGuards.isForeignObject(object);
@@ -83,7 +83,7 @@ public abstract class ForeignClassNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "cached", limit = "getInteropCacheLimit()")
-    protected static RubyClass uncached(Node node, Object object,
+    static RubyClass uncached(Node node, Object object,
             @CachedLibrary("object") InteropLibrary interop) {
         assert RubyGuards.isForeignObject(object);
         return classForTraits(node, getTraits(object, interop));

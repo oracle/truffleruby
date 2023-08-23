@@ -35,7 +35,7 @@ public abstract class InlinedIndexGetNode extends BinaryInlinedOperationNode {
             guards = "lookupNode.lookupProtected(frame, array, METHOD) == coreMethods().ARRAY_INDEX_GET",
             assumptions = "assumptions",
             limit = "1")
-    protected static Object arrayRead(VirtualFrame frame, RubyArray array, int index,
+    static Object arrayRead(VirtualFrame frame, RubyArray array, int index,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached ArrayIndexNodes.ReadNormalizedNode readNormalizedNode,
             @Cached InlinedConditionProfile denormalized,
@@ -47,7 +47,7 @@ public abstract class InlinedIndexGetNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

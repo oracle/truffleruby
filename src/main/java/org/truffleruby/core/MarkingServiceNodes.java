@@ -33,13 +33,13 @@ public abstract class MarkingServiceNodes {
         public abstract void execute(ValueWrapper object);
 
         @Specialization(guards = "!stack.hasKeptObjects()")
-        protected void keepFirstObject(ValueWrapper object,
+        void keepFirstObject(ValueWrapper object,
                 @Bind("getStack(object)") ExtensionCallStack stack) {
             stack.current.preservedObject = object;
         }
 
         @Specialization(guards = "stack.hasSingleKeptObject()")
-        protected void keepCreatingList(ValueWrapper object,
+        void keepCreatingList(ValueWrapper object,
                 @Bind("getStack(object)") ExtensionCallStack stack,
                 @Cached InlinedConditionProfile sameObjectProfile) {
             if (sameObjectProfile.profile(this, object != stack.current.preservedObject)) {
@@ -49,7 +49,7 @@ public abstract class MarkingServiceNodes {
 
         @Specialization(guards = { "stack.hasKeptObjects()", "!stack.hasSingleKeptObject()" })
         @TruffleBoundary
-        protected void keepAddingToList(ValueWrapper object,
+        void keepAddingToList(ValueWrapper object,
                 @Bind("getStack(object)") ExtensionCallStack stack) {
             stack.current.preservedObjects.add(object);
         }
@@ -88,12 +88,12 @@ public abstract class MarkingServiceNodes {
         public abstract void execute(ExtensionCallStack stack);
 
         @Specialization(guards = "!stack.hasMarkObjects()")
-        protected void nothingToMark(ExtensionCallStack stack) {
+        void nothingToMark(ExtensionCallStack stack) {
             // Do nothing.
         }
 
         @Specialization(guards = "stack.hasSingleMarkObject()")
-        protected void markSingleObject(ExtensionCallStack stack,
+        void markSingleObject(ExtensionCallStack stack,
                 @Shared @Cached DispatchNode callNode) {
             ValueWrapper value = stack.getSingleMarkObject();
             callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
@@ -101,7 +101,7 @@ public abstract class MarkingServiceNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
-        protected void marksToRun(ExtensionCallStack stack,
+        void marksToRun(ExtensionCallStack stack,
                 @Shared @Cached DispatchNode callNode) {
             // Run the markers...
             var valuesForMarking = stack.getMarkOnExitObjects();

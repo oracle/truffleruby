@@ -44,7 +44,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class GraalvmHomeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object graalvmHome(
+        Object graalvmHome(
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String value = getProperty("org.graalvm.home");
             if (value == null) {
@@ -66,7 +66,7 @@ public abstract class TruffleRubyNodes {
 
         @TruffleBoundary
         @Specialization
-        protected static boolean isGraal() {
+        static boolean isGraal() {
             return Truffle.getRuntime().getName().contains("Graal");
         }
 
@@ -76,7 +76,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class NativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isNative() {
+        boolean isNative() {
             return TruffleOptions.AOT;
         }
 
@@ -86,7 +86,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class SulongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isSulong() {
+        boolean isSulong() {
             return isSulongAvailable(getContext());
         }
 
@@ -100,7 +100,7 @@ public abstract class TruffleRubyNodes {
     @CoreMethod(names = "full_memory_barrier", onSingleton = true)
     public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
         @Specialization
-        protected Object fullMemoryBarrier() {
+        Object fullMemoryBarrier() {
             VarHandle.fullFence();
             return nil;
         }
@@ -113,7 +113,7 @@ public abstract class TruffleRubyNodes {
          * not simply Java's {@code synchronized} here as we need to be able to interrupt for guest safepoints and it is
          * not possible to interrupt Java's {@code synchronized (object) {}}. */
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected static Object synchronize(RubyDynamicObject object, RubyProc block,
+        static Object synchronize(RubyDynamicObject object, RubyProc block,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @Cached CallBlockNode yieldNode,
                 @Cached InlinedBranchProfile initializeLockProfile,

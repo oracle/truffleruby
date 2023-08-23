@@ -53,7 +53,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
     }
 
     @Specialization(guards = "value == POSITIVE_INFINITY")
-    protected byte[] formatPositiveInfinity(int width, int precision, double value) {
+    byte[] formatPositiveInfinity(int width, int precision, double value) {
         final byte[] digits;
         final int len;
         final byte signChar;
@@ -97,7 +97,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
     }
 
     @Specialization(guards = "value == NEGATIVE_INFINITY")
-    protected byte[] formatNegativeInfinity(int width, int precision, double value) {
+    byte[] formatNegativeInfinity(int width, int precision, double value) {
         final byte[] digits;
         final int len;
         final byte signChar;
@@ -133,7 +133,7 @@ public abstract class FormatFloatGenericNode extends FormatNode {
     }
 
     @Specialization(guards = "isNaN(value)")
-    protected byte[] formatNaN(int width, int precision, double value) {
+    byte[] formatNaN(int width, int precision, double value) {
         final byte[] digits;
         final int len;
         final byte signChar;

@@ -23,7 +23,7 @@ public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
     public abstract ClassVariableStorage execute(RubyModule module, String name);
 
     @Specialization(guards = "objectLibrary.containsKey(classVariableStorage, name)")
-    protected ClassVariableStorage lookupClassVariable(RubyModule module, String name,
+    ClassVariableStorage lookupClassVariable(RubyModule module, String name,
             @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
         return classVariableStorage;
@@ -31,7 +31,7 @@ public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
 
     @Specialization(replaces = "lookupClassVariable")
     @TruffleBoundary
-    protected ClassVariableStorage uncachedLookupClassVariable(RubyModule module, String name) {
+    ClassVariableStorage uncachedLookupClassVariable(RubyModule module, String name) {
         return ModuleOperations.classVariableLookup(module, true, m -> {
             final ClassVariableStorage classVariables = m.fields.getClassVariables();
             if (classVariables.getShape().hasProperty(name)) {

@@ -36,25 +36,25 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
     // We need to avoid the % 0 case as it would give a wrong Ruby backtrace.
 
     @Specialization(guards = "b != 0", assumptions = "assumptions")
-    protected Object intMod(int a, int b) {
+    Object intMod(int a, int b) {
         return getModNode().executeMod(a, b);
     }
 
     @Specialization(guards = "b != 0", assumptions = "assumptions")
-    protected Object longMod(long a, long b) {
+    Object longMod(long a, long b) {
         return getModNode().executeMod(a, b);
     }
 
     protected static final double ZERO = 0.0;
 
     @Specialization(guards = "b != ZERO", assumptions = "assumptions")
-    protected Object floatMod(double a, double b,
+    Object floatMod(double a, double b,
             @Cached FloatNodes.ModNode modNode) {
         return modNode.executeMod(a, b);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

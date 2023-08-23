@@ -27,7 +27,7 @@ public abstract class LazyArrayEachIteratorNode extends RubyBaseNode {
     protected abstract ArrayEachIteratorNode execute(Node node);
 
     @Specialization
-    protected static ArrayEachIteratorNode doLazy(
+    static ArrayEachIteratorNode doLazy(
             @Cached(inline = false) ArrayEachIteratorNode arrayEachIteratorNode) {
         return arrayEachIteratorNode;
     }

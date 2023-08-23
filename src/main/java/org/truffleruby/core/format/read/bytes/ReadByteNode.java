@@ -23,13 +23,13 @@ public abstract class ReadByteNode extends FormatNode {
     private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     @Specialization(guards = "isNull(source)")
-    protected void read(VirtualFrame frame, Object source) {
+    void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame, 1);
         throw new IllegalStateException();
     }
 
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source) {
+    Object read(VirtualFrame frame, byte[] source) {
         int index = advanceSourcePositionNoThrow(frame);
 
         if (rangeProfile.profile(index == -1)) {

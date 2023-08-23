@@ -112,7 +112,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object doCatch(Object tag, RubyProc block,
+        Object doCatch(Object tag, RubyProc block,
                 @Cached InlinedBranchProfile catchProfile,
                 @Cached InlinedConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode,
@@ -136,7 +136,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object vmExit(int status) {
+        Object vmExit(int status) {
             throw new ExitException(status, this);
         }
 
@@ -146,7 +146,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object vmExtendedModules(Object object, RubyProc block,
+        Object vmExtendedModules(Object object, RubyProc block,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CallBlockNode yieldNode,
                 @Cached InlinedConditionProfile isSingletonProfile) {
@@ -167,7 +167,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean vmMethodIsBasic(RubyMethod method) {
+        boolean vmMethodIsBasic(RubyMethod method) {
             return method.method.isBuiltIn();
         }
 
@@ -177,7 +177,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class IsBuiltinMethodNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isBuiltinMethod(VirtualFrame frame, Object receiver, RubySymbol name,
+        boolean isBuiltinMethod(VirtualFrame frame, Object receiver, RubySymbol name,
                 @Cached LookupMethodOnSelfNode lookupMethodNode) {
             final InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, name.getString());
             if (method == null) {
@@ -193,7 +193,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
+        Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LookupMethodOnSelfNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
@@ -217,7 +217,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object vmRaiseException(RubyException exception,
+        Object vmRaiseException(RubyException exception,
                 @Cached InlinedConditionProfile reRaiseProfile) {
             final Backtrace backtrace = exception.backtrace;
             RaiseException raiseException = null;
@@ -238,7 +238,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "!isRubyException(exception)", limit = "getInteropCacheLimit()")
-        protected static Object foreignException(Object exception,
+        static Object foreignException(Object exception,
                 @CachedLibrary("exception") InteropLibrary interopLibrary,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Bind("this") Node node) {
@@ -265,7 +265,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class ThrowNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object doThrow(Object tag, Object value) {
+        Object doThrow(Object tag, Object value) {
             throw new ThrowException(tag, value);
         }
 
@@ -277,7 +277,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
                 limit = "1")
-        protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
+        boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
                 @Shared @Cached RubyStringLibrary libSignalString,
                 @Exclusive @Cached RubyStringLibrary libAction) {
             final String actionString = RubyGuards.getJavaString(action);
@@ -297,7 +297,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)")
-        protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
+        boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
                 @Shared @Cached RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
@@ -395,7 +395,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object get(Object key) {
+        Object get(Object key) {
             final String keyString = RubyGuards.getJavaString(key);
             final Object value = getContext().getNativeConfiguration().get(keyString);
 
@@ -413,7 +413,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getSection(Object section, RubyProc block,
+        Object getSection(Object section, RubyProc block,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
@@ -434,7 +434,7 @@ public abstract class VMPrimitiveNodes {
         /** Only support it on IO for IO#reopen since this is the only case which needs it */
         @TruffleBoundary
         @Specialization
-        protected RubyIO setClass(RubyIO object, RubyClass newClass) {
+        RubyIO setClass(RubyIO object, RubyClass newClass) {
             SharedObjects.propagate(getLanguage(), object, newClass);
             synchronized (object) {
                 object.setMetaClass(newClass);
@@ -448,7 +448,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMDevUrandomBytes extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count >= 0")
-        protected RubyString readRandomBytes(int count,
+        RubyString readRandomBytes(int count,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
@@ -456,7 +456,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "count < 0")
-        protected RubyString negativeCount(int count) {
+        RubyString negativeCount(int count) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(
@@ -469,17 +469,17 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashStartNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long startHash(long salt) {
+        long startHash(long salt) {
             return getContext().getHashing(this).start(salt);
         }
 
         @Specialization
-        protected long startHashBigNum(RubyBignum salt) {
+        long startHashBigNum(RubyBignum salt) {
             return getContext().getHashing(this).start(BigIntegerOps.hashCode(salt));
         }
 
         @Specialization(guards = "!isRubyNumber(salt)")
-        protected Object startHashNotNumber(Object salt,
+        Object startHashNotNumber(Object salt,
                 @Cached ToRubyIntegerNode toRubyInteger,
                 @Cached InlinedConditionProfile isIntegerProfile,
                 @Cached InlinedConditionProfile isLongProfile,
@@ -502,17 +502,17 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashUpdateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long updateHash(long hash, long value) {
+        long updateHash(long hash, long value) {
             return Hashing.update(hash, value);
         }
 
         @Specialization
-        protected long updateHash(long hash, RubyBignum value) {
+        long updateHash(long hash, RubyBignum value) {
             return Hashing.update(hash, BigIntegerOps.hashCode(value));
         }
 
         @Specialization(guards = "!isRubyNumber(value)")
-        protected Object updateHash(long hash, Object value,
+        Object updateHash(long hash, Object value,
                 @Cached ToRubyIntegerNode toRubyInteger,
                 @Cached InlinedConditionProfile isIntegerProfile,
                 @Cached InlinedConditionProfile isLongProfile,
@@ -535,7 +535,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long endHash(long hash) {
+        long endHash(long hash) {
             return Hashing.end(hash);
         }
 
@@ -563,7 +563,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization
-        protected Object initStackOverflowClassesEagerly() {
+        Object initStackOverflowClassesEagerly() {
             final StackOverflowError stackOverflowError = new StackOverflowError("initStackOverflowClassesEagerly");
             TruffleStackTrace.fillIn(stackOverflowError);
             throw stackOverflowError;
@@ -574,7 +574,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class ShouldNotReachHereNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(message)", limit = "1")
-        protected Object shouldNotReachHere(Object message,
+        Object shouldNotReachHere(Object message,
                 @Cached RubyStringLibrary libString) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives.shouldNotReachHere(RubyGuards.getJavaString(message));
@@ -596,7 +596,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization
-        protected int javaVersion() {
+        int javaVersion() {
             return JAVA_SPECIFICATION_VERSION;
         }
 
@@ -605,7 +605,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "arguments")
     public abstract static class ArgumentsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyArray arguments(VirtualFrame frame) {
+        RubyArray arguments(VirtualFrame frame) {
             return createArray(RubyArguments.getRawArguments(frame));
         }
     }
@@ -613,7 +613,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "arguments_descriptor")
     public abstract static class ArgumentsDescriptorNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyArray argumentsDescriptor(VirtualFrame frame) {
+        RubyArray argumentsDescriptor(VirtualFrame frame) {
             return descriptorToArray(RubyArguments.getDescriptor(frame));
         }
 
@@ -639,7 +639,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_native_argv")
     public abstract static class VMNativeArgvNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected long argv() {
+        long argv() {
             return getContext().nativeArgv;
         }
     }
@@ -648,7 +648,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMNativeArgvLengthNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected long argvLength() {
+        long argvLength() {
             long nativeArgvLength = getContext().nativeArgvLength;
             if (nativeArgvLength != -1L) {
                 return nativeArgvLength;
@@ -670,7 +670,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMSingleContext extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean singleContext() {
+        boolean singleContext() {
             return isSingleContext();
         }
     }

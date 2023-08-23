@@ -30,22 +30,22 @@ public abstract class ForeignToRubyNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object value);
 
     @Specialization
-    protected static int convertByte(byte value) {
+    static int convertByte(byte value) {
         return value;
     }
 
     @Specialization
-    protected static int convertShort(short value) {
+    static int convertShort(short value) {
         return value;
     }
 
     @Specialization
-    protected static double convertFloat(float value) {
+    static double convertFloat(float value) {
         return value;
     }
 
     @Fallback
-    protected static Object convert(Object value) {
+    static Object convert(Object value) {
         return value;
     }
 

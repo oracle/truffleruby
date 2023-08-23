@@ -26,14 +26,14 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyBaseN
 
     @Specialization(guards = { "isSingleContext()", "lexicalScope == cachedLexicalScope" },
             limit = "getDefaultCacheLimit()")
-    protected RubyModule cached(LexicalScope lexicalScope,
+    RubyModule cached(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
             @Cached("uncached(lexicalScope)") RubyModule cachedModule) {
         return cachedModule;
     }
 
     @Specialization(replaces = "cached")
-    protected RubyModule uncached(LexicalScope lexicalScope) {
+    RubyModule uncached(LexicalScope lexicalScope) {
         LexicalScope scope = lexicalScope;
 
         // MRI logic: ignore lexical scopes (cref) referring to singleton classes

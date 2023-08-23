@@ -38,19 +38,19 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     public abstract RubyClass execute(Object value);
 
     @Specialization
-    protected RubyClass logicalClassObject(RubyDynamicObject object) {
+    RubyClass logicalClassObject(RubyDynamicObject object) {
         return object.getLogicalClass();
     }
 
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
-    protected RubyClass logicalClassImmutable(Object value,
+    RubyClass logicalClassImmutable(Object value,
             @Cached ImmutableClassNode immutableClassNode) {
         return immutableClassNode.execute(this, value);
     }
 
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyClass logicalClassForeign(Object object,
+    RubyClass logicalClassForeign(Object object,
             @Cached ForeignClassNode foreignClassNode) {
         return foreignClassNode.execute(this, object);
     }

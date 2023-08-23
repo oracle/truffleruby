@@ -25,22 +25,22 @@ public abstract class ToNumberWithCoercionNode extends FormatNode {
     @Child private DispatchNode floatNode;
 
     @Specialization
-    protected Object alreadyDouble(VirtualFrame frame, double value) {
+    Object alreadyDouble(VirtualFrame frame, double value) {
         return value;
     }
 
     @Specialization
-    protected Object alreadyLong(VirtualFrame frame, long value) {
+    Object alreadyLong(VirtualFrame frame, long value) {
         return value;
     }
 
     @Specialization
-    protected Object alreadyBignum(VirtualFrame frame, RubyBignum value) {
+    Object alreadyBignum(VirtualFrame frame, RubyBignum value) {
         return value.value;
     }
 
     @Fallback
-    protected Object toDouble(VirtualFrame frame, Object value) {
+    Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatNode = insert(DispatchNode.create());

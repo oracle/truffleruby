@@ -33,47 +33,47 @@ public abstract class ReferenceEqualNode extends RubyBaseNode {
     public abstract boolean execute(Node node, Object a, Object b);
 
     @Specialization
-    protected static boolean equal(boolean a, boolean b) {
+    static boolean equal(boolean a, boolean b) {
         return a == b;
     }
 
     @Specialization
-    protected static boolean equal(int a, int b) {
+    static boolean equal(int a, int b) {
         return a == b;
     }
 
     @Specialization
-    protected static boolean equal(long a, long b) {
+    static boolean equal(long a, long b) {
         return a == b;
     }
 
     @Specialization
-    protected static boolean equal(double a, double b) {
+    static boolean equal(double a, double b) {
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
     }
 
     @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isNonPrimitiveRubyObject(b)" })
-    protected static boolean equalRubyObjects(Object a, Object b) {
+    static boolean equalRubyObjects(Object a, Object b) {
         return a == b;
     }
 
     @Specialization(guards = { "isNonPrimitiveRubyObject(a)", "isPrimitive(b)" })
-    protected static boolean rubyObjectPrimitive(Object a, Object b) {
+    static boolean rubyObjectPrimitive(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = { "isPrimitive(a)", "isNonPrimitiveRubyObject(b)" })
-    protected static boolean primitiveRubyObject(Object a, Object b) {
+    static boolean primitiveRubyObject(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = { "isPrimitive(a)", "isPrimitive(b)", "!comparablePrimitives(a, b)" })
-    protected static boolean nonComparablePrimitives(Object a, Object b) {
+    static boolean nonComparablePrimitives(Object a, Object b) {
         return false;
     }
 
     @Specialization(guards = "isForeignObject(a) || isForeignObject(b)", limit = "getInteropCacheLimit()")
-    protected static boolean equalForeign(Object a, Object b,
+    static boolean equalForeign(Object a, Object b,
             @CachedLibrary("a") InteropLibrary lhsInterop,
             @CachedLibrary("b") InteropLibrary rhsInterop) {
         if (lhsInterop.hasIdentity(a)) {

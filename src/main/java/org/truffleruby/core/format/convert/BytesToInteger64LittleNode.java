@@ -28,17 +28,17 @@ public abstract class BytesToInteger64LittleNode extends FormatNode {
     }
 
     @Specialization
-    protected MissingValue decode(MissingValue missingValue) {
+    MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization
-    protected Object decode(Nil nil) {
+    Object decode(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected Object decode(byte[] bytes) {
+    Object decode(byte[] bytes) {
         long value = ByteArraySupport.littleEndian().getLong(bytes, 0);
         if (signed) {
             return value;

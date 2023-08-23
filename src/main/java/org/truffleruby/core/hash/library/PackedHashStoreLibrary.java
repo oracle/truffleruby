@@ -158,8 +158,7 @@ public final class PackedHashStoreLibrary {
     // region Messages
 
     @ExportMessage
-    protected static Object lookupOrDefault(
-            Object[] store, Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
+    static Object lookupOrDefault(Object[] store, Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached LookupPackedEntryNode lookupPackedEntryNode,
             @Cached @Shared HashingNodes.ToHash hashNode) {
 
@@ -171,7 +170,7 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     protected static final class Set {
         @Specialization(guards = "hash.size == 0")
-        protected static boolean setFirst(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
+        static boolean setFirst(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
                 @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
                 @Cached @Shared HashingNodes.ToHash hashNode,
                 @Cached @Shared PropagateSharingNode propagateSharingKey,
@@ -188,7 +187,7 @@ public final class PackedHashStoreLibrary {
         }
 
         @Specialization(guards = "hash.size > 0")
-        protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
+        static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
                 @Cached @Shared FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
                 @Cached @Shared HashingNodes.ToHash hashNode,
                 @Cached @Shared PropagateSharingNode propagateSharingKey,
@@ -230,7 +229,7 @@ public final class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static Object delete(Object[] store, RubyHash hash, Object key,
+    static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashNode,
             @Cached @Shared CompareHashKeysNode compareHashKeys) {
 
@@ -256,7 +255,7 @@ public final class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static Object deleteLast(Object[] store, RubyHash hash, Object key) {
+    static Object deleteLast(Object[] store, RubyHash hash, Object key) {
 
         assert verify(store, hash);
         final int n = hash.size - 1;
@@ -279,7 +278,7 @@ public final class PackedHashStoreLibrary {
 
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
         @ExplodeLoop
-        protected static Object eachEntry(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
+        static Object eachEntry(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
                 @CachedLibrary("store") HashStoreLibrary hashStoreLibrary,
                 @Cached(value = "hash.size", allowUncached = true) int cachedSize,
                 @Cached LoopConditionProfile loopProfile) {
@@ -299,14 +298,14 @@ public final class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static Object eachEntrySafe(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
+    static Object eachEntrySafe(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("store") HashStoreLibrary self) {
 
         return self.eachEntry(copyStore(store), hash, callback, state);
     }
 
     @ExportMessage
-    protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
+    static void replace(Object[] store, RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
             @Bind("$node") Node node) {
         if (hash == dest) {
@@ -327,7 +326,7 @@ public final class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static RubyArray shift(Object[] store, RubyHash hash,
+    static RubyArray shift(Object[] store, RubyHash hash,
             @CachedLibrary("store") HashStoreLibrary node) {
 
         assert verify(store, hash);
@@ -342,7 +341,7 @@ public final class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static void rehash(Object[] store, RubyHash hash,
+    static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared CompareHashKeysNode compareHashKeys,
             @Cached @Shared HashingNodes.ToHash hashNode) {
 
@@ -373,7 +372,7 @@ public final class PackedHashStoreLibrary {
 
     @TruffleBoundary
     @ExportMessage
-    protected static boolean verify(Object[] store, RubyHash hash) {
+    static boolean verify(Object[] store, RubyHash hash) {
         assert hash.store == store;
         final int size = hash.size;
         assert store.length == TOTAL_ELEMENTS : store.length;
@@ -408,8 +407,7 @@ public final class PackedHashStoreLibrary {
                         "cachedIndex < hash.size",
                         "sameKeysAtIndex(node, refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
                 limit = "1")
-        protected static Object getConstantIndexPackedArray(
-                RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
+        static Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached ReferenceEqualNode refEqual,
                 @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
                 @Bind("this") Node node,
@@ -452,8 +450,7 @@ public final class PackedHashStoreLibrary {
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
         @Specialization(replaces = "getConstantIndexPackedArray")
-        protected Object getPackedArray(
-                Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
+        Object getPackedArray(Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached CompareHashKeysNode compareHashKeys,
                 @Cached InlinedBranchProfile notInHashProfile,
                 @Cached InlinedConditionProfile byIdentityProfile,
@@ -493,7 +490,7 @@ public final class PackedHashStoreLibrary {
 
         @Specialization
         @ExplodeLoop
-        protected Object doHash(VirtualFrame frame,
+        Object doHash(VirtualFrame frame,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedBranchProfile duplicateKeyProfile,
                 @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode) {

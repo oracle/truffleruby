@@ -34,7 +34,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     @Specialization(
             guards = { "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_BYTESIZE", },
             assumptions = "assumptions")
-    protected int byteSize(VirtualFrame frame, RubyString self,
+    int byteSize(VirtualFrame frame, RubyString self,
             @Cached @Shared LookupMethodOnSelfNode lookupNode,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.byteLength(self);
@@ -43,14 +43,14 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     @Specialization(
             guards = { "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_BYTESIZE", },
             assumptions = "assumptions")
-    protected int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
+    int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
             @Cached @Shared LookupMethodOnSelfNode lookupNode,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.byteLength(self);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self) {
+    Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

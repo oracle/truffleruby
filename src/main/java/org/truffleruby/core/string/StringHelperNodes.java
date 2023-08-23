@@ -69,7 +69,7 @@ public abstract class StringHelperNodes {
         public abstract boolean execute(Node node, AbstractTruffleString string, RubyEncoding encoding);
 
         @Specialization
-        protected static boolean isSingleByteOptimizable(Node node, AbstractTruffleString string, RubyEncoding encoding,
+        static boolean isSingleByteOptimizable(Node node, AbstractTruffleString string, RubyEncoding encoding,
                 @Cached InlinedConditionProfile asciiOnlyProfile,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             if (asciiOnlyProfile.profile(node, StringGuards.is7Bit(string, encoding, getByteCodeRangeNode))) {
@@ -104,7 +104,7 @@ public abstract class StringHelperNodes {
                 TruffleString cachedString, RubyEncoding cachedEncoding);
 
         @Specialization
-        protected boolean equal(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
+        boolean equal(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
                 @Cached EncodingNodes.NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached StringEqualInternalNode stringEqualInternalNode) {
             var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(this, a, encA, b, encB);
@@ -128,14 +128,13 @@ public abstract class StringHelperNodes {
                 TruffleString cachedString, RubyEncoding cachedEncoding);
 
         @Specialization(guards = "encA == encB")
-        protected static boolean same(
-                Node node, AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
+        static boolean same(Node node, AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB,
                 @Cached StringEqualInternalNode stringEqualInternalNode) {
             return stringEqualInternalNode.executeInternal(node, a, b, encA);
         }
 
         @Specialization(guards = "encA != encB")
-        protected static boolean diff(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB) {
+        static boolean diff(AbstractTruffleString a, RubyEncoding encA, TruffleString b, RubyEncoding encB) {
             return false;
         }
     }
@@ -149,21 +148,19 @@ public abstract class StringHelperNodes {
                 RubyEncoding compatibleEncoding);
 
         @Specialization(guards = "a.isEmpty() || b.isEmpty()")
-        protected static boolean empty(
-                AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
+        static boolean empty(AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
             assert compatibleEncoding != null;
             return a.isEmpty() && b.isEmpty();
         }
 
         @Specialization(guards = { "compatibleEncoding != null", "!a.isEmpty()", "!b.isEmpty()" })
-        protected static boolean equalBytes(
-                AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding,
+        static boolean equalBytes(AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding,
                 @Cached(inline = false) TruffleString.EqualNode equalNode) {
             return equalNode.execute(a, b, compatibleEncoding.tencoding);
         }
 
         @Specialization(guards = "compatibleEncoding == null")
-        protected static boolean notComparable(
+        static boolean notComparable(
                 AbstractTruffleString a, AbstractTruffleString b, RubyEncoding compatibleEncoding) {
             return false;
         }
@@ -175,7 +172,7 @@ public abstract class StringHelperNodes {
         public abstract int execute(Object string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(guards = "libString.getTString(string).isEmpty()")
-        protected int count(Object string, TStringWithEncoding[] args,
+        int count(Object string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString) {
             return 0;
         }
@@ -188,7 +185,7 @@ public abstract class StringHelperNodes {
                         "argsMatch(cachedArgs, args, equalNode)",
                         "encoding == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
-        protected int countFast(Object string, TStringWithEncoding[] args,
+        int countFast(Object string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached TruffleString.EqualNode equalNode,
                 @Cached @Shared RubyStringLibrary libString,
@@ -207,7 +204,7 @@ public abstract class StringHelperNodes {
         }
 
         @Specialization(guards = "!libString.getTString(string).isEmpty()")
-        protected int count(Object string, TStringWithEncoding[] tstringsWithEncs,
+        int count(Object string, TStringWithEncoding[] tstringsWithEncs,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Shared RubyStringLibrary libString,
@@ -303,7 +300,7 @@ public abstract class StringHelperNodes {
         public abstract Object execute(Node node, RubyString string, TStringWithEncoding[] tstringsWithEncs);
 
         @Specialization(guards = "string.tstring.isEmpty()")
-        protected Object deleteBangEmpty(RubyString string, TStringWithEncoding[] args) {
+        Object deleteBangEmpty(RubyString string, TStringWithEncoding[] args) {
             return nil;
         }
 
@@ -315,7 +312,7 @@ public abstract class StringHelperNodes {
                         "argsMatch(cachedArgs, args, equalNode)",
                         "libString.getEncoding(string) == cachedEncoding" },
                 limit = "getDefaultCacheLimit()")
-        protected static Object deleteBangFast(Node node, RubyString string, TStringWithEncoding[] args,
+        static Object deleteBangFast(Node node, RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached(inline = false) TruffleString.EqualNode equalNode,
                 @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
@@ -336,7 +333,7 @@ public abstract class StringHelperNodes {
         }
 
         @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
-        protected static Object deleteBangSlow(Node node, RubyString string, TStringWithEncoding[] args,
+        static Object deleteBangSlow(Node node, RubyString string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Exclusive InlinedBranchProfile errorProfile) {
@@ -387,7 +384,7 @@ public abstract class StringHelperNodes {
         public abstract long execute(Node node, Object string);
 
         @Specialization
-        protected static long hash(Node node, Object string,
+        static long hash(Node node, Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached(inline = false) TruffleString.HashCodeNode hashCodeNode) {
             int hashCode = hashCodeNode.execute(strings.getTString(string), strings.getTEncoding(string));
@@ -405,13 +402,13 @@ public abstract class StringHelperNodes {
         public abstract Object execute(Object string);
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object getAssociated(RubyString string,
+        Object getAssociated(RubyString string,
                 @CachedLibrary("string") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.getOrDefault(string, Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         @Specialization
-        protected Object getAssociatedImmutable(ImmutableRubyString string) {
+        Object getAssociatedImmutable(ImmutableRubyString string) {
             return null;
         }
 
@@ -424,7 +421,7 @@ public abstract class StringHelperNodes {
         public abstract int execute(Node node, int index, int length);
 
         @Specialization
-        protected static int checkIndex(Node node, int index, int length,
+        static int checkIndex(Node node, int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile,
                 @Cached InlinedBranchProfile errorProfile) {
             if (index >= length) {
@@ -459,7 +456,7 @@ public abstract class StringHelperNodes {
         public abstract int executeNormalize(int index, int length);
 
         @Specialization
-        protected int normalizeIndex(int index, int length,
+        int normalizeIndex(int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile) {
             if (negativeIndexProfile.profile(this, index < 0)) {
                 return index + length;
@@ -498,7 +495,7 @@ public abstract class StringHelperNodes {
         public abstract byte[] executeInvert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes);
 
         @Specialization
-        protected byte[] invert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes,
+        byte[] invert(RubyString string, TruffleStringIterator iterator, byte[] initialBytes,
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
@@ -557,7 +554,7 @@ public abstract class StringHelperNodes {
         public abstract Object executeInvert(RubyString string);
 
         @Specialization
-        protected Object invert(RubyString string,
+        Object invert(RubyString string,
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
@@ -583,7 +580,7 @@ public abstract class StringHelperNodes {
         public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
 
         @Specialization
-        protected int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+        int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
                 @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
                 @Cached InlinedBranchProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
@@ -608,7 +605,7 @@ public abstract class StringHelperNodes {
         public abstract RubyString executeStringAppend(Object string, Object other);
 
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
-        protected static RubyString stringAppend(Object string, Object other,
+        static RubyString stringAppend(Object string, Object other,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,

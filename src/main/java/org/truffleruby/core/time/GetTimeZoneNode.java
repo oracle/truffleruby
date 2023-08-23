@@ -63,7 +63,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
     public abstract TimeZoneAndName executeGetTimeZone();
 
     @Specialization(assumptions = "TZ_UNCHANGED.getAssumption()")
-    protected TimeZoneAndName getTimeZone(
+    TimeZoneAndName getTimeZone(
             @Cached("getTZ()") Object tzValue,
             @Cached("getTimeZone(tzValue)") TimeZoneAndName zone) {
         return zone;

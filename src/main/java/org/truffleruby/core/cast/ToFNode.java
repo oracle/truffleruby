@@ -30,27 +30,27 @@ public abstract class ToFNode extends RubyBaseNode {
     public abstract double executeToDouble(Object value);
 
     @Specialization
-    protected double coerceInt(int value) {
+    double coerceInt(int value) {
         return value;
     }
 
     @Specialization
-    protected double coerceLong(long value) {
+    double coerceLong(long value) {
         return value;
     }
 
     @Specialization
-    protected double coerceDouble(double value) {
+    double coerceDouble(double value) {
         return value;
     }
 
     @Specialization
-    protected double coerceRubyBignum(RubyBignum value) {
+    double coerceRubyBignum(RubyBignum value) {
         return BigIntegerOps.doubleValue(value);
     }
 
     @Specialization(guards = { "!isRubyBignum(object)", "!isImplicitLongOrDouble(object)" })
-    protected double coerceObject(Object object,
+    double coerceObject(Object object,
             @Cached DispatchNode toFNode) {
         return (double) toFNode.call(
                 coreLibrary().truffleTypeModule,

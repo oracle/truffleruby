@@ -32,32 +32,32 @@ public abstract class InlinedMulNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object intMul(int a, int b) {
+    Object intMul(int a, int b) {
         return getMulNode().executeMul(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longMul(long a, long b) {
+    Object longMul(long a, long b) {
         return getMulNode().executeMul(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double floatMul(double a, double b) {
+    double floatMul(double a, double b) {
         return a * b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double longDouble(long a, double b) {
+    double longDouble(long a, double b) {
         return a * b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double doubleLong(double a, long b) {
+    double doubleLong(double a, long b) {
         return a * b;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

@@ -44,7 +44,7 @@ public abstract class IsANode extends RubyBaseNode {
                     "module == cachedModule" },
             assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
             limit = "getCacheLimit()")
-    protected boolean isAMetaClassCached(Object self, RubyModule module,
+    boolean isAMetaClassCached(Object self, RubyModule module,
             @Cached @Shared MetaClassNode metaClassNode,
             @Cached("metaClassNode.execute(this, self)") RubyClass cachedMetaClass,
             @Cached("module") RubyModule cachedModule,
@@ -66,7 +66,7 @@ public abstract class IsANode extends RubyBaseNode {
             guards = { "isSingleContext()", "klass == cachedClass" },
             replaces = "isAMetaClassCached",
             limit = "getCacheLimit()")
-    protected boolean isAClassCached(Object self, RubyClass klass,
+    boolean isAClassCached(Object self, RubyClass klass,
             @Cached @Shared MetaClassNode metaClassNode,
             @Cached @Shared InlinedConditionProfile isMetaClass,
             @Cached("klass") RubyClass cachedClass) {
@@ -74,7 +74,7 @@ public abstract class IsANode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "isAClassCached")
-    protected boolean isAClassUncached(Object self, RubyClass klass,
+    boolean isAClassUncached(Object self, RubyClass klass,
             @Cached @Shared MetaClassNode metaClassNode,
             @Cached @Shared InlinedConditionProfile isMetaClass) {
         final RubyClass metaclass = metaClassNode.execute(this, self);
@@ -94,7 +94,7 @@ public abstract class IsANode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isRubyClass(module)", replaces = "isAMetaClassCached")
-    protected boolean isAUncached(Object self, RubyModule module,
+    boolean isAUncached(Object self, RubyModule module,
             @Cached @Shared MetaClassNode metaClassNode) {
         return isA(metaClassNode.execute(this, self), module);
     }

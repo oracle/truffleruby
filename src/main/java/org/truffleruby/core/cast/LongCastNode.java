@@ -23,18 +23,18 @@ public abstract class LongCastNode extends RubyBaseNode {
     public abstract long executeCastLong(Object value);
 
     @Specialization
-    protected long doInt(int value) {
+    long doInt(int value) {
         return value;
     }
 
     @Specialization
-    protected long doLong(long value) {
+    long doLong(long value) {
         return value;
     }
 
     @TruffleBoundary
     @Specialization(guards = "!isImplicitLong(value)")
-    protected long doBasicObject(Object value) {
+    long doBasicObject(Object value) {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in long)", this));

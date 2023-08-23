@@ -59,7 +59,7 @@ public abstract class RangeNodes {
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray map(RubyIntRange range, RubyProc block,
+        RubyArray map(RubyIntRange range, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached CallBlockNode yieldNode,
                 @Cached InlinedConditionProfile noopProfile,
@@ -88,7 +88,7 @@ public abstract class RangeNodes {
         }
 
         @Fallback
-        protected Object mapFallback(Object range, Object block) {
+        Object mapFallback(Object range, Object block) {
             return FAILURE;
         }
     }
@@ -99,7 +99,7 @@ public abstract class RangeNodes {
         @Child private DispatchNode eachInternalCall;
 
         @Specialization
-        protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
+        RubyIntRange eachInt(RubyIntRange range, RubyProc block,
                 @Shared @Cached InlinedConditionProfile excludedEndProfile,
                 @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
@@ -123,7 +123,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
+        RubyLongRange eachLong(RubyLongRange range, RubyProc block,
                 @Shared @Cached InlinedConditionProfile excludedEndProfile,
                 @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
@@ -147,7 +147,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected Object eachObject(RubyObjectRange range, RubyProc block) {
+        Object eachObject(RubyObjectRange range, RubyProc block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eachInternalCall = insert(DispatchNode.create());
@@ -161,12 +161,12 @@ public abstract class RangeNodes {
     public abstract static class ExcludeEndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean excludeEnd(RubyObjectRange range) {
+        boolean excludeEnd(RubyObjectRange range) {
             return range.excludedEnd;
         }
 
         @Specialization
-        protected boolean excludeEnd(RubyIntOrLongRange range) {
+        boolean excludeEnd(RubyIntOrLongRange range) {
             return range.excludedEnd;
         }
 
@@ -176,17 +176,17 @@ public abstract class RangeNodes {
     public abstract static class BeginNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int eachInt(RubyIntRange range) {
+        int eachInt(RubyIntRange range) {
             return range.begin;
         }
 
         @Specialization
-        protected long eachLong(RubyLongRange range) {
+        long eachLong(RubyLongRange range) {
             return range.begin;
         }
 
         @Specialization
-        protected Object eachObject(RubyObjectRange range) {
+        Object eachObject(RubyObjectRange range) {
             return range.begin;
         }
 
@@ -196,17 +196,17 @@ public abstract class RangeNodes {
     public abstract static class EndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int lastInt(RubyIntRange range) {
+        int lastInt(RubyIntRange range) {
             return range.end;
         }
 
         @Specialization
-        protected long lastLong(RubyLongRange range) {
+        long lastLong(RubyLongRange range) {
             return range.end;
         }
 
         @Specialization
-        protected Object lastObject(RubyObjectRange range) {
+        Object lastObject(RubyObjectRange range) {
             return range.end;
         }
     }
@@ -217,7 +217,7 @@ public abstract class RangeNodes {
         @Child private DispatchNode stepInternalCall;
 
         @Specialization(guards = "step > 0")
-        protected Object stepInt(RubyIntRange range, int step, RubyProc block,
+        Object stepInt(RubyIntRange range, int step, RubyProc block,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
             int result;
@@ -240,7 +240,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "step > 0")
-        protected Object stepLong(RubyLongRange range, int step, RubyProc block,
+        Object stepLong(RubyLongRange range, int step, RubyProc block,
                 @Cached @Shared CallBlockNode yieldNode) {
             long result;
             if (range.excludedEnd) {
@@ -262,7 +262,7 @@ public abstract class RangeNodes {
         }
 
         @Fallback
-        protected Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
+        Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 stepInternalCall = insert(DispatchNode.create());
@@ -286,7 +286,7 @@ public abstract class RangeNodes {
         @Child private DispatchNode toAInternalCall;
 
         @Specialization
-        protected RubyArray toA(RubyIntRange range) {
+        RubyArray toA(RubyIntRange range) {
             final int begin = range.begin;
             int result;
             if (range.excludedEnd) {
@@ -310,7 +310,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyArray toA(RubyLongRange range) {
+        RubyArray toA(RubyLongRange range) {
             final long begin = range.begin;
             long result;
             if (range.excludedEnd) {
@@ -343,7 +343,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "range.isBounded()")
-        protected Object boundedToA(RubyObjectRange range) {
+        Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(DispatchNode.create());
@@ -353,14 +353,14 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "range.isEndless() || range.isBoundless()")
-        protected Object endlessToA(RubyObjectRange range) {
+        Object endlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
                     this));
         }
 
         @Specialization(guards = "range.isBeginless()")
-        protected Object beginlessToA(RubyObjectRange range) {
+        Object beginlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().typeError(
                     "can't iterate from NilClass",
                     this));
@@ -371,7 +371,7 @@ public abstract class RangeNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyObjectRange initialize(RubyObjectRange range, Object begin, Object end, boolean excludeEnd) {
+        RubyObjectRange initialize(RubyObjectRange range, Object begin, Object end, boolean excludeEnd) {
             range.excludedEnd = excludeEnd;
             range.begin = begin;
             range.end = end;
@@ -383,7 +383,7 @@ public abstract class RangeNodes {
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object newRange(RubyClass rubyClass, Object begin, Object end, Object maybeExcludeEnd,
+        Object newRange(RubyClass rubyClass, Object begin, Object end, Object maybeExcludeEnd,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NewRangeNode newRangeNode) {
             final boolean excludeEnd = booleanCastWithDefaultNode.execute(this, maybeExcludeEnd, false);
@@ -423,22 +423,22 @@ public abstract class RangeNodes {
         public abstract Object execute(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
+        RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
-        protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, (int) begin, (int) end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
-        protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyLongRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "!standardClass || (!isImplicitLong(begin) || !isImplicitLong(end))" })
-        protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+        RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
                 @Cached DispatchNode compare,
                 @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
@@ -461,7 +461,7 @@ public abstract class RangeNodes {
     public abstract static class RangeAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyObjectRange allocate(RubyClass rubyClass,
+        RubyObjectRange allocate(RubyClass rubyClass,
                 @Cached AllocateNode allocateNode) {
             return allocateNode.execute(this, rubyClass);
         }
@@ -475,7 +475,7 @@ public abstract class RangeNodes {
         public abstract RubyObjectRange execute(Node node, RubyClass rubyClass);
 
         @Specialization
-        protected static RubyObjectRange allocate(Node node, RubyClass rubyClass) {
+        static RubyObjectRange allocate(Node node, RubyClass rubyClass) {
             final Shape shape = getLanguage(node).objectRangeShape;
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil, false);
             AllocationTracing.trace(range, node);
@@ -487,7 +487,7 @@ public abstract class RangeNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyIntRange from) {
+        RubyObjectRange initializeCopy(RubyObjectRange self, RubyIntRange from) {
             self.begin = from.begin;
             self.end = from.end;
             self.excludedEnd = from.excludedEnd;
@@ -495,7 +495,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyLongRange from) {
+        RubyObjectRange initializeCopy(RubyObjectRange self, RubyLongRange from) {
             self.begin = from.begin;
             self.end = from.end;
             self.excludedEnd = from.excludedEnd;
@@ -503,7 +503,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyObjectRange initializeCopy(RubyObjectRange self, RubyObjectRange from) {
+        RubyObjectRange initializeCopy(RubyObjectRange self, RubyObjectRange from) {
             self.begin = from.begin;
             self.end = from.end;
             self.excludedEnd = from.excludedEnd;
@@ -525,7 +525,7 @@ public abstract class RangeNodes {
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 
         @Specialization
-        protected RubyArray normalize(Object range, int size) {
+        RubyArray normalize(Object range, int size) {
             return createArray(startLengthNode.execute(range, size));
         }
     }
@@ -546,37 +546,37 @@ public abstract class RangeNodes {
         private final ConditionProfile negativeEnd = ConditionProfile.create();
 
         @Specialization
-        protected int[] normalizeIntRange(RubyIntRange range, int size) {
+        int[] normalizeIntRange(RubyIntRange range, int size) {
             return normalize(range.begin, range.end, range.excludedEnd, size);
         }
 
         @Specialization
-        protected int[] normalizeLongRange(RubyLongRange range, int size,
+        int[] normalizeLongRange(RubyLongRange range, int size,
                 @Exclusive @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isEndless()")
-        protected int[] normalizeEndlessRange(RubyObjectRange range, int size,
+        int[] normalizeEndlessRange(RubyObjectRange range, int size,
                 @Shared @Cached ToIntNode toInt) {
             int begin = toInt.execute(range.begin);
             return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
         }
 
         @Specialization(guards = "range.isBounded()")
-        protected int[] normalizeObjectRange(RubyObjectRange range, int size,
+        int[] normalizeObjectRange(RubyObjectRange range, int size,
                 @Shared @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isBeginless()")
-        protected int[] normalizeBeginlessRange(RubyObjectRange range, int size,
+        int[] normalizeBeginlessRange(RubyObjectRange range, int size,
                 @Shared @Cached ToIntNode toInt) {
             return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isBoundless()")
-        protected int[] normalizeNilNilRange(RubyObjectRange range, int size) {
+        int[] normalizeNilNilRange(RubyObjectRange range, int size) {
             return new int[]{ 0, size };
         }
 

@@ -43,7 +43,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" },
             limit = "1")
-    protected static Object writeTryToKeepConstant(Object value,
+    static Object writeTryToKeepConstant(Object value,
             @Cached ReferenceEqualNode referenceEqualNode,
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
@@ -60,7 +60,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
-    protected Object writeAssumeConstant(Object value,
+    Object writeAssumeConstant(Object value,
             @Cached @Shared WriteBarrierNode writeBarrierNode,
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) @Shared int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
@@ -73,7 +73,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "writeAssumeConstant")
-    protected Object writeAliasedOrMultiContext(Object value,
+    Object writeAliasedOrMultiContext(Object value,
             @Cached @Shared WriteBarrierNode writeBarrierNode,
             @Cached("create(name)") LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode) {
         if (getContext().getSharedObjects().isSharing()) {

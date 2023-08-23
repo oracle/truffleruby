@@ -123,7 +123,7 @@ public abstract class ArrayNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray allocate(RubyClass rubyClass) {
+        RubyArray allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().arrayShape;
             final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.initialStorage(false), 0);
             AllocationTracing.trace(array, this);
@@ -138,7 +138,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 limit = "storageStrategyLimit()")
-        protected RubyArray addGeneralize(RubyArray a, Object bObject,
+        RubyArray addGeneralize(RubyArray a, Object bObject,
                 @Cached ToAryNode toAryNode,
                 @Bind("toAryNode.execute(bObject)") RubyArray b,
                 @Bind("a.getStore()") Object aStore,
@@ -164,14 +164,14 @@ public abstract class ArrayNodes {
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count == 0")
-        protected RubyArray mulZero(RubyArray array, int count) {
+        RubyArray mulZero(RubyArray array, int count) {
             return createEmptyArray();
         }
 
         @Specialization(
                 guards = { "!isEmptyArray(array)", "count > 0" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray mulOther(RubyArray array, int count,
+        RubyArray mulOther(RubyArray array, int count,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
                 @Cached IntValueProfile arraySizeProfile,
@@ -199,22 +199,22 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "count < 0")
-        protected RubyArray mulNeg(RubyArray array, long count) {
+        RubyArray mulNeg(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
-        protected RubyArray mulLong(RubyArray array, long count) {
+        RubyArray mulLong(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("array size too big", this));
         }
 
         @Specialization(guards = { "isEmptyArray(array)" })
-        protected RubyArray mulEmpty(RubyArray array, long count) {
+        RubyArray mulEmpty(RubyArray array, long count) {
             return createEmptyArray();
         }
 
         @Specialization(guards = { "!isImplicitLong(count)" })
-        protected Object fallback(RubyArray array, Object count) {
+        Object fallback(RubyArray array, Object count) {
             return FAILURE;
         }
     }
@@ -230,7 +230,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected Object at(RubyArray array, int index,
+        Object at(RubyArray array, int index,
                 @Cached ReadNormalizedNode readNormalizedNode,
                 @Cached ConditionProfile denormalized) {
             if (denormalized.profile(index < 0)) {
@@ -240,13 +240,13 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected Object at(RubyArray array, long index) {
+        Object at(RubyArray array, long index) {
             assert !CoreLibrary.fitsIntoInteger(index);
             return nil;
         }
 
         @Specialization(guards = "!isImplicitLong(index)")
-        protected static Object at(RubyArray array, Object index,
+        static Object at(RubyArray array, Object index,
                 @Cached ToLongNode toLongNode,
                 @Cached FixnumLowerNode lowerNode,
                 @Cached AtNode atNode,
@@ -267,7 +267,7 @@ public abstract class ArrayNodes {
         abstract Object executeIntIndices(RubyArray array, int start, int length);
 
         @Specialization
-        protected Object index(RubyArray array, int index, NotProvided length,
+        Object index(RubyArray array, int index, NotProvided length,
                 @Cached @Shared ConditionProfile negativeIndexProfile,
                 @Cached ReadNormalizedNode readNode) {
             if (negativeIndexProfile.profile(index < 0)) {
@@ -277,7 +277,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "isRubyRange(range)")
-        protected Object indexRange(RubyArray array, Object range, NotProvided length,
+        Object indexRange(RubyArray array, Object range, NotProvided length,
                 @Cached NormalizedStartLengthNode startLengthNode,
                 @Cached @Shared ReadSliceNormalizedNode readSliceNode) {
             final int[] startLength = startLengthNode.execute(range, array.size);
@@ -286,7 +286,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "isArithmeticSequence(enumerator, isANode)")
-        protected Object indexArithmeticSequence(RubyArray array, Object enumerator, NotProvided length,
+        Object indexArithmeticSequence(RubyArray array, Object enumerator, NotProvided length,
                 @Cached @Shared IsANode isANode,
                 @Cached DispatchNode callSliceArithmeticSequence) {
             return callSliceArithmeticSequence.call(array, "slice_arithmetic_sequence", enumerator);
@@ -297,14 +297,14 @@ public abstract class ArrayNodes {
                         "!isInteger(index)",
                         "!isRubyRange(index)",
                         "!isArithmeticSequence(index, isANode)" })
-        protected Object indexFallback(RubyArray array, Object index, NotProvided length,
+        Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached @Shared IsANode isANode,
                 @Cached AtNode accessWithIndexConversion) {
             return accessWithIndexConversion.executeAt(array, index);
         }
 
         @Specialization
-        protected Object slice(RubyArray array, int start, int length,
+        Object slice(RubyArray array, int start, int length,
                 @Cached @Shared ReadSliceNormalizedNode readSliceNode,
                 @Cached @Shared ConditionProfile negativeIndexProfile) {
             if (negativeIndexProfile.profile(start < 0)) {
@@ -314,7 +314,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(length)", "!isInteger(start) || !isInteger(length)" })
-        protected Object sliceFallback(RubyArray array, Object start, Object length,
+        Object sliceFallback(RubyArray array, Object start, Object length,
                 @Cached ToIntNode indexToInt,
                 @Cached ToIntNode lengthToInt) {
             return executeIntIndices(array, indexToInt.execute(start), lengthToInt.execute(length));
@@ -348,7 +348,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         @ReportPolymorphism.Exclude
-        protected Object set(RubyArray array, int index, Object value, NotProvided unused,
+        Object set(RubyArray array, int index, Object value, NotProvided unused,
                 @Cached ArrayWriteNormalizedNode writeNode,
                 @Cached @Shared ConditionProfile negativeDenormalizedIndex,
                 @Cached @Shared BranchProfile negativeNormalizedIndex) {
@@ -358,7 +358,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "isRubyRange(range)")
-        protected Object setRange(RubyArray array, Object range, Object value, NotProvided unused,
+        Object setRange(RubyArray array, Object range, Object value, NotProvided unused,
                 @Cached NormalizedStartLengthNode normalizedStartLength,
                 @Cached @Exclusive BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);
@@ -374,7 +374,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isInteger(start)", "!isRubyRange(start)" })
-        protected Object fallbackBinary(RubyArray array, Object start, Object value, NotProvided unused,
+        Object fallbackBinary(RubyArray array, Object start, Object value, NotProvided unused,
                 @Cached @Shared ToIntNode startToInt) {
             return executeIntIndex(array, startToInt.execute(start), value, unused);
         }
@@ -382,12 +382,12 @@ public abstract class ArrayNodes {
         // array[start, length] = array2
 
         @Specialization(guards = { "wasProvided(replacement)", "length < 0" })
-        protected Object negativeLength(RubyArray array, int start, int length, Object replacement) {
+        Object negativeLength(RubyArray array, int start, int length, Object replacement) {
             throw new RaiseException(getContext(), coreExceptions().negativeLengthError(length, this));
         }
 
         @Specialization(guards = "length >= 0")
-        protected Object setTernary(RubyArray array, int start, int length, RubyArray replacement,
+        Object setTernary(RubyArray array, int start, int length, RubyArray replacement,
                 @Cached @Shared ConditionProfile negativeDenormalizedIndex,
                 @Cached @Shared BranchProfile negativeNormalizedIndex,
                 @Cached @Exclusive ConditionProfile moveNeeded,
@@ -436,7 +436,7 @@ public abstract class ArrayNodes {
                 "!isRubyArray(replacement)",
                 "wasProvided(replacement)",
                 "length >= 0" })
-        protected Object setTernary(RubyArray array, int start, int length, Object replacement,
+        Object setTernary(RubyArray array, int start, int length, Object replacement,
                 @Cached ArrayConvertNode convert,
                 @Cached SetIndexNode recurse) {
             recurse.executeIntIndices(array, start, length, convert.execute(replacement));
@@ -445,7 +445,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(start) || !isInteger(length)", "wasProvided(replacement)" })
-        protected Object fallbackTernary(RubyArray array, Object start, Object length, Object replacement,
+        Object fallbackTernary(RubyArray array, Object start, Object length, Object replacement,
                 @Cached @Shared ToIntNode startToInt,
                 @Cached @Exclusive ToIntNode lengthToInt) {
             return executeIntIndices(array, startToInt.execute(start), lengthToInt.execute(length), replacement);
@@ -472,7 +472,7 @@ public abstract class ArrayNodes {
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization
-        protected RubyArray clear(RubyArray array,
+        RubyArray clear(RubyArray array,
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile) {
             setStoreAndSize(array,
@@ -489,7 +489,7 @@ public abstract class ArrayNodes {
     public abstract static class CompactNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected RubyArray compactPrimitive(RubyArray array,
+        RubyArray compactPrimitive(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ArrayCopyOnWriteNode cowNode) {
@@ -498,7 +498,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected Object compactObjects(RubyArray array,
+        Object compactObjects(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @Cached IntValueProfile arraySizeProfile,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
@@ -533,14 +533,14 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         @ReportPolymorphism.Exclude
-        protected Object compactNotObjects(RubyArray array,
+        Object compactNotObjects(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return nil;
         }
 
         @Specialization(guards = "!stores.isPrimitive(store)", limit = "storageStrategyLimit()")
-        protected Object compactObjects(RubyArray array,
+        Object compactObjects(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
@@ -587,12 +587,12 @@ public abstract class ArrayNodes {
     public abstract static class ConcatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "rest.length == 0")
-        protected RubyArray concatZero(RubyArray array, NotProvided first, Object[] rest) {
+        RubyArray concatZero(RubyArray array, NotProvided first, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = { "wasProvided(first)", "rest.length == 0" })
-        protected RubyArray concatOne(RubyArray array, Object first, Object[] rest,
+        RubyArray concatOne(RubyArray array, Object first, Object[] rest,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode) {
             appendManyNode.executeAppendMany(array, toAryNode.execute(first));
@@ -607,7 +607,7 @@ public abstract class ArrayNodes {
                         "rest.length == cachedLength",
                         "cachedLength <= MAX_EXPLODE_SIZE" },
                 limit = "getDefaultCacheLimit()")
-        protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
+        RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode,
@@ -629,7 +629,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "wasProvided(first)", "rest.length > 0" },
                 replaces = "concatMany")
-        protected RubyArray concatManyGeneral(RubyArray array, Object first, Object[] rest,
+        RubyArray concatManyGeneral(RubyArray array, Object first, Object[] rest,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode,
                 @Cached @Shared ArrayCopyOnWriteNode cowNode,
@@ -666,7 +666,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        protected Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object delete(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared SameOrEqualNode sameOrEqualNode,
@@ -681,7 +681,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = "!stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        protected Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object delete(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
@@ -763,7 +763,7 @@ public abstract class ArrayNodes {
     public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected static Object doDelete(RubyArray array, Object indexObject,
+        static Object doDelete(RubyArray array, Object indexObject,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ToIntNode toIntNode,
@@ -805,7 +805,7 @@ public abstract class ArrayNodes {
     public abstract static class EachNode extends CoreMethodArrayArgumentsNode implements ArrayElementConsumerNode {
 
         @Specialization
-        protected Object each(RubyArray array, RubyProc block,
+        Object each(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(this, array, block, 0, this);
         }
@@ -825,7 +825,7 @@ public abstract class ArrayNodes {
             implements ArrayElementConsumerNode {
 
         @Specialization
-        protected Object eachOther(RubyArray array, RubyProc block,
+        Object eachOther(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(this, array, block, 0, this);
         }
@@ -846,7 +846,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected static boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
+        static boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
@@ -888,7 +888,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected Object equalDifferentPrimitiveType(RubyArray a, RubyArray b,
+        Object equalDifferentPrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
@@ -898,7 +898,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "stores.accepts(aStore)", "!stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected Object equalNotPrimitiveType(RubyArray a, RubyArray b,
+        Object equalNotPrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
@@ -906,7 +906,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isRubyArray(b)")
-        protected Object equalNotArray(RubyArray a, Object b) {
+        Object equalNotArray(RubyArray a, Object b) {
             return FAILURE;
         }
 
@@ -921,7 +921,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
+        boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
@@ -962,7 +962,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected Object eqlDifferentPrimitiveType(RubyArray a, RubyArray b,
+        Object eqlDifferentPrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
@@ -972,14 +972,14 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        protected Object eqlNotPrimitiveType(RubyArray a, RubyArray b,
+        Object eqlNotPrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores) {
             return FAILURE;
         }
 
         @Specialization(guards = "!isRubyArray(b)")
-        protected Object eqlNotArray(RubyArray a, Object b) {
+        Object eqlNotArray(RubyArray a, Object b) {
             return FAILURE;
         }
 
@@ -991,7 +991,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "args.length == 1", "stores.acceptsValue(store, value(args))" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray fill(RubyArray array, Object[] args, Nil block,
+        RubyArray fill(RubyArray array, Object[] args, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -1017,13 +1017,13 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, Nil block,
+        Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, Nil block,
                 @Cached @Shared DispatchNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
-        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
+        Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
                 @Cached @Shared DispatchNode callFillInternal) {
             return callFillInternal.callWithDescriptor(array, "fill_internal", block,
                     EmptyArgumentsDescriptor.INSTANCE, args);
@@ -1038,7 +1038,7 @@ public abstract class ArrayNodes {
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected static long hash(VirtualFrame frame, RubyArray array,
+        static long hash(VirtualFrame frame, RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode,
@@ -1070,7 +1070,7 @@ public abstract class ArrayNodes {
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected static boolean include(RubyArray array, Object value,
+        static boolean include(RubyArray array, Object value,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached SameOrEqualNode sameOrEqualNode,
@@ -1115,7 +1115,7 @@ public abstract class ArrayNodes {
                 Object block);
 
         @Specialization
-        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
+        RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile) {
             setStoreAndSize(array,
@@ -1125,8 +1125,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected RubyArray initializeOnlyBlock(
-                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
+        RubyArray initializeOnlyBlock(RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile,
                 @Cached("new()") WarningNode warningNode) {
@@ -1143,14 +1142,13 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected RubyArray initializeNegativeIntSize(
-                RubyArray array, int size, Object unusedFillingValue, Object unusedBlock) {
+        RubyArray initializeNegativeIntSize(RubyArray array, int size, Object unusedFillingValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected RubyArray initializeNegativeLongSize(
+        RubyArray initializeNegativeLongSize(
                 RubyArray array, long size, Object unusedFillingValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
@@ -1159,12 +1157,12 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size >= MAX_INT")
-        protected RubyArray initializeSizeTooBig(RubyArray array, long size, NotProvided fillingValue, Nil block) {
+        RubyArray initializeSizeTooBig(RubyArray array, long size, NotProvided fillingValue, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("array size too big", this));
         }
 
         @Specialization(guards = "size >= 0")
-        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
+        RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores) {
@@ -1182,7 +1180,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "size >= 0", "wasProvided(fillingValue)" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray initializeWithSizeAndValue(RubyArray array, int size, Object fillingValue, Nil block,
+        RubyArray initializeWithSizeAndValue(RubyArray array, int size, Object fillingValue, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
@@ -1206,7 +1204,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "wasProvided(size)", "!isImplicitLong(size)", "wasProvided(fillingValue)" })
-        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block,
+        RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block,
                 @Cached @Shared ToIntNode toIntNode) {
             int intSize = toIntNode.execute(size);
             return executeInitialize(array, intSize, fillingValue, block);
@@ -1215,7 +1213,7 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = "size >= 0")
-        protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
+        Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
                 @Cached @Shared IsSharedNode isSharedNode,
@@ -1243,8 +1241,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected RubyArray initializeFromArray(
-                RubyArray array, RubyArray copy, NotProvided unusedValue, Object maybeBlock,
+        RubyArray initializeFromArray(RubyArray array, RubyArray copy, NotProvided unusedValue, Object maybeBlock,
                 @Cached ReplaceNode replaceNode) {
             replaceNode.executeReplace(array, copy);
             return array;
@@ -1252,7 +1249,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block,
+        RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block,
                 @Cached @Shared ToIntNode toIntNode) {
             RubyArray copy = null;
             if (respondToToAry(object)) {
@@ -1293,7 +1290,7 @@ public abstract class ArrayNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray initializeCopy(RubyArray self, Object fromObject,
+        RubyArray initializeCopy(RubyArray self, Object fromObject,
                 @Cached ToAryNode toAryNode,
                 @Cached ReplaceNode replaceNode) {
             final var from = toAryNode.execute(fromObject);
@@ -1325,18 +1322,18 @@ public abstract class ArrayNodes {
         // Uses block and no Symbol
 
         @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
-        protected Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
+        Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
             return initialOrSymbol;
         }
 
         @Specialization(guards = { "isEmptyArray(array)" })
-        protected Object injectEmptyArrayNoInitial(
+        Object injectEmptyArrayNoInitial(
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block) {
             return nil;
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
-        protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
+        Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
                 @Cached @Shared ArrayEachIteratorNode iteratorNode) {
             return injectBlockHelper(array, block, initialOrSymbol, 0, iteratorNode);
         }
@@ -1344,8 +1341,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
-        protected Object injectNoInitial(
-                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
+        Object injectNoInitial(RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared ArrayEachIteratorNode iteratorNode) {
@@ -1372,7 +1368,7 @@ public abstract class ArrayNodes {
         // Uses Symbol and no block
 
         @Specialization(guards = { "isEmptyArray(array)" })
-        protected Object injectSymbolEmptyArrayNoInitial(
+        Object injectSymbolEmptyArrayNoInitial(
                 RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block) {
             return nil;
         }
@@ -1381,14 +1377,14 @@ public abstract class ArrayNodes {
                 guards = {
                         "isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)" })
-        protected Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
+        Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
             return initialOrSymbol;
         }
 
         @Specialization(
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
-        protected Object injectSymbolNoInitial(
+        Object injectSymbolNoInitial(
                 VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
@@ -1412,7 +1408,7 @@ public abstract class ArrayNodes {
                         "!isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
-        protected Object injectSymbolWithInitial(
+        Object injectSymbolWithInitial(
                 VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
@@ -1466,7 +1462,7 @@ public abstract class ArrayNodes {
         @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
         @Specialization
-        protected Object map(RubyArray array, RubyProc block,
+        Object map(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
                 @Cached InlinedIntValueProfile arraySizeProfile) {
             BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
@@ -1497,7 +1493,7 @@ public abstract class ArrayNodes {
         @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
         @Specialization
-        protected Object map(RubyArray array, RubyProc block,
+        Object map(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(this, array, block, 0, this);
         }
@@ -1516,7 +1512,7 @@ public abstract class ArrayNodes {
     public abstract static class ArrayPackNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString pack(RubyArray array, Object format,
+        RubyString pack(RubyArray array, Object format,
                 @Cached ToStrNode toStrNode,
                 @Cached PackNode packNode) {
             final var formatAsString = toStrNode.execute(this, format);
@@ -1535,7 +1531,7 @@ public abstract class ArrayNodes {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
-        protected static RubyString packCached(Node node, RubyArray array, Object format,
+        static RubyString packCached(Node node, RubyArray array, Object format,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
@@ -1559,7 +1555,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
-        protected static RubyString packUncached(Node node, RubyArray array, Object format,
+        static RubyString packUncached(Node node, RubyArray array, Object format,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
@@ -1625,33 +1621,33 @@ public abstract class ArrayNodes {
 
         @Specialization
         @ReportPolymorphism.Exclude
-        protected Object pop(RubyArray array, NotProvided n,
+        Object pop(RubyArray array, NotProvided n,
                 @Cached ArrayPopOneNode popOneNode) {
             return popOneNode.executePopOne(array);
         }
 
         @Specialization(guards = "n < 0")
         @ReportPolymorphism.Exclude
-        protected Object popNNegative(RubyArray array, int n) {
+        Object popNNegative(RubyArray array, int n) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
-        protected RubyArray popEmpty(RubyArray array, int n) {
+        RubyArray popEmpty(RubyArray array, int n) {
             return createEmptyArray();
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
-        protected RubyArray popZeroNotEmpty(RubyArray array, int n) {
+        RubyArray popZeroNotEmpty(RubyArray array, int n) {
             return createEmptyArray();
         }
 
         @Specialization(
                 guards = { "n > 0", "!isEmptyArray(array)", "!stores.isMutable(array.getStore())" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray popNotEmptySharedStorage(RubyArray array, int n,
+        RubyArray popNotEmptySharedStorage(RubyArray array, int n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1670,7 +1666,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "n > 0", "!isEmptyArray(array)", "stores.isMutable(array.getStore())" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
+        RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1690,7 +1686,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)" })
-        protected Object popNToInt(RubyArray array, Object n,
+        Object popNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executePop(array, toIntNode.execute(n));
         }
@@ -1703,7 +1699,7 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
 
         @Specialization
-        protected RubyArray append(RubyArray array, Object value) {
+        RubyArray append(RubyArray array, Object value) {
             return appendOneNode.executeAppendOne(array, value);
         }
 
@@ -1715,17 +1711,17 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
 
         @Specialization(guards = "rest.length == 0")
-        protected RubyArray pushZero(RubyArray array, NotProvided value, Object[] rest) {
+        RubyArray pushZero(RubyArray array, NotProvided value, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = { "rest.length == 0", "wasProvided(value)" })
-        protected RubyArray pushOne(RubyArray array, Object value, Object[] rest) {
+        RubyArray pushOne(RubyArray array, Object value, Object[] rest) {
             return appendOneNode.executeAppendOne(array, value);
         }
 
         @Specialization(guards = { "rest.length > 0", "wasProvided(value)" })
-        protected RubyArray pushMany(VirtualFrame frame, RubyArray array, Object value, Object[] rest,
+        RubyArray pushMany(VirtualFrame frame, RubyArray array, Object value, Object[] rest,
                 @Cached LoopConditionProfile loopProfile) {
             // NOTE (eregon): Appending one by one here to avoid useless generalization to Object[]
             // if the arguments all fit in the current storage
@@ -1762,7 +1758,7 @@ public abstract class ArrayNodes {
         @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
         @Specialization
-        protected Object reject(RubyArray array, RubyProc block,
+        Object reject(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
                 @Cached InlinedIntValueProfile arraySizeProfile) {
             BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
@@ -1802,7 +1798,7 @@ public abstract class ArrayNodes {
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
         @Specialization
-        protected RubyArray replace(RubyArray array, Object otherObject,
+        RubyArray replace(RubyArray array, Object otherObject,
                 @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
@@ -1826,7 +1822,7 @@ public abstract class ArrayNodes {
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected RubyArray rotate(RubyArray array, int rotation,
+        RubyArray rotate(RubyArray array, int rotation,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile,
@@ -1855,7 +1851,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        protected RubyArray rotate(RubyArray array, int rotation,
+        RubyArray rotate(RubyArray array, int rotation,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1888,7 +1884,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!stores.isMutable(store)" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
+        RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1972,7 +1968,7 @@ public abstract class ArrayNodes {
         @Child private ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
         @Specialization
-        protected Object select(RubyArray array, RubyProc block,
+        Object select(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode,
                 @Cached InlinedIntValueProfile arraySizeProfile) {
             BuilderState builderState = arrayBuilder.start(arraySizeProfile.profile(this, array.size));
@@ -2008,12 +2004,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
-        protected Object shiftEmpty(RubyArray array, NotProvided n) {
+        Object shiftEmpty(RubyArray array, NotProvided n) {
             return nil;
         }
 
         @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
-        protected Object shiftOther(RubyArray array, NotProvided n,
+        Object shiftOther(RubyArray array, NotProvided n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             final int size = array.size;
@@ -2026,24 +2022,24 @@ public abstract class ArrayNodes {
         // n given, shift the first n elements and return them as an Array
 
         @Specialization(guards = "n < 0")
-        protected Object shiftNegative(RubyArray array, int n) {
+        Object shiftNegative(RubyArray array, int n) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = "n == 0")
-        protected Object shiftZero(RubyArray array, int n) {
+        Object shiftZero(RubyArray array, int n) {
             return createEmptyArray();
         }
 
         @Specialization(guards = { "n > 0", "isEmptyArray(array)" })
-        protected Object shiftManyEmpty(RubyArray array, int n) {
+        Object shiftManyEmpty(RubyArray array, int n) {
             return createEmptyArray();
         }
 
         @Specialization(
                 guards = { "n > 0", "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
-        protected Object shiftMany(RubyArray array, int n,
+        Object shiftMany(RubyArray array, int n,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile minProfile) {
@@ -2056,7 +2052,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)" })
-        protected Object shiftNToInt(RubyArray array, Object n,
+        Object shiftNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executeShift(array, toIntNode.execute(n));
         }
@@ -2065,7 +2061,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = { "size", "length" })
     public abstract static class SizeNode extends ArrayCoreMethodNode {
         @Specialization
-        protected int size(RubyArray array,
+        int size(RubyArray array,
                 @Cached IntValueProfile arraySizeProfile) {
             return arraySizeProfile.profile(array.size);
         }
@@ -2076,7 +2072,7 @@ public abstract class ArrayNodes {
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "isEmptyArray(array)")
-        protected RubyArray sortEmpty(RubyArray array, Object unusedBlock) {
+        RubyArray sortEmpty(RubyArray array, Object unusedBlock) {
             return createEmptyArray();
         }
 
@@ -2084,7 +2080,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
+        RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
@@ -2134,7 +2130,7 @@ public abstract class ArrayNodes {
                         "getLanguage().coreMethodAssumptions.integerCmpAssumption",
                         "getLanguage().coreMethodAssumptions.floatCmpAssumption" },
                 limit = "storageStrategyLimit()")
-        protected Object sortPrimitiveArrayNoBlock(RubyArray array, Nil block,
+        Object sortPrimitiveArrayNoBlock(RubyArray array, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary mutableStores,
@@ -2149,7 +2145,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "!isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        protected Object sortArrayWithoutBlock(RubyArray array, Nil block,
+        Object sortArrayWithoutBlock(RubyArray array, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared DispatchNode fallbackNode) {
@@ -2157,7 +2153,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
-        protected Object sortGenericWithBlock(RubyArray array, RubyProc block,
+        Object sortGenericWithBlock(RubyArray array, RubyProc block,
                 @Cached @Shared DispatchNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
@@ -2172,12 +2168,12 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class UnshiftNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "rest.length == 0")
-        protected Object unshiftNothing(RubyArray array, Object[] rest) {
+        Object unshiftNothing(RubyArray array, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = "rest.length != 0")
-        protected Object unshift(RubyArray array, Object[] rest,
+        Object unshift(RubyArray array, Object[] rest,
                 @Cached ArrayPrepareForCopyNode resize,
                 @Cached ArrayCopyCompatibleRangeNode moveElements,
                 @Cached ArrayCopyCompatibleRangeNode copyUnshifted,
@@ -2201,12 +2197,12 @@ public abstract class ArrayNodes {
     public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "array == other")
-        protected RubyArray stealStorageNoOp(RubyArray array, RubyArray other) {
+        RubyArray stealStorageNoOp(RubyArray array, RubyArray other) {
             return array;
         }
 
         @Specialization(guards = "array != other")
-        protected static RubyArray stealStorage(RubyArray array, RubyArray other,
+        static RubyArray stealStorage(RubyArray array, RubyArray other,
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
                 @Bind("this") Node node) {
@@ -2228,7 +2224,7 @@ public abstract class ArrayNodes {
     public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected RubyArray zipToPairs(RubyArray array, RubyArray other,
+        RubyArray zipToPairs(RubyArray array, RubyArray other,
                 @Bind("array.getStore()") Object a,
                 @Bind("other.getStore()") Object b,
                 @CachedLibrary("a") ArrayStoreLibrary aStores,
@@ -2270,7 +2266,7 @@ public abstract class ArrayNodes {
     public abstract static class StoreToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "!stores.isNative(store)", limit = "storageStrategyLimit()")
-        protected RubyArray storeToNative(RubyArray array,
+        RubyArray storeToNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached IntValueProfile arraySizeProfile) {
@@ -2283,7 +2279,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "stores.isNative(store)", limit = "storageStrategyLimit()")
-        protected RubyArray storeIsNative(RubyArray array,
+        RubyArray storeIsNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return array;
@@ -2295,7 +2291,7 @@ public abstract class ArrayNodes {
     public abstract static class StoreAddressNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "stores.isNative(store)", limit = "storageStrategyLimit()")
-        protected long storeIsNative(RubyArray array,
+        long storeIsNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             NativeArrayStorage storage = (NativeArrayStorage) store;
@@ -2304,7 +2300,7 @@ public abstract class ArrayNodes {
 
         /** See {@link RubyDynamicObject#asPointer} **/
         @Specialization(guards = "!stores.isNative(store)", limit = "storageStrategyLimit()")
-        protected Object storeNotNative(RubyArray array,
+        Object storeNotNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return DispatchNode.MISSING; // for UnsupportedMessageException
@@ -2316,14 +2312,14 @@ public abstract class ArrayNodes {
     public abstract static class IsStoreNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected boolean isStoreNative(RubyArray array,
+        boolean isStoreNative(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.isNative(store);
         }
 
         @Specialization(guards = "!isRubyArray(array)")
-        protected boolean isStoreNativeNonArray(Object array) {
+        boolean isStoreNativeNonArray(Object array) {
             return false;
         }
     }
@@ -2333,7 +2329,7 @@ public abstract class ArrayNodes {
     public abstract static class MarkNativeStoreNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object markNativeStore(RubyArray array) {
+        Object markNativeStore(RubyArray array) {
             Object store = array.getStore();
             if (store instanceof NativeArrayStorage) {
                 ((NativeArrayStorage) store).preserveMembers();
@@ -2356,7 +2352,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!canContainObject.execute(array)", limit = "1")
-        protected boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
+        boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
                 @Cached @Exclusive ArrayAppendManyNode concat,
                 @Cached @Exclusive ArrayCanContainObjectNode canContainObject) {
             concat.executeAppendMany(out, array);
@@ -2364,7 +2360,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(replaces = "flattenHelperPrimitive")
-        protected boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
+        boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
                 @Cached @Exclusive ArrayCanContainObjectNode canContainObject,
                 @Cached @Exclusive ArrayAppendManyNode concat,
                 @Cached AtNode at,
@@ -2448,14 +2444,14 @@ public abstract class ArrayNodes {
         public abstract boolean execute(RubyArray array);
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected boolean array(RubyArray array,
+        boolean array(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return !stores.isPrimitive(store);
         }
 
         @Specialization(guards = "!isRubyArray(array)")
-        protected boolean other(Object array) {
+        boolean other(Object array) {
             return true;
         }
 

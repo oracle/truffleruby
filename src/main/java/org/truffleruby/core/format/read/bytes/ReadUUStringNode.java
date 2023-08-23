@@ -64,7 +64,7 @@ public abstract class ReadUUStringNode extends FormatNode {
     @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
     @Specialization
-    protected Object encode(VirtualFrame frame, byte[] source) {
+    Object encode(VirtualFrame frame, byte[] source) {
         final ByteBuffer encode = wrapByteBuffer(frame, source);
 
         final byte[] bytes = read(encode);

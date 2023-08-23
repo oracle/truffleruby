@@ -49,7 +49,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int hash(RubyRegexp regexp) {
+        int hash(RubyRegexp regexp) {
             int options = regexp.regex.getOptions() & ~32 /* option n, NO_ENCODING in common/regexp.rb */;
             return options ^ regexp.source.hashCode();
         }
@@ -67,18 +67,18 @@ public abstract class RegexpNodes {
         }
 
         @Specialization(guards = "libRaw.isRubyString(raw)", limit = "1")
-        protected RubyString quoteString(Object raw,
+        RubyString quoteString(Object raw,
                 @Cached RubyStringLibrary libRaw) {
             return createString(ClassicRegexp.quote19(new ATStringWithEncoding(libRaw, raw)));
         }
 
         @Specialization
-        protected RubyString quoteSymbol(RubySymbol raw) {
+        RubyString quoteSymbol(RubySymbol raw) {
             return doQuoteString(createString(raw.tstring, raw.encoding));
         }
 
         @Fallback
-        protected RubyString quote(Object raw,
+        RubyString quote(Object raw,
                 @Cached ToStrNode toStrNode) {
             return doQuoteString(toStrNode.execute(this, raw));
         }
@@ -95,7 +95,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "source")
     public abstract static class SourceNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyString source(RubyRegexp regexp) {
+        RubyString source(RubyRegexp regexp) {
             return createString(regexp.source, regexp.encoding);
         }
     }
@@ -110,14 +110,14 @@ public abstract class RegexpNodes {
         public abstract RubyString execute(RubyRegexp regexp);
 
         @Specialization(guards = "regexp.regex == cachedRegexp.regex", limit = "getDefaultCacheLimit()")
-        protected RubyString toSCached(RubyRegexp regexp,
+        RubyString toSCached(RubyRegexp regexp,
                 @Cached("regexp") RubyRegexp cachedRegexp,
                 @Cached("createTString(cachedRegexp)") TStringWithEncoding string) {
             return createString(string);
         }
 
         @Specialization
-        protected RubyString toS(RubyRegexp regexp) {
+        RubyString toS(RubyRegexp regexp) {
             return createString(createTString(regexp));
         }
 
@@ -143,7 +143,7 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray regexpNames(RubyRegexp regexp) {
+        RubyArray regexpNames(RubyRegexp regexp) {
             final int size = regexp.regex.numberOfNames();
             if (size == 0) {
                 return createEmptyArray();
@@ -172,7 +172,7 @@ public abstract class RegexpNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyRegexp allocate(RubyClass rubyClass) {
+        RubyRegexp allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -182,7 +182,7 @@ public abstract class RegexpNodes {
     public abstract static class RegexpIsFixedEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean fixedEncoding(RubyRegexp regexp) {
+        boolean fixedEncoding(RubyRegexp regexp) {
             return regexp.options.isFixed();
         }
 
@@ -192,7 +192,7 @@ public abstract class RegexpNodes {
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libPattern.isRubyString(pattern)", limit = "1")
-        protected static RubyRegexp initialize(Object pattern, int options,
+        static RubyRegexp initialize(Object pattern, int options,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @Cached RubyStringLibrary libPattern,
@@ -215,7 +215,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "options")
     public abstract static class RegexpOptionsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int options(RubyRegexp regexp) {
+        int options(RubyRegexp regexp) {
             return regexp.options.toOptions();
         }
     }

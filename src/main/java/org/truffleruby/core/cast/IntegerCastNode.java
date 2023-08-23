@@ -28,24 +28,24 @@ public abstract class IntegerCastNode extends RubyBaseNode {
     public abstract int execute(Node node, Object value);
 
     @Specialization
-    protected static int doInt(int value) {
+    static int doInt(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected static int doLong(long value) {
+    static int doLong(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected static int doLongToBig(Node node, long value) {
+    static int doLongToBig(Node node, long value) {
         throw new RaiseException(
                 getContext(node),
                 coreExceptions(node).rangeError("long too big to convert into `int'", node));
     }
 
     @Specialization(guards = "!isImplicitLong(value)")
-    protected static int doBasicObject(Node node, Object value) {
+    static int doBasicObject(Node node, Object value) {
         throw new RaiseException(
                 getContext(node),
                 coreExceptions(node).typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", node));

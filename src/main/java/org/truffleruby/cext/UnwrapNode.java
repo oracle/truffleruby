@@ -57,32 +57,32 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract Object execute(Node node, long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        protected static boolean unwrapFalse(long handle) {
+        static boolean unwrapFalse(long handle) {
             return false;
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        protected static boolean unwrapTrue(long handle) {
+        static boolean unwrapTrue(long handle) {
             return true;
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        protected static NotProvided unwrapUndef(long handle) {
+        static NotProvided unwrapUndef(long handle) {
             return NotProvided.INSTANCE;
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected static Object unwrapNil(long handle) {
+        static Object unwrapNil(long handle) {
             return nil;
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        protected static long unwrapTaggedLong(long handle) {
+        static long unwrapTaggedLong(long handle) {
             return ValueWrapperManager.untagTaggedLong(handle);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected static Object unwrapTaggedObject(Node node, long handle,
+        static Object unwrapTaggedObject(Node node, long handle,
                 @Cached InlinedBranchProfile noHandleProfile) {
             final ValueWrapper wrapper = getContext(node)
                     .getValueWrapperManager()
@@ -95,7 +95,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Fallback
-        protected static ValueWrapper unWrapUnexpectedHandle(long handle) {
+        static ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -117,37 +117,37 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract ValueWrapper execute(Node node, long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        protected static ValueWrapper unwrapFalse(long handle) {
+        static ValueWrapper unwrapFalse(long handle) {
             return new ValueWrapper(false, FALSE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        protected static ValueWrapper unwrapTrue(long handle) {
+        static ValueWrapper unwrapTrue(long handle) {
             return new ValueWrapper(true, TRUE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        protected static ValueWrapper unwrapUndef(long handle) {
+        static ValueWrapper unwrapUndef(long handle) {
             return new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected static ValueWrapper unwrapNil(long handle) {
+        static ValueWrapper unwrapNil(long handle) {
             return nil.getValueWrapper();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        protected static ValueWrapper unwrapTaggedLong(long handle) {
+        static ValueWrapper unwrapTaggedLong(long handle) {
             return new ValueWrapper(null, handle, null);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected static ValueWrapper unwrapTaggedObject(Node node, long handle) {
+        static ValueWrapper unwrapTaggedObject(Node node, long handle) {
             return getContext(node).getValueWrapperManager().getWrapperFromHandleMap(handle, getLanguage(node));
         }
 
         @Fallback
-        protected static ValueWrapper unWrapUnexpectedHandle(long handle) {
+        static ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
             return null;
@@ -162,18 +162,18 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract ValueWrapper execute(Node node, Object value);
 
         @Specialization
-        protected static ValueWrapper wrappedValueWrapper(ValueWrapper value) {
+        static ValueWrapper wrappedValueWrapper(ValueWrapper value) {
             return value;
         }
 
         @Specialization
-        protected static ValueWrapper longToWrapper(Node node, long value,
+        static ValueWrapper longToWrapper(Node node, long value,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode) {
             return nativeToWrapperNode.execute(node, value);
         }
 
         @Fallback
-        protected static ValueWrapper genericToWrapper(Node node, Object value,
+        static ValueWrapper genericToWrapper(Node node, Object value,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
                 @Cached @Shared NativeToWrapperNode nativeToWrapperNode,
                 @Cached InlinedBranchProfile unsupportedProfile) {
@@ -202,7 +202,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @Specialization(
                 guards = { "size == cachedSize", "cachedSize <= MAX_EXPLODE_SIZE" },
                 limit = "1")
-        protected Object[] unwrapCArrayExplode(Object cArray,
+        Object[] unwrapCArrayExplode(Object cArray,
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,
                 @Cached("size") int cachedSize,
@@ -216,7 +216,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(replaces = "unwrapCArrayExplode", limit = "getDefaultCacheLimit()")
-        protected Object[] unwrapCArray(Object cArray,
+        Object[] unwrapCArray(Object cArray,
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,
                 @Cached @Shared UnwrapNode unwrapNode,
@@ -255,23 +255,23 @@ public abstract class UnwrapNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object value);
 
     @Specialization(guards = "!isTaggedLong(value.getHandle())")
-    protected static Object unwrapValueObject(ValueWrapper value) {
+    static Object unwrapValueObject(ValueWrapper value) {
         return value.getObject();
     }
 
     @Specialization(guards = "isTaggedLong(value.getHandle())")
-    protected static long unwrapValueTaggedLong(ValueWrapper value) {
+    static long unwrapValueTaggedLong(ValueWrapper value) {
         return ValueWrapperManager.untagTaggedLong(value.getHandle());
     }
 
     @Specialization
-    protected static Object longToWrapper(Node node, long value,
+    static Object longToWrapper(Node node, long value,
             @Cached @Shared UnwrapNativeNode unwrapNativeNode) {
         return unwrapNativeNode.execute(node, value);
     }
 
     @Specialization(guards = { "!isWrapper(value)", "!isImplicitLong(value)" })
-    protected static Object unwrapGeneric(Node node, Object value,
+    static Object unwrapGeneric(Node node, Object value,
             @CachedLibrary(limit = "getCacheLimit()") InteropLibrary values,
             @Cached @Shared UnwrapNativeNode unwrapNativeNode,
             @Cached InlinedBranchProfile unsupportedProfile) {

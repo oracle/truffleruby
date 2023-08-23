@@ -56,7 +56,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
             guards = { "object.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
             assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
             limit = "CACHE_LIMIT")
-    protected static void shareCached(Node node, RubyDynamicObject object, int depth,
+    static void shareCached(Node node, RubyDynamicObject object, int depth,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createSharedShape(cachedShape)") Shape sharedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
@@ -98,13 +98,13 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected static void updateShapeAndShare(RubyDynamicObject object, int depth,
+    static void updateShapeAndShare(RubyDynamicObject object, int depth,
             @Cached(inline = false) ShareObjectNode shareObjectNode) {
         shareObjectNode.executeCached(object, depth);
     }
 
     @Specialization(replaces = { "shareCached", "updateShapeAndShare" })
-    protected static void shareUncached(Node node, RubyDynamicObject object, int depth) {
+    static void shareUncached(Node node, RubyDynamicObject object, int depth) {
         SharedObjects.writeBarrier(getLanguage(node), object);
     }
 

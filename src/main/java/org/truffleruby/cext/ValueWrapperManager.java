@@ -290,7 +290,7 @@ public final class ValueWrapperManager {
         public abstract long execute(ValueWrapper wrapper);
 
         @Specialization(guards = "!isSharedObject(wrapper)")
-        protected long allocateHandleOnKnownThread(ValueWrapper wrapper) {
+        long allocateHandleOnKnownThread(ValueWrapper wrapper) {
             if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
                 keepAlive(wrapper);
             }
@@ -303,7 +303,7 @@ public final class ValueWrapperManager {
         }
 
         @Specialization(guards = "isSharedObject(wrapper)")
-        protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
+        long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
             if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
                 keepAlive(wrapper);
             }

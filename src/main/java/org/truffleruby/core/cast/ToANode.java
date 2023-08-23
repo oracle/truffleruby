@@ -35,12 +35,12 @@ public abstract class ToANode extends RubyBaseNodeWithExecute {
     abstract RubyBaseNodeWithExecute getChildNode();
 
     @Specialization
-    protected RubyArray toA(RubyArray array) {
+    RubyArray toA(RubyArray array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    protected RubyArray coerceObject(Object object,
+    RubyArray coerceObject(Object object,
             @Cached DispatchNode toAryNode) {
         return (RubyArray) toAryNode.call(
                 coreLibrary().truffleTypeModule,

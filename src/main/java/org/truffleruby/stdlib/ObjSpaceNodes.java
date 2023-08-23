@@ -46,29 +46,29 @@ public abstract class ObjSpaceNodes {
     @CoreMethod(names = "memsize_of", onSingleton = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int memsizeOfArray(RubyArray object) {
+        int memsizeOfArray(RubyArray object) {
             return memsizeOfObject(object) + object.size;
         }
 
         @Specialization
-        protected int memsizeOfHash(RubyHash object) {
+        int memsizeOfHash(RubyHash object) {
             return memsizeOfObject(object) + object.size;
         }
 
         @Specialization
-        protected int memsizeOfString(RubyString object,
+        int memsizeOfString(RubyString object,
                 @Exclusive @Cached RubyStringLibrary libString) {
             return memsizeOfObject(object) + libString.byteLength(object);
         }
 
         @Specialization
-        protected int memsizeOfString(ImmutableRubyString object,
+        int memsizeOfString(ImmutableRubyString object,
                 @Exclusive @Cached RubyStringLibrary libString) {
             return 1 + libString.byteLength(object);
         }
 
         @Specialization
-        protected int memsizeOfMatchData(RubyMatchData object,
+        int memsizeOfMatchData(RubyMatchData object,
                 @Exclusive @Cached ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
@@ -79,12 +79,12 @@ public abstract class ObjSpaceNodes {
                         "!isRubyHash(object)",
                         "isNotRubyString(object)",
                         "!isRubyMatchData(object)" })
-        protected int memsizeOfObject(RubyDynamicObject object) {
+        int memsizeOfObject(RubyDynamicObject object) {
             return 1 + object.getShape().getPropertyCount();
         }
 
         @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected int memsize(Object object) {
+        int memsize(Object object) {
             return 0;
         }
     }
@@ -93,13 +93,13 @@ public abstract class ObjSpaceNodes {
     public abstract static class AdjacentObjectsNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyArray adjacentObjects(RubyDynamicObject object) {
+        RubyArray adjacentObjects(RubyDynamicObject object) {
             final Set<Object> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }
 
         @Fallback
-        protected Object adjacentObjectsPrimitive(Object object) {
+        Object adjacentObjectsPrimitive(Object object) {
             return nil;
         }
     }
@@ -108,7 +108,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class RootObjectsNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyArray rootObjects() {
+        RubyArray rootObjects() {
             final Set<Object> objects = ObjectGraph
                     .stopAndGetRootObjects("ObjectSpace.reachable_objects_from_root", getContext(), this);
             return createArray(objects.toArray());
@@ -119,7 +119,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class TraceAllocationsStartNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object traceAllocationsStart() {
+        Object traceAllocationsStart() {
             getContext().getObjectSpaceManager().traceAllocationsStart(getLanguage());
             return nil;
         }
@@ -129,7 +129,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class TraceAllocationsStopNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object traceAllocationsStop() {
+        Object traceAllocationsStop() {
             getContext().getObjectSpaceManager().traceAllocationsStop(getLanguage());
             return nil;
         }
@@ -139,7 +139,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class TraceAllocationsClearNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object traceAllocationsClear() {
+        Object traceAllocationsClear() {
             getContext().getObjectSpaceManager().traceAllocationsClear();
             return nil;
         }
@@ -149,7 +149,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class AllocationClassPathNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object allocationInfo(RubyDynamicObject object,
+        Object allocationInfo(RubyDynamicObject object,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
@@ -165,7 +165,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected Object allocationInfoImmutable(Object object) {
+        Object allocationInfoImmutable(Object object) {
             return nil;
         }
     }
@@ -174,7 +174,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class AllocationGenerationNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object allocationInfo(RubyDynamicObject object) {
+        Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
                 return nil;
@@ -184,7 +184,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected Object allocationGenerationImmutable(Object object) {
+        Object allocationGenerationImmutable(Object object) {
             return nil;
         }
     }
@@ -193,7 +193,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class AllocationMethodIDNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object allocationInfo(RubyDynamicObject object) {
+        Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
                 return nil;
@@ -210,7 +210,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected Object allocationMethodIdImmutable(Object object) {
+        Object allocationMethodIdImmutable(Object object) {
             return nil;
         }
     }
@@ -219,7 +219,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class AllocationSourceFileNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object allocationInfo(RubyDynamicObject object,
+        Object allocationInfo(RubyDynamicObject object,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
@@ -231,7 +231,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected Object allocationSourcefileImmutable(Object object) {
+        Object allocationSourcefileImmutable(Object object) {
             return nil;
         }
     }
@@ -240,7 +240,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class AllocationSourceLineNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object allocationInfo(RubyDynamicObject object) {
+        Object allocationInfo(RubyDynamicObject object) {
             AllocationTrace trace = getAllocationTrace(getContext(), object);
             if (trace == null) {
                 return nil;
@@ -250,7 +250,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected Object allocationSourcelineImmutable(Object object) {
+        Object allocationSourcelineImmutable(Object object) {
             return nil;
         }
     }

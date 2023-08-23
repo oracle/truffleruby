@@ -43,7 +43,7 @@ public abstract class ByteArrayNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyByteArray allocate(RubyClass rubyClass) {
+        RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().byteArrayShape;
             final RubyByteArray instance = new RubyByteArray(rubyClass, shape,
                     org.truffleruby.core.array.ArrayUtils.EMPTY_BYTES);
@@ -56,7 +56,7 @@ public abstract class ByteArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyByteArray initialize(RubyByteArray byteArray, int size) {
+        RubyByteArray initialize(RubyByteArray byteArray, int size) {
             final byte[] bytes = new byte[size];
             byteArray.bytes = bytes;
             return byteArray;
@@ -68,7 +68,7 @@ public abstract class ByteArrayNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int getByte(RubyByteArray byteArray, int index) {
+        int getByte(RubyByteArray byteArray, int index) {
             return byteArray.bytes[index] & 0xff;
         }
 
@@ -78,7 +78,7 @@ public abstract class ByteArrayNodes {
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
+        RubyByteArray prepend(RubyByteArray byteArray, Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
@@ -109,7 +109,7 @@ public abstract class ByteArrayNodes {
     public abstract static class SetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int setByte(RubyByteArray byteArray, int index, int value,
+        int setByte(RubyByteArray byteArray, int index, int value,
                 @Cached InlinedBranchProfile errorProfile) {
             final byte[] bytes = byteArray.bytes;
             if (index < 0 || index >= bytes.length) {
@@ -127,8 +127,7 @@ public abstract class ByteArrayNodes {
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object fillFromString(
-                RubyByteArray destByteArray, int dstStart, RubyString source, int srcStart, int length,
+        Object fillFromString(RubyByteArray destByteArray, int dstStart, RubyString source, int srcStart, int length,
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = source.tstring;
@@ -138,8 +137,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization
-        protected Object fillFromPointer(
-                RubyByteArray byteArray, int dstStart, RubyPointer source, int srcStart, int length,
+        Object fillFromPointer(RubyByteArray byteArray, int dstStart, RubyPointer source, int srcStart, int length,
                 @Cached PointerNodes.CheckNullPointerNode checkNullPointerNode) {
             assert length > 0;
 
@@ -158,7 +156,7 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isSingleBytePattern(patternTString, patternEncoding)")
-        protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
+        Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached InlinedBranchProfile tooSmallStartProfile,
                 @Cached InlinedBranchProfile tooLargeStartProfile,
@@ -185,7 +183,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = "!isSingleBytePattern(patternTString, patternEncoding)")
-        protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
+        Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode,
                 @Cached InlinedConditionProfile noCopyProfile,

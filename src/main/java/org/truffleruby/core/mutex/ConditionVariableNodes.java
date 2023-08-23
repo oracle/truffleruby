@@ -42,7 +42,7 @@ public abstract class ConditionVariableNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyConditionVariable allocate(RubyClass rubyClass) {
+        RubyConditionVariable allocate(RubyClass rubyClass) {
             // condLock is only held for a short number of non-blocking instructions,
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()
@@ -60,7 +60,7 @@ public abstract class ConditionVariableNodes {
     public abstract static class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
+        RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
                 @Shared @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
@@ -71,7 +71,7 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
+        RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
                 @Shared @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
@@ -212,7 +212,7 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyConditionVariable signal(RubyConditionVariable self) {
+        RubyConditionVariable signal(RubyConditionVariable self) {
             final ReentrantLock condLock = self.lock;
             final Condition condition = self.condition;
 
@@ -235,7 +235,7 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyConditionVariable broadcast(RubyConditionVariable self) {
+        RubyConditionVariable broadcast(RubyConditionVariable self) {
             final ReentrantLock condLock = self.lock;
             final Condition condition = self.condition;
 

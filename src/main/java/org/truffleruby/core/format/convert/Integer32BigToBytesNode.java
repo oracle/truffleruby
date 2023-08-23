@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class Integer32BigToBytesNode extends FormatNode {
 
     @Specialization
-    protected byte[] encode(long value) {
+    byte[] encode(long value) {
         byte[] bytes = new byte[4];
         ByteArraySupport.bigEndian().putInt(bytes, 0, (int) value);
         return bytes;

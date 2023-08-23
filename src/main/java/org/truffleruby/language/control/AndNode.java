@@ -29,7 +29,7 @@ public abstract class AndNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doAnd(VirtualFrame frame,
+    Object doAnd(VirtualFrame frame,
             @Cached BooleanCastNode leftCast,
             @Cached InlinedCountingConditionProfile conditionProfile) {
         final var leftValue = left.execute(frame);

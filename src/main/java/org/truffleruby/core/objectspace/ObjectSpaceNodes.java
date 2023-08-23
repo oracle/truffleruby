@@ -57,28 +57,28 @@ public abstract class ObjectSpaceNodes {
     public abstract static class ID2RefNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "id == NIL")
-        protected Object id2RefNil(long id) {
+        Object id2RefNil(long id) {
             return nil;
         }
 
         @Specialization(guards = "id == TRUE")
-        protected boolean id2RefTrue(long id) {
+        boolean id2RefTrue(long id) {
             return true;
         }
 
         @Specialization(guards = "id == FALSE")
-        protected boolean id2RefFalse(long id) {
+        boolean id2RefFalse(long id) {
             return false;
         }
 
         @Specialization(guards = "isSmallFixnumID(id)")
-        protected long id2RefSmallInt(long id) {
+        long id2RefSmallInt(long id) {
             return ObjectIDOperations.toFixnum(id);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isBasicObjectID(id)")
-        protected Object id2Ref(long id) {
+        Object id2Ref(long id) {
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
 
             for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace._id2ref", getContext(), this)) {
@@ -102,12 +102,12 @@ public abstract class ObjectSpaceNodes {
         }
 
         @Specialization(guards = { "isLargeFixnumID(id)" })
-        protected Object id2RefLargeFixnum(RubyBignum id) {
+        Object id2RefLargeFixnum(RubyBignum id) {
             return BigIntegerOps.longValue(id);
         }
 
         @Specialization(guards = { "isFloatID(id)" })
-        protected double id2RefFloat(RubyBignum id) {
+        double id2RefFloat(RubyBignum id) {
             return Double.longBitsToDouble(BigIntegerOps.longValue(id));
         }
 
@@ -131,7 +131,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization
-        protected int eachObject(NotProvided ofClass, RubyProc block,
+        int eachObject(NotProvided ofClass, RubyProc block,
                 @Cached @Shared CallBlockNode yieldNode) {
             int count = 0;
 
@@ -147,7 +147,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization
-        protected int eachObject(RubyModule ofClass, RubyProc block,
+        int eachObject(RubyModule ofClass, RubyProc block,
                 @Cached IsANode isANode,
                 @Cached @Shared CallBlockNode yieldNode) {
             int count = 0;
@@ -206,7 +206,7 @@ public abstract class ObjectSpaceNodes {
         @Child private InternalRespondToNode respondToCallNode = InternalRespondToNode.create();
 
         @Specialization
-        protected RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,
+        RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.execute(frame, finalizer, "call")) {
@@ -263,7 +263,7 @@ public abstract class ObjectSpaceNodes {
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object defineFinalizer(RubyDynamicObject object, DataHolder dataHolder,
+        Object defineFinalizer(RubyDynamicObject object, DataHolder dataHolder,
                 @Cached WriteBarrierNode writeBarrierNode,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
             if (!getContext().getReferenceProcessor().processOnMainThread()) {
@@ -295,7 +295,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object undefineFinalizer(RubyDynamicObject object) {
+        Object undefineFinalizer(RubyDynamicObject object) {
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
             synchronized (object) {
                 FinalizerReference ref = (FinalizerReference) objectLibrary

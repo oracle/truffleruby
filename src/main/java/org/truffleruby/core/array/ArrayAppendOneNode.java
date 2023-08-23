@@ -46,7 +46,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
-    protected RubyArray appendOneSameType(RubyArray array, Object value,
+    RubyArray appendOneSameType(RubyArray array, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached CountingConditionProfile extendProfile) {
@@ -71,7 +71,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = "!currentStores.acceptsValue(array.getStore(), value)",
             limit = "storageStrategyLimit()")
-    protected RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
+    RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
             @Bind("array.getStore()") Object currentStore,
             @CachedLibrary("currentStore") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {

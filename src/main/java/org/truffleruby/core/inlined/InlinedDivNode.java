@@ -30,32 +30,32 @@ public abstract class InlinedDivNode extends BinaryInlinedOperationNode {
     // We need to avoid the / 0 case as it would give a wrong Ruby backtrace.
 
     @Specialization(guards = { "a >= 0", "b > 0" }, assumptions = "assumptions")
-    protected int intDiv(int a, int b) {
+    int intDiv(int a, int b) {
         return a / b;
     }
 
     @Specialization(guards = { "a >= 0", "b > 0" }, assumptions = "assumptions")
-    protected long longDiv(long a, long b) {
+    long longDiv(long a, long b) {
         return a / b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double floatDiv(double a, double b) {
+    double floatDiv(double a, double b) {
         return a / b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double longDouble(long a, double b) {
+    double longDouble(long a, double b) {
         return a / b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double doubleLong(double a, long b) {
+    double doubleLong(double a, long b) {
         return a / b;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

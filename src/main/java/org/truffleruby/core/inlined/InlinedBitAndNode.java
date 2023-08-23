@@ -34,27 +34,27 @@ public abstract class InlinedBitAndNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object intBitAnd(int a, int b) {
+    Object intBitAnd(int a, int b) {
         return getBitAndNode().executeBitAnd(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object intLongBitAnd(int a, long b) {
+    Object intLongBitAnd(int a, long b) {
         return getBitAndNode().executeBitAnd(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longIntBitAnd(long a, int b) {
+    Object longIntBitAnd(long a, int b) {
         return getBitAndNode().executeBitAnd(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longBitAnd(long a, long b) {
+    Object longBitAnd(long a, long b) {
         return getBitAndNode().executeBitAnd(a, b);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

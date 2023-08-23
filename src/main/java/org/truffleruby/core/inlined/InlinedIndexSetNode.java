@@ -41,7 +41,7 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
                     "normalizedIndex >= 0" },
             assumptions = "assumptions",
             limit = "1")
-    protected static Object arrayWrite(VirtualFrame frame, RubyArray array, int index, Object value,
+    static Object arrayWrite(VirtualFrame frame, RubyArray array, int index, Object value,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached InlinedConditionProfile denormalized,
             @Bind("this") Node node,
@@ -51,7 +51,7 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b, Object c) {
+    Object fallback(VirtualFrame frame, Object a, Object b, Object c) {
         return rewriteAndCall(frame, a, b, c);
     }
 

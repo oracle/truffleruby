@@ -31,7 +31,7 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
     public abstract RubyNode getArrayNode();
 
     @Specialization
-    protected RubyArray getTail(RubyArray array,
+    RubyArray getTail(RubyArray array,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = array.size;

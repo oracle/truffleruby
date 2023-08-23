@@ -46,7 +46,7 @@ public abstract class FormatGFloatNode extends FormatFloatGenericNode {
     }
 
     @Specialization(guards = { "nonSpecialValue(dval)" })
-    protected byte[] formatGExponential(int width, int precision, Object dval) {
+    byte[] formatGExponential(int width, int precision, Object dval) {
         if (precision == PrintfSimpleTreeBuilder.DEFAULT) {
             precision = 6;
         }

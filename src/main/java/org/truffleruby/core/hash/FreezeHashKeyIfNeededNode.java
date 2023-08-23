@@ -24,17 +24,17 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
     @Specialization
-    protected Object immutable(ImmutableRubyString string, boolean compareByIdentity) {
+    Object immutable(ImmutableRubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = "string.isFrozen()")
-    protected Object alreadyFrozen(RubyString string, boolean compareByIdentity) {
+    Object alreadyFrozen(RubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = { "!string.isFrozen()", "!compareByIdentity" })
-    protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
+    Object dupAndFreeze(RubyString string, boolean compareByIdentity,
             @Cached DispatchNode dupNode) {
         final RubyString copy = (RubyString) dupNode.call(string, "dup");
         copy.freeze();
@@ -42,12 +42,12 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "!string.isFrozen()", "compareByIdentity" })
-    protected Object compareByIdentity(RubyString string, boolean compareByIdentity) {
+    Object compareByIdentity(RubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(value)")
-    protected Object passThrough(Object value, boolean compareByIdentity) {
+    Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
 }

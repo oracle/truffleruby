@@ -30,12 +30,12 @@ public abstract class InitializeClassNode extends RubyBaseNode {
             Object block);
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, Nil block) {
+    RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, Nil block) {
         return initializeGeneralWithoutBlock(rubyClass, superclass, callInherited);
     }
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, RubyProc block) {
+    RubyClass initialize(RubyClass rubyClass, RubyClass superclass, boolean callInherited, RubyProc block) {
         return initializeGeneralWithBlock(rubyClass, superclass, block, callInherited);
     }
 

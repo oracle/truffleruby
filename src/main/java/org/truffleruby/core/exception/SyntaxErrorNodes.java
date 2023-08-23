@@ -26,7 +26,7 @@ public abstract class SyntaxErrorNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySyntaxError allocateSyntaxError(RubyClass rubyClass) {
+        RubySyntaxError allocateSyntaxError(RubyClass rubyClass) {
             final Shape shape = getLanguage().syntaxErrorShape;
             final RubySyntaxError instance = new RubySyntaxError(rubyClass, shape, nil, null, nil, null);
             AllocationTracing.trace(instance, this);

@@ -33,7 +33,7 @@ public abstract class ReadCStringNode extends FormatNode {
     }
 
     @Specialization
-    protected Object read(Object pointer,
+    Object read(Object pointer,
             @Cached UnwrapNode unwrapNode,
             @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
             @CachedLibrary("stringReader") InteropLibrary stringReaders) {

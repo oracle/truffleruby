@@ -47,7 +47,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected static RubyArray iterateMany(
+    static RubyArray iterateMany(
             Node node, RubyArray array, Object state, int startAt, ArrayElementConsumerNode consumerNode,
             // Checkstyle: stop -- Verified @Bind is not necessary here due to using `Library#accepts()`.
             @CachedLibrary("array.getStore()") ArrayStoreLibrary stores,

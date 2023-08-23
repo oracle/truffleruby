@@ -51,13 +51,13 @@ public abstract class UnboundMethodNodes {
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean equal(RubyUnboundMethod self, RubyUnboundMethod other) {
+        boolean equal(RubyUnboundMethod self, RubyUnboundMethod other) {
             return self.origin == other.origin &&
                     MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
-        protected boolean equal(RubyUnboundMethod self, Object other) {
+        boolean equal(RubyUnboundMethod self, Object other) {
             return false;
         }
 
@@ -67,7 +67,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class ArityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int arity(RubyUnboundMethod unboundMethod) {
+        int arity(RubyUnboundMethod unboundMethod) {
             return unboundMethod.method.getArityNumber();
         }
 
@@ -77,7 +77,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class BindNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
+        RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
                 @Cached InlinedBranchProfile errorProfile) {
@@ -115,7 +115,7 @@ public abstract class UnboundMethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long hash(RubyUnboundMethod rubyMethod) {
+        long hash(RubyUnboundMethod rubyMethod) {
             final InternalMethod method = rubyMethod.method;
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, MethodNodes.hashInternalMethod(method));
@@ -128,7 +128,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol name(RubyUnboundMethod unboundMethod) {
+        RubySymbol name(RubyUnboundMethod unboundMethod) {
             return getSymbol(unboundMethod.method.getName());
         }
 
@@ -138,7 +138,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class OriginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule origin(RubyUnboundMethod unboundMethod) {
+        RubyModule origin(RubyUnboundMethod unboundMethod) {
             return unboundMethod.origin;
         }
 
@@ -148,7 +148,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class OriginalNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol originalName(RubyUnboundMethod unboundMethod,
+        RubySymbol originalName(RubyUnboundMethod unboundMethod,
                 @Cached ToSymbolNode toSymbolNode) {
             String originalName = unboundMethod.method.getOriginalName();
             return toSymbolNode.execute(this, originalName);
@@ -159,7 +159,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class OwnerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule owner(RubyUnboundMethod unboundMethod) {
+        RubyModule owner(RubyUnboundMethod unboundMethod) {
             return unboundMethod.method.getOwner();
         }
 
@@ -168,7 +168,7 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "private?")
     public abstract static class IsPrivateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isPrivate(RubyUnboundMethod unboundMethod) {
+        boolean isPrivate(RubyUnboundMethod unboundMethod) {
             return unboundMethod.method.isPrivate();
         }
     }
@@ -176,7 +176,7 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "protected?")
     public abstract static class IsProtectedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isProtected(RubyUnboundMethod unboundMethod) {
+        boolean isProtected(RubyUnboundMethod unboundMethod) {
             return unboundMethod.method.isProtected();
         }
     }
@@ -184,7 +184,7 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "public?")
     public abstract static class IsPublicNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isPublic(RubyUnboundMethod unboundMethod) {
+        boolean isPublic(RubyUnboundMethod unboundMethod) {
             return unboundMethod.method.isPublic();
         }
     }
@@ -194,7 +194,7 @@ public abstract class UnboundMethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray parameters(RubyUnboundMethod method) {
+        RubyArray parameters(RubyUnboundMethod method) {
             final ArgumentDescriptor[] argsDesc = method.method
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
@@ -208,7 +208,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object sourceLocation(RubyUnboundMethod unboundMethod,
+        Object sourceLocation(RubyUnboundMethod unboundMethod,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var sourceSection = unboundMethod.method.getSharedMethodInfo().getSourceSection();
             return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
@@ -219,7 +219,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object superMethod(RubyUnboundMethod unboundMethod) {
+        Object superMethod(RubyUnboundMethod unboundMethod) {
             InternalMethod internalMethod = unboundMethod.method;
             RubyModule origin = unboundMethod.origin;
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
@@ -241,7 +241,7 @@ public abstract class UnboundMethodNodes {
     @Primitive(name = "unbound_method_ruby2_keywords")
     public abstract static class MethodRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object ruby2Keywords(RubyUnboundMethod unboundMethod) {
+        Object ruby2Keywords(RubyUnboundMethod unboundMethod) {
             final InternalMethod method = unboundMethod.method;
             return ruby2Keywords(method.getSharedMethodInfo(), method.getCallTarget());
         }
@@ -269,7 +269,7 @@ public abstract class UnboundMethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object allocate(RubyClass rubyClass) {
+        Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

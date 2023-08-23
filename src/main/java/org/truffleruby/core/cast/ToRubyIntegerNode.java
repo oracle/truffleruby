@@ -29,22 +29,22 @@ public abstract class ToRubyIntegerNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object object);
 
     @Specialization
-    protected static int coerceInt(int value) {
+    static int coerceInt(int value) {
         return value;
     }
 
     @Specialization
-    protected static long coerceLong(long value) {
+    static long coerceLong(long value) {
         return value;
     }
 
     @Specialization
-    protected static RubyBignum coerceRubyBignum(RubyBignum value) {
+    static RubyBignum coerceRubyBignum(RubyBignum value) {
         return value;
     }
 
     @Specialization(guards = "!isRubyInteger(object)")
-    protected static Object coerceObject(Node node, Object object,
+    static Object coerceObject(Node node, Object object,
             @Cached(inline = false) DispatchNode toIntNode) {
         return toIntNode.call(coreLibrary(node).truffleTypeModule, "rb_to_int_fallback", object);
     }

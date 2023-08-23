@@ -31,7 +31,7 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean nil(Nil self) {
+    boolean nil(Nil self) {
         return true;
     }
 
@@ -39,13 +39,13 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
             guards = "lookup.lookupProtected(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL",
             assumptions = "assumptions",
             limit = "1")
-    protected boolean notNil(VirtualFrame frame, Object self,
+    boolean notNil(VirtualFrame frame, Object self,
             @Cached LookupMethodOnSelfNode lookup) {
         return false;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self) {
+    Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

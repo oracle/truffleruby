@@ -37,54 +37,54 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 public final class ObjectArrayStore {
 
     @ExportMessage
-    protected static Object read(Object[] store, int index) {
+    static Object read(Object[] store, int index) {
         return store[index];
     }
 
     @ExportMessage
-    protected static boolean acceptsValue(Object[] store, Object value) {
+    static boolean acceptsValue(Object[] store, Object value) {
         return true;
     }
 
     @ExportMessage
-    protected static boolean acceptsAllValues(Object[] store, Object otherStore) {
+    static boolean acceptsAllValues(Object[] store, Object otherStore) {
         return true;
     }
 
     @ExportMessage
-    protected static boolean isMutable(Object[] store) {
+    static boolean isMutable(Object[] store) {
         return true;
     }
 
     @ExportMessage
-    protected static String toString(Object[] store) {
+    static String toString(Object[] store) {
         return "Object[]";
     }
 
     @ExportMessage
-    protected static void write(Object[] store, int index, Object value) {
+    static void write(Object[] store, int index, Object value) {
         store[index] = value;
     }
 
     @ExportMessage
-    protected static int capacity(Object[] store) {
+    static int capacity(Object[] store) {
         return store.length;
     }
 
     @ExportMessage
-    protected static Object[] expand(Object[] store, int newCapacity) {
+    static Object[] expand(Object[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage
-    protected static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
+    static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
         Object[] result = new Object[length];
         System.arraycopy(store, start, result, 0, length);
         return result;
     }
 
     @ExportMessage
-    protected static Object makeShared(Object[] store, int size,
+    static Object makeShared(Object[] store, int size,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         stores.shareElements(store, 0, size);
         return new SharedArrayStorage(store);
@@ -94,7 +94,7 @@ public final class ObjectArrayStore {
     static final class ShareElements {
 
         @Specialization
-        protected static void shareElements(Object[] store, int start, int end,
+        static void shareElements(Object[] store, int start, int end,
                 @CachedLibrary("store") ArrayStoreLibrary arrayStoreLibrary,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode,
@@ -115,13 +115,12 @@ public final class ObjectArrayStore {
     static final class CopyContents {
 
         @Specialization
-        protected static void copyContents(
-                Object[] srcStore, int srcStart, Object[] destStore, int destStart, int length) {
+        static void copyContents(Object[] srcStore, int srcStart, Object[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization(guards = "!isObjectStore(destStore)", limit = "storageStrategyLimit()")
-        protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
+        static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             int i = 0;
@@ -141,26 +140,26 @@ public final class ObjectArrayStore {
     }
 
     @ExportMessage
-    protected static void clear(Object[] store, int start, int length,
+    static void clear(Object[] store, int start, int length,
             @CachedLibrary("store") ArrayStoreLibrary node,
             @Cached @Exclusive LoopConditionProfile profile) {
         ArrayUtils.fill(store, start, start + length, null, node, profile);
     }
 
     @ExportMessage
-    protected static void fill(Object[] store, int start, int length, Object value,
+    static void fill(Object[] store, int start, int length, Object value,
             @CachedLibrary("store") ArrayStoreLibrary node,
             @Cached @Exclusive LoopConditionProfile profile) {
         ArrayUtils.fill(store, start, start + length, value, node, profile);
     }
 
     @ExportMessage
-    protected static Object[] toJavaArrayCopy(Object[] store, int length) {
+    static Object[] toJavaArrayCopy(Object[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage
-    protected static Iterable<Object> getIterable(Object[] store, int from, int length) {
+    static Iterable<Object> getIterable(Object[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
             private int n = from;
@@ -190,37 +189,37 @@ public final class ObjectArrayStore {
     }
 
     @ExportMessage
-    protected static ArrayAllocator generalizeForValue(Object[] store, Object newValue) {
+    static ArrayAllocator generalizeForValue(Object[] store, Object newValue) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    protected static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
+    static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    protected static ArrayAllocator generalizeForSharing(Object[] store) {
+    static ArrayAllocator generalizeForSharing(Object[] store) {
         return SharedArrayStorage.SHARED_OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    protected static Object allocateForNewValue(Object[] store, Object newValue, int length) {
+    static Object allocateForNewValue(Object[] store, Object newValue, int length) {
         return OBJECT_ARRAY_ALLOCATOR.allocate(length);
     }
 
     @ExportMessage
-    protected static Object allocateForNewStore(Object[] store, Object newValue, int length) {
+    static Object allocateForNewStore(Object[] store, Object newValue, int length) {
         return OBJECT_ARRAY_ALLOCATOR.allocate(length);
     }
 
     @ExportMessage
-    protected static boolean isDefaultValue(Object[] store, Object value) {
+    static boolean isDefaultValue(Object[] store, Object value) {
         return value == null;
     }
 
     @ExportMessage
-    protected static ArrayAllocator allocator(Object[] store) {
+    static ArrayAllocator allocator(Object[] store) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 

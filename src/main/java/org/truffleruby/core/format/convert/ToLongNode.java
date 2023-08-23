@@ -43,40 +43,40 @@ public abstract class ToLongNode extends FormatNode {
     public abstract long executeToLong(VirtualFrame frame, Object object);
 
     @Specialization
-    protected long toLong(boolean object) {
+    long toLong(boolean object) {
         throw new NoImplicitConversionException(object, "Integer");
     }
 
     @Specialization
-    protected long toLong(int object) {
+    long toLong(int object) {
         return object;
     }
 
     @Specialization
-    protected long toLong(long object) {
+    long toLong(long object) {
         return object;
     }
 
     @Specialization
-    protected long toLong(RubyBignum object) {
+    long toLong(RubyBignum object) {
         // A truncated value is exactly what we want
         return BigIntegerOps.longValue(object);
     }
 
     @Specialization
-    protected long toLongNil(Nil nil) {
+    long toLongNil(Nil nil) {
         throw new NoImplicitConversionException(nil, "Integer");
     }
 
     @Specialization(
             guards = { "errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
-    protected long toLong(VirtualFrame frame, Object object) {
+    long toLong(VirtualFrame frame, Object object) {
         throw new CantConvertException("can't convert Object to Integer");
     }
 
     @Specialization(
             guards = { "!errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
-    protected static long toLong(VirtualFrame frame, Object object,
+    static long toLong(VirtualFrame frame, Object object,
             @Cached DispatchNode toIntNode,
             @Cached("create(true)") ToLongNode redoNode,
             @Cached InlinedBranchProfile noConversionAvailable,

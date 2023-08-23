@@ -39,12 +39,12 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization
-    protected MissingValue decode(Nil nil) {
+    MissingValue decode(Nil nil) {
         return MissingValue.INSTANCE;
     }
 
     @Specialization
-    protected RubyString read(VirtualFrame frame, long address,
+    RubyString read(VirtualFrame frame, long address,
             @CachedLibrary(limit = "1") InteropLibrary interop) {
         final Pointer pointer = new Pointer(getContext(), address);
         checkAssociated(

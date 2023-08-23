@@ -112,7 +112,7 @@ public abstract class TruffleRegexpNodes {
     @Primitive(name = "regexp_check_encoding")
     public abstract static class RegexpCheckEncodingNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object string,
+        static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object string,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
                 @Bind("this") Node node) {
             return prepareRegexpEncodingNode.executePrepare(node, regexp, string);
@@ -128,7 +128,7 @@ public abstract class TruffleRegexpNodes {
         public abstract RubyEncoding executePrepare(Node node, RubyRegexp regexp, Object matchString);
 
         @Specialization(guards = "stringLibrary.isRubyString(matchString)", limit = "1")
-        protected static RubyEncoding regexpPrepareEncoding(Node node, RubyRegexp regexp, Object matchString,
+        static RubyEncoding regexpPrepareEncoding(Node node, RubyRegexp regexp, Object matchString,
                 @Cached RubyStringLibrary stringLibrary,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached InlinedBranchProfile asciiOnlyProfile,
@@ -297,7 +297,7 @@ public abstract class TruffleRegexpNodes {
         @Specialization(
                 guards = "argsMatch(node, frame, cachedArgs, args, sameOrEqualNode)",
                 limit = "getDefaultCacheLimit()")
-        protected static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+        static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached DispatchNode copyNode,
                 @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
@@ -308,7 +308,7 @@ public abstract class TruffleRegexpNodes {
         }
 
         @Specialization(replaces = "fastUnion")
-        protected Object slowUnion(RubyString str, Object sep, Object[] args,
+        Object slowUnion(RubyString str, Object sep, Object[] args,
                 @Shared @Cached InlinedBranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
@@ -374,7 +374,7 @@ public abstract class TruffleRegexpNodes {
         @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
-        protected Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -384,7 +384,7 @@ public abstract class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == ISO_8859_1")
-        protected Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -394,7 +394,7 @@ public abstract class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == UTF_8")
-        protected Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -404,7 +404,7 @@ public abstract class TruffleRegexpNodes {
         }
 
         @Specialization(guards = "encoding == BINARY")
-        protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -414,7 +414,7 @@ public abstract class TruffleRegexpNodes {
         }
 
         @Fallback
-        protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
             return nil;
         }
 
@@ -490,7 +490,7 @@ public abstract class TruffleRegexpNodes {
     public abstract static class RegexpCompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(boolean literalRegexps,
+        Object buildStatsArray(boolean literalRegexps,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(
                     literalRegexps ? LITERAL_REGEXPS : DYNAMIC_REGEXPS,
@@ -502,7 +502,7 @@ public abstract class TruffleRegexpNodes {
     public abstract static class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(boolean joniMatches,
+        Object buildStatsArray(boolean joniMatches,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(
                     joniMatches ? MATCHED_REGEXPS_JONI : MATCHED_REGEXPS_TREGEX,
@@ -516,7 +516,7 @@ public abstract class TruffleRegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object buildUnusedRegexpsArray() {
+        Object buildUnusedRegexpsArray() {
             final Set<RubyRegexp> compiledRegexps = allCompiledRegexps();
             final Set<RubyRegexp> matchedRegexps = allMatchedRegexps();
 
@@ -538,7 +538,7 @@ public abstract class TruffleRegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object buildInfoArray(
+        Object buildInfoArray(
                 @Cached ArrayBuilderNode arrayBuilderNode,
                 @CachedLibrary(limit = "1") HashStoreLibrary hashStoreLibrary) {
             final Set<RubyRegexp> matchedRegexps = allMatchedRegexps();
@@ -626,7 +626,7 @@ public abstract class TruffleRegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object buildInfoArray(
+        Object buildInfoArray(
                 @Cached ArrayBuilderNode arrayBuilderNode,
                 @CachedLibrary(limit = "3") HashStoreLibrary hashStoreLibrary) {
             final int arraySize = (MATCHED_REGEXPS_JONI.size() + MATCHED_REGEXPS_TREGEX.size());
@@ -796,7 +796,7 @@ public abstract class TruffleRegexpNodes {
          * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
          *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-        protected static Object matchInRegion(
+        static Object matchInRegion(
                 RubyRegexp regexp,
                 Object string,
                 int fromPos,
@@ -854,7 +854,7 @@ public abstract class TruffleRegexpNodes {
         protected abstract MatchInRegionNode execute(Node node);
 
         @Specialization
-        protected static MatchInRegionNode doLazy(
+        static MatchInRegionNode doLazy(
                 @Cached(inline = false) MatchInRegionNode matchInRegionNode) {
             return matchInRegionNode;
         }
@@ -871,7 +871,7 @@ public abstract class TruffleRegexpNodes {
         protected abstract TruffleString.SubstringByteIndexNode execute(Node node);
 
         @Specialization
-        protected static TruffleString.SubstringByteIndexNode doLazy(
+        static TruffleString.SubstringByteIndexNode doLazy(
                 @Cached(inline = false) TruffleString.SubstringByteIndexNode substringByteIndexNode) {
             return substringByteIndexNode;
         }
@@ -882,7 +882,7 @@ public abstract class TruffleRegexpNodes {
 
 
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-        protected static Object matchInRegionTRegex(
+        static Object matchInRegionTRegex(
                 RubyRegexp regexp,
                 Object string,
                 int fromPos,
@@ -1076,7 +1076,7 @@ public abstract class TruffleRegexpNodes {
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
         @Specialization
-        protected Object match(
+        Object match(
                 RubyRegexp regexp,
                 Object string,
                 Matcher matcher,

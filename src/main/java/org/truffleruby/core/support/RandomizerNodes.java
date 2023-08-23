@@ -54,7 +54,7 @@ public abstract class RandomizerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected double randomFloat(RubyRandomizer randomizer,
+        double randomFloat(RubyRandomizer randomizer,
                 @Cached GetRandomIntNode getRandomIntNode) {
             // Logic copied from org.jruby.util.Random
             final int a = getRandomIntNode.execute(randomizer) >>> 5;
@@ -71,17 +71,17 @@ public abstract class RandomizerNodes {
         @Child GetRandomIntNode getRandomIntNode = GetRandomIntNode.create();
 
         @Specialization
-        protected int randomizerRandInt(RubyRandomizer randomizer, int limit) {
+        int randomizerRandInt(RubyRandomizer randomizer, int limit) {
             return (int) randLimitedFixnumInner(randomizer, limit);
         }
 
         @Specialization
-        protected long randomizerRandInt(RubyRandomizer randomizer, long limit) {
+        long randomizerRandInt(RubyRandomizer randomizer, long limit) {
             return randLimitedFixnumInner(randomizer, limit);
         }
 
         @Specialization
-        protected Object randomizerRandInt(RubyRandomizer randomizer, RubyBignum limit,
+        Object randomizerRandInt(RubyRandomizer randomizer, RubyBignum limit,
                 @Cached FixnumOrBignumNode fixnumOrBignum) {
             return fixnumOrBignum.execute(this, randLimitedBignum(randomizer, limit.value));
         }

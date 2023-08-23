@@ -32,13 +32,13 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     public abstract void execute(Node node, RubyDynamicObject object, Object name, Object value);
 
     @Specialization(guards = "!objectLibrary.isShared(object)", limit = "getDynamicObjectCacheLimit()")
-    protected static void writeLocal(RubyDynamicObject object, Object name, Object value,
+    static void writeLocal(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(object, name, value);
     }
 
     @Specialization(guards = "objectLibrary.isShared(object)")
-    protected static void writeShared(Node node, RubyDynamicObject object, Object name, Object value,
+    static void writeShared(Node node, RubyDynamicObject object, Object name, Object value,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode) {
 

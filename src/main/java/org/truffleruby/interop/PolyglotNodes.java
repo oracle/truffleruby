@@ -60,7 +60,7 @@ public abstract class PolyglotNodes {
                         "idEqualNode.execute(stringsId, langId, cachedLangId, cachedLangIdEnc)",
                         "codeEqualNode.execute(stringsSource, code, cachedCode, cachedCodeEnc)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(Object langId, Object code,
+        Object evalCached(Object langId, Object code,
                 @Shared @Cached RubyStringLibrary stringsId,
                 @Shared @Cached RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(langId)") TruffleString cachedLangId,
@@ -77,7 +77,7 @@ public abstract class PolyglotNodes {
         @Specialization(
                 guards = { "stringsId.isRubyString(langId)", "stringsSource.isRubyString(code)" },
                 replaces = "evalCached")
-        protected static Object evalUncached(Object langId, Object code,
+        static Object evalUncached(Object langId, Object code,
                 @Shared @Cached RubyStringLibrary stringsId,
                 @Shared @Cached RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringLandNode,
@@ -116,7 +116,7 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         @Specialization(guards = "stringsId.isRubyString(fileName)")
-        protected Object evalFile(Object fileName, NotProvided id,
+        Object evalFile(Object fileName, NotProvided id,
                 @Shared @Cached RubyStringLibrary stringsId) {
             final Source source;
             // intern() to improve footprint
@@ -142,7 +142,7 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         @Specialization(guards = { "stringsId.isRubyString(id)", "stringsFileName.isRubyString(fileName)" },
                 limit = "1")
-        protected Object evalFile(Object id, Object fileName,
+        Object evalFile(Object id, Object fileName,
                 @Shared @Cached RubyStringLibrary stringsId,
                 @Exclusive @Cached RubyStringLibrary stringsFileName) {
             final String idString = RubyGuards.getJavaString(id);
@@ -178,7 +178,7 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyInnerContext newInnerContext(
+        RubyInnerContext newInnerContext(
                 RubyClass rubyClass,
                 RubyArray languages,
                 RubyArray languageOptions,
@@ -227,7 +227,7 @@ public abstract class PolyglotNodes {
                 "codeEqualNode.execute(codeLib, code, cachedCode, cachedCodeEnc)",
                 "filenameEqualNode.execute(filenameLib, filename, cachedFilename, cachedFilenameEnc)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
+        Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @Shared @Cached RubyStringLibrary idLib,
                 @Shared @Cached RubyStringLibrary codeLib,
                 @Shared @Cached RubyStringLibrary filenameLib,
@@ -249,8 +249,7 @@ public abstract class PolyglotNodes {
         @Specialization(
                 guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
                 replaces = "evalCached")
-        protected static Object evalUncached(
-                RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
+        static Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @Shared @Cached RubyStringLibrary idLib,
                 @Shared @Cached RubyStringLibrary codeLib,
                 @Shared @Cached RubyStringLibrary filenameLib,
@@ -308,7 +307,7 @@ public abstract class PolyglotNodes {
     @Primitive(name = "inner_context_close")
     public abstract static class InnerContextCloseNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object close(RubyInnerContext rubyInnerContext) {
+        Object close(RubyInnerContext rubyInnerContext) {
             rubyInnerContext.innerContext.close();
             return nil;
         }
@@ -317,7 +316,7 @@ public abstract class PolyglotNodes {
     @Primitive(name = "inner_context_close_force")
     public abstract static class InnerContextCloseExitedNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object closeExited(RubyInnerContext rubyInnerContext) {
+        Object closeExited(RubyInnerContext rubyInnerContext) {
             rubyInnerContext.innerContext.closeCancelled(this, "force terminate");
             return nil;
         }

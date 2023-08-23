@@ -150,7 +150,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         @Specialization(
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
-        protected static String asStringCached(ImmutableRubyString string,
+        static String asStringCached(ImmutableRubyString string,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
@@ -160,7 +160,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
         }
 
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(ImmutableRubyString string,
+        static String asStringUncached(ImmutableRubyString string,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,

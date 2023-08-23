@@ -36,22 +36,22 @@ public abstract class FixnumLowerNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object value);
 
     @Specialization
-    protected static int lower(int value) {
+    static int lower(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected static int lower(long value) {
+    static int lower(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected static long lowerFails(long value) {
+    static long lowerFails(long value) {
         return value;
     }
 
     @Specialization(guards = "!isImplicitLong(value)")
-    protected static Object passThrough(Object value) {
+    static Object passThrough(Object value) {
         return value;
     }
 
@@ -61,7 +61,7 @@ public abstract class FixnumLowerNode extends RubyBaseNode {
         protected abstract RubyBaseNodeWithExecute getValueNode();
 
         @Specialization
-        protected Object doFixnumLower(Object value,
+        Object doFixnumLower(Object value,
                 @Cached FixnumLowerNode fixnumLowerNode) {
             return fixnumLowerNode.execute(this, value);
 

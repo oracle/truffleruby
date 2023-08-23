@@ -29,7 +29,7 @@ public abstract class TruffleBindingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object ofCaller() {
+        Object ofCaller() {
             /* When you use this method you're asking for the binding of the caller at the call site. When we get into
              * this method, that is then the binding of the caller of the caller. */
 

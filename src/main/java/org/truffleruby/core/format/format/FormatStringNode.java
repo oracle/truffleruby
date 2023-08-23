@@ -27,7 +27,7 @@ import org.truffleruby.core.format.FormatNode;
 public abstract class FormatStringNode extends FormatNode {
 
     @Specialization
-    protected Object formatBytes(int width, int precision, byte[] value) {
+    Object formatBytes(int width, int precision, byte[] value) {
         byte[] precisionValue;
         if (precision > 0) {
             precisionValue = new byte[precision];
@@ -38,7 +38,7 @@ public abstract class FormatStringNode extends FormatNode {
     }
 
     @Specialization
-    protected Object formatObject(int width, int precision, Object value) {
+    Object formatObject(int width, int precision, Object value) {
         return value;
     }
 }

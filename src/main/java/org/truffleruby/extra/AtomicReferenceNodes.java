@@ -32,7 +32,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyAtomicReference allocate(RubyClass rubyClass) {
+        RubyAtomicReference allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().atomicReferenceShape;
             final RubyAtomicReference instance = new RubyAtomicReference(rubyClass, shape, new AtomicReference<>(nil));
             AllocationTracing.trace(instance, this);
@@ -45,17 +45,17 @@ public abstract class AtomicReferenceNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyAtomicReference initializeNoValue(RubyAtomicReference self, NotProvided value) {
+        RubyAtomicReference initializeNoValue(RubyAtomicReference self, NotProvided value) {
             return self;
         }
 
         @Specialization
-        protected RubyAtomicReference initializeNil(RubyAtomicReference self, Nil value) {
+        RubyAtomicReference initializeNil(RubyAtomicReference self, Nil value) {
             return self;
         }
 
         @Specialization(guards = { "!isNil(value)", "wasProvided(value)" })
-        protected RubyAtomicReference initializeWithValue(RubyAtomicReference self, Object value) {
+        RubyAtomicReference initializeWithValue(RubyAtomicReference self, Object value) {
             self.value.set(value);
             return self;
         }
@@ -66,7 +66,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object get(RubyAtomicReference self) {
+        Object get(RubyAtomicReference self) {
             return self.value.get();
         }
     }
@@ -75,7 +75,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class SetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object set(RubyAtomicReference self, Object value) {
+        Object set(RubyAtomicReference self, Object value) {
             self.value.set(value);
             return value;
         }
@@ -85,7 +85,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object getAndSet(RubyAtomicReference self, Object value) {
+        Object getAndSet(RubyAtomicReference self, Object value) {
             return self.value.getAndSet(value);
         }
     }
@@ -94,7 +94,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class CompareAndSetReferenceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean compareAndSetPrimitive(RubyAtomicReference self, Object expectedValue, Object newValue,
+        boolean compareAndSetPrimitive(RubyAtomicReference self, Object expectedValue, Object newValue,
                 @Cached ReferenceEqualNode equalNode) {
             while (true) {
                 final Object currentValue = self.value.get();
@@ -111,7 +111,7 @@ public abstract class AtomicReferenceNodes {
         }
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean compareAndSetReference(RubyAtomicReference self, Object expectedValue, Object newValue) {
+        boolean compareAndSetReference(RubyAtomicReference self, Object expectedValue, Object newValue) {
             return self.value.compareAndSet(expectedValue, newValue);
         }
 

@@ -74,7 +74,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object atExit(boolean always, RubyProc block) {
+        Object atExit(boolean always, RubyProc block) {
             getContext().getAtExitManager().add(block, always);
             return nil;
         }
@@ -85,7 +85,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)")
-        protected boolean load(Object file, Nil wrapModule,
+        boolean load(Object file, Nil wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
@@ -112,7 +112,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(file)")
-        protected boolean load(Object file, RubyModule wrapModule,
+        boolean load(Object file, RubyModule wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
@@ -165,7 +165,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class WriteGlobalVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "name == cachedName", limit = "1")
-        protected Object write(RubySymbol name, Object value,
+        Object write(RubySymbol name, Object value,
                 @Cached("name") RubySymbol cachedName,
                 @Cached("create(cachedName.getString())") WriteSimpleGlobalVariableNode writeNode) {
             return writeNode.execute(value);
@@ -178,7 +178,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class ReadGlobalVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "name == cachedName", limit = "1")
-        protected Object read(RubySymbol name,
+        Object read(RubySymbol name,
                 @Cached("name") RubySymbol cachedName,
                 @Cached("create(cachedName.getString())") ReadSimpleGlobalVariableNode readNode) {
             return readNode.execute();
@@ -190,8 +190,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object defineHookedVariableInnerNode(
-                RubySymbol name, RubyProc getter, RubyProc setter, RubyProc isDefined) {
+        Object defineHookedVariableInnerNode(RubySymbol name, RubyProc getter, RubyProc setter, RubyProc isDefined) {
             getContext().getCoreLibrary().globalVariables.define(
                     name.getString(),
                     getter,
@@ -236,7 +235,7 @@ public abstract class TruffleKernelNodes {
         public abstract SpecialVariableStorage execute(Frame frame, Node node);
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
-        protected static SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
+        static SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
             Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
@@ -254,7 +253,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(replaces = "getFromKnownFrameDescriptor")
-        protected static SpecialVariableStorage slowPath(Frame frame) {
+        static SpecialVariableStorage slowPath(Frame frame) {
             return getSlow(frame.materialize());
         }
 
@@ -298,7 +297,7 @@ public abstract class TruffleKernelNodes {
         @Child ReadCallerVariablesNode callerVariablesNode = new ReadCallerVariablesNode();
 
         @Specialization
-        protected Object storage(VirtualFrame frame) {
+        Object storage(VirtualFrame frame) {
             return callerVariablesNode.execute(frame);
         }
     }
@@ -309,7 +308,7 @@ public abstract class TruffleKernelNodes {
         @Child ReadCallerVariablesIfAvailableNode callerVariablesNode = new ReadCallerVariablesIfAvailableNode();
 
         @Specialization
-        protected Object storage(VirtualFrame frame,
+        Object storage(VirtualFrame frame,
                 @Cached InlinedConditionProfile nullProfile) {
             Object variables = callerVariablesNode.execute(frame);
             if (nullProfile.profile(this, variables == null)) {
@@ -328,7 +327,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getOriginalRequire(Object string,
+        Object getOriginalRequire(Object string,
                 @Cached RubyStringLibrary strings) {
             final String originalRequire = getContext()
                     .getCoreLibrary()
@@ -346,7 +345,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetProcSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object variables(RubyProc proc) {
+        Object variables(RubyProc proc) {
             return proc.declarationVariables;
         }
     }
@@ -356,7 +355,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class ShareSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "frame.getFrameDescriptor() == descriptor", limit = "1")
-        protected Object shareSpecialVariable(VirtualFrame frame, SpecialVariableStorage storage,
+        Object shareSpecialVariable(VirtualFrame frame, SpecialVariableStorage storage,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth) {
             final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
@@ -365,7 +364,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(replaces = "shareSpecialVariable")
-        protected Object slowPath(VirtualFrame frame, SpecialVariableStorage storage) {
+        Object slowPath(VirtualFrame frame, SpecialVariableStorage storage) {
             return shareSlow(frame.materialize(), storage);
         }
 
@@ -386,7 +385,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
+        Object setRegexpMatch(SpecialVariableStorage variables, Object lastMatch,
                 @Cached InlinedConditionProfile unsetProfile,
                 @Cached InlinedConditionProfile sameThreadProfile) {
             variables.setLastMatch(this, lastMatch, getContext(), unsetProfile, sameThreadProfile);
@@ -398,7 +397,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetRegexpMatch extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getRegexpMatch(SpecialVariableStorage variables,
+        Object getRegexpMatch(SpecialVariableStorage variables,
                 @Cached InlinedConditionProfile unsetProfile,
                 @Cached InlinedConditionProfile sameThreadProfile) {
             return variables.getLastMatch(this, unsetProfile, sameThreadProfile);
@@ -409,7 +408,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class SetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setRegexpMatch(SpecialVariableStorage variables, Object lastIO,
+        Object setRegexpMatch(SpecialVariableStorage variables, Object lastIO,
                 @Cached InlinedConditionProfile unsetProfile,
                 @Cached InlinedConditionProfile sameThreadProfile) {
             variables.setLastLine(this, lastIO, getContext(), unsetProfile, sameThreadProfile);
@@ -421,7 +420,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getLastIO(SpecialVariableStorage storage,
+        Object getLastIO(SpecialVariableStorage storage,
                 @Cached InlinedConditionProfile unsetProfile,
                 @Cached InlinedConditionProfile sameThreadProfile) {
             return storage.getLastLine(this, unsetProfile, sameThreadProfile);

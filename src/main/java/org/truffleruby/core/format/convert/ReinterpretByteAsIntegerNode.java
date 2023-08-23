@@ -25,12 +25,12 @@ public abstract class ReinterpretByteAsIntegerNode extends FormatNode {
     }
 
     @Specialization
-    protected Object decode(Nil nil) {
+    Object decode(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected int decode(byte value) {
+    int decode(byte value) {
         if (signed) {
             return value;
         } else {

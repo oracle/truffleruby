@@ -29,7 +29,7 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
     public abstract void execute(Object object, String name, Object originalName);
 
     @Specialization
-    protected void checkSymbol(Object object, String name, RubySymbol originalName,
+    void checkSymbol(Object object, String name, RubySymbol originalName,
             @Cached @Shared InlinedBranchProfile errorProfile) {
         if (originalName.getType() != IdentifierType.INSTANCE) {
             errorProfile.enter(this);
@@ -43,12 +43,12 @@ public abstract class CheckIVarNameNode extends RubyBaseNode {
     @Specialization(
             guards = { "name == cachedName", "isValidInstanceVariableName(cachedName)", "!isRubySymbol(originalName)" },
             limit = "getDynamicObjectCacheLimit()")
-    protected void cached(Object object, String name, Object originalName,
+    void cached(Object object, String name, Object originalName,
             @Cached("name") String cachedName) {
     }
 
     @Specialization(replaces = "cached", guards = "!isRubySymbol(originalName)")
-    protected void uncached(Object object, String name, Object originalName,
+    void uncached(Object object, String name, Object originalName,
             @Cached @Shared InlinedBranchProfile errorProfile) {
         if (!Identifiers.isValidInstanceVariableName(name)) {
             errorProfile.enter(this);
