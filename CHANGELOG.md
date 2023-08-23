@@ -12,6 +12,7 @@ Bug fixes:
 * Fix `Marshal.load` and raise `ArgumentError` when dump is broken and is too short (#3108, @andrykonchin).
 * Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
 * Fix `Module#define_method(name, Method)` to respect `module_function` visibility (#3181, @andrykonchin).
+* Fix stack overflow with `Kernel.require` and `zeitwerk` (#3224, @eregon).
 
 Compatibility:
 

@@ -79,11 +79,16 @@ class Proc
 end
 
 module Kernel
+  def define_singleton_method(*args, &block)
+    singleton_class.define_method(*args, &block)
+  end
+
   def extend(mod)
     mod.__send__ :extend_object, self
     mod.__send__ :extended, self
     self
   end
+
   # Methods from BasicObject with a different name
   alias_method :eql?, :equal?
   alias_method :object_id, :__id__
