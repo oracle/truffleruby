@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "6.41.0",
+    "mxversion": "6.42.0",
     "name": "truffleruby",
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "97a02e74911e7446dbf53098f885bc2fceba6770",
+                "version": "ce7e2791bb11eee493e6c332efe73f589e289e5f",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "97a02e74911e7446dbf53098f885bc2fceba6770",
+                "version": "ce7e2791bb11eee493e6c332efe73f589e289e5f",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -128,7 +128,6 @@ suite = {
                 "test/truffle/ecosystem/blog6",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
-                "test/truffle/offline",
                 "tool/docker",
                 "rubyspec_temp",
             ]
@@ -320,15 +319,31 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
-        "org.truffleruby.test": {
-            "dir": "src/test",
+        "org.truffleruby.test.embedding": {
+            "testProject": True,
+            "dir": "src/test-embedding",
+            "sourceDirs": ["java"],
+            "requires": ["java.scripting"],
+            "dependencies": [
+                # Distributions
+                "sdk:POLYGLOT",
+                # Libraries
+                "mx:JUNIT",
+            ],
+            "javaCompliance": "17+",
+            "checkstyle": "org.truffleruby",
+            "license": ["EPL-2.0"],
+        },
+
+        "org.truffleruby.test.internal": {
+            "testProject": True,
+            "dir": "src/test-internal",
             "sourceDirs": ["java", "ruby"],
-            "requires": ["java.scripting", "java.management", "jdk.management"],
+            "requires": ["java.management", "jdk.management"],
             "dependencies": [
                 # Distributions
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
-                "TRUFFLERUBY-SERVICES",
                 # Libraries
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
@@ -415,6 +430,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         # Required to share code between the launcher and the rest,
@@ -442,6 +458,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         "TRUFFLERUBY-PROCESSOR": {
@@ -453,24 +470,6 @@ suite = {
                 "truffle:TRUFFLE_API",
             ],
             "description": "TruffleRuby Annotation Processor",
-            "license": ["EPL-2.0"],
-            "maven": False,
-        },
-
-        "TRUFFLERUBY-SERVICES": {
-            "moduleInfo": {
-                "name": "org.graalvm.ruby.services",
-                "exports": [
-                    "org.truffleruby.services.scriptengine",
-                ],
-            },
-            "dependencies": [
-                "org.truffleruby.services"
-            ],
-            "distDependencies": [
-                "sdk:GRAAL_SDK",
-            ],
-            "description": "TruffleRuby services",
             "license": ["EPL-2.0"],
             "maven": False,
         },
@@ -492,6 +491,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                # runtime-only dependencies
+                "truffle:TRUFFLE_NFI_LIBFFI",
+                "sulong:SULONG_NATIVE",
             ],
             "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
                 "truffleruby:JCODINGS",
@@ -509,6 +511,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+            "useModulePath": True,
         },
 
         "RUBY_COMMUNITY": {
@@ -560,6 +563,7 @@ suite = {
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
             "maven": False,
+            "useModulePath": True,
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT": {
@@ -675,15 +679,35 @@ suite = {
             },
         },
 
-        "TRUFFLERUBY-TEST": {
+        "TRUFFLERUBY-TEST-EMBEDDING": {
             "testDistribution": True,
             "dependencies": [
-                "org.truffleruby.test",
+                "org.truffleruby.test.embedding",
+            ],
+            "distDependencies": [
+                "sdk:POLYGLOT",
+                # runtime-only dependencies
+                "TRUFFLERUBY",
+            ],
+            "exclude": [
+                "mx:HAMCREST",
+                "mx:JUNIT",
+            ],
+            "javaProperties": {
+                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+            },
+            "license": ["EPL-2.0"],
+            "maven": False,
+        },
+
+        "TRUFFLERUBY-TEST-INTERNAL": {
+            "testDistribution": True,
+            "dependencies": [
+                "org.truffleruby.test.internal",
             ],
             "distDependencies": [
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
-                "TRUFFLERUBY-SERVICES",
             ],
             "exclude": [
                 "mx:HAMCREST",

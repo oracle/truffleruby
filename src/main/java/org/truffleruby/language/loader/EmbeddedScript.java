@@ -103,7 +103,7 @@ public final class EmbeddedScript {
         return bytes.length - lineStart >= 2 && bytes[lineStart] == '#' && bytes[lineStart + 1] == '!';
     }
 
-    static boolean lineContainsRuby(byte[] bytes, int lineStart, int lineLength) {
+    public static boolean lineContainsRuby(byte[] bytes, int lineStart, int lineLength) {
         if (lineLength < 4) {
             return false;
         }

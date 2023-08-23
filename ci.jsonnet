@@ -211,8 +211,10 @@ local part_definitions = {
       # Same as in mx.truffleruby/native-host-inlining
       mx_options+:: [
         "--extra-image-builder-argument=env.EXTRA_IMAGE_BUILDER_ARGUMENTS",
+        "--extra-image-builder-argument=rubyvm:-H:+UnlockExperimentalVMOptions",
         "--extra-image-builder-argument=rubyvm:-H:Log=HostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase",
         "--extra-image-builder-argument=rubyvm:-H:+TruffleHostInliningPrintExplored",
+        "--extra-image-builder-argument=rubyvm:-H:-UnlockExperimentalVMOptions",
         "--extra-image-builder-argument=rubyvm:-Dgraal.LogFile=host-inlining.txt",
       ],
       environment+: {

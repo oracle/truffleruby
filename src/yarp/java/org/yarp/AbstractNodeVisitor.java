@@ -24,6 +24,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitAndWriteNode(Nodes.AndWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitArgumentsNode(Nodes.ArgumentsNode node) {
         return defaultVisit(node);
     }
@@ -100,18 +104,6 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
-    public T visitClassVariableOperatorAndWriteNode(Nodes.ClassVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitClassVariableOperatorOrWriteNode(Nodes.ClassVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitClassVariableOperatorWriteNode(Nodes.ClassVariableOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public T visitClassVariableReadNode(Nodes.ClassVariableReadNode node) {
         return defaultVisit(node);
     }
@@ -120,31 +112,7 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
-    public T visitConstantOperatorAndWriteNode(Nodes.ConstantOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitConstantOperatorOrWriteNode(Nodes.ConstantOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitConstantOperatorWriteNode(Nodes.ConstantOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public T visitConstantPathNode(Nodes.ConstantPathNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitConstantPathOperatorAndWriteNode(Nodes.ConstantPathOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitConstantPathOperatorOrWriteNode(Nodes.ConstantPathOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitConstantPathOperatorWriteNode(Nodes.ConstantPathOperatorWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -216,18 +184,6 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
-    public T visitGlobalVariableOperatorAndWriteNode(Nodes.GlobalVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitGlobalVariableOperatorOrWriteNode(Nodes.GlobalVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitGlobalVariableOperatorWriteNode(Nodes.GlobalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public T visitGlobalVariableReadNode(Nodes.GlobalVariableReadNode node) {
         return defaultVisit(node);
     }
@@ -253,18 +209,6 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     public T visitInNode(Nodes.InNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitInstanceVariableOperatorAndWriteNode(Nodes.InstanceVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitInstanceVariableOperatorOrWriteNode(Nodes.InstanceVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitInstanceVariableOperatorWriteNode(Nodes.InstanceVariableOperatorWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -312,18 +256,6 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
-    public T visitLocalVariableOperatorAndWriteNode(Nodes.LocalVariableOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitLocalVariableOperatorOrWriteNode(Nodes.LocalVariableOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitLocalVariableOperatorWriteNode(Nodes.LocalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public T visitLocalVariableReadNode(Nodes.LocalVariableReadNode node) {
         return defaultVisit(node);
     }
@@ -368,11 +300,19 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitOperatorWriteNode(Nodes.OperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
         return defaultVisit(node);
     }
 
     public T visitOrNode(Nodes.OrNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitOrWriteNode(Nodes.OrWriteNode node) {
         return defaultVisit(node);
     }
 

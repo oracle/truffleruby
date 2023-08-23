@@ -371,7 +371,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private String getImplementationNameFromEngine() {
         if (implementationName == null) {
-            try (Engine engine = Engine.create()) {
+            try (Engine engine = Engine.newBuilder().option("engine.WarnInterpreterOnly", "false").build()) {
                 implementationName = engine.getImplementationName();
             }
         }

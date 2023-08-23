@@ -99,6 +99,11 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             yp_node_destroy(parser, (yp_node_t *)((yp_and_node_t *)node)->right);
             break;
 #line 81 "node.c.erb"
+        case YP_NODE_AND_WRITE_NODE:
+            yp_node_destroy(parser, (yp_node_t *)((yp_and_write_node_t *)node)->target);
+            yp_node_destroy(parser, (yp_node_t *)((yp_and_write_node_t *)node)->value);
+            break;
+#line 81 "node.c.erb"
         case YP_NODE_ARGUMENTS_NODE:
             yp_node_list_free(parser, &((yp_arguments_node_t *)node)->arguments);
             break;
@@ -160,8 +165,8 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             if (((yp_block_node_t *)node)->parameters != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_block_node_t *)node)->parameters);
             }
-            if (((yp_block_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_block_node_t *)node)->statements);
+            if (((yp_block_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_block_node_t *)node)->body);
             }
             break;
 #line 81 "node.c.erb"
@@ -230,21 +235,9 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             if (((yp_class_node_t *)node)->superclass != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->superclass);
             }
-            if (((yp_class_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->statements);
+            if (((yp_class_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_class_node_t *)node)->body);
             }
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_class_variable_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_class_variable_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_class_variable_operator_write_node_t *)node)->value);
             break;
 #line 81 "node.c.erb"
         case YP_NODE_CLASS_VARIABLE_READ_NODE:
@@ -256,38 +249,11 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             }
             break;
 #line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_operator_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
         case YP_NODE_CONSTANT_PATH_NODE:
             if (((yp_constant_path_node_t *)node)->parent != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_node_t *)node)->parent);
             }
             yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_node_t *)node)->child);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_and_write_node_t *)node)->target);
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_or_write_node_t *)node)->target);
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->target);
-            yp_node_destroy(parser, (yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->value);
             break;
 #line 81 "node.c.erb"
         case YP_NODE_CONSTANT_PATH_WRITE_NODE:
@@ -313,8 +279,8 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             if (((yp_def_node_t *)node)->parameters != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_def_node_t *)node)->parameters);
             }
-            if (((yp_def_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_def_node_t *)node)->statements);
+            if (((yp_def_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_def_node_t *)node)->body);
             }
             yp_constant_id_list_free(&((yp_def_node_t *)node)->locals);
             break;
@@ -389,18 +355,6 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             }
             break;
 #line 81 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_global_variable_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_global_variable_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_global_variable_operator_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
         case YP_NODE_GLOBAL_VARIABLE_READ_NODE:
             break;
 #line 81 "node.c.erb"
@@ -443,18 +397,6 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             if (((yp_in_node_t *)node)->statements != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_in_node_t *)node)->statements);
             }
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_instance_variable_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_instance_variable_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_instance_variable_operator_write_node_t *)node)->value);
             break;
 #line 81 "node.c.erb"
         case YP_NODE_INSTANCE_VARIABLE_READ_NODE:
@@ -503,21 +445,9 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             if (((yp_lambda_node_t *)node)->parameters != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)((yp_lambda_node_t *)node)->parameters);
             }
-            if (((yp_lambda_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_lambda_node_t *)node)->statements);
+            if (((yp_lambda_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_lambda_node_t *)node)->body);
             }
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_local_variable_operator_and_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_local_variable_operator_or_write_node_t *)node)->value);
-            break;
-#line 81 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_WRITE_NODE:
-            yp_node_destroy(parser, (yp_node_t *)((yp_local_variable_operator_write_node_t *)node)->value);
             break;
 #line 81 "node.c.erb"
         case YP_NODE_LOCAL_VARIABLE_READ_NODE:
@@ -545,8 +475,8 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
         case YP_NODE_MODULE_NODE:
             yp_constant_id_list_free(&((yp_module_node_t *)node)->locals);
             yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->constant_path);
-            if (((yp_module_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->statements);
+            if (((yp_module_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_module_node_t *)node)->body);
             }
             break;
 #line 81 "node.c.erb"
@@ -572,6 +502,11 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
         case YP_NODE_NUMBERED_REFERENCE_READ_NODE:
             break;
 #line 81 "node.c.erb"
+        case YP_NODE_OPERATOR_WRITE_NODE:
+            yp_node_destroy(parser, (yp_node_t *)((yp_operator_write_node_t *)node)->target);
+            yp_node_destroy(parser, (yp_node_t *)((yp_operator_write_node_t *)node)->value);
+            break;
+#line 81 "node.c.erb"
         case YP_NODE_OPTIONAL_PARAMETER_NODE:
             yp_node_destroy(parser, (yp_node_t *)((yp_optional_parameter_node_t *)node)->value);
             break;
@@ -579,6 +514,11 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
         case YP_NODE_OR_NODE:
             yp_node_destroy(parser, (yp_node_t *)((yp_or_node_t *)node)->left);
             yp_node_destroy(parser, (yp_node_t *)((yp_or_node_t *)node)->right);
+            break;
+#line 81 "node.c.erb"
+        case YP_NODE_OR_WRITE_NODE:
+            yp_node_destroy(parser, (yp_node_t *)((yp_or_write_node_t *)node)->target);
+            yp_node_destroy(parser, (yp_node_t *)((yp_or_write_node_t *)node)->value);
             break;
 #line 81 "node.c.erb"
         case YP_NODE_PARAMETERS_NODE:
@@ -598,8 +538,8 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             break;
 #line 81 "node.c.erb"
         case YP_NODE_PARENTHESES_NODE:
-            if (((yp_parentheses_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_parentheses_node_t *)node)->statements);
+            if (((yp_parentheses_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_parentheses_node_t *)node)->body);
             }
             break;
 #line 81 "node.c.erb"
@@ -691,8 +631,8 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
         case YP_NODE_SINGLETON_CLASS_NODE:
             yp_constant_id_list_free(&((yp_singleton_class_node_t *)node)->locals);
             yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->expression);
-            if (((yp_singleton_class_node_t *)node)->statements != NULL) {
-                yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->statements);
+            if (((yp_singleton_class_node_t *)node)->body != NULL) {
+                yp_node_destroy(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->body);
             }
             break;
 #line 81 "node.c.erb"
@@ -820,6 +760,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             break;
         }
 #line 120 "node.c.erb"
+        case YP_NODE_AND_WRITE_NODE: {
+            memsize->memsize += sizeof(yp_and_write_node_t);
+            yp_node_memsize_node((yp_node_t *)((yp_and_write_node_t *)node)->target, memsize);
+            yp_node_memsize_node((yp_node_t *)((yp_and_write_node_t *)node)->value, memsize);
+            break;
+        }
+#line 120 "node.c.erb"
         case YP_NODE_ARGUMENTS_NODE: {
             memsize->memsize += sizeof(yp_arguments_node_t);
             yp_node_list_memsize(&((yp_arguments_node_t *)node)->arguments, memsize);
@@ -898,8 +845,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             if (((yp_block_node_t *)node)->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_block_node_t *)node)->parameters, memsize);
             }
-            if (((yp_block_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_block_node_t *)node)->statements, memsize);
+            if (((yp_block_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_block_node_t *)node)->body, memsize);
             }
             break;
         }
@@ -988,27 +935,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             if (((yp_class_node_t *)node)->superclass != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->superclass, memsize);
             }
-            if (((yp_class_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->statements, memsize);
+            if (((yp_class_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_class_node_t *)node)->body, memsize);
             }
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_class_variable_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_class_variable_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_class_variable_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_class_variable_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_class_variable_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_class_variable_operator_write_node_t *)node)->value, memsize);
             break;
         }
 #line 120 "node.c.erb"
@@ -1025,51 +954,12 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             break;
         }
 #line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_operator_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
         case YP_NODE_CONSTANT_PATH_NODE: {
             memsize->memsize += sizeof(yp_constant_path_node_t);
             if (((yp_constant_path_node_t *)node)->parent != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_constant_path_node_t *)node)->parent, memsize);
             }
             yp_node_memsize_node((yp_node_t *)((yp_constant_path_node_t *)node)->child, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_path_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_and_write_node_t *)node)->target, memsize);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_path_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_or_write_node_t *)node)->target, memsize);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_constant_path_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->target, memsize);
-            yp_node_memsize_node((yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->value, memsize);
             break;
         }
 #line 120 "node.c.erb"
@@ -1103,8 +993,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             if (((yp_def_node_t *)node)->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_def_node_t *)node)->parameters, memsize);
             }
-            if (((yp_def_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_def_node_t *)node)->statements, memsize);
+            if (((yp_def_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_def_node_t *)node)->body, memsize);
             }
             memsize->memsize += yp_constant_id_list_memsize(&((yp_def_node_t *)node)->locals);
             break;
@@ -1206,24 +1096,6 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             break;
         }
 #line 120 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_global_variable_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_global_variable_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_global_variable_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_global_variable_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_global_variable_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_global_variable_operator_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
         case YP_NODE_GLOBAL_VARIABLE_READ_NODE: {
             memsize->memsize += sizeof(yp_global_variable_read_node_t);
             break;
@@ -1279,24 +1151,6 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             if (((yp_in_node_t *)node)->statements != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_in_node_t *)node)->statements, memsize);
             }
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_instance_variable_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_instance_variable_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_instance_variable_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_instance_variable_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_instance_variable_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_instance_variable_operator_write_node_t *)node)->value, memsize);
             break;
         }
 #line 120 "node.c.erb"
@@ -1367,27 +1221,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             if (((yp_lambda_node_t *)node)->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)((yp_lambda_node_t *)node)->parameters, memsize);
             }
-            if (((yp_lambda_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_lambda_node_t *)node)->statements, memsize);
+            if (((yp_lambda_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_lambda_node_t *)node)->body, memsize);
             }
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_AND_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_local_variable_operator_and_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_local_variable_operator_and_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_OR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_local_variable_operator_or_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_local_variable_operator_or_write_node_t *)node)->value, memsize);
-            break;
-        }
-#line 120 "node.c.erb"
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            memsize->memsize += sizeof(yp_local_variable_operator_write_node_t);
-            yp_node_memsize_node((yp_node_t *)((yp_local_variable_operator_write_node_t *)node)->value, memsize);
             break;
         }
 #line 120 "node.c.erb"
@@ -1427,8 +1263,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             memsize->memsize += sizeof(yp_module_node_t);
             memsize->memsize += yp_constant_id_list_memsize(&((yp_module_node_t *)node)->locals);
             yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->constant_path, memsize);
-            if (((yp_module_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->statements, memsize);
+            if (((yp_module_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_module_node_t *)node)->body, memsize);
             }
             break;
         }
@@ -1465,6 +1301,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             break;
         }
 #line 120 "node.c.erb"
+        case YP_NODE_OPERATOR_WRITE_NODE: {
+            memsize->memsize += sizeof(yp_operator_write_node_t);
+            yp_node_memsize_node((yp_node_t *)((yp_operator_write_node_t *)node)->target, memsize);
+            yp_node_memsize_node((yp_node_t *)((yp_operator_write_node_t *)node)->value, memsize);
+            break;
+        }
+#line 120 "node.c.erb"
         case YP_NODE_OPTIONAL_PARAMETER_NODE: {
             memsize->memsize += sizeof(yp_optional_parameter_node_t);
             yp_node_memsize_node((yp_node_t *)((yp_optional_parameter_node_t *)node)->value, memsize);
@@ -1475,6 +1318,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             memsize->memsize += sizeof(yp_or_node_t);
             yp_node_memsize_node((yp_node_t *)((yp_or_node_t *)node)->left, memsize);
             yp_node_memsize_node((yp_node_t *)((yp_or_node_t *)node)->right, memsize);
+            break;
+        }
+#line 120 "node.c.erb"
+        case YP_NODE_OR_WRITE_NODE: {
+            memsize->memsize += sizeof(yp_or_write_node_t);
+            yp_node_memsize_node((yp_node_t *)((yp_or_write_node_t *)node)->target, memsize);
+            yp_node_memsize_node((yp_node_t *)((yp_or_write_node_t *)node)->value, memsize);
             break;
         }
 #line 120 "node.c.erb"
@@ -1498,8 +1348,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
 #line 120 "node.c.erb"
         case YP_NODE_PARENTHESES_NODE: {
             memsize->memsize += sizeof(yp_parentheses_node_t);
-            if (((yp_parentheses_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_parentheses_node_t *)node)->statements, memsize);
+            if (((yp_parentheses_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_parentheses_node_t *)node)->body, memsize);
             }
             break;
         }
@@ -1627,8 +1477,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             memsize->memsize += sizeof(yp_singleton_class_node_t);
             memsize->memsize += yp_constant_id_list_memsize(&((yp_singleton_class_node_t *)node)->locals);
             yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->expression, memsize);
-            if (((yp_singleton_class_node_t *)node)->statements != NULL) {
-                yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->statements, memsize);
+            if (((yp_singleton_class_node_t *)node)->body != NULL) {
+                yp_node_memsize_node((yp_node_t *)((yp_singleton_class_node_t *)node)->body, memsize);
             }
             break;
         }
@@ -1778,6 +1628,8 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_ALTERNATION_PATTERN_NODE";
         case YP_NODE_AND_NODE:
             return "YP_NODE_AND_NODE";
+        case YP_NODE_AND_WRITE_NODE:
+            return "YP_NODE_AND_WRITE_NODE";
         case YP_NODE_ARGUMENTS_NODE:
             return "YP_NODE_ARGUMENTS_NODE";
         case YP_NODE_ARRAY_NODE:
@@ -1816,30 +1668,12 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_CASE_NODE";
         case YP_NODE_CLASS_NODE:
             return "YP_NODE_CLASS_NODE";
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_CLASS_VARIABLE_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_CLASS_VARIABLE_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_WRITE_NODE:
-            return "YP_NODE_CLASS_VARIABLE_OPERATOR_WRITE_NODE";
         case YP_NODE_CLASS_VARIABLE_READ_NODE:
             return "YP_NODE_CLASS_VARIABLE_READ_NODE";
         case YP_NODE_CLASS_VARIABLE_WRITE_NODE:
             return "YP_NODE_CLASS_VARIABLE_WRITE_NODE";
-        case YP_NODE_CONSTANT_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_CONSTANT_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_CONSTANT_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_CONSTANT_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_CONSTANT_OPERATOR_WRITE_NODE:
-            return "YP_NODE_CONSTANT_OPERATOR_WRITE_NODE";
         case YP_NODE_CONSTANT_PATH_NODE:
             return "YP_NODE_CONSTANT_PATH_NODE";
-        case YP_NODE_CONSTANT_PATH_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_CONSTANT_PATH_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_CONSTANT_PATH_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_CONSTANT_PATH_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_CONSTANT_PATH_OPERATOR_WRITE_NODE:
-            return "YP_NODE_CONSTANT_PATH_OPERATOR_WRITE_NODE";
         case YP_NODE_CONSTANT_PATH_WRITE_NODE:
             return "YP_NODE_CONSTANT_PATH_WRITE_NODE";
         case YP_NODE_CONSTANT_READ_NODE:
@@ -1874,12 +1708,6 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_FORWARDING_PARAMETER_NODE";
         case YP_NODE_FORWARDING_SUPER_NODE:
             return "YP_NODE_FORWARDING_SUPER_NODE";
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_GLOBAL_VARIABLE_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_GLOBAL_VARIABLE_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE:
-            return "YP_NODE_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE";
         case YP_NODE_GLOBAL_VARIABLE_READ_NODE:
             return "YP_NODE_GLOBAL_VARIABLE_READ_NODE";
         case YP_NODE_GLOBAL_VARIABLE_WRITE_NODE:
@@ -1894,12 +1722,6 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_IMAGINARY_NODE";
         case YP_NODE_IN_NODE:
             return "YP_NODE_IN_NODE";
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_INSTANCE_VARIABLE_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_INSTANCE_VARIABLE_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE:
-            return "YP_NODE_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE";
         case YP_NODE_INSTANCE_VARIABLE_READ_NODE:
             return "YP_NODE_INSTANCE_VARIABLE_READ_NODE";
         case YP_NODE_INSTANCE_VARIABLE_WRITE_NODE:
@@ -1922,12 +1744,6 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_KEYWORD_REST_PARAMETER_NODE";
         case YP_NODE_LAMBDA_NODE:
             return "YP_NODE_LAMBDA_NODE";
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_AND_WRITE_NODE:
-            return "YP_NODE_LOCAL_VARIABLE_OPERATOR_AND_WRITE_NODE";
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_OR_WRITE_NODE:
-            return "YP_NODE_LOCAL_VARIABLE_OPERATOR_OR_WRITE_NODE";
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_WRITE_NODE:
-            return "YP_NODE_LOCAL_VARIABLE_OPERATOR_WRITE_NODE";
         case YP_NODE_LOCAL_VARIABLE_READ_NODE:
             return "YP_NODE_LOCAL_VARIABLE_READ_NODE";
         case YP_NODE_LOCAL_VARIABLE_WRITE_NODE:
@@ -1950,10 +1766,14 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_NODE_NO_KEYWORDS_PARAMETER_NODE";
         case YP_NODE_NUMBERED_REFERENCE_READ_NODE:
             return "YP_NODE_NUMBERED_REFERENCE_READ_NODE";
+        case YP_NODE_OPERATOR_WRITE_NODE:
+            return "YP_NODE_OPERATOR_WRITE_NODE";
         case YP_NODE_OPTIONAL_PARAMETER_NODE:
             return "YP_NODE_OPTIONAL_PARAMETER_NODE";
         case YP_NODE_OR_NODE:
             return "YP_NODE_OR_NODE";
+        case YP_NODE_OR_WRITE_NODE:
+            return "YP_NODE_OR_WRITE_NODE";
         case YP_NODE_PARAMETERS_NODE:
             return "YP_NODE_PARAMETERS_NODE";
         case YP_NODE_PARENTHESES_NODE:
