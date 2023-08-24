@@ -181,7 +181,7 @@ public abstract class CExtNodes {
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object callWithCExtLockAndFrame(
+        Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -233,7 +233,7 @@ public abstract class CExtNodes {
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object callWithCExtLockAndFrame(
+        Object callWithCExtLockAndFrame(
                 VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -288,7 +288,7 @@ public abstract class CExtNodes {
         public abstract Object execute(Object receiver, RubyArray argsArray);
 
         @Specialization
-        protected Object callWithCExtLock(Object receiver, RubyArray argsArray,
+        Object callWithCExtLock(Object receiver, RubyArray argsArray,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -349,7 +349,7 @@ public abstract class CExtNodes {
     @Primitive(name = "send_without_cext_lock")
     public abstract static class SendWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(
+        Object sendWithoutCExtLock(
                 VirtualFrame frame, Object receiver, RubySymbol method, RubyArray argsArray, Object block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached DispatchNode dispatchNode,
@@ -364,8 +364,7 @@ public abstract class CExtNodes {
     @Primitive(name = "send_argv_without_cext_lock")
     public abstract static class SendARGVWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(
-                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+        Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
@@ -378,8 +377,7 @@ public abstract class CExtNodes {
     @Primitive(name = "send_argv_keywords_without_cext_lock")
     public abstract static class SendARGVKeywordsWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(
-                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+        Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached HashCastNode hashCastNode,
                 @Cached InlinedConditionProfile emptyProfile,
@@ -404,8 +402,7 @@ public abstract class CExtNodes {
     @Primitive(name = "public_send_argv_without_cext_lock", lowerFixnum = 2)
     public abstract static class PublicSendARGVWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object publicSendWithoutLock(
-                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+        Object publicSendWithoutLock(VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
@@ -418,8 +415,7 @@ public abstract class CExtNodes {
     @Primitive(name = "public_send_argv_keywords_without_cext_lock")
     public abstract static class PublicSendARGVKeywordsWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(
-                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
+        Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached HashCastNode hashCastNode,
                 @Cached InlinedConditionProfile emptyProfile,
@@ -445,7 +441,7 @@ public abstract class CExtNodes {
     public abstract static class MarkObjectOnCallExit extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object markOnCallExit(Object object,
+        Object markOnCallExit(Object object,
                 @Cached WrapNode wrapNode,
                 @Cached MarkingServiceNodes.QueueForMarkOnExitNode markOnExitNode) {
             markOnExitNode.execute(wrapNode.execute(object));
@@ -456,7 +452,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "cext_start_new_handle_block", onSingleton = true)
     public abstract static class StartNewHandleBlockNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean startNewHandleBlock() {
+        boolean startNewHandleBlock() {
             ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             return true;
         }
@@ -465,7 +461,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "cext_lock_owned?", onSingleton = true)
     public abstract static class IsCExtLockOwnedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isCExtLockOwned() {
+        boolean isCExtLockOwned() {
             final ReentrantLock lock = getContext().getCExtensionsLock();
             return lock.isHeldByCurrentThread();
         }
@@ -477,7 +473,7 @@ public abstract class CExtNodes {
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
         @Specialization
-        protected Object ulong2num(long num,
+        Object ulong2num(long num,
                 @Cached InlinedConditionProfile positiveProfile) {
             if (positiveProfile.profile(this, num >= 0)) {
                 return num;
@@ -527,7 +523,7 @@ public abstract class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected RubyArray bytes(
+        RubyArray bytes(
                 int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
@@ -535,7 +531,7 @@ public abstract class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected RubyArray bytes(
+        RubyArray bytes(
                 long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
@@ -543,7 +539,7 @@ public abstract class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected RubyArray bytes(
+        RubyArray bytes(
                 RubyBignum num,
                 int num_words,
                 int word_length,
@@ -620,19 +616,19 @@ public abstract class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(int num) {
+        int bitLength(int num) {
             return BigInteger.valueOf(num).abs().bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(long num) {
+        int bitLength(long num) {
             return BigInteger.valueOf(num).abs().bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(RubyBignum num) {
+        int bitLength(RubyBignum num) {
             return num.value.abs().bitLength();
         }
     }
@@ -642,19 +638,19 @@ public abstract class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(int num) {
+        int bitLength(int num) {
             return BigInteger.valueOf(num).bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(long num) {
+        int bitLength(long num) {
             return BigInteger.valueOf(num).bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        protected int bitLength(RubyBignum num) {
+        int bitLength(RubyBignum num) {
             return num.value.bitLength();
         }
     }
@@ -663,20 +659,20 @@ public abstract class CExtNodes {
     public abstract static class IntSinglebitPPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int intSinglebitP(int num) {
+        int intSinglebitP(int num) {
             assert num >= 0;
             return Integer.bitCount(num) == 1 ? 1 : 0;
         }
 
         @Specialization
-        protected int intSinglebitP(long num) {
+        int intSinglebitP(long num) {
             assert num >= 0;
             return Long.bitCount(num) == 1 ? 1 : 0;
         }
 
         @Specialization
         @TruffleBoundary
-        protected int intSinglebitP(RubyBignum num) {
+        int intSinglebitP(RubyBignum num) {
             assert num.value.signum() >= 0;
             return num.value.bitCount() == 1 ? 1 : 0;
         }
@@ -685,7 +681,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "DBL2BIG", onSingleton = true, required = 1)
     public abstract static class DBL2BIGNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object dbl2big(double num,
+        Object dbl2big(double num,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             return floatToIntegerNode.execute(this, num);
         }
@@ -696,17 +692,17 @@ public abstract class CExtNodes {
     public abstract static class Long2Int extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int long2fix(int num) {
+        int long2fix(int num) {
             return num;
         }
 
         @Specialization(guards = "fitsInInteger(num)")
-        protected int long2fixInRange(long num) {
+        int long2fixInRange(long num) {
             return (int) num;
         }
 
         @Specialization(guards = "!fitsInInteger(num)")
-        protected int long2fixOutOfRange(long num) {
+        int long2fixOutOfRange(long num) {
             throw new RaiseException(getContext(), coreExceptions().rangeErrorConvertToInt(num, this));
         }
     }
@@ -715,7 +711,7 @@ public abstract class CExtNodes {
     public abstract static class RbEncCodeRangeClear extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString clearCodeRange(RubyString string,
+        RubyString clearCodeRange(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
             stringToNativeNode.executeToNative(this, string);
             string.clearCodeRange();
@@ -729,7 +725,7 @@ public abstract class CExtNodes {
     public abstract static class CodeToMbcLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int codeToMbcLen(int code, RubyEncoding encoding) {
+        int codeToMbcLen(int code, RubyEncoding encoding) {
             return StringSupport.codeLength(encoding.jcoding, code);
         }
 
@@ -739,7 +735,7 @@ public abstract class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected static RubyArray rbEncCodePointLen(Object string,
+        static RubyArray rbEncCodePointLen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
@@ -770,7 +766,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean rbEncIsAlNum(int code, RubyEncoding value) {
+        boolean rbEncIsAlNum(int code, RubyEncoding value) {
             return value.jcoding.isAlnum(code);
         }
 
@@ -781,7 +777,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean rbEncIsSpace(int code, RubyEncoding value) {
+        boolean rbEncIsSpace(int code, RubyEncoding value) {
             return value.jcoding.isSpace(code);
         }
 
@@ -791,7 +787,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString rbStrNewNul(int byteLength,
+        RubyString rbStrNewNul(int byteLength,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             final Pointer pointer = newZeroedNativeStringPointer(getLanguage(), getContext(), byteLength);
             var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, Encodings.BINARY.tencoding,
@@ -805,7 +801,7 @@ public abstract class CExtNodes {
     public abstract static class TemporaryNativeStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString temporaryNativeString(Object pointer, int byteLength, RubyEncoding encoding,
+        RubyString temporaryNativeString(Object pointer, int byteLength, RubyEncoding encoding,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, encoding.tencoding, false);
             return createMutableString(nativeTString, encoding);
@@ -816,7 +812,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long capacity(Object string,
+        long capacity(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
             return getNativeStringCapacity(stringToNativeNode.executeToNative(this, string));
         }
@@ -826,7 +822,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString strSetLen(RubyString string, int newByteLength,
+        RubyString strSetLen(RubyString string, int newByteLength,
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
@@ -857,7 +853,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString rbStrResize(RubyString string, int newByteLength,
+        RubyString rbStrResize(RubyString string, int newByteLength,
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
@@ -886,7 +882,7 @@ public abstract class CExtNodes {
     public abstract static class TrStrCapaResizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString trStrCapaResize(RubyString string, int newCapacity,
+        RubyString trStrCapaResize(RubyString string, int newCapacity,
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
@@ -919,7 +915,7 @@ public abstract class CExtNodes {
     public abstract static class RbKeywordGivenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean keywordGiven() {
+        boolean keywordGiven() {
             return getLanguage().getCurrentFiber().extensionCallStack.areKeywordsGiven();
         }
     }
@@ -928,7 +924,7 @@ public abstract class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object block() {
+        Object block() {
             return getLanguage().getCurrentFiber().extensionCallStack.getBlock();
         }
     }
@@ -937,7 +933,7 @@ public abstract class CExtNodes {
     public abstract static class VarsFromStackNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object variables() {
+        Object variables() {
             return getLanguage().getCurrentFiber().extensionCallStack.getSpecialVariables();
         }
     }
@@ -946,7 +942,7 @@ public abstract class CExtNodes {
     public abstract static class CheckFrozenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean rb_check_frozen(Object object,
+        boolean rb_check_frozen(Object object,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             raiseIfFrozenNode.execute(object);
             return true;
@@ -958,7 +954,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrLockTmpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString rbStrLockTmp(RubyString string,
+        RubyString rbStrLockTmp(RubyString string,
                 @Cached InlinedBranchProfile errorProfile) {
             if (string.locked) {
                 errorProfile.enter(this);
@@ -970,7 +966,7 @@ public abstract class CExtNodes {
         }
 
         @Specialization
-        protected RubyString rbStrLockTmpImmutable(ImmutableRubyString string) {
+        RubyString rbStrLockTmpImmutable(ImmutableRubyString string) {
             throw new RaiseException(getContext(),
                     coreExceptions().runtimeError("temporal locking immutable string", this));
         }
@@ -981,7 +977,7 @@ public abstract class CExtNodes {
     public abstract static class RbStrUnlockTmpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString rbStrUnlockTmp(RubyString string,
+        RubyString rbStrUnlockTmp(RubyString string,
                 @Cached InlinedBranchProfile errorProfile) {
             if (!string.locked) {
                 errorProfile.enter(this);
@@ -993,7 +989,7 @@ public abstract class CExtNodes {
         }
 
         @Specialization
-        protected ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string) {
+        ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string) {
             throw new RaiseException(getContext(),
                     coreExceptions().runtimeError("temporal unlocking immutable string", this));
         }
@@ -1006,7 +1002,7 @@ public abstract class CExtNodes {
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
 
         @Specialization
-        protected Object rbConstGet(RubyModule module, Object name,
+        Object rbConstGet(RubyModule module, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
             final var nameAsString = toJavaStringNode.execute(this, name);
@@ -1023,7 +1019,7 @@ public abstract class CExtNodes {
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
 
         @Specialization
-        protected Object rbConstGetFrom(RubyModule module, Object name,
+        Object rbConstGetFrom(RubyModule module, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached GetConstantNode getConstantNode) {
             final var nameAsString = toJavaStringNode.execute(this, name);
@@ -1039,7 +1035,7 @@ public abstract class CExtNodes {
 
 
         @Specialization
-        protected Object rbConstSet(RubyModule module, Object name, Object value,
+        Object rbConstSet(RubyModule module, Object name, Object value,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ConstSetUncheckedNode constSetUncheckedNode) {
             final var nameAsString = toJavaStringNode.execute(this, name);
@@ -1052,7 +1048,7 @@ public abstract class CExtNodes {
     public abstract static class RbGvGetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-        protected static Object rbGvGetCached(VirtualFrame frame, String name,
+        static Object rbGvGetCached(VirtualFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("create(cachedName)") ReadGlobalVariableNode readGlobalVariableNode,
                 @Cached InlinedBranchProfile notExistsProfile,
@@ -1073,7 +1069,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object rbGvGetUncached(String name,
+        Object rbGvGetUncached(String name,
                 @Cached DispatchNode dispatchNode,
                 @Cached @Shared LazyWarnNode lazyWarnNode) {
             boolean exists = getContext().getCoreLibrary().globalVariables.contains(name);
@@ -1105,7 +1101,7 @@ public abstract class CExtNodes {
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name,
+        RubyModule cextModuleFunction(RubyModule module, RubySymbol name,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
             setMethodVisibilityNode.execute(this, module, name, Visibility.MODULE_FUNCTION);
             return module;
@@ -1118,7 +1114,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean checkCallerVisibility(RubySymbol visibility) {
+        boolean checkCallerVisibility(RubySymbol visibility) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
@@ -1139,7 +1135,7 @@ public abstract class CExtNodes {
     public abstract static class IterBreakValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object iterBreakValue(Object value) {
+        Object iterBreakValue(Object value) {
             throw new BreakException(BreakID.ANY_BLOCK, value);
         }
 
@@ -1152,7 +1148,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString sourceFile() {
+        RubyString sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getLanguage().getSourcePath(sourceSection.getSource());
 
@@ -1194,7 +1190,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int sourceLine() {
+        int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
             return RubySource.getStartLineAdjusted(getContext(), sourceSection);
         }
@@ -1205,7 +1201,7 @@ public abstract class CExtNodes {
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isInstanceId(RubySymbol symbol) {
+        boolean isInstanceId(RubySymbol symbol) {
             return symbol.getType() == IdentifierType.INSTANCE;
         }
 
@@ -1215,7 +1211,7 @@ public abstract class CExtNodes {
     public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isConstId(RubySymbol symbol) {
+        boolean isConstId(RubySymbol symbol) {
             return symbol.getType() == IdentifierType.CONST;
         }
 
@@ -1225,7 +1221,7 @@ public abstract class CExtNodes {
     public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isClassVariableId(RubySymbol symbol) {
+        boolean isClassVariableId(RubySymbol symbol) {
             return symbol.getType() == IdentifierType.CLASS;
         }
 
@@ -1237,7 +1233,7 @@ public abstract class CExtNodes {
         @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode.create();
 
         @Specialization
-        protected Object callSuper(VirtualFrame frame, Object[] args,
+        Object callSuper(VirtualFrame frame, Object[] args,
                 @Cached MetaClassNode metaClassNode) {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
@@ -1277,7 +1273,7 @@ public abstract class CExtNodes {
     public abstract static class FrameThisFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object frameThisFunc(VirtualFrame frame, Object[] args) {
+        Object frameThisFunc(VirtualFrame frame, Object[] args) {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             return getSymbol(callingMethod.getName());
@@ -1308,7 +1304,7 @@ public abstract class CExtNodes {
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object rbSysErrFail(int errno, Object string,
+        Object rbSysErrFail(int errno, Object string,
                 @Cached ErrnoErrorNode errnoErrorNode) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
             throw new RaiseException(getContext(), errnoErrorNode.execute(null, errno, string, backtrace));
@@ -1320,7 +1316,7 @@ public abstract class CExtNodes {
     public abstract static class RbHashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int rbHash(Object object,
+        int rbHash(Object object,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode) {
             return toHashByHashCode.execute(this, object);
         }
@@ -1333,7 +1329,7 @@ public abstract class CExtNodes {
         public abstract Pointer executeToNative(Node node, Object string);
 
         @Specialization
-        protected static Pointer toNative(Node node, RubyString string,
+        static Pointer toNative(Node node, RubyString string,
                 @Cached RubyStringLibrary libString,
                 @Cached InlinedConditionProfile convertProfile,
                 @Cached(inline = false) TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
@@ -1360,7 +1356,7 @@ public abstract class CExtNodes {
         }
 
         @Specialization
-        protected static Pointer toNativeImmutable(Node node, ImmutableRubyString string) {
+        static Pointer toNativeImmutable(Node node, ImmutableRubyString string) {
             return string.getNativeString(getLanguage(node));
         }
 
@@ -1378,7 +1374,7 @@ public abstract class CExtNodes {
     public abstract static class StringPointerToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected long toNative(Object string,
+        long toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
             return stringToNativeNode.executeToNative(this, string).getAddress();
         }
@@ -1388,7 +1384,7 @@ public abstract class CExtNodes {
     public abstract static class StringToFFIPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyPointer toNative(Object string,
+        RubyPointer toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
             var pointer = stringToNativeNode.executeToNative(this, string);
 
@@ -1405,13 +1401,13 @@ public abstract class CExtNodes {
     public abstract static class StringPointerIsNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isNative(RubyString string) {
+        boolean isNative(RubyString string) {
             return string.tstring.isNative();
         }
 
         @TruffleBoundary
         @Specialization
-        protected boolean isNative(ImmutableRubyString string) {
+        boolean isNative(ImmutableRubyString string) {
             return string.isNative();
         }
 
@@ -1424,7 +1420,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object debug(Object... objects) {
+        Object debug(Object... objects) {
             if (objects.length > 1) {
                 System.err.printf("Printing %d values%n", objects.length);
             }
@@ -1472,7 +1468,7 @@ public abstract class CExtNodes {
     public abstract static class CaptureExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object captureException(RubyProc block,
+        Object captureException(RubyProc block,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached CallBlockNode yieldNode) {
@@ -1491,7 +1487,7 @@ public abstract class CExtNodes {
     public abstract static class StoreException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object storeException(CapturedException captured) {
+        Object storeException(CapturedException captured) {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             extensionStack.setException(captured);
             return nil;
@@ -1502,7 +1498,7 @@ public abstract class CExtNodes {
     public abstract static class RetrieveException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected CapturedException retrieveException() {
+        CapturedException retrieveException() {
             final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
             return extensionStack.getException();
         }
@@ -1512,7 +1508,7 @@ public abstract class CExtNodes {
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object extractRubyException(CapturedException captured,
+        Object extractRubyException(CapturedException captured,
                 @Cached InlinedConditionProfile rubyExceptionProfile) {
             final Throwable e = captured.getException();
             if (rubyExceptionProfile.profile(this, e instanceof RaiseException)) {
@@ -1527,7 +1523,7 @@ public abstract class CExtNodes {
     public abstract static class ExtractRubyTag extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int extractRubyTag(CapturedException captured,
+        int extractRubyTag(CapturedException captured,
                 @Cached ExtractRubyTagHelperNode helperNode) {
             return helperNode.execute(this, captured.getException());
         }
@@ -1541,48 +1537,48 @@ public abstract class CExtNodes {
         public abstract int execute(Node node, Object e);
 
         @Specialization
-        protected static int dynamicReturnTag(DynamicReturnException e) {
+        static int dynamicReturnTag(DynamicReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected static int localReturnTag(LocalReturnException e) {
+        static int localReturnTag(LocalReturnException e) {
             return RUBY_TAG_RETURN;
         }
 
         @Specialization
-        protected static int breakTag(BreakException e) {
+        static int breakTag(BreakException e) {
             return RUBY_TAG_BREAK;
         }
 
         @Specialization
-        protected static int nextTag(NextException e) {
+        static int nextTag(NextException e) {
             return RUBY_TAG_NEXT;
         }
 
         @Specialization
-        protected static int retryTag(RetryException e) {
+        static int retryTag(RetryException e) {
             return RUBY_TAG_RETRY;
         }
 
         @Specialization
-        protected static int redoTag(RedoException e) {
+        static int redoTag(RedoException e) {
             return RUBY_TAG_REDO;
         }
 
         @Specialization
-        protected static int raiseTag(RaiseException e) {
+        static int raiseTag(RaiseException e) {
             return RUBY_TAG_RAISE;
         }
 
         @Specialization
-        protected static int throwTag(ThrowException e) {
+        static int throwTag(ThrowException e) {
             return RUBY_TAG_THROW;
         }
 
         // Object instead of Throwable to workaround Truffle DSL bug GR-46797
         @Fallback
-        protected static int noTag(Object e) {
+        static int noTag(Object e) {
             return 0;
         }
     }
@@ -1592,7 +1588,7 @@ public abstract class CExtNodes {
 
         /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
-        protected Object raiseException(CapturedException captured,
+        Object raiseException(CapturedException captured,
                 @Cached InlinedConditionProfile runtimeExceptionProfile,
                 @Cached InlinedConditionProfile errorProfile) {
             final Throwable e = captured.getException();
@@ -1610,7 +1606,7 @@ public abstract class CExtNodes {
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
-        protected static Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
+        static Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
                 @Cached RubyStringLibrary strings,
                 @CachedLibrary("advance_p") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -1646,7 +1642,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_tr_code_to_mbc", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbTrMbcPutNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object rbTrEncMbcPut(RubyEncoding enc, int code,
+        Object rbTrEncMbcPut(RubyEncoding enc, int code,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Encoding encoding = enc.jcoding;
             final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
@@ -1662,7 +1658,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_mbmaxlen", onSingleton = true, required = 1)
     public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object rbEncMaxLen(RubyEncoding value) {
+        Object rbEncMaxLen(RubyEncoding value) {
             return value.jcoding.maxLength();
         }
     }
@@ -1670,7 +1666,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_mbminlen", onSingleton = true, required = 1)
     public abstract static class RbEncMinLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object rbEncMinLen(RubyEncoding value) {
+        Object rbEncMinLen(RubyEncoding value) {
             return value.jcoding.minLength();
         }
     }
@@ -1678,7 +1674,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected Object rbEncMbLen(Object string,
+        Object rbEncMbLen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(string);
@@ -1690,7 +1686,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected int rbEncPreciseMbclen(Object string,
+        int rbEncPreciseMbclen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(string);
@@ -1703,7 +1699,7 @@ public abstract class CExtNodes {
     public abstract static class RbEncStrlen extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected int rbEncStrlen(Object string,
+        int rbEncStrlen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
             var tstring = strings.getTString(string);
@@ -1719,7 +1715,7 @@ public abstract class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected Object rbEncLeftCharHead(RubyEncoding enc, Object string, int p,
+        Object rbEncLeftCharHead(RubyEncoding enc, Object string, int p,
                 @Cached RubyStringLibrary strings) {
             byte[] bytes = TStringUtils.getBytesOrFail(strings.getTString(string), strings.getEncoding(string));
             return enc.jcoding.leftAdjustCharHead(bytes, 0, p, bytes.length);
@@ -1729,7 +1725,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 1)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected static int rbEncMbcToCodepoint(Object string,
+        static int rbEncMbcToCodepoint(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
@@ -1753,7 +1749,7 @@ public abstract class CExtNodes {
     public abstract static class Sym2IDNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object sym2id(RubySymbol symbol,
+        Object sym2id(RubySymbol symbol,
                 @Cached SymbolToIDNode symbolToIDNode) {
             return symbolToIDNode.execute(symbol);
         }
@@ -1764,7 +1760,7 @@ public abstract class CExtNodes {
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object wrapInt(Object value,
+        Object wrapInt(Object value,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }
@@ -1775,7 +1771,7 @@ public abstract class CExtNodes {
     public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrap(Object value,
+        Object unwrap(Object value,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(this, value);
@@ -1797,7 +1793,7 @@ public abstract class CExtNodes {
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object createNewMarkList(RubyDynamicObject object,
+        Object createNewMarkList(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             getContext().getMarkingService().startMarking(
                     getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack,
@@ -1810,7 +1806,7 @@ public abstract class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object addToMarkList(Object markedObject,
+        Object addToMarkList(Object markedObject,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(this, markedObject);
@@ -1831,7 +1827,7 @@ public abstract class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object addToMarkList(Object guardedObject,
+        Object addToMarkList(Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1849,7 +1845,7 @@ public abstract class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setMarkList(RubyDynamicObject structOwner,
+        Object setMarkList(RubyDynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.execute(
                     this,
@@ -1865,7 +1861,7 @@ public abstract class CExtNodes {
     public abstract static class CheckThreadInterrupt extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object checkInts() {
+        Object checkInts() {
             TruffleSafepoint.pollHere(this);
             return nil;
         }
@@ -1875,7 +1871,7 @@ public abstract class CExtNodes {
     public abstract static class IsNativeObjectFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object isNativeObjectFunction() {
+        Object isNativeObjectFunction() {
             return new ValueWrapperManager.IsNativeObjectFunction();
         }
     }
@@ -1884,7 +1880,7 @@ public abstract class CExtNodes {
     public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrapFunction() {
+        Object unwrapFunction() {
             return new ValueWrapperManager.UnwrapperFunction();
         }
     }
@@ -1893,7 +1889,7 @@ public abstract class CExtNodes {
     public abstract static class UnwrapperIDFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrapFunction() {
+        Object unwrapFunction() {
             return new ValueWrapperManager.ID2SymbolFunction();
         }
     }
@@ -1902,7 +1898,7 @@ public abstract class CExtNodes {
     public abstract static class Sym2IDFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrapFunction() {
+        Object unwrapFunction() {
             return new ValueWrapperManager.Symbol2IDFunction();
         }
     }
@@ -1911,7 +1907,7 @@ public abstract class CExtNodes {
     public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object wrapFunction() {
+        Object wrapFunction() {
             return new ValueWrapperManager.WrapperFunction();
         }
     }
@@ -1920,7 +1916,7 @@ public abstract class CExtNodes {
     public abstract static class ToNativeFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object wrapFunction() {
+        Object wrapFunction() {
             return new ValueWrapperManager.ToNativeObjectFunction();
         }
     }
@@ -1928,7 +1924,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_check_symbol_cstr", onSingleton = true, required = 1)
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected Object checkSymbolCStr(Object string,
+        Object checkSymbolCStr(Object string,
                 @Cached RubyStringLibrary strings) {
             final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
                     strings.getTString(string),
@@ -1940,7 +1936,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_ary_new_from_values", onSingleton = true, required = 1)
     public abstract static class RbAryNewFromValues extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyArray rbAryNewFromValues(Object cArray,
+        RubyArray rbAryNewFromValues(Object cArray,
                 @Cached UnwrapCArrayNode unwrapCArrayNode) {
             final Object[] values = unwrapCArrayNode.execute(cArray);
             return createArray(values);
@@ -1960,7 +1956,7 @@ public abstract class CExtNodes {
                         "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
 
-        protected static Object typesCached(VirtualFrame frame, Object format,
+        static Object typesCached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -1971,7 +1967,7 @@ public abstract class CExtNodes {
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
-        protected RubyArray typesUncached(VirtualFrame frame, Object format,
+        RubyArray typesUncached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat) {
             return compileArgTypes(libFormat.getTString(format), libFormat.getEncoding(format), byteArrayNode);
         }
@@ -1997,7 +1993,7 @@ public abstract class CExtNodes {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-        protected static RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
+        static RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
                 @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
@@ -2022,7 +2018,7 @@ public abstract class CExtNodes {
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
-        protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
+        RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
                 @Cached IndirectCallNode formatNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
@@ -2072,7 +2068,7 @@ public abstract class CExtNodes {
     public abstract static class RubyThreadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isRubyThread(VirtualFrame frame) {
+        boolean isRubyThread(VirtualFrame frame) {
             ThreadManager threadManager = getContext().getThreadManager();
             return Thread.currentThread() == threadManager.getRootJavaThread() ||
                     threadManager.isRubyManagedThread(Thread.currentThread());
@@ -2082,7 +2078,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "zlib_get_crc_table", onSingleton = true)
     public abstract static class ZLibGetCRCTable extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyArray zlibGetCRCTable() {
+        RubyArray zlibGetCRCTable() {
             return createArray(ZLibCRCTable.TABLE.clone());
         }
     }
@@ -2091,7 +2087,7 @@ public abstract class CExtNodes {
     public abstract static class DataHolderCreate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DataHolder create(Object address, Object marker, Object free) {
+        DataHolder create(Object address, Object marker, Object free) {
             return new DataHolder(address, marker, free);
         }
     }
@@ -2100,7 +2096,7 @@ public abstract class CExtNodes {
     public abstract static class DataHolderGetData extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getData(DataHolder data) {
+        Object getData(DataHolder data) {
             return data.getPointer();
         }
     }
@@ -2109,7 +2105,7 @@ public abstract class CExtNodes {
     public abstract static class DataHolderSetData extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setData(DataHolder data, Object address) {
+        Object setData(DataHolder data, Object address) {
             data.setPointer(address);
             return nil;
         }
@@ -2119,12 +2115,12 @@ public abstract class CExtNodes {
     public abstract static class DataHolderGetMarker extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getMarker(DataHolder data) {
+        Object getMarker(DataHolder data) {
             return data.getMarker();
         }
 
         @Specialization // For Truffle::CExt#run_marker
-        protected Object getMarker(Nil data) {
+        Object getMarker(Nil data) {
             return data;
         }
     }
@@ -2132,7 +2128,7 @@ public abstract class CExtNodes {
     @Primitive(name = "data_holder_get_free")
     public abstract static class DataHolderGetFree extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object getFree(DataHolder data) {
+        Object getFree(DataHolder data) {
             return data.getFree();
         }
     }
@@ -2140,7 +2136,7 @@ public abstract class CExtNodes {
     @Primitive(name = "data_holder_set_free")
     public abstract static class DataHolderSetFree extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object setFree(DataHolder data, Object dfree) {
+        Object setFree(DataHolder data, Object dfree) {
             data.setFree(dfree);
             return dfree;
         }
@@ -2150,7 +2146,7 @@ public abstract class CExtNodes {
     public abstract static class DataHolderIsHolder extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean setData(Object dataHolder) {
+        boolean setData(Object dataHolder) {
             return dataHolder instanceof DataHolder;
         }
     }

@@ -38,7 +38,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
             DispatchConfiguration config, LiteralCallNode literalCallNode);
 
     @Specialization(guards = "config.missingBehavior == RETURN_MISSING")
-    protected static Object dispatchReturnMissing(
+    static Object dispatchReturnMissing(
             Frame frame,
             Object receiver,
             String methodName,
@@ -50,7 +50,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
     @InliningCutoff
     @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "isForeignObject(receiver)" })
-    protected static Object dispatchForeign(
+    static Object dispatchForeign(
             Frame frame,
             Object receiver,
             String methodName,
@@ -65,7 +65,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
     @InliningCutoff
     @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "!isForeignObject(receiver)" })
-    protected static Object dispatchMissingMethod(
+    static Object dispatchMissingMethod(
             Frame frame,
             Object receiver,
             String methodName,

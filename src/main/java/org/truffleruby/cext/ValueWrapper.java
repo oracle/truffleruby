@@ -102,7 +102,7 @@ public final class ValueWrapper implements TruffleObject {
     }
 
     @ExportMessage
-    protected static void toNative(ValueWrapper wrapper,
+    static void toNative(ValueWrapper wrapper,
             @Cached AllocateHandleNode createNativeHandleNode,
             @Cached @Exclusive InlinedBranchProfile createHandleProfile,
             @Bind("$node") Node node) {
@@ -113,7 +113,7 @@ public final class ValueWrapper implements TruffleObject {
     }
 
     @ExportMessage
-    protected static long asPointer(ValueWrapper wrapper,
+    static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
             @Cached @Exclusive InlinedBranchProfile taggedObjectProfile,
             @Bind("$node") Node node) {
@@ -145,7 +145,7 @@ public final class ValueWrapper implements TruffleObject {
     }
 
     @ExportMessage
-    protected static Object readMember(ValueWrapper wrapper, String member,
+    static Object readMember(ValueWrapper wrapper, String member,
             @Cached @Exclusive InlinedBranchProfile errorProfile,
             @Bind("$node") Node node) throws UnknownIdentifierException {
         if ("value".equals(member)) {

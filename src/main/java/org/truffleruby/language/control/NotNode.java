@@ -26,7 +26,7 @@ public abstract class NotNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doNot(VirtualFrame frame,
+    Object doNot(VirtualFrame frame,
             @Cached BooleanCastNode booleanCastNode) {
         final var valueAsBoolean = booleanCastNode.execute(this, child.execute(frame));
         return !valueAsBoolean;

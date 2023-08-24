@@ -25,7 +25,7 @@ public abstract class StringToSymbolNode extends RubyContextSourceNode {
     abstract RubyNode getStringNode();
 
     @Specialization
-    protected RubySymbol doString(Object string,
+    RubySymbol doString(Object string,
             @Cached RubyStringLibrary libString) {
         return getSymbol(libString.getTString(string), libString.getEncoding(string));
     }

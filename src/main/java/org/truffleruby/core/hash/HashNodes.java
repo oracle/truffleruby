@@ -62,7 +62,7 @@ public abstract class HashNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyHash allocate(RubyClass rubyClass) {
+        RubyHash allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().hashShape;
             final EmptyHashStore store = EmptyHashStore.NULL_HASH_STORE;
             final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0, false);
@@ -79,7 +79,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args, getLanguage())")
-        protected Object construct(RubyClass hashClass, Object[] args,
+        Object construct(RubyClass hashClass, Object[] args,
                 @Cached HashingNodes.ToHashByHashCode hashNode) {
             final RubyArray array = (RubyArray) args[0];
 
@@ -120,7 +120,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")
-        protected Object constructFallback(RubyClass hashClass, Object[] args) {
+        Object constructFallback(RubyClass hashClass, Object[] args) {
             return fallback(hashClass, args);
         }
 
@@ -159,7 +159,7 @@ public abstract class HashNodes {
     @CoreMethod(names = "ruby2_keywords_hash?", onSingleton = true, required = 1)
     public abstract static class IsRuby2KeywordsHashNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isRuby2KeywordsHash(RubyHash hash) {
+        boolean isRuby2KeywordsHash(RubyHash hash) {
             return hash.ruby2_keywords;
         }
     }
@@ -175,7 +175,7 @@ public abstract class HashNodes {
         public abstract RubyHash execute(RubyHash self, boolean ruby2_keywords);
 
         @Specialization
-        protected RubyHash copyAndSetRuby2Keywords(RubyHash self, boolean ruby2_keywords,
+        RubyHash copyAndSetRuby2Keywords(RubyHash self, boolean ruby2_keywords,
                 @Cached CopyInstanceVariablesNode copyInstanceVariablesNode,
                 @Cached DispatchNode initializeDupNode) {
             final RubyHash newObject = new RubyHash(self.getLogicalClass(), getLanguage().hashShape, getContext(),
@@ -189,7 +189,7 @@ public abstract class HashNodes {
     @Primitive(name = "hash_copy_and_mark_as_ruby2_keywords")
     public abstract static class HashCopyAndMarkAsRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyHash copyAndMarkAsRuby2Keywords(RubyHash hash,
+        RubyHash copyAndMarkAsRuby2Keywords(RubyHash hash,
                 @Cached CopyHashAndSetRuby2KeywordsNode copyHashAndSetRuby2KeywordsNode) {
             return copyHashAndSetRuby2KeywordsNode.execute(hash, true);
         }
@@ -202,7 +202,7 @@ public abstract class HashNodes {
         @Child private DispatchNode callDefaultNode;
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object get(RubyHash hash, Object key,
+        Object get(RubyHash hash, Object key,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             return hashes.lookupOrDefault(hash.store, null, hash, key, this);
         }
@@ -222,7 +222,7 @@ public abstract class HashNodes {
     public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements PEBiFunction {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object getOrUndefined(RubyHash hash, Object key,
+        Object getOrUndefined(RubyHash hash, Object key,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             return hashes.lookupOrDefault(hash.store, null, hash, key, this);
         }
@@ -238,7 +238,7 @@ public abstract class HashNodes {
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object set(RubyHash hash, Object key, Object value,
+        Object set(RubyHash hash, Object key, Object value,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.set(hash.store, hash, key, value, hash.compareByIdentity);
             return value;
@@ -250,7 +250,7 @@ public abstract class HashNodes {
     public abstract static class StoreNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object set(RubyHash hash, Object key, Object value,
+        Object set(RubyHash hash, Object key, Object value,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.set(hash.store, hash, key, value, hash.compareByIdentity);
             return value;
@@ -263,7 +263,7 @@ public abstract class HashNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected RubyHash clear(RubyHash hash,
+        RubyHash clear(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.clear(hash.store, hash);
             return hash;
@@ -275,7 +275,7 @@ public abstract class HashNodes {
     public abstract static class CompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!isCompareByIdentity(hash)", limit = "hashStrategyLimit()")
-        protected RubyHash compareByIdentity(RubyHash hash,
+        RubyHash compareByIdentity(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hash.compareByIdentity = true;
             hashes.rehash(hash.store, hash);
@@ -283,7 +283,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        protected RubyHash alreadyCompareByIdentity(RubyHash hash) {
+        RubyHash alreadyCompareByIdentity(RubyHash hash) {
             return hash;
         }
     }
@@ -294,7 +294,7 @@ public abstract class HashNodes {
         private final ConditionProfile profile = ConditionProfile.create();
 
         @Specialization
-        protected boolean compareByIdentity(RubyHash hash) {
+        boolean compareByIdentity(RubyHash hash) {
             return profile.profile(hash.compareByIdentity);
         }
     }
@@ -303,7 +303,7 @@ public abstract class HashNodes {
     public abstract static class DefaultProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object defaultProc(RubyHash hash) {
+        Object defaultProc(RubyHash hash) {
             return hash.defaultBlock;
         }
     }
@@ -312,7 +312,7 @@ public abstract class HashNodes {
     public abstract static class DefaultValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object defaultValue(RubyHash hash) {
+        Object defaultValue(RubyHash hash) {
             return hash.defaultValue;
         }
     }
@@ -322,7 +322,7 @@ public abstract class HashNodes {
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object delete(RubyHash hash, Object key, Object maybeBlock,
+        Object delete(RubyHash hash, Object key, Object maybeBlock,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes,
                 @Cached CallBlockNode yieldNode,
                 @Cached @Shared InlinedConditionProfile hasValue,
@@ -345,7 +345,7 @@ public abstract class HashNodes {
         @Child CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected RubyHash each(RubyHash hash, RubyProc block,
+        RubyHash each(RubyHash hash, RubyProc block,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.eachEntrySafe(hash.store, hash, this, block);
             return hash;
@@ -362,7 +362,7 @@ public abstract class HashNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isEmpty(RubyHash hash) {
+        boolean isEmpty(RubyHash hash) {
             return hash.empty();
         }
     }
@@ -373,7 +373,7 @@ public abstract class HashNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, Nil block) {
+        RubyHash initialize(RubyHash hash, NotProvided defaultValue, Nil block) {
             assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
@@ -381,7 +381,7 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
+        RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
                 @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
             hash.defaultValue = nil;
@@ -391,7 +391,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
+        RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
                 @Shared @Cached PropagateSharingNode propagateSharingNode) {
             assert HashStoreLibrary.verify(hash);
             propagateSharingNode.execute(this, hash, defaultValue);
@@ -401,7 +401,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        protected Object initialize(RubyHash hash, Object defaultValue, RubyProc block) {
+        Object initialize(RubyHash hash, Object defaultValue, RubyProc block) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
@@ -421,14 +421,14 @@ public abstract class HashNodes {
         public abstract RubyHash execute(RubyHash self, RubyHash from);
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected RubyHash replace(RubyHash self, RubyHash from,
+        RubyHash replace(RubyHash self, RubyHash from,
                 @CachedLibrary("from.store") HashStoreLibrary hashes) {
             hashes.replace(from.store, from, self);
             return self;
         }
 
         @Specialization(guards = "!isRubyHash(from)")
-        protected RubyHash replaceCoerce(RubyHash self, Object from,
+        RubyHash replaceCoerce(RubyHash self, Object from,
                 @Cached DispatchNode coerceNode,
                 @Cached InitializeCopyNode initializeCopy) {
             final Object otherHash = coerceNode.call(
@@ -459,7 +459,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected RubyArray map(RubyHash hash, RubyProc block,
+        RubyArray map(RubyHash hash, RubyProc block,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             final int size = hash.size;
             final BuilderState state = arrayBuilder.start(size);
@@ -478,7 +478,7 @@ public abstract class HashNodes {
     public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
+        RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.execute(this, hash, defaultProc);
             hash.defaultValue = nil;
@@ -487,7 +487,7 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        protected Object setDefaultProc(RubyHash hash, Nil defaultProc) {
+        Object setDefaultProc(RubyHash hash, Nil defaultProc) {
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
             return nil;
@@ -498,7 +498,7 @@ public abstract class HashNodes {
     public abstract static class SetDefaultValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setDefault(RubyHash hash, Object defaultValue,
+        Object setDefault(RubyHash hash, Object defaultValue,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.execute(this, hash, defaultValue);
 
@@ -513,13 +513,13 @@ public abstract class HashNodes {
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "hash.empty()")
-        protected Nil shiftEmpty(RubyHash hash,
+        Nil shiftEmpty(RubyHash hash,
                 @Cached DispatchNode callDefault) {
             return nil;
         }
 
         @Specialization(guards = "!hash.empty()", limit = "hashStrategyLimit()")
-        protected RubyArray shift(RubyHash hash,
+        RubyArray shift(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             return hashes.shift(hash.store, hash);
         }
@@ -530,7 +530,7 @@ public abstract class HashNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int size(RubyHash hash) {
+        int size(RubyHash hash) {
             return hash.size;
         }
     }
@@ -540,13 +540,13 @@ public abstract class HashNodes {
     public abstract static class RehashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        protected RubyHash rehashIdentity(RubyHash hash) {
+        RubyHash rehashIdentity(RubyHash hash) {
             // the identity hash of objects never change.
             return hash;
         }
 
         @Specialization(guards = "!isCompareByIdentity(hash)", limit = "hashStrategyLimit()")
-        protected RubyHash rehashNotIdentity(RubyHash hash,
+        RubyHash rehashNotIdentity(RubyHash hash,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hashes.rehash(hash.store, hash);
             return hash;

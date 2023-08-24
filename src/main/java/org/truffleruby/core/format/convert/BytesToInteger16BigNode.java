@@ -27,17 +27,17 @@ public abstract class BytesToInteger16BigNode extends FormatNode {
     }
 
     @Specialization
-    protected MissingValue decode(MissingValue missingValue) {
+    MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization
-    protected Object decode(Nil nil) {
+    Object decode(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected int decode(byte[] bytes) { // must return int so Ruby nodes can deal with it
+    int decode(byte[] bytes) { // must return int so Ruby nodes can deal with it
         short value = ByteArraySupport.bigEndian().getShort(bytes, 0);
         if (signed) {
             return value;

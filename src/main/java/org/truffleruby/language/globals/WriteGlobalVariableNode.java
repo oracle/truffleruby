@@ -44,7 +44,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     }
 
     @Specialization(guards = "storage.isSimple()")
-    protected Object write(VirtualFrame frame, Object value,
+    Object write(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("create(name)") WriteSimpleGlobalVariableNode simpleNode) {
         simpleNode.execute(value);
@@ -52,7 +52,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity != 2" })
-    protected Object writeHooks(VirtualFrame frame, Object value,
+    Object writeHooks(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode) {
@@ -61,7 +61,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 2" })
-    protected Object writeHooksWithStorage(VirtualFrame frame, Object value,
+    Object writeHooksWithStorage(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,

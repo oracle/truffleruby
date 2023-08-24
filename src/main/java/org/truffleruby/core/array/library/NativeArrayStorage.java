@@ -87,7 +87,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static String toString(NativeArrayStorage storage) {
+    static String toString(NativeArrayStorage storage) {
         return "NativeArrayStorage";
     }
 
@@ -151,7 +151,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static Object makeShared(NativeArrayStorage store, int size,
+    static Object makeShared(NativeArrayStorage store, int size,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         stores.shareElements(store, 0, size);
         return new SharedArrayStorage(store);
@@ -161,7 +161,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     static final class ShareElements {
 
         @Specialization
-        protected static void shareElements(NativeArrayStorage store, int start, int end,
+        static void shareElements(NativeArrayStorage store, int start, int end,
                 @CachedLibrary("store") ArrayStoreLibrary arrayStoreLibrary,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode,
@@ -199,7 +199,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static void fill(NativeArrayStorage store, int start, int length, Object value,
+    static void fill(NativeArrayStorage store, int start, int length, Object value,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         for (int i = start; i < length; ++i) {
             stores.write(store, i, value);
@@ -219,7 +219,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
+    static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         return () -> new Iterator<Object>() {
 

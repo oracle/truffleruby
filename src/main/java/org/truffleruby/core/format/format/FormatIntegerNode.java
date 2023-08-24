@@ -69,13 +69,13 @@ public abstract class FormatIntegerNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization
-    protected byte[] format(int width, int precision, int arg) {
+    byte[] format(int width, int precision, int arg) {
         return format(width, precision, (long) arg);
     }
 
     @TruffleBoundary
     @Specialization
-    protected byte[] format(int width, int precision, long arg) {
+    byte[] format(int width, int precision, long arg) {
 
         final char fchar = this.getFormatCharacter();
         final boolean sign = this.getSign(fchar);
@@ -95,7 +95,7 @@ public abstract class FormatIntegerNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization
-    protected byte[] format(int width, int precision, RubyBignum value) {
+    byte[] format(int width, int precision, RubyBignum value) {
         final BigInteger bigInteger = value.value;
         final boolean negative = bigInteger.signum() < 0;
         final boolean zero = bigInteger.equals(BigInteger.ZERO);

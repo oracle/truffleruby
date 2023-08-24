@@ -22,17 +22,17 @@ public abstract class ToPathNode extends RubyBaseNode {
     public abstract Object execute(Object value);
 
     @Specialization
-    protected RubyString coerceRubyString(RubyString path) {
+    RubyString coerceRubyString(RubyString path) {
         return path;
     }
 
     @Specialization
-    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString path) {
+    ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString path) {
         return path;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected RubyString coerceObject(Object object,
+    RubyString coerceObject(Object object,
             @Cached DispatchNode toPathNode) {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
     }

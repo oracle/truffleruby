@@ -32,7 +32,7 @@ public abstract class WeakRefNodes {
     public abstract static class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object weakRefSetObject(RubyDynamicObject weakRef, Object object,
+        Object weakRefSetObject(RubyDynamicObject weakRef, Object object,
                 @Cached WriteObjectFieldNode fieldNode) {
             fieldNode.execute(this, weakRef, FIELD_NAME, new TruffleWeakReference<>(object));
             return object;
@@ -44,7 +44,7 @@ public abstract class WeakRefNodes {
     public abstract static class WeakRefObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object weakRefObject(RubyDynamicObject weakRef,
+        Object weakRefObject(RubyDynamicObject weakRef,
                 @CachedLibrary("weakRef") DynamicObjectLibrary objectLibrary) {
             final TruffleWeakReference<?> ref = (TruffleWeakReference<?>) objectLibrary
                     .getOrDefault(weakRef, FIELD_NAME, EMPTY_WEAK_REF);

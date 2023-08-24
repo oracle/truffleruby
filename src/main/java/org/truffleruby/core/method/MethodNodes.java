@@ -76,22 +76,22 @@ public abstract class MethodNodes {
     @Primitive(name = "same_methods?")
     public abstract static class SameMethodsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean same(RubyMethod self, RubyMethod other) {
+        boolean same(RubyMethod self, RubyMethod other) {
             return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization
-        protected boolean same(RubyMethod self, RubyUnboundMethod other) {
+        boolean same(RubyMethod self, RubyUnboundMethod other) {
             return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization
-        protected boolean same(RubyUnboundMethod self, RubyMethod other) {
+        boolean same(RubyUnboundMethod self, RubyMethod other) {
             return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization
-        protected boolean same(RubyUnboundMethod self, RubyUnboundMethod other) {
+        boolean same(RubyUnboundMethod self, RubyUnboundMethod other) {
             return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
     }
@@ -100,7 +100,7 @@ public abstract class MethodNodes {
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean equal(RubyMethod a, RubyMethod b,
+        boolean equal(RubyMethod a, RubyMethod b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode
                     .execute(this, a.receiver, b.receiver) &&
@@ -109,7 +109,7 @@ public abstract class MethodNodes {
         }
 
         @Specialization(guards = "!isRubyMethod(b)")
-        protected boolean equal(RubyMethod a, Object b) {
+        boolean equal(RubyMethod a, Object b) {
             return false;
         }
 
@@ -119,7 +119,7 @@ public abstract class MethodNodes {
     public abstract static class ArityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int arity(RubyMethod method) {
+        int arity(RubyMethod method) {
             return method.method.getArityNumber();
         }
 
@@ -129,7 +129,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true, alwaysInlined = true)
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
+        Object call(Frame callerFrame, RubyMethod method, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallInternalMethodNode callInternalMethodNode) {
             final InternalMethod internalMethod = method.method;
             final Object receiver = method.receiver;
@@ -149,7 +149,7 @@ public abstract class MethodNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol name(RubyMethod method) {
+        RubySymbol name(RubyMethod method) {
             return getSymbol(method.method.getName());
         }
 
@@ -160,7 +160,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long hash(RubyMethod rubyMethod) {
+        long hash(RubyMethod rubyMethod) {
             final InternalMethod method = rubyMethod.method;
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, rubyMethod.receiver.hashCode());
@@ -174,7 +174,7 @@ public abstract class MethodNodes {
     public abstract static class OwnerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule owner(RubyMethod method) {
+        RubyModule owner(RubyMethod method) {
             return method.method.getOwner();
         }
 
@@ -185,7 +185,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray parameters(RubyMethod method) {
+        RubyArray parameters(RubyMethod method) {
             final ArgumentDescriptor[] argsDesc = method.method
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
@@ -198,7 +198,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = "private?")
     public abstract static class IsPrivateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isPrivate(RubyMethod method) {
+        boolean isPrivate(RubyMethod method) {
             return method.method.isPrivate();
         }
     }
@@ -206,7 +206,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = "protected?")
     public abstract static class IsProtectedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isProtected(RubyMethod method) {
+        boolean isProtected(RubyMethod method) {
             return method.method.isProtected();
         }
     }
@@ -214,7 +214,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = "public?")
     public abstract static class IsPublicNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isPublic(RubyMethod method) {
+        boolean isPublic(RubyMethod method) {
             return method.method.isPublic();
         }
     }
@@ -223,7 +223,7 @@ public abstract class MethodNodes {
     public abstract static class ReceiverNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object receiver(RubyMethod method) {
+        Object receiver(RubyMethod method) {
             return method.receiver;
         }
     }
@@ -232,7 +232,7 @@ public abstract class MethodNodes {
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object sourceLocation(RubyMethod method,
+        Object sourceLocation(RubyMethod method,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var sourceSection = method.method.getSharedMethodInfo().getSourceSection();
             return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
@@ -243,7 +243,7 @@ public abstract class MethodNodes {
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object superMethod(RubyMethod method,
+        Object superMethod(RubyMethod method,
                 @Cached MetaClassNode metaClassNode) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
@@ -268,7 +268,7 @@ public abstract class MethodNodes {
     public abstract static class UnbindNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyUnboundMethod unbind(RubyMethod method,
+        RubyUnboundMethod unbind(RubyMethod method,
                 @Cached MetaClassNode metaClassNode) {
             final RubyClass receiverClass = metaClassNode.execute(this, method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
@@ -287,7 +287,7 @@ public abstract class MethodNodes {
 
         @Specialization(guards = { "isSingleContext()", "methodObject == cachedMethodObject" },
                 limit = "getCacheLimit()")
-        protected RubyProc toProcCachedSingleContext(RubyMethod methodObject,
+        RubyProc toProcCachedSingleContext(RubyMethod methodObject,
                 @Cached("methodObject") RubyMethod cachedMethodObject,
                 @Cached("toProcUncached(cachedMethodObject)") RubyProc proc) {
             return proc;
@@ -297,14 +297,14 @@ public abstract class MethodNodes {
                 guards = "methodObject.method.getCallTarget() == methodCallTarget",
                 limit = "getCacheLimit()",
                 replaces = "toProcCachedSingleContext")
-        protected RubyProc toProcCachedTarget(RubyMethod methodObject,
+        RubyProc toProcCachedTarget(RubyMethod methodObject,
                 @Cached("methodObject.method.getCallTarget()") RootCallTarget methodCallTarget,
                 @Cached("procCallTargetToCallRubyMethod(methodCallTarget)") RootCallTarget procCallTarget) {
             return createProc(procCallTarget, methodObject.method, methodObject.receiver);
         }
 
         @Specialization(replaces = { "toProcCachedSingleContext", "toProcCachedTarget" })
-        protected RubyProc toProcUncached(RubyMethod methodObject) {
+        RubyProc toProcUncached(RubyMethod methodObject) {
             final InternalMethod method = methodObject.method;
             final Object receiver = methodObject.receiver;
             final RootCallTarget callTarget = procCallTargetToCallRubyMethod(method.getCallTarget());
@@ -381,13 +381,13 @@ public abstract class MethodNodes {
     public abstract static class MethodUnimplementNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object bound(RubyMethod rubyMethod) {
+        Object bound(RubyMethod rubyMethod) {
             unimplement(rubyMethod.method);
             return nil;
         }
 
         @Specialization
-        protected Object unbound(RubyUnboundMethod rubyMethod) {
+        Object unbound(RubyUnboundMethod rubyMethod) {
             unimplement(rubyMethod.method);
             return nil;
         }
@@ -402,12 +402,12 @@ public abstract class MethodNodes {
     public abstract static class MethodIsUnimplementedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean bound(RubyMethod rubyMethod) {
+        boolean bound(RubyMethod rubyMethod) {
             return rubyMethod.method.isUnimplemented();
         }
 
         @Specialization
-        protected boolean unbound(RubyUnboundMethod rubyMethod) {
+        boolean unbound(RubyUnboundMethod rubyMethod) {
             return rubyMethod.method.isUnimplemented();
         }
 
@@ -418,7 +418,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object allocate(RubyClass rubyClass) {
+        Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

@@ -29,17 +29,17 @@ public abstract class SingleValueCastNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object[] args);
 
     @Specialization(guards = "noArguments(args)")
-    protected static Object castNil(Object[] args) {
+    static Object castNil(Object[] args) {
         return nil;
     }
 
     @Specialization(guards = "singleArgument(args)")
-    protected static Object castSingle(Object[] args) {
+    static Object castSingle(Object[] args) {
         return args[0];
     }
 
     @Specialization(guards = { "!noArguments(args)", "!singleArgument(args)" })
-    protected static RubyArray castMany(Node node, Object[] args) {
+    static RubyArray castMany(Node node, Object[] args) {
         return createArray(node, args);
     }
 

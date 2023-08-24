@@ -36,7 +36,7 @@ public abstract class TruffleThreadNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected static Object findRubyCaller(RubyArray modules,
+        static Object findRubyCaller(RubyArray modules,
                 @Bind("modules.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached GetSpecialVariableStorage storageNode,

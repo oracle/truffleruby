@@ -36,7 +36,7 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
     public abstract Object[] executeToObjectArray(RubyArray array);
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected Object[] toObjectArrayOther(RubyArray array,
+    Object[] toObjectArrayOther(RubyArray array,
             @Bind("array.getStore()") Object store,
             @Cached IntValueProfile sizeProfile,
             @CachedLibrary("store") ArrayStoreLibrary stores) {

@@ -43,12 +43,12 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     abstract RubyNode getChildNode();
 
     @Specialization
-    protected Nil doNil(Nil nil) {
+    Nil doNil(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected RubyProc doRubyProc(RubyProc proc) {
+    RubyProc doRubyProc(RubyProc proc) {
         return proc;
     }
 
@@ -58,7 +58,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
             guards = { "isSingleContext()", "symbol == cachedSymbol" },
             assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
-    protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
+    Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getProcForSymbol(getRefinements(frame), cachedSymbol)") RubyProc cachedProc) {
         return cachedProc;
@@ -68,7 +68,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
             guards = { "getRefinements(frame) == NO_REFINEMENTS", "symbol == cachedSymbol" },
             assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
-    protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
+    Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, NO_REFINEMENTS)") RootCallTarget callTarget) {
         return SymbolNodes.ToProcNode
@@ -76,7 +76,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" }, replaces = "doRubySymbolASTInlined")
-    protected RubyProc doObject(VirtualFrame frame, Object object,
+    RubyProc doObject(VirtualFrame frame, Object object,
             @Cached DispatchNode toProc,
             @Cached InlinedBranchProfile errorProfile) {
         // The semantics are to call #method_missing here

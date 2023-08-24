@@ -24,7 +24,7 @@ public abstract class FalseClassNodes {
     public abstract static class AndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean and(Object other) {
+        boolean and(Object other) {
             return false;
         }
     }
@@ -33,7 +33,7 @@ public abstract class FalseClassNodes {
     public abstract static class OrXorNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean orXor(Object other,
+        boolean orXor(Object other,
                 @Cached BooleanCastNode cast) {
             return cast.execute(this, other);
         }

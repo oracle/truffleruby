@@ -98,7 +98,7 @@ public abstract class BasicObjectNodes {
     public abstract static class NotNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean not(Object value,
+        boolean not(Object value,
                 @Cached BooleanCastNode cast) {
             return !cast.execute(this, value);
         }
@@ -111,7 +111,7 @@ public abstract class BasicObjectNodes {
         @Child private DispatchNode equalNode = DispatchNode.create();
 
         @Specialization
-        protected boolean equal(VirtualFrame frame, Object a, Object b,
+        boolean equal(VirtualFrame frame, Object a, Object b,
                 @Cached BooleanCastNode booleanCastNode) {
             return !booleanCastNode.execute(this, equalNode.call(a, "==", b));
         }
@@ -127,7 +127,7 @@ public abstract class BasicObjectNodes {
 
 
         @Specialization
-        protected boolean equal(Object a, Object b,
+        boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.execute(this, a, b);
         }
@@ -138,7 +138,7 @@ public abstract class BasicObjectNodes {
     public abstract static class BasicObjectObjectIDNode extends CoreMethodNode {
 
         @Specialization
-        protected Object objectIDNode(Object value,
+        Object objectIDNode(Object value,
                 @Cached ObjectIDNode objectIDNode) {
             return objectIDNode.execute(value);
         }
@@ -156,32 +156,32 @@ public abstract class BasicObjectNodes {
         public abstract long execute(RubyDynamicObject value);
 
         @Specialization
-        protected long objectIDNil(Nil nil) {
+        long objectIDNil(Nil nil) {
             return ObjectIDOperations.NIL;
         }
 
         @Specialization(guards = "value")
-        protected long objectIDTrue(boolean value) {
+        long objectIDTrue(boolean value) {
             return ObjectIDOperations.TRUE;
         }
 
         @Specialization(guards = "!value")
-        protected long objectIDFalse(boolean value) {
+        long objectIDFalse(boolean value) {
             return ObjectIDOperations.FALSE;
         }
 
         @Specialization
-        protected long objectID(int value) {
+        long objectID(int value) {
             return ObjectIDOperations.smallFixnumToID(value);
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
-        protected long objectIDSmallFixnumOverflow(long value) throws ArithmeticException {
+        long objectIDSmallFixnumOverflow(long value) throws ArithmeticException {
             return ObjectIDOperations.smallFixnumToIDOverflow(value);
         }
 
         @Specialization(replaces = "objectIDSmallFixnumOverflow")
-        protected static Object objectIDLong(long value,
+        static Object objectIDLong(long value,
                 @Cached InlinedCountingConditionProfile smallProfile,
                 @Bind("this") Node node) {
             if (smallProfile.profile(node, ObjectIDOperations.isSmallFixnum(value))) {
@@ -192,12 +192,12 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected RubyBignum objectID(double value) {
+        RubyBignum objectID(double value) {
             return ObjectIDOperations.floatToID(value);
         }
 
         @Specialization(guards = "!isNil(object)")
-        protected long objectIDImmutable(ImmutableRubyObject object) {
+        long objectIDImmutable(ImmutableRubyObject object) {
             final long id = object.getObjectId();
 
             if (id == 0) {
@@ -210,7 +210,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected long objectID(RubyDynamicObject object,
+        long objectID(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             // Using the context here has the desirable effect that it checks the context is entered on this thread,
             // which is necessary to safely mutate DynamicObjects.
@@ -239,7 +239,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
-        protected static int objectIDForeign(Object value,
+        static int objectIDForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
@@ -259,7 +259,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "initialize", alwaysInlined = true)
     public abstract static class InitializeNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object initialize(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
+        Object initialize(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return nil;
         }
     }
@@ -269,7 +269,7 @@ public abstract class BasicObjectNodes {
     public abstract static class InstanceEvalNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "isBlockProvided(rubyArgs)")
-        protected Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object evalWithBlock(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InstanceExecBlockNode instanceExecNode,
                 @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
@@ -285,7 +285,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
-        protected static Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        static Object evalWithString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Exclusive InlinedBranchProfile zeroNumberOfArguments,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -392,7 +392,7 @@ public abstract class BasicObjectNodes {
         abstract Object executeInstanceExec(VirtualFrame frame, Object self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, RubyProc block) {
+        Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, RubyProc block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(receiver),
@@ -403,7 +403,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected Object instanceExec(Object receiver, Object[] arguments, Nil block) {
+        Object instanceExec(Object receiver, Object[] arguments, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
 
@@ -415,7 +415,7 @@ public abstract class BasicObjectNodes {
         public abstract Object execute(ArgumentsDescriptor descriptor, Object self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
+        Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
@@ -433,12 +433,12 @@ public abstract class BasicObjectNodes {
     public abstract static class MethodMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object methodMissingNoName(Object self, NotProvided name, Object[] args, Nil block) {
+        Object methodMissingNoName(Object self, NotProvided name, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
         @Specialization(guards = "wasProvided(name)")
-        protected Object methodMissing(Object self, Object name, Object[] args, Object block) {
+        Object methodMissing(Object self, Object name, Object[] args, Object block) {
             throw new RaiseException(getContext(), buildMethodMissingException(self, name, args, block));
         }
 
@@ -556,7 +556,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1, alwaysInlined = true)
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
@@ -573,16 +573,14 @@ public abstract class BasicObjectNodes {
             alwaysInlined = true)
     public abstract static class AllocateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected RubyBasicObject allocate(
-                Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
+        RubyBasicObject allocate(Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, getLanguage().basicObjectShape);
             AllocationTracing.traceInlined(instance, "Class", "__allocate__", this);
             return instance;
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
-        protected Shape allocateSingleton(
-                Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
+        Shape allocateSingleton(Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));

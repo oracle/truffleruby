@@ -37,13 +37,13 @@ public abstract class FreezeNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static Object freezeRubyString(RubyString object) {
+    static Object freezeRubyString(RubyString object) {
         return object.frozen = true;
     }
 
     @Specialization(guards = { "!isRubyObjectRange(object)", "isNotRubyString(object)" },
             limit = "getDynamicObjectCacheLimit()")
-    protected static Object freeze(Node node, RubyDynamicObject object,
+    static Object freeze(Node node, RubyDynamicObject object,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         if (objectLibrary.isShared(object)) {
             synchronized (object) {
@@ -57,32 +57,32 @@ public abstract class FreezeNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static Object freezeRubyObjectRange(RubyObjectRange object) {
+    static Object freezeRubyObjectRange(RubyObjectRange object) {
         return object.frozen = true;
     }
 
     @Specialization
-    protected static Object freeze(ImmutableRubyObject object) {
+    static Object freeze(ImmutableRubyObject object) {
         return object;
     }
 
     @Specialization
-    protected static Object freeze(boolean object) {
+    static Object freeze(boolean object) {
         return object;
     }
 
     @Specialization
-    protected static Object freeze(int object) {
+    static Object freeze(int object) {
         return object;
     }
 
     @Specialization
-    protected static Object freeze(long object) {
+    static Object freeze(long object) {
         return object;
     }
 
     @Specialization
-    protected static Object freeze(double object) {
+    static Object freeze(double object) {
         return object;
     }
 

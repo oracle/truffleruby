@@ -59,7 +59,7 @@ public abstract class TimeNodes {
         private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, GetTimeZoneNode.UTC);
 
         @Specialization
-        protected RubyTime allocate(RubyClass rubyClass) {
+        RubyTime allocate(RubyClass rubyClass) {
             final RubyTime instance = new RubyTime(rubyClass, getLanguage().timeShape, ZERO, nil, 0, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -70,7 +70,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyTime initializeCopy(RubyTime self, RubyTime from) {
+        RubyTime initializeCopy(RubyTime self, RubyTime from) {
             self.dateTime = from.dateTime;
             self.offset = from.offset;
             self.zone = from.zone;
@@ -86,7 +86,7 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization
-        protected RubyTime localtime(RubyTime time, Nil offset,
+        RubyTime localtime(RubyTime time, Nil offset,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(time.dateTime, timeZoneAndName.getZone());
@@ -102,7 +102,7 @@ public abstract class TimeNodes {
         }
 
         @Specialization
-        protected RubyTime localtime(RubyTime time, long offset) {
+        RubyTime localtime(RubyTime time, long offset) {
             final ZoneId zone = getDateTimeZone((int) offset);
             final ZonedDateTime dateTime = withZone(time.dateTime, zone);
 
@@ -136,7 +136,7 @@ public abstract class TimeNodes {
     public abstract static class UtcTimeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyTime utc(RubyTime time) {
+        RubyTime utc(RubyTime time) {
             time.isUtc = true;
             time.relativeOffset = false;
             time.zone = coreStrings().UTC.createInstance(getContext());
@@ -156,7 +156,7 @@ public abstract class TimeNodes {
     public abstract static class TimeAddNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyTime add(RubyTime time, long seconds, long nanoSeconds) {
+        RubyTime add(RubyTime time, long seconds, long nanoSeconds) {
             final ZonedDateTime dateTime = time.dateTime;
             time.dateTime = dateTime.plusSeconds(seconds).plusNanos(nanoSeconds);
             return time;
@@ -167,7 +167,7 @@ public abstract class TimeNodes {
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyTime gmtime(RubyTime time,
+        RubyTime gmtime(RubyTime time,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached InlinedBranchProfile notModifiedProfile,
                 @Cached IsFrozenNode isFrozenNode) {
@@ -206,7 +206,7 @@ public abstract class TimeNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyTime timeNow(RubyClass timeClass) {
+        RubyTime timeNow(RubyClass timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final String shortZoneName = zoneAndName.getName(dt);
@@ -231,7 +231,7 @@ public abstract class TimeNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
+        RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final String shortZoneName = zoneAndName.getName(dateTime);
@@ -244,7 +244,7 @@ public abstract class TimeNodes {
         }
 
         @Specialization
-        protected RubyTime timeAt(RubyClass timeClass, RubyBignum seconds, int nanoseconds) {
+        RubyTime timeAt(RubyClass timeClass, RubyBignum seconds, int nanoseconds) {
             throw outOfRange(seconds);
         }
 
@@ -269,7 +269,7 @@ public abstract class TimeNodes {
     public abstract static class TimeSecondsSinceEpochNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected long timeSeconds(RubyTime time) {
+        long timeSeconds(RubyTime time) {
             return time.dateTime.toInstant().getEpochSecond();
         }
     }
@@ -277,7 +277,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "usec", "tv_usec" })
     public abstract static class TimeMicroSecondsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeUSec(RubyTime time) {
+        int timeUSec(RubyTime time) {
             return time.dateTime.getNano() / 1000;
         }
     }
@@ -285,7 +285,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "nsec", "tv_nsec" })
     public abstract static class TimeNanoSecondsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeNSec(RubyTime time) {
+        int timeNSec(RubyTime time) {
             return time.dateTime.getNano();
         }
     }
@@ -294,7 +294,7 @@ public abstract class TimeNodes {
     public abstract static class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected long timeSetNSeconds(RubyTime time, int nanoseconds) {
+        long timeSetNSeconds(RubyTime time, int nanoseconds) {
             final ZonedDateTime dateTime = time.dateTime;
             time.dateTime = dateTime.plusNanos(nanoseconds - dateTime.getNano());
             return nanoseconds;
@@ -304,7 +304,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "utc_offset", "gmt_offset", "gmtoff" })
     public abstract static class TimeUTCOffsetNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeUTCOffset(RubyTime time) {
+        int timeUTCOffset(RubyTime time) {
             return time.dateTime.getOffset().getTotalSeconds();
         }
     }
@@ -312,7 +312,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "sec")
     public abstract static class TimeSecNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeSec(RubyTime time) {
+        int timeSec(RubyTime time) {
             return time.dateTime.getSecond();
         }
     }
@@ -320,7 +320,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "min")
     public abstract static class TimeMinNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeMin(RubyTime time) {
+        int timeMin(RubyTime time) {
             return time.dateTime.getMinute();
         }
     }
@@ -328,7 +328,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "hour")
     public abstract static class TimeHourNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeHour(RubyTime time) {
+        int timeHour(RubyTime time) {
             return time.dateTime.getHour();
         }
     }
@@ -336,7 +336,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "day", "mday" })
     public abstract static class TimeDayNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeDay(RubyTime time) {
+        int timeDay(RubyTime time) {
             return time.dateTime.getDayOfMonth();
         }
     }
@@ -344,7 +344,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "mon", "month" })
     public abstract static class TimeMonthNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeMonth(RubyTime time) {
+        int timeMonth(RubyTime time) {
             return time.dateTime.getMonthValue();
         }
     }
@@ -352,7 +352,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "year")
     public abstract static class TimeYearNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected int timeYear(RubyTime time) {
+        int timeYear(RubyTime time) {
             return time.dateTime.getYear();
         }
     }
@@ -361,7 +361,7 @@ public abstract class TimeNodes {
     public abstract static class TimeWeekDayNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int timeWeekDay(RubyTime time) {
+        int timeWeekDay(RubyTime time) {
             int wday = time.dateTime.getDayOfWeek().getValue();
             if (wday == 7) {
                 wday = 0;
@@ -374,7 +374,7 @@ public abstract class TimeNodes {
     public abstract static class TimeYearDayNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int timeYeayDay(RubyTime time) {
+        int timeYeayDay(RubyTime time) {
             return time.dateTime.getDayOfYear();
         }
     }
@@ -383,7 +383,7 @@ public abstract class TimeNodes {
     public abstract static class TimeIsDSTNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected boolean timeIsDST(RubyTime time) {
+        boolean timeIsDST(RubyTime time) {
             final ZonedDateTime dateTime = time.dateTime;
             return dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
         }
@@ -392,7 +392,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "utc?", "gmt?" })
     public abstract static class IsUTCNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isUTC(RubyTime time) {
+        boolean isUTC(RubyTime time) {
             return time.isUtc;
         }
     }
@@ -400,7 +400,7 @@ public abstract class TimeNodes {
     @Primitive(name = "time_zone")
     public abstract static class TimeZoneNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object timeZone(RubyTime time) {
+        Object timeZone(RubyTime time) {
             return time.zone;
         }
     }
@@ -408,7 +408,7 @@ public abstract class TimeNodes {
     @Primitive(name = "time_set_zone")
     public abstract static class TimeSetZoneNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(zone)", limit = "1")
-        protected Object timeSetZone(RubyTime time, Object zone,
+        Object timeSetZone(RubyTime time, Object zone,
                 @Cached RubyStringLibrary strings) {
             time.zone = zone;
             return zone;
@@ -422,7 +422,7 @@ public abstract class TimeNodes {
         @Specialization(
                 guards = "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
-        protected static RubyString timeStrftimeCached(RubyTime time, Object format,
+        static RubyString timeStrftimeCached(RubyTime time, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
@@ -448,7 +448,7 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached")
-        protected RubyString timeStrftime(RubyTime time, Object format,
+        RubyString timeStrftime(RubyTime time, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached @Shared TruffleString.ConcatNode concatNode,
                 @Cached @Shared TruffleString.FromLongNode fromLongNode,
@@ -516,7 +516,7 @@ public abstract class TimeNodes {
 
         @Specialization(guards = "(isutc || !isRubyDynamicObject(utcoffset)) || isNil(utcoffset)")
         @TruffleBoundary
-        protected RubyTime timeSFromArray(
+        RubyTime timeSFromArray(
                 RubyClass timeClass,
                 int sec,
                 int min,

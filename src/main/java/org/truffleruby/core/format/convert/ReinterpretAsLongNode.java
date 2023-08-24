@@ -25,7 +25,7 @@ public abstract class ReinterpretAsLongNode extends FormatNode {
     }
 
     @Specialization
-    protected long asLong(double object) {
+    long asLong(double object) {
         if (bits == 32) {
             return Float.floatToRawIntBits((float) object);
         } else if (bits == 64) {

@@ -26,7 +26,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     public abstract Object executeEnsureCapacity(RubyArray array, int requiredCapacity);
 
     @Specialization(guards = "!stores.isMutable(store)", limit = "storageStrategyLimit()")
-    protected Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
+    Object ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached @Shared CountingConditionProfile extendProfile) {
@@ -45,7 +45,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "stores.isMutable(store)", limit = "storageStrategyLimit()")
-    protected Object ensureCapacity(RubyArray array, int requiredCapacity,
+    Object ensureCapacity(RubyArray array, int requiredCapacity,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached @Shared CountingConditionProfile extendProfile) {

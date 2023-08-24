@@ -27,32 +27,32 @@ public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean doInt(int a, int b) {
+    boolean doInt(int a, int b) {
         return a < b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean doLong(long a, long b) {
+    boolean doLong(long a, long b) {
         return a < b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean doDouble(double a, double b) {
+    boolean doDouble(double a, double b) {
         return a < b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean longDouble(long a, double b) {
+    boolean longDouble(long a, double b) {
         return a < b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected boolean doubleLong(double a, long b) {
+    boolean doubleLong(double a, long b) {
         return a < b;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

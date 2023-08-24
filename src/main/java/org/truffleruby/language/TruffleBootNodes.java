@@ -64,7 +64,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object rubyHome() {
+        Object rubyHome() {
             final String home = getLanguage().getRubyHome();
             if (home == null) {
                 return nil;
@@ -79,7 +79,7 @@ public abstract class TruffleBootNodes {
     public abstract static class ForceContextNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object forceContext() {
+        Object forceContext() {
             return nil;
         }
     }
@@ -88,7 +88,7 @@ public abstract class TruffleBootNodes {
     public abstract static class IsPreinitializingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isPreinitializingContext() {
+        boolean isPreinitializingContext() {
             return getContext().isPreInitializing();
         }
     }
@@ -97,7 +97,7 @@ public abstract class TruffleBootNodes {
     public abstract static class WasPreinitializedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean wasPreinitializedContext() {
+        boolean wasPreinitializedContext() {
             return getContext().wasPreInitialized();
         }
     }
@@ -113,7 +113,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int main(int argc, long argv, String kind, String toExecute) {
+        int main(int argc, long argv, String kind, String toExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 getContext().nativeArgc = argc;
                 getContext().nativeArgv = argv;
@@ -215,7 +215,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray originalArgv() {
+        RubyArray originalArgv() {
             final String[] argv = getContext().getEnv().getApplicationArguments();
             final Object[] array = new Object[argv.length];
 
@@ -238,7 +238,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray extraLoadPaths() {
+        RubyArray extraLoadPaths() {
             final String[] paths = getContext().getOptions().LOAD_PATHS;
             final Object[] array = new Object[paths.length];
 
@@ -258,7 +258,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object sourceOfCaller() {
+        Object sourceOfCaller() {
             final int[] frameCount = new int[]{ 0 };
 
             final Source source = Truffle.getRuntime().iterateFrames(frameInstance -> {
@@ -284,7 +284,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object innerCheckSyntax(RubySource source) {
+        Object innerCheckSyntax(RubySource source) {
             RubyContext context = getContext();
             RootCallTarget callTarget = context
                     .getCodeLoader()
@@ -306,7 +306,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libOptionName.isRubyString(optionName)", limit = "1")
-        protected Object getOption(Object optionName,
+        Object getOption(Object optionName,
                 @Cached RubyStringLibrary libOptionName) {
             final String optionNameString = RubyGuards.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
@@ -360,7 +360,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object printTimeMetric(RubySymbol name) {
+        Object printTimeMetric(RubySymbol name) {
             Metrics.printTime(name.getString());
             return nil;
         }
@@ -371,7 +371,7 @@ public abstract class TruffleBootNodes {
     public abstract static class SingleThreadedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean singleThreaded() {
+        boolean singleThreaded() {
             return getContext().getOptions().SINGLE_THREADED;
         }
 
@@ -382,7 +382,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object toolchainExecutable(RubySymbol executable,
+        Object toolchainExecutable(RubySymbol executable,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String name = executable.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
@@ -403,7 +403,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object toolchainPaths(RubySymbol pathName,
+        Object toolchainPaths(RubySymbol pathName,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String name = pathName.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
@@ -448,7 +448,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString basicABIVersion(
+        RubyString basicABIVersion(
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             TruffleFile file = getLanguage().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
             byte[] bytes;

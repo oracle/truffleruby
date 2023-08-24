@@ -48,14 +48,14 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     protected abstract void executeInternal(Node node, RubyDynamicObject object, int depth);
 
     @Specialization(limit = "CACHE_LIMIT")
-    protected static void shareArray(RubyArray array, int depth,
+    static void shareArray(RubyArray array, int depth,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         array.setStore(stores.makeShared(store, array.size));
     }
 
     @Specialization
-    protected static void shareCachedQueue(Node node, RubyQueue object, int depth,
+    static void shareCachedQueue(Node node, RubyQueue object, int depth,
             @Cached InlinedConditionProfile profileEmpty,
             @Cached WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = object.queue;
@@ -67,7 +67,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static void shareCachedBasicObject(RubyBasicObject object, int depth) {
+    static void shareCachedBasicObject(RubyBasicObject object, int depth) {
         /* No extra Java fields for RubyBasicObject */
     }
 
@@ -76,7 +76,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
                     "shareArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
-    protected static void shareUncached(RubyDynamicObject object, int depth) {
+    static void shareUncached(RubyDynamicObject object, int depth) {
         SharedObjects.shareInternalFields(object);
     }
 

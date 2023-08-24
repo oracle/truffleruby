@@ -54,12 +54,12 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
     }
 
     @Specialization(guards = "hash == null")
-    protected Object nullHash(VirtualFrame frame, RubyHash hash) {
+    Object nullHash(VirtualFrame frame, RubyHash hash) {
         return getDefaultValue().execute(frame);
     }
 
     @Specialization(guards = "hash != null", limit = "hashStrategyLimit()")
-    protected Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash,
+    Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash,
             @CachedLibrary("getHashStore(hash)") HashStoreLibrary hashes) {
         return hashes.lookupOrDefault(hash.store, frame, hash, name, this);
     }

@@ -53,7 +53,7 @@ public abstract class DigestNodes {
     public abstract static class MD5Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyDigest md5() {
+        RubyDigest md5() {
             return createDigest(this, DigestAlgorithm.MD5);
         }
 
@@ -63,7 +63,7 @@ public abstract class DigestNodes {
     public abstract static class SHA1Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyDigest sha1() {
+        RubyDigest sha1() {
             return createDigest(this, DigestAlgorithm.SHA1);
         }
 
@@ -73,7 +73,7 @@ public abstract class DigestNodes {
     public abstract static class SHA256Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyDigest sha256() {
+        RubyDigest sha256() {
             return createDigest(this, DigestAlgorithm.SHA256);
         }
 
@@ -83,7 +83,7 @@ public abstract class DigestNodes {
     public abstract static class SHA384Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyDigest sha384() {
+        RubyDigest sha384() {
             return createDigest(this, DigestAlgorithm.SHA384);
         }
 
@@ -93,7 +93,7 @@ public abstract class DigestNodes {
     public abstract static class SHA512Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyDigest sha512() {
+        RubyDigest sha512() {
             return createDigest(this, DigestAlgorithm.SHA512);
         }
 
@@ -103,7 +103,7 @@ public abstract class DigestNodes {
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
-        protected RubyDigest update(RubyDigest digestObject, Object message,
+        RubyDigest update(RubyDigest digestObject, Object message,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;
@@ -125,7 +125,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyDigest reset(RubyDigest digestObject) {
+        RubyDigest reset(RubyDigest digestObject) {
             digestObject.digest.reset();
             return digestObject;
         }
@@ -138,7 +138,7 @@ public abstract class DigestNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization
-        protected RubyString digest(RubyDigest digestObject) {
+        RubyString digest(RubyDigest digestObject) {
             final MessageDigest digest = digestObject.digest;
 
             return createString(fromByteArrayNode, cloneAndDigest(digest), Encodings.BINARY);
@@ -165,7 +165,7 @@ public abstract class DigestNodes {
     public abstract static class DigestBlockLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int digestBlockLength(RubyDigest digestObject) {
+        int digestBlockLength(RubyDigest digestObject) {
             return digestObject.algorithm.getBlockLength();
         }
 
@@ -175,7 +175,7 @@ public abstract class DigestNodes {
     public abstract static class DigestLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int digestLength(RubyDigest digestObject) {
+        int digestLength(RubyDigest digestObject) {
             return digestObject.algorithm.getLength();
         }
 
@@ -188,7 +188,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
-        protected RubyString bubblebabble(Object message,
+        RubyString bubblebabble(Object message,
                 @Cached RubyStringLibrary strings) {
             var tstring = strings.getTString(message);
             var byteArray = tstring.getInternalByteArrayUncached(strings.getTEncoding(message));

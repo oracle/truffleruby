@@ -31,7 +31,7 @@ public abstract class ProcessNodes {
     public abstract static class Argv0Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected ImmutableRubyString argv0() {
+        ImmutableRubyString argv0() {
             return getContext().getMainScriptName();
         }
 
@@ -42,7 +42,7 @@ public abstract class ProcessNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long nanoTime() {
+        long nanoTime() {
             return System.nanoTime();
         }
 
@@ -53,7 +53,7 @@ public abstract class ProcessNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long instant() {
+        long instant() {
             final Instant now = Instant.now();
             return (now.getEpochSecond() * 1_000_000_000L) + now.getNano();
         }
@@ -65,7 +65,7 @@ public abstract class ProcessNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int raise(RubySymbol signalName) {
+        int raise(RubySymbol signalName) {
             final Signal signal = new Signal(signalName.getString());
             try {
                 Signal.raise(signal);

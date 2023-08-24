@@ -38,7 +38,7 @@ public abstract class RefinementNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyModule importMethods(RubyModule refinement, RubyModule moduleToImportFrom) {
+        RubyModule importMethods(RubyModule refinement, RubyModule moduleToImportFrom) {
             var firstNonRubyMethod = getFirstNonRubyMethodOrNull(moduleToImportFrom, getLanguage());
             if (firstNonRubyMethod != null) {
                 throw new RaiseException(getContext(),
@@ -103,7 +103,7 @@ public abstract class RefinementNodes {
     public abstract static class RefinedClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule refinedClass(RubyModule refinement) {
+        RubyModule refinedClass(RubyModule refinement) {
             return refinement.fields.getRefinedModule();
         }
     }

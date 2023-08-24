@@ -31,17 +31,17 @@ public abstract class InlinedBitOrNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object intBitOr(int a, int b) {
+    Object intBitOr(int a, int b) {
         return getBitOrNode().executeBitOr(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longBitOr(long a, long b) {
+    Object longBitOr(long a, long b) {
         return getBitOrNode().executeBitOr(a, b);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

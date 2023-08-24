@@ -47,7 +47,7 @@ public abstract class ArrayIndexNodes {
         public abstract RubyNode getArrayNode();
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object readInBounds(RubyArray array,
+        Object readInBounds(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile isInBounds) {
@@ -88,14 +88,14 @@ public abstract class ArrayIndexNodes {
         @Specialization(
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
-        protected Object readInBounds(RubyArray array, int index,
+        Object readInBounds(RubyArray array, int index,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.read(store, index);
         }
 
         @Specialization(guards = "!isInBounds(array, index)")
-        protected Object readOutOfBounds(RubyArray array, int index) {
+        Object readOutOfBounds(RubyArray array, int index) {
             return nil;
         }
 
@@ -110,17 +110,17 @@ public abstract class ArrayIndexNodes {
         public abstract Object executeReadSlice(RubyArray array, int index, int length);
 
         @Specialization(guards = "!indexInBounds(array, index)")
-        protected Object readIndexOutOfBounds(RubyArray array, int index, int length) {
+        Object readIndexOutOfBounds(RubyArray array, int index, int length) {
             return nil;
         }
 
         @Specialization(guards = "length < 0")
-        protected Object readNegativeLength(RubyArray array, int index, int length) {
+        Object readNegativeLength(RubyArray array, int index, int length) {
             return nil;
         }
 
         @Specialization(guards = { "indexInBounds(array, index)", "length >= 0" })
-        protected RubyArray readInBounds(RubyArray array, int index, int length,
+        RubyArray readInBounds(RubyArray array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile endsInBoundsProfile) {
             final int size = array.size;

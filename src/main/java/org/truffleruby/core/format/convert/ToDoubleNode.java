@@ -34,35 +34,35 @@ public abstract class ToDoubleNode extends FormatNode {
     public abstract double executeToDouble(Object object);
 
     @Specialization
-    protected double toDouble(int value) {
+    double toDouble(int value) {
         return value;
     }
 
     @Specialization
-    protected double toDouble(long value) {
+    double toDouble(long value) {
         return value;
     }
 
     @Specialization
-    protected double toDouble(double value) {
+    double toDouble(double value) {
         return value;
     }
 
     @Specialization
     @TruffleBoundary
-    protected double toDouble(RubyBignum bignum) {
+    double toDouble(RubyBignum bignum) {
         return bignum.value.doubleValue();
     }
 
     @Specialization(guards = { "!isRubyNumber(object)", "isNumeric(object, isANode)" })
-    protected double toDouble(RubyDynamicObject object,
+    double toDouble(RubyDynamicObject object,
             @Cached @Shared IsANode isANode,
             @Cached ToFNode toFNode) {
         return toFNode.executeToDouble(object);
     }
 
     @Specialization(guards = { "!isRubyNumber(object)", "!isNumeric(object, isANode)" })
-    protected double toDouble(Object object,
+    double toDouble(Object object,
             @Cached @Shared IsANode isANode) {
         throw new RaiseException(
                 getContext(),

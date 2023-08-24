@@ -34,7 +34,7 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
     private final ConditionProfile bignumProfile = ConditionProfile.create();
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected Object read(VirtualFrame frame, Object source,
+    Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         final Object value = sources.read(source, advanceSourcePosition(frame));
 

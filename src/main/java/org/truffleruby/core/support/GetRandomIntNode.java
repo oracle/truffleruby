@@ -34,18 +34,18 @@ public abstract class GetRandomIntNode extends RubyBaseNode {
             : ByteArraySupport.littleEndian();
 
     @Specialization
-    protected int genRandInt(RubyPRNGRandomizer randomizer) {
+    int genRandInt(RubyPRNGRandomizer randomizer) {
         return randomizer.genrandInt32();
     }
 
     @Specialization
-    protected int genRandInt(RubySecureRandomizer randomizer) {
+    int genRandInt(RubySecureRandomizer randomizer) {
         final byte[] bytes = getContext().getRandomSeedBytes(4);
         return byteArraySupport.getInt(bytes, 0);
     }
 
     @Specialization
-    protected int genRandFallback(RubyCustomRandomizer randomizer,
+    int genRandFallback(RubyCustomRandomizer randomizer,
             @Cached DispatchNode randomIntNode,
             @Cached FixnumLowerNode fixnumLowerNode) {
         return (int) fixnumLowerNode.execute(

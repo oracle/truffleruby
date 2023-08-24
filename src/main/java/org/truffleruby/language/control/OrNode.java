@@ -29,7 +29,7 @@ public abstract class OrNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doOr(VirtualFrame frame,
+    Object doOr(VirtualFrame frame,
             @Cached BooleanCastNode leftCast,
             @Cached InlinedCountingConditionProfile conditionProfile) {
         final Object leftValue = left.execute(frame);

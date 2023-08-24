@@ -44,19 +44,19 @@ public abstract class LookupGlobalVariableStorageNode extends RubyBaseNode {
     @Specialization(
             guards = "isSingleContext()",
             assumptions = "getLanguage().getGlobalVariableNeverAliasedAssumption(index)")
-    protected GlobalVariableStorage singleContext(
+    GlobalVariableStorage singleContext(
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
         return storage;
     }
 
     @Specialization(
             assumptions = "getLanguage().getGlobalVariableNeverAliasedAssumption(index)")
-    protected GlobalVariableStorage multiContext() {
+    GlobalVariableStorage multiContext() {
         return getContext().getGlobalVariableStorage(index);
     }
 
     @Specialization(guards = "!getLanguage().getGlobalVariableNeverAliasedAssumption(index).isValid()")
-    protected GlobalVariableStorage aliased() {
+    GlobalVariableStorage aliased() {
         return getContext().globalVariablesArray.get(index);
     }
 

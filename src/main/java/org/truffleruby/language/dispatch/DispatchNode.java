@@ -274,7 +274,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
     }
 
     @Specialization
-    protected Object dispatch(
+    Object dispatch(
             Frame frame,
             Object receiver,
             String methodName,

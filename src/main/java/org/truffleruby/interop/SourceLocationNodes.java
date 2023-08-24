@@ -29,7 +29,7 @@ public abstract class SourceLocationNodes {
     public abstract static class AbsolutePathNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object absolutePath(RubySourceLocation location) {
+        Object absolutePath(RubySourceLocation location) {
             final SourceSection sourceSection = location.sourceSection;
             if (!sourceSection.isAvailable()) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
@@ -43,7 +43,7 @@ public abstract class SourceLocationNodes {
     public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyString path(RubySourceLocation location) {
+        RubyString path(RubySourceLocation location) {
             final SourceSection sourceSection = location.sourceSection;
 
             if (!sourceSection.isAvailable()) {
@@ -59,7 +59,7 @@ public abstract class SourceLocationNodes {
     public abstract static class LinenoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int lineno(RubySourceLocation location) {
+        int lineno(RubySourceLocation location) {
             return location.sourceSection.getStartLine();
         }
     }
@@ -68,7 +68,7 @@ public abstract class SourceLocationNodes {
     public abstract static class LastLinenoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int lastLine(RubySourceLocation location) {
+        int lastLine(RubySourceLocation location) {
             return location.sourceSection.getEndLine();
         }
     }
@@ -77,7 +77,7 @@ public abstract class SourceLocationNodes {
     public abstract static class FirstColumnNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int firstCol(RubySourceLocation location) {
+        int firstCol(RubySourceLocation location) {
             return location.sourceSection.getStartColumn();
         }
     }
@@ -86,7 +86,7 @@ public abstract class SourceLocationNodes {
     public abstract static class LastColumnNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int lastCol(RubySourceLocation location) {
+        int lastCol(RubySourceLocation location) {
             return location.sourceSection.getEndColumn();
         }
     }
@@ -95,7 +95,7 @@ public abstract class SourceLocationNodes {
     public abstract static class IsAvailableNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected boolean isAvailable(RubySourceLocation location) {
+        boolean isAvailable(RubySourceLocation location) {
             return location.sourceSection.isAvailable();
         }
     }
@@ -104,7 +104,7 @@ public abstract class SourceLocationNodes {
     public abstract static class IsInternalNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected boolean isInternal(RubySourceLocation location) {
+        boolean isInternal(RubySourceLocation location) {
             return location.sourceSection.getSource().isInternal();
         }
     }
@@ -113,7 +113,7 @@ public abstract class SourceLocationNodes {
     public abstract static class LanguageNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyString language(RubySourceLocation location,
+        RubyString language(RubySourceLocation location,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(fromJavaStringNode, location.sourceSection.getSource().getLanguage(),
                     Encodings.UTF_8);

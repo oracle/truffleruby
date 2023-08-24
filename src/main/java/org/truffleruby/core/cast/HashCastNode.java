@@ -30,12 +30,12 @@ public abstract class HashCastNode extends RubyBaseNode {
     public abstract RubyHash execute(Object value);
 
     @Specialization
-    protected RubyHash castHash(RubyHash hash) {
+    RubyHash castHash(RubyHash hash) {
         return hash;
     }
 
     @Specialization(guards = "!isRubyHash(object)")
-    protected RubyHash cast(Object object,
+    RubyHash cast(Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toHashNode) {
         final Object result = toHashNode.call(PRIVATE_RETURN_MISSING, object, "to_hash");
@@ -64,7 +64,7 @@ public abstract class HashCastNode extends RubyBaseNode {
         protected abstract RubyNode getChildNode();
 
         @Specialization
-        protected RubyHash cast(Object object,
+        RubyHash cast(Object object,
                 @Cached HashCastNode hashCastNode) {
             return hashCastNode.execute(object);
 

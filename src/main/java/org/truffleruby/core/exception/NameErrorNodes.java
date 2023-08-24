@@ -29,7 +29,7 @@ public abstract class NameErrorNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyNameError allocateNameError(RubyClass rubyClass) {
+        RubyNameError allocateNameError(RubyClass rubyClass) {
             final Shape shape = getLanguage().nameErrorShape;
             final RubyNameError instance = new RubyNameError(rubyClass, shape, nil, null, nil, null, nil);
             AllocationTracing.trace(instance, this);
@@ -42,7 +42,7 @@ public abstract class NameErrorNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object name(RubyNameError self) {
+        Object name(RubyNameError self) {
             return self.name;
         }
 
@@ -52,7 +52,7 @@ public abstract class NameErrorNodes {
     public abstract static class ReceiverNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object receiver(RubyNameError self) {
+        Object receiver(RubyNameError self) {
             final Object receiver = self.receiver;
 
             // TODO BJF July 21, 2016 Implement name error in message field
@@ -69,7 +69,7 @@ public abstract class NameErrorNodes {
     public abstract static class NameSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setName(RubyNameError error, Object name) {
+        Object setName(RubyNameError error, Object name) {
             error.name = name;
             return name;
         }
@@ -80,7 +80,7 @@ public abstract class NameErrorNodes {
     public abstract static class ReceiverSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setReceiver(RubyNameError error, Object receiver) {
+        Object setReceiver(RubyNameError error, Object receiver) {
             error.receiver = receiver;
             return receiver;
         }

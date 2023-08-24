@@ -36,7 +36,7 @@ public abstract class MutexNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMutex allocate(RubyClass rubyClass) {
+        RubyMutex allocate(RubyClass rubyClass) {
             final ReentrantLock lock = MutexOperations.newReentrantLock();
             final RubyMutex instance = new RubyMutex(rubyClass, getLanguage().mutexShape, lock);
             AllocationTracing.trace(instance, this);
@@ -48,7 +48,7 @@ public abstract class MutexNodes {
     public abstract static class LockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMutex lock(RubyMutex mutex,
+        RubyMutex lock(RubyMutex mutex,
                 @Cached InlinedBranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
 
@@ -68,7 +68,7 @@ public abstract class MutexNodes {
     public abstract static class IsLockedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isLocked(RubyMutex mutex) {
+        boolean isLocked(RubyMutex mutex) {
             return mutex.lock.isLocked();
         }
 
@@ -77,7 +77,7 @@ public abstract class MutexNodes {
     @CoreMethod(names = "owned?")
     public abstract static class IsOwnedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean isOwned(RubyMutex mutex) {
+        boolean isOwned(RubyMutex mutex) {
             return mutex.lock.isHeldByCurrentThread();
         }
     }
@@ -86,7 +86,7 @@ public abstract class MutexNodes {
     public abstract static class TryLockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean tryLock(RubyMutex mutex,
+        boolean tryLock(RubyMutex mutex,
                 @Cached InlinedConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
@@ -103,7 +103,7 @@ public abstract class MutexNodes {
     public abstract static class UnlockNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMutex unlock(RubyMutex mutex,
+        RubyMutex unlock(RubyMutex mutex,
                 @Cached InlinedBranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();
@@ -119,7 +119,7 @@ public abstract class MutexNodes {
     public abstract static class SynchronizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object synchronize(RubyMutex mutex, RubyProc block,
+        Object synchronize(RubyMutex mutex, RubyProc block,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached CallBlockNode yieldNode) {
             final ReentrantLock lock = mutex.lock;
@@ -148,7 +148,7 @@ public abstract class MutexNodes {
     public abstract static class SleepNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long sleep(RubyMutex mutex, Object maybeDuration,
+        long sleep(RubyMutex mutex, Object maybeDuration,
                 @Cached DurationToNanoSecondsNode durationToNanoSecondsNode,
                 @Cached InlinedConditionProfile nilProfile,
                 @Cached InlinedBranchProfile errorProfile) {

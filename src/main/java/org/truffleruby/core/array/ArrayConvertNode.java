@@ -24,12 +24,12 @@ public abstract class ArrayConvertNode extends RubyBaseNode {
     public abstract RubyArray execute(Object value);
 
     @Specialization
-    protected RubyArray castArray(RubyArray array) {
+    RubyArray castArray(RubyArray array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    protected RubyArray cast(Object object,
+    RubyArray cast(Object object,
             @Cached ConditionProfile canCast,
             @Cached ArrayBuilderNode arrayBuilder,
             @Cached DispatchNode toArrayNode) {

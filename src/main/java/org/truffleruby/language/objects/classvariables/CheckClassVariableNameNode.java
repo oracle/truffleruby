@@ -25,12 +25,12 @@ public abstract class CheckClassVariableNameNode extends RubyBaseNode {
 
     @Specialization(guards = { "name == cachedName", "isValidClassVariableName(cachedName)" },
             limit = "getDefaultCacheLimit()")
-    protected void cached(RubyDynamicObject object, String name,
+    void cached(RubyDynamicObject object, String name,
             @Cached("name") String cachedName) {
     }
 
     @Specialization(replaces = "cached")
-    protected void uncached(RubyDynamicObject object, String name,
+    void uncached(RubyDynamicObject object, String name,
             @Cached InlinedBranchProfile errorProfile) {
         if (!Identifiers.isValidClassVariableName(name)) {
             errorProfile.enter(this);

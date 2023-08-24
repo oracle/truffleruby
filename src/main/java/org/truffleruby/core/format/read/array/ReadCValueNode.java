@@ -20,7 +20,7 @@ import org.truffleruby.core.format.FormatNode;
 public abstract class ReadCValueNode extends FormatNode {
 
     @Specialization
-    protected Object read(Object source,
+    Object read(Object source,
             @Cached UnwrapNode unwrapNode) {
         return unwrapNode.execute(this, source);
     }

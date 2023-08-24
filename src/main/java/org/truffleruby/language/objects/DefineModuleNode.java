@@ -38,7 +38,7 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected RubyModule defineModule(VirtualFrame frame, RubyModule lexicalParentModule) {
+    RubyModule defineModule(VirtualFrame frame, RubyModule lexicalParentModule) {
         final Object existing = lookupForExistingModule(frame, name, lexicalParentModule);
 
         final RubyModule definingModule;
@@ -64,7 +64,7 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "!isRubyModule(lexicalParentObject)")
-    protected RubyModule defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
+    RubyModule defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
     }
 

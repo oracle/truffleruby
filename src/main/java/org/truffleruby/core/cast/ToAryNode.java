@@ -23,12 +23,12 @@ public abstract class ToAryNode extends RubyBaseNode {
 
 
     @Specialization
-    protected RubyArray coerceRubyArray(RubyArray array) {
+    RubyArray coerceRubyArray(RubyArray array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    protected RubyArray coerceObject(Object object,
+    RubyArray coerceObject(Object object,
             @Cached DispatchNode toAryNode) {
         return (RubyArray) toAryNode.call(
                 coreLibrary().truffleTypeModule,

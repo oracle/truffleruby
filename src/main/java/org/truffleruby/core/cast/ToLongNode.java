@@ -35,24 +35,24 @@ public abstract class ToLongNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static long coerceInt(int value) {
+    static long coerceInt(int value) {
         return value;
     }
 
     @Specialization
-    protected static long coerceLong(long value) {
+    static long coerceLong(long value) {
         return value;
     }
 
     @Specialization
-    protected static long coerceRubyBignum(Node node, RubyBignum value) {
+    static long coerceRubyBignum(Node node, RubyBignum value) {
         throw new RaiseException(
                 getContext(node),
                 coreExceptions(node).rangeError("bignum too big to convert into `long'", node));
     }
 
     @Specialization
-    protected static long coerceDouble(Node node, double value,
+    static long coerceDouble(Node node, double value,
             @Cached InlinedBranchProfile errorProfile) {
         // emulate MRI logic
         // We check for `value < MAX_VALUE` because casting Long.MAX_VALUE to double yields a double value of 2^63 which is >
@@ -68,7 +68,7 @@ public abstract class ToLongNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static long coerceNil(Node node, Nil nil) {
+    static long coerceNil(Node node, Nil nil) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
@@ -77,7 +77,7 @@ public abstract class ToLongNode extends RubyBaseNode {
     }
 
     @Fallback
-    protected static long coerceObject(Node node, Object object,
+    static long coerceObject(Node node, Object object,
             @Cached(inline = false) DispatchNode toIntNode,
             @Cached(inline = false) ToLongNode fitNode) {
         final Object coerced = toIntNode

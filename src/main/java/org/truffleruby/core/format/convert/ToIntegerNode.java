@@ -24,27 +24,27 @@ public abstract class ToIntegerNode extends FormatNode {
     public abstract Object executeToInteger(VirtualFrame frame, Object object);
 
     @Specialization
-    protected int toInteger(int value) {
+    int toInteger(int value) {
         return value;
     }
 
     @Specialization
-    protected long toInteger(long value) {
+    long toInteger(long value) {
         return value;
     }
 
     @Specialization
-    protected RubyBignum toInteger(RubyBignum value) {
+    RubyBignum toInteger(RubyBignum value) {
         return value;
     }
 
     @Specialization
-    protected long toInteger(double value) {
+    long toInteger(double value) {
         return (long) value;
     }
 
     @Specialization(guards = "!isRubyNumber(value)")
-    protected Object toInteger(VirtualFrame frame, Object value,
+    Object toInteger(VirtualFrame frame, Object value,
             @Cached DispatchNode integerNode) {
         return integerNode.call(getContext().getCoreLibrary().kernelModule, "Integer", value);
     }

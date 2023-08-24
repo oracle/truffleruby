@@ -46,7 +46,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
     public abstract RubyMethod execute(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig);
 
     @Specialization
-    protected RubyMethod getMethodObject(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig,
+    RubyMethod getMethodObject(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached LookupMethodOnSelfNode lookupMethodNode,
             @Cached ToSymbolNode toSymbolNode,

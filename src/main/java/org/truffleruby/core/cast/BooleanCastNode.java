@@ -39,42 +39,42 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     public abstract boolean execute(Node node, Object value);
 
     @Specialization
-    protected static boolean doNil(Nil nil) {
+    static boolean doNil(Nil nil) {
         return false;
     }
 
     @Specialization
-    protected static boolean doBoolean(boolean value) {
+    static boolean doBoolean(boolean value) {
         return value;
     }
 
     @Specialization
-    protected static boolean doInt(int value) {
+    static boolean doInt(int value) {
         return true;
     }
 
     @Specialization
-    protected static boolean doLong(long value) {
+    static boolean doLong(long value) {
         return true;
     }
 
     @Specialization
-    protected static boolean doFloat(double value) {
+    static boolean doFloat(double value) {
         return true;
     }
 
     @Specialization
-    protected static boolean doBasicObject(RubyDynamicObject object) {
+    static boolean doBasicObject(RubyDynamicObject object) {
         return true;
     }
 
     @Specialization(guards = "!isNil(object)")
-    protected static boolean doImmutableObject(ImmutableRubyObject object) {
+    static boolean doImmutableObject(ImmutableRubyObject object) {
         return true;
     }
 
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
-    protected static boolean doForeignObject(Node node, Object object,
+    static boolean doForeignObject(Node node, Object object,
             @CachedLibrary("object") InteropLibrary objects,
             @Cached InlinedConditionProfile isNullProfile,
             @Cached InlinedConditionProfile isBooleanProfile,

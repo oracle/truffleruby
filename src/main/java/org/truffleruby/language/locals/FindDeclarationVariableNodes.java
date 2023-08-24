@@ -88,7 +88,7 @@ public abstract class FindDeclarationVariableNodes {
         @Specialization(
                 guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor" },
                 limit = "getDefaultCacheLimit()")
-        protected static Object getVariable(Frame frame, String name, Object defaultValue,
+        static Object getVariable(Frame frame, String name, Object defaultValue,
                 @Cached("name") String cachedName,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
@@ -102,7 +102,7 @@ public abstract class FindDeclarationVariableNodes {
         }
 
         @Specialization(replaces = "getVariable")
-        protected static Object getVariableSlow(Frame frame, String name, Object defaultValue) {
+        static Object getVariableSlow(Frame frame, String name, Object defaultValue) {
             return getVariableSlowBoundary(frame.materialize(), name, defaultValue);
         }
 

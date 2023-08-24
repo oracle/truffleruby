@@ -37,7 +37,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().LAMBDA", },
             assumptions = "assumptions",
             limit = "1")
-    protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
+    RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
             @Cached LookupMethodOnSelfNode lookupNode) {
         // NOTE(norswap): A lambda call target was created by default in MethodTranslator.
         assert block.type == ProcType.LAMBDA;
@@ -46,7 +46,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
 
     // The lambda method might have been overriden, undefined, redefined, ...
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self, RubyProc block) {
+    Object fallback(VirtualFrame frame, Object self, RubyProc block) {
         // NOTE(norswap): This can occur if the user overrides the lambda method and it does not resolve to
         //   Kernel#lambda anymore. A lambda call target for the block was created by default in MethodTranslator,
         //   and must be converted to a proc block here, as the user-defined method should receive a proc block.

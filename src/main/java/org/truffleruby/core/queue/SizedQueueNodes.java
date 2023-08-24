@@ -41,7 +41,7 @@ public abstract class SizedQueueNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySizedQueue allocate(RubyClass rubyClass) {
+        RubySizedQueue allocate(RubyClass rubyClass) {
             final RubySizedQueue instance = new RubySizedQueue(rubyClass, getLanguage().sizedQueueShape, null);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -53,7 +53,7 @@ public abstract class SizedQueueNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySizedQueue initialize(RubySizedQueue self, int capacity,
+        RubySizedQueue initialize(RubySizedQueue self, int capacity,
                 @Cached InlinedBranchProfile errorProfile) {
             if (capacity <= 0) {
                 errorProfile.enter(this);
@@ -73,7 +73,7 @@ public abstract class SizedQueueNodes {
     public abstract static class SetMaxNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int setMax(RubySizedQueue self, int newCapacity,
+        int setMax(RubySizedQueue self, int newCapacity,
                 @Cached InlinedBranchProfile errorProfile) {
             if (newCapacity <= 0) {
                 errorProfile.enter(this);
@@ -93,7 +93,7 @@ public abstract class SizedQueueNodes {
     public abstract static class MaxNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int max(RubySizedQueue self) {
+        int max(RubySizedQueue self) {
             final SizedQueue queue = self.queue;
             return queue.getCapacity();
         }
@@ -104,8 +104,7 @@ public abstract class SizedQueueNodes {
     public abstract static class SizedQueuePushNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object doPush(
-                RubySizedQueue self, final Object value, Object maybeNonBlocking, Object timeoutMilliseconds,
+        Object doPush(RubySizedQueue self, final Object value, Object maybeNonBlocking, Object timeoutMilliseconds,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached PushNode pushNode) {
             final boolean nonBlocking = booleanCastWithDefaultNode.execute(this, maybeNonBlocking, false);
@@ -121,7 +120,7 @@ public abstract class SizedQueueNodes {
                 Object timeoutMilliseconds);
 
         @Specialization(guards = "!nonBlocking")
-        protected static RubySizedQueue pushBlocking(
+        static RubySizedQueue pushBlocking(
                 Node node, RubySizedQueue self, final Object value, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
@@ -144,7 +143,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected static Object pushTimeout(
+        static Object pushTimeout(
                 Node node, RubySizedQueue self, final Object value, boolean nonBlocking, long timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode) {
             final SizedQueue queue = self.queue;
@@ -176,7 +175,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        protected static RubySizedQueue pushNonBlock(
+        static RubySizedQueue pushNonBlock(
                 Node node, RubySizedQueue self, final Object value, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Cached @Shared PropagateSharingNode propagateSharingNode,
                 @Cached InlinedBranchProfile errorProfile) {
@@ -204,7 +203,7 @@ public abstract class SizedQueueNodes {
     public abstract static class PopNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubySizedQueue self, boolean nonBlocking, Nil timeoutMilliseconds) {
+        Object popBlocking(RubySizedQueue self, boolean nonBlocking, Nil timeoutMilliseconds) {
             final SizedQueue queue = self.queue;
 
             final Object value = doPop(queue);
@@ -222,7 +221,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubySizedQueue self, boolean nonBlocking, long timeoutMilliseconds) {
+        Object popBlocking(RubySizedQueue self, boolean nonBlocking, long timeoutMilliseconds) {
             final SizedQueue queue = self.queue;
             final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
 
@@ -245,7 +244,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        protected Object popNonBlock(RubySizedQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
+        Object popNonBlock(RubySizedQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Cached InlinedBranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 
@@ -265,7 +264,7 @@ public abstract class SizedQueueNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean empty(RubySizedQueue self) {
+        boolean empty(RubySizedQueue self) {
             final SizedQueue queue = self.queue;
             return queue.isEmpty();
         }
@@ -276,7 +275,7 @@ public abstract class SizedQueueNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int size(RubySizedQueue self) {
+        int size(RubySizedQueue self) {
             final SizedQueue queue = self.queue;
             return queue.size();
         }
@@ -287,7 +286,7 @@ public abstract class SizedQueueNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySizedQueue clear(RubySizedQueue self) {
+        RubySizedQueue clear(RubySizedQueue self) {
             final SizedQueue queue = self.queue;
             queue.clear();
             return self;
@@ -299,7 +298,7 @@ public abstract class SizedQueueNodes {
     public abstract static class NumWaitingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int num_waiting(RubySizedQueue self) {
+        int num_waiting(RubySizedQueue self) {
             final SizedQueue queue = self.queue;
             return queue.getNumberWaiting();
         }
@@ -310,7 +309,7 @@ public abstract class SizedQueueNodes {
     public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySizedQueue close(RubySizedQueue self) {
+        RubySizedQueue close(RubySizedQueue self) {
             self.queue.close();
             return self;
         }

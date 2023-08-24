@@ -34,20 +34,20 @@ public abstract class IsSharedNode extends RubyBaseNode {
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
-    protected static boolean isShareCached(RubyDynamicObject object,
+    static boolean isShareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("cachedShape.isShared()") boolean shared) {
         return shared;
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected static boolean updateShapeAndIsShared(Node node, RubyDynamicObject object,
+    static boolean updateShapeAndIsShared(Node node, RubyDynamicObject object,
             @Cached(inline = false) IsSharedNode isSharedNode) {
         return isSharedNode.executeIsShared(node, object);
     }
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
-    protected static boolean isSharedUncached(Node node, RubyDynamicObject object) {
+    static boolean isSharedUncached(Node node, RubyDynamicObject object) {
         return getLanguage(node).options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
     }
 

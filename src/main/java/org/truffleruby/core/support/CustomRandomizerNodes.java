@@ -24,7 +24,7 @@ public abstract class CustomRandomizerNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyCustomRandomizer randomizerAllocate(RubyClass customRandomizerClass) {
+        RubyCustomRandomizer randomizerAllocate(RubyClass customRandomizerClass) {
             return new RubyCustomRandomizer(
                     coreLibrary().customRandomizerClass,
                     getLanguage().customRandomizerShape);
