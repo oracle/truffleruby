@@ -755,35 +755,36 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         final String truffleReported = getLanguageHome();
         if (truffleReported != null) {
             var truffleReportedFile = env.getInternalTruffleFile(truffleReported);
+            try {
+                truffleReportedFile = truffleReportedFile.getCanonicalFile();
+            } catch (IOException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
             if (isRubyHome(truffleReportedFile)) {
                 LOGGER.config(() -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
                 return truffleReportedFile;
-            } else {
-                TruffleFile homeResourceRelative;
-                try {
-                    homeResourceRelative = env.getInternalResource("ruby-home");
-                } catch (IOException e) {
-                    throw CompilerDirectives.shouldNotReachHere(e);
-                }
-
-                TruffleFile homeResource = homeResourceRelative.getAbsoluteFile();
-
-                if (isRubyHome(homeResource)) {
-                    LOGGER.config(() -> String.format("Using the internal resource %s as the Ruby home",
-                            homeResource.getPath()));
-                    return homeResource;
-                } else {
-                    LOGGER.warning(String.format(
-                            "Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home",
-                            truffleReported, homeResource.getPath()));
-                }
             }
-        } else {
-            LOGGER.config("Truffle-reported home not set, cannot determine home from it");
+        }
+
+        TruffleFile homeResource;
+        try {
+            var homeResourceRelative = env.getInternalResource("ruby-home");
+            homeResource = homeResourceRelative == null ? null : homeResourceRelative.getCanonicalFile();
+        } catch (IOException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
+
+        if (homeResource != null) {
+            if (isRubyHome(homeResource)) {
+                LOGGER.config(() -> String.format("Using the internal resource %s as the Ruby home", homeResource));
+                return homeResource;
+            }
         }
 
         LOGGER.warning(
-                "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
+                String.format("Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home",
+                        truffleReported, homeResource));
+        LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
         return null;
     }
 
