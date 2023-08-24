@@ -45,7 +45,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    protected Object write(VirtualFrame frame, Nil nil) {
+    Object write(VirtualFrame frame, Nil nil) {
         if (padOnNil) {
             for (int n = 0; n < width; n++) {
                 writeByte(frame, padding);
@@ -58,7 +58,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     }
 
     @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-    protected Object write(VirtualFrame frame, Object string,
+    Object write(VirtualFrame frame, Object string,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
         var tstring = libString.getTString(string);

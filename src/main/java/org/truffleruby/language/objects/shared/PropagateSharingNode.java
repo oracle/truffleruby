@@ -28,13 +28,13 @@ public abstract class PropagateSharingNode extends RubyBaseNode {
     public abstract void execute(Node node, RubyDynamicObject source, Object value);
 
     @Specialization(guards = "!isSharedNode.executeIsShared(node, source)")
-    protected static void propagateNotShared(Node node, RubyDynamicObject source, Object value,
+    static void propagateNotShared(Node node, RubyDynamicObject source, Object value,
             @Cached @Shared IsSharedNode isSharedNode) {
         // do nothing
     }
 
     @Specialization(guards = "isSharedNode.executeIsShared(node, source)")
-    protected static void propagateShared(Node node, RubyDynamicObject source, Object value,
+    static void propagateShared(Node node, RubyDynamicObject source, Object value,
             @Cached @Shared IsSharedNode isSharedNode,
             @Cached WriteBarrierNode writeBarrierNode) {
         writeBarrierNode.execute(node, value);

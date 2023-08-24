@@ -178,7 +178,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean doSameOrEqual(Object a, Object b,
+        boolean doSameOrEqual(Object a, Object b,
                 @Cached SameOrEqualNode sameOrEqualNode) {
             return sameOrEqualNode.execute(this, a, b);
 
@@ -192,7 +192,7 @@ public abstract class KernelNodes {
         public abstract boolean execute(Node node, Object a, Object b);
 
         @Specialization
-        protected static boolean sameOrEqual(Node node, Object a, Object b,
+        static boolean sameOrEqual(Node node, Object a, Object b,
                 @Cached LazyDispatchNode lazyEqualNode,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedConditionProfile sameProfile,
@@ -210,7 +210,7 @@ public abstract class KernelNodes {
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean caseCmp(Object a, Object b,
+        boolean caseCmp(Object a, Object b,
                 @Cached SameOrEqualNode sameOrEqualNode) {
             return sameOrEqualNode.execute(this, a, b);
         }
@@ -233,13 +233,13 @@ public abstract class KernelNodes {
         public abstract boolean execute(Object a, Object b);
 
         @Specialization(guards = "referenceEqual.execute(this, a, b)")
-        protected boolean refEqual(Object a, Object b,
+        boolean refEqual(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual) {
             return true;
         }
 
         @Specialization(replaces = "refEqual")
-        protected boolean refEqualOrEql(Object a, Object b,
+        boolean refEqualOrEql(Object a, Object b,
                 @Cached @Shared ReferenceEqualNode referenceEqual,
                 @Cached DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
@@ -251,7 +251,7 @@ public abstract class KernelNodes {
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected static Object findFile(Object featureString,
+        static Object findFile(Object featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
@@ -262,7 +262,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected static Object findFileString(String featureString,
+        static Object findFileString(String featureString,
                 @Cached @Shared InlinedBranchProfile notFoundProfile,
                 @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Bind("this") Node node) {
@@ -281,7 +281,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeature.isRubyString(feature)", limit = "1")
         @TruffleBoundary
-        protected RubyString getCallerPath(Object feature,
+        RubyString getCallerPath(Object feature,
                 @Cached RubyStringLibrary libFeature,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String featureString = RubyGuards.getJavaString(feature);
@@ -319,7 +319,7 @@ public abstract class KernelNodes {
     public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
-        protected static boolean loadFeature(Object featureString, Object expandedPathString,
+        static boolean loadFeature(Object featureString, Object expandedPathString,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RequireNode requireNode,
@@ -335,7 +335,7 @@ public abstract class KernelNodes {
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object compare(Object self, Object other,
+        Object compare(Object self, Object other,
                 @Cached SameOrEqualNode sameOrEqualNode) {
             if (sameOrEqualNode.execute(this, self, other)) {
                 return 0;
@@ -350,7 +350,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true, alwaysInlined = true)
     public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
                         value = "getAdoptedNode(this).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
@@ -363,7 +363,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true, alwaysInlined = true)
     public abstract static class BlockGivenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean blockGiven(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        boolean blockGiven(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached InlinedConditionProfile blockProfile) {
             needCallerFrame(callerFrame, target);
@@ -376,7 +376,7 @@ public abstract class KernelNodes {
     public abstract static class CalleeNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol calleeName() {
+        RubySymbol calleeName() {
             // the "called name" of a method.
             return getSymbol(getContext().getCallStack().getCallingMethod().getName());
         }
@@ -387,7 +387,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
         @TruffleBoundary
-        protected RubyString canonicalPath(Object string,
+        RubyString canonicalPath(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext()
@@ -402,12 +402,12 @@ public abstract class KernelNodes {
     public abstract static class CallerLocationsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object callerLocations(int omit, NotProvided length) {
+        Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        protected Object callerLocations(int omit, int length) {
+        Object callerLocations(int omit, int length) {
             return innerCallerLocations(omit, length);
         }
 
@@ -425,7 +425,7 @@ public abstract class KernelNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected RubyClass getClass(Object self) {
+        RubyClass getClass(Object self) {
             return classNode.execute(self);
         }
 
@@ -443,7 +443,7 @@ public abstract class KernelNodes {
         @Specialization(
                 guards = { "from.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
                 limit = "getDynamicObjectCacheLimit()")
-        protected RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
+        RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
                 @Cached("from.getShape()") Shape cachedShape,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
                 @Cached("createWriteFieldNodes(propertyGetters)") DynamicObjectLibrary[] writeFieldNodes) {
@@ -457,12 +457,12 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(from)")
-        protected RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from) {
+        RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from) {
             return execute(newObject, from);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
+        RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
             copyInstanceVariables(from, newObject);
             return newObject;
         }
@@ -508,7 +508,7 @@ public abstract class KernelNodes {
         public abstract RubyDynamicObject executeCopy(Object self);
 
         @Specialization(guards = "!isRubyClass(self)")
-        protected RubyDynamicObject copyRubyDynamicObject(RubyDynamicObject self,
+        RubyDynamicObject copyRubyDynamicObject(RubyDynamicObject self,
                 @Cached DispatchNode allocateNode,
                 @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(), "__allocate__");
@@ -517,7 +517,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyDynamicObject copyRubyClass(RubyClass self,
+        RubyDynamicObject copyRubyClass(RubyClass self,
                 @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode,
                 @Cached InlinedBranchProfile rootClassProfile) {
             if (self == coreLibrary().basicObjectClass) {
@@ -531,13 +531,13 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected RubyDynamicObject copy(ImmutableRubyString string,
+        RubyDynamicObject copy(ImmutableRubyString string,
                 @Cached StringNodes.AllocateNode allocateStringNode) {
             return allocateStringNode.execute(this, coreLibrary().stringClass);
         }
 
         @Specialization
-        protected RubyDynamicObject copy(RubyIntOrLongRange range,
+        RubyDynamicObject copy(RubyIntOrLongRange range,
                 @Cached RangeNodes.AllocateNode allocateRangeNode) {
             return allocateRangeNode.execute(this, coreLibrary().rangeClass);
         }
@@ -549,7 +549,7 @@ public abstract class KernelNodes {
         @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
 
         @Specialization(guards = "isCopyableObjectNode.execute(object)")
-        protected static RubyDynamicObject copyable(Object object, Object freeze,
+        static RubyDynamicObject copyable(Object object, Object freeze,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
@@ -587,7 +587,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isCopyableObjectNode.execute(object)")
-        protected Object notCopyable(Object object, Object freeze,
+        Object notCopyable(Object object, Object freeze,
                 @Cached InlinedBranchProfile cantUnfreezeErrorProfile) {
             if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(cantUnfreezeErrorProfile, object);
@@ -630,7 +630,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "dup", alwaysInlined = true)
     public abstract static class DupNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object dup(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object dup(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached IsCopyableObjectNode isCopyableObjectNode,
                 @Cached InlinedConditionProfile isCopyableProfile,
                 @Cached CopyNode copyNode,
@@ -656,7 +656,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object dupAST(VirtualFrame frame, Object self,
+        Object dupAST(VirtualFrame frame, Object self,
                 @Cached DupNode dupNode) {
             return dupNode.execute(frame, self, ArrayUtils.EMPTY_ARRAY, null);
         }
@@ -674,7 +674,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "eval", isModuleFunction = true, required = 1, optional = 3, alwaysInlined = true)
     public abstract static class EvalPrepareArgsNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object eval(Frame callerFrame, Object callerSelf, Object[] rubyArgs, RootCallTarget target,
+        Object eval(Frame callerFrame, Object callerSelf, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached InlinedBranchProfile errorProfile,
@@ -737,7 +737,7 @@ public abstract class KernelNodes {
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
-        protected static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
+        static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached @Shared RubyStringLibrary libSource,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -758,8 +758,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
                 replaces = "evalCached")
-        protected static Object evalBindingUncached(
-                Object self, Object source, RubyBinding binding, Object file, int line,
+        static Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
                 @Cached @Shared RubyStringLibrary libFile,
                 @Cached @Shared RubyStringLibrary libSource,
@@ -824,7 +823,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object freeze(Object self,
+        Object freeze(Object self,
                 @Cached TypeNodes.ObjectFreezeNode objectFreezeNode) {
             return objectFreezeNode.execute(self);
         }
@@ -834,7 +833,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "frozen?", alwaysInlined = true)
     public abstract static class KernelFrozenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean isFrozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        boolean isFrozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached IsFrozenNode isFrozenNode) {
             return isFrozenNode.execute(self);
         }
@@ -851,46 +850,46 @@ public abstract class KernelNodes {
         public abstract Object execute(Object value);
 
         @Specialization
-        protected long hashBoolean(boolean value) {
+        long hashBoolean(boolean value) {
             return HashOperations.hashBoolean(value, getContext(), this);
         }
 
         @Specialization
-        protected long hashInt(int value) {
+        long hashInt(int value) {
             return HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
-        protected long hashLong(long value) {
+        long hashLong(long value) {
             return HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
-        protected long hashDouble(double value) {
+        long hashDouble(double value) {
             return HashOperations.hashDouble(value, getContext(), this);
         }
 
         @Specialization
-        protected long hashBignum(RubyBignum value) {
+        long hashBignum(RubyBignum value) {
             return HashOperations.hashBignum(value, getContext(), this);
         }
 
         @Specialization
-        protected static long hashString(RubyString value,
+        static long hashString(RubyString value,
                 @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
                 @Bind("this") Node node) {
             return stringHashNode.execute(node, value);
         }
 
         @Specialization
-        protected static long hashImmutableString(ImmutableRubyString value,
+        static long hashImmutableString(ImmutableRubyString value,
                 @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
                 @Bind("this") Node node) {
             return stringHashNode.execute(node, value);
         }
 
         @Specialization
-        protected long hashSymbol(RubySymbol value,
+        long hashSymbol(RubySymbol value,
                 @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
             return symbolHashNode.execute(this, value);
         }
@@ -898,17 +897,17 @@ public abstract class KernelNodes {
         // Default hash for Kernel#hash, can be overwritten by defining a #hash method
 
         @Specialization(guards = { "!isRubyBignum(value)", "!isImmutableRubyString(value)", "!isRubySymbol(value)" })
-        protected int hashImmutableRubyObject(ImmutableRubyObject value) {
+        int hashImmutableRubyObject(ImmutableRubyObject value) {
             return System.identityHashCode(value);
         }
 
         @Specialization(guards = "isNotRubyString(value)")
-        protected int hashRubyDynamicObject(RubyDynamicObject value) {
+        int hashRubyDynamicObject(RubyDynamicObject value) {
             return System.identityHashCode(value);
         }
 
         @Specialization(guards = "isForeignObject(value)", limit = "getInteropCacheLimit()")
-        protected static int hashForeign(Object value,
+        static int hashForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Bind("this") Node node) {
@@ -930,14 +929,14 @@ public abstract class KernelNodes {
     public abstract static class InitializeCopyNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "equalNode.execute(this, self, from)")
-        protected Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object initializeCopySame(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode) {
             return self;
         }
 
         @Specialization(guards = "!equalNode.execute(this, self, from)")
-        protected Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object initializeCopy(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getArgument(rubyArgs, 0)") Object from,
                 @Cached @Shared ReferenceEqualNode equalNode,
                 @Cached CheckFrozenNode checkFrozenNode,
@@ -961,8 +960,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_dup", required = 1, alwaysInlined = true)
     public abstract static class InitializeDupNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object initializeDup(
-                Frame callerFrame, RubyDynamicObject self, Object[] rubyArgs, RootCallTarget target,
+        Object initializeDup(Frame callerFrame, RubyDynamicObject self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode initializeCopyNode) {
             Object from = RubyArguments.getArgument(rubyArgs, 0);
             return initializeCopyNode.call(self, "initialize_copy", from);
@@ -975,7 +973,7 @@ public abstract class KernelNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected boolean instanceOf(Object self, RubyModule module) {
+        boolean instanceOf(Object self, RubyModule module) {
             return classNode.execute(self) == module;
         }
 
@@ -985,7 +983,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isInstanceVariableDefined(RubyDynamicObject object, Object name,
+        boolean isInstanceVariableDefined(RubyDynamicObject object, Object name,
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
@@ -995,7 +993,7 @@ public abstract class KernelNodes {
         }
 
         @Fallback
-        protected boolean immutable(Object object, Object name) {
+        boolean immutable(Object object, Object name) {
             return false;
         }
     }
@@ -1004,7 +1002,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object instanceVariableGetSymbol(RubyDynamicObject object, Object name,
+        Object instanceVariableGetSymbol(RubyDynamicObject object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
@@ -1014,7 +1012,7 @@ public abstract class KernelNodes {
         }
 
         @Fallback
-        protected Object immutable(Object object, Object name,
+        Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
@@ -1027,7 +1025,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object instanceVariableSet(RubyDynamicObject object, Object name, Object value,
+        Object instanceVariableSet(RubyDynamicObject object, Object name, Object value,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached WriteObjectFieldNode writeNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
@@ -1040,7 +1038,7 @@ public abstract class KernelNodes {
         }
 
         @Fallback
-        protected Object immutable(Object object, Object name, Object value,
+        Object immutable(Object object, Object name, Object value,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
@@ -1053,7 +1051,7 @@ public abstract class KernelNodes {
     public abstract static class RemoveInstanceVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object removeInstanceVariable(RubyDynamicObject object, Object name,
+        Object removeInstanceVariable(RubyDynamicObject object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
@@ -1064,7 +1062,7 @@ public abstract class KernelNodes {
         }
 
         @Fallback
-        protected Object immutable(Object object, Object name,
+        Object immutable(Object object, Object name,
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
@@ -1102,7 +1100,7 @@ public abstract class KernelNodes {
                 .create(null);
 
         @Specialization
-        protected RubyArray instanceVariables(Object self) {
+        RubyArray instanceVariables(Object self) {
             return instanceVariablesNode.executeGetIVars(self);
         }
 
@@ -1112,7 +1110,7 @@ public abstract class KernelNodes {
     public abstract static class AnyInstanceVariableNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected static boolean any(RubyDynamicObject self,
+        static boolean any(RubyDynamicObject self,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary,
                 @Cached InlinedConditionProfile noPropertiesProfile,
                 @Bind("this") Node node) {
@@ -1134,7 +1132,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
-        protected boolean noVariablesInImmutableObject(Object self) {
+        boolean noVariablesInImmutableObject(Object self) {
             return false;
         }
     }
@@ -1143,13 +1141,13 @@ public abstract class KernelNodes {
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isA(Object self, RubyModule module,
+        boolean isA(Object self, RubyModule module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(self, module);
         }
 
         @Specialization(guards = "!isRubyModule(module)")
-        protected boolean isATypeError(Object self, Object module) {
+        boolean isATypeError(Object self, Object module) {
             throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
         }
 
@@ -1159,22 +1157,22 @@ public abstract class KernelNodes {
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc lambda(Nil block) {
+        RubyProc lambda(Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @Specialization(guards = { "isLiteralBlock(block)", "block.isLambda()" })
-        protected RubyProc lambdaFromLambdaBlock(RubyProc block) {
+        RubyProc lambdaFromLambdaBlock(RubyProc block) {
             return block;
         }
 
         @Specialization(guards = { "isLiteralBlock(block)", "block.isProc()" })
-        protected RubyProc lambdaFromProcBlock(RubyProc block) {
+        RubyProc lambdaFromProcBlock(RubyProc block) {
             return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
         @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
-        protected RubyProc lambdaFromExistingProc(RubyProc block,
+        RubyProc lambdaFromExistingProc(RubyProc block,
                 @Cached("new()") WarnNode warnNode) {
             if (warnNode.shouldWarnForDeprecation()) {
                 warnNode.warningMessage(
@@ -1187,7 +1185,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = { "!isLiteralBlock(block)", "block.isLambda()" })
-        protected RubyProc lambdaFromExistingProc(RubyProc block) {
+        RubyProc lambdaFromExistingProc(RubyProc block) {
             // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
             return block;
         }
@@ -1204,7 +1202,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "local_variables", isModuleFunction = true, alwaysInlined = true)
     public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object localVariables(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object localVariables(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode callLocalVariables) {
             needCallerFrame(callerFrame, target);
             final RubyBinding binding = BindingNodes
@@ -1217,7 +1215,7 @@ public abstract class KernelNodes {
     public abstract static class MethodNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol methodName() {
+        RubySymbol methodName() {
             // the "original/definition name" of the method.
             InternalMethod internalMethod = getContext().getCallStack().getCallingMethod();
             return getSymbol(internalMethod.getSharedMethodInfo().getMethodNameForNotBlock());
@@ -1230,7 +1228,7 @@ public abstract class KernelNodes {
     public abstract static class MethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
@@ -1243,7 +1241,7 @@ public abstract class KernelNodes {
     public abstract static class KernelMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray doMethods(Object self, Object maybeRegular,
+        RubyArray doMethods(Object self, Object maybeRegular,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MethodsNode methodsNode) {
             final boolean regular = booleanCastWithDefaultNode.execute(this, maybeRegular, true);
@@ -1260,7 +1258,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "regular")
-        protected static RubyArray methodsRegular(Node node, Object self, boolean regular,
+        static RubyArray methodsRegular(Node node, Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
             final RubyModule metaClass = metaClassNode.execute(node, self);
 
@@ -1271,7 +1269,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!regular")
-        protected static RubyArray methodsSingleton(Node node, Object self, boolean regular,
+        static RubyArray methodsSingleton(Node node, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.execute(node, self, false);
         }
@@ -1282,7 +1280,7 @@ public abstract class KernelNodes {
     public abstract static class IsNilNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isNil() {
+        boolean isNil() {
             return false;
         }
     }
@@ -1293,7 +1291,7 @@ public abstract class KernelNodes {
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object p(VirtualFrame frame, Object value,
+        Object p(VirtualFrame frame, Object value,
                 @Cached DispatchNode callInspectNode) {
             Object inspected = callInspectNode.call(value, "inspect");
             print(inspected);
@@ -1311,7 +1309,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray privateMethods(Object self, Object maybeIncludeAncestors,
+        RubyArray privateMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
@@ -1329,7 +1327,7 @@ public abstract class KernelNodes {
     public abstract static class ProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, Object maybeBlock,
+        RubyProc proc(VirtualFrame frame, Object maybeBlock,
                 @Cached ProcNewNode procNewNode) {
             return procNewNode.executeProcNew(frame, coreLibrary().procClass, ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
@@ -1341,7 +1339,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray protectedMethods(Object self, Object maybeIncludeAncestors,
+        RubyArray protectedMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
@@ -1360,7 +1358,7 @@ public abstract class KernelNodes {
     public abstract static class PublicMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        RubyMethod method(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode,
                 @Cached GetMethodObjectNode getMethodObjectNode) {
             Object name = toStringOrSymbolNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
@@ -1374,7 +1372,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray publicMethods(Object self, Object maybeIncludeAncestors,
+        RubyArray publicMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached MetaClassNode metaClassNode) {
             final RubyModule metaClass = metaClassNode.execute(this, self);
@@ -1393,7 +1391,7 @@ public abstract class KernelNodes {
     public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object send(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
@@ -1417,7 +1415,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected boolean doesRespondTo(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        boolean doesRespondTo(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InlinedBranchProfile notSymbolOrStringProfile,
                 @Cached ToJavaStringNode toJavaString,
                 @Cached ToSymbolNode toSymbolNode,
@@ -1466,7 +1464,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "respond_to_missing?", required = 2, alwaysInlined = true)
     public abstract static class RespondToMissingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean respondToMissing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
+        boolean respondToMissing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return false;
         }
     }
@@ -1475,13 +1473,13 @@ public abstract class KernelNodes {
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setTraceFunc(Nil traceFunc) {
+        Object setTraceFunc(Nil traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil;
         }
 
         @Specialization
-        protected RubyProc setTraceFunc(RubyProc traceFunc) {
+        RubyProc setTraceFunc(RubyProc traceFunc) {
             getContext().getTraceManager().setTraceFunc(traceFunc);
             return traceFunc;
         }
@@ -1493,7 +1491,7 @@ public abstract class KernelNodes {
         public abstract RubyClass executeSingletonClass(Object self);
 
         @Specialization
-        protected RubyClass singletonClass(Object self,
+        RubyClass singletonClass(Object self,
                 @Cached SingletonClassNode singletonClassNode) {
             return singletonClassNode.execute(self);
         }
@@ -1504,7 +1502,7 @@ public abstract class KernelNodes {
     public abstract static class SingletonMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMethod singletonMethod(Object self, Object nameObject,
+        RubyMethod singletonMethod(Object self, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached InlinedConditionProfile singletonProfile,
@@ -1538,7 +1536,7 @@ public abstract class KernelNodes {
     public abstract static class KernelSingletonMethodsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
+        RubyArray singletonMethods(Object self, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
             final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
@@ -1554,7 +1552,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected static RubyArray singletonMethods(Node node, Object self, boolean includeAncestors,
+        static RubyArray singletonMethods(Node node, Object self, boolean includeAncestors,
                 @Cached MetaClassNode metaClassNode) {
             final RubyClass metaClass = metaClassNode.execute(node, self);
 
@@ -1575,7 +1573,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean hasSingletonMethods(Object self,
+        boolean hasSingletonMethods(Object self,
                 @Cached MetaClassNode metaClassNode) {
             final RubyClass metaClass = metaClassNode.execute(this, self);
 
@@ -1592,7 +1590,7 @@ public abstract class KernelNodes {
     public abstract static class SleepNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long sleep(Object maybeDuration,
+        long sleep(Object maybeDuration,
                 @Cached DurationToNanoSecondsNode durationToNanoSecondsNode) {
             long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
             assert durationInNanos >= 0;
@@ -1643,7 +1641,7 @@ public abstract class KernelNodes {
                         "equalNode.execute(node, libFormat, formatAsString, cachedTString, cachedEncoding)",
                         "isDebug == cachedIsDebug" },
                 limit = "3")
-        protected static RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
+        static RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached @Shared BooleanCastNode booleanCastNode,
                 @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
@@ -1672,7 +1670,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
-        protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
+        RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached @Shared ToStrNode toStrNode,
                 @Cached IndirectCallNode callPackNode,
                 @Cached @Shared BooleanCastNode booleanCastNode,
@@ -1731,7 +1729,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray globalVariables() {
+        RubyArray globalVariables() {
             final String[] keys = coreLibrary().globalVariables.keys();
             final Object[] store = new Object[keys.length];
             for (int i = 0; i < keys.length; i++) {
@@ -1746,7 +1744,7 @@ public abstract class KernelNodes {
     public abstract static class KernelToHexStringNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected String toHexString(Object value,
+        String toHexString(Object value,
                 @Cached ToHexStringNode toHexStringNode) {
             return toHexStringNode.execute(value);
         }
@@ -1763,18 +1761,18 @@ public abstract class KernelNodes {
         public abstract String execute(Object value);
 
         @Specialization
-        protected String toHexString(int value) {
+        String toHexString(int value) {
             return toHexString((long) value);
         }
 
         @TruffleBoundary
         @Specialization
-        protected String toHexString(long value) {
+        String toHexString(long value) {
             return Long.toHexString(value);
         }
 
         @Specialization
-        protected String toHexString(RubyBignum value) {
+        String toHexString(RubyBignum value) {
             return BigIntegerOps.toString(value.value, 16);
         }
     }
@@ -1783,7 +1781,7 @@ public abstract class KernelNodes {
     public abstract static class KernelToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString toS(Object self,
+        RubyString toS(Object self,
                 @Cached ToSNode toSNode) {
             return toSNode.execute(self);
 
@@ -1802,7 +1800,7 @@ public abstract class KernelNodes {
         public abstract RubyString execute(Object self);
 
         @Specialization
-        protected RubyString toS(Object self,
+        RubyString toS(Object self,
                 @Cached LogicalClassNode classNode,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached ObjectIDNode objectIDNode,
@@ -1842,17 +1840,17 @@ public abstract class KernelNodes {
     public abstract static class WarningGetCategoryNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "category == coreSymbols().DEPRECATED")
-        protected boolean getCategoryDeprecated(RubySymbol category) {
+        boolean getCategoryDeprecated(RubySymbol category) {
             return getContext().getWarningCategoryDeprecated().get();
         }
 
         @Specialization(guards = "category == coreSymbols().EXPERIMENTAL")
-        protected boolean getCategoryExperimental(RubySymbol category) {
+        boolean getCategoryExperimental(RubySymbol category) {
             return getContext().getWarningCategoryExperimental().get();
         }
 
         @Specialization(guards = "category == coreSymbols().PERFORMANCE")
-        protected boolean getCategoryPerformance(RubySymbol category) {
+        boolean getCategoryPerformance(RubySymbol category) {
             return getContext().getWarningCategoryPerformance().get();
         }
 
@@ -1863,7 +1861,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean setCategory(RubySymbol category, boolean newValue) {
+        boolean setCategory(RubySymbol category, boolean newValue) {
             final AssumedValue<Boolean> existingValue;
             if (category == coreSymbols().DEPRECATED) {
                 existingValue = getContext().getWarningCategoryDeprecated();
@@ -1886,7 +1884,7 @@ public abstract class KernelNodes {
     @Primitive(name = "warn_given_block_not_used")
     public abstract static class WarnGivenBlockNotUsedNode extends PrimitiveNode {
         @Specialization
-        protected Object warn(
+        Object warn(
                 @Cached("new()") WarnNode warnNode) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(
@@ -1902,7 +1900,7 @@ public abstract class KernelNodes {
     @Primitive(name = "warn_block_supersedes_default_value_argument")
     public abstract static class WarnBlockSupersedesDefaultValueArgumentNode extends PrimitiveNode {
         @Specialization
-        protected Object warn(
+        Object warn(
                 @Cached("new()") WarnNode warnNode) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(

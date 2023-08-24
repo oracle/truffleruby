@@ -62,7 +62,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
                     "guardName(node, name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected static RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
+    static RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
             @Cached("module") RubyModule cachedModule,
             @Cached("name") String cachedName,
             @Cached("checkName") boolean cachedCheckName,
@@ -86,7 +86,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(RubyModule module, String name, boolean checkName,
+    RubyConstant lookupConstantUncached(RubyModule module, String name, boolean checkName,
             @Cached @Exclusive InlinedConditionProfile isValidConstantNameProfile,
             @Cached @Exclusive InlinedConditionProfile isVisibleProfile,
             @Cached @Exclusive InlinedConditionProfile isDeprecatedProfile) {

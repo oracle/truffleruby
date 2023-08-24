@@ -30,7 +30,7 @@ public abstract class NoMethodErrorNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
+        RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = getLanguage().noMethodErrorShape;
             final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil, null, nil, null, nil, nil);
             AllocationTracing.trace(instance, this);
@@ -43,7 +43,7 @@ public abstract class NoMethodErrorNodes {
     public abstract static class ArgsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object args(RubyNoMethodError self) {
+        Object args(RubyNoMethodError self) {
             return self.args;
         }
 
@@ -53,7 +53,7 @@ public abstract class NoMethodErrorNodes {
     public abstract static class ArgsSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setArgs(RubyNoMethodError error, Object args) {
+        Object setArgs(RubyNoMethodError error, Object args) {
             assert args == Nil.INSTANCE || args instanceof RubyArray;
             error.args = args;
             return args;

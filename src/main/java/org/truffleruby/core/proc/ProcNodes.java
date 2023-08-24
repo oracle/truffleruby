@@ -55,7 +55,7 @@ public abstract class ProcNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc allocate(RubyClass rubyClass) {
+        RubyProc allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
     }
@@ -71,17 +71,17 @@ public abstract class ProcNodes {
         public abstract RubyProc executeProcNew(VirtualFrame frame, RubyClass procClass, Object[] args, Object block);
 
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block) {
+        RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
-        protected RubyProc procNormal(RubyClass procClass, Object[] args, RubyProc block) {
+        RubyProc procNormal(RubyClass procClass, Object[] args, RubyProc block) {
             return block;
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected RubyProc procSpecial(VirtualFrame frame, RubyClass procClass, Object[] args, RubyProc block,
+        RubyProc procSpecial(VirtualFrame frame, RubyClass procClass, Object[] args, RubyProc block,
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
@@ -113,7 +113,7 @@ public abstract class ProcNodes {
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc dup(RubyProc proc) {
+        RubyProc dup(RubyProc proc) {
             final RubyClass logicalClass = proc.getLogicalClass();
             final RubyProc copy = new RubyProc(
                     logicalClass,
@@ -138,7 +138,7 @@ public abstract class ProcNodes {
     public abstract static class ArityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int arity(RubyProc proc) {
+        int arity(RubyProc proc) {
             return proc.getArityNumber();
         }
     }
@@ -147,7 +147,7 @@ public abstract class ProcNodes {
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyBinding binding(RubyProc proc) {
+        RubyBinding binding(RubyProc proc) {
             final MaterializedFrame frame = proc.declarationFrame;
             final SourceSection sourceSection = proc.getSharedMethodInfo().getSourceSection();
             return BindingNodes.createBinding(getContext(), getLanguage(), frame, sourceSection);
@@ -158,7 +158,7 @@ public abstract class ProcNodes {
     @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true, alwaysInlined = true)
     public abstract static class CallNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object call(Frame callerFrame, RubyProc proc, Object[] rubyArgs, RootCallTarget target,
+        Object call(Frame callerFrame, RubyProc proc, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBlockNode callBlockNode) {
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
@@ -175,7 +175,7 @@ public abstract class ProcNodes {
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean equal(RubyProc self, Object otherObj,
+        boolean equal(RubyProc self, Object otherObj,
                 @Cached LogicalClassNode logicalClassNode,
                 @Cached InlinedConditionProfile classProfile,
                 @Cached InlinedConditionProfile lambdaProfile) {
@@ -197,7 +197,7 @@ public abstract class ProcNodes {
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean lambda(RubyProc proc) {
+        boolean lambda(RubyProc proc) {
             return proc.type == ProcType.LAMBDA;
         }
 
@@ -208,7 +208,7 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray parameters(RubyProc proc) {
+        RubyArray parameters(RubyProc proc) {
             final ArgumentDescriptor[] argsDesc = proc.getArgumentDescriptors();
             final boolean isLambda = proc.type == ProcType.LAMBDA;
             return ArgumentDescriptorUtils
@@ -224,7 +224,7 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object sourceLocation(RubyProc proc) {
+        Object sourceLocation(RubyProc proc) {
             var sourceSection = proc.getSharedMethodInfo().getSourceSection();
 
             var source = sourceSection.getSource();
@@ -242,7 +242,7 @@ public abstract class ProcNodes {
     public abstract static class ProcCreateSameArityNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
+        RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
             final RubyProc composedProc = block.withArity(
                     userProc.arity,
                     userProc.argumentDescriptors,
@@ -256,7 +256,7 @@ public abstract class ProcNodes {
     @Primitive(name = "proc_specify_arity", lowerFixnum = 1)
     public abstract static class ProcSpecifyArityNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyProc specifyArityProc(RubyProc block, int argc) {
+        RubyProc specifyArityProc(RubyProc block, int argc) {
             final Arity newArity;
             if (argc <= -1) {
                 newArity = new Arity(-(argc + 1), 0, true);
@@ -278,7 +278,7 @@ public abstract class ProcNodes {
     public abstract static class ProcSymbolToProcSymbolNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object symbolToProcSymbol(RubyProc proc) {
+        Object symbolToProcSymbol(RubyProc proc) {
             if (proc.arity == SymbolNodes.ToProcNode.ARITY) {
                 return getSymbol(proc.getSharedMethodInfo().getOriginalName());
             } else {
@@ -292,7 +292,7 @@ public abstract class ProcNodes {
     public abstract static class SingleBlockArgNode extends PrimitiveNode {
 
         @Specialization
-        protected Object singleBlockArg(VirtualFrame frame,
+        Object singleBlockArg(VirtualFrame frame,
                 @Cached InlinedConditionProfile emptyArgsProfile,
                 @Cached InlinedConditionProfile singleArgProfile) {
 
@@ -320,7 +320,7 @@ public abstract class ProcNodes {
     @Primitive(name = "proc_ruby2_keywords", raiseIfFrozen = 0)
     public abstract static class ProcRuby2KeywordsNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object ruby2Keywords(RubyProc proc) {
+        Object ruby2Keywords(RubyProc proc) {
             return MethodRuby2KeywordsNode.ruby2Keywords(proc.getSharedMethodInfo(), proc.callTarget);
         }
     }

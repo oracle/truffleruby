@@ -52,18 +52,18 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     protected abstract void executeInternal(Node node, Object value, int depth);
 
     @Specialization(guards = { "!isRubyDynamicObject(value)", "!isFinalizer(value)" })
-    protected static void noWriteBarrier(Node node, Object value, int depth) {
+    static void noWriteBarrier(Node node, Object value, int depth) {
     }
 
     @Specialization(
             guards = { "value.getShape() == cachedShape", "cachedShape.isShared()" },
             limit = "1") // limit of 1 as the next specialization is cheap
-    protected static void alreadySharedCached(RubyDynamicObject value, int depth,
+    static void alreadySharedCached(RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape) {
     }
 
     @Specialization(guards = "value.getShape().isShared()", replaces = "alreadySharedCached")
-    protected static void alreadySharedUncached(RubyDynamicObject value, int depth) {
+    static void alreadySharedUncached(RubyDynamicObject value, int depth) {
     }
 
     @Specialization(
@@ -71,7 +71,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             assumptions = "cachedShape.getValidAssumption()",
             // limit of 1 to avoid creating many nodes if the value's Shape is polymorphic.
             limit = "1")
-    protected static void writeBarrierCached(Node node, RubyDynamicObject value, int depth,
+    static void writeBarrierCached(Node node, RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape,
             // Recursive inlining is not supported. ShareObjectNode contains cached parameter ShareInternalFieldsNode
             // which contains again WriteBarrierNode
@@ -80,7 +80,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(value)")
-    protected static void updateShapeAndWriteBarrier(RubyDynamicObject value, int depth,
+    static void updateShapeAndWriteBarrier(RubyDynamicObject value, int depth,
             // Recursive inlining is not supported.
             @Cached(inline = false) WriteBarrierNode writeBarrierNode) {
         writeBarrierNode.executeCached(value, depth);
@@ -88,13 +88,13 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization(guards = "!value.getShape().isShared()",
             replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
-    protected static void writeBarrierUncached(Node node, RubyDynamicObject value, int depth) {
+    static void writeBarrierUncached(Node node, RubyDynamicObject value, int depth) {
         SharedObjects.writeBarrier(getLanguage(node), value);
     }
 
     @Specialization
     @TruffleBoundary
-    protected static void writeBarrierFinalizer(Node node, FinalizerReference ref, int depth) {
+    static void writeBarrierFinalizer(Node node, FinalizerReference ref, int depth) {
         ArrayList<Object> roots = new ArrayList<>();
         ref.collectRoots(roots);
         for (var root : roots) {
@@ -105,7 +105,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization
     @TruffleBoundary
-    protected static void writeBarrierDataFinalizer(Node node, DataObjectFinalizerReference ref, int depth) {
+    static void writeBarrierDataFinalizer(Node node, DataObjectFinalizerReference ref, int depth) {
         SharedObjects.writeBarrier(getLanguage(node), ref.dataHolder);
     }
 

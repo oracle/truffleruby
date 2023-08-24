@@ -36,12 +36,12 @@ import org.truffleruby.language.RubyBaseNode;
 public final class IntegerArrayStore {
 
     @ExportMessage
-    protected static int read(int[] store, int index) {
+    static int read(int[] store, int index) {
         return store[index];
     }
 
     @ExportMessage
-    protected static boolean acceptsValue(int[] store, Object value) {
+    static boolean acceptsValue(int[] store, Object value) {
         return value instanceof Integer;
     }
 
@@ -49,64 +49,64 @@ public final class IntegerArrayStore {
     static final class AcceptsAllValues {
 
         @Specialization
-        protected static boolean acceptsZeroValues(int[] store, ZeroLengthArrayStore otherStore) {
+        static boolean acceptsZeroValues(int[] store, ZeroLengthArrayStore otherStore) {
             return true;
         }
 
         @Specialization
-        protected static boolean acceptsIntValues(int[] store, int[] otherStore) {
+        static boolean acceptsIntValues(int[] store, int[] otherStore) {
             return true;
         }
 
         @Specialization
-        protected static boolean acceptsDelegateValues(int[] store, DelegatedArrayStorage otherStore) {
+        static boolean acceptsDelegateValues(int[] store, DelegatedArrayStorage otherStore) {
             return otherStore.storage instanceof int[];
         }
 
         @Specialization
-        protected static boolean acceptsSharedValues(int[] store, SharedArrayStorage otherStore,
+        static boolean acceptsSharedValues(int[] store, SharedArrayStorage otherStore,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
         @Fallback
-        protected static boolean acceptsOtherValues(int[] store, Object otherStore) {
+        static boolean acceptsOtherValues(int[] store, Object otherStore) {
             return false;
         }
     }
 
     @ExportMessage
-    protected static boolean isMutable(int[] store) {
+    static boolean isMutable(int[] store) {
         return true;
     }
 
     @ExportMessage
-    protected static boolean isPrimitive(int[] store) {
+    static boolean isPrimitive(int[] store) {
         return true;
     }
 
     @ExportMessage
-    protected static String toString(int[] store) {
+    static String toString(int[] store) {
         return "int[]";
     }
 
     @ExportMessage
-    protected static void write(int[] store, int index, Object value) {
+    static void write(int[] store, int index, Object value) {
         store[index] = (int) value;
     }
 
     @ExportMessage
-    protected static int capacity(int[] store) {
+    static int capacity(int[] store) {
         return store.length;
     }
 
     @ExportMessage
-    protected static int[] expand(int[] store, int newCapacity) {
+    static int[] expand(int[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage
-    protected static Object[] boxedCopyOfRange(int[] store, int start, int length) {
+    static Object[] boxedCopyOfRange(int[] store, int start, int length) {
         Object[] result = new Object[length];
         for (int i = 0; i < length; i++) {
             result[i] = store[start + i];
@@ -119,12 +119,12 @@ public final class IntegerArrayStore {
     static final class CopyContents {
 
         @Specialization
-        protected static void copyContents(int[] srcStore, int srcStart, int[] destStore, int destStart, int length) {
+        static void copyContents(int[] srcStore, int srcStart, int[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization(guards = "!isIntStore(destStore)", limit = "storageStrategyLimit()")
-        protected static void copyContents(int[] srcStore, int srcStart, Object destStore, int destStart, int length,
+        static void copyContents(int[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @Cached LoopConditionProfile loopProfile,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             int i = 0;
@@ -144,27 +144,27 @@ public final class IntegerArrayStore {
     }
 
     @ExportMessage
-    protected static void clear(int[] store, int start, int length) {
+    static void clear(int[] store, int start, int length) {
     }
 
     @ExportMessage
-    protected static void fill(int[] store, int start, int length, Object value) {
+    static void fill(int[] store, int start, int length, Object value) {
         Arrays.fill(store, start, start + length, (int) value);
     }
 
     @ExportMessage
-    protected static int[] toJavaArrayCopy(int[] store, int length) {
+    static int[] toJavaArrayCopy(int[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage
     @TruffleBoundary
-    protected static void sort(int[] store, int size) {
+    static void sort(int[] store, int size) {
         Arrays.sort(store, 0, size);
     }
 
     @ExportMessage
-    protected static Iterable<Object> getIterable(int[] store, int from, int length) {
+    static Iterable<Object> getIterable(int[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
             private int n = from;
@@ -197,22 +197,22 @@ public final class IntegerArrayStore {
     static final class GeneralizeForValue {
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, int newValue) {
+        static ArrayAllocator generalize(int[] store, int newValue) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, long newValue) {
+        static ArrayAllocator generalize(int[] store, long newValue) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, double newValue) {
+        static ArrayAllocator generalize(int[] store, double newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Fallback
-        protected static ArrayAllocator generalize(int[] store, Object newValue) {
+        static ArrayAllocator generalize(int[] store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
@@ -222,34 +222,34 @@ public final class IntegerArrayStore {
     static final class GeneralizeForStore {
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, int[] newStore) {
+        static ArrayAllocator generalize(int[] store, int[] newStore) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, long[] newStore) {
+        static ArrayAllocator generalize(int[] store, long[] newStore) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, double[] newStore) {
+        static ArrayAllocator generalize(int[] store, double[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(int[] store, Object[] newStore) {
+        static ArrayAllocator generalize(int[] store, Object[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected static ArrayAllocator generalize(int[] store, Object newStore,
+        static ArrayAllocator generalize(int[] store, Object newStore,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }
     }
 
     @ExportMessage
-    protected static ArrayAllocator generalizeForSharing(int[] store) {
+    static ArrayAllocator generalizeForSharing(int[] store) {
         return SharedArrayStorage.SHARED_INTEGER_ARRAY_ALLOCATOR;
     }
 
@@ -257,22 +257,22 @@ public final class IntegerArrayStore {
     static final class AllocateForNewValue {
 
         @Specialization
-        protected static Object allocateForNewValue(int[] store, int newValue, int length) {
+        static Object allocateForNewValue(int[] store, int newValue, int length) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocateForNewValue(int[] store, long newValue, int length) {
+        static Object allocateForNewValue(int[] store, long newValue, int length) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocateForNewValue(int[] store, double newValue, int length) {
+        static Object allocateForNewValue(int[] store, double newValue, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Fallback
-        protected static Object allocateForNewValue(int[] store, Object newValue, int length) {
+        static Object allocateForNewValue(int[] store, Object newValue, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
@@ -283,33 +283,33 @@ public final class IntegerArrayStore {
     static final class AllocateForNewStore {
 
         @Specialization
-        protected static Object allocate(int[] store, ZeroLengthArrayStore newStore, int length) {
+        static Object allocate(int[] store, ZeroLengthArrayStore newStore, int length) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocate(int[] store, int[] newStore, int length) {
+        static Object allocate(int[] store, int[] newStore, int length) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocate(int[] store, long[] newStore, int length) {
+        static Object allocate(int[] store, long[] newStore, int length) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocate(int[] store, double[] newStore, int length) {
+        static Object allocate(int[] store, double[] newStore, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocate(int[] store, Object[] newStore, int length) {
+        static Object allocate(int[] store, Object[] newStore, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization(guards = { "!basicStore(newStore)", "!zeroLengthStore(newStore)" },
                 limit = "storageStrategyLimit()")
-        protected static Object allocate(int[] store, Object newStore, int length,
+        static Object allocate(int[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.unsharedAllocateForNewStore(newStore, store, length);
         }
@@ -319,18 +319,18 @@ public final class IntegerArrayStore {
     protected static final class IsDefaultValue {
 
         @Specialization
-        protected static boolean isDefaultValue(int[] store, int value) {
+        static boolean isDefaultValue(int[] store, int value) {
             return value == 0;
         }
 
         @Fallback
-        protected static boolean isDefaultValue(int[] store, Object value) {
+        static boolean isDefaultValue(int[] store, Object value) {
             return false;
         }
     }
 
     @ExportMessage
-    protected static ArrayAllocator allocator(int[] store) {
+    static ArrayAllocator allocator(int[] store) {
         return INTEGER_ARRAY_ALLOCATOR;
     }
 

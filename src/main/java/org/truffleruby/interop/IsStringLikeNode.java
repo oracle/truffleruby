@@ -27,27 +27,27 @@ public abstract class IsStringLikeNode extends RubyBaseNode {
     public abstract boolean executeIsStringLike(Object value);
 
     @Specialization
-    protected boolean isRubyStringStringLike(RubyString value) {
+    boolean isRubyStringStringLike(RubyString value) {
         return true;
     }
 
     @Specialization
-    protected boolean isImmutableRubyStringStringLike(ImmutableRubyString value) {
+    boolean isImmutableRubyStringStringLike(ImmutableRubyString value) {
         return true;
     }
 
     @Specialization
-    protected boolean isRubySymbolStringLike(RubySymbol value) {
+    boolean isRubySymbolStringLike(RubySymbol value) {
         return true;
     }
 
     @Specialization
-    protected boolean isJavaStringStringLike(String value) {
+    boolean isJavaStringStringLike(String value) {
         return true;
     }
 
     @Specialization(guards = { "isNotRubyString(value)", "!isRubySymbol(value)", "!isString(value)" })
-    protected boolean notStringLike(Object value) {
+    boolean notStringLike(Object value) {
         return false;
     }
 

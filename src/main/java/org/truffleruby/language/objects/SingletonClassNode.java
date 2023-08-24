@@ -42,14 +42,14 @@ public abstract class SingletonClassNode extends RubyBaseNode {
             // no need to guard on the context, the rubyClass is context-specific
             guards = { "isSingleContext()", "rubyClass == cachedClass", "cachedSingletonClass != null" },
             limit = "1")
-    protected RubyClass singletonClassClassCached(RubyClass rubyClass,
+    RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
             @Cached("getSingletonClassOfClassOrNull(getContext(), cachedClass)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(replaces = "singletonClassClassCached")
-    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
+    RubyClass singletonClassClassUncached(RubyClass rubyClass) {
         return ClassNodes.getSingletonClassOfClass(getContext(), rubyClass);
     }
 
@@ -61,49 +61,49 @@ public abstract class SingletonClassNode extends RubyBaseNode {
                     "!isRubyClass(cachedObject)",
                     "!isRubyIO(cachedObject)" },
             limit = "1")
-    protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
+    RubyClass singletonClassInstanceCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("getSingletonClassForInstance(getContext(), object)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(guards = "!isRubyClass(object)", replaces = "singletonClassInstanceCached")
-    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
+    RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
         return getSingletonClassForInstance(getContext(), object);
     }
 
     @Specialization(guards = "value")
-    protected RubyClass singletonClassTrue(boolean value) {
+    RubyClass singletonClassTrue(boolean value) {
         return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass singletonClassFalse(boolean value) {
+    RubyClass singletonClassFalse(boolean value) {
         return coreLibrary().falseClass;
     }
 
     @Specialization
-    protected RubyClass singletonClassNil(Nil value) {
+    RubyClass singletonClassNil(Nil value) {
         return coreLibrary().nilClass;
     }
 
     @Specialization
-    protected RubyClass singletonClass(int value) {
+    RubyClass singletonClass(int value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected RubyClass singletonClass(long value) {
+    RubyClass singletonClass(long value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected RubyClass singletonClass(double value) {
+    RubyClass singletonClass(double value) {
         return noSingletonClass();
     }
 
     @Specialization(guards = "!isNil(value)")
-    protected RubyClass singletonClassImmutableObject(ImmutableRubyObject value) {
+    RubyClass singletonClassImmutableObject(ImmutableRubyObject value) {
         return noSingletonClass();
     }
 
@@ -146,7 +146,7 @@ public abstract class SingletonClassNode extends RubyBaseNode {
     public abstract static class SingletonClassASTNode extends RubyContextSourceNode {
 
         @Specialization
-        protected Object singletonClass(Object value,
+        Object singletonClass(Object value,
                 @Cached SingletonClassNode singletonClassNode) {
             return singletonClassNode.execute(value);
         }

@@ -132,7 +132,7 @@ public final class RubyString extends RubyDynamicObject {
         @Specialization(
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
-        protected static String asStringCached(RubyString string,
+        static String asStringCached(RubyString string,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
@@ -142,7 +142,7 @@ public final class RubyString extends RubyDynamicObject {
         }
 
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(RubyString string,
+        static String asStringUncached(RubyString string,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,

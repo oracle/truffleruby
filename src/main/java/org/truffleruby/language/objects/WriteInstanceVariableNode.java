@@ -44,7 +44,7 @@ public abstract class WriteInstanceVariableNode extends RubyContextSourceNode im
     }
 
     @Specialization
-    protected Object doWrite(VirtualFrame frame) {
+    Object doWrite(VirtualFrame frame) {
         final Object self = SelfNode.readSelf(frame, readSelfSlotNode);
         final Object value = rhs.execute(frame);
         write(self, value);

@@ -29,45 +29,45 @@ public abstract class IsFrozenNode extends RubyBaseNode {
     public abstract boolean execute(Object object);
 
     @Specialization
-    protected boolean isFrozen(ImmutableRubyObject object) {
+    boolean isFrozen(ImmutableRubyObject object) {
         return true;
     }
 
     @Specialization
-    protected boolean isFrozen(RubyString object) {
+    boolean isFrozen(RubyString object) {
         return object.frozen;
     }
 
     @Specialization(guards = { "!isRubyObjectRange(object)", "isNotRubyString(object)" },
             limit = "getDynamicObjectCacheLimit()")
-    protected boolean isFrozen(RubyDynamicObject object,
+    boolean isFrozen(RubyDynamicObject object,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         return (objectLibrary.getShapeFlags(object) & FROZEN_FLAG) != 0;
     }
 
     @Specialization
-    protected boolean isFrozen(RubyObjectRange object) {
+    boolean isFrozen(RubyObjectRange object) {
         return object.frozen;
     }
 
 
     @Specialization
-    protected boolean isFrozen(boolean object) {
+    boolean isFrozen(boolean object) {
         return true;
     }
 
     @Specialization
-    protected boolean isFrozen(int object) {
+    boolean isFrozen(int object) {
         return true;
     }
 
     @Specialization
-    protected boolean isFrozen(long object) {
+    boolean isFrozen(long object) {
         return true;
     }
 
     @Specialization
-    protected boolean isFrozen(double object) {
+    boolean isFrozen(double object) {
         return true;
     }
 

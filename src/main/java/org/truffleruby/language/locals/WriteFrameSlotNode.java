@@ -41,27 +41,27 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
     }
 
     @Specialization(guards = "isExpectedOrIllegal(frame, Boolean)")
-    protected void writeBoolean(Frame frame, boolean value) {
+    void writeBoolean(Frame frame, boolean value) {
         frame.setBoolean(frameSlot, value);
     }
 
     @Specialization(guards = "isExpectedOrIllegal(frame, Int)")
-    protected void writeInt(Frame frame, int value) {
+    void writeInt(Frame frame, int value) {
         frame.setInt(frameSlot, value);
     }
 
     @Specialization(guards = "isExpectedOrIllegal(frame, Long)")
-    protected void writeLong(Frame frame, long value) {
+    void writeLong(Frame frame, long value) {
         frame.setLong(frameSlot, value);
     }
 
     @Specialization(guards = "isExpectedOrIllegal(frame, Double)")
-    protected void writeDouble(Frame frame, double value) {
+    void writeDouble(Frame frame, double value) {
         frame.setDouble(frameSlot, value);
     }
 
     @Specialization(replaces = { "writeBoolean", "writeInt", "writeLong", "writeDouble" })
-    protected void writeObject(Frame frame, Object value) {
+    void writeObject(Frame frame, Object value) {
         /* No-op if kind is already Object. */
         final FrameDescriptor descriptor = getFrameDescriptor(frame);
         descriptor.setSlotKind(frameSlot, FrameSlotKind.Object);

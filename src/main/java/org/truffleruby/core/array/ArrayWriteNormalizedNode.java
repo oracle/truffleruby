@@ -36,7 +36,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     @Specialization(
             guards = { "isInBounds(array, index)", "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
-    protected Object writeWithin(RubyArray array, int index, Object value,
+    Object writeWithin(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         stores.write(store, index, value);
@@ -51,7 +51,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "!stores.acceptsValue(store, value)"
             },
             limit = "storageStrategyLimit()")
-    protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
+    Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores) {
@@ -66,7 +66,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     // Extending an array of compatible type by just one
 
     @Specialization(guards = "isExtendingByOne(array, index)")
-    protected Object writeExtendByOne(RubyArray array, int index, Object value,
+    Object writeExtendByOne(RubyArray array, int index, Object value,
             @Cached ArrayAppendOneNode appendNode) {
         appendNode.executeAppendOne(array, value);
         return value;
@@ -79,7 +79,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "!isExtendingByOne(array, index)",
                     "stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
-    protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
+    Object writeBeyondPrimitive(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
@@ -108,7 +108,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
                     "!isExtendingByOne(array, index)",
                     "!stores.isPrimitive(store)" },
             limit = "storageStrategyLimit()")
-    protected Object writeBeyondObject(RubyArray array, int index, Object value,
+    Object writeBeyondObject(RubyArray array, int index, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,

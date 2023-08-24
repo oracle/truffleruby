@@ -29,7 +29,7 @@ public abstract class FloatToIntegerNode extends RubyBaseNode {
     public abstract Object execute(Node node, double value);
 
     @Specialization
-    protected static Object fixnumOrBignum(Node node, double value,
+    static Object fixnumOrBignum(Node node, double value,
             @Cached FixnumOrBignumNode fixnumOrBignumNode,
             @Cached InlinedBranchProfile errorProfile,
             @Cached InlinedConditionProfile longFromDoubleProfile,

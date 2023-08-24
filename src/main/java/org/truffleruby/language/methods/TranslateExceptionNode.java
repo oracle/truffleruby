@@ -65,32 +65,32 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RuntimeException translate(ControlFlowException e) {
+    RuntimeException translate(ControlFlowException e) {
         throw e;
     }
 
     @Specialization
-    protected RuntimeException translate(AbstractTruffleException e) {
+    RuntimeException translate(AbstractTruffleException e) {
         throw e;
     }
 
     @Specialization
-    protected RuntimeException translate(TerminationException e) {
+    RuntimeException translate(TerminationException e) {
         throw e;
     }
 
     @Specialization
-    protected RuntimeException translate(ThreadDeath e) {
+    RuntimeException translate(ThreadDeath e) {
         throw e;
     }
 
     @Specialization(guards = "needsSpecialTranslation(e)")
-    protected RuntimeException translateSpecial(Throwable e) {
+    RuntimeException translateSpecial(Throwable e) {
         throw doTranslateSpecial(e);
     }
 
     @Fallback
-    protected RuntimeException translate(Throwable e) {
+    RuntimeException translate(Throwable e) {
         // An internal exception
         CompilerDirectives.transferToInterpreterAndInvalidate();
         logUncaughtJavaException(getContext(), this, e);

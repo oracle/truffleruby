@@ -101,7 +101,7 @@ public abstract class IONodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyIO allocate(RubyClass rubyClass) {
+        RubyIO allocate(RubyClass rubyClass) {
             final RubyIO instance = new RubyIO(rubyClass, getLanguage().ioShape, RubyIO.CLOSED_FD);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -113,7 +113,7 @@ public abstract class IONodes {
     public abstract static class IOFDNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int fd(RubyIO io) {
+        int fd(RubyIO io) {
             return io.getDescriptor();
         }
     }
@@ -122,7 +122,7 @@ public abstract class IONodes {
     public abstract static class IOSetFDNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyIO fd(RubyIO io, int fd) {
+        RubyIO fd(RubyIO io, int fd) {
             io.setDescriptor(fd);
             return io;
         }
@@ -133,7 +133,7 @@ public abstract class IONodes {
 
         @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" },
                 limit = "1")
-        protected boolean fnmatch(Object pattern, Object path, int flags,
+        boolean fnmatch(Object pattern, Object path, int flags,
                 @Cached RubyStringLibrary stringsPattern,
                 @Cached RubyStringLibrary stringsPath,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPatternNode,
@@ -422,7 +422,7 @@ public abstract class IONodes {
     public abstract static class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object ensureOpen(RubyIO io,
+        Object ensureOpen(RubyIO io,
                 @Cached InlinedBranchProfile errorProfile) {
             final int fd = io.getDescriptor();
             if (fd == RubyIO.CLOSED_FD) {
@@ -441,7 +441,7 @@ public abstract class IONodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object read(int length,
+        Object read(int length,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
@@ -474,7 +474,7 @@ public abstract class IONodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        protected int write(int fd, Object string,
+        int write(int fd, Object string,
                 @Cached RubyStringLibrary strings) {
             final OutputStream stream;
 
@@ -510,7 +510,7 @@ public abstract class IONodes {
     public abstract static class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyPointer getThreadBuffer(long size,
+        RubyPointer getThreadBuffer(long size,
                 @Cached InlinedConditionProfile sizeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
             final RubyPointer instance = new RubyPointer(
@@ -531,7 +531,7 @@ public abstract class IONodes {
     public abstract static class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getThreadBuffer(RubyPointer pointer,
+        Object getThreadBuffer(RubyPointer pointer,
                 @Cached InlinedConditionProfile freeProfile) {
             RubyThread thread = getLanguage().getCurrentThread();
             thread.getIoBuffer(getContext()).free(this, thread, pointer.pointer, freeProfile);

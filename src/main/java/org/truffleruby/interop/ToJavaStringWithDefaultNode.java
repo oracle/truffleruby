@@ -26,12 +26,12 @@ public abstract class ToJavaStringWithDefaultNode extends RubyBaseNode {
     public abstract String execute(Node node, Object value, String defaultValue);
 
     @Specialization
-    protected static String doDefault(NotProvided value, String defaultValue) {
+    static String doDefault(NotProvided value, String defaultValue) {
         return defaultValue;
     }
 
     @Specialization(guards = "wasProvided(value)")
-    protected static String doProvided(Node node, Object value, String defaultValue,
+    static String doProvided(Node node, Object value, String defaultValue,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.execute(node, value);
     }

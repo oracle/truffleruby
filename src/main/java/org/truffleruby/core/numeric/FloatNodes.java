@@ -55,7 +55,7 @@ public abstract class FloatNodes {
     public abstract static class NegNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double neg(double value) {
+        double neg(double value) {
             return -value;
         }
 
@@ -66,22 +66,22 @@ public abstract class FloatNodes {
     public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double add(double a, long b) {
+        double add(double a, long b) {
             return a + b;
         }
 
         @Specialization
-        protected double add(double a, double b) {
+        double add(double a, double b) {
             return a + b;
         }
 
         @Specialization
-        protected double add(double a, RubyBignum b) {
+        double add(double a, RubyBignum b) {
             return a + BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object addCoerced(double a, Object b,
+        Object addCoerced(double a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().PLUS, b);
         }
@@ -92,22 +92,22 @@ public abstract class FloatNodes {
     public abstract static class SubNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double sub(double a, long b) {
+        double sub(double a, long b) {
             return a - b;
         }
 
         @Specialization
-        protected double sub(double a, double b) {
+        double sub(double a, double b) {
             return a - b;
         }
 
         @Specialization
-        protected double sub(double a, RubyBignum b) {
+        double sub(double a, RubyBignum b) {
             return a - BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object subCoerced(double a, Object b,
+        Object subCoerced(double a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().MINUS, b);
         }
@@ -118,22 +118,22 @@ public abstract class FloatNodes {
     public abstract static class MulNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double mul(double a, long b) {
+        double mul(double a, long b) {
             return a * b;
         }
 
         @Specialization
-        protected double mul(double a, double b) {
+        double mul(double a, double b) {
             return a * b;
         }
 
         @Specialization
-        protected double mul(double a, RubyBignum b) {
+        double mul(double a, RubyBignum b) {
             return a * BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object mulCoerced(double a, Object b,
+        Object mulCoerced(double a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().MULTIPLY, b);
         }
@@ -152,7 +152,7 @@ public abstract class FloatNodes {
                 guards = { "exponent == cachedExponent", "cachedExponent >= 0", "cachedExponent < 10" },
                 limit = "10")
         @ExplodeLoop
-        protected double powCached(double base, long exponent,
+        double powCached(double base, long exponent,
                 @Cached("exponent") long cachedExponent) {
             double result = 1.0;
             for (int i = 0; i < cachedExponent; i++) {
@@ -162,12 +162,12 @@ public abstract class FloatNodes {
         }
 
         @Specialization(replaces = "powCached")
-        protected double pow(double base, long exponent) {
+        double pow(double base, long exponent) {
             return Math.pow(base, exponent);
         }
 
         @Specialization
-        protected Object pow(VirtualFrame frame, double base, double exponent) {
+        Object pow(VirtualFrame frame, double base, double exponent) {
             if (complexProfile.profile(base < 0 && exponent != Math.round(exponent))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -184,12 +184,12 @@ public abstract class FloatNodes {
         }
 
         @Specialization
-        protected double pow(double base, RubyBignum exponent) {
+        double pow(double base, RubyBignum exponent) {
             return Math.pow(base, BigIntegerOps.doubleValue(exponent));
         }
 
         @Specialization(guards = "!isRubyNumber(exponent)")
-        protected Object powCoerced(double base, Object exponent,
+        Object powCoerced(double base, Object exponent,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(base, "redo_coerced", coreSymbols().POW, exponent);
         }
@@ -200,22 +200,22 @@ public abstract class FloatNodes {
     public abstract static class DivNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double div(double a, long b) {
+        double div(double a, long b) {
             return a / b;
         }
 
         @Specialization
-        protected double div(double a, double b) {
+        double div(double a, double b) {
             return a / b;
         }
 
         @Specialization
-        protected double div(double a, RubyBignum b) {
+        double div(double a, RubyBignum b) {
             return a / BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object divCoerced(double a, Object b,
+        Object divCoerced(double a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().DIVIDE, b);
         }
@@ -236,12 +236,12 @@ public abstract class FloatNodes {
         public abstract Object executeMod(double a, double b);
 
         @Specialization
-        protected double mod(double a, long b) {
+        double mod(double a, long b) {
             return mod(a, (double) b);
         }
 
         @Specialization
-        protected double mod(double a, double b) {
+        double mod(double a, double b) {
             if (b == 0) {
                 zeroProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
@@ -257,12 +257,12 @@ public abstract class FloatNodes {
         }
 
         @Specialization
-        protected double mod(double a, RubyBignum b) {
+        double mod(double a, RubyBignum b) {
             return mod(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object modCoerced(double a, Object b,
+        Object modCoerced(double a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().MODULO, b);
         }
@@ -274,25 +274,25 @@ public abstract class FloatNodes {
 
 
         @Specialization
-        protected RubyArray divMod(double a, long b,
+        RubyArray divMod(double a, long b,
                 @Cached @Shared GeneralDivModNode divModNode) {
             return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(double a, double b,
+        RubyArray divMod(double a, double b,
                 @Cached @Shared GeneralDivModNode divModNode) {
             return divModNode.execute(this, a, b);
         }
 
         @Specialization
-        protected RubyArray divMod(double a, RubyBignum b,
+        RubyArray divMod(double a, RubyBignum b,
                 @Cached @Shared GeneralDivModNode divModNode) {
             return divModNode.execute(this, a, b.value);
         }
 
         @Specialization
-        protected Object divModCoerced(double a, RubyDynamicObject b,
+        Object divModCoerced(double a, RubyDynamicObject b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().DIVMOD, b);
         }
@@ -303,22 +303,22 @@ public abstract class FloatNodes {
     public abstract static class LessNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean less(double a, long b) {
+        boolean less(double a, long b) {
             return a < b;
         }
 
         @Specialization
-        protected boolean less(double a, double b) {
+        boolean less(double a, double b) {
             return a < b;
         }
 
         @Specialization
-        protected boolean lessBignum(double a, RubyBignum b) {
+        boolean lessBignum(double a, RubyBignum b) {
             return BigIntegerOps.less(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object lessCoerced(double a, Object b,
+        Object lessCoerced(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreSymbols().LESS_THAN, b);
         }
@@ -328,22 +328,22 @@ public abstract class FloatNodes {
     public abstract static class LessEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean lessEqual(double a, long b) {
+        boolean lessEqual(double a, long b) {
             return a <= b;
         }
 
         @Specialization
-        protected boolean lessEqual(double a, double b) {
+        boolean lessEqual(double a, double b) {
             return a <= b;
         }
 
         @Specialization
-        protected boolean lessEqual(double a, RubyBignum b) {
+        boolean lessEqual(double a, RubyBignum b) {
             return BigIntegerOps.lessEqual(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object lessEqualCoerced(double a, Object b,
+        Object lessEqualCoerced(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreSymbols().LEQ, b);
         }
@@ -353,12 +353,12 @@ public abstract class FloatNodes {
     public abstract static class EqlNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean eql(double a, double b) {
+        boolean eql(double a, double b) {
             return a == b;
         }
 
         @Specialization(guards = { "!isDouble(b)" })
-        protected boolean eqlGeneral(double a, Object b) {
+        boolean eqlGeneral(double a, Object b) {
             return false;
         }
     }
@@ -369,22 +369,22 @@ public abstract class FloatNodes {
         @Child private DispatchNode fallbackCallNode;
 
         @Specialization
-        protected boolean equal(double a, long b) {
+        boolean equal(double a, long b) {
             return a == b;
         }
 
         @Specialization
-        protected boolean equal(double a, double b) {
+        boolean equal(double a, double b) {
             return a == b;
         }
 
         @Specialization
-        protected boolean equal(double a, RubyBignum b) {
+        boolean equal(double a, RubyBignum b) {
             return BigIntegerOps.equal(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object equal(VirtualFrame frame, double a, Object b) {
+        Object equal(VirtualFrame frame, double a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 fallbackCallNode = insert(DispatchNode.create());
@@ -398,34 +398,34 @@ public abstract class FloatNodes {
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNaN(a)")
-        protected Object compareFirstNaN(double a, Object b) {
+        Object compareFirstNaN(double a, Object b) {
             return nil;
         }
 
         @Specialization(guards = "isNaN(b)")
-        protected Object compareSecondNaN(Object a, double b) {
+        Object compareSecondNaN(Object a, double b) {
             return nil;
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
-        protected int compareDoubleDouble(double a, double b,
+        int compareDoubleDouble(double a, double b,
                 @Shared @Cached InlinedConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile, this);
         }
 
         @Specialization(guards = "!isNaN(a)")
-        protected int compareDoubleLong(double a, long b,
+        int compareDoubleLong(double a, long b,
                 @Shared @Cached InlinedConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile, this);
         }
 
         @Specialization(guards = "!isNaN(a)")
-        protected int compareBignum(double a, RubyBignum b) {
+        int compareBignum(double a, RubyBignum b) {
             return BigIntegerOps.compare(a, b.value);
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyNumber(b)" })
-        protected Object compare(double a, Object b,
+        Object compare(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
@@ -443,22 +443,22 @@ public abstract class FloatNodes {
     public abstract static class GreaterEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean greaterEqual(double a, long b) {
+        boolean greaterEqual(double a, long b) {
             return a >= b;
         }
 
         @Specialization
-        protected boolean greaterEqual(double a, double b) {
+        boolean greaterEqual(double a, double b) {
             return a >= b;
         }
 
         @Specialization
-        protected boolean greaterEqual(double a, RubyBignum b) {
+        boolean greaterEqual(double a, RubyBignum b) {
             return BigIntegerOps.greaterEqual(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object greaterEqualCoerced(double a, Object b,
+        Object greaterEqualCoerced(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreSymbols().GEQ, b);
         }
@@ -469,22 +469,22 @@ public abstract class FloatNodes {
     public abstract static class GreaterNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean greater(double a, long b) {
+        boolean greater(double a, long b) {
             return a > b;
         }
 
         @Specialization
-        protected boolean greater(double a, double b) {
+        boolean greater(double a, double b) {
             return a > b;
         }
 
         @Specialization
-        protected boolean greater(double a, RubyBignum b) {
+        boolean greater(double a, RubyBignum b) {
             return BigIntegerOps.greater(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        protected Object greaterCoerced(double a, Object b,
+        Object greaterCoerced(double a, Object b,
                 @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreSymbols().GREATER_THAN, b);
         }
@@ -494,7 +494,7 @@ public abstract class FloatNodes {
     public abstract static class AbsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double abs(double n) {
+        double abs(double n) {
             return Math.abs(n);
         }
 
@@ -504,7 +504,7 @@ public abstract class FloatNodes {
     public abstract static class InfiniteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object infinite(double value) {
+        Object infinite(double value) {
             if (Double.isInfinite(value)) {
                 if (value < 0) {
                     return -1;
@@ -522,7 +522,7 @@ public abstract class FloatNodes {
     public abstract static class NaNNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean nan(double value) {
+        boolean nan(double value) {
             return Double.isNaN(value);
         }
 
@@ -532,7 +532,7 @@ public abstract class FloatNodes {
     public abstract static class NextFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double nextFloat(double value) {
+        double nextFloat(double value) {
             return Math.nextUp(value);
         }
 
@@ -542,7 +542,7 @@ public abstract class FloatNodes {
     public abstract static class PrevFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double prevFloat(double value) {
+        double prevFloat(double value) {
             return Math.nextDown(value);
         }
 
@@ -565,7 +565,7 @@ public abstract class FloatNodes {
     @Primitive(name = "float_ceil")
     public abstract static class FloatCeilPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object ceil(double n,
+        Object ceil(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             return floatToIntegerNode.execute(this, Math.ceil(n));
         }
@@ -575,7 +575,7 @@ public abstract class FloatNodes {
     public abstract static class FloatCeilNDigitsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double ceilNDigits(double n, int ndigits) {
+        double ceilNDigits(double n, int ndigits) {
             final double scale = Math.pow(10.0, ndigits);
             return Math.ceil(n * scale) / scale;
         }
@@ -585,7 +585,7 @@ public abstract class FloatNodes {
     @Primitive(name = "float_floor")
     public abstract static class FloatFloorPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object floor(double n,
+        Object floor(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             return floatToIntegerNode.execute(this, Math.floor(n));
         }
@@ -595,7 +595,7 @@ public abstract class FloatNodes {
     public abstract static class FloatFloorNDigitsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double floorNDigits(double n, int ndigits) {
+        double floorNDigits(double n, int ndigits) {
             final double scale = Math.pow(10.0, ndigits);
             return Math.floor(n * scale) / scale;
         }
@@ -607,7 +607,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "fitsInInteger(n)")
-        protected int roundFittingInt(double n) {
+        int roundFittingInt(double n) {
             int l = (int) n;
             int signum = (int) Math.signum(n);
             double d = Math.abs(n - l);
@@ -618,7 +618,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
-        protected long roundFittingLong(double n) {
+        long roundFittingLong(double n) {
             long l = (long) n;
             long signum = (long) Math.signum(n);
             double d = Math.abs(n - l);
@@ -629,7 +629,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(replaces = "roundFittingLong")
-        protected Object round(double n,
+        Object round(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
@@ -646,7 +646,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundUpDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimal(double n, int ndigits,
+        double roundNDecimal(double n, int ndigits,
                 @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
@@ -696,7 +696,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "fitsInInteger(n)" })
-        protected int roundFittingInt(double n) {
+        int roundFittingInt(double n) {
             int l = (int) n;
             int signum = (int) Math.signum(n);
             double d = Math.abs(n - l);
@@ -709,7 +709,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
-        protected long roundFittingLong(double n) {
+        long roundFittingLong(double n) {
             long l = (long) n;
             long signum = (long) Math.signum(n);
             double d = Math.abs(n - l);
@@ -722,7 +722,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(replaces = "roundFittingLong")
-        protected Object round(double n,
+        Object round(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
@@ -742,7 +742,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundEvenDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimal(double n, int ndigits,
+        double roundNDecimal(double n, int ndigits,
                 @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
@@ -767,7 +767,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "fitsInInteger(n)")
-        protected int roundFittingInt(double n) {
+        int roundFittingInt(double n) {
             int l = (int) n;
             int signum = (int) Math.signum(n);
             double d = Math.abs(n - l);
@@ -778,7 +778,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
-        protected long roundFittingLong(double n) {
+        long roundFittingLong(double n) {
             long l = (long) n;
             long signum = (long) Math.signum(n);
             double d = Math.abs(n - l);
@@ -789,7 +789,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(replaces = "roundFittingLong")
-        protected Object round(double n,
+        Object round(double n,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             double signum = Math.signum(n);
             double f = Math.floor(Math.abs(n));
@@ -806,7 +806,7 @@ public abstract class FloatNodes {
     public abstract static class FloatRoundDownDecimalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double roundNDecimal(double n, int ndigits,
+        double roundNDecimal(double n, int ndigits,
                 @Cached InlinedConditionProfile boundaryCase) {
             long intPart = (long) n;
             double s = Math.pow(10.0, ndigits) * Math.signum(n);
@@ -828,7 +828,7 @@ public abstract class FloatNodes {
     public abstract static class FloatExpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int exp(double value) {
+        int exp(double value) {
             return Math.getExponent(value);
         }
     }
@@ -836,7 +836,7 @@ public abstract class FloatNodes {
     @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object toI(double value,
+        Object toI(double value,
                 @Cached FloatToIntegerNode floatToIntegerNode) {
             return floatToIntegerNode.execute(this, value);
         }
@@ -846,7 +846,7 @@ public abstract class FloatNodes {
     public abstract static class ToFNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double toF(double value) {
+        double toF(double value) {
             return value;
         }
 
@@ -863,37 +863,37 @@ public abstract class FloatNodes {
          * implementation. Also see our FormatFloatNode, which I suspect is also deficient or under-tested. */
 
         @Specialization(guards = "value == POSITIVE_INFINITY")
-        protected RubyString toSPositiveInfinity(double value,
+        RubyString toSPositiveInfinity(double value,
                 @Cached("specialValueString(POSITIVE_INFINITY)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "value == NEGATIVE_INFINITY")
-        protected RubyString toSNegativeInfinity(double value,
+        RubyString toSNegativeInfinity(double value,
                 @Cached("specialValueString(NEGATIVE_INFINITY)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "isNaN(value)")
-        protected RubyString toSNaN(double value,
+        RubyString toSNaN(double value,
                 @Cached("specialValueString(value)") TruffleString cachedString) {
             return createString(cachedString, Encodings.US_ASCII);
         }
 
         @Specialization(guards = "hasNoExp(value)")
-        protected RubyString toSNoExp(double value) {
+        RubyString toSNoExp(double value) {
             return createString(fromJavaStringNode, makeStringNoExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasLargeExp(value)")
-        protected RubyString toSLargeExp(double value) {
+        RubyString toSLargeExp(double value) {
             return createString(fromJavaStringNode, makeStringLargeExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
 
         @Specialization(guards = "hasSmallExp(value)")
-        protected RubyString toSSmallExp(double value) {
+        RubyString toSSmallExp(double value) {
             return createString(fromJavaStringNode, makeStringSmallExp(value, getLanguage().getCurrentThread()),
                     Encodings.US_ASCII); // CR_7BIT
         }
@@ -969,7 +969,7 @@ public abstract class FloatNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray dToA(double value) {
+        RubyArray dToA(double value) {
             // Large enough to print all digits of Float::MIN.
             String string = StringUtils.format(Locale.ENGLISH, "%.1022f", value);
 

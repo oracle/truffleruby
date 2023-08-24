@@ -32,7 +32,7 @@ public abstract class TruffleMonitorNodes {
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization
-        protected Object synchronizeOnMutex(RubyMutex mutex, RubyProc block,
+        Object synchronizeOnMutex(RubyMutex mutex, RubyProc block,
                 @Cached InlinedBranchProfile errorProfile) {
             /* Like Mutex#synchronize we must maintain the owned locks list here as the monitor might be exited inside
              * synchronize block and then re-entered again before the end, and we have to make sure the list of owned
@@ -48,7 +48,7 @@ public abstract class TruffleMonitorNodes {
         }
 
         @Specialization(guards = "!isRubyProc(block)")
-        protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object block) {
+        Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
     }
@@ -57,7 +57,7 @@ public abstract class TruffleMonitorNodes {
     public abstract static class MonitorTryEnter extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object tryEnter(RubyMutex mutex) {
+        Object tryEnter(RubyMutex mutex) {
             final RubyThread thread = getLanguage().getCurrentThread();
             return MutexOperations.tryLock(mutex.lock, thread);
         }
@@ -67,7 +67,7 @@ public abstract class TruffleMonitorNodes {
     public abstract static class MonitorEnter extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object enter(RubyMutex mutex) {
+        Object enter(RubyMutex mutex) {
             final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
             return nil;
@@ -78,7 +78,7 @@ public abstract class TruffleMonitorNodes {
     public abstract static class MonitorExit extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object exit(RubyMutex mutex,
+        Object exit(RubyMutex mutex,
                 @Cached InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);

@@ -34,34 +34,34 @@ public abstract class ToRubyEncodingNode extends RubyBaseNode {
     public abstract RubyEncoding execute(Node node, Object value);
 
     @Specialization
-    protected static RubyEncoding stringToEncoding(RubyString value,
+    static RubyEncoding stringToEncoding(RubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 
     @Specialization
-    protected static RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
+    static RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
         return libString.getEncoding(value);
     }
 
     @Specialization
-    protected static RubyEncoding symbolToEncoding(RubySymbol value) {
+    static RubyEncoding symbolToEncoding(RubySymbol value) {
         return value.encoding;
     }
 
     @Specialization
-    protected static RubyEncoding regexpToEncoding(RubyRegexp value) {
+    static RubyEncoding regexpToEncoding(RubyRegexp value) {
         return value.encoding;
     }
 
     @Specialization
-    protected static RubyEncoding rubyEncodingToEncoding(RubyEncoding value) {
+    static RubyEncoding rubyEncodingToEncoding(RubyEncoding value) {
         return value;
     }
 
     @Fallback
-    protected static RubyEncoding failure(Object value) {
+    static RubyEncoding failure(Object value) {
         return null;
     }
 }

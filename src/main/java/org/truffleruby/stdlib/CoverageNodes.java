@@ -31,7 +31,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageEnableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object enable() {
+        Object enable() {
             getLanguage().coverageManager.enable();
             return nil;
         }
@@ -42,7 +42,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageDisableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object disable() {
+        Object disable() {
             getLanguage().coverageManager.disable();
             return nil;
         }
@@ -56,7 +56,7 @@ public abstract class CoverageNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray resultArray() {
+        RubyArray resultArray() {
 
             final Map<Source, long[]> counts = getLanguage().coverageManager.getCounts();
 
@@ -97,7 +97,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageEnabledNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean coverageEnabled() {
+        boolean coverageEnabled() {
             return getLanguage().coverageManager.isEnabled();
         }
     }

@@ -66,12 +66,12 @@ public abstract class WriteMIMEStringNode extends FormatNode {
     }
 
     @Specialization
-    protected Object write(Nil nil) {
+    Object write(Nil nil) {
         return null;
     }
 
     @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-    protected Object write(VirtualFrame frame, Object string,
+    Object write(VirtualFrame frame, Object string,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
         var tstring = libString.getTString(string);

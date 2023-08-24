@@ -71,7 +71,7 @@ public abstract class WriteBitStringNode extends FormatNode {
     }
 
     @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-    protected Object write(VirtualFrame frame, Object string,
+    Object write(VirtualFrame frame, Object string,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
         var tstring = libString.getTString(string);

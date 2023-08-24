@@ -41,7 +41,7 @@ public abstract class FlipFlopNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doFlipFlop(VirtualFrame frame,
+    Object doFlipFlop(VirtualFrame frame,
             @Cached BooleanCastNode beginCast,
             @Cached BooleanCastNode endCast) {
 

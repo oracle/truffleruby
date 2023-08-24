@@ -127,7 +127,7 @@ public abstract class HashStoreLibrary extends Library {
         public abstract Object execute(RubyProc block, Object key, Object value);
 
         @Specialization
-        protected Object yieldPair(RubyProc block, Object key, Object value,
+        Object yieldPair(RubyProc block, Object key, Object value,
                 @Cached CallBlockNode yieldNode,
                 @Cached InlinedConditionProfile arityMoreThanOne) {
             // MRI behavior, see rb_hash_each_pair()

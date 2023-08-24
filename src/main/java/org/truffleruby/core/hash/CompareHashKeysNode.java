@@ -37,13 +37,13 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "compareByIdentity")
-    protected boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+    boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached ReferenceEqualNode refEqual) {
         return refEqual.execute(this, key, otherKey);
     }
 
     @Specialization(guards = "!compareByIdentity")
-    protected boolean same(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+    boolean same(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached SameOrEqlNode same) {
         return hashed == otherHashed && same.execute(key, otherKey);
     }

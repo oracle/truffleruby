@@ -172,7 +172,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Specialization(
                 guards = "arrays.acceptsValue(state.store, value)",
                 limit = "1")
-        protected void appendCompatibleType(BuilderState state, int index, Object value,
+        void appendCompatibleType(BuilderState state, int index, Object value,
                 @Bind("state.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
                 @Cached BranchProfile growProfile) {
@@ -191,7 +191,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Specialization(
                 guards = "!arrays.acceptsValue(state.store, value)",
                 limit = "1")
-        protected void appendNewStrategy(BuilderState state, int index, Object value,
+        void appendNewStrategy(BuilderState state, int index, Object value,
                 @Bind("state.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrays) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -232,7 +232,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Specialization(
                 guards = { "arrays.acceptsAllValues(state.store, other.getStore())" },
                 limit = "storageStrategyLimit()")
-        protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
+        void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
                 @Bind("other.getStore()") Object otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary arrays,
@@ -257,7 +257,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Specialization(
                 guards = { "!arrayLibrary.acceptsAllValues(state.store, other.getStore())" },
                 limit = "1")
-        protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
+        void appendNewStrategy(BuilderState state, int index, RubyArray other,
                 @Bind("state.store") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary arrayLibrary) {
             assert state.nextIndex == index;

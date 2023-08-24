@@ -48,7 +48,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     protected abstract void executeWarn(String message);
 
     @Specialization(rewriteOn = Warned.class)
-    protected void warnOnce(String message) throws Warned {
+    void warnOnce(String message) throws Warned {
         // The message should be a constant, because we don't want to do anything expensive to create it
         CompilerAsserts.compilationConstant(message);
 
@@ -67,7 +67,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "warnOnce")
-    protected void doNotWarn(String message) {
+    void doNotWarn(String message) {
         // do nothing
     }
 

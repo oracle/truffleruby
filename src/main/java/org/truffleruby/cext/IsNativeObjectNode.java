@@ -31,12 +31,12 @@ public abstract class IsNativeObjectNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object handle);
 
     @Specialization
-    protected static boolean isNativeObjectTaggedObject(long handle) {
+    static boolean isNativeObjectTaggedObject(long handle) {
         return isMallocAligned(handle) && handle < ValueWrapperManager.ALLOCATION_BASE;
     }
 
     @Fallback
-    protected static boolean isNativeObjectFallback(Object handle) {
+    static boolean isNativeObjectFallback(Object handle) {
         return false;
     }
 

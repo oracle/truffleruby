@@ -34,17 +34,17 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
     abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
-    protected RubyString toS(RubyString string) {
+    RubyString toS(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected ImmutableRubyString toS(ImmutableRubyString string) {
+    ImmutableRubyString toS(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected Object toSFallback(VirtualFrame frame, Object object,
+    Object toSFallback(VirtualFrame frame, Object object,
             @Cached DispatchNode callToSNode,
             @Cached RubyStringLibrary libString) {
         final Object value = callToSNode.callWithFrame(frame, object, "to_s");

@@ -32,22 +32,22 @@ public abstract class InlinedNegNode extends UnaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object intNeg(int value) {
+    Object intNeg(int value) {
         return getNegNode().executeNeg(value);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longNeg(long value) {
+    Object longNeg(long value) {
         return getNegNode().executeNeg(value);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double floatNeg(double value) {
+    double floatNeg(double value) {
         return -value;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self) {
+    Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

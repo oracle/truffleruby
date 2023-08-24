@@ -32,14 +32,14 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
     /** Appending an empty array is a no-op, and shouldn't cause an immutable array store to be converted into a mutable
      * one unnecessarily. */
     @Specialization(guards = "isEmptyArray(other)")
-    protected RubyArray appendZero(RubyArray array, RubyArray other) {
+    RubyArray appendZero(RubyArray array, RubyArray other) {
         return array;
     }
 
     @Specialization(
             guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.getStore(), other.getStore())" },
             limit = "storageStrategyLimit()")
-    protected RubyArray appendManySameType(RubyArray array, RubyArray other,
+    RubyArray appendManySameType(RubyArray array, RubyArray other,
             @Bind("array.getStore()") Object store,
             @Bind("other.getStore()") Object otherStore,
             @CachedLibrary("store") ArrayStoreLibrary stores,
@@ -67,7 +67,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
     @Specialization(
             guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.getStore(), other.getStore())" },
             limit = "storageStrategyLimit()")
-    protected RubyArray appendManyGeneralize(RubyArray array, RubyArray other,
+    RubyArray appendManyGeneralize(RubyArray array, RubyArray other,
             @Bind("array.getStore()") Object store,
             @Bind("other.getStore()") Object otherStore,
             @CachedLibrary("store") ArrayStoreLibrary stores,

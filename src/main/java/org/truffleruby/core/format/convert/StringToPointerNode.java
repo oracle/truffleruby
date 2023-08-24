@@ -31,13 +31,13 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public abstract class StringToPointerNode extends FormatNode {
 
     @Specialization
-    protected long toPointer(Nil nil) {
+    long toPointer(Nil nil) {
         return 0;
     }
 
     @SuppressWarnings("unchecked")
     @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-    protected static long toPointer(VirtualFrame frame, Object string,
+    static long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
             @Cached RubyStringLibrary strings,
             @Bind("this") Node node) {

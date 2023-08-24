@@ -78,7 +78,7 @@ public abstract class PRNGRandomizerNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyPRNGRandomizer randomizerAllocate(RubyClass randomizerClass) {
+        RubyPRNGRandomizer randomizerAllocate(RubyClass randomizerClass) {
             // Since this is a manually-created Truffle::Randomizer instance that can be shared by multiple threads,
             // we enable thread-safe mode in the Randomizer.
             final boolean threadSafe = true;
@@ -96,7 +96,7 @@ public abstract class PRNGRandomizerNodes {
     public abstract static class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object seed(RubyPRNGRandomizer randomizer) {
+        Object seed(RubyPRNGRandomizer randomizer) {
             return randomizer.getSeed();
         }
 
@@ -106,13 +106,13 @@ public abstract class PRNGRandomizerNodes {
     public abstract static class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyPRNGRandomizer setSeed(RubyPRNGRandomizer randomizer, long seed) {
+        RubyPRNGRandomizer setSeed(RubyPRNGRandomizer randomizer, long seed) {
             randomizer.setRandomizer(randomFromLong(seed));
             return randomizer;
         }
 
         @Specialization
-        protected RubyPRNGRandomizer setSeed(RubyPRNGRandomizer randomizer, RubyBignum seed) {
+        RubyPRNGRandomizer setSeed(RubyPRNGRandomizer randomizer, RubyBignum seed) {
             randomizer.setRandomizer(randomFromBignum(seed));
             return randomizer;
         }
@@ -184,7 +184,7 @@ public abstract class PRNGRandomizerNodes {
     public abstract static class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyBignum generateSeed() {
+        RubyBignum generateSeed() {
             return randomSeedBignum(getContext());
         }
 
@@ -204,7 +204,7 @@ public abstract class PRNGRandomizerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString genRandBytes(RubyPRNGRandomizer randomizer, int length,
+        RubyString genRandBytes(RubyPRNGRandomizer randomizer, int length,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final byte[] bytes = new byte[length];
             int idx = 0;

@@ -46,7 +46,7 @@ public abstract class FormatCharacterNode extends FormatNode {
     }
 
     @Specialization
-    protected RubyString format(Object value,
+    RubyString format(Object value,
             @Cached ToIntNode toIntNode,
             @Cached RubyStringLibrary strings) {
         final TruffleString character = getCharacter(value, strings, toIntNode);

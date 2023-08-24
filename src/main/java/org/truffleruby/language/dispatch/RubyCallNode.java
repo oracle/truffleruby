@@ -363,7 +363,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
 
         @Specialization
         @ExplodeLoop
-        protected Object isDefined(VirtualFrame frame, RubyContext context,
+        Object isDefined(VirtualFrame frame, RubyContext context,
                 @Cached LookupMethodOnSelfNode lookupMethodNode,
                 @Cached BooleanCastNode respondToMissingCast,
                 @Cached InlinedConditionProfile receiverDefinedProfile,

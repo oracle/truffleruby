@@ -26,7 +26,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     public abstract Object execute(Object value);
 
     @Specialization(guards = "symbol == cachedSymbol", limit = "2")
-    protected Object getIDCached(RubySymbol symbol,
+    Object getIDCached(RubySymbol symbol,
             @Cached @Shared WrapNode wrapNode,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getID(cachedSymbol, wrapNode)") Object cachedID) {
@@ -34,7 +34,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "getIDCached")
-    protected Object getIDUncached(RubySymbol symbol,
+    Object getIDUncached(RubySymbol symbol,
             @Cached @Shared WrapNode wrapNode,
             @Cached InlinedConditionProfile staticSymbolProfile) {
         if (staticSymbolProfile.profile(this, symbol.getId() != RubySymbol.UNASSIGNED_ID)) {

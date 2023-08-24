@@ -44,12 +44,12 @@ public abstract class CmpIntNode extends RubyBaseNode {
     public abstract int executeCmpInt(Object cmpResult, Object a, Object b);
 
     @Specialization
-    protected int cmpInt(int value, Object receiver, Object other) {
+    int cmpInt(int value, Object receiver, Object other) {
         return value;
     }
 
     @Specialization
-    protected int cmpLong(long value, Object receiver, Object other) {
+    int cmpLong(long value, Object receiver, Object other) {
         if (value > 0) {
             return 1;
         }
@@ -62,12 +62,12 @@ public abstract class CmpIntNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected int cmpBignum(RubyBignum value, Object receiver, Object other) {
+    int cmpBignum(RubyBignum value, Object receiver, Object other) {
         return value.value.signum();
     }
 
     @Specialization
-    protected int cmpNil(Nil nil, Object receiver, Object other) {
+    int cmpNil(Nil nil, Object receiver, Object other) {
         throw new RaiseException(getContext(), coreExceptions().argumentError(formatMessage(receiver, other), this));
     }
 
@@ -80,7 +80,7 @@ public abstract class CmpIntNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "!isRubyInteger(value)", "!isNil(value)" })
-    protected static int cmpObject(Object value, Object receiver, Object other,
+    static int cmpObject(Object value, Object receiver, Object other,
             @Cached DispatchNode gtNode,
             @Cached DispatchNode ltNode,
             @Cached BooleanCastNode gtCastNode,

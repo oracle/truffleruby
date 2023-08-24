@@ -44,7 +44,7 @@ public abstract class FormatEFloatNode extends FormatFloatGenericNode {
     }
 
     @Specialization(guards = { "nonSpecialValue(dval)" })
-    protected byte[] formatFGeneric(int width, int precision, Object dval) {
+    byte[] formatFGeneric(int width, int precision, Object dval) {
         return formatNumber(width, precision, dval);
     }
 

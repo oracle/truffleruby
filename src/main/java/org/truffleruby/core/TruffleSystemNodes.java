@@ -88,7 +88,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray envVars() {
+        RubyArray envVars() {
             final Set<String> variables = System.getenv().keySet();
             final int size = variables.size();
             final RubyEncoding localeRubyEncoding = getContext().getEncodingManager().getLocaleEncoding();
@@ -106,7 +106,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class JavaGetEnv extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(name)", limit = "1")
-        protected static Object javaGetEnv(Object name,
+        static Object javaGetEnv(Object name,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
@@ -134,7 +134,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization(guards = "stringsDir.isRubyString(dir)", limit = "1")
-        protected Object setTruffleWorkingDir(Object dir,
+        Object setTruffleWorkingDir(Object dir,
                 @Cached RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
                     .getEnv()
@@ -157,7 +157,7 @@ public abstract class TruffleSystemNodes {
     @Primitive(name = "working_directory")
     public abstract static class GetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyString getTruffleWorkingDir(
+        RubyString getTruffleWorkingDir(
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
             final RubyEncoding externalRubyEncoding = getContext().getEncodingManager().getDefaultExternalEncoding();
@@ -168,7 +168,7 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "get_java_properties", onSingleton = true)
     public abstract static class GetJavaPropertiesNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object getJavaProperties(
+        Object getJavaProperties(
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String[] properties = getProperties();
             Object[] array = new Object[properties.length];
@@ -188,7 +188,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(property)", limit = "1")
-        protected static Object getJavaProperty(Object property,
+        static Object getJavaProperty(Object property,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -213,7 +213,7 @@ public abstract class TruffleSystemNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyString hostCPU() {
+        RubyString hostCPU() {
             return createString(fromJavaStringNode, BasicPlatform.getArchName(), Encodings.UTF_8);
         }
 
@@ -225,7 +225,7 @@ public abstract class TruffleSystemNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyString hostOS() {
+        RubyString hostOS() {
             return createString(fromJavaStringNode, Platform.getOSName(), Encodings.UTF_8);
         }
 
@@ -235,7 +235,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "3")
-        protected Object logCached(RubySymbol level, Object message,
+        Object logCached(RubySymbol level, Object message,
                 @Shared @Cached RubyStringLibrary strings,
                 @Shared @Cached ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
@@ -245,7 +245,7 @@ public abstract class TruffleSystemNodes {
         }
 
         @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
-        protected Object log(RubySymbol level, Object message,
+        Object log(RubySymbol level, Object message,
                 @Shared @Cached RubyStringLibrary strings,
                 @Shared @Cached ToJavaStringNode toJavaStringNode) {
             log(getLevel(level), toJavaStringNode.execute(this, message));
@@ -275,7 +275,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int availableProcessors() {
+        int availableProcessors() {
             return Runtime.getRuntime().availableProcessors();
         }
 
@@ -289,7 +289,7 @@ public abstract class TruffleSystemNodes {
         @SuppressFBWarnings("LI_LAZY_INIT_STATIC")
         @TruffleBoundary
         @Specialization
-        protected static long allocatedBytes() {
+        static long allocatedBytes() {
             if (bean == null) {
                 var threadMXBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
                 threadMXBean.setThreadAllocatedMemoryEnabled(true);

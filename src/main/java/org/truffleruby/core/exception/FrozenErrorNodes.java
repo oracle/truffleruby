@@ -31,7 +31,7 @@ public abstract class FrozenErrorNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyFrozenError allocateFrozenError(RubyClass rubyClass) {
+        RubyFrozenError allocateFrozenError(RubyClass rubyClass) {
             final Shape shape = getLanguage().frozenErrorShape;
             final RubyFrozenError instance = new RubyFrozenError(rubyClass, shape, nil, null, nil, null);
             AllocationTracing.trace(instance, this);
@@ -44,7 +44,7 @@ public abstract class FrozenErrorNodes {
     public abstract static class ReceiverNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object receiver(RubyFrozenError self,
+        Object receiver(RubyFrozenError self,
                 @Cached InlinedBranchProfile errorProfile) {
             final Object receiver = self.receiver;
 
@@ -61,7 +61,7 @@ public abstract class FrozenErrorNodes {
     public abstract static class ReceiverSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setReceiver(RubyFrozenError error, Object receiver) {
+        Object setReceiver(RubyFrozenError error, Object receiver) {
             error.receiver = receiver;
             return receiver;
         }

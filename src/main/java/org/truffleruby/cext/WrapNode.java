@@ -47,7 +47,7 @@ public abstract class WrapNode extends RubyBaseNode {
     public abstract ValueWrapper execute(Object value);
 
     @Specialization
-    protected ValueWrapper wrapLong(long value,
+    ValueWrapper wrapLong(long value,
             @Cached @Exclusive InlinedBranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter(this);
@@ -59,36 +59,36 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected ValueWrapper wrapDouble(double value) {
+    ValueWrapper wrapDouble(double value) {
         return getContext().getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
-    protected ValueWrapper wrapBoolean(boolean value) {
+    ValueWrapper wrapBoolean(boolean value) {
         return value
                 ? getContext().getValueWrapperManager().trueWrapper
                 : getContext().getValueWrapperManager().falseWrapper;
     }
 
     @Specialization
-    protected ValueWrapper wrapUndef(NotProvided value) {
+    ValueWrapper wrapUndef(NotProvided value) {
         return getContext().getValueWrapperManager().undefWrapper;
     }
 
     @Specialization
-    protected ValueWrapper wrapWrappedValue(ValueWrapper value,
+    ValueWrapper wrapWrappedValue(ValueWrapper value,
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         var message = createString(fromJavaStringNode, "Wrapping wrapped object", Encodings.UTF_8);
         throw new RaiseException(getContext(), coreExceptions().argumentError(message, this, null));
     }
 
     @Specialization
-    protected ValueWrapper wrapNil(Nil value) {
+    ValueWrapper wrapNil(Nil value) {
         return value.getValueWrapper();
     }
 
     @Specialization(guards = "!isNil(value)")
-    protected ValueWrapper wrapImmutable(ImmutableRubyObject value,
+    ValueWrapper wrapImmutable(ImmutableRubyObject value,
             @Cached @Shared InlinedBranchProfile noHandleProfile) {
         ValueWrapper wrapper = value.getValueWrapper();
         if (wrapper == null) {
@@ -108,7 +108,7 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(limit = "getDynamicObjectCacheLimit()")
-    protected static ValueWrapper wrapValue(RubyDynamicObject value,
+    static ValueWrapper wrapValue(RubyDynamicObject value,
             @CachedLibrary("value") DynamicObjectLibrary objectLibrary,
             @Cached @Shared InlinedBranchProfile noHandleProfile,
             @Bind("this") Node node) {
@@ -130,7 +130,7 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isForeignObject(value)")
-    protected ValueWrapper wrapNonRubyObject(Object value) {
+    ValueWrapper wrapNonRubyObject(Object value) {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));

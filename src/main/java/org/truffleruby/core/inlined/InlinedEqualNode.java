@@ -38,27 +38,27 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
-    protected boolean intEqual(int a, int b) {
+    boolean intEqual(int a, int b) {
         return a == b;
     }
 
     @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
-    protected boolean longEqual(long a, long b) {
+    boolean longEqual(long a, long b) {
         return a == b;
     }
 
     @Specialization(assumptions = { "assumptions", "floatEqualAssumption" })
-    protected boolean doDouble(double a, double b) {
+    boolean doDouble(double a, double b) {
         return a == b;
     }
 
     @Specialization(assumptions = { "assumptions", "integerEqualAssumption" })
-    protected boolean longDouble(long a, double b) {
+    boolean longDouble(long a, double b) {
         return a == b;
     }
 
     @Specialization(assumptions = { "assumptions", "floatEqualAssumption" })
-    protected boolean doubleLong(double a, long b) {
+    boolean doubleLong(double a, long b) {
         return a == b;
     }
 
@@ -69,7 +69,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
                     "lookupNode.lookupProtected(frame, a, METHOD) == coreMethods().STRING_EQUAL"
             },
             assumptions = "assumptions", limit = "1")
-    protected static boolean stringEqual(VirtualFrame frame, Object a, Object b,
+    static boolean stringEqual(VirtualFrame frame, Object a, Object b,
             @Cached RubyStringLibrary libA,
             @Cached RubyStringLibrary libB,
             @Cached LookupMethodOnSelfNode lookupNode,
@@ -85,7 +85,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

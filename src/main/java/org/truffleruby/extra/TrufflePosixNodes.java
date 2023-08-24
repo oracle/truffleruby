@@ -36,7 +36,7 @@ public abstract class TrufflePosixNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libEnvVar.isRubyString(envVar)", limit = "1")
-        protected Object invalidate(Object envVar,
+        Object invalidate(Object envVar,
                 @Cached RubyStringLibrary libEnvVar) {
             invalidateENV(RubyGuards.getJavaString(envVar));
             return envVar;

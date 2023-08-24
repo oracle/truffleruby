@@ -55,7 +55,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object alwaysSplit(Object executable,
+        Object alwaysSplit(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
@@ -69,7 +69,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class NeverSplitNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected Object neverSplit(Object executable,
+        Object neverSplit(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
@@ -91,7 +91,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "proc.isLambda()")
-        protected RubyProc copyCapturedLocals(RubyProc proc) {
+        RubyProc copyCapturedLocals(RubyProc proc) {
             final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(proc.callTarget);
             final RubyNode newBody = rootNode.copyBody();
 
@@ -148,7 +148,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertCompilationConstantNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object assertCompilationConstant(Object value) {
+        Object assertCompilationConstant(Object value) {
             if (!CompilerDirectives.isCompilationConstant(value)) {
                 notConstantBoundary();
             }
@@ -166,7 +166,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
 
         @Specialization
-        protected Object assertNotCompiled() {
+        Object assertNotCompiled() {
             if (CompilerDirectives.inCompiledCode()) {
                 compiledBoundary();
             }
@@ -184,7 +184,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class BailoutNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(message)", limit = "1")
-        protected static Object bailout(Object message,
+        static Object bailout(Object message,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Bind("this") Node node) {
@@ -197,31 +197,31 @@ public abstract class TruffleGraalNodes {
     public abstract static class BlackholeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object blackhole(boolean value) {
+        Object blackhole(boolean value) {
             CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
-        protected Object blackhole(int value) {
+        Object blackhole(int value) {
             CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
-        protected Object blackhole(long value) {
+        Object blackhole(long value) {
             CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
-        protected Object blackhole(double value) {
+        Object blackhole(double value) {
             CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
-        protected Object blackhole(Object value) {
+        Object blackhole(Object value) {
             CompilerDirectives.blackhole(value);
             return nil;
         }
@@ -236,7 +236,7 @@ public abstract class TruffleGraalNodes {
         @SuppressFBWarnings("LI_LAZY_INIT_STATIC")
         @TruffleBoundary
         @Specialization
-        protected final long totalCompilationTime() {
+        final long totalCompilationTime() {
             if (bean == null) {
                 var compilationMXBean = ManagementFactory.getCompilationMXBean();
                 VarHandle.storeStoreFence();

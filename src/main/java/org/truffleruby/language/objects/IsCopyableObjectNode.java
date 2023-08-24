@@ -25,37 +25,37 @@ public abstract class IsCopyableObjectNode extends RubyBaseNode {
     public abstract boolean execute(Object object);
 
     @Specialization
-    protected boolean isCopyable(boolean object) {
+    boolean isCopyable(boolean object) {
         return false;
     }
 
     @Specialization
-    protected boolean isCopyable(int object) {
+    boolean isCopyable(int object) {
         return false;
     }
 
     @Specialization
-    protected boolean isCopyable(long object) {
+    boolean isCopyable(long object) {
         return false;
     }
 
     @Specialization
-    protected boolean isCopyable(double object) {
+    boolean isCopyable(double object) {
         return false;
     }
 
     @Specialization
-    protected boolean isCopyable(ImmutableRubyObjectNotCopyable object) {
+    boolean isCopyable(ImmutableRubyObjectNotCopyable object) {
         return false;
     }
 
     @Specialization
-    protected boolean isCopyable(ImmutableRubyObjectCopyable object) {
+    boolean isCopyable(ImmutableRubyObjectCopyable object) {
         return true;
     }
 
     @Specialization
-    protected boolean isCopyable(RubyDynamicObject object,
+    boolean isCopyable(RubyDynamicObject object,
             @Cached LogicalClassNode logicalClassNode) {
         final RubyClass logicalClass = logicalClassNode.execute(object);
         return logicalClass != coreLibrary().rationalClass && logicalClass != coreLibrary().complexClass;

@@ -42,62 +42,62 @@ public abstract class ImmutableClassNode extends RubyBaseNode {
     protected abstract RubyClass execute(Node node, Object value, CoreLibrary coreLibrary);
 
     @Specialization
-    protected static RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassInt(int value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassImmutableString(ImmutableRubyString value, CoreLibrary coreLibrary) {
         return coreLibrary.stringClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassSymbol(RubySymbol value, CoreLibrary coreLibrary) {
         return coreLibrary.symbolClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassNil(Nil value, CoreLibrary coreLibrary) {
         return coreLibrary.nilClass;
     }
 
     @Specialization(guards = "value")
-    protected static RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassTrue(boolean value, CoreLibrary coreLibrary) {
         return coreLibrary.trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected static RubyClass metaClassFalse(boolean value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassFalse(boolean value, CoreLibrary coreLibrary) {
         return coreLibrary.falseClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassLong(long value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassEncoding(RubyEncoding value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassEncoding(RubyEncoding value, CoreLibrary coreLibrary) {
         return coreLibrary.encodingClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassRegexp(RubyRegexp value, CoreLibrary coreLibrary) {
         return coreLibrary.regexpClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassRange(RubyIntOrLongRange value, CoreLibrary coreLibrary) {
         return coreLibrary.rangeClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassDouble(double value, CoreLibrary coreLibrary) {
         return coreLibrary.floatClass;
     }
 
     @Specialization
-    protected static RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
+    static RubyClass metaClassBignum(RubyBignum value, CoreLibrary coreLibrary) {
         return coreLibrary.integerClass;
     }
 

@@ -46,7 +46,7 @@ public abstract class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation) {
+        Object absolutePath(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             return getAbsolutePath(sourceSection, this);
@@ -83,7 +83,7 @@ public abstract class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString path(RubyBacktraceLocation threadBacktraceLocation) {
+        RubyString path(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
@@ -100,7 +100,7 @@ public abstract class ThreadBacktraceLocationNodes {
     public abstract static class LabelNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
+        RubyString label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
@@ -114,7 +114,7 @@ public abstract class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "base_label")
     public abstract static class BaseLabelNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
+        RubyString label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
@@ -130,7 +130,7 @@ public abstract class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int lineno(RubyBacktraceLocation threadBacktraceLocation) {
+        int lineno(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             return RubySource.getStartLineAdjusted(getContext(), sourceSection);
@@ -144,7 +144,7 @@ public abstract class ThreadBacktraceLocationNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyString toS(RubyBacktraceLocation threadBacktraceLocation) {
+        RubyString toS(RubyBacktraceLocation threadBacktraceLocation) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
 

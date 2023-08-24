@@ -28,7 +28,7 @@ public abstract class LookupClassVariableNode extends RubyBaseNode {
     public abstract Object execute(RubyModule module, String name);
 
     @Specialization
-    protected Object lookupClassVariable(RubyModule module, String name,
+    Object lookupClassVariable(RubyModule module, String name,
             @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
             @Cached InlinedConditionProfile noStorageProfile,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {

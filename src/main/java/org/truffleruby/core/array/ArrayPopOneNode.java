@@ -27,14 +27,14 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
     // Pop from an empty array
 
     @Specialization(guards = "isEmptyArray(array)")
-    protected Object popOneEmpty(RubyArray array) {
+    Object popOneEmpty(RubyArray array) {
         return nil;
     }
 
     // Pop from a non-empty array
 
     @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
-    protected Object popOne(RubyArray array,
+    Object popOne(RubyArray array,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         final int size = array.size;

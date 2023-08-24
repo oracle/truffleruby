@@ -40,7 +40,7 @@ public abstract class OrLazyValueDefinedNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doOrLazyValueDefined(VirtualFrame frame,
+    Object doOrLazyValueDefined(VirtualFrame frame,
             @Cached BooleanCastNode leftCast,
             @Cached InlinedCountingConditionProfile countingProfile) {
         final Object leftValue = left.execute(frame);

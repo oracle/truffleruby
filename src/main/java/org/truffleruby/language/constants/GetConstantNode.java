@@ -60,7 +60,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
 
     @Specialization(guards = { "constant != null", "constant.hasValue()" })
-    protected Object getConstant(
+    Object getConstant(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,
@@ -72,7 +72,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
-    protected Object autoloadConstant(
+    Object autoloadConstant(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,
@@ -194,7 +194,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
     @Specialization(
             guards = { "isNullOrUndefined(constant)", "guardName(node, name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
-    protected static Object missingConstantCached(
+    static Object missingConstantCached(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,
@@ -210,7 +210,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isNullOrUndefined(constant)")
-    protected Object missingConstantUncached(
+    Object missingConstantUncached(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,

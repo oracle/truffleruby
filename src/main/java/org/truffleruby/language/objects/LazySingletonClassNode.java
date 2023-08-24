@@ -27,7 +27,7 @@ public abstract class LazySingletonClassNode extends RubyBaseNode {
     protected abstract SingletonClassNode execute(Node node);
 
     @Specialization
-    protected static SingletonClassNode doLazy(
+    static SingletonClassNode doLazy(
             @Cached(inline = false) SingletonClassNode singletonClassNode) {
         return singletonClassNode;
     }

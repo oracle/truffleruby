@@ -34,7 +34,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     public abstract RubyArray execute(Node node, Object a, Object b);
 
     @Specialization
-    protected static RubyArray doLongs(Node node, long a, long b,
+    static RubyArray doLongs(Node node, long a, long b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Exclusive InlinedBranchProfile bMinusOneProfile,
             @Cached @Exclusive InlinedBranchProfile useFixnumPairProfile,
@@ -84,7 +84,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doLongAndBigInt(Node node, long a, BigInteger b,
+    static RubyArray doLongAndBigInt(Node node, long a, BigInteger b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
             @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
@@ -94,7 +94,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doLongAndDouble(Node node, long a, double b,
+    static RubyArray doLongAndDouble(Node node, long a, double b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile nanProfile,
             @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
@@ -102,7 +102,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doBigIntAndLong(Node node, BigInteger a, long b,
+    static RubyArray doBigIntAndLong(Node node, BigInteger a, long b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
             @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
@@ -112,7 +112,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doBigInts(Node node, BigInteger a, BigInteger b,
+    static RubyArray doBigInts(Node node, BigInteger a, BigInteger b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile bigIntegerFixnumProfile,
             @Cached @Shared FixnumOrBignumNode fixnumOrBignumQuotient,
@@ -122,7 +122,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doBigIntAndDouble(Node node, BigInteger a, double b,
+    static RubyArray doBigIntAndDouble(Node node, BigInteger a, double b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile nanProfile,
             @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
@@ -130,7 +130,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doDoubleAndLong(Node node, double a, long b,
+    static RubyArray doDoubleAndLong(Node node, double a, long b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile nanProfile,
             @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
@@ -138,7 +138,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doDoubleAndBigInt(Node node, double a, BigInteger b,
+    static RubyArray doDoubleAndBigInt(Node node, double a, BigInteger b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile nanProfile,
             @Cached @Shared FloatToIntegerNode floatToIntegerNode) {
@@ -146,7 +146,7 @@ public abstract class GeneralDivModNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RubyArray doDoubles(Node node, double a, double b,
+    static RubyArray doDoubles(Node node, double a, double b,
             @Cached @Shared InlinedBranchProfile bZeroProfile,
             @Cached @Shared InlinedBranchProfile nanProfile,
             @Cached @Shared FloatToIntegerNode floatToIntegerNode) {

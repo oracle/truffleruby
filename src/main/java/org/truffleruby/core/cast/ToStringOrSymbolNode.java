@@ -31,22 +31,22 @@ public abstract class ToStringOrSymbolNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object value);
 
     @Specialization
-    protected static RubySymbol coerceRubySymbol(RubySymbol symbol) {
+    static RubySymbol coerceRubySymbol(RubySymbol symbol) {
         return symbol;
     }
 
     @Specialization
-    protected static RubyString coerceRubyString(RubyString string) {
+    static RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected static ImmutableRubyString coerceRubyString(ImmutableRubyString string) {
+    static ImmutableRubyString coerceRubyString(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "isNotRubyString(object)" })
-    protected static Object coerceObject(Node node, Object object,
+    static Object coerceObject(Node node, Object object,
             @Cached(inline = false) DispatchNode toStrNode) {
         return toStrNode.call(
                 coreLibrary(node).truffleTypeModule,

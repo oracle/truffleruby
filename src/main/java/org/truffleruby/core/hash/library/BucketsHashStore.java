@@ -575,7 +575,7 @@ public final class BucketsHashStore {
         public abstract HashLookupResult execute(RubyHash hash, Entry[] entries, Object key);
 
         @Specialization
-        protected HashLookupResult lookup(RubyHash hash, Entry[] entries, Object key,
+        HashLookupResult lookup(RubyHash hash, Entry[] entries, Object key,
                 @Cached HashingNodes.ToHash hashNode,
                 @Cached CompareHashKeysNode compareHashKeysNode,
                 @Cached InlinedConditionProfile byIdentityProfile) {

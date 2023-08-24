@@ -121,12 +121,12 @@ public final class RubyScope implements TruffleObject {
     @ExportMessage
     static final class ReadMember {
         @Specialization(guards = "RECEIVER_MEMBER.equals(member)")
-        protected static Object readSelf(RubyScope scope, String member) {
+        static Object readSelf(RubyScope scope, String member) {
             return RubyArguments.getSelf(scope.frame);
         }
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
-        protected static Object read(RubyScope scope, String member,
+        static Object read(RubyScope scope, String member,
                 @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode,
                 @Bind("this") Node node)
                 throws UnknownIdentifierException {
@@ -148,12 +148,12 @@ public final class RubyScope implements TruffleObject {
     @ExportMessage
     static final class IsMemberReadable {
         @Specialization(guards = "RECEIVER_MEMBER.equals(member)")
-        protected static boolean readSelf(RubyScope scope, String member) {
+        static boolean readSelf(RubyScope scope, String member) {
             return true;
         }
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
-        protected static boolean isMemberReadable(RubyScope scope, String member,
+        static boolean isMemberReadable(RubyScope scope, String member,
                 @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
             return hasLocalVariableNode.execute(scope.binding, member);
         }
@@ -162,12 +162,12 @@ public final class RubyScope implements TruffleObject {
     @ExportMessage
     static final class IsMemberModifiable {
         @Specialization(guards = "RECEIVER_MEMBER.equals(member)")
-        protected static boolean readSelf(RubyScope scope, String member) {
+        static boolean readSelf(RubyScope scope, String member) {
             return false;
         }
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
-        protected static boolean isMemberModifiable(RubyScope scope, String member,
+        static boolean isMemberModifiable(RubyScope scope, String member,
                 @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
             return hasLocalVariableNode.execute(scope.binding, member);
         }
@@ -177,7 +177,7 @@ public final class RubyScope implements TruffleObject {
     @ExportMessage
     static final class WriteMember {
         @Specialization
-        protected static void writeMember(RubyScope scope, String member, Object value,
+        static void writeMember(RubyScope scope, String member, Object value,
                 @CachedLibrary("scope") InteropLibrary interopLibrary,
                 @Cached BindingNodes.LocalVariableSetNode localVariableSetNode,
                 @Bind("this") Node node) throws UnknownIdentifierException {

@@ -41,7 +41,7 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
                     "metaClassNode.execute(this, self) == selfMetaClass" },
             assumptions = "superMethod.getAssumptions()",
             limit = "getCacheLimit()")
-    protected InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
+    InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached @Shared MetaClassNode metaClassNode,
             @Cached("metaClassNode.execute(this, self)") RubyClass selfMetaClass,
@@ -50,7 +50,7 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self,
+    InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self,
             @Cached @Shared MetaClassNode metaClassNode) {
         final InternalMethod currentMethod = getCurrentMethod(frame);
         final RubyClass selfMetaClass = metaClassNode.execute(this, self);

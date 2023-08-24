@@ -220,7 +220,7 @@ public abstract class ClassNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected RubyClass newClass(RubyClass superclass, boolean callInherited, Object maybeBlock) {
+        RubyClass newClass(RubyClass superclass, boolean callInherited, Object maybeBlock) {
             if (superclass.isSingleton) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
@@ -251,7 +251,7 @@ public abstract class ClassNodes {
         }
 
         @Specialization(guards = "!isRubyClass(superclass)")
-        protected RubyClass newClass(Object superclass, boolean callInherited, Object maybeBlock) {
+        RubyClass newClass(Object superclass, boolean callInherited, Object maybeBlock) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
         }
     }
@@ -263,13 +263,13 @@ public abstract class ClassNodes {
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass,
+        Object newInstance(RubyClass rubyClass,
                 @Cached DispatchNode allocateNode) {
             return allocateNode.call(rubyClass, "__allocate__");
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
-        protected RubyClass newSingletonInstance(RubyClass rubyClass) {
+        RubyClass newSingletonInstance(RubyClass rubyClass) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
@@ -284,7 +284,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "new", rest = true, alwaysInlined = true)
     public abstract static class NewNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target,
+        Object newInstance(Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target,
                 @Cached DispatchNode allocateNode,
                 @Cached DispatchNode initializeNode) {
             final Object instance = allocateNode.call(rubyClass, "__allocate__");
@@ -294,7 +294,7 @@ public abstract class ClassNodes {
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
-        protected RubyClass newSingletonInstance(
+        RubyClass newSingletonInstance(
                 Frame callerFrame, RubyClass rubyClass, Object[] rubyArgs, RootCallTarget target) {
             throw new RaiseException(
                     getContext(),
@@ -305,7 +305,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "initialize", optional = 1)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object initialize(RubyClass rubyClass, Object maybeSuperclass) {
+        Object initialize(RubyClass rubyClass, Object maybeSuperclass) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
@@ -315,7 +315,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "inherited", needsSelf = false, required = 1, visibility = Visibility.PRIVATE)
     public abstract static class InheritedNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object inherited(Object subclass) {
+        Object inherited(Object subclass) {
             return nil;
         }
     }
@@ -323,7 +323,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "subclasses")
     public abstract static class SubclassesNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyArray subclasses(RubyClass rubyClass) {
+        RubyArray subclasses(RubyClass rubyClass) {
             return createArray(rubyClass.directNonSingletonSubclasses.toArray());
         }
     }
@@ -331,7 +331,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "superclass")
     public abstract static class SuperClassNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object getSuperClass(RubyClass rubyClass) {
+        Object getSuperClass(RubyClass rubyClass) {
             return rubyClass.superclass;
         }
     }
@@ -339,7 +339,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object allocate(RubyClass rubyClass) {
+        Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
     }

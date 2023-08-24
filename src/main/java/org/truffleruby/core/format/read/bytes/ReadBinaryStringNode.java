@@ -49,7 +49,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isNull(source)")
-    protected void read(VirtualFrame frame, Object source) {
+    void read(VirtualFrame frame, Object source) {
         // Advance will handle the error
         advanceSourcePosition(frame, count);
 
@@ -57,7 +57,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    protected RubyString read(VirtualFrame frame, byte[] source,
+    RubyString read(VirtualFrame frame, byte[] source,
             @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int start = getSourcePosition(frame);
         final int end = getSourceEnd(frame);

@@ -28,7 +28,7 @@ public abstract class SystemCallErrorNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySystemCallError allocateNameError(RubyClass rubyClass) {
+        RubySystemCallError allocateNameError(RubyClass rubyClass) {
             final Shape shape = getLanguage().systemCallErrorShape;
             final RubySystemCallError instance = new RubySystemCallError(rubyClass, shape, nil, null, nil, nil);
             AllocationTracing.trace(instance, this);
@@ -40,7 +40,7 @@ public abstract class SystemCallErrorNodes {
     public abstract static class ErrnoNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object errno(RubySystemCallError self) {
+        Object errno(RubySystemCallError self) {
             return self.errno;
         }
 
@@ -50,7 +50,7 @@ public abstract class SystemCallErrorNodes {
     public abstract static class ErrnoSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setErrno(RubySystemCallError error, Object errno) {
+        Object setErrno(RubySystemCallError error, Object errno) {
             error.errno = errno;
             return errno;
         }

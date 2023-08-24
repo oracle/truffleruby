@@ -37,7 +37,7 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
     public abstract RubyNode getArrayNode();
 
     @Specialization
-    protected RubyArray readSlice(RubyArray array,
+    RubyArray readSlice(RubyArray array,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile emptyArray) {
         final int length = array.size + to - from;

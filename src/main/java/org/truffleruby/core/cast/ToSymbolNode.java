@@ -44,19 +44,19 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     public abstract RubySymbol execute(Node node, Object object);
 
     @Specialization
-    protected static RubySymbol symbol(RubySymbol symbol) {
+    static RubySymbol symbol(RubySymbol symbol) {
         return symbol;
     }
 
     @Specialization(guards = "str == cachedStr", limit = "getCacheLimit()")
-    protected static RubySymbol javaString(String str,
+    static RubySymbol javaString(String str,
             @Cached(value = "str") String cachedStr,
             @Cached(value = "getSymbol(cachedStr)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
     @Specialization(replaces = "javaString")
-    protected static RubySymbol javaStringUncached(Node node, String str) {
+    static RubySymbol javaStringUncached(Node node, String str) {
         return getSymbol(node, str);
     }
 
@@ -65,7 +65,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
                     "strings.isRubyString(str)",
                     "equalNode.execute(node, strings, str, cachedTString, cachedEncoding)" },
             limit = "getCacheLimit()")
-    protected static RubySymbol rubyString(Node node, Object str,
+    static RubySymbol rubyString(Node node, Object str,
             @Cached @Shared RubyStringLibrary strings,
             @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
             @Cached(value = "strings.getEncoding(str)") RubyEncoding cachedEncoding,
@@ -75,13 +75,13 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "strings.isRubyString(str)", replaces = "rubyString")
-    protected static RubySymbol rubyStringUncached(Node node, Object str,
+    static RubySymbol rubyStringUncached(Node node, Object str,
             @Cached @Shared RubyStringLibrary strings) {
         return getSymbol(node, strings.getTString(str), strings.getEncoding(str));
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
-    protected static RubySymbol toStr(Node node, Object object,
+    static RubySymbol toStr(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached(inline = false) DispatchNode toStrNode,
             @Cached @Exclusive RubyStringLibrary strings,
