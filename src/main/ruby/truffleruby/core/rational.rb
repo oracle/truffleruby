@@ -406,31 +406,17 @@ class Rational < Numeric
     @denominator = den
     Primitive.freeze(self)
   end
-  private :initialize
 
-  def marshal_dump
-    ary = [@numerator, @denominator]
-
-    instance_variables.each do |ivar|
-      ary.instance_variable_set(ivar, instance_variable_get(ivar))
-    end
-
-    ary
+  private def marshal_dump
+    [@numerator, @denominator]
   end
-  private :marshal_dump
 
-  def marshal_load(ary)
+  private def marshal_load(ary)
     @numerator, @denominator = ary
-
-    ary.instance_variables.each do |ivar|
-      instance_variable_set(ivar, ary.instance_variable_get(ivar))
-    end
-
-    self
+    Primitive.freeze(self)
   end
-  private :marshal_load
 
-  def with_precision(method, n, **kwargs)
+  private def with_precision(method, n, **kwargs)
     raise TypeError, 'not an integer' unless Primitive.is_a?(n, Integer)
 
     p = 10 ** n
@@ -445,5 +431,4 @@ class Rational < Numeric
     r = Rational(wp, p)
     n < 1 ? r.to_i : r
   end
-  private :with_precision
 end

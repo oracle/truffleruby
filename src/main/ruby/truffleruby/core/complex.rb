@@ -311,23 +311,14 @@ class Complex < Numeric
     self / other
   end
 
-  def marshal_dump
-    ary = [real, imag]
-    instance_variables.each do |ivar|
-      ary.instance_variable_set(ivar, instance_variable_get(ivar))
-    end
-    ary
+  private def marshal_dump
+    [@real, @imag]
   end
-  private :marshal_dump
 
-  def marshal_load(ary)
+  private def marshal_load(ary)
     @real, @imag = ary
-    ary.instance_variables.each do |ivar|
-      instance_variable_set(ivar, ary.instance_variable_get(ivar))
-    end
-    self
+    Primitive.freeze(self)
   end
-  private :marshal_load
 
   def <=>(other)
     if imag == 0 && Primitive.is_a?(other, Numeric)
