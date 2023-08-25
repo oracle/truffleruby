@@ -601,8 +601,15 @@ suite = {
             "requires": [
                 "java.base",
             ],
+            "license": [
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+            ],
             "maven": {
                 "artifactId": "ruby-resources",
+                "tag": ["default", "public"],
             },
         },
 
