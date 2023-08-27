@@ -47,6 +47,7 @@ Performance:
 
 * Improve `Truffle::FeatureLoader.loaded_feature_path` by removing expensive string ops from a loop. Speeds up feature lookup time (#3010, @itarato).
 * Improve `String#-@` performance by reducing unnecessary data copying and supporting substring lookups (@nirvdrum)
+* Specialize `Array#<<` and related methods appending elements per call site to have a single array storage strategy in the inline cache for most cases (@eregon).
 
 Changes:
 
