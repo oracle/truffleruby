@@ -278,8 +278,8 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
                 limit = "1")
         boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
-                @Shared @Cached RubyStringLibrary libSignalString,
-                @Exclusive @Cached RubyStringLibrary libAction) {
+                @Cached @Shared RubyStringLibrary libSignalString,
+                @Cached @Exclusive RubyStringLibrary libAction) {
             final String actionString = RubyGuards.getJavaString(action);
             final String signalName = RubyGuards.getJavaString(signalString);
 
@@ -298,7 +298,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)")
         boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
-                @Shared @Cached RubyStringLibrary libSignalString) {
+                @Cached @Shared RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
             if (getLanguage().getCurrentThread() != context.getThreadManager().getRootThread()) {

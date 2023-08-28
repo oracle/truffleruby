@@ -100,13 +100,13 @@ public abstract class HashingNodes {
 
         @Specialization
         static int hashString(Node node, RubyString value,
-                @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Cached @Shared StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(node, value);
         }
 
         @Specialization
         static int hashImmutableString(Node node, ImmutableRubyString value,
-                @Shared @Cached StringHelperNodes.HashStringNode stringHashNode) {
+                @Cached @Shared StringHelperNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(node, value);
         }
 

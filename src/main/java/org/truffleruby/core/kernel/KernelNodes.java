@@ -1173,7 +1173,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
         RubyProc lambdaFromExistingProc(RubyProc block,
-                @Cached("new()") WarnNode warnNode) {
+                @Cached WarnNode warnNode) {
             if (warnNode.shouldWarnForDeprecation()) {
                 warnNode.warningMessage(
                         getContext().getCallStack().getTopMostUserSourceSection(),
@@ -1885,7 +1885,7 @@ public abstract class KernelNodes {
     public abstract static class WarnGivenBlockNotUsedNode extends PrimitiveNode {
         @Specialization
         Object warn(
-                @Cached("new()") WarnNode warnNode) {
+                @Cached WarnNode warnNode) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(
                         getContext().getCallStack().getTopMostUserSourceSection(),
@@ -1901,7 +1901,7 @@ public abstract class KernelNodes {
     public abstract static class WarnBlockSupersedesDefaultValueArgumentNode extends PrimitiveNode {
         @Specialization
         Object warn(
-                @Cached("new()") WarnNode warnNode) {
+                @Cached WarnNode warnNode) {
             if (warnNode.shouldWarn()) {
                 warnNode.warningMessage(
                         getContext().getCallStack().getTopMostUserSourceSection(),

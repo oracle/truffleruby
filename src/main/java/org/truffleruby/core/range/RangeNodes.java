@@ -100,8 +100,8 @@ public abstract class RangeNodes {
 
         @Specialization
         RubyIntRange eachInt(RubyIntRange range, RubyProc block,
-                @Shared @Cached InlinedConditionProfile excludedEndProfile,
-                @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached @Shared InlinedConditionProfile excludedEndProfile,
+                @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
             final int exclusiveEnd;
             if (excludedEndProfile.profile(this, range.excludedEnd)) {
@@ -124,8 +124,8 @@ public abstract class RangeNodes {
 
         @Specialization
         RubyLongRange eachLong(RubyLongRange range, RubyProc block,
-                @Shared @Cached InlinedConditionProfile excludedEndProfile,
-                @Exclusive @Cached InlinedLoopConditionProfile loopProfile,
+                @Cached @Shared InlinedConditionProfile excludedEndProfile,
+                @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
                 @Cached @Shared CallBlockNode yieldNode) {
             final long exclusiveEnd;
             if (excludedEndProfile.profile(this, range.excludedEnd)) {
@@ -552,26 +552,26 @@ public abstract class RangeNodes {
 
         @Specialization
         int[] normalizeLongRange(RubyLongRange range, int size,
-                @Exclusive @Cached ToIntNode toInt) {
+                @Cached @Exclusive ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isEndless()")
         int[] normalizeEndlessRange(RubyObjectRange range, int size,
-                @Shared @Cached ToIntNode toInt) {
+                @Cached @Shared ToIntNode toInt) {
             int begin = toInt.execute(range.begin);
             return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
         }
 
         @Specialization(guards = "range.isBounded()")
         int[] normalizeObjectRange(RubyObjectRange range, int size,
-                @Shared @Cached ToIntNode toInt) {
+                @Cached @Shared ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "range.isBeginless()")
         int[] normalizeBeginlessRange(RubyObjectRange range, int size,
-                @Shared @Cached ToIntNode toInt) {
+                @Cached @Shared ToIntNode toInt) {
             return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
         }
 

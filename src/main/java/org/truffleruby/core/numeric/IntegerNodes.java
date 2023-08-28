@@ -846,8 +846,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         int compare(int a, int b,
-                @Shared @Cached InlinedConditionProfile smallerProfile,
-                @Shared @Cached InlinedConditionProfile equalProfile) {
+                @Cached @Shared InlinedConditionProfile smallerProfile,
+                @Cached @Shared InlinedConditionProfile equalProfile) {
             if (smallerProfile.profile(this, a < b)) {
                 return -1;
             } else if (equalProfile.profile(this, a == b)) {
@@ -859,8 +859,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         int compare(long a, long b,
-                @Shared @Cached InlinedConditionProfile smallerProfile,
-                @Shared @Cached InlinedConditionProfile equalProfile) {
+                @Cached @Shared InlinedConditionProfile smallerProfile,
+                @Cached @Shared InlinedConditionProfile equalProfile) {
             if (smallerProfile.profile(this, a < b)) {
                 return -1;
             } else if (equalProfile.profile(this, a == b)) {
@@ -877,7 +877,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isNaN(b)")
         int compare(long a, double b,
-                @Exclusive @Cached InlinedConditionProfile equalProfile) {
+                @Cached @Exclusive InlinedConditionProfile equalProfile) {
             return FloatNodes.CompareNode.compareDoubles(a, b, equalProfile, this);
         }
 
@@ -1230,7 +1230,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "b > MAX_INT")
         int leftShift(long a, long b,
-                @Shared @Cached InlinedConditionProfile zeroProfile) {
+                @Cached @Shared InlinedConditionProfile zeroProfile) {
             if (zeroProfile.profile(this, a == 0L)) {
                 return 0;
             } else {
@@ -1246,7 +1246,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isPositive(b)")
         int leftShift(long a, RubyBignum b,
-                @Shared @Cached InlinedConditionProfile zeroProfile) {
+                @Cached @Shared InlinedConditionProfile zeroProfile) {
             if (zeroProfile.profile(this, a == 0L)) {
                 return 0;
             } else {
@@ -1341,7 +1341,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "b >= 0")
         int rightShift(int a, int b,
-                @Exclusive @Cached InlinedConditionProfile profile) {
+                @Cached @Exclusive InlinedConditionProfile profile) {
             if (profile.profile(this, b >= Integer.SIZE - 1)) {
                 return a < 0 ? -1 : 0;
             } else {
@@ -1351,7 +1351,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "b >= 0")
         Object rightShift(long a, int b,
-                @Exclusive @Cached InlinedConditionProfile profile) {
+                @Cached @Exclusive InlinedConditionProfile profile) {
             if (profile.profile(this, b >= Long.SIZE - 1)) {
                 return a < 0 ? -1 : 0; // int
             } else {
@@ -1539,7 +1539,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         RubyString defaultBase10(long n, NotProvided base,
-                @Shared @Cached TruffleString.FromLongNode fromLongNode) {
+                @Cached @Shared TruffleString.FromLongNode fromLongNode) {
             var tstring = fromLongNode.execute(n, Encodings.US_ASCII.tencoding, true);
             return createString(tstring, Encodings.US_ASCII);
         }
@@ -1547,7 +1547,7 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization
         RubyString toS(RubyBignum value, NotProvided base,
-                @Shared @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(
                     fromJavaStringNode,
                     BigIntegerOps.toString(value.value),
@@ -1556,14 +1556,14 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "base == 10")
         RubyString base10(long n, int base,
-                @Shared @Cached TruffleString.FromLongNode fromLongNode) {
+                @Cached @Shared TruffleString.FromLongNode fromLongNode) {
             return defaultBase10(n, NotProvided.INSTANCE, fromLongNode);
         }
 
         @TruffleBoundary
         @Specialization(guards = "base != 10")
         RubyString toS(long n, int base,
-                @Shared @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
@@ -1574,7 +1574,7 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization
         RubyString toS(RubyBignum value, int base,
-                @Shared @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
@@ -1782,8 +1782,8 @@ public abstract class IntegerNodes {
                 limit = "getLimit()")
         Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
-                @Shared @Cached InlinedBranchProfile overflowProfile,
-                @Exclusive @Cached MulNode mulNode) {
+                @Cached @Shared InlinedBranchProfile overflowProfile,
+                @Cached @Exclusive MulNode mulNode) {
             Object result = 1;
             int exp = cachedExponent;
             while (exp > 0) {
@@ -1806,8 +1806,8 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = { "isImplicitLong(base)", "exponent >= 0" })
         Object powLoop(Object base, long exponent,
-                @Shared @Cached InlinedBranchProfile overflowProfile,
-                @Exclusive @Cached MulNode mulNode) {
+                @Cached @Shared InlinedBranchProfile overflowProfile,
+                @Cached @Exclusive MulNode mulNode) {
             Object result = 1;
             long exp = exponent;
             while (exp > 0) {
@@ -1835,7 +1835,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         Object powDouble(long base, double exponent,
-                @Exclusive @Cached InlinedConditionProfile complexProfile) {
+                @Cached @Exclusive InlinedConditionProfile complexProfile) {
             if (complexProfile.profile(this, base < 0)) {
                 return FAILURE;
             } else {
@@ -1845,7 +1845,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         Object powBignum(long base, RubyBignum exponent,
-                @Shared @Cached("new()") WarnNode warnNode) {
+                @Cached @Shared WarnNode warnNode) {
             if (base == 0) {
                 return 0;
             }
@@ -1879,9 +1879,9 @@ public abstract class IntegerNodes {
 
         @Specialization
         Object pow(RubyBignum base, long exponent,
-                @Exclusive @Cached InlinedConditionProfile negativeProfile,
-                @Exclusive @Cached InlinedConditionProfile maybeTooBigProfile,
-                @Shared @Cached("new()") WarnNode warnNode) {
+                @Cached @Exclusive InlinedConditionProfile negativeProfile,
+                @Cached @Exclusive InlinedConditionProfile maybeTooBigProfile,
+                @Cached @Shared WarnNode warnNode) {
             if (negativeProfile.profile(this, exponent < 0)) {
                 return FAILURE;
             } else {

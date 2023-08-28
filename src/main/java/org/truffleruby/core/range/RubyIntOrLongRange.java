@@ -37,7 +37,7 @@ public abstract class RubyIntOrLongRange extends ImmutableRubyObjectCopyable {
     @ExportMessage
     public Object getIterator(
             @CachedLibrary("this") InteropLibrary node,
-            @Exclusive @Cached DispatchNode dispatchNode) {
+            @Cached @Exclusive DispatchNode dispatchNode) {
         final RubyContext context = RubyContext.get(node);
         return dispatchNode.call(context.getCoreLibrary().truffleInteropOperationsModule, "get_iterator", this);
     }

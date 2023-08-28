@@ -550,13 +550,13 @@ public abstract class MathNodes {
 
         @Specialization
         int min(int a, int b,
-                @Shared @Cached InlinedConditionProfile profile) {
+                @Cached @Shared InlinedConditionProfile profile) {
             return profile.profile(this, a < b) ? a : b;
         }
 
         @Specialization
         long min(long a, long b,
-                @Shared @Cached InlinedConditionProfile profile) {
+                @Cached @Shared InlinedConditionProfile profile) {
             return profile.profile(this, a < b) ? a : b;
         }
 
@@ -567,13 +567,13 @@ public abstract class MathNodes {
 
         @Specialization
         int max(int a, int b,
-                @Shared @Cached InlinedConditionProfile profile) {
+                @Cached @Shared InlinedConditionProfile profile) {
             return profile.profile(this, a > b) ? a : b;
         }
 
         @Specialization
         long max(long a, long b,
-                @Shared @Cached InlinedConditionProfile profile) {
+                @Cached @Shared InlinedConditionProfile profile) {
             return profile.profile(this, a > b) ? a : b;
         }
 

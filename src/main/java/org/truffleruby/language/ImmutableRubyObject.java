@@ -87,7 +87,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public TriState isIdenticalOrUndefined(Object other,
-            @Exclusive @Cached ConditionProfile immutableRubyObjectProfile) {
+            @Cached @Exclusive ConditionProfile immutableRubyObjectProfile) {
         if (immutableRubyObjectProfile.profile(other instanceof ImmutableRubyObject)) {
             return TriState.valueOf(this == other);
         } else {
@@ -105,7 +105,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public Object getMembers(boolean internal,
             @CachedLibrary("this") InteropLibrary node,
-            @Exclusive @Cached DispatchNode dispatchNode) {
+            @Cached @Exclusive DispatchNode dispatchNode) {
         return dispatchNode.call(
                 RubyContext.get(node).getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
@@ -124,7 +124,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public Object readMember(String name,
             @Cached @Shared InternalRespondToNode definedNode,
             @Cached GetMethodObjectNode getMethodObjectNode,
-            @Shared @Cached BranchProfile errorProfile)
+            @Cached @Shared BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
             return getMethodObjectNode.execute(null, this, name, PRIVATE);
@@ -142,9 +142,9 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public Object invokeMember(String name, Object[] arguments,
-            @Exclusive @Cached DispatchNode dispatchMember,
-            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Shared @Cached BranchProfile errorProfile)
+            @Cached @Exclusive DispatchNode dispatchMember,
+            @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Cached @Shared BranchProfile errorProfile)
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object result = dispatchMember.call(PRIVATE_RETURN_MISSING, this, name, convertedArguments);
@@ -158,7 +158,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public boolean isMemberInternal(String name,
             @Cached @Shared InternalRespondToNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC") InternalRespondToNode definedPublicNode) {
+            @Cached(parameters = "PUBLIC") @Exclusive InternalRespondToNode definedPublicNode) {
         // defined but not publicly
         return definedNode.execute(null, this, name) &&
                 !definedPublicNode.execute(null, this, name);

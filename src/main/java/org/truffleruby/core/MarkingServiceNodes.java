@@ -94,7 +94,7 @@ public abstract class MarkingServiceNodes {
 
         @Specialization(guards = "stack.hasSingleMarkObject()")
         void markSingleObject(ExtensionCallStack stack,
-                @Shared @Cached DispatchNode callNode) {
+                @Cached @Shared DispatchNode callNode) {
             ValueWrapper value = stack.getSingleMarkObject();
             callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
         }
@@ -102,7 +102,7 @@ public abstract class MarkingServiceNodes {
         @TruffleBoundary
         @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
         void marksToRun(ExtensionCallStack stack,
-                @Shared @Cached DispatchNode callNode) {
+                @Cached @Shared DispatchNode callNode) {
             // Run the markers...
             var valuesForMarking = stack.getMarkOnExitObjects();
             // Push a new stack frame because we should

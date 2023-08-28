@@ -309,7 +309,7 @@ public abstract class TruffleRegexpNodes {
 
         @Specialization(replaces = "fastUnion")
         Object slowUnion(RubyString str, Object sep, Object[] args,
-                @Shared @Cached InlinedBranchProfile errorProfile) {
+                @Cached @Shared InlinedBranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
 

@@ -73,7 +73,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         Object popBlocking(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
-                @Exclusive @Cached InlinedBranchProfile closedProfile) {
+                @Cached @Exclusive InlinedBranchProfile closedProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = doPop(queue);
@@ -116,7 +116,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         Object popNonBlock(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
-                @Exclusive @Cached InlinedBranchProfile errorProfile) {
+                @Cached @Exclusive InlinedBranchProfile errorProfile) {
             final UnsizedQueue queue = self.queue;
 
             final Object value = queue.poll();

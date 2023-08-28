@@ -61,8 +61,8 @@ public abstract class PolyglotNodes {
                         "codeEqualNode.execute(stringsSource, code, cachedCode, cachedCodeEnc)" },
                 limit = "getCacheLimit()")
         Object evalCached(Object langId, Object code,
-                @Shared @Cached RubyStringLibrary stringsId,
-                @Shared @Cached RubyStringLibrary stringsSource,
+                @Cached @Shared RubyStringLibrary stringsId,
+                @Cached @Shared RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("stringsId.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
                 @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
@@ -78,8 +78,8 @@ public abstract class PolyglotNodes {
                 guards = { "stringsId.isRubyString(langId)", "stringsSource.isRubyString(code)" },
                 replaces = "evalCached")
         static Object evalUncached(Object langId, Object code,
-                @Shared @Cached RubyStringLibrary stringsId,
-                @Shared @Cached RubyStringLibrary stringsSource,
+                @Cached @Shared RubyStringLibrary stringsId,
+                @Cached @Shared RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringLandNode,
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached IndirectCallNode callNode,
@@ -117,7 +117,7 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         @Specialization(guards = "stringsId.isRubyString(fileName)")
         Object evalFile(Object fileName, NotProvided id,
-                @Shared @Cached RubyStringLibrary stringsId) {
+                @Cached @Shared RubyStringLibrary stringsId) {
             final Source source;
             // intern() to improve footprint
             final String path = RubyGuards.getJavaString(fileName).intern();
@@ -143,8 +143,8 @@ public abstract class PolyglotNodes {
         @Specialization(guards = { "stringsId.isRubyString(id)", "stringsFileName.isRubyString(fileName)" },
                 limit = "1")
         Object evalFile(Object id, Object fileName,
-                @Shared @Cached RubyStringLibrary stringsId,
-                @Exclusive @Cached RubyStringLibrary stringsFileName) {
+                @Cached @Shared RubyStringLibrary stringsId,
+                @Cached @Exclusive RubyStringLibrary stringsFileName) {
             final String idString = RubyGuards.getJavaString(id);
             final Source source = getSource(idString, RubyGuards.getJavaString(fileName));
             return eval(source);
@@ -228,9 +228,9 @@ public abstract class PolyglotNodes {
                 "filenameEqualNode.execute(filenameLib, filename, cachedFilename, cachedFilenameEnc)" },
                 limit = "getCacheLimit()")
         Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
-                @Shared @Cached RubyStringLibrary idLib,
-                @Shared @Cached RubyStringLibrary codeLib,
-                @Shared @Cached RubyStringLibrary filenameLib,
+                @Cached @Shared RubyStringLibrary idLib,
+                @Cached @Shared RubyStringLibrary codeLib,
+                @Cached @Shared RubyStringLibrary filenameLib,
                 @Cached("asTruffleStringUncached(langId)") TruffleString cachedLangId,
                 @Cached("idLib.getEncoding(langId)") RubyEncoding cachedLangIdEnc,
                 @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
@@ -241,8 +241,8 @@ public abstract class PolyglotNodes {
                 @Cached StringHelperNodes.EqualNode idEqualNode,
                 @Cached StringHelperNodes.EqualNode codeEqualNode,
                 @Cached StringHelperNodes.EqualNode filenameEqualNode,
-                @Shared @Cached ForeignToRubyNode foreignToRubyNode,
-                @Shared @Cached InlinedBranchProfile errorProfile) {
+                @Cached @Shared ForeignToRubyNode foreignToRubyNode,
+                @Cached @Shared InlinedBranchProfile errorProfile) {
             return eval(this, rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
         }
 
@@ -250,14 +250,14 @@ public abstract class PolyglotNodes {
                 guards = { "idLib.isRubyString(langId)", "codeLib.isRubyString(code)" },
                 replaces = "evalCached")
         static Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
-                @Shared @Cached RubyStringLibrary idLib,
-                @Shared @Cached RubyStringLibrary codeLib,
-                @Shared @Cached RubyStringLibrary filenameLib,
+                @Cached @Shared RubyStringLibrary idLib,
+                @Cached @Shared RubyStringLibrary codeLib,
+                @Cached @Shared RubyStringLibrary filenameLib,
                 @Cached ToJavaStringNode toJavaStringIDNode,
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached ToJavaStringNode toJavaStringFileNode,
-                @Shared @Cached ForeignToRubyNode foreignToRubyNode,
-                @Shared @Cached InlinedBranchProfile errorProfile,
+                @Cached @Shared ForeignToRubyNode foreignToRubyNode,
+                @Cached @Shared InlinedBranchProfile errorProfile,
                 @Bind("this") Node node) {
             final String idString = toJavaStringIDNode.execute(node, langId);
             final String codeString = toJavaStringCodeNode.execute(node, code);
