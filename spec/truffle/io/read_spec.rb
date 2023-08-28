@@ -29,10 +29,10 @@ describe "IO#read(n)" do
     w.write "b"
     w.flush
 
-    select_ignoring_iobuffer([r], 1_000_000).should == [r]
+    select_ignoring_iobuffer([r], 100).should == [r]
     r.read(1).should == "a"
 
-    select_ignoring_iobuffer([r], 1_000_000).should == [r]
+    select_ignoring_iobuffer([r], 1000).should == [r]
     r.read(1).should == "b"
   end
 
@@ -42,17 +42,17 @@ describe "IO#read(n)" do
     @w.flush
 
     @r.gets.should == "a\n"
-    select_ignoring_iobuffer([@r], 100_000).should == nil
+    select_ignoring_iobuffer([@r], 100).should == nil
   end
 
-  def select_ignoring_iobuffer(ios, timeout_us)
+  def select_ignoring_iobuffer(ios, timeout_ms)
     return IO.select(ios)[0] unless defined?(::TruffleRuby)
 
     result = Truffle::IOOperations.select(
       ios, ios,
       [], [],
       [], [],
-      timeout_us, timeout_us)
+      timeout_ms)
     result and result[0]
   end
 end

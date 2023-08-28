@@ -14,6 +14,18 @@ module Truffle
     POLLIN = Truffle::Config['platform.poll.POLLIN']
     POLLPRI = Truffle::Config['platform.poll.POLLPRI']
     POLLOUT = Truffle::Config['platform.poll.POLLOUT']
+    POLLERR = Truffle::Config['platform.poll.POLLERR']
+    POLLHUP = Truffle::Config['platform.poll.POLLHUP']
+    POLLRDNORM = Truffle::Config['platform.poll.POLLRDNORM']
+    POLLRDBAND = Truffle::Config['platform.poll.POLLRDBAND']
+    POLLWRNORM = Truffle::Config['platform.poll.POLLWRNORM']
+    POLLWRBAND = Truffle::Config['platform.poll.POLLWRBAND']
+
+    # POLLIN, POLLOUT have a different meanings from select(2)'s read/write bit.
+    # See thread.c in CRuby, the definitions are from there.
+    POLLIN_SET = POLLRDNORM | POLLRDBAND | POLLIN | POLLHUP | POLLERR
+    POLLOUT_SET = POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR
+    POLLEX_SET = POLLPRI
 
     def self.print(io, args, last_line_storage)
       if args.empty?
@@ -132,53 +144,64 @@ module Truffle
     end
 
     SIZEOF_INT = FFI::Pointer.find_type_size(:int)
+    SIZEOF_SHORT = FFI::Pointer.find_type_size(:short)
+    SIZEOF_STRUCT_POLLFD = SIZEOF_INT + 2 * SIZEOF_SHORT
 
-    def self.to_fds(ios, pointer)
+    def self.to_fds(ios, pointer, events)
       ios.each_with_index do |io, i|
-        pointer.put_int(i * SIZEOF_INT, io.fileno)
+        offset = i * SIZEOF_STRUCT_POLLFD
+        pointer.put_int(offset, io.fileno) # file descriptor
+        pointer.put_short(offset + SIZEOF_INT, events) # requested events
+        pointer.put_short(offset + SIZEOF_INT + SIZEOF_SHORT, 0) # returned events
       end
     end
 
-    def self.mark_ready(objects, pointer)
+    def self.mark_ready(ios, pointer, event)
       ready = []
-      pointer.read_array_of_int(objects.size).each_with_index do |fd, i|
-        ready << objects[i] if fd >= 0
+      ios.each_with_index do |io, i|
+        offset = i * SIZEOF_STRUCT_POLLFD
+        returned_events = pointer.get_short(offset + SIZEOF_INT + SIZEOF_SHORT)
+        ready << io if returned_events.anybits?(event)
       end
       ready
     end
 
-    def self.select(readables, readable_ios, writables, writable_ios, errorables, errorable_ios, timeout, remaining_timeout)
+    def self.select(readables, readable_ios, writables, writable_ios, errorables, errorable_ios, timeout)
       if timeout
-        start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+        while timeout > 2147483647 # INT_MAX
+          timeout -= 2147483000
+          ret = select(readables, readable_ios, writables, writable_ios, errorables, errorable_ios, 2147483000)
+          return ret unless Primitive.nil?(ret)
+        end
+
+        remaining_timeout = timeout
+        start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+        deadline = start + timeout
+      else
+        remaining_timeout = -1 # infinite timeout
       end
 
+      total_size = readables.size + writables.size + errorables.size
       buffer, readables_pointer, writables_pointer, errorables_pointer =
-          Truffle::FFI::Pool.stack_alloc(readables.size * SIZEOF_INT, writables.size * SIZEOF_INT, errorables.size * SIZEOF_INT)
+        Truffle::FFI::Pool.stack_alloc(readables.size * SIZEOF_STRUCT_POLLFD, writables.size * SIZEOF_STRUCT_POLLFD, errorables.size * SIZEOF_STRUCT_POLLFD)
       begin
         begin
-          to_fds(readable_ios, readables_pointer)
-          to_fds(writable_ios, writables_pointer)
-          to_fds(errorable_ios, errorables_pointer)
+          to_fds(readable_ios, readables_pointer, POLLIN)
+          to_fds(writable_ios, writables_pointer, POLLOUT)
+          to_fds(errorable_ios, errorables_pointer, POLLPRI)
 
-          primitive_result = Primitive.thread_run_blocking_nfi_system_call(Truffle::POSIX::SELECT, [
-              readables.size, readables_pointer,
-              writables.size, writables_pointer,
-              errorables.size, errorables_pointer,
-              remaining_timeout
-          ])
-
+          primitive_result = Primitive.thread_run_blocking_nfi_system_call(Truffle::POSIX::POLL, [buffer, total_size, remaining_timeout])
           result =
             if primitive_result < 0
               errno = Errno.errno
               if errno == Errno::EINTR::Errno
                 if timeout
                   # Update timeout
-                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                  waited = now - start
-                  if waited >= timeout
+                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+                  if now >= deadline
                     nil # timeout
                   else
-                    remaining_timeout = timeout - waited
+                    remaining_timeout = deadline - now
                     :retry
                   end
                 else
@@ -195,9 +218,9 @@ module Truffle
         if result == 0
           nil # timeout
         else
-          [mark_ready(readables, readables_pointer),
-           mark_ready(writables, writables_pointer),
-           mark_ready(errorables, errorables_pointer)]
+          [mark_ready(readables, readables_pointer, POLLIN_SET),
+           mark_ready(writables, writables_pointer, POLLOUT_SET),
+           mark_ready(errorables, errorables_pointer, POLLEX_SET)]
         end
       ensure
         Truffle::FFI::Pool.stack_free(buffer)
@@ -205,8 +228,8 @@ module Truffle
 
     end
 
-    # This method will return an event mask if poll returned without error.
-    # The event mask is > 0 when an event occurred within the timeout, 0 if the timeout expired.
+    # This method will return an event mask (an Integer).
+    # The returned value is > 0 when an event occurred within the timeout and 0 if the timeout expired with no events.
     # Raises an exception for an errno.
     def self.poll(io, event_mask, timeout)
       if (event_mask & POLLIN) != 0
@@ -236,16 +259,16 @@ module Truffle
       end
 
       begin
-        primitive_result = Truffle::POSIX.truffleposix_poll(Primitive.io_fd(io), event_mask, remaining_timeout)
+        returned_events = Truffle::POSIX.truffleposix_poll_single_fd(Primitive.io_fd(io), event_mask, remaining_timeout)
         result =
-          if primitive_result < 0
+          if returned_events < 0
             errno = Errno.errno
             if errno == Errno::EINTR::Errno
               if timeout_ms
                 # Update timeout
                 now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
                 if now >= deadline
-                  false # timeout
+                  0 # timeout
                 else
                   remaining_timeout = deadline - now
                   :retry
@@ -257,7 +280,7 @@ module Truffle
               Errno.handle_errno(errno)
             end
           else
-            primitive_result
+            returned_events
           end
       end while result == :retry
 

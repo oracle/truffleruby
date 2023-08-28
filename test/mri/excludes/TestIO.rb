@@ -65,3 +65,4 @@ exclude :test_gets_chomp_rs_nil, "[Bug #18770]."
 exclude :test_each_line, "[Bug #18770]."
 exclude :test_explicit_path, "Expected /Fake Path/ to match \"#<IO:fd 0>\"."
 exclude :test_dup_timeout, "NoMethodError: undefined method `timeout=' for #<IO:(closed)>"
+exclude :test_select_exceptfds, "Truffle::IOOperations.poll(acc, Truffle::IOOperations::POLLIN_SET | Truffle::IOOperations::POLLEX_SET, nil) returns POLLRDNORM|POLLPRI|POLLIN on Linux (correct) but POLLRDNORM|POLLIN on macOS (bug). With events=POLLPRI it hangs on macOS. It seems a bug of macOS poll() not handling TCP MSG_OOB. MSG_OOB is poorly supported across platforms anyway." if RUBY_PLATFORM.include?('darwin')

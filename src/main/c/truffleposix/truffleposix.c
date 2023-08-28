@@ -60,7 +60,6 @@ SUCH DAMAGE.
 #include <sys/file.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -91,59 +90,13 @@ struct truffleposix_stat {
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
 
-static void init_fd_set(fd_set *set, int nfds, int *fds, int *maxfd) {
-  FD_ZERO(set);
-  for (int i = 0; i < nfds; i++) {
-    int fd = fds[i];
-    FD_SET(fd, set);
-    if (fd > *maxfd) {
-      *maxfd = fd;
-    }
-  }
-}
-
-static void mark_ready_from_set(fd_set *set, int nfds, int *fds) {
-  for (int i = 0; i < nfds; i++) {
-    int fd = fds[i];
-    if (!FD_ISSET(fd, set)) {
-      fds[i] = -1;
-    }
-  }
-}
-
-int truffleposix_poll(int fd, int events, int timeout_ms) {
+int truffleposix_poll_single_fd(int fd, int events, int timeout_ms) {
   struct pollfd fds;
 
   fds.fd = fd;
   fds.events = events;
 
   return poll(&fds, 1, timeout_ms) >= 0 ? fds.revents : -1;
-}
-
-int truffleposix_select(int nread, int *readfds, int nwrite, int *writefds,
-                        int nexcept, int *exceptfds, long timeout_us) {
-  struct timeval timeout;
-  struct timeval *timeout_ptr = NULL;
-
-  if (timeout_us >= 0) {
-    timeout.tv_sec = (timeout_us / 1000000);
-    timeout.tv_usec = (timeout_us % 1000000);
-    timeout_ptr = &timeout;
-  }
-
-  int maxfd = 0;
-  fd_set readset, writeset, exceptset;
-  init_fd_set(&readset, nread, readfds, &maxfd);
-  init_fd_set(&writeset, nwrite, writefds, &maxfd);
-  init_fd_set(&exceptset, nexcept, exceptfds, &maxfd);
-
-  int ret = select(maxfd+1, &readset, &writeset, &exceptset, timeout_ptr);
-  if (ret > 0) {
-    mark_ready_from_set(&readset, nread, readfds);
-    mark_ready_from_set(&writeset, nwrite, writefds);
-    mark_ready_from_set(&exceptset, nexcept, exceptfds);
-  }
-  return ret;
 }
 
 int truffleposix_utimes(const char *filename, long atime_sec, int atime_nsec,

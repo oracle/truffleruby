@@ -214,7 +214,9 @@ module Truffle::POSIX
   attach_function :open, [:string, :int, varargs(:mode_t)], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
-  attach_function :truffleposix_poll, [:pointer, :long, :int], :int, LIBTRUFFLEPOSIX, true
+  # blocking=false for both poll because the timeout needs to be decreased on EINTR
+  attach_function :truffleposix_poll_single_fd, [:pointer, :long, :int], :int, LIBTRUFFLEPOSIX
+  attach_function :poll, [:pointer, :long, :int], :int
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
@@ -224,8 +226,6 @@ module Truffle::POSIX
   attach_function :truffleposix_rewinddir, [:pointer], :void, LIBTRUFFLEPOSIX
   attach_function :rmdir, [:string], :int
   attach_function :seekdir, [:pointer, :long], :void
-  select_args = [:int, :pointer, :int, :pointer, :int, :pointer, :long]
-  attach_function :truffleposix_select, select_args, :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat_mode, [:string], :mode_t, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat_size, [:string], :long, LIBTRUFFLEPOSIX
@@ -240,8 +240,8 @@ module Truffle::POSIX
   Truffle::Boot.delay do
     if NATIVE
       # We should capture the non-lazy method
-      attach_function_eagerly :truffleposix_select, select_args, :int, LIBTRUFFLEPOSIX, false, :truffleposix_select, self
-      SELECT = method(:truffleposix_select)
+      attach_function_eagerly :poll, [:pointer, :long, :int], :int, LIBC, false, :poll, self
+      POLL = method(:poll)
     end
   end
 
