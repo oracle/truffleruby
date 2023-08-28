@@ -13,6 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -28,6 +29,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @NodeChild(value = "arrayNode", type = RubyNode.class)
 @NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
+@ReportPolymorphism
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
     @NeverDefault
