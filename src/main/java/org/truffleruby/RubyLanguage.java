@@ -756,7 +756,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (truffleReported != null) {
             var truffleReportedFile = env.getInternalTruffleFile(truffleReported);
             try {
-                truffleReportedFile = truffleReportedFile.getCanonicalFile();
+                if (truffleReportedFile.exists()) {
+                    truffleReportedFile = truffleReportedFile.getCanonicalFile();
+                }
             } catch (IOException e) {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
