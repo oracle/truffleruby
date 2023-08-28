@@ -536,6 +536,7 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-RESOURCES",
                 "truffle:TRUFFLE_RUNTIME",
+                "sulong:LLVM_NATIVE_COMMUNITY",
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
