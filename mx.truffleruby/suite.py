@@ -643,6 +643,11 @@ suite = {
             "fileListPurpose": 'native-image-resources',
             "native": True,
             "platformDependent": False,
+            # The project org.truffleruby.cext touches lib/gems/gems/debug-1.7.1/ext
+            # and lib/gems/extensions/$ARCH-$OS/$ABI/rbs-2.8.2/gem.build_complete.
+            # This causes this layout distribution to be rebuilt even though nothing changes in the result.
+            # To avoid that we force org.truffleruby.cext to complete first.
+            "dependencies": ["org.truffleruby.cext"],
             "layout": {
                 "lib/": [
                     "file:lib/json",
