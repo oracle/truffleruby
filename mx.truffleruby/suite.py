@@ -417,6 +417,8 @@ suite = {
                 "src/main/c/ripper/<extsuffix:ripper>",
                 "src/main/c/syslog/<extsuffix:syslog>",
                 "src/main/c/zlib/<extsuffix:zlib>",
+                "lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
+                "lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
             ],
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -643,6 +645,11 @@ suite = {
             "fileListPurpose": 'native-image-resources',
             "native": True,
             "platformDependent": False,
+            # The project org.truffleruby.cext touches lib/gems/gems/debug-1.7.1/ext
+            # and lib/gems/extensions/$ARCH-$OS/$ABI/rbs-2.8.2/gem.build_complete.
+            # This causes this layout distribution to be rebuilt even though nothing changes in the result.
+            # To avoid that we force org.truffleruby.cext to complete first.
+            "dependencies": ["org.truffleruby.cext"],
             "layout": {
                 "lib/": [
                     "file:lib/json",
@@ -700,8 +707,8 @@ suite = {
                 ],
                 # The platform-specific files from debug and rbs, see comment above
                 "lib/gems/": "file:lib/gems/extensions",
-                "lib/gems/gems/debug-1.7.1/lib/debug/": "file:lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
-                "lib/gems/gems/rbs-2.8.2/lib/": "file:lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
+                "lib/gems/gems/debug-1.7.1/lib/debug/": "dependency:org.truffleruby.cext/lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
+                "lib/gems/gems/rbs-2.8.2/lib/": "dependency:org.truffleruby.cext/lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                     "dependency:org.truffleruby.cext/src/main/c/date/<extsuffix:date_core>",
