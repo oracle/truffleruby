@@ -56,13 +56,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class WriteUTF8CharacterNode extends FormatNode {
 
     @Specialization(guards = { "value >= 0", "value <= 0x7f" })
-    protected Object writeSingleByte(VirtualFrame frame, long value) {
+    Object writeSingleByte(VirtualFrame frame, long value) {
         writeByte(frame, (byte) value);
         return null;
     }
 
     @Specialization(guards = { "value > 0x7f", "value <= 0x7ff" })
-    protected Object writeTwoBytes(VirtualFrame frame, long value) {
+    Object writeTwoBytes(VirtualFrame frame, long value) {
         final byte[] bytes = {
                 (byte) (((value >>> 6) & 0xff) | 0xc0),
                 (byte) ((value & 0x3f) | 0x80)
@@ -73,7 +73,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x7ff", "value <= 0xffff" })
-    protected Object writeThreeBytes(VirtualFrame frame, long value) {
+    Object writeThreeBytes(VirtualFrame frame, long value) {
         final byte[] bytes = {
                 (byte) (((value >>> 12) & 0xff) | 0xe0),
                 (byte) (((value >>> 6) & 0x3f) | 0x80),
@@ -85,7 +85,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0xffff", "value <= 0x1fffff" })
-    protected Object writeFourBytes(VirtualFrame frame, long value) {
+    Object writeFourBytes(VirtualFrame frame, long value) {
         final byte[] bytes = {
                 (byte) (((value >>> 18) & 0xff) | 0xf0),
                 (byte) (((value >>> 12) & 0x3f) | 0x80),
@@ -98,7 +98,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x1fffff", "value <= 0x3ffffff" })
-    protected Object writeFiveBytes(VirtualFrame frame, long value) {
+    Object writeFiveBytes(VirtualFrame frame, long value) {
         final byte[] bytes = {
                 (byte) (((value >>> 24) & 0xff) | 0xf8),
                 (byte) (((value >>> 18) & 0x3f) | 0x80),
@@ -112,7 +112,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x3ffffff", "value <= 0x7fffffff" })
-    protected Object writeSixBytes(VirtualFrame frame, long value) {
+    Object writeSixBytes(VirtualFrame frame, long value) {
         final byte[] bytes = {
                 (byte) (((value >>> 30) & 0xff) | 0xfc),
                 (byte) (((value >>> 24) & 0x3f) | 0x80),
@@ -127,12 +127,12 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = "value < 0")
-    protected Object writeNegative(long value) {
+    Object writeNegative(long value) {
         throw new RangeException("pack(U): value out of range");
     }
 
     @Specialization(guards = "value > 0x7fffffff")
-    protected Object writeOutOfRange(long value) {
+    Object writeOutOfRange(long value) {
         throw new RangeException("pack(U): value out of range");
     }
 

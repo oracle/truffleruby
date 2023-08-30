@@ -20,17 +20,17 @@ import org.truffleruby.language.Nil;
 public abstract class ReinterpretLongAsDoubleNode extends FormatNode {
 
     @Specialization
-    protected MissingValue decode(MissingValue missingValue) {
+    MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization
-    protected Object decode(Nil nil) {
+    Object decode(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected double decode(long value) {
+    double decode(long value) {
         return Double.longBitsToDouble(value);
     }
 

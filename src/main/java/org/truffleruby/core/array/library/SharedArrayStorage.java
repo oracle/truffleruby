@@ -185,14 +185,13 @@ public final class SharedArrayStorage implements ObjectGraphNode {
     static final class CopyContents {
 
         @Specialization(guards = "srcStore == destStore")
-        protected static void copyContents(
+        static void copyContents(
                 SharedArrayStorage srcStore, int srcStart, SharedArrayStorage destStore, int destStart, int length) {
             System.arraycopy(srcStore.storage, srcStart, destStore.storage, destStart, length);
         }
 
         @Specialization(guards = "differentStores(srcStore, destStore)", limit = "storageStrategyLimit()")
-        protected static void copyContents(
-                SharedArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
+        static void copyContents(SharedArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @CachedLibrary("srcStore.storage") ArrayStoreLibrary srcStores,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {

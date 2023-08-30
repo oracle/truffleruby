@@ -54,7 +54,7 @@ public abstract class TryNode extends RubyContextSourceNode {
 
     /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode} */
     @Specialization
-    protected Object doTry(VirtualFrame frame,
+    Object doTry(VirtualFrame frame,
             @Cached InlinedBranchProfile noExceptionProfile,
             @Cached InlinedBranchProfile killExceptionProfile,
             @Cached InlinedBranchProfile guestExceptionProfile,

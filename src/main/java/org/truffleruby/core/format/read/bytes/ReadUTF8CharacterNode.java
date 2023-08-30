@@ -27,13 +27,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @Specialization(guards = "isNull(source)")
-    protected void read(VirtualFrame frame, Object source) {
+    void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame, 1);
         throw new IllegalStateException();
     }
 
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source,
+    Object read(VirtualFrame frame, byte[] source,
             @Cached InlinedBranchProfile errorProfile,
             @Cached InlinedConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);

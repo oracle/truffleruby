@@ -41,25 +41,25 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "libString.isRubyString(value)", limit = "1")
-    protected static String stringNameToJavaString(Node node, Object value,
+    static String stringNameToJavaString(Node node, Object value,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.execute(node, value);
     }
 
     @Specialization
-    protected static String symbolNameToJavaString(Node node, RubySymbol value,
+    static String symbolNameToJavaString(Node node, RubySymbol value,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.execute(node, value);
     }
 
     @Specialization
-    protected static String nameToJavaString(String value) {
+    static String nameToJavaString(String value) {
         return value;
     }
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
-    protected static String nameToJavaString(Node node, Object object,
+    static String nameToJavaString(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached(inline = false) DispatchNode toStr,
             @Cached @Exclusive RubyStringLibrary libString,

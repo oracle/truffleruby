@@ -12,6 +12,7 @@ Bug fixes:
 * Fix `Marshal.load` and raise `ArgumentError` when dump is broken and is too short (#3108, @andrykonchin).
 * Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
 * Fix `Module#define_method(name, Method)` to respect `module_function` visibility (#3181, @andrykonchin).
+* Fix stack overflow with `Kernel.require` and `zeitwerk` (#3224, @eregon).
 
 Compatibility:
 
@@ -41,11 +42,13 @@ Compatibility:
 * Add `Module#const_added` (#3039,  @itarato).
 * Show the pointer size information (if available) in `FFI::Pointer#inspect` (@nirvdrum).
 * Implement performance warnings (`Warning[:performance]`) like in CRuby 3.3 (@eregon).
+* The output of `Marshal.dump` is now compatible with CRuby for `Rational` and `Complex` instances (#3228, @eregon).
 
 Performance:
 
 * Improve `Truffle::FeatureLoader.loaded_feature_path` by removing expensive string ops from a loop. Speeds up feature lookup time (#3010, @itarato).
 * Improve `String#-@` performance by reducing unnecessary data copying and supporting substring lookups (@nirvdrum)
+* Specialize `Array#<<` and related methods appending elements per call site to have a single array storage strategy in the inline cache for most cases (@eregon).
 
 Changes:
 

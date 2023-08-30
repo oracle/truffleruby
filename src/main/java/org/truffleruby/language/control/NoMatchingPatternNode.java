@@ -23,7 +23,7 @@ public abstract class NoMatchingPatternNode extends RubyContextSourceNode {
     protected abstract RubyNode getExpressionNode();
 
     @Specialization
-    protected Object noMatchingPattern(Object expression,
+    Object noMatchingPattern(Object expression,
             @Cached DispatchNode inspectNode) {
         Object inspected = inspectNode.call(coreLibrary().truffleTypeModule, "rb_inspect", expression);
         throw new RaiseException(getContext(), coreExceptions().noMatchingPatternError(inspected, this));

@@ -28,7 +28,7 @@ public abstract class SystemExitNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySystemExit allocateSytemExit(RubyClass rubyClass) {
+        RubySystemExit allocateSytemExit(RubyClass rubyClass) {
             final Shape shape = getLanguage().systemExitShape;
             final RubySystemExit instance = new RubySystemExit(rubyClass, shape, nil, null, nil, 0);
             AllocationTracing.trace(instance, this);
@@ -41,7 +41,7 @@ public abstract class SystemExitNodes {
     public abstract static class StatusNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int status(RubySystemExit self) {
+        int status(RubySystemExit self) {
             return self.exitStatus;
         }
 
@@ -51,7 +51,7 @@ public abstract class SystemExitNodes {
     public abstract static class StatusSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setStatus(RubySystemExit error, int exitStatus) {
+        Object setStatus(RubySystemExit error, int exitStatus) {
             error.exitStatus = exitStatus;
             return exitStatus;
         }

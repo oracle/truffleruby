@@ -33,7 +33,7 @@ public abstract class FixnumOrBignumNode extends RubyBaseNode {
     public abstract Object execute(Node node, BigInteger value);
 
     @Specialization
-    protected static Object fixnumOrBignum(Node node, BigInteger value,
+    static Object fixnumOrBignum(Node node, BigInteger value,
             @Cached InlinedConditionProfile lowerProfile,
             @Cached InlinedConditionProfile intProfile) {
         if (lowerProfile.profile(node, fitsIntoLong(value))) {

@@ -69,7 +69,7 @@ public abstract class ReadBERNode extends FormatNode {
     private final ConditionProfile simpleProfile = ConditionProfile.create();
 
     @Specialization
-    protected Object encode(VirtualFrame frame, byte[] source,
+    Object encode(VirtualFrame frame, byte[] source,
             @Cached FixnumOrBignumNode fixnumOrBignumNode) {
         final ByteBuffer encode = wrapByteBuffer(frame, source);
         int position = encode.position();

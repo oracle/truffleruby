@@ -67,7 +67,7 @@ public abstract class ReadlineHistoryNodes {
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyBasicObject push(RubyBasicObject history, Object[] lines,
+        RubyBasicObject push(RubyBasicObject history, Object[] lines,
                 @Cached ToJavaStringNode toJavaStringNode) {
             for (Object line : lines) {
                 final String asString = toJavaStringNode.execute(this, line);
@@ -91,7 +91,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object pop() {
+        Object pop() {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
@@ -114,7 +114,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object shift() {
+        Object shift() {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
@@ -135,7 +135,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int length() {
+        int length() {
             return getContext().getConsoleHolder().getHistory().size();
         }
 
@@ -146,7 +146,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object clear() {
+        Object clear() {
             try {
                 getContext().getConsoleHolder().getHistory().purge();
             } catch (IOException e) {
@@ -163,7 +163,7 @@ public abstract class ReadlineHistoryNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @Specialization
-        protected RubyBasicObject each(RubyBasicObject history, RubyProc block,
+        RubyBasicObject each(RubyBasicObject history, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
@@ -192,7 +192,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getIndex(int index) {
+        Object getIndex(int index) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
@@ -215,7 +215,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object setIndex(Object indexObject, Object line,
+        Object setIndex(Object indexObject, Object line,
                 @Cached ToIntNode toIntNode,
                 @Cached ToJavaStringNode toJavaStringNode) {
             final int index = toIntNode.execute(indexObject);
@@ -241,7 +241,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object deleteAt(int index) {
+        Object deleteAt(int index) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
             try {

@@ -41,7 +41,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object vmGCStart() {
+        Object vmGCStart() {
             System.gc();
             return nil;
         }
@@ -62,7 +62,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object force() {
+        Object force() {
             // NOTE(norswap, 16 Apr 20): We could have used a WeakReference here, but the hope is that the extra
             // indirection will prevent the compiler to optimize this method away (assuming JIT compilation, and
             // the fact that such an optimizaton is permitted and possible, both of which are unlikely).
@@ -106,7 +106,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long count() {
+        long count() {
             long count = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 count += bean.getCollectionCount();
@@ -121,7 +121,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long time() {
+        long time() {
             long time = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 time += bean.getCollectionTime();
@@ -135,7 +135,7 @@ public abstract class GCNodes {
     public abstract static class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray stat() {
+        RubyArray stat() {
             final long[] data = getGCData();
             return createArray(data);
         }
@@ -191,7 +191,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray heapStats(
+        RubyArray heapStats(
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String[] memoryPoolNames = new String[0];
             Object[] memoryPools;

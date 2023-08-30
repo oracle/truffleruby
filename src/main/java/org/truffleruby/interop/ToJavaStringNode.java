@@ -30,7 +30,7 @@ public abstract class ToJavaStringNode extends RubyBaseNode {
     public abstract String execute(Node node, Object name);
 
     @Specialization(guards = "interopLibrary.isString(value)", limit = "getLimit()")
-    protected static String interopString(Node node, Object value,
+    static String interopString(Node node, Object value,
             @CachedLibrary("value") InteropLibrary interopLibrary,
             @Cached TranslateInteropExceptionNode translateInteropException) {
         try {
@@ -41,7 +41,7 @@ public abstract class ToJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!interopLibrary.isString(value)", limit = "getLimit()")
-    protected static String notInteropString(Node node, Object value,
+    static String notInteropString(Node node, Object value,
             @CachedLibrary("value") InteropLibrary interopLibrary) {
         throw new RaiseException(
                 getContext(node),

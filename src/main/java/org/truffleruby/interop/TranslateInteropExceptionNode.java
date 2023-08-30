@@ -57,7 +57,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object[] args);
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),
@@ -66,7 +66,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),
@@ -75,7 +75,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),
@@ -84,13 +84,13 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(getContext(node), coreExceptions(node).keyError(exception, node), exception);
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         if (inInvokeMember) {
             return new RaiseException(
@@ -111,7 +111,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),
@@ -120,7 +120,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, ArityException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),
@@ -133,7 +133,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected static RuntimeException handle(
+    static RuntimeException handle(
             Node node, StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args) {
         return new RaiseException(
                 getContext(node),

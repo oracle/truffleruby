@@ -32,43 +32,43 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
-    protected int intSub(int a, int b) {
+    int intSub(int a, int b) {
         return Math.subtractExact(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected long intSubWithOverflow(int a, int b) {
+    long intSubWithOverflow(int a, int b) {
         return (long) a - (long) b;
     }
 
     @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
-    protected long longSub(long a, long b) {
+    long longSub(long a, long b) {
         return Math.subtractExact(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longSubWithOverflow(long a, long b,
+    Object longSubWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignumNode) {
         return fixnumOrBignumNode.execute(this, BigIntegerOps.subtract(a, b));
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double floatSub(double a, double b) {
+    double floatSub(double a, double b) {
         return a - b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double longDouble(long a, double b) {
+    double longDouble(long a, double b) {
         return a - b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double doubleLong(double a, long b) {
+    double doubleLong(double a, long b) {
         return a - b;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

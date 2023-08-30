@@ -29,7 +29,7 @@ public abstract class IfNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doIf(VirtualFrame frame,
+    Object doIf(VirtualFrame frame,
             @Cached BooleanCastNode booleanCastNode,
             @Cached InlinedCountingConditionProfile conditionProfile) {
         final var conditionAsBoolean = booleanCastNode.execute(this, condition.execute(frame));

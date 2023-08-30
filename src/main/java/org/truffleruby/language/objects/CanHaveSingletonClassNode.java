@@ -25,27 +25,27 @@ public abstract class CanHaveSingletonClassNode extends RubyBaseNode {
     public abstract boolean execute(Object value);
 
     @Specialization
-    protected boolean canHaveSingletonClass(int value) {
+    boolean canHaveSingletonClass(int value) {
         return false;
     }
 
     @Specialization
-    protected boolean canHaveSingletonClass(long value) {
+    boolean canHaveSingletonClass(long value) {
         return false;
     }
 
     @Specialization
-    protected boolean canHaveSingletonClass(double value) {
+    boolean canHaveSingletonClass(double value) {
         return false;
     }
 
     @Specialization(guards = "!isNil(value)")
-    protected boolean canHaveSingletonClass(ImmutableRubyObject value) {
+    boolean canHaveSingletonClass(ImmutableRubyObject value) {
         return false;
     }
 
     @Fallback
-    protected boolean fallback(Object value) {
+    boolean fallback(Object value) {
         return true;
     }
 

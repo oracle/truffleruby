@@ -67,7 +67,7 @@ public abstract class TypeNodes {
     @Primitive(name = "is_a?")
     public abstract static class IsAPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean isA(Object object, RubyModule module,
+        boolean isA(Object object, RubyModule module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(object, module);
         }
@@ -76,7 +76,7 @@ public abstract class TypeNodes {
     @Primitive(name = "respond_to?")
     public abstract static class RespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean respondTo(Object object, Object name, boolean includePrivate,
+        boolean respondTo(Object object, Object name, boolean includePrivate,
                 @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
             return respondToNode.executeDoesRespondTo(object, name, includePrivate);
@@ -86,7 +86,7 @@ public abstract class TypeNodes {
     @Primitive(name = "class")
     public abstract static class ClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyClass objectClass(Object object,
+        RubyClass objectClass(Object object,
                 @Cached LogicalClassNode logicalClassNode) {
             return logicalClassNode.execute(object);
         }
@@ -95,7 +95,7 @@ public abstract class TypeNodes {
     @Primitive(name = "metaclass")
     public abstract static class MetaClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyClass metaClass(Object object,
+        RubyClass metaClass(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.execute(this, object);
         }
@@ -104,7 +104,7 @@ public abstract class TypeNodes {
     @Primitive(name = "singleton_class")
     public abstract static class SingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyClass singletonClass(Object object,
+        RubyClass singletonClass(Object object,
                 @Cached SingletonClassNode singletonClassNode) {
             return singletonClassNode.execute(object);
         }
@@ -113,7 +113,7 @@ public abstract class TypeNodes {
     @Primitive(name = "equal?")
     public abstract static class EqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean equal(Object a, Object b,
+        boolean equal(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.execute(this, a, b);
         }
@@ -125,14 +125,14 @@ public abstract class TypeNodes {
         public abstract Object execute(Object self);
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
-        protected Object freeze(Object self,
+        Object freeze(Object self,
                 @Cached @Exclusive FreezeNode freezeNode) {
             freezeNode.execute(this, self);
             return self;
         }
 
         @Specialization(guards = "!metaClass.isSingleton")
-        protected Object freezeNormalObject(RubyDynamicObject self,
+        Object freezeNormalObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Shared MetaClassNode metaClassNode,
                 @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
@@ -141,7 +141,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization(guards = "metaClass.isSingleton")
-        protected static Object freezeSingletonObject(RubyDynamicObject self,
+        static Object freezeSingletonObject(RubyDynamicObject self,
                 @Cached @Shared FreezeNode freezeNode,
                 @Cached @Exclusive FreezeNode freezeMetaClasNode,
                 @Cached IsFrozenNode isFrozenMetaClassNode,
@@ -161,7 +161,7 @@ public abstract class TypeNodes {
     @Primitive(name = "freeze")
     public abstract static class FreezePrimitive extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object freeze(Object self,
+        Object freeze(Object self,
                 @Cached ObjectFreezeNode objectFreezeNode) {
             return objectFreezeNode.execute(self);
         }
@@ -171,37 +171,37 @@ public abstract class TypeNodes {
     public abstract static class IsImmediateValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean doBoolean(boolean value) {
+        boolean doBoolean(boolean value) {
             return true;
         }
 
         @Specialization
-        protected boolean doInt(int value) {
+        boolean doInt(int value) {
             return true;
         }
 
         @Specialization
-        protected boolean doLong(long value) {
+        boolean doLong(long value) {
             return true;
         }
 
         @Specialization
-        protected boolean doFloat(double value) {
+        boolean doFloat(double value) {
             return true;
         }
 
         @Specialization
-        protected boolean doSymbol(RubySymbol value) {
+        boolean doSymbol(RubySymbol value) {
             return true;
         }
 
         @Specialization
-        protected boolean doNil(Nil value) {
+        boolean doNil(Nil value) {
             return true;
         }
 
         @Fallback
-        protected boolean doFallback(Object value) {
+        boolean doFallback(Object value) {
             return false;
         }
 
@@ -210,7 +210,7 @@ public abstract class TypeNodes {
     @Primitive(name = "nil?")
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean isNil(Object value) {
+        boolean isNil(Object value) {
             return value == nil;
         }
     }
@@ -218,17 +218,17 @@ public abstract class TypeNodes {
     @Primitive(name = "boolean_or_nil?")
     public abstract static class IsBooleanOrNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean bool(boolean value) {
+        boolean bool(boolean value) {
             return true;
         }
 
         @Specialization
-        protected boolean nil(Nil value) {
+        boolean nil(Nil value) {
             return true;
         }
 
         @Fallback
-        protected boolean other(Object value) {
+        boolean other(Object value) {
             return false;
         }
     }
@@ -236,12 +236,12 @@ public abstract class TypeNodes {
     @Primitive(name = "true?")
     public abstract static class IsTrue extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean bool(boolean value) {
+        boolean bool(boolean value) {
             return value;
         }
 
         @Fallback
-        protected boolean other(Object value) {
+        boolean other(Object value) {
             return false;
         }
     }
@@ -249,12 +249,12 @@ public abstract class TypeNodes {
     @Primitive(name = "false?")
     public abstract static class IsFalse extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean bool(boolean value) {
+        boolean bool(boolean value) {
             return !value;
         }
 
         @Fallback
-        protected boolean other(Object value) {
+        boolean other(Object value) {
             return false;
         }
     }
@@ -265,7 +265,7 @@ public abstract class TypeNodes {
         public abstract RubyArray executeGetIVars(Object self);
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected static RubyArray instanceVariables(RubyDynamicObject object,
+        static RubyArray instanceVariables(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @Cached InlinedConditionProfile noPropertiesProfile,
                 @Bind("this") Node node) {
@@ -279,7 +279,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization(guards = "!isRubyDynamicObject(object)")
-        protected RubyArray instanceVariablesNotDynamic(Object object) {
+        RubyArray instanceVariablesNotDynamic(Object object) {
             return createEmptyArray();
         }
 
@@ -308,13 +308,13 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarIsDefinedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected boolean ivarIsDefined(RubyDynamicObject object, RubySymbol name,
+        boolean ivarIsDefined(RubyDynamicObject object, RubySymbol name,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.containsKey(object, name.getString());
         }
 
         @Fallback
-        protected boolean ivarIsDefinedNonDynamic(Object object, Object name) {
+        boolean ivarIsDefinedNonDynamic(Object object, Object name) {
             return false;
         }
 
@@ -324,7 +324,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object ivarGet(RubyDynamicObject object, RubySymbol name,
+        Object ivarGet(RubyDynamicObject object, RubySymbol name,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.getOrDefault(object, name.getString(), nil);
         }
@@ -334,7 +334,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarSetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object ivarSet(RubyDynamicObject object, RubySymbol name, Object value,
+        Object ivarSet(RubyDynamicObject object, RubySymbol name, Object value,
                 @Cached WriteObjectFieldNode writeNode) {
             writeNode.execute(this, object, name.getString(), value);
             return value;
@@ -348,7 +348,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectHiddenVarCreateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected HiddenKey createHiddenVar(RubySymbol identifier) {
+        HiddenKey createHiddenVar(RubySymbol identifier) {
             return new HiddenKey(identifier.getString());
         }
     }
@@ -357,13 +357,13 @@ public abstract class TypeNodes {
     public abstract static class ObjectHiddenVarDefinedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected boolean objectHiddenVarDefined(RubyDynamicObject object, Object identifier,
+        boolean objectHiddenVarDefined(RubyDynamicObject object, Object identifier,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.containsKey(object, identifier);
         }
 
         @Fallback
-        protected boolean immutable(Object object, Object identifier) {
+        boolean immutable(Object object, Object identifier) {
             return false;
         }
     }
@@ -372,13 +372,13 @@ public abstract class TypeNodes {
     public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object objectHiddenVarGet(RubyDynamicObject object, Object identifier,
+        Object objectHiddenVarGet(RubyDynamicObject object, Object identifier,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.getOrDefault(object, identifier, nil);
         }
 
         @Fallback
-        protected Object immutable(Object object, Object identifier) {
+        Object immutable(Object object, Object identifier) {
             return nil;
         }
     }
@@ -387,7 +387,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectHiddenVarSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object objectHiddenVarSet(RubyDynamicObject object, Object identifier, Object value,
+        Object objectHiddenVarSet(RubyDynamicObject object, Object identifier, Object value,
                 @Cached WriteObjectFieldNode writeNode) {
             writeNode.execute(this, object, identifier, value);
             return value;
@@ -397,7 +397,7 @@ public abstract class TypeNodes {
     @Primitive(name = "rb_any_to_s")
     public abstract static class ObjectToSNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyString toS(Object obj,
+        RubyString toS(Object obj,
                 @Cached ToSNode kernelToSNode) {
             return kernelToSNode.execute(obj);
         }
@@ -406,7 +406,7 @@ public abstract class TypeNodes {
     @Primitive(name = "module_name")
     public abstract static class ModuleNameNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object moduleName(RubyModule module) {
+        Object moduleName(RubyModule module) {
             return module.fields.getRubyStringName();
         }
 
@@ -415,7 +415,7 @@ public abstract class TypeNodes {
     @Primitive(name = "rb_num2long")
     public abstract static class RbNum2LongPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected long numToLong(Object value,
+        long numToLong(Object value,
                 @Cached ToLongNode toLongNode) {
             return toLongNode.execute(this, value);
         }
@@ -425,7 +425,7 @@ public abstract class TypeNodes {
     public abstract static class RbNum2IntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int numToInt(Object value,
+        int numToInt(Object value,
                 @Cached ToIntNode toIntNode) {
             return toIntNode.execute(value);
         }
@@ -435,7 +435,7 @@ public abstract class TypeNodes {
     public abstract static class RbToIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object toRubyInteger(Object value,
+        Object toRubyInteger(Object value,
                 @Cached ToRubyIntegerNode toRubyInteger) {
             return toRubyInteger.execute(this, value);
         }
@@ -450,7 +450,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization
-        protected Object check(Object value,
+        Object check(Object value,
                 @Cached CheckFrozenNode checkFrozenNode) {
             checkFrozenNode.execute(value);
 
@@ -469,7 +469,7 @@ public abstract class TypeNodes {
         public abstract void execute(Object object);
 
         @Specialization
-        protected void check(Object value,
+        void check(Object value,
                 @Cached IsFrozenNode isFrozenNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
@@ -489,7 +489,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization
-        protected Object check(RubyString value,
+        Object check(RubyString value,
                 @Cached InlinedBranchProfile errorProfile) {
             if (value.locked) {
                 errorProfile.enter(this);
@@ -503,7 +503,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization
-        protected Object checkImmutable(ImmutableRubyString value) {
+        Object checkImmutable(ImmutableRubyString value) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
         }
 
@@ -512,22 +512,22 @@ public abstract class TypeNodes {
     @Primitive(name = "check_real?")
     public abstract static class CheckRealNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected boolean check(int value) {
+        boolean check(int value) {
             return true;
         }
 
         @Specialization
-        protected boolean check(long value) {
+        boolean check(long value) {
             return true;
         }
 
         @Specialization
-        protected boolean check(double value) {
+        boolean check(double value) {
             return true;
         }
 
         @Fallback
-        protected static boolean other(Object value,
+        static boolean other(Object value,
                 @Cached IsANode isANode,
                 @Cached InlinedConditionProfile numericProfile,
                 @Cached DispatchNode isRealNode,
@@ -542,7 +542,7 @@ public abstract class TypeNodes {
     public abstract static class IsUndefinedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isUndefined(Object value) {
+        boolean isUndefined(Object value) {
             return value == NotProvided.INSTANCE;
         }
     }
@@ -551,7 +551,7 @@ public abstract class TypeNodes {
     public abstract static class AsBooleanNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean asBoolean(Object value,
+        boolean asBoolean(Object value,
                 @Cached BooleanCastNode booleanCastNode) {
             return booleanCastNode.execute(this, value);
         }

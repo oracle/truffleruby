@@ -101,7 +101,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().unsupportedMessageExceptionClass")
-    protected AssertionError unsupportedMessageExceptionClass(
+    AssertionError unsupportedMessageExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached @Shared LogicalClassNode logicalClassNode) throws UnsupportedMessageException {
         throw UnsupportedMessageException.create(exception);
@@ -109,7 +109,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().invalidArrayIndexExceptionClass")
-    protected AssertionError invalidArrayIndexExceptionClass(
+    AssertionError invalidArrayIndexExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached @Shared LogicalClassNode logicalClassNode) throws InvalidArrayIndexException {
         throw InvalidArrayIndexException.create(index, exception);
@@ -117,7 +117,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().unknownIdentifierExceptionClass")
-    protected AssertionError unknownIdentifierExceptionClass(
+    AssertionError unknownIdentifierExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached @Shared LogicalClassNode logicalClassNode) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(identifier, exception);
@@ -125,7 +125,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().unsupportedTypeExceptionClass")
-    protected AssertionError unsupportedTypeExceptionClass(
+    AssertionError unsupportedTypeExceptionClass(
             RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached @Shared LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
         throw UnsupportedTypeException.create(arguments, null, exception);
@@ -133,8 +133,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().arityExceptionClass")
-    protected AssertionError arityExceptionClass(
-            RaiseException exception, long index, String identifier, Object[] arguments,
+    AssertionError arityExceptionClass(RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached DispatchNode dispatch,
             @Cached IntegerCastNode intCastNode,
             @Cached @Shared LogicalClassNode logicalClassNode) throws ArityException {
@@ -145,14 +144,13 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == coreLibrary().unknownKeyExceptionClass")
-    protected AssertionError unknownKeyExceptionClass(
-            RaiseException exception, long index, String identifier, Object[] arguments,
+    AssertionError unknownKeyExceptionClass(RaiseException exception, long index, String identifier, Object[] arguments,
             @Cached @Shared LogicalClassNode logicalClassNode) throws UnknownKeyException {
         throw UnknownKeyException.create(arguments[0]); // the key can be any object, not just a string
     }
 
     @Fallback
-    protected AssertionError fallback(RaiseException exception, long index, String identifier, Object[] arguments) {
+    AssertionError fallback(RaiseException exception, long index, String identifier, Object[] arguments) {
         throw exception;
     }
 

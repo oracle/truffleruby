@@ -72,8 +72,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object initialize(
-                RubyEncodingConverter self, RubyEncoding source, RubyEncoding destination, int options) {
+        Object initialize(RubyEncodingConverter self, RubyEncoding source, RubyEncoding destination, int options) {
             // Adapted from RubyConverter - see attribution there
             //
             // This method should only be called after the Encoding::Converter instance has already been initialized
@@ -146,7 +145,7 @@ public abstract class EncodingConverterNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyEncodingConverter allocate(RubyClass rubyClass) {
+        RubyEncodingConverter allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().encodingConverterShape;
             final RubyEncodingConverter instance = new RubyEncodingConverter(rubyClass, shape, null);
             AllocationTracing.trace(instance, this);
@@ -159,7 +158,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object search(RubySymbol source) {
+        Object search(RubySymbol source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(source.getString());
             if (transcoders == null) {
                 return nil;
@@ -182,7 +181,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object encodingConverterPrimitiveConvert(
+        Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
                 RubyString source,
                 RubyString target,
@@ -280,7 +279,7 @@ public abstract class EncodingConverterNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
+        RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes,
                 @Cached @Shared DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
@@ -291,7 +290,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes,
+        RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes,
                 @Cached @Shared DispatchNode sourceEncodingNode) {
             // Taken from org.jruby.RubyConverter#putback.
 
@@ -319,7 +318,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
+        Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
@@ -382,7 +381,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
+        RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final EConv ec = encodingConverter.econv;
             final EConv.LastError lastError = ec.lastError;
@@ -423,7 +422,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString getReplacement(RubyEncodingConverter encodingConverter) {
+        RubyString getReplacement(RubyEncodingConverter encodingConverter) {
             final EConv ec = encodingConverter.econv;
 
             final int ret = ec.makeReplacement();
@@ -448,7 +447,7 @@ public abstract class EncodingConverterNodes {
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
         @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
-        protected static Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
+        static Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
                 @Cached RubyStringLibrary libReplacement,

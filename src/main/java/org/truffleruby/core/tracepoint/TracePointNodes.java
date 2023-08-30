@@ -71,7 +71,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyTracePoint allocate(RubyClass rubyClass) {
+        RubyTracePoint allocate(RubyClass rubyClass) {
             final RubyTracePoint instance = new RubyTracePoint(rubyClass, getLanguage().tracePointShape, null, null);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -82,7 +82,7 @@ public abstract class TracePointNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyTracePoint initialize(RubyTracePoint tracePoint, RubyArray eventsArray, RubyProc block,
+        RubyTracePoint initialize(RubyTracePoint tracePoint, RubyArray eventsArray, RubyProc block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
@@ -115,13 +115,13 @@ public abstract class TracePointNodes {
     public abstract static class EnableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean enable(RubyTracePoint tracePoint, Nil block) {
+        boolean enable(RubyTracePoint tracePoint, Nil block) {
             boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             return !setupDone;
         }
 
         @Specialization
-        protected Object enable(RubyTracePoint tracePoint, RubyProc block,
+        Object enable(RubyTracePoint tracePoint, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
@@ -138,12 +138,12 @@ public abstract class TracePointNodes {
     public abstract static class DisableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, Nil block) {
+        Object disable(RubyTracePoint tracePoint, Nil block) {
             return disposeEventBindings(tracePoint);
         }
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, RubyProc block,
+        Object disable(RubyTracePoint tracePoint, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
@@ -160,7 +160,7 @@ public abstract class TracePointNodes {
     public abstract static class EnabledNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean enabled(RubyTracePoint tracePoint) {
+        boolean enabled(RubyTracePoint tracePoint) {
             return isEnabled(tracePoint);
         }
     }
@@ -183,7 +183,7 @@ public abstract class TracePointNodes {
     @Primitive(name = "trace_point_inside_proc?")
     public abstract static class InsideProcNode extends PrimitiveNode {
         @Specialization
-        protected Object insideProc() {
+        Object insideProc() {
             final TracePointState state = getLanguage().getCurrentThread().tracePointState;
             return state.insideProc;
         }
@@ -192,7 +192,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "event")
     public abstract static class EventNode extends TracePointCoreNode {
         @Specialization
-        protected RubySymbol event(RubyTracePoint tracePoint) {
+        RubySymbol event(RubyTracePoint tracePoint) {
             return getTracePointState().event;
         }
     }
@@ -200,7 +200,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "path")
     public abstract static class PathNode extends TracePointCoreNode {
         @Specialization
-        protected RubyString path(RubyTracePoint tracePoint) {
+        RubyString path(RubyTracePoint tracePoint) {
             return getTracePointState().path;
         }
     }
@@ -208,7 +208,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "lineno")
     public abstract static class LineNode extends TracePointCoreNode {
         @Specialization
-        protected int line(RubyTracePoint tracePoint) {
+        int line(RubyTracePoint tracePoint) {
             return getTracePointState().line;
         }
     }
@@ -216,7 +216,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends TracePointCoreNode {
         @Specialization
-        protected RubyBinding binding(RubyTracePoint tracePoint) {
+        RubyBinding binding(RubyTracePoint tracePoint) {
             return getTracePointState().binding;
         }
     }
@@ -224,7 +224,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "method_id")
     public abstract static class MethodIDNode extends TracePointCoreNode {
         @Specialization
-        protected RubySymbol methodId(RubyTracePoint tracePoint) {
+        RubySymbol methodId(RubyTracePoint tracePoint) {
             final RubyBinding binding = getTracePointState().binding;
             final InternalMethod method = RubyArguments.getMethod(binding.getFrame());
             return getSymbol(method.getName());
@@ -234,7 +234,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "self")
     public abstract static class SelfNode extends TracePointCoreNode {
         @Specialization
-        protected Object self(RubyTracePoint tracePoint) {
+        Object self(RubyTracePoint tracePoint) {
             final RubyBinding binding = getTracePointState().binding;
             return RubyArguments.getSelf(binding.getFrame());
         }

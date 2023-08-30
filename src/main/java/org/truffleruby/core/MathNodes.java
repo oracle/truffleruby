@@ -299,7 +299,7 @@ public abstract class MathNodes {
         private static final long MANTISSA_MASK = ~(SIGN_MASK | BIASED_EXP_MASK);
 
         @Specialization
-        protected RubyArray frexp(double a) {
+        RubyArray frexp(double a) {
             double mantissa = a;
             long exponent = 0;
 
@@ -334,7 +334,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        protected Object frexp(Object a) {
+        Object frexp(Object a) {
             return FAILURE;
         }
 
@@ -391,7 +391,7 @@ public abstract class MathNodes {
     public abstract static class HypotNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double doFunction(double a, double b) {
+        double doFunction(double a, double b) {
             return Math.hypot(a, b);
         }
 
@@ -401,12 +401,12 @@ public abstract class MathNodes {
     public abstract static class LdexpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected double ldexp(double a, int b) {
+        double ldexp(double a, int b) {
             return a * Math.pow(2, b);
         }
 
         @Fallback
-        protected Object ldexp(Object a, Object b) {
+        Object ldexp(Object a, Object b) {
             return FAILURE;
         }
 
@@ -418,22 +418,22 @@ public abstract class MathNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @Specialization
-        protected RubyArray lgamma(int a) {
+        RubyArray lgamma(int a) {
             return lgamma((double) a);
         }
 
         @Specialization
-        protected RubyArray lgamma(long a) {
+        RubyArray lgamma(long a) {
             return lgamma((double) a);
         }
 
         @Specialization
-        protected RubyArray lgamma(RubyBignum a) {
+        RubyArray lgamma(RubyBignum a) {
             return lgamma(BigIntegerOps.doubleValue(a));
         }
 
         @Specialization
-        protected RubyArray lgamma(double a) {
+        RubyArray lgamma(double a) {
             if (a < 0 && Double.isInfinite(a)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog2(this));
@@ -445,7 +445,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        protected RubyArray lgamma(Object a,
+        RubyArray lgamma(Object a,
                 @Cached IsANode isANode,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
@@ -462,27 +462,27 @@ public abstract class MathNodes {
     public abstract static class LogNode extends SimpleDyadicMathNode {
 
         @Specialization
-        protected double function(int a, NotProvided b) {
+        double function(int a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization
-        protected double function(long a, NotProvided b) {
+        double function(long a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization
-        protected double function(RubyBignum a, NotProvided b) {
+        double function(RubyBignum a, NotProvided b) {
             return doFunction(BigIntegerOps.doubleValue(a));
         }
 
         @Specialization
-        protected double function(double a, NotProvided b) {
+        double function(double a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization(guards = { "!isRubyBignum(a)", "!isImplicitLongOrDouble(a)" })
-        protected double function(Object a, NotProvided b,
+        double function(Object a, NotProvided b,
                 @Cached IsANode isANode,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
@@ -549,13 +549,13 @@ public abstract class MathNodes {
     public abstract static class MinNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int min(int a, int b,
+        int min(int a, int b,
                 @Shared @Cached InlinedConditionProfile profile) {
             return profile.profile(this, a < b) ? a : b;
         }
 
         @Specialization
-        protected long min(long a, long b,
+        long min(long a, long b,
                 @Shared @Cached InlinedConditionProfile profile) {
             return profile.profile(this, a < b) ? a : b;
         }
@@ -566,13 +566,13 @@ public abstract class MathNodes {
     public abstract static class MaxNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int max(int a, int b,
+        int max(int a, int b,
                 @Shared @Cached InlinedConditionProfile profile) {
             return profile.profile(this, a > b) ? a : b;
         }
 
         @Specialization
-        protected long max(long a, long b,
+        long max(long a, long b,
                 @Shared @Cached InlinedConditionProfile profile) {
             return profile.profile(this, a > b) ? a : b;
         }
@@ -643,27 +643,27 @@ public abstract class MathNodes {
         }
 
         @Specialization
-        protected double function(int a) {
+        double function(int a) {
             return doFunction(a);
         }
 
         @Specialization
-        protected double function(long a) {
+        double function(long a) {
             return doFunction(a);
         }
 
         @Specialization
-        protected double function(RubyBignum a) {
+        double function(RubyBignum a) {
             return doFunction(BigIntegerOps.doubleValue(a));
         }
 
         @Specialization
-        protected double function(double a) {
+        double function(double a) {
             return doFunction(a);
         }
 
         @Fallback
-        protected double function(Object a,
+        double function(Object a,
                 @Cached IsANode isANode,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
@@ -686,87 +686,87 @@ public abstract class MathNodes {
         }
 
         @Specialization
-        protected double function(int a, int b) {
+        double function(int a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(int a, long b) {
+        double function(int a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(int a, RubyBignum b) {
+        double function(int a, RubyBignum b) {
             return doFunction(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization
-        protected double function(int a, double b) {
+        double function(int a, double b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(long a, int b) {
+        double function(long a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(long a, long b) {
+        double function(long a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(long a, RubyBignum b) {
+        double function(long a, RubyBignum b) {
             return doFunction(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization
-        protected double function(long a, double b) {
+        double function(long a, double b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(RubyBignum a, int b) {
+        double function(RubyBignum a, int b) {
             return doFunction(BigIntegerOps.doubleValue(a), b);
         }
 
         @Specialization
-        protected double function(RubyBignum a, long b) {
+        double function(RubyBignum a, long b) {
             return doFunction(BigIntegerOps.doubleValue(a), b);
         }
 
         @Specialization
-        protected double function(RubyBignum a, RubyBignum b) {
+        double function(RubyBignum a, RubyBignum b) {
             return doFunction(BigIntegerOps.doubleValue(a), BigIntegerOps.doubleValue(b));
         }
 
         @Specialization
-        protected double function(RubyBignum a, double b) {
+        double function(RubyBignum a, double b) {
             return doFunction(BigIntegerOps.doubleValue(a), b);
         }
 
         @Specialization
-        protected double function(double a, int b) {
+        double function(double a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(double a, long b) {
+        double function(double a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        protected double function(double a, RubyBignum b) {
+        double function(double a, RubyBignum b) {
             return doFunction(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization
-        protected double function(double a, double b) {
+        double function(double a, double b) {
             return doFunction(a, b);
         }
 
         @Fallback
-        protected double function(Object a, Object b,
+        double function(Object a, Object b,
                 @Cached IsANode isANode,
                 @Cached ToFNode floatANode,
                 @Cached ToFNode floatBNode) {

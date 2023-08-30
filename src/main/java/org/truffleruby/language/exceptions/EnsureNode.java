@@ -51,7 +51,7 @@ public abstract class EnsureNode extends RubyContextSourceNode {
     /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode}. It only runs code in ensure for
      * guest exceptions (AbstractTruffleException), ControlFlowException or no exception. */
     @Specialization
-    protected Object ensure(VirtualFrame frame, boolean executeVoid,
+    Object ensure(VirtualFrame frame, boolean executeVoid,
             @Cached InlinedBranchProfile killExceptionProfile,
             @Cached InlinedBranchProfile guestExceptionProfile,
             @Cached InlinedBranchProfile controlFlowExceptionProfile,

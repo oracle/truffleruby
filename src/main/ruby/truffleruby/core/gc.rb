@@ -48,13 +48,9 @@ module Truffle::GCOperations
         Primitive.gc_stat[3]
       when :unknown_count
         Primitive.gc_stat[4]
-      when :used
+      when :used, :heap_live_slots
         Primitive.gc_stat[5]
-      when :heap_live_slots
-        Primitive.gc_stat[5]
-      when :heap_available_slots
-        Primitive.gc_stat[6]
-      when :committed
+      when :committed, :heap_available_slots
         Primitive.gc_stat[6]
       when :heap_free_slots
         stat = Primitive.gc_stat

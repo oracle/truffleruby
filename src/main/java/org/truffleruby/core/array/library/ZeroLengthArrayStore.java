@@ -46,7 +46,7 @@ public final class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    protected static String toString(ZeroLengthArrayStore store) {
+    static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }
 
@@ -105,22 +105,22 @@ public final class ZeroLengthArrayStore {
     static final class GeneralizeForValue {
 
         @Specialization
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, int newValue) {
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, int newValue) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, long newValue) {
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, long newValue) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, double newValue) {
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, double newValue) {
             return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
         }
 
         @Fallback
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newValue) {
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
@@ -130,19 +130,19 @@ public final class ZeroLengthArrayStore {
     static final class GeneralizeForStore {
 
         @Specialization
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore) {
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore) {
             return ZERO_LENGTH_ALLOCATOR;
         }
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newStore,
+        static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newStore,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocator(newStore);
         }
     }
 
     @ExportMessage
-    protected static ArrayAllocator generalizeForSharing(ZeroLengthArrayStore store) {
+    static ArrayAllocator generalizeForSharing(ZeroLengthArrayStore store) {
         return SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
     }
 
@@ -150,22 +150,22 @@ public final class ZeroLengthArrayStore {
     static final class AllocateForNewValue {
 
         @Specialization
-        protected static Object allocateForNewValue(ZeroLengthArrayStore store, int newValue, int length) {
+        static Object allocateForNewValue(ZeroLengthArrayStore store, int newValue, int length) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocateForNewValue(ZeroLengthArrayStore store, long newValue, int length) {
+        static Object allocateForNewValue(ZeroLengthArrayStore store, long newValue, int length) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Specialization
-        protected static Object allocateForNewValue(ZeroLengthArrayStore store, double newValue, int length) {
+        static Object allocateForNewValue(ZeroLengthArrayStore store, double newValue, int length) {
             return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR.allocate(length);
         }
 
         @Fallback
-        protected static Object allocateForNewValue(ZeroLengthArrayStore store, Object newValue, int length) {
+        static Object allocateForNewValue(ZeroLengthArrayStore store, Object newValue, int length) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
@@ -176,13 +176,12 @@ public final class ZeroLengthArrayStore {
     static final class AllocateForNewStore {
 
         @Specialization
-        protected static Object allocateForNewStore(
-                ZeroLengthArrayStore store, ZeroLengthArrayStore newStore, int length) {
+        static Object allocateForNewStore(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore, int length) {
             return ZERO_LENGTH_ALLOCATOR.allocate(length);
         }
 
         @Specialization(guards = "!zeroLengthStore(newStore)", limit = "storageStrategyLimit()")
-        protected static Object allocateForNewStore(ZeroLengthArrayStore store, Object newStore, int length,
+        static Object allocateForNewStore(ZeroLengthArrayStore store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             // We have to be careful here in case newStore is a a
             // wrapped version of the zero length store, and we don't
@@ -201,7 +200,7 @@ public final class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    protected static ArrayAllocator allocator(ZeroLengthArrayStore store) {
+    static ArrayAllocator allocator(ZeroLengthArrayStore store) {
         return ZERO_LENGTH_ALLOCATOR;
     }
 

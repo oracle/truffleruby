@@ -41,7 +41,7 @@ public abstract class QueueNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue allocate(RubyClass rubyClass) {
+        RubyQueue allocate(RubyClass rubyClass) {
             final RubyQueue instance = new RubyQueue(rubyClass, getLanguage().queueShape, new UnsizedQueue());
             AllocationTracing.trace(instance, this);
             return instance;
@@ -53,7 +53,7 @@ public abstract class QueueNodes {
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue push(RubyQueue self, final Object value,
+        RubyQueue push(RubyQueue self, final Object value,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final UnsizedQueue queue = self.queue;
 
@@ -72,7 +72,7 @@ public abstract class QueueNodes {
     public abstract static class PopNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
+        Object popBlocking(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Exclusive @Cached InlinedBranchProfile closedProfile) {
             final UnsizedQueue queue = self.queue;
 
@@ -92,7 +92,7 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(RubyQueue self, boolean nonBlocking, long timeoutMilliseconds) {
+        Object popBlocking(RubyQueue self, boolean nonBlocking, long timeoutMilliseconds) {
             final UnsizedQueue queue = self.queue;
             final long deadline = System.currentTimeMillis() + timeoutMilliseconds;
 
@@ -115,7 +115,7 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        protected Object popNonBlock(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
+        Object popNonBlock(RubyQueue self, boolean nonBlocking, Nil timeoutMilliseconds,
                 @Exclusive @Cached InlinedBranchProfile errorProfile) {
             final UnsizedQueue queue = self.queue;
 
@@ -135,7 +135,7 @@ public abstract class QueueNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean empty(RubyQueue self) {
+        boolean empty(RubyQueue self) {
             final UnsizedQueue queue = self.queue;
             return queue.isEmpty();
         }
@@ -146,7 +146,7 @@ public abstract class QueueNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int size(RubyQueue self) {
+        int size(RubyQueue self) {
             final UnsizedQueue queue = self.queue;
             return queue.size();
         }
@@ -157,7 +157,7 @@ public abstract class QueueNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue clear(RubyQueue self) {
+        RubyQueue clear(RubyQueue self) {
             final UnsizedQueue queue = self.queue;
             queue.clear();
             return self;
@@ -170,12 +170,12 @@ public abstract class QueueNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue initialize(RubyQueue self, NotProvided enumerable) {
+        RubyQueue initialize(RubyQueue self, NotProvided enumerable) {
             return self;
         }
 
         @Specialization(guards = "wasProvided(enumerable)")
-        protected RubyQueue initialize(RubyQueue self, Object enumerable,
+        RubyQueue initialize(RubyQueue self, Object enumerable,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores,
                 @Cached ToANode toANode) {
             final RubyArray rubyArray = toANode.executeToA(enumerable);
@@ -190,7 +190,7 @@ public abstract class QueueNodes {
     public abstract static class MarshalDumpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object marshal_dump(RubyQueue self) {
+        Object marshal_dump(RubyQueue self) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantDump(self, this));
         }
 
@@ -200,7 +200,7 @@ public abstract class QueueNodes {
     public abstract static class NumWaitingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int num_waiting(RubyQueue self) {
+        int num_waiting(RubyQueue self) {
             final UnsizedQueue queue = self.queue;
             return queue.getNumberWaitingToTake();
         }
@@ -211,7 +211,7 @@ public abstract class QueueNodes {
     public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyQueue close(RubyQueue self) {
+        RubyQueue close(RubyQueue self) {
             self.queue.close();
             return self;
         }
@@ -222,12 +222,12 @@ public abstract class QueueNodes {
     public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean closed(RubyQueue self) {
+        boolean closed(RubyQueue self) {
             return self.queue.isClosed();
         }
 
         @Specialization
-        protected boolean closed(RubySizedQueue self) {
+        boolean closed(RubySizedQueue self) {
             return self.queue.isClosed();
         }
 

@@ -51,17 +51,17 @@ public abstract class ToIntNode extends RubyBaseNode {
     public abstract int execute(Object object);
 
     @Specialization
-    protected int coerceInt(int value) {
+    int coerceInt(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected int coerceFittingLong(long value) {
+    int coerceFittingLong(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected int coerceTooBigLong(long value) {
+    int coerceTooBigLong(long value) {
         // MRI does not have this error
         throw new RaiseException(
                 getContext(),
@@ -69,7 +69,7 @@ public abstract class ToIntNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected int coerceRubyBignum(RubyBignum value) {
+    int coerceRubyBignum(RubyBignum value) {
         // not `int' to stay as compatible as possible with MRI errors
         throw new RaiseException(
                 getContext(),
@@ -77,7 +77,7 @@ public abstract class ToIntNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected int coerceDouble(double value,
+    int coerceDouble(double value,
             @Cached InlinedBranchProfile errorProfile) {
         // emulate MRI logic + additional 32 bit restriction
         if (CoreLibrary.fitsIntoInteger((long) value)) {
@@ -90,7 +90,7 @@ public abstract class ToIntNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected int coerceNil(Nil value) {
+    int coerceNil(Nil value) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
@@ -99,7 +99,7 @@ public abstract class ToIntNode extends RubyBaseNode {
     }
 
     @Fallback
-    protected int coerceObject(Object object,
+    int coerceObject(Object object,
             @Cached DispatchNode toIntNode,
             @Cached ToIntNode fitNode) {
         final Object coerced = toIntNode

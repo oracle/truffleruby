@@ -28,17 +28,17 @@ public abstract class ToStrNode extends FormatNode {
     public abstract Object execute(Object object);
 
     @Specialization
-    protected RubyString coerceRubyString(RubyString string) {
+    RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
+    ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected Object coerceObject(Object object,
+    Object coerceObject(Object object,
             @Cached InlinedBranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @Cached RubyStringLibrary libString) {

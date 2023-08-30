@@ -13,6 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -28,6 +29,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @NodeChild(value = "arrayNode", type = RubyNode.class)
 @NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
+@ReportPolymorphism
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
     @NeverDefault
@@ -46,7 +48,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "stores.acceptsValue(store, value)" },
             limit = "storageStrategyLimit()")
-    protected RubyArray appendOneSameType(RubyArray array, Object value,
+    RubyArray appendOneSameType(RubyArray array, Object value,
             @Bind("array.getStore()") Object store,
             @CachedLibrary("store") ArrayStoreLibrary stores,
             @Cached CountingConditionProfile extendProfile) {
@@ -71,7 +73,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = "!currentStores.acceptsValue(array.getStore(), value)",
             limit = "storageStrategyLimit()")
-    protected RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
+    RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
             @Bind("array.getStore()") Object currentStore,
             @CachedLibrary("currentStore") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {

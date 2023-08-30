@@ -50,7 +50,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class ReadMIMEStringNode extends FormatNode {
 
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source,
+    Object read(VirtualFrame frame, byte[] source,
             @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         final int position = getSourcePosition(frame);
         final int end = getSourceEnd(frame);

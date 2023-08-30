@@ -25,27 +25,27 @@ public abstract class ReadFrameSlotNode extends RubyBaseNode {
     public abstract Object executeRead(Frame frame);
 
     @Specialization(guards = "frame.isBoolean(frameSlot)")
-    protected boolean readBoolean(Frame frame) {
+    boolean readBoolean(Frame frame) {
         return frame.getBoolean(frameSlot);
     }
 
     @Specialization(guards = "frame.isInt(frameSlot)")
-    protected int readInt(Frame frame) {
+    int readInt(Frame frame) {
         return frame.getInt(frameSlot);
     }
 
     @Specialization(guards = "frame.isLong(frameSlot)")
-    protected long readLong(Frame frame) {
+    long readLong(Frame frame) {
         return frame.getLong(frameSlot);
     }
 
     @Specialization(guards = "frame.isDouble(frameSlot)")
-    protected double readDouble(Frame frame) {
+    double readDouble(Frame frame) {
         return frame.getDouble(frameSlot);
     }
 
     @Specialization(guards = "frame.isObject(frameSlot)")
-    protected Object readObject(Frame frame) {
+    Object readObject(Frame frame) {
         return frame.getObject(frameSlot);
     }
 

@@ -31,7 +31,7 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
     public abstract RubyNode getArrayNode();
 
     @Specialization
-    protected RubyArray dropTail(RubyArray array,
+    RubyArray dropTail(RubyArray array,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = array.size;

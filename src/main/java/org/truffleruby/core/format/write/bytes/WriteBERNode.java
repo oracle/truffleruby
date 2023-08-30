@@ -66,7 +66,7 @@ public abstract class WriteBERNode extends FormatNode {
     private final BigInteger BIG_128 = BigInteger.valueOf(128);
 
     @Specialization
-    protected Object doWrite(VirtualFrame frame, int value) {
+    Object doWrite(VirtualFrame frame, int value) {
         if (cantCompressProfile.profile(value < 0)) {
             throw new CantCompressNegativeException();
         }
@@ -76,7 +76,7 @@ public abstract class WriteBERNode extends FormatNode {
     }
 
     @Specialization
-    protected Object doWrite(VirtualFrame frame, long value) {
+    Object doWrite(VirtualFrame frame, long value) {
         if (cantCompressProfile.profile(value < 0)) {
             throw new CantCompressNegativeException();
         }
@@ -86,7 +86,7 @@ public abstract class WriteBERNode extends FormatNode {
     }
 
     @Specialization
-    protected Object doWrite(VirtualFrame frame, RubyBignum value) {
+    Object doWrite(VirtualFrame frame, RubyBignum value) {
         if (cantCompressProfile.profile(value.value.signum() < 0)) {
             throw new CantCompressNegativeException();
         }

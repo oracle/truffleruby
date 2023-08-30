@@ -65,7 +65,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString basicWordBreakCharacters() {
+        RubyString basicWordBreakCharacters() {
             final String delimiters = getContext().getConsoleHolder().getParser().getDelimiters();
             return createString(fromJavaStringNode, delimiters, Encodings.UTF_8);
         }
@@ -78,7 +78,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(charactersAsString)", limit = "1")
-        protected static Object setBasicWordBreakCharacters(Object characters,
+        static Object setBasicWordBreakCharacters(Object characters,
                 @Cached ToStrNode toStrNode,
                 @Cached RubyStringLibrary strings,
                 @Bind("this") Node node,
@@ -95,7 +95,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyProc setCompletionProc(RubyProc proc) {
+        RubyProc setCompletionProc(RubyProc proc) {
             final ProcCompleter completer = new ProcCompleter(getContext(), getLanguage(), proc);
             getContext().getConsoleHolder().setCompleter(completer);
             return proc;
@@ -108,7 +108,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray getScreenSize() {
+        RubyArray getScreenSize() {
             final LineReader readline = getContext().getConsoleHolder().getReadline();
             final int[] store = {
                     readline.getTerminal().getHeight(),
@@ -125,7 +125,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object readline(Object maybePromptObject, Object maybeAddToHistory,
+        Object readline(Object maybePromptObject, Object maybeAddToHistory,
                 @Cached ToJavaStringWithDefaultNode toJavaStringWithDefaultNode,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
@@ -171,7 +171,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int point() {
+        int point() {
             return getContext().getConsoleHolder().getReadline().getBuffer().cursor();
         }
 
@@ -184,7 +184,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyBasicObject insertText(RubyBasicObject readline, Object text,
+        RubyBasicObject insertText(RubyBasicObject readline, Object text,
                 @Cached ToJavaStringNode toJavaStringNode) {
             final var textAsString = toJavaStringNode.execute(this, text);
             getContext().getConsoleHolder().getReadline().getBuffer().write(textAsString);
@@ -197,7 +197,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyBasicObject deleteText(RubyBasicObject readline) {
+        RubyBasicObject deleteText(RubyBasicObject readline) {
             getContext().getConsoleHolder().getReadline().getBuffer().clear();
             return readline;
         }
@@ -211,7 +211,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object lineBuffer() {
+        Object lineBuffer() {
             final Buffer buffer = getContext().getConsoleHolder().getReadline().getBuffer();
 
             return createString(
@@ -227,7 +227,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int setInput(int fd, RubyIO io) {
+        int setInput(int fd, RubyIO io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateIn(fd, io);
 
@@ -245,7 +245,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int setOutput(int fd, RubyIO io) {
+        int setOutput(int fd, RubyIO io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateOut(fd, io);
 

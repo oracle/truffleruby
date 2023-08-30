@@ -25,22 +25,22 @@ public abstract class BigIntegerCastNode extends RubyBaseNode {
     public abstract BigInteger execute(Object value);
 
     @Specialization
-    protected BigInteger doInt(int value) {
+    BigInteger doInt(int value) {
         return BigIntegerOps.valueOf(value);
     }
 
     @Specialization
-    protected BigInteger doLong(long value) {
+    BigInteger doLong(long value) {
         return BigIntegerOps.valueOf(value);
     }
 
     @Specialization
-    protected BigInteger doBignum(RubyBignum value) {
+    BigInteger doBignum(RubyBignum value) {
         return value.value;
     }
 
     @Specialization(guards = "!isRubyInteger(value)")
-    protected BigInteger doBasicObject(Object value) {
+    BigInteger doBasicObject(Object value) {
         throw new RaiseException(getContext(), notAnInteger(value));
     }
 

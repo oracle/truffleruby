@@ -33,12 +33,12 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = { "assumptions", "integerCaseEqualAssumption" })
-    protected boolean intCaseEqual(int a, int b) {
+    boolean intCaseEqual(int a, int b) {
         return a == b;
     }
 
     @Specialization(assumptions = { "assumptions", "integerCaseEqualAssumption" })
-    protected boolean longCaseEqual(long a, long b) {
+    boolean longCaseEqual(long a, long b) {
         return a == b;
     }
 
@@ -48,14 +48,14 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
             },
             assumptions = "assumptions",
             limit = "1")
-    protected boolean doModule(VirtualFrame frame, RubyModule self, Object b,
+    boolean doModule(VirtualFrame frame, RubyModule self, Object b,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached IsANode isANode) {
         return isANode.executeIsA(b, self);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self, Object b) {
+    Object fallback(VirtualFrame frame, Object self, Object b) {
         return rewriteAndCall(frame, self, b);
     }
 

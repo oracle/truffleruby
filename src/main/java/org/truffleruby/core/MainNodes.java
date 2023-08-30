@@ -34,7 +34,7 @@ public abstract class MainNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PublicNode publicNode) {
             return publicNode.execute(callerFrame, coreLibrary().objectClass,
                     RubyArguments.repack(rubyArgs, coreLibrary().objectClass), null);
@@ -45,7 +45,7 @@ public abstract class MainNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object forward(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached ModuleNodes.PrivateNode privateNode) {
             return privateNode.execute(callerFrame, coreLibrary().objectClass,
                     RubyArguments.repack(rubyArgs, coreLibrary().objectClass), null);
@@ -56,7 +56,7 @@ public abstract class MainNodes {
     @CoreMethod(names = "using", required = 1, alwaysInlined = true)
     public abstract static class MainUsingNode extends UsingNode {
         @Specialization
-        protected Object mainUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object mainUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);

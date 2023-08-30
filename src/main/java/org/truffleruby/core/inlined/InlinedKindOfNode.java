@@ -32,14 +32,14 @@ public abstract class InlinedKindOfNode extends BinaryInlinedOperationNode {
             guards = "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().KERNEL_KIND_OF",
             assumptions = "assumptions",
             limit = "1")
-    protected boolean doKindOf(VirtualFrame frame, Object self, RubyModule module,
+    boolean doKindOf(VirtualFrame frame, Object self, RubyModule module,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached IsANode isANode) {
         return isANode.executeIsA(self, module);
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

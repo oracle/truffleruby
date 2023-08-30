@@ -69,7 +69,7 @@ public abstract class SymbolNodes {
     public abstract static class AllSymbolsNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyArray allSymbols() {
+        RubyArray allSymbols() {
             return createArray(getLanguage().symbolTable.allSymbols().toArray());
         }
     }
@@ -77,7 +77,7 @@ public abstract class SymbolNodes {
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean equal(RubySymbol a, Object b) {
+        boolean equal(RubySymbol a, Object b) {
             return a == b;
         }
     }
@@ -93,7 +93,7 @@ public abstract class SymbolNodes {
         @Specialization(
                 guards = { "isSingleContext()", "symbol == cachedSymbol", "!preInitializing" },
                 limit = "1")
-        protected static long hashCached(Node node, RubySymbol symbol,
+        static long hashCached(Node node, RubySymbol symbol,
                 @Cached(value = "isPreInitializing(getContext())") boolean preInitializing,
                 @Cached(value = "symbol") RubySymbol cachedSymbol,
                 @Cached(value = "hash(node, cachedSymbol)") long cachedHash) {
@@ -101,7 +101,7 @@ public abstract class SymbolNodes {
         }
 
         @Specialization(replaces = "hashCached")
-        protected static long hash(Node node, RubySymbol symbol) {
+        static long hash(Node node, RubySymbol symbol) {
             return symbol.computeHashCode(getContext(node).getHashing());
         }
 
@@ -120,7 +120,7 @@ public abstract class SymbolNodes {
         public abstract long execute(RubySymbol rubySymbol);
 
         @Specialization
-        protected long hash(RubySymbol symbol,
+        long hash(RubySymbol symbol,
                 @Cached HashSymbolNode hash) {
             return hash.execute(this, symbol);
         }
@@ -143,7 +143,7 @@ public abstract class SymbolNodes {
                         "symbol == cachedSymbol",
                         "getRefinements(callerFrame) == cachedRefinements" },
                 limit = "1")
-        protected RubyProc toProcCached(Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
+        RubyProc toProcCached(Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRefinements(callerFrame)") Map<RubyModule, RubyModule[]> cachedRefinements,
                 @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, cachedRefinements)") RootCallTarget callTarget,
@@ -156,7 +156,7 @@ public abstract class SymbolNodes {
                         "symbol == cachedSymbol",
                         "getRefinements(callerFrame) == NO_REFINEMENTS" },
                 limit = "1")
-        protected RubyProc toProcCachedNoRefinements(
+        RubyProc toProcCachedNoRefinements(
                 Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, NO_REFINEMENTS)") RootCallTarget callTarget) {
@@ -164,8 +164,7 @@ public abstract class SymbolNodes {
         }
 
         @Specialization(replaces = { "toProcCached", "toProcCachedNoRefinements" })
-        protected RubyProc toProcUncached(
-                Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target) {
+        RubyProc toProcUncached(Frame callerFrame, RubySymbol symbol, Object[] rubyArgs, RootCallTarget target) {
             final Map<RubyModule, RubyModule[]> refinements = getRefinements(callerFrame);
             final RootCallTarget callTarget = getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
             return createProc(getContext(), getLanguage(), refinements, callTarget);
@@ -261,7 +260,7 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyString toS(RubySymbol symbol) {
+        RubyString toS(RubySymbol symbol) {
             return createString(symbol.tstring, symbol.encoding);
         }
     }
@@ -269,7 +268,7 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected ImmutableRubyString toS(RubySymbol symbol) {
+        ImmutableRubyString toS(RubySymbol symbol) {
             return symbol.getName(getLanguage());
         }
     }
@@ -277,7 +276,7 @@ public abstract class SymbolNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object allocate(RubyClass rubyClass) {
+        Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
     }

@@ -33,7 +33,7 @@ public abstract class ChaosNode extends RubyContextSourceNode {
     abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
-    protected Object chaos(int value) {
+    Object chaos(int value) {
         if (randomBoolean()) {
             return value;
         } else {
@@ -42,7 +42,7 @@ public abstract class ChaosNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected Object chaos(long value) {
+    Object chaos(long value) {
         if (randomBoolean()) {
             return value;
         } else {
@@ -51,12 +51,12 @@ public abstract class ChaosNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    protected long passThrough(long value) {
+    long passThrough(long value) {
         return value;
     }
 
     @Fallback
-    protected Object chaos(Object value) {
+    Object chaos(Object value) {
         return value;
     }
 

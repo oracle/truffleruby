@@ -27,22 +27,22 @@ public abstract class SymbolToByteOrderNode extends RubyBaseNode {
     public abstract ByteOrder execute(Node node, Object value);
 
     @Specialization(guards = "symbol == coreSymbols().BIG")
-    protected static ByteOrder symbolToByteOrderBig(RubySymbol symbol) {
+    static ByteOrder symbolToByteOrderBig(RubySymbol symbol) {
         return ByteOrder.BIG_ENDIAN;
     }
 
     @Specialization(guards = "symbol == coreSymbols().LITTLE")
-    protected static ByteOrder symbolToByteOrderLittle(RubySymbol symbol) {
+    static ByteOrder symbolToByteOrderLittle(RubySymbol symbol) {
         return ByteOrder.LITTLE_ENDIAN;
     }
 
     @Specialization(guards = "symbol == coreSymbols().NATIVE")
-    protected static ByteOrder symbolToByteOrderNative(RubySymbol symbol) {
+    static ByteOrder symbolToByteOrderNative(RubySymbol symbol) {
         return ByteOrder.nativeOrder();
     }
 
     @Fallback
-    protected static ByteOrder invalidByteOrder(Node node, Object value) {
+    static ByteOrder invalidByteOrder(Node node, Object value) {
         throw new RaiseException(
                 getContext(node),
                 coreExceptions(node).argumentError("byte order must be :big, :little, or :native symbol", node));

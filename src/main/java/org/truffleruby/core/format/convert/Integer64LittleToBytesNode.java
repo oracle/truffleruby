@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class Integer64LittleToBytesNode extends FormatNode {
 
     @Specialization
-    protected byte[] encode(long value) {
+    byte[] encode(long value) {
         byte[] bytes = new byte[8];
         ByteArraySupport.littleEndian().putLong(bytes, 0, value);
         return bytes;

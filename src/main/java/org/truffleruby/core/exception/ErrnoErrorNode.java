@@ -36,7 +36,7 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
             Backtrace backtrace);
 
     @Specialization
-    protected RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace,
+    RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace,
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 

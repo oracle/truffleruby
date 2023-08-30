@@ -35,14 +35,14 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "storage.isSimple()")
-    protected Object read(VirtualFrame frame,
+    Object read(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("create(name)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
-    protected Object readHooks(VirtualFrame frame,
+    Object readHooks(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("getterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode) {
@@ -50,7 +50,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
-    protected Object readHooksWithStorage(VirtualFrame frame,
+    Object readHooksWithStorage(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("getterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,

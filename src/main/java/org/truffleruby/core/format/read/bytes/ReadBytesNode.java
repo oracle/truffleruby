@@ -34,13 +34,13 @@ public abstract class ReadBytesNode extends FormatNode {
     }
 
     @Specialization(guards = "isNull(source)")
-    protected void read(VirtualFrame frame, Object source) {
+    void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame, count);
         throw new IllegalStateException();
     }
 
     @Specialization
-    protected Object read(VirtualFrame frame, byte[] source) {
+    Object read(VirtualFrame frame, byte[] source) {
         int index = advanceSourcePositionNoThrow(frame, count, consumePartial);
 
         if (rangeProfile.profile(index == -1)) {

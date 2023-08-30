@@ -27,7 +27,7 @@ TO = File.expand_path(ruby_home)
 abort "#{TO} does not exist" unless File.directory?(TO)
 abort "#{TO} is not a TruffleRuby home" unless File.directory?("#{TO}/lib/truffle")
 
-# Must be consistent with TRUFFLERUBY_GRAALVM_SUPPORT in suite.py
+# Must be consistent with TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC in suite.py
 DIRS_TO_SYNC = %w[
   lib/cext
   lib/json

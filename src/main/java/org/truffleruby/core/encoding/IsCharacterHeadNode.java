@@ -22,13 +22,13 @@ public abstract class IsCharacterHeadNode extends RubyBaseNode {
     public abstract boolean execute(RubyEncoding enc, AbstractTruffleString string, int byteOffset);
 
     @Specialization(guards = "enc.isSingleByte")
-    protected boolean singleByte(RubyEncoding enc, AbstractTruffleString string, int byteOffset) {
+    boolean singleByte(RubyEncoding enc, AbstractTruffleString string, int byteOffset) {
         // return offset directly (org.jcodings.SingleByteEncoding#leftAdjustCharHead)
         return true;
     }
 
     @Specialization(guards = { "!enc.isSingleByte", "enc.jcoding.isUTF8()" })
-    protected boolean utf8(RubyEncoding enc, AbstractTruffleString string, int byteOffset,
+    boolean utf8(RubyEncoding enc, AbstractTruffleString string, int byteOffset,
             @Cached TruffleString.ReadByteNode readByteNode) {
         // based on org.jcodings.specific.BaseUTF8Encoding#leftAdjustCharHead
         return utf8IsLead(readByteNode.execute(string, byteOffset, enc.tencoding));
@@ -37,7 +37,7 @@ public abstract class IsCharacterHeadNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(guards = { "!enc.isSingleByte", "!enc.jcoding.isUTF8()" })
-    protected boolean other(RubyEncoding enc, AbstractTruffleString string, int byteOffset,
+    boolean other(RubyEncoding enc, AbstractTruffleString string, int byteOffset,
             @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
         var byteArray = getInternalByteArrayNode.execute(string, enc.tencoding);
         int addedOffsets = byteArray.getOffset() + byteOffset;

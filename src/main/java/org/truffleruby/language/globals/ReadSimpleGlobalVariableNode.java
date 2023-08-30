@@ -43,7 +43,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
             assumptions = {
                     "storage.getUnchangedAssumption()",
                     "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
-    protected Object readConstant(
+    Object readConstant(
             @Cached(value = "getLanguage().getGlobalVariableIndex(name)", neverDefault = false) int index,
             @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value,
@@ -60,7 +60,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected Object read(
+    Object read(
             @Cached("new()") @Shared WarningNode warningNode,
             @Cached InlinedConditionProfile isDefinedProfile) {
         if (lookupGlobalVariableStorageNode == null) {

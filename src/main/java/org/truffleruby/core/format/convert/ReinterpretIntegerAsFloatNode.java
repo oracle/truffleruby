@@ -20,17 +20,17 @@ import org.truffleruby.language.Nil;
 public abstract class ReinterpretIntegerAsFloatNode extends FormatNode {
 
     @Specialization
-    protected MissingValue decode(MissingValue missingValue) {
+    MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization
-    protected Object decode(Nil nil) {
+    Object decode(Nil nil) {
         return nil;
     }
 
     @Specialization
-    protected double decode(int value) { // must return double so Ruby nodes can deal with it
+    double decode(int value) { // must return double so Ruby nodes can deal with it
         return Float.intBitsToFloat(value);
     }
 

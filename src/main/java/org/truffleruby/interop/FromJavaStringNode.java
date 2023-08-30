@@ -34,7 +34,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    protected static RubyString doCached(Node node, String value,
+    static RubyString doCached(Node node, String value,
             @Cached("value") String cachedValue,
             @Cached(inline = false) @Shared TruffleString.FromJavaStringNode tstringFromJavaStringNode,
             @Cached("getTString(cachedValue, tstringFromJavaStringNode)") TruffleString cachedTString) {
@@ -44,7 +44,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "doCached")
-    protected static RubyString doGeneric(Node node, String value,
+    static RubyString doGeneric(Node node, String value,
             @Cached(inline = false) @Shared TruffleString.FromJavaStringNode tstringFromJavaStringNode) {
         var rubyString = createString(node, tstringFromJavaStringNode, value, Encodings.UTF_8);
         rubyString.freeze();

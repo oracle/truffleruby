@@ -32,43 +32,43 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
-    protected int intAdd(int a, int b) {
+    int intAdd(int a, int b) {
         return Math.addExact(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected long intAddWithOverflow(int a, int b) {
+    long intAddWithOverflow(int a, int b) {
         return (long) a + (long) b;
     }
 
     @Specialization(rewriteOn = ArithmeticException.class, assumptions = "assumptions")
-    protected long longAdd(long a, long b) {
+    long longAdd(long a, long b) {
         return Math.addExact(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    protected Object longAddWithOverflow(long a, long b,
+    Object longAddWithOverflow(long a, long b,
             @Cached FixnumOrBignumNode fixnumOrBignum) {
         return fixnumOrBignum.execute(this, BigIntegerOps.add(a, b));
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double floatAdd(double a, double b) {
+    double floatAdd(double a, double b) {
         return a + b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double longDouble(long a, double b) {
+    double longDouble(long a, double b) {
         return a + b;
     }
 
     @Specialization(assumptions = "assumptions")
-    protected double doubleLong(double a, long b) {
+    double doubleLong(double a, long b) {
         return a + b;
     }
 
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object a, Object b) {
+    Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

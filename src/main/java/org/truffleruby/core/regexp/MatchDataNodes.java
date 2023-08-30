@@ -203,7 +203,7 @@ public abstract class MatchDataNodes {
     public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
+        RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
                 @Cached InlinedConditionProfile nonZeroPos,
                 @Cached InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
@@ -221,7 +221,7 @@ public abstract class MatchDataNodes {
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object create(Object regexp, Object string, int start, int end) {
+        Object create(Object regexp, Object string, int start, int end) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -245,7 +245,7 @@ public abstract class MatchDataNodes {
         protected abstract Object executeGetIndex(Object matchData, int index, NotProvided length);
 
         @Specialization
-        protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
+        Object getIndex(RubyMatchData matchData, int index, NotProvided length,
                 @Exclusive @Cached RubyStringLibrary strings,
                 @Shared @Cached InlinedConditionProfile normalizedIndexProfile,
                 @Cached @Exclusive InlinedConditionProfile indexOutOfBoundsProfile,
@@ -275,7 +275,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected Object getIndex(RubyMatchData matchData, int index, int length,
+        Object getIndex(RubyMatchData matchData, int index, int length,
                 @Exclusive @Cached InlinedConditionProfile negativeLengthProfile,
                 @Shared @Cached InlinedConditionProfile normalizedIndexProfile,
                 @Cached @Exclusive InlinedConditionProfile negativeIndexProfile,
@@ -310,7 +310,7 @@ public abstract class MatchDataNodes {
                         "getRegexp(matchData) == cachedRegexp",
                         "symbol == cachedSymbol" },
                 limit = "getDefaultCacheLimit()")
-        protected Object getIndexSymbolKnownRegexp(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
+        Object getIndexSymbolKnownRegexp(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRegexp(matchData)") RubyRegexp cachedRegexp,
                 @Cached("findNameEntry(cachedRegexp, cachedSymbol)") NameEntry nameEntry,
@@ -328,7 +328,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization(replaces = "getIndexSymbolKnownRegexp")
-        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
+        Object getIndexSymbol(RubyMatchData matchData, RubySymbol symbol, NotProvided length,
                 @Shared @Cached InlinedConditionProfile lazyProfile,
                 @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
             return executeGetIndex(
@@ -339,7 +339,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization(guards = "libIndex.isRubyString(index)", limit = "1")
-        protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
+        Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
                 @Exclusive @Cached RubyStringLibrary libIndex,
                 @Shared @Cached InlinedConditionProfile lazyProfile,
                 @Shared @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary libInterop) {
@@ -356,13 +356,13 @@ public abstract class MatchDataNodes {
                         "!isRubySymbol(index)",
                         "isNotRubyString(index)",
                         "!isRubyRange(index)" })
-        protected Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
+        Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyRange(range)")
-        protected Object getIndexRange(RubyMatchData matchData, Object range, NotProvided other,
+        Object getIndexRange(RubyMatchData matchData, Object range, NotProvided other,
                 @Cached RangeNodes.NormalizedStartLengthNode startLengthNode,
                 @Exclusive @Cached InlinedConditionProfile negativeStart) {
             final Object[] values = getValuesNode.execute(matchData);
@@ -454,7 +454,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected Object getIndex(RubyMatchData matchData, Object index, Object maybeLength,
+        Object getIndex(RubyMatchData matchData, Object index, Object maybeLength,
                 @Cached GetIndexNode getIndexNode) {
             return getIndexNode.execute(matchData, index, maybeLength);
         }
@@ -487,7 +487,7 @@ public abstract class MatchDataNodes {
     public abstract static class BeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object begin(RubyMatchData matchData, int index,
+        Object begin(RubyMatchData matchData, int index,
                 @Cached InlinedConditionProfile lazyProfile,
                 @Cached InlinedConditionProfile negativeBeginProfile,
                 @Cached InlinedConditionProfile multiByteCharacterProfile,
@@ -513,7 +513,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        protected Object beginError(RubyMatchData matchData, int index) {
+        Object beginError(RubyMatchData matchData, int index) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
@@ -535,7 +535,7 @@ public abstract class MatchDataNodes {
         public abstract Object[] execute(RubyMatchData matchData);
 
         @Specialization
-        protected Object[] getValues(RubyMatchData matchData,
+        Object[] getValues(RubyMatchData matchData,
                 @Cached RubyStringLibrary strings,
                 @Cached InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
@@ -573,7 +573,7 @@ public abstract class MatchDataNodes {
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object end(RubyMatchData matchData, int index,
+        Object end(RubyMatchData matchData, int index,
                 @Cached InlinedConditionProfile lazyProfile,
                 @Cached InlinedConditionProfile negativeEndProfile,
                 @Cached InlinedConditionProfile multiByteCharacterProfile,
@@ -599,7 +599,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        protected Object endError(RubyMatchData matchData, int index) {
+        Object endError(RubyMatchData matchData, int index) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
@@ -614,7 +614,7 @@ public abstract class MatchDataNodes {
     public abstract static class ByteBeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteBegin(RubyMatchData matchData, int index,
+        Object byteBegin(RubyMatchData matchData, int index,
                 @Cached InlinedConditionProfile lazyProfile,
                 @Cached InlinedConditionProfile negativeBeginProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
@@ -636,7 +636,7 @@ public abstract class MatchDataNodes {
     public abstract static class ByteEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteEnd(RubyMatchData matchData, int index,
+        Object byteEnd(RubyMatchData matchData, int index,
                 @Cached InlinedConditionProfile lazyProfile,
                 @Cached InlinedConditionProfile negativeEndProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
@@ -658,7 +658,7 @@ public abstract class MatchDataNodes {
     public abstract static class LengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int length(RubyMatchData matchData) {
+        int length(RubyMatchData matchData) {
             return matchData.region.numRegs;
         }
 
@@ -670,7 +670,7 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString preMatch(RubyMatchData matchData,
+        RubyString preMatch(RubyMatchData matchData,
                 @Cached InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached RubyStringLibrary strings,
@@ -687,7 +687,7 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString postMatch(RubyMatchData matchData,
+        RubyString postMatch(RubyMatchData matchData,
                 @Cached InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached RubyStringLibrary strings,
@@ -707,7 +707,7 @@ public abstract class MatchDataNodes {
         @Child ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected RubyArray toA(RubyMatchData matchData) {
+        RubyArray toA(RubyMatchData matchData) {
             Object[] objects = valuesNode.execute(matchData);
             return createArray(objects);
         }
@@ -723,7 +723,7 @@ public abstract class MatchDataNodes {
         public abstract RubyRegexp executeGetRegexp(RubyMatchData matchData);
 
         @Specialization
-        protected RubyRegexp regexp(RubyMatchData matchData,
+        RubyRegexp regexp(RubyMatchData matchData,
                 @Cached InlinedConditionProfile profile,
                 @Cached DispatchNode stringToRegexp) {
             final Object value = matchData.regexp;
@@ -749,7 +749,7 @@ public abstract class MatchDataNodes {
     public abstract static class InternalAllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMatchData allocate(RubyClass rubyClass) {
+        RubyMatchData allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().matchDataShape;
             RubyMatchData matchData = new RubyMatchData(rubyClass, shape, null, null, null);
             AllocationTracing.trace(matchData, this);
@@ -762,7 +762,7 @@ public abstract class MatchDataNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from,
+        RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from,
                 @Cached InlinedConditionProfile copyFromSelfProfile) {
             if (copyFromSelfProfile.profile(this, self == from)) {
                 return self;
@@ -777,7 +777,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization(guards = "!isRubyMatchData(from)")
-        protected RubyMatchData initializeCopy(RubyMatchData self, Object from) {
+        RubyMatchData initializeCopy(RubyMatchData self, Object from) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeError("initialize_copy should take same class object", this));
@@ -788,7 +788,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getSource(RubyMatchData matchData) {
+        Object getSource(RubyMatchData matchData) {
             return matchData.source;
         }
     }

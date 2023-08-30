@@ -30,17 +30,17 @@ public abstract class ToStrNode extends RubyBaseNode {
     public abstract Object execute(Node node, Object object);
 
     @Specialization
-    protected static RubyString coerceRubyString(RubyString string) {
+    static RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization
-    protected static ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
+    static ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected static Object coerceObject(Node node, Object object,
+    static Object coerceObject(Node node, Object object,
             @Cached(inline = false) DispatchNode toStrNode) {
         return toStrNode.call(
                 coreLibrary(node).truffleTypeModule,

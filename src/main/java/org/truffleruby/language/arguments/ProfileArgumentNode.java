@@ -35,25 +35,25 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     protected abstract RubyNode getChildNode();
 
     @Specialization(guards = "value == cachedValue", limit = "1")
-    protected boolean cacheBoolean(boolean value,
+    boolean cacheBoolean(boolean value,
             @Cached("value") boolean cachedValue) {
         return cachedValue;
     }
 
     @Specialization(guards = "value == cachedValue", limit = "1")
-    protected int cacheInt(int value,
+    int cacheInt(int value,
             @Cached("value") int cachedValue) {
         return cachedValue;
     }
 
     @Specialization(guards = "value == cachedValue", limit = "1")
-    protected long cacheLong(long value,
+    long cacheLong(long value,
             @Cached("value") long cachedValue) {
         return cachedValue;
     }
 
     @Specialization(guards = "exactCompare(value, cachedValue)", limit = "1")
-    protected double cacheDouble(double value,
+    double cacheDouble(double value,
             @Cached("value") double cachedValue) {
         return cachedValue;
     }
@@ -61,7 +61,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "isExact(object, cachedClass)", "!isPrimitiveClass(cachedClass)" },
             limit = "1")
-    protected Object cacheClass(Object object,
+    Object cacheClass(Object object,
             @Cached("getClassOrObject(object)") Class<?> cachedClass) {
         // The cast is only useful for the compiler.
         if (CompilerDirectives.inInterpreter()) {
@@ -72,7 +72,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     }
 
     @Specialization(replaces = { "cacheBoolean", "cacheInt", "cacheLong", "cacheDouble", "cacheClass" })
-    protected Object unprofiled(Object object) {
+    Object unprofiled(Object object) {
         assert RubyGuards.assertIsValidRubyValue(object);
         return object;
     }

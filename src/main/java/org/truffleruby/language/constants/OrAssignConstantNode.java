@@ -39,7 +39,7 @@ public abstract class OrAssignConstantNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object doOrAssignConstant(VirtualFrame frame,
+    Object doOrAssignConstant(VirtualFrame frame,
             @Cached BooleanCastNode booleanCastNode,
             @Cached InlinedConditionProfile defined,
             @Cached InlinedConditionProfile triviallyUndefined) {

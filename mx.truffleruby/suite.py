@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "ce7e2791bb11eee493e6c332efe73f589e289e5f",
+                "version": "4bcb7c9a9061d0948609412048a6906fa0cb826c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "ce7e2791bb11eee493e6c332efe73f589e289e5f",
+                "version": "4bcb7c9a9061d0948609412048a6906fa0cb826c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -183,6 +183,22 @@ suite = {
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffle:TRUFFLE_API",
+            ],
+            "jacoco": "include",
+            "javaCompliance": "17+",
+            "checkstyle": "org.truffleruby",
+            "workingSets": "TruffleRuby",
+            "license": ["EPL-2.0"],
+        },
+
+        "org.truffleruby.resources": {
+            "dir": "src/resources",
+            "sourceDirs": ["java"],
+            "dependencies": [
+                "truffle:TRUFFLE_API",
+            ],
+            "annotationProcessors": [
+                "truffle:TRUFFLE_DSL_PROCESSOR",
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
@@ -401,6 +417,8 @@ suite = {
                 "src/main/c/ripper/<extsuffix:ripper>",
                 "src/main/c/syslog/<extsuffix:syslog>",
                 "src/main/c/zlib/<extsuffix:zlib>",
+                "lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
+                "lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
             ],
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -420,6 +438,7 @@ suite = {
                     "org.truffleruby.annotations to org.graalvm.ruby",
                 ],
             },
+            "useModulePath": True,
             "dependencies": [
                 "org.truffleruby.annotations"
             ],
@@ -430,7 +449,6 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
-            "useModulePath": True,
         },
 
         # Required to share code between the launcher and the rest,
@@ -444,6 +462,7 @@ suite = {
                     "org.truffleruby.shared.options to org.graalvm.ruby, org.graalvm.ruby.launcher",
                 ],
             },
+            "useModulePath": True,
             "dependencies": [
                 "org.truffleruby.shared"
             ],
@@ -458,7 +477,6 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
-            "useModulePath": True,
         },
 
         "TRUFFLERUBY-PROCESSOR": {
@@ -478,6 +496,7 @@ suite = {
             "moduleInfo": {
                 "name": "org.graalvm.ruby",
             },
+            "useModulePath": True,
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.ruby",
@@ -511,14 +530,15 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
-            "useModulePath": True,
         },
 
         "RUBY_COMMUNITY": {
             "type": "pom",
             "runtimeDependencies": [
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-RESOURCES",
                 "truffle:TRUFFLE_RUNTIME",
+                "sulong:LLVM_NATIVE_COMMUNITY",
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
@@ -551,6 +571,7 @@ suite = {
                     "org.truffleruby.launcher to org.graalvm.launcher",
                 ],
             },
+            "useModulePath": True,
             "dependencies": [
                 "org.truffleruby.launcher"
             ],
@@ -563,28 +584,82 @@ suite = {
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
             "maven": False,
-            "useModulePath": True,
         },
 
-        "TRUFFLERUBY_GRAALVM_SUPPORT": {
+        "TRUFFLERUBY-RESOURCES": {
+            "description": "TruffleRuby runtime resources",
+            "platformDependent": True,
+            "moduleInfo": {
+                "name": "org.graalvm.ruby.resources",
+            },
+            "useModulePath": True,
+            "dependencies": [
+                "org.truffleruby.resources",
+                "TRUFFLERUBY_RESOURCES_PLATFORM_AGNOSTIC",
+                "TRUFFLERUBY_RESOURCES_PLATFORM_SPECIFIC",
+            ],
+            "distDependencies": [
+                "truffle:TRUFFLE_API",
+            ],
+            "requires": [
+                "java.base",
+            ],
+            "license": [
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+            ],
+            "maven": {
+                "artifactId": "ruby-resources",
+                "tag": ["default", "public"],
+            },
+        },
+
+        "TRUFFLERUBY_RESOURCES_PLATFORM_AGNOSTIC": {
+            "description": "Platform-agnostic resources for TruffleRuby home",
+            "type": "dir",
+            "platformDependent": False,
+            "hashEntry": "META-INF/resources/ruby/ruby-home/common/sha256",
+            "fileListEntry": "META-INF/resources/ruby/ruby-home/common/file-list",
+            "layout": {
+                "META-INF/resources/ruby/ruby-home/common/": "extracted-dependency:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC",
+            },
+            "maven": False,
+        },
+
+        "TRUFFLERUBY_RESOURCES_PLATFORM_SPECIFIC": {
+            "description": "Platform-specific resources for TruffleRuby home",
+            "type": "dir",
+            "platformDependent": True,
+            "hashEntry": "META-INF/resources/ruby/ruby-home/<os>/<arch>/sha256",
+            "fileListEntry": "META-INF/resources/ruby/ruby-home/<os>/<arch>/file-list",
+            "layout": {
+                "META-INF/resources/ruby/ruby-home/<os>/<arch>/": "extracted-dependency:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_SPECIFIC",
+            },
+            "maven": False,
+        },
+
+        "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC": {
+            "description": "Platform-agnostic TruffleRuby home files",
             "fileListPurpose": 'native-image-resources',
             "native": True,
-            "platformDependent": True,
-            "description": "TruffleRuby support distribution for the GraalVM",
+            "platformDependent": False,
+            # The project org.truffleruby.cext touches lib/gems/gems/debug-1.7.1/ext
+            # and lib/gems/extensions/$ARCH-$OS/$ABI/rbs-2.8.2/gem.build_complete.
+            # This causes this layout distribution to be rebuilt even though nothing changes in the result.
+            # To avoid that we force org.truffleruby.cext to complete first.
+            "dependencies": ["org.truffleruby.cext"],
             "layout": {
                 "lib/": [
                     "file:lib/json",
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
-                    "dependency:org.truffleruby.yarp.bindings",
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
                     "file:lib/cext/ABI_version.txt",
-                    "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
-                    "dependency:org.truffleruby.rubysignal",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
@@ -594,11 +669,46 @@ suite = {
                         "source_type": "file",
                         "path": "lib/gems/*",
                         "exclude": [
-                            "lib/gems/gems/debug-*/ext",
-                            "lib/gems/gems/rbs-*/ext",
+                            # The debug and rbs gems have native extensions.
+                            # Do not ship ext/ as it includes an unnecessary copy of the .so and intermediate files.
+                            # The .so in lib/ are copied in the platform-specific distribution.
+                            # <extsuffix:...> does not work in exclude, so use .* here (.{so,bundle} does not work either).
+                            "lib/gems/extensions",
+                            "lib/gems/gems/debug-1.7.1/ext",
+                            "lib/gems/gems/debug-1.7.1/lib/debug/debug.*",
+                            "lib/gems/gems/rbs-2.8.2/ext",
+                            "lib/gems/gems/rbs-2.8.2/lib/rbs_extension.*",
                         ],
                     },
                 ],
+            },
+            "license": [
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+            ],
+            "maven": False,
+        },
+
+        "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_SPECIFIC": {
+            "description": "Platform-specific TruffleRuby home files",
+            "fileListPurpose": 'native-image-resources',
+            "native": True,
+            "platformDependent": True,
+            "layout": {
+                "lib/": [
+                    "dependency:org.truffleruby.yarp.bindings",
+                ],
+                "lib/cext/": [
+                    "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
+                    "dependency:org.truffleruby.rubysignal",
+                ],
+                # The platform-specific files from debug and rbs, see comment above
+                "lib/gems/": "file:lib/gems/extensions",
+                "lib/gems/gems/debug-1.7.1/lib/debug/": "dependency:org.truffleruby.cext/lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
+                "lib/gems/gems/rbs-2.8.2/lib/": "dependency:org.truffleruby.cext/lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                     "dependency:org.truffleruby.cext/src/main/c/date/<extsuffix:date_core>",
@@ -621,10 +731,7 @@ suite = {
                 ],
             },
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI
             ],
             "maven": False,
         },
@@ -688,13 +795,15 @@ suite = {
                 "sdk:POLYGLOT",
                 # runtime-only dependencies
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-RESOURCES",
             ],
             "exclude": [
                 "mx:HAMCREST",
                 "mx:JUNIT",
             ],
+            "unittestConfig": "none",
             "javaProperties": {
-                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+                "polyglot.engine.WarnInterpreterOnly": "false",
             },
             "license": ["EPL-2.0"],
             "maven": False,
@@ -708,14 +817,18 @@ suite = {
             "distDependencies": [
                 "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
+                # runtime-only dependencies
+                "TRUFFLERUBY-RESOURCES"
             ],
             "exclude": [
                 "mx:HAMCREST",
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
             ],
+            "unittestConfig": "none",
             "javaProperties": {
-                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+                "polyglot.engine.WarnInterpreterOnly": "false",
+                "polyglotimpl.DisableClassPathIsolation": "true",
             },
             "license": ["EPL-2.0"],
             "maven": False,
@@ -725,9 +838,6 @@ suite = {
             "testDistribution": True,
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": ["truffle:TRUFFLE_TCK"],
-            "javaProperties": {
-                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
-            },
             "license": ["EPL-2.0"],
             "maven": False,
         },

@@ -240,7 +240,7 @@ module Kernel
 
   # A #require which lazily loads rubygems when needed.
   # The logic is inlined so there is no extra backtrace entry for lazy-rubygems.
-  def require(feature)
+  private def require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
 
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
@@ -275,10 +275,14 @@ module Kernel
       end
     end
   end
-  module_function :require
   Truffle::Graal.never_split(instance_method(:require))
-
   Truffle::KernelOperations::ORIGINAL_REQUIRE = instance_method(:require)
+
+  # Kernel.require is not redefined by RubyGems, and it should not load gems.
+  # So define it as #gem_original_require, which is the same as the original #require
+  # but without lazy-rubygems behavior. This replaces `module_function :require` which would be incorrect.
+  define_singleton_method :require, instance_method(:gem_original_require)
+  Truffle::KernelOperations::ORIGINAL_MODULE_REQUIRE = Kernel.method(:require)
 
   def require_relative(feature)
     feature = Truffle::Type.coerce_to_path(feature)
@@ -297,10 +301,6 @@ module Kernel
   end
   module_function :require_relative
   Truffle::Graal.never_split(instance_method(:require_relative))
-
-  def define_singleton_method(*args, &block)
-    singleton_class.define_method(*args, &block)
-  end
 
   def display(port = $>)
     port.write self

@@ -28,18 +28,18 @@ public abstract class ToStringObjectNode extends FormatNode {
     public abstract Object executeToStringObject(VirtualFrame frame, Object object);
 
     @Specialization
-    protected Object toStringString(Nil nil) {
+    Object toStringString(Nil nil) {
         return nil;
     }
 
     @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-    protected Object toStringString(Object string,
+    Object toStringString(Object string,
             @Cached RubyStringLibrary strings) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected Object toString(VirtualFrame frame, Object object,
+    Object toString(VirtualFrame frame, Object object,
             @Cached InlinedConditionProfile notStringProfile,
             @Cached ToStrNode toStrNode) {
         final Object value = toStrNode.execute(this, object);

@@ -44,7 +44,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
             guards = { "isSingleContext()", "lexicalScope == cachedLexicalScope" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(LexicalScope lexicalScope,
+    RubyConstant lookupConstant(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
             @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant) {
         if (constant.isDeprecated()) {
@@ -54,7 +54,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(LexicalScope lexicalScope,
+    RubyConstant lookupConstantUncached(LexicalScope lexicalScope,
             @Cached InlinedConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup(lexicalScope);
         if (isDeprecatedProfile.profile(this, constant.isDeprecated())) {

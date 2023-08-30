@@ -22,13 +22,13 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public abstract class WriteBytesNode extends FormatNode {
 
     @Specialization
-    protected Object write(VirtualFrame frame, byte[] bytes) {
+    Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, bytes);
         return null;
     }
 
     @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-    protected Object writeString(VirtualFrame frame, Object string,
+    Object writeString(VirtualFrame frame, Object string,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
         var tstring = libString.getTString(string);

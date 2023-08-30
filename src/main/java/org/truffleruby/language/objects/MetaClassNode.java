@@ -48,26 +48,26 @@ public abstract class MetaClassNode extends RubyBaseNode {
                     "metaClass.isSingleton",
                     "!isRubyIO(cachedObject)" },
             limit = "1")
-    protected static RubyClass singleton(Node node, RubyDynamicObject object,
+    static RubyClass singleton(Node node, RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
         return metaClass;
     }
 
     @Specialization(replaces = "singleton")
-    protected static RubyClass object(RubyDynamicObject object) {
+    static RubyClass object(RubyDynamicObject object) {
         return object.getMetaClass();
     }
 
     @Specialization(guards = "isPrimitiveOrImmutable(value)")
-    protected static RubyClass immutable(Node node, Object value,
+    static RubyClass immutable(Node node, Object value,
             @Cached ImmutableClassNode immutableClassNode) {
         return immutableClassNode.execute(node, value);
     }
 
     @InliningCutoff
     @Specialization(guards = "isForeignObject(object)")
-    protected static RubyClass foreign(Node node, Object object,
+    static RubyClass foreign(Node node, Object object,
             @Cached ForeignClassNode foreignClassNode) {
         return foreignClassNode.execute(node, object);
     }

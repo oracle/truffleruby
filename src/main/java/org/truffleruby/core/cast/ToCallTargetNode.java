@@ -22,17 +22,17 @@ public abstract class ToCallTargetNode extends RubyBaseNode {
     public abstract RootCallTarget execute(Object executable);
 
     @Specialization
-    protected RootCallTarget boundMethod(RubyMethod method) {
+    RootCallTarget boundMethod(RubyMethod method) {
         return method.method.getCallTarget();
     }
 
     @Specialization
-    protected RootCallTarget unboundMethod(RubyUnboundMethod method) {
+    RootCallTarget unboundMethod(RubyUnboundMethod method) {
         return method.method.getCallTarget();
     }
 
     @Specialization
-    protected RootCallTarget proc(RubyProc proc) {
+    RootCallTarget proc(RubyProc proc) {
         return proc.callTarget;
     }
 

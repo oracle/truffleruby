@@ -72,12 +72,12 @@ public abstract class ToStringNode extends FormatNode {
     public abstract Object executeToString(Object object);
 
     @Specialization
-    protected Object toStringNil(Nil nil) {
+    Object toStringNil(Nil nil) {
         return valueOnNil;
     }
 
     @Specialization(guards = "convertNumbersToStrings")
-    protected RubyString toString(long value,
+    RubyString toString(long value,
             @Cached TruffleString.FromLongNode fromLongNode) {
         var tstring = fromLongNode.execute(value, Encodings.US_ASCII.tencoding, true);
         return createString(tstring, Encodings.US_ASCII);
@@ -85,14 +85,14 @@ public abstract class ToStringNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    protected RubyString toString(double value,
+    RubyString toString(double value,
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         return createString(fromJavaStringNode, Double.toString(value), Encodings.US_ASCII);
     }
 
     @TruffleBoundary
     @Specialization(guards = "specialClassBehaviour")
-    protected Object toStringSpecialClass(RubyClass rubyClass,
+    Object toStringSpecialClass(RubyClass rubyClass,
             @Cached @Shared RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
             return createString(TStringConstants.TRUE, Encodings.US_ASCII);
@@ -106,7 +106,7 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = "argLibString.isRubyString(string)", limit = "1")
-    protected Object toStringString(Object string,
+    Object toStringString(Object string,
             @Cached @Shared RubyStringLibrary libString,
             @Cached @Exclusive RubyStringLibrary argLibString) {
         if ("inspect".equals(conversionMethod)) {
@@ -122,7 +122,7 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization
-    protected Object toString(RubyArray array,
+    Object toString(RubyArray array,
             @Cached @Shared RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -140,7 +140,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
-    protected Object toString(Object object,
+    Object toString(Object object,
             @Cached @Shared RubyStringLibrary libString) {
         final Object value = getToStrNode().call(PRIVATE_RETURN_MISSING, object, conversionMethod);
 
@@ -162,7 +162,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "isForeignObject(object)")
-    protected RubyString toStringForeign(Object object,
+    RubyString toStringForeign(Object object,
             @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
         return createString(fromByteArrayNode,
                 object.toString().getBytes(StandardCharsets.UTF_8),

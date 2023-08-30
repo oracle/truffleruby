@@ -172,7 +172,7 @@ public abstract class ModuleNodes {
         @Child private IsANode isANode = IsANode.create();
 
         @Specialization
-        protected boolean containsInstance(RubyModule module, Object instance) {
+        boolean containsInstance(RubyModule module, Object instance) {
             return isANode.executeIsA(instance, module);
         }
 
@@ -185,7 +185,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object isSubclassOf(RubyModule self, RubyModule other) {
+        Object isSubclassOf(RubyModule self, RubyModule other) {
             if (self == other) {
                 return false;
             }
@@ -202,7 +202,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        protected Object isSubclassOfOther(RubyModule self, Object other) {
+        Object isSubclassOfOther(RubyModule self, Object other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -215,7 +215,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object isSubclassOfOrEqualTo(RubyModule self, RubyModule other) {
+        Object isSubclassOfOrEqualTo(RubyModule self, RubyModule other) {
             if (self == other || ModuleOperations.includesModule(self, other)) {
                 return true;
             }
@@ -228,7 +228,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        protected Object isSubclassOfOrEqualToOther(RubyModule self, Object other) {
+        Object isSubclassOfOrEqualToOther(RubyModule self, Object other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -241,7 +241,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object isSuperclassOf(RubyModule self, RubyModule other) {
+        Object isSuperclassOf(RubyModule self, RubyModule other) {
             if (self == other) {
                 return false;
             }
@@ -258,7 +258,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        protected Object isSuperclassOfOther(RubyModule self, Object other) {
+        Object isSuperclassOfOther(RubyModule self, Object other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -271,7 +271,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object isSuperclassOfOrEqualTo(RubyModule self, RubyModule other) {
+        Object isSuperclassOfOrEqualTo(RubyModule self, RubyModule other) {
             if (self == other || ModuleOperations.includesModule(other, self)) {
                 return true;
             }
@@ -284,7 +284,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        protected Object isSuperclassOfOrEqualToOther(RubyModule self, Object other) {
+        Object isSuperclassOfOrEqualToOther(RubyModule self, Object other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -304,7 +304,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object compare(RubyModule self, RubyModule other) {
+        Object compare(RubyModule self, RubyModule other) {
             if (self == other) {
                 return 0;
             }
@@ -319,7 +319,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        protected Object compareOther(RubyModule self, Object other) {
+        Object compareOther(RubyModule self, Object other) {
             return nil;
         }
 
@@ -329,7 +329,7 @@ public abstract class ModuleNodes {
     public abstract static class AliasMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
+        RubySymbol aliasMethod(RubyModule module, Object newNameObject, Object oldNameObject,
                 @Cached ToSymbolNode toSymbolNode) {
             final var newName = toSymbolNode.execute(this, newNameObject);
             final var oldName = toSymbolNode.execute(this, oldNameObject);
@@ -392,7 +392,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray ancestors(RubyModule self) {
+        RubyArray ancestors(RubyModule self) {
             final List<RubyModule> ancestors = new ArrayList<>();
             for (RubyModule module : self.fields.ancestors()) {
                 ancestors.add(module);
@@ -406,7 +406,7 @@ public abstract class ModuleNodes {
     public abstract static class AppendFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object appendFeatures(RubyModule features, RubyModule target,
+        Object appendFeatures(RubyModule features, RubyModule target,
                 @Cached InlinedBranchProfile errorProfile) {
             if (features instanceof RubyClass) {
                 errorProfile.enter(this);
@@ -423,7 +423,7 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        protected Object reader(Frame callerFrame, RubyDynamicObject self, Object[] rubyArgs, RootCallTarget target,
+        Object reader(Frame callerFrame, RubyDynamicObject self, Object[] rubyArgs, RootCallTarget target,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
             // Or a subclass of RubyRootNode with an extra field?
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
@@ -433,7 +433,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
-        protected Object notObject(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
+        Object notObject(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target) {
             return nil;
         }
     }
@@ -442,7 +442,7 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "!isFrozenNode.execute(self)")
-        protected Object writer(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object writer(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared IsFrozenNode isFrozenNode,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
@@ -454,7 +454,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isFrozenNode.execute(self)")
-        protected Object frozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object frozen(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared IsFrozenNode isFrozenNode) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(self, this));
         }
@@ -555,7 +555,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr", rest = true, alwaysInlined = true)
     public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attr(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+        Object attr(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             final boolean setter;
             Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             if (names.length == 2 && names[1] instanceof Boolean) {
@@ -583,7 +583,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_accessor", rest = true, alwaysInlined = true)
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrAccessor(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+        Object attrAccessor(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, BOTH, target));
         }
@@ -593,7 +593,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_reader", rest = true, alwaysInlined = true)
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrReader(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+        Object attrReader(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, READER, target));
         }
@@ -603,7 +603,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_writer", rest = true, alwaysInlined = true)
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrWriter(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
+        Object attrWriter(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             Object[] names = RubyArguments.getPositionalArguments(rubyArgs);
             return createArray(generateAccessors(callerFrame, module, names, WRITER, target));
         }
@@ -614,7 +614,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
-        protected static Object autoload(RubyModule module, Object nameObject, Object filename,
+        static Object autoload(RubyModule module, Object nameObject, Object filename,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
                 @Bind("toPathNode.execute(filename)") Object filenameAsPath,
@@ -645,7 +645,7 @@ public abstract class ModuleNodes {
     public abstract static class IsAnonymousNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isAnonymous(RubyModule module) {
+        boolean isAnonymous(RubyModule module) {
             return module.fields.isAnonymous();
         }
 
@@ -656,7 +656,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected Object isAutoload(RubyModule module, Object nameObject, Object maybeInherit,
+        Object isAutoload(RubyModule module, Object nameObject, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
@@ -683,7 +683,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassEvalNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "isBlockProvided(rubyArgs)")
-        protected Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+        Object evalWithBlock(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ClassExecBlockNode classExecNode) {
             final int count = RubyArguments.getPositionalArgumentsCount(rubyArgs);
@@ -699,8 +699,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isBlockProvided(rubyArgs)")
-        protected static Object evalWithString(
-                Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
+        static Object evalWithString(Frame callerFrame, RubyModule self, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Exclusive InlinedBranchProfile wrongNumberOfArgumentsProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ToStrNode toStrNode,
@@ -785,13 +784,13 @@ public abstract class ModuleNodes {
     public abstract static class ClassExecNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block,
+        Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
             return classExecBlockNode.execute(RubyArguments.getDescriptor(frame), self, args, block);
         }
 
         @Specialization
-        protected Object noBlock(RubyModule self, Object[] args, Nil block) {
+        Object noBlock(RubyModule self, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
     }
@@ -802,7 +801,7 @@ public abstract class ModuleNodes {
         public abstract Object execute(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
+        Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
@@ -817,7 +816,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isClassVariableDefinedString(RubyModule module, Object nameObject,
+        boolean isClassVariableDefinedString(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode) {
@@ -832,7 +831,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object getClassVariable(RubyModule module, Object nameObject,
+        Object getClassVariable(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode,
@@ -856,7 +855,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setClassVariable(RubyModule module, Object nameObject, Object value,
+        Object setClassVariable(RubyModule module, Object nameObject, Object value,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached SetClassVariableNode setClassVariableNode) {
@@ -873,7 +872,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray getClassVariables(RubyModule module, Object maybeInherit,
+        RubyArray getClassVariables(RubyModule module, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
             final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final Set<Object> variables = new LinkedHashSet<>();
@@ -895,7 +894,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray constants(RubyModule module, Object maybeInherit,
+        RubyArray constants(RubyModule module, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
             final boolean inherit = booleanCastWithDefaultNode.execute(this, maybeInherit, true);
             final List<RubySymbol> constantsArray = new ArrayList<>();
@@ -924,8 +923,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isConstDefined(
-                RubyModule module, Object fullNameObject, Object inheritObject, boolean checkName,
+        boolean isConstDefined(RubyModule module, Object fullNameObject, Object inheritObject, boolean checkName,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var fullName = nameToJavaStringNode.execute(this, fullNameObject);
@@ -939,8 +937,7 @@ public abstract class ModuleNodes {
     @Primitive(name = "module_const_get")
     public abstract static class ConstGetNodePrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object getConst(
-                RubyModule module, Object nameObject, boolean inherit, boolean lookInObject, boolean checkName,
+        Object getConst(RubyModule module, Object nameObject, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached ConstGetNode constGetNode,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode) {
             var name = toStringOrSymbolNode.execute(this, nameObject);
@@ -959,7 +956,7 @@ public abstract class ModuleNodes {
         // Symbol
 
         @Specialization(guards = "inherit")
-        protected static Object getConstant(
+        static Object getConstant(
                 Node node, RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared GetConstantNode getConstantNode,
                 @Cached("create(true, false)") @Shared LookupConstantNode lookupConstantNode,
@@ -969,7 +966,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!inherit")
-        protected static Object getConstantNoInherit(
+        static Object getConstantNoInherit(
                 RubyModule module, RubySymbol name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared GetConstantNode getConstantNode) {
             return getConstantNoInherit(module, name.getString(), checkName, getConstantNode);
@@ -985,7 +982,7 @@ public abstract class ModuleNodes {
                         "!scoped",
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
-        protected static Object getConstantStringCached(
+        static Object getConstantStringCached(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared GetConstantNode getConstantNode,
@@ -1007,7 +1004,7 @@ public abstract class ModuleNodes {
                         "inherit",
                         "!isScoped(stringsName, name, byteIndexOfStringNode)" },
                 replaces = "getConstantStringCached")
-        protected static Object getConstantString(
+        static Object getConstantString(
                 Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared GetConstantNode getConstantNode,
                 @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
@@ -1024,7 +1021,7 @@ public abstract class ModuleNodes {
                         "stringsName.isRubyString(name)",
                         "!inherit",
                         "!isScoped(stringsName, name, byteIndexOfStringNode)" })
-        protected static Object getConstantNoInheritString(
+        static Object getConstantNoInheritString(
                 Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
@@ -1036,7 +1033,7 @@ public abstract class ModuleNodes {
         // Scoped String
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name, byteIndexOfStringNode)" })
-        protected static Object getConstantScoped(
+        static Object getConstantScoped(
                 RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
                 @Cached @Shared RubyStringLibrary stringsName) {
@@ -1094,7 +1091,7 @@ public abstract class ModuleNodes {
     public abstract static class ConstMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object constMissing(RubyModule module, Object nameObject,
+        Object constMissing(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
             throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, name, this));
@@ -1106,7 +1103,7 @@ public abstract class ModuleNodes {
     public abstract static class ModuleConstSourceLocationNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object constSourceLocation(RubyModule module, Object nameObject, Object maybeInherit,
+        Object constSourceLocation(RubyModule module, Object nameObject, Object maybeInherit,
                 @Cached ConstSourceLocationNode constSourceLocationNode,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached ToStringOrSymbolNode toStringOrSymbolNode) {
@@ -1124,7 +1121,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "strings.isRubyString(name)", limit = "1")
         @TruffleBoundary
-        protected static Object constSourceLocation(Node node, RubyModule module, Object name, boolean inherit,
+        static Object constSourceLocation(Node node, RubyModule module, Object name, boolean inherit,
                 @Cached(inline = false) @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
@@ -1136,7 +1133,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected static Object constSourceLocation(Node node, RubyModule module, RubySymbol name, boolean inherit,
+        static Object constSourceLocation(Node node, RubyModule module, RubySymbol name, boolean inherit,
                 @Cached(inline = false) @Shared TruffleString.FromJavaStringNode fromJavaStringNode) {
             final ConstantLookupResult lookupResult = ModuleOperations
                     .lookupConstantWithInherit(getContext(node), module, name.getString(), inherit, node, true);
@@ -1165,7 +1162,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object setConstant(RubyModule module, Object nameObject, Object value,
+        Object setConstant(RubyModule module, Object nameObject, Object value,
                 @Cached ConstSetUncheckedNode uncheckedSetNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
@@ -1188,7 +1185,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object setConstantNoCheckName(RubyModule module, String name, Object value) {
+        Object setConstantNoCheckName(RubyModule module, String name, Object value) {
             final RubyConstant previous = module.fields.setConstant(getContext(), this, name, value);
             if (previous != null && previous.hasValue()) {
                 warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
@@ -1223,7 +1220,7 @@ public abstract class ModuleNodes {
     public abstract static class DefineMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyMethod(getArgument(rubyArgs, 1))" })
-        protected RubySymbol defineMethodWithMethod(
+        RubySymbol defineMethodWithMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
@@ -1234,8 +1231,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "isMethodParameterProvided(rubyArgs)", "isRubyProc(getArgument(rubyArgs, 1))" })
-        protected RubySymbol defineMethodWithProc(
-                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        RubySymbol defineMethodWithProc(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
@@ -1246,7 +1242,7 @@ public abstract class ModuleNodes {
 
         @Specialization(
                 guards = { "isMethodParameterProvided(rubyArgs)", "isRubyUnboundMethod(getArgument(rubyArgs, 1))" })
-        protected RubySymbol defineMethodWithUnboundMethod(
+        RubySymbol defineMethodWithUnboundMethod(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
@@ -1259,7 +1255,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = {
                 "isMethodParameterProvided(rubyArgs)",
                 "!isExpectedMethodParameterType(getArgument(rubyArgs, 1))" })
-        protected RubySymbol defineMethodWithUnexpectedMethodParameterType(
+        RubySymbol defineMethodWithUnexpectedMethodParameterType(
                 Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target) {
             final Object method = RubyArguments.getArgument(rubyArgs, 1);
             throw new RaiseException(getContext(),
@@ -1267,8 +1263,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "isBlockProvided(rubyArgs)" })
-        protected RubySymbol defineMethodWithBlock(
-                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        RubySymbol defineMethodWithBlock(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.execute(this, RubyArguments.getArgument(rubyArgs, 0));
             final Object block = RubyArguments.getBlock(rubyArgs);
@@ -1278,7 +1273,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "!isMethodParameterProvided(rubyArgs)", "!isBlockProvided(rubyArgs)" })
-        protected RubySymbol defineMethodWithoutMethodAndBlock(
+        RubySymbol defineMethodWithoutMethodAndBlock(
                 Frame callerFrame, RubyModule nodule, Object[] rubyArgs, RootCallTarget target) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
@@ -1416,7 +1411,7 @@ public abstract class ModuleNodes {
     public abstract static class ExtendObjectNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule extendObject(RubyModule module, Object object,
+        RubyModule extendObject(RubyModule module, Object object,
                 @Cached SingletonClassNode singletonClassNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (module instanceof RubyClass) {
@@ -1437,7 +1432,7 @@ public abstract class ModuleNodes {
     public abstract static class ExtendedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object extended(RubyModule module, Object object) {
+        Object extended(RubyModule module, Object object) {
             return nil;
         }
 
@@ -1450,12 +1445,12 @@ public abstract class ModuleNodes {
         public abstract RubyModule executeInitialize(RubyModule module, Object block);
 
         @Specialization
-        protected RubyModule initialize(RubyModule module, Nil block) {
+        RubyModule initialize(RubyModule module, Nil block) {
             return module;
         }
 
         @Specialization
-        protected RubyModule initialize(RubyModule module, RubyProc block,
+        RubyModule initialize(RubyModule module, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
             classExecBlockNode.execute(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
             return module;
@@ -1469,7 +1464,7 @@ public abstract class ModuleNodes {
         @Child private SingletonClassNode singletonClassNode;
 
         @Specialization(guards = { "!isRubyClass(self)", "!isRubyClass(from)" })
-        protected Object initializeCopyModule(RubyModule self, RubyModule from) {
+        Object initializeCopyModule(RubyModule self, RubyModule from) {
             self.fields.initCopy(from);
 
             final RubyClass selfMetaClass = getSingletonClass(self);
@@ -1480,7 +1475,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object initializeCopyClass(RubyClass self, RubyClass from,
+        Object initializeCopyClass(RubyClass self, RubyClass from,
                 @Cached InlinedBranchProfile errorProfile) {
             if (from == coreLibrary().basicObjectClass) {
                 errorProfile.enter(this);
@@ -1518,7 +1513,7 @@ public abstract class ModuleNodes {
     public abstract static class IncludedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object included(Object subclass) {
+        Object included(Object subclass) {
             return nil;
         }
 
@@ -1529,7 +1524,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray includedModules(RubyModule module) {
+        RubyArray includedModules(RubyModule module) {
             final List<RubyModule> modules = new ArrayList<>();
 
             for (RubyModule included : module.fields.ancestors()) {
@@ -1547,7 +1542,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isMethodDefined(RubyModule module, Object nameObject, Object maybeInherit,
+        boolean isMethodDefined(RubyModule module, Object nameObject, Object maybeInherit,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
@@ -1569,7 +1564,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached @Shared InlinedBranchProfile errorProfile) {
             checkNotClass(this, module, errorProfile);
@@ -1579,7 +1574,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached @Shared InlinedBranchProfile errorProfile,
@@ -1612,7 +1607,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object name(RubyModule module) {
+        Object name(RubyModule module) {
             return module.fields.getRubyStringName();
         }
     }
@@ -1620,7 +1615,7 @@ public abstract class ModuleNodes {
     @Primitive(name = "caller_nesting")
     public abstract static class CallerNestingNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyArray nesting(
+        RubyArray nesting(
                 @Cached NestingNode nestingNode) {
             return nestingNode.execute();
         }
@@ -1633,7 +1628,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray nesting() {
+        RubyArray nesting() {
             final List<RubyModule> modules = new ArrayList<>();
 
             InternalMethod method = getContext().getCallStack().getCallingMethod();
@@ -1658,7 +1653,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#public with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
@@ -1666,7 +1661,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
@@ -1682,7 +1677,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule publicClassMethod(RubyModule module, Object[] names,
+        RubyModule publicClassMethod(RubyModule module, Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingletonClassNode singletonClassNode) {
             final RubyClass singletonClass = singletonClassNode.execute(module);
@@ -1700,7 +1695,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#private with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
@@ -1708,7 +1703,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
@@ -1724,7 +1719,7 @@ public abstract class ModuleNodes {
     public abstract static class PrependFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object prependFeatures(RubyModule features, RubyModule target,
+        Object prependFeatures(RubyModule features, RubyModule target,
                 @Cached InlinedBranchProfile errorProfile) {
             if (features instanceof RubyClass) {
                 errorProfile.enter(this);
@@ -1741,7 +1736,7 @@ public abstract class ModuleNodes {
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names,
+        RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingletonClassNode singletonClassNode) {
             final RubyClass singletonClass = singletonClassNode.execute(module);
@@ -1758,7 +1753,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicInstanceMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyUnboundMethod publicInstanceMethod(RubyModule module, Object nameObject,
+        RubyUnboundMethod publicInstanceMethod(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
@@ -1794,7 +1789,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected RubyArray getInstanceMethods(RubyModule module, Object maybeIncludeAncestors,
+        RubyArray getInstanceMethods(RubyModule module, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
             final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             Object[] objects = module.fields
@@ -1844,7 +1839,7 @@ public abstract class ModuleNodes {
         // NOTE(norswap): We considered caching the lookup here, but determined that the resulting complexity
         //   increase in LookupMethodNode wasn't worth it, as it would slow down the more common cases.
         @Specialization
-        protected boolean isMethodDefined(RubyModule module, Object nameObject, Object maybeInheritObject,
+        boolean isMethodDefined(RubyModule module, Object nameObject, Object maybeInheritObject,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedConditionProfile inheritProfile) {
@@ -1888,7 +1883,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray instanceMethods(RubyModule module, Object maybeIncludeAncestors,
+        RubyArray instanceMethods(RubyModule module, Object maybeIncludeAncestors,
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode) {
             final boolean includeAncestors = booleanCastWithDefaultNode.execute(this, maybeIncludeAncestors, true);
             Object[] objects = module.fields
@@ -1903,8 +1898,7 @@ public abstract class ModuleNodes {
     public abstract static class InstanceMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyUnboundMethod instanceMethod(
-                Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        RubyUnboundMethod instanceMethod(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
@@ -1934,7 +1928,7 @@ public abstract class ModuleNodes {
     public abstract static class PrivateConstantNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule privateConstant(RubyModule module, Object[] args,
+        RubyModule privateConstant(RubyModule module, Object[] args,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.execute(this, arg);
@@ -1948,7 +1942,7 @@ public abstract class ModuleNodes {
     public abstract static class DeprecateConstantNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule deprecateConstant(RubyModule module, Object[] args,
+        RubyModule deprecateConstant(RubyModule module, Object[] args,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.execute(this, arg);
@@ -1962,7 +1956,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicConstantNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule publicConstant(RubyModule module, Object[] args,
+        RubyModule publicConstant(RubyModule module, Object[] args,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.execute(this, arg);
@@ -1977,7 +1971,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names) {
             needCallerFrame(callerFrame, "Module#protected with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
@@ -1985,7 +1979,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "names.length > 0")
-        protected static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
+        static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
@@ -2001,7 +1995,7 @@ public abstract class ModuleNodes {
     public abstract static class RemoveClassVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object removeClassVariableString(RubyModule module, Object nameObject,
+        Object removeClassVariableString(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
@@ -2015,7 +2009,7 @@ public abstract class ModuleNodes {
     public abstract static class RemoveConstNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object removeConstant(RubyModule module, Object nameObject,
+        Object removeConstant(RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyConstant oldConstant = module.fields.removeConstant(getContext(), this, name);
@@ -2042,7 +2036,7 @@ public abstract class ModuleNodes {
         @Child private DispatchNode methodRemovedNode = DispatchNode.create();
 
         @Specialization
-        protected RubyModule removeMethods(RubyModule module, Object[] names,
+        RubyModule removeMethods(RubyModule module, Object[] names,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
                 removeMethod(module, nameToJavaStringNode.execute(this, name));
@@ -2073,7 +2067,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected RubyString toS(RubyModule module,
+        RubyString toS(RubyModule module,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String moduleName;
             if (module.fields.isRefinement()) {
@@ -2090,7 +2084,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyModule undefMethods(RubyModule module, Object[] names,
+        RubyModule undefMethods(RubyModule module, Object[] names,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
                 module.fields.undefMethod(getLanguage(), getContext(), this, nameToJavaStringNode.execute(this, name));
@@ -2131,7 +2125,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray usedModules() {
+        RubyArray usedModules() {
             final Frame frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<RubyModule> refinementNamespaces = new HashSet<>();
@@ -2150,7 +2144,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray usedRefinements() {
+        RubyArray usedRefinements() {
             final Frame frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final List<RubyModule> refinements = new ArrayList<>();
@@ -2167,7 +2161,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray refinements(RubyModule self) {
+        RubyArray refinements(RubyModule self) {
             return createArray(self.fields.getRefinements().values().toArray());
         }
 
@@ -2183,7 +2177,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!isRubyArray(name)")
-        protected static void setMethodVisibility(Node node, RubyModule module, Object name, Visibility visibility,
+        static void setMethodVisibility(Node node, RubyModule module, Object name, Visibility visibility,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String methodName = nameToJavaStringNode.execute(node, name);
 
@@ -2207,8 +2201,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected static void setMethodVisibilityArray(
-                Node node, RubyModule module, RubyArray array, Visibility visibility,
+        static void setMethodVisibilityArray(Node node, RubyModule module, RubyArray array, Visibility visibility,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : ArrayOperations.toIterable(array)) {
                 setMethodVisibility(
@@ -2227,12 +2220,12 @@ public abstract class ModuleNodes {
     public abstract static class RefineNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule refine(RubyModule self, Object moduleToRefine, Nil block) {
+        RubyModule refine(RubyModule self, Object moduleToRefine, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no block given", this));
         }
 
         @Specialization(guards = "!isRubyModule(moduleToRefine)")
-        protected RubyModule refineNotModule(RubyModule self, Object moduleToRefine, RubyProc block) {
+        RubyModule refineNotModule(RubyModule self, Object moduleToRefine, RubyProc block) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorWrongArgumentType(moduleToRefine, "Class or Module", this));
@@ -2240,7 +2233,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyModule refine(RubyModule namespace, RubyModule moduleToRefine, RubyProc block) {
+        RubyModule refine(RubyModule namespace, RubyModule moduleToRefine, RubyProc block) {
             final ConcurrentMap<RubyModule, RubyModule> refinements = namespace.fields
                     .getRefinements();
             final RubyModule refinement = ConcurrentOperations
@@ -2299,7 +2292,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
-        protected Object moduleUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+        Object moduleUsing(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached InlinedBranchProfile errorProfile) {
             needCallerFrame(callerFrame, target);
             final Object refinementModule = RubyArguments.getArgument(rubyArgs, 0);
@@ -2326,7 +2319,7 @@ public abstract class ModuleNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyModule allocate(RubyClass rubyClass) {
+        RubyModule allocate(RubyClass rubyClass) {
             return createModule(getContext(), getEncapsulatingSourceSection(), rubyClass, null, null, this);
         }
 
@@ -2336,12 +2329,12 @@ public abstract class ModuleNodes {
     public abstract static class IsSingletonClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!isRubyClass(rubyModule)")
-        protected Object doModule(RubyModule rubyModule) {
+        Object doModule(RubyModule rubyModule) {
             return false;
         }
 
         @Specialization
-        protected Object doClass(RubyClass rubyClass) {
+        Object doClass(RubyClass rubyClass) {
             return rubyClass.isSingleton;
         }
     }
@@ -2351,7 +2344,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected RubyArray undefinedInstanceMethods(RubyModule module) {
+        RubyArray undefinedInstanceMethods(RubyModule module) {
             List<RubySymbol> methodNames = new ArrayList<>();
 
             for (InternalMethod methodEntry : module.fields.getMethods()) {

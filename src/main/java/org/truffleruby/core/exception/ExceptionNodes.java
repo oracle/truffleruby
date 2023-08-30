@@ -44,7 +44,7 @@ public abstract class ExceptionNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyException allocateException(RubyClass rubyClass) {
+        RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = getLanguage().exceptionShape;
             final RubyException instance = new RubyException(rubyClass, shape, nil, null, nil);
             AllocationTracing.trace(instance, this);
@@ -56,13 +56,13 @@ public abstract class ExceptionNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyException initialize(RubyException exception, NotProvided message) {
+        RubyException initialize(RubyException exception, NotProvided message) {
             exception.message = nil;
             return exception;
         }
 
         @Specialization(guards = "wasProvided(message)")
-        protected RubyException initialize(RubyException exception, Object message) {
+        RubyException initialize(RubyException exception, Object message) {
             exception.message = message;
             return exception;
         }
@@ -73,26 +73,26 @@ public abstract class ExceptionNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "self == from")
-        protected RubyException initializeCopySelfIsSameAsFrom(RubyException self, RubyException from) {
+        RubyException initializeCopySelfIsSameAsFrom(RubyException self, RubyException from) {
             return self;
         }
 
         @Specialization(
                 guards = { "self != from", "!isNameError(from)", "!isSystemCallError(from)" })
-        protected RubyException initializeCopy(RubyException self, RubyException from) {
+        RubyException initializeCopy(RubyException self, RubyException from) {
             initializeExceptionCopy(self, from);
             return self;
         }
 
         @Specialization(guards = "self != from")
-        protected RubyException initializeSystemCallErrorCopy(RubySystemCallError self, RubySystemCallError from) {
+        RubyException initializeSystemCallErrorCopy(RubySystemCallError self, RubySystemCallError from) {
             initializeExceptionCopy(self, from);
             self.errno = from.errno;
             return self;
         }
 
         @Specialization(guards = "self != from")
-        protected RubyException initializeCopyNoMethodError(RubyNoMethodError self, RubyNoMethodError from) {
+        RubyException initializeCopyNoMethodError(RubyNoMethodError self, RubyNoMethodError from) {
             initializeExceptionCopy(self, from);
             initializeNameErrorCopy(self, from);
             self.args = from.args;
@@ -101,7 +101,7 @@ public abstract class ExceptionNodes {
 
         @Specialization(
                 guards = { "self != from", "!isNoMethodError(from)" })
-        protected RubyException initializeCopyNameError(RubyNameError self, RubyNameError from) {
+        RubyException initializeCopyNameError(RubyNameError self, RubyNameError from) {
             initializeExceptionCopy(self, from);
             initializeNameErrorCopy(self, from);
             return self;
@@ -145,7 +145,7 @@ public abstract class ExceptionNodes {
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object backtrace(RubyException exception,
+        Object backtrace(RubyException exception,
                 @Cached InlinedConditionProfile hasCustomBacktraceProfile,
                 @Cached InlinedConditionProfile hasBacktraceProfile) {
             final Object customBacktrace = exception.customBacktrace;
@@ -172,7 +172,7 @@ public abstract class ExceptionNodes {
     public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object backtraceLocations(RubyException exception,
+        Object backtraceLocations(RubyException exception,
                 @Cached InlinedConditionProfile hasBacktraceProfile,
                 @Cached InlinedConditionProfile hasLocationsProfile) {
             if (hasBacktraceProfile.profile(this, exception.backtrace != null)) {
@@ -203,18 +203,18 @@ public abstract class ExceptionNodes {
                 guards = {
                         "lookupNode.lookupProtected(frame, exception, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
                 limit = "1")
-        protected boolean backtraceQuery(VirtualFrame frame, RubyException exception,
+        boolean backtraceQuery(VirtualFrame frame, RubyException exception,
                 @Cached LookupMethodOnSelfNode lookupNode) {
             return !(exception.customBacktrace == null && exception.backtrace == null);
         }
 
         @Specialization
-        protected Object fallback(RubyException exception) {
+        Object fallback(RubyException exception) {
             return FAILURE;
         }
 
         @Specialization(guards = "!isRubyException(exception)", limit = "getInteropCacheLimit()")
-        protected boolean foreignException(Object exception,
+        boolean foreignException(Object exception,
                 @CachedLibrary("exception") InteropLibrary interopLibrary) {
             return interopLibrary.hasExceptionStackTrace(exception);
         }
@@ -224,7 +224,7 @@ public abstract class ExceptionNodes {
     public abstract static class CaptureBacktraceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object captureBacktrace(RubyException exception, int offset) {
+        Object captureBacktrace(RubyException exception, int offset) {
             exception.backtrace = getContext().getCallStack().getBacktrace(this, offset);
             return nil;
         }
@@ -235,7 +235,7 @@ public abstract class ExceptionNodes {
     public abstract static class MessagePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object message(RubyException exception) {
+        Object message(RubyException exception) {
             final Object message = exception.message;
             if (message == null) {
                 return nil;
@@ -250,7 +250,7 @@ public abstract class ExceptionNodes {
     public abstract static class MessageSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setMessage(RubyException exception, Object message) {
+        Object setMessage(RubyException exception, Object message) {
             exception.message = message;
             return nil;
         }
@@ -261,7 +261,7 @@ public abstract class ExceptionNodes {
     public abstract static class SetCustomBacktrace extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object set(RubyException exception, Object customBacktrace) {
+        Object set(RubyException exception, Object customBacktrace) {
             exception.customBacktrace = customBacktrace;
             return customBacktrace;
         }
@@ -272,7 +272,7 @@ public abstract class ExceptionNodes {
     public abstract static class FormatterPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object formatter(RubyException exception) {
+        Object formatter(RubyException exception) {
             final RubyProc formatter = exception.formatter;
             if (formatter == null) {
                 return nil;
@@ -287,7 +287,7 @@ public abstract class ExceptionNodes {
     public abstract static class CauseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object cause(RubyException exception) {
+        Object cause(RubyException exception) {
             return exception.cause;
         }
 
@@ -297,18 +297,18 @@ public abstract class ExceptionNodes {
     public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyException setCause(RubyException exception, Object cause) {
+        RubyException setCause(RubyException exception, Object cause) {
             exception.cause = cause;
             return exception;
         }
 
         @Specialization(guards = "!isRubyException(exception)")
-        protected Object foreignExceptionNoCause(Object exception, Nil cause) {
+        Object foreignExceptionNoCause(Object exception, Nil cause) {
             return exception;
         }
 
         @Specialization(guards = { "!isRubyException(exception)", "!isNil(cause)" })
-        protected Object foreignExceptionWithCause(Object exception, Object cause) {
+        Object foreignExceptionWithCause(Object exception, Object cause) {
             RubyException exc = coreExceptions().runtimeError("Cannot set the cause of a foreign exception", this);
             exc.cause = cause;
             throw new RaiseException(getContext(), exc);
@@ -321,7 +321,7 @@ public abstract class ExceptionNodes {
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization
-        protected RubySystemCallError exceptionErrnoError(RubyClass errorClass, Object message, int errno) {
+        RubySystemCallError exceptionErrnoError(RubyClass errorClass, Object message, int errno) {
             return errnoErrorNode.execute(errorClass, errno, message, null);
         }
 
@@ -334,7 +334,7 @@ public abstract class ExceptionNodes {
         @SuppressFBWarnings("DLS")
         @TruffleBoundary
         @Specialization
-        protected boolean breakpoint() {
+        boolean breakpoint() {
             // have a Ruby backtrace at hand
             String printableRubyBacktrace = BacktraceFormatter.printableRubyBacktrace(this);
             return true; // place to put a Java breakpoint
@@ -347,7 +347,7 @@ public abstract class ExceptionNodes {
     public abstract static class BacktraceLimitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int limit() {
+        int limit() {
             return getContext().getOptions().BACKTRACE_LIMIT;
         }
 
@@ -357,7 +357,7 @@ public abstract class ExceptionNodes {
     public abstract static class GetRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getRaiseException(RubyException exception) {
+        Object getRaiseException(RubyException exception) {
             RaiseException raiseException = exception.backtrace.getRaiseException();
             if (raiseException != null) {
                 return raiseException;

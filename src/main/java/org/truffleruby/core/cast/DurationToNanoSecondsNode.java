@@ -29,24 +29,24 @@ public abstract class DurationToNanoSecondsNode extends RubyBaseNode {
     public abstract long execute(Object duration);
 
     @Specialization
-    protected long noDuration(NotProvided duration) {
+    long noDuration(NotProvided duration) {
         return Long.MAX_VALUE;
     }
 
     @Specialization
-    protected long duration(long duration,
+    long duration(long duration,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
         return validate(this, TimeUnit.SECONDS.toNanos(duration), durationLessThanZeroProfile);
     }
 
     @Specialization
-    protected long duration(double duration,
+    long duration(double duration,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
         return validate(this, (long) (duration * 1e9), durationLessThanZeroProfile);
     }
 
     @Fallback
-    protected static long duration(Object duration,
+    static long duration(Object duration,
             @Cached DispatchNode durationToNanoSeconds,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile,
             @Cached ToLongNode toLongNode,

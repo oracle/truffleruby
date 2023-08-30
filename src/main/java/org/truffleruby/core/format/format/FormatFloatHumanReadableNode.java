@@ -21,13 +21,13 @@ public abstract class FormatFloatHumanReadableNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "isIntegerValue(value)")
-    protected byte[] formatInteger(double value) {
+    byte[] formatInteger(double value) {
         return StringOperations.encodeAsciiBytes(String.valueOf((long) value));
     }
 
     @TruffleBoundary
     @Specialization(guards = "!isIntegerValue(value)")
-    protected byte[] format(double value) {
+    byte[] format(double value) {
         return StringOperations.encodeAsciiBytes(String.valueOf(value));
     }
 

@@ -58,7 +58,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments, LiteralCallNode literalCallNode);
 
     @Specialization(guards = "block.callTarget == cachedCallTarget", limit = "getCacheLimit()")
-    protected Object callBlockCached(
+    Object callBlockCached(
             DeclarationContext declarationContext,
             RubyProc block,
             Object self,
@@ -78,7 +78,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "callBlockCached")
-    protected Object callBlockUncached(
+    Object callBlockUncached(
             DeclarationContext declarationContext,
             RubyProc block,
             Object self,

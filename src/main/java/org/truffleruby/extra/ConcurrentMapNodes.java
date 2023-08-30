@@ -49,7 +49,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyConcurrentMap allocate(RubyClass rubyClass) {
+        RubyConcurrentMap allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().concurrentMapShape;
             final RubyConcurrentMap instance = new RubyConcurrentMap(rubyClass, shape);
             AllocationTracing.trace(instance, this);
@@ -61,13 +61,12 @@ public abstract class ConcurrentMapNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyConcurrentMap initializeWithOptions(RubyConcurrentMap self, int initialCapacity, int loadFactor) {
+        RubyConcurrentMap initializeWithOptions(RubyConcurrentMap self, int initialCapacity, int loadFactor) {
             return initializeWithOptions(self, initialCapacity, (double) loadFactor);
         }
 
         @Specialization
-        protected RubyConcurrentMap initializeWithOptions(
-                RubyConcurrentMap self, int initialCapacity, double loadFactor) {
+        RubyConcurrentMap initializeWithOptions(RubyConcurrentMap self, int initialCapacity, double loadFactor) {
             self.allocateMap(initialCapacity, (float) loadFactor);
             return self;
         }
@@ -77,7 +76,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         @TruffleBoundary
-        protected RubyConcurrentMap initializeCopy(RubyConcurrentMap self, RubyConcurrentMap other) {
+        RubyConcurrentMap initializeCopy(RubyConcurrentMap self, RubyConcurrentMap other) {
             if (self.getMap() == null) {
                 self.allocateMap(0, 0.0f);
             }
@@ -89,7 +88,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "[]", required = 1)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object getIndex(RubyConcurrentMap self, Object key,
+        Object getIndex(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return nullToNil(get(self.getMap(), new Key(key, hashCode)));
@@ -99,7 +98,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "[]=", required = 2)
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object setIndex(RubyConcurrentMap self, Object key, Object value,
+        Object setIndex(RubyConcurrentMap self, Object key, Object value,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             put(self.getMap(), new Key(key, hashCode), value);
@@ -115,7 +114,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "compute_if_absent", required = 1, needsBlock = true)
     public abstract static class ComputeIfAbsentNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
+        Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(this, key);
@@ -130,7 +129,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "compute_if_present", required = 1, needsBlock = true)
     public abstract static class ComputeIfPresentNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
+        Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(this, key);
@@ -150,7 +149,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "compute", required = 1, needsBlock = true)
     public abstract static class ComputeNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object compute(RubyConcurrentMap self, Object key, RubyProc block,
+        Object compute(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(this, key);
@@ -170,7 +169,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "merge_pair", required = 2, needsBlock = true)
     public abstract static class MergePairNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
+        Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
                 @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(this, key);
@@ -192,7 +191,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+        boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
                 @Cached ToHashByHashCode hashNode,
                 @Cached ReferenceEqualNode equalNode,
                 @Cached InlinedConditionProfile isPrimitiveProfile) {
@@ -233,7 +232,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
         /** See {@link CompareAndSetReferenceNode} */
         @Specialization
-        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
+        boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
                 @Cached ToHashByHashCode hashNode,
                 @Cached ReferenceEqualNode equalNode,
                 @Cached InlinedConditionProfile isPrimitiveProfile) {
@@ -274,7 +273,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "replace_if_exists", required = 2)
     public abstract static class ReplaceIfExistsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object replaceIfExists(RubyConcurrentMap self, Object key, Object newValue,
+        Object replaceIfExists(RubyConcurrentMap self, Object key, Object newValue,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return nullToNil(replace(self.getMap(), new Key(key, hashCode), newValue));
@@ -289,7 +288,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "get_and_set", required = 2)
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object getAndSet(RubyConcurrentMap self, Object key, Object value,
+        Object getAndSet(RubyConcurrentMap self, Object key, Object value,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return nullToNil(put(self.getMap(), new Key(key, hashCode), value));
@@ -304,7 +303,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "key?", required = 1)
     public abstract static class KeyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean key(RubyConcurrentMap self, Object key,
+        boolean key(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return containsKey(self.getMap(), new Key(key, hashCode));
@@ -319,7 +318,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "delete", required = 1)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object delete(RubyConcurrentMap self, Object key,
+        Object delete(RubyConcurrentMap self, Object key,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return nullToNil(remove(self.getMap(), new Key(key, hashCode)));
@@ -335,7 +334,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected RubyConcurrentMap clear(RubyConcurrentMap self) {
+        RubyConcurrentMap clear(RubyConcurrentMap self) {
             self.getMap().clear();
             return self;
         }
@@ -345,7 +344,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        protected int size(RubyConcurrentMap self) {
+        int size(RubyConcurrentMap self) {
             return self.getMap().size();
         }
     }
@@ -353,7 +352,7 @@ public abstract class ConcurrentMapNodes {
     @CoreMethod(names = "get_or_default", required = 2)
     public abstract static class GetOrDefaultNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object getOrDefault(RubyConcurrentMap self, Object key, Object defaultValue,
+        Object getOrDefault(RubyConcurrentMap self, Object key, Object defaultValue,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(this, key);
             return getOrDefault(self.getMap(), new Key(key, hashCode), defaultValue);
@@ -369,7 +368,7 @@ public abstract class ConcurrentMapNodes {
     public abstract static class EachPairNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object eachPair(RubyConcurrentMap self, RubyProc block,
+        Object eachPair(RubyConcurrentMap self, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             final Iterator<Entry<Key, Object>> iterator = iterator(self.getMap());
 

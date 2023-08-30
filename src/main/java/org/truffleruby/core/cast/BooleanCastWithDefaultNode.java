@@ -27,12 +27,12 @@ public abstract class BooleanCastWithDefaultNode extends RubyBaseNode {
     public abstract boolean execute(Node node, Object value, boolean defaultValue);
 
     @Specialization
-    protected static boolean doDefault(NotProvided value, boolean defaultValue) {
+    static boolean doDefault(NotProvided value, boolean defaultValue) {
         return defaultValue;
     }
 
     @Fallback
-    protected static boolean fallback(Node node, Object value, boolean defaultValue,
+    static boolean fallback(Node node, Object value, boolean defaultValue,
             @Cached BooleanCastNode booleanCastNode) {
         return booleanCastNode.execute(node, value);
     }

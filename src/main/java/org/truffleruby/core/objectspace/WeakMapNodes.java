@@ -42,7 +42,7 @@ public abstract class WeakMapNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyWeakMap allocate(RubyClass rubyClass) {
+        RubyWeakMap allocate(RubyClass rubyClass) {
             final RubyWeakMap weakMap = new RubyWeakMap(rubyClass, getLanguage().weakMapShape, new WeakMapStorage());
             AllocationTracing.trace(weakMap, this);
             return weakMap;
@@ -53,7 +53,7 @@ public abstract class WeakMapNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int size(RubyWeakMap map) {
+        int size(RubyWeakMap map) {
             return map.storage.size();
         }
     }
@@ -62,7 +62,7 @@ public abstract class WeakMapNodes {
     public abstract static class MemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isMember(RubyWeakMap map, Object key) {
+        boolean isMember(RubyWeakMap map, Object key) {
             return map.storage.get(new CompareByRubyIdentityWrapper(key)) != null;
         }
     }
@@ -71,7 +71,7 @@ public abstract class WeakMapNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object get(RubyWeakMap map, Object key) {
+        Object get(RubyWeakMap map, Object key) {
             Object value = map.storage.get(new CompareByRubyIdentityWrapper(key));
             return value == null ? nil : value;
         }
@@ -81,7 +81,7 @@ public abstract class WeakMapNodes {
     public abstract static class SetIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object set(RubyWeakMap map, Object key, Object value) {
+        Object set(RubyWeakMap map, Object key, Object value) {
             map.storage.put(new CompareByRubyIdentityWrapper(key), value);
             return value;
         }
@@ -91,7 +91,7 @@ public abstract class WeakMapNodes {
     public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray getKeys(RubyWeakMap map) {
+        RubyArray getKeys(RubyWeakMap map) {
             return createArray(keys(map.storage));
         }
     }
@@ -100,7 +100,7 @@ public abstract class WeakMapNodes {
     public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray getValues(RubyWeakMap map) {
+        RubyArray getValues(RubyWeakMap map) {
             return createArray(values(map.storage));
         }
     }
@@ -109,12 +109,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachKeyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyWeakMap eachKey(RubyWeakMap map, Nil block) {
+        RubyWeakMap eachKey(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block,
+        RubyWeakMap eachKey(RubyWeakMap map, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             for (Object key : keys(map.storage)) {
                 yieldNode.yield(block, key);
@@ -127,12 +127,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyWeakMap eachValue(RubyWeakMap map, Nil block) {
+        RubyWeakMap eachValue(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block,
+        RubyWeakMap eachValue(RubyWeakMap map, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             for (Object value : values(map.storage)) {
                 yieldNode.yield(block, value);
@@ -145,12 +145,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyWeakMap each(RubyWeakMap map, Nil block) {
+        RubyWeakMap each(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected RubyWeakMap each(RubyWeakMap map, RubyProc block,
+        RubyWeakMap each(RubyWeakMap map, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
 
             for (SimpleEntry<?, ?> entry : entries(map.storage)) {

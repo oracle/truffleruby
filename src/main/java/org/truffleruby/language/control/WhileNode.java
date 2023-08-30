@@ -85,7 +85,7 @@ public final class WhileNode extends RubyContextSourceNode {
         }
 
         @Specialization
-        protected boolean doRepeating(VirtualFrame frame,
+        boolean doRepeating(VirtualFrame frame,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedBranchProfile redoUsed,
                 @Cached InlinedBranchProfile nextUsed) {
@@ -125,7 +125,7 @@ public final class WhileNode extends RubyContextSourceNode {
         }
 
         @Specialization
-        protected boolean doRepeating(VirtualFrame frame,
+        boolean doRepeating(VirtualFrame frame,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached InlinedBranchProfile redoUsed,
                 @Cached InlinedBranchProfile nextUsed) {

@@ -54,7 +54,7 @@ public abstract class FiberNodes {
                 ArgumentsDescriptor descriptor, Object[] args);
 
         @Specialization
-        protected static Object transfer(
+        static Object transfer(
                 Node node,
                 RubyFiber currentFiber,
                 RubyFiber toFiber,
@@ -88,7 +88,7 @@ public abstract class FiberNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyFiber allocate(RubyClass rubyClass) {
+        RubyFiber allocate(RubyClass rubyClass) {
             if (getContext().getOptions().BACKTRACE_ON_NEW_FIBER) {
                 getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("fiber: ", this);
             }
@@ -112,7 +112,7 @@ public abstract class FiberNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object initialize(RubyFiber fiber, boolean blocking, RubyProc block) {
+        Object initialize(RubyFiber fiber, boolean blocking, RubyProc block) {
             if (!getContext().getEnv().isCreateThreadAllowed()) {
                 // Because TruffleThreadBuilder#build denies it already, before the thread is even started.
                 // The permission is called allowCreateThread, so it kind of makes sense.
@@ -125,7 +125,7 @@ public abstract class FiberNodes {
         }
 
         @Specialization
-        protected Object noBlock(RubyFiber fiber, boolean blocking, Nil block) {
+        Object noBlock(RubyFiber fiber, boolean blocking, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
@@ -135,7 +135,7 @@ public abstract class FiberNodes {
     public abstract static class TransferNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] rawArgs,
+        Object transfer(VirtualFrame frame, RubyFiber toFiber, Object[] rawArgs,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached SingleValueCastNode singleValueCastNode,
                 @Cached InlinedConditionProfile sameFiberProfile,
@@ -177,7 +177,7 @@ public abstract class FiberNodes {
                 Object[] args);
 
         @Specialization
-        protected static Object resume(
+        static Object resume(
                 Node node, FiberOperation operation, RubyFiber toFiber, ArgumentsDescriptor descriptor, Object[] args,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
@@ -222,7 +222,7 @@ public abstract class FiberNodes {
     public abstract static class FiberRaiseNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object raise(RubyFiber fiber, RubyException exception,
+        Object raise(RubyFiber fiber, RubyException exception,
                 @Cached FiberResumeNode fiberResumeNode,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
@@ -258,7 +258,7 @@ public abstract class FiberNodes {
     public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object resume(VirtualFrame frame, RubyFiber fiber, Object[] rawArgs,
+        Object resume(VirtualFrame frame, RubyFiber fiber, Object[] rawArgs,
                 @Cached FiberResumeNode fiberResumeNode) {
             return fiberResumeNode.execute(this, FiberOperation.RESUME, fiber,
                     RubyArguments.getDescriptor(frame), rawArgs);
@@ -270,7 +270,7 @@ public abstract class FiberNodes {
     public abstract static class YieldNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object fiberYield(VirtualFrame frame, Object[] rawArgs,
+        Object fiberYield(VirtualFrame frame, Object[] rawArgs,
                 @Cached FiberTransferNode fiberTransferNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
@@ -294,7 +294,7 @@ public abstract class FiberNodes {
     public abstract static class AliveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean alive(RubyFiber fiber) {
+        boolean alive(RubyFiber fiber) {
             return fiber.status != FiberStatus.TERMINATED;
         }
 
@@ -304,7 +304,7 @@ public abstract class FiberNodes {
     public abstract static class CurrentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyFiber current() {
+        RubyFiber current() {
             return getLanguage().getCurrentFiber();
         }
 
@@ -313,7 +313,7 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_source_location")
     public abstract static class FiberSourceLocationNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyString sourceLocation(RubyFiber fiber,
+        RubyString sourceLocation(RubyFiber fiber,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(fromJavaStringNode, fiber.sourceLocation, Encodings.UTF_8);
         }
@@ -322,7 +322,7 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_status")
     public abstract static class FiberStatusNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyString status(RubyFiber fiber,
+        RubyString status(RubyFiber fiber,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(fromJavaStringNode, fiber.status.label, Encodings.UTF_8);
         }
@@ -331,7 +331,7 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_thread")
     public abstract static class FiberThreadNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected RubyThread thread(RubyFiber fiber) {
+        RubyThread thread(RubyFiber fiber) {
             return fiber.rubyThread;
         }
     }
@@ -340,7 +340,7 @@ public abstract class FiberNodes {
     public abstract static class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray getCatchTags() {
+        RubyArray getCatchTags() {
             final RubyFiber currentFiber = getLanguage().getCurrentFiber();
             return currentFiber.catchTags;
         }
@@ -351,7 +351,7 @@ public abstract class FiberNodes {
     public abstract static class IsBlockingInstanceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isBlocking(RubyFiber fiber) {
+        boolean isBlocking(RubyFiber fiber) {
             return fiber.blocking;
         }
 
@@ -361,7 +361,7 @@ public abstract class FiberNodes {
     public abstract static class IsBlockingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object isBlocking() {
+        Object isBlocking() {
             RubyFiber currentFiber = getLanguage().getCurrentFiber();
             if (currentFiber.blocking) {
                 return 1;
@@ -375,7 +375,7 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_c_global_variables")
     public abstract static class FiberCGlobalVariablesNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        protected Object cGlobalVariables() {
+        Object cGlobalVariables() {
             RubyFiber currentFiber = getLanguage().getCurrentFiber();
             var cGlobalVariablesDuringInitFunction = currentFiber.cGlobalVariablesDuringInitFunction;
             if (cGlobalVariablesDuringInitFunction == null) {

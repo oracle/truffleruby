@@ -42,14 +42,14 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 
     @ReportPolymorphism.Exclude
     @Specialization(guards = { "length == 0", "start <= dst.size" })
-    protected Object noChange(RubyArray dst, RubyArray src, int start, int length) {
+    Object noChange(RubyArray dst, RubyArray src, int start, int length) {
         return dst.getStore();
     }
 
     @Specialization(
             guards = "start > dst.size",
             limit = "storageStrategyLimit()")
-    protected Object nilPad(RubyArray dst, RubyArray src, int start, int length,
+    Object nilPad(RubyArray dst, RubyArray src, int start, int length,
             @Bind("dst.getStore()") Object dstStore,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {
 
@@ -65,7 +65,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
     @Specialization(
             guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
-    protected Object resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
+    Object resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
             @Bind("dst.getStore()") Object dstStore,
             @Bind("src.getStore()") Object srcStore,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
@@ -82,7 +82,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
     @Specialization(
             guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dstStore, srcStore)" },
             limit = "storageStrategyLimit()")
-    protected Object resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
+    Object resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
             @Bind("dst.getStore()") Object dstStore,
             @Bind("src.getStore()") Object srcStore,
             @CachedLibrary("dstStore") ArrayStoreLibrary dstStores) {

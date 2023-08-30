@@ -135,14 +135,14 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
     @ExportMessage
     public static final class AsString {
         @Specialization(guards = "symbol == cachedSymbol", limit = "1")
-        protected static String asStringCached(RubySymbol symbol,
+        static String asStringCached(RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("cachedSymbol.getString()") String cachedString) {
             return cachedString;
         }
 
         @Specialization(replaces = "asStringCached")
-        protected static String asStringUncached(RubySymbol symbol) {
+        static String asStringUncached(RubySymbol symbol) {
             return symbol.getString();
         }
     }
