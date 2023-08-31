@@ -297,13 +297,11 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
             launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>'],
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
-            # Set Xmx to use a reliable amount of memory and avoid swapping
             build_args=[
-                '-J-Xmx6g',
                 '-H:+DetectUserDirectoriesInImageHeap',
             ],
             # G1 is only supported on linux currently
-            build_args_enterprise=(['-J-Xmx8g', '--gc=G1', '-H:-ProtectionKeys'] if (mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ) else ['-J-Xmx7g']),
+            build_args_enterprise=(['--gc=G1', '-H:-ProtectionKeys'] if (mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ) else []),
             language='ruby',
             option_vars=[
                 'RUBYOPT',
