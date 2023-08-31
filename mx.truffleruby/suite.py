@@ -207,20 +207,6 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
-        "org.truffleruby.services": {
-            "dir": "src/services",
-            "sourceDirs": ["java"],
-            "requires": ["java.scripting"],
-            "dependencies": [
-                "sdk:POLYGLOT",
-            ],
-            "jacoco": "include",
-            "javaCompliance": "17+",
-            "checkstyle": "org.truffleruby",
-            "workingSets": "TruffleRuby",
-            "license": ["EPL-2.0"],
-        },
-
         "org.truffleruby.rubysignal": {
             "dir": "src/main/c/rubysignal",
             "native": "shared_lib",
