@@ -164,7 +164,7 @@ suite = {
             "requires": ["java.management"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
-                "sdk:GRAAL_SDK",
+                "sdk:POLYGLOT",
             ],
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
@@ -212,7 +212,7 @@ suite = {
             "sourceDirs": ["java"],
             "requires": ["java.scripting"],
             "dependencies": [
-                "sdk:GRAAL_SDK",
+                "sdk:POLYGLOT",
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
@@ -325,7 +325,7 @@ suite = {
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "sdk:GRAAL_SDK",
+                "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
             ],
             "jacoco": "include",
@@ -468,7 +468,7 @@ suite = {
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
-                "sdk:GRAAL_SDK",
+                "sdk:POLYGLOT",
             ],
             "description": "TruffleRuby Shared constants and predicates",
             "license": ["EPL-2.0"],
@@ -578,7 +578,7 @@ suite = {
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "sdk:GRAAL_SDK",
+                "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
             ],
             "description": "TruffleRuby Launcher",
