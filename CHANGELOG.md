@@ -13,6 +13,7 @@ Bug fixes:
 * Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
 * Fix `Module#define_method(name, Method)` to respect `module_function` visibility (#3181, @andrykonchin).
 * Fix stack overflow with `Kernel.require` and `zeitwerk` (#3224, @eregon).
+* Reimplement `IO.select` with `poll(2)` to support file descriptors >= 1024 (#3201, @eregon).
 
 Compatibility:
 

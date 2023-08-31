@@ -407,6 +407,12 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.poll.POLLIN", 1);
         configuration.config("platform.poll.POLLPRI", 2);
         configuration.config("platform.poll.POLLOUT", 4);
+        configuration.config("platform.poll.POLLERR", 8);
+        configuration.config("platform.poll.POLLHUP", 16);
+        configuration.config("platform.poll.POLLRDNORM", 64);
+        configuration.config("platform.poll.POLLRDBAND", 128);
+        configuration.config("platform.poll.POLLWRNORM", 4);
+        configuration.config("platform.poll.POLLWRBAND", 256);
         configuration.config("platform.socket.AF_APPLETALK", 16);
         configuration.config("platform.socket.PF_APPLETALK", 16);
         configuration.config("platform.socket.AF_INET", 2);

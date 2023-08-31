@@ -735,10 +735,8 @@ class IO
 
       raise ArgumentError, 'timeout must be positive' if timeout < 0
 
-      # Microseconds, rounded down
-      timeout = remaining_timeout = Integer(timeout * 1_000_000)
-    else
-      remaining_timeout = -1
+      # Milliseconds, rounded down
+      timeout = Integer(timeout * 1_000)
     end
 
     if readables
@@ -782,7 +780,7 @@ class IO
         readables, readable_ios,
         writables, writable_ios,
         errorables, errorable_ios,
-        timeout, remaining_timeout)
+        timeout)
   end
 
   ##
