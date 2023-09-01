@@ -640,7 +640,7 @@ end
 constants 'poll' do |cg|
   cg.include 'poll.h'
   cg.consts %w[
-    POLLIN POLLPRI POLLOUT
+    POLLIN POLLPRI POLLOUT POLLERR POLLHUP POLLRDNORM POLLRDBAND POLLWRNORM POLLWRBAND
   ]
 end
 
