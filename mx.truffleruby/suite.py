@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "6.42.0",
+    "mxversion": "6.44.0",
     "name": "truffleruby",
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "35af5451667d3218084534a1e18d0d8ff60d77d0",
+                "version": "c7b74b26710bd79d5175aff9d564cc11e644d967",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "35af5451667d3218084534a1e18d0d8ff60d77d0",
+                "version": "c7b74b26710bd79d5175aff9d564cc11e644d967",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -610,6 +610,7 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
             ],
+            "compress": True,
             "maven": {
                 "artifactId": "ruby-resources",
                 "tag": ["default", "public"],
