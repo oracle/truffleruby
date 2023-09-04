@@ -1087,16 +1087,15 @@ module Commands
       # The problem happens if one thread is calling execve() and the other about the same time is calling pthread_create().
       # In such case, pthread_create() can return EAGAIN "just because there is a concurrent execve()".
       # See https://bugs.openjdk.org/browse/JDK-8268605?focusedCommentId=14473665#comment-14473665
-      # To solve this we move VM warnings to stderr instead of stdout to avoid breaking specs, and logging should be on stderr anyway.
-      # '--vm.Xlog:os+thread=off' '--vm.Xlog:gc+task=off' would also be a possibility, but unfortunately
-      # these flags don't seem to combine with moving all warnings to stderr so we have to pick one approach.
+      # To ignore those warnings we use '--vm.Xlog:os+thread=off,gc+task=off'.
+      # --vm.Xlog:all=warning:stderr could be nice but for some reason that can end up causing a warning on stderr AND stdout, which fails specs.
       # Example warnings:
       # JVM:
       # [11.028s][warning][os,thread] Failed to start thread - pthread_create failed (EAGAIN) for attributes: stacksize: 2048k, guardsize: 0k, detached.
       # SVM with G1:
       # [0.094s][warning][os,thread] Failed to start thread "GC Thread#1" - pthread_create failed (EAGAIN) for attributes: stacksize: 1024k, guardsize: 4k, detached.
       # [0.094s][error  ][gc,task  ] GC(0) Failed to create worker thread
-      vm_args << '--vm.Xlog:all=warning:stderr'
+      vm_args << '--vm.Xlog:os+thread=off,gc+task=off'
     end
 
     [vm_args, ruby_args + args, options]
