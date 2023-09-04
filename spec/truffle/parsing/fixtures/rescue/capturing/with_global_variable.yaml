@@ -67,11 +67,6 @@ ast: |
                                                                   attributes:
                                                                       index = -1
                                                                       name = "$error"
-                                                          valueNode_ =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitGlobalVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

@@ -518,8 +518,18 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rhs = translateNodeOrDeadNode(node.value, "YARPTranslator#visitClassVariableWriteNode");
         final RubyNode rubyNode = new WriteClassVariableNode(
                 getLexicalScopeNode("set dynamic class variable", node),
-                toString(node.name_loc),
+                toString(node.name),
                 rhs);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
+    public RubyNode visitClassVariableTargetNode(Nodes.ClassVariableTargetNode node) {
+        final RubyNode rubyNode = new WriteClassVariableNode(
+                getLexicalScopeNode("set dynamic class variable", node),
+                toString(node.name),
+                null);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -547,8 +557,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
         final Nodes.ConstantPathNode constantPathNode = node.target;
-        final RubyNode moduleNode;
 
+        final RubyNode moduleNode;
         if (constantPathNode.parent != null) {
             // FOO::BAR = 1
             moduleNode = constantPathNode.parent.accept(this);
@@ -560,6 +570,23 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final String name = toString(constantPathNode.child);
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
         final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
+    public RubyNode visitConstantPathTargetNode(Nodes.ConstantPathTargetNode node) {
+        final RubyNode moduleNode;
+        if (node.parent != null) {
+            // FOO::BAR = 1
+            moduleNode = node.parent.accept(this);
+        } else {
+            // ::FOO = 1
+            moduleNode = new ObjectClassLiteralNode();
+        }
+
+        final String name = toString(node.child);
+        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, null);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -588,25 +615,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
         final String name = toString(node.name_loc);
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantWriteNode");
-        final RubyNode moduleNode;
-
-        if (environment.isDynamicConstantLookup()) {
-            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> "set dynamic constant at " +
-                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
-            }
-
-            moduleNode = new DynamicLexicalScopeNode();
-        } else {
-            moduleNode = new LexicalScopeNode(environment.getStaticLexicalScope());
-        }
-
+        final RubyNode moduleNode = getLexicalScopeModuleNode("set dynamic constant", node);
         final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    public RubyNode visitConstantTargetNode(Nodes.ConstantTargetNode node) {
+        final String name = toString(node);
+        final RubyNode moduleNode = getLexicalScopeModuleNode("set dynamic constant", node);
+        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, null);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
 
     public RubyNode visitDefNode(Nodes.DefNode node) {
         return defaultVisit(node);
@@ -708,9 +731,17 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitGlobalVariableWriteNode(Nodes.GlobalVariableWriteNode node) {
-        final String name = toString(node.name_loc);
+        final String name = toString(node.name);
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitGlobalVariableWriteNode");
         final RubyNode rubyNode = WriteGlobalVariableNodeGen.create(name, value);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
+    public RubyNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
+        final String name = toString(node.name);
+        final RubyNode rubyNode = WriteGlobalVariableNodeGen.create(name, null);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -825,9 +856,17 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitInstanceVariableWriteNode(Nodes.InstanceVariableWriteNode node) {
-        final String name = toString(node.name_loc);
+        final String name = toString(node.name);
         final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitInstanceVariableWriteNode");
         final RubyNode rubyNode = WriteInstanceVariableNodeGen.create(name, value);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
+    public RubyNode visitInstanceVariableTargetNode(Nodes.InstanceVariableTargetNode node) {
+        final String name = toString(node.name);
+        final RubyNode rubyNode = WriteInstanceVariableNodeGen.create(name, null);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -943,7 +982,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
-        final String name = toString(node.name_loc);
+        final String name = toString(node.name);
 
         if (environment.getNeverAssignInParentScope()) {
             environment.declareVar(name);
@@ -971,6 +1010,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    public RubyNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
+        // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
+        return visitLocalVariableWriteNode(
+                new Nodes.LocalVariableWriteNode(node.name, node.depth, null, null, null, node.startOffset,
+                        node.length));
     }
 
     public RubyNode visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
@@ -1645,6 +1691,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.TrueNode ||
                 node instanceof Nodes.FalseNode ||
                 node instanceof Nodes.NilNode;
+    }
+
+    private String toString(byte[] bytes) {
+        return TStringUtils.toJavaStringOrThrow(
+                TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     private String toString(Nodes.Location location) {

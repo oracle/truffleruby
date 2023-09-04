@@ -70,11 +70,6 @@ ast: |
                                                                       object =  :: Object
                                                           resolveTargetModuleNode =
                                                               ResolveTargetModuleForClassVariablesNodeGen
-                                                          rhs =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitClassVariableWriteNode"
                                                           setClassVariableNode =
                                                               SetClassVariableNodeGen
                                       IntegerFixnumLiteralNode

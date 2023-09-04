@@ -67,11 +67,6 @@ ast: |
                                                               ObjectClassLiteralNode
                                                                   attributes:
                                                                       flags = 0
-                                                          valueNode =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitConstantPathWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

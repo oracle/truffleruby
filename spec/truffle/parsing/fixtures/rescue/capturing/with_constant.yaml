@@ -68,11 +68,6 @@ ast: |
                                                                   attributes:
                                                                       flags = 0
                                                                       lexicalScope =  :: Object
-                                                          valueNode =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitConstantWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
