@@ -515,7 +515,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitClassVariableWriteNode(Nodes.ClassVariableWriteNode node) {
-        final RubyNode rhs = translateNodeOrDeadNode(node.value, "YARPTranslator#visitClassVariableWriteNode");
+        final RubyNode rhs = node.value.accept(this);
         final RubyNode rubyNode = new WriteClassVariableNode(
                 getLexicalScopeNode("set dynamic class variable", node),
                 toString(node.name),
@@ -568,7 +568,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final String name = toString(constantPathNode.child);
-        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantPathWriteNode");
+        final RubyNode value = node.value.accept(this);
         final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
 
         assignNodePositionInSource(node, rubyNode);
@@ -614,7 +614,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
         final String name = toString(node.name_loc);
-        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitConstantWriteNode");
+        final RubyNode value = node.value.accept(this);
         final RubyNode moduleNode = getLexicalScopeModuleNode("set dynamic constant", node);
         final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
 
@@ -732,7 +732,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitGlobalVariableWriteNode(Nodes.GlobalVariableWriteNode node) {
         final String name = toString(node.name);
-        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitGlobalVariableWriteNode");
+        final RubyNode value = node.value.accept(this);
         final RubyNode rubyNode = WriteGlobalVariableNodeGen.create(name, value);
 
         assignNodePositionInSource(node, rubyNode);
@@ -857,7 +857,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitInstanceVariableWriteNode(Nodes.InstanceVariableWriteNode node) {
         final String name = toString(node.name);
-        final RubyNode value = translateNodeOrDeadNode(node.value, "YARPTranslator#visitInstanceVariableWriteNode");
+        final RubyNode value = node.value.accept(this);
         final RubyNode rubyNode = WriteInstanceVariableNodeGen.create(name, value);
 
         assignNodePositionInSource(node, rubyNode);
@@ -1005,6 +1005,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             }
         }
 
+        // TODO simplify once visitLocalVariableTargetNode does not reuse this method
         final RubyNode rhs = translateNodeOrDeadNode(node.value, "YARPTranslator#visitLocalVariableWriteNode");
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
