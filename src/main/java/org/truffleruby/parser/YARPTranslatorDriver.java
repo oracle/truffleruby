@@ -79,6 +79,7 @@ import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
@@ -164,6 +165,12 @@ public final class YARPTranslatorDriver {
         if (language.options.FROZEN_STRING_LITERALS) {
             parserConfiguration.setFrozenStringLiteral(true);
         }
+
+        RubyLexer.parseMagicComment(rubySource.getTStringWithEncoding(), (name, value) -> {
+            if (RubyLexer.isMagicTruffleRubyPrimitivesComment(name)) {
+                parserConfiguration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
+            }
+        });
 
         // Parse to the YARP AST
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,13 +11,17 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
+import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayAppendOneNodeGen;
+import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.cast.HashCastNodeGen;
@@ -31,17 +35,21 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
+import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
 import org.truffleruby.core.string.FrozenStrings;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
+import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -51,6 +59,7 @@ import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
 import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.NextNode;
@@ -86,6 +95,9 @@ import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectClassLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.language.literal.StringLiteralNode;
+import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes;
+import org.truffleruby.language.locals.FlipFlopNodeGen;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
@@ -426,7 +438,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCallNode(Nodes.CallNode node) {
-        var methodName = TStringUtils.toJavaStringOrThrow(node.name, sourceEncoding);
+        var methodName = toString(node.name);
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
         final Nodes.Node[] arguments;
 
@@ -444,15 +456,58 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
         final boolean isVariableCall = node.isVariableCall();
-        final boolean isAttrAssign = methodName.endsWith("="); // TODO: what about `[]=`?
+        final boolean isAttrAssign = methodName.endsWith("=");
         final boolean isSafeNavigation = node.isSafeNavigation();
 
-        var rubyCallNode = new RubyCallNode(new RubyCallNodeParameters(receiver, methodName, null,
-                EmptyArgumentsDescriptor.INSTANCE, translatedArguments, false, ignoreVisibility, isVariableCall, isSafeNavigation,
-                isAttrAssign));
+        // TODO (pitr-ch 02-Dec-2019): replace with a primitive
+        if (environment.getParseEnvironment().inCore() && isVariableCall && methodName.equals("undefined")) {
+            // translate undefined
+            final RubyNode rubyNode = new ObjectLiteralNode(NotProvided.INSTANCE);
+            assignNodePositionInSource(node, rubyNode);
+            return rubyNode;
+        }
 
-        assignNodePositionInSource(node, rubyCallNode);
-        return rubyCallNode;
+        if (node.receiver instanceof Nodes.StringNode stringNode &&
+                (methodName.equals("freeze") || methodName.equals("-@") || methodName.equals("dedup"))) {
+            final TruffleString tstring = TStringUtils.fromByteArray(stringNode.unescaped, sourceEncoding);
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, sourceEncoding);
+            final RubyNode rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.METHOD);
+
+            assignNodePositionInSource(node, rubyNode);
+            return rubyNode;
+        }
+
+        // Translates something that looks like
+        //   Primitive.foo arg1, arg2, argN
+        // into
+        //   InvokePrimitiveNode(FooNode(arg1, arg2, ..., argN))
+        if (environment.getParseEnvironment().canUsePrimitives() &&
+                node.receiver instanceof Nodes.ConstantReadNode constantReadNode &&
+                toString(constantReadNode).equals("Primitive")) {
+
+            final PrimitiveNodeConstructor constructor = language.primitiveManager.getPrimitive(methodName);
+            // TODO: avoid SourceIndexLength
+            final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
+            final RubyNode rubyNode = constructor.createInvokePrimitiveNode(source, sourceSection, translatedArguments);
+
+            return rubyNode;
+        }
+
+        final var callNodeParameters = new RubyCallNodeParameters(
+                receiver,
+                methodName,
+                null,
+                EmptyArgumentsDescriptor.INSTANCE,
+                translatedArguments,
+                false,
+                ignoreVisibility,
+                isVariableCall,
+                isSafeNavigation,
+                isAttrAssign);
+        final RubyNode rubyNode = language.coreMethodAssumptions.createCallNode(callNodeParameters);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
@@ -464,7 +519,128 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCaseNode(Nodes.CaseNode node) {
-        return defaultVisit(node);
+        // There are two sorts of case
+        // - one compares a list of expressions against a value,
+        // - the other just checks a list of expressions for truth.
+
+        final RubyNode rubyNode;
+        RubyNode elseNode = translateNodeOrNil(node.consequent);
+
+        if (node.predicate != null) {
+            // Evaluate the case expression and store it in a local
+            final int tempSlot = environment.declareLocalTemp("case");
+            final ReadLocalNode readTemp = environment.readNode(tempSlot, null);
+            final RubyNode assignTemp = readTemp.makeWriteNode(node.predicate.accept(this));
+
+            // Build an if expression from `when` and `else` branches.
+            // Work backwards to make the first if contain all the others in its `else` clause.
+            final Nodes.Node[] conditions = node.conditions;
+
+            for (int n = conditions.length - 1; n >= 0; n--) {
+                // condition is either WhenNode or InNode
+                // don't handle InNode for now
+                assert conditions[n] instanceof Nodes.WhenNode;
+
+                final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
+                final Nodes.Node[] whenConditions = when.conditions;
+
+                boolean containSplatOperator = false;
+                for (Nodes.Node value : whenConditions) {
+                    if (value instanceof Nodes.SplatNode) {
+                        containSplatOperator = true;
+                    }
+                }
+
+                if (containSplatOperator) {
+                    final RubyNode receiver = new TruffleInternalModuleLiteralNode();
+                    final RubyNode whenConditionNode = translateExpressionsList(whenConditions);
+                    final RubyNode[] arguments = new RubyNode[]{ whenConditionNode, NodeUtil.cloneNode(readTemp) };
+                    final RubyNode predicateNode = createCallNode(receiver, "when_splat", arguments);
+
+                    // create `if` node
+                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                    // this `if` becomes `else` branch of the outer `if`
+                    elseNode = ifNode;
+                } else {
+                    // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
+                    for (int k = whenConditions.length - 1; k >= 0; k--) {
+                        final var whenCondition = whenConditions[k];
+                        final RubyNode receiver = whenCondition.accept(this);
+                        final RubyNode[] arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
+                        final RubyNode predicateNode = createCallNode(receiver, "===", arguments);
+
+                        // create `if` node
+                        final RubyNode thenNode = translateNodeOrNil(when.statements);
+                        final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                        // this `if` becomes `else` branch of the outer `if`
+                        elseNode = ifNode;
+                    }
+                }
+            }
+
+            final RubyNode ifNode = elseNode;
+
+            // A top-level block assigns the temp then runs the `if`
+            rubyNode = sequence(Arrays.asList(assignTemp, ifNode));
+        } else {
+            // Build an if expression from `when` and `else` branches.
+            // Work backwards to make the first if contain all the others in its `else` clause.
+
+            final Nodes.Node[] conditions = node.conditions;
+
+            for (int n = node.conditions.length - 1; n >= 0; n--) {
+                // condition is either WhenNode or InNode
+                // don't handle InNode for now
+                assert conditions[n] instanceof Nodes.WhenNode;
+
+                final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
+                final Nodes.Node[] whenConditions = when.conditions;
+
+                boolean containSplatOperator = false;
+                for (Nodes.Node value : whenConditions) {
+                    if (value instanceof Nodes.SplatNode) {
+                        containSplatOperator = true;
+                    }
+                }
+
+                if (!containSplatOperator) {
+                    for (int k = whenConditions.length - 1; k >= 0; k--) {
+                        final var whenCondition = whenConditions[k];
+
+                        // create `if` node
+                        final RubyNode predicateNode = whenCondition.accept(this);
+                        // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
+                        final RubyNode thenNode = translateNodeOrNil(when.statements);
+                        final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                        // this `if` becomes `else` branch of the outer `if`
+                        elseNode = ifNode;
+                    }
+                } else {
+                    // NOTE: ArrayConcatNode/ArrayAppendOneNodeGen nodes become if-node's condition
+                    //       I don't understand why it works correctly - ArrayConcatNode as a condition in `if` should be truthy always
+
+                    // create `if` node
+                    final RubyNode predicateNode = translateExpressionsList(whenConditions);
+                    // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
+                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                    // this `if` becomes `else` branch of the outer `if`
+                    elseNode = ifNode;
+                }
+
+
+            }
+
+            rubyNode = elseNode;
+        }
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitClassNode(Nodes.ClassNode node) {
@@ -522,6 +698,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
+        // The child field should always be ConstantReadNode if there are no syntax errors.
+        // MissingNode could be assigned as well as an error recovery means,
+        // but we don't handle this case as far as it means there is a syntax error and translation is skipped at all.
         assert node.child instanceof Nodes.ConstantReadNode;
 
         final String name = ((Nodes.ConstantReadNode) node.child).name;
@@ -676,6 +855,18 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitFindPatternNode(Nodes.FindPatternNode node) {
         return defaultVisit(node);
+    }
+
+    public RubyNode visitFlipFlopNode(Nodes.FlipFlopNode node) {
+        final RubyNode begin = node.left.accept(this);
+        final RubyNode end = node.right.accept(this);
+
+        final FindDeclarationVariableNodes.FrameSlotAndDepth slotAndDepth = createFlipFlopState(0);
+        final RubyNode rubyNode = FlipFlopNodeGen.create(begin, end, node.isExcludeEnd(), slotAndDepth.depth,
+                slotAndDepth.slot);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitFloatNode(Nodes.FloatNode node) {
@@ -870,7 +1061,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else if (string.startsWith("0o") || string.startsWith("0O")) {
             radix = 8;
             offset = 2;
-        } else if (string.startsWith("0")) {
+        } else if (string.startsWith("0") && string.length() > 1) {
+            // check length to distinguish `0` from octal literal `0...`
             radix = 8;
             offset = 1;
         } else {
@@ -1285,17 +1477,20 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitUntilNode(Nodes.UntilNode node) {
-        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true, !node.isBeginModifier());
+        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true,
+                !node.isBeginModifier());
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    // handled in #visitCaseNode method
     public RubyNode visitWhenNode(Nodes.WhenNode node) {
         return defaultVisit(node);
     }
 
     public RubyNode visitWhileNode(Nodes.WhileNode node) {
-        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, false, !node.isBeginModifier());
+        final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, false,
+                !node.isBeginModifier());
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
@@ -1317,6 +1512,132 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
         throw new Error("Unknown node: " + node);
+    }
+
+    protected FindDeclarationVariableNodes.FrameSlotAndDepth createFlipFlopState(int depth) {
+        final int frameSlot = environment.declareLocalTemp("flipflop");
+        environment.getFlipFlopStates().add(frameSlot);
+
+        if (depth == 0) {
+            return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, 0);
+        } else {
+            return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, depth);
+        }
+    }
+
+    private RubyNode translateExpressionsList(Nodes.Node[] nodes) {
+        assert nodes != null;
+        assert nodes.length > 0;
+
+        // fast path (no SplatNode)
+        boolean isSplatNodePresent = false;
+        for (var n : nodes) {
+            if (n instanceof Nodes.SplatNode) {
+                isSplatNodePresent = true;
+                break;
+            }
+        }
+
+        if (!isSplatNodePresent) {
+            RubyNode[] rubyNodes = new RubyNode[nodes.length];
+
+            for (int i = 0; i < nodes.length; i++) {
+                rubyNodes[i] = nodes[i].accept(this);
+            }
+
+            return ArrayLiteralNode.create(language, rubyNodes);
+        }
+
+        // long path (SplatNode is present)
+        ArrayList<ArrayList<Nodes.Node>> groups = new ArrayList<>();
+        ArrayList<Nodes.Node> current = new ArrayList<>();
+
+        for (Nodes.Node node : nodes) {
+            if (node instanceof Nodes.SplatNode) {
+                if (!current.isEmpty()) {
+                    groups.add(current);
+                    current = new ArrayList<>();
+                }
+
+                ArrayList<Nodes.Node> single = new ArrayList<>();
+                single.add(node);
+                groups.add(single);
+            } else {
+                current.add(node);
+            }
+        }
+
+        if (!current.isEmpty()) {
+            groups.add(current);
+        }
+
+        final RubyNode rubyNode;
+        final ArrayList<Nodes.Node> lastGroup = groups.get(groups.size() - 1);
+        final boolean singleElementInTail = groups.size() > 1 && lastGroup.size() == 1 &&
+                !(lastGroup.get(0) instanceof Nodes.SplatNode);
+
+        if (!singleElementInTail) {
+            var arraysToConcat = new RubyNode[groups.size()];
+            int i = 0;
+
+            for (var group : groups) {
+                if (group.size() == 1 && group.get(0) instanceof Nodes.SplatNode splatNode) {
+                    arraysToConcat[i++] = splatNode.accept(this);
+                } else {
+                    RubyNode[] rubyNodes = new RubyNode[group.size()];
+                    int j = 0;
+                    for (var e : group) {
+                        rubyNodes[j++] = e.accept(this);
+                    }
+
+                    final RubyNode arrayLiteralNode = ArrayLiteralNode.create(language, rubyNodes);
+                    arraysToConcat[i++] = arrayLiteralNode;
+                }
+            }
+
+            if (arraysToConcat.length == 1) {
+                rubyNode = arraysToConcat[0];
+            } else {
+                rubyNode = new ArrayConcatNode(arraysToConcat);
+            }
+        } else {
+            var arraysToConcat = new RubyNode[groups.size() - 1];
+
+            // TODO: don't duplicate this code chunk
+            //       the only difference here - we ignore the last groups' element
+            for (int i = 0; i < groups.size() - 1; i++) {
+                var group = groups.get(i);
+
+                if (group.size() == 1 && group.get(0) instanceof Nodes.SplatNode splatNode) {
+                    arraysToConcat[i] = splatNode.accept(this);
+                } else {
+                    RubyNode[] rubyNodes = new RubyNode[group.size()];
+                    int j = 0;
+                    for (var e : group) {
+                        rubyNodes[j++] = e.accept(this);
+                    }
+
+                    final RubyNode arrayLiteralNode = ArrayLiteralNode.create(language, rubyNodes);
+                    arraysToConcat[i] = arrayLiteralNode;
+                }
+            }
+
+            final RubyNode arrayToAppendTo;
+            if (arraysToConcat.length == 1) {
+                arrayToAppendTo = arraysToConcat[0];
+            } else {
+                arrayToAppendTo = new ArrayConcatNode(arraysToConcat);
+            }
+
+            final RubyNode value = groups.get(groups.size() - 1).get(0).accept(this);
+
+            // NOTE: actually ArrayAppendOneNodeGen seems wierd here - why not just simple Array with 1 element?
+            rubyNode = ArrayAppendOneNodeGen.create(
+                    KernelNodesFactory.DupASTNodeFactory.create(arrayToAppendTo), // TODO: duplication is not needed
+                    value);
+        }
+
+        return rubyNode;
     }
 
     private RubyNode getLexicalScopeNode(String kind, Nodes.Node yarpNode) {
@@ -1541,15 +1862,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return values[0].accept(this);
         }
 
-        final RubyNode[] translatedValues = createArray(values.length);
+        final RubyNode rubyNode = translateExpressionsList(values);
 
-        for (int n = 0; n < values.length; n++) {
-            translatedValues[n] = values[n].accept(this);
-        }
-
-        final RubyNode rubyNode = ArrayLiteralNode.create(language, translatedValues);
         assignNodePositionInSource(node, rubyNode);
-
         return rubyNode;
     }
 
@@ -1642,7 +1957,12 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.NilNode;
     }
 
-    private String toString(Nodes.Node node) {
+    private String toString(byte[] bytes) {
+        return TStringUtils.toJavaStringOrThrow(
+                TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false), sourceEncoding);
+    }
+
+    protected String toString(Nodes.Node node) {
         return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset,
                 node.length, sourceEncoding.tencoding, false), sourceEncoding);
     }

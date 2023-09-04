@@ -1396,6 +1396,10 @@ public final class RubyLexer implements MagicCommentHandler {
         return "coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name);
     }
 
+    public static boolean isMagicTruffleRubyPrimitivesComment(String name) {
+        return "truffleruby_primitives".equalsIgnoreCase(name);
+    }
+
     private int at() {
         newtok(true);
         int c = nextc();
