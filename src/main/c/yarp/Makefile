@@ -44,6 +44,7 @@ build/static/%.o: src/%.c Makefile $(HEADERS)
 
 build/fuzz.%: $(SOURCES) fuzz/%.c fuzz/fuzz.c
 	$(ECHO) "building $* fuzzer"
+	$(Q) mkdir -p $(@D)
 	$(ECHO) "building main fuzz binary"
 	$(Q) AFL_HARDEN=1 afl-clang-lto $(DEBUG_FLAGS) $(CPPFLAGS) $(CFLAGS) $(FUZZ_FLAGS) -O0 -fsanitize-ignorelist=fuzz/asan.ignore -fsanitize=fuzzer,address -ggdb3 -std=c99 -Iinclude -o $@ $^
 	$(ECHO) "building cmplog binary"
@@ -70,10 +71,13 @@ fuzz-run-%: FORCE fuzz-docker-build
 	$(Q) docker run -it --rm -v $(shell pwd):/yarp -v $(FUZZ_OUTPUT_DIR):/fuzz_output yarp/fuzz /bin/bash -c "./fuzz/$*.sh /fuzz_output/$*"
 FORCE:
 
+fuzz-clean:
+	$(Q) rm -f -r fuzz/output
+
 clean:
 	$(Q) rm -f -r build
 
-.PHONY: clean
+.PHONY: clean fuzz-clean
 
 all-no-debug: DEBUG_FLAGS := -DNDEBUG=1
 all-no-debug: OPTFLAGS := -O3
