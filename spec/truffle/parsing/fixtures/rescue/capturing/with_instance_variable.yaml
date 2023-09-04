@@ -68,11 +68,6 @@ ast: |
                                                               ReadFrameSlotNodeGen
                                                                   attributes:
                                                                       frameSlot = 0
-                                                          rhs =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitInstanceVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

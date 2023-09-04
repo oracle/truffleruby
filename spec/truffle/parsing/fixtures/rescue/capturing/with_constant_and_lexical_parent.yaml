@@ -77,11 +77,6 @@ ast: |
                                                                               attributes:
                                                                                   lexicalScope =  :: Object
                                                                                   name = "Foo"
-                                                          valueNode =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitConstantPathWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
