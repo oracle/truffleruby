@@ -87,7 +87,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -153,9 +152,6 @@ public abstract class IONodes {
                     flags) != FNM_NOMATCH;
         }
 
-
-        private static final boolean DOSISH = Platform.IS_WINDOWS;
-
         private static final int FNM_NOESCAPE = 0x01;
         private static final int FNM_PATHNAME = 0x02;
         private static final int FNM_DOTMATCH = 0x04;
@@ -164,7 +160,7 @@ public abstract class IONodes {
         public static final int FNM_NOMATCH = 1;
 
         private static boolean isdirsep(char c) {
-            return c == '/' || DOSISH && c == '\\';
+            return c == '/';
         }
 
         private static boolean isdirsep(byte c) {
@@ -259,19 +255,15 @@ public abstract class IONodes {
                         if (s >= send) {
                             return FNM_NOMATCH;
                         }
-                        if (DOSISH && (pathname && isdirsep(c) && isdirsep(string[s]))) {
-                        } else {
-                            if (nocase) {
-                                if (Character.toLowerCase(c) != Character.toLowerCase((char) string[s])) {
-                                    return FNM_NOMATCH;
-                                }
-
-                            } else {
-                                if (c != (char) (string[s] & 0xFF)) {
-                                    return FNM_NOMATCH;
-                                }
+                        if (nocase) {
+                            if (Character.toLowerCase(c) != Character.toLowerCase((char) string[s])) {
+                                return FNM_NOMATCH;
                             }
 
+                        } else {
+                            if (c != (char) (string[s] & 0xFF)) {
+                                return FNM_NOMATCH;
+                            }
                         }
                         s++;
                         break;

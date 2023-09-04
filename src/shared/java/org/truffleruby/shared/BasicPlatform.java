@@ -41,9 +41,7 @@ public abstract class BasicPlatform {
 
     public enum OS_TYPE {
         LINUX("linux"),
-        DARWIN("darwin"),
-        SOLARIS("solaris"),
-        WINDOWS("mswin32");
+        DARWIN("darwin");
 
         private final String rubyName;
 
@@ -54,8 +52,7 @@ public abstract class BasicPlatform {
 
     public enum ARCH {
         AMD64("x86_64"),
-        AARCH64("aarch64"),
-        UNKNOWN("unknown");
+        AARCH64("aarch64");
 
         private final String rubyName;
 
@@ -79,14 +76,9 @@ public abstract class BasicPlatform {
         final String osName = System.getProperty("os.name");
 
         final String lowerOSName = osName.toLowerCase(Locale.ENGLISH);
-        if (lowerOSName.contains("windows")) {
-            return OS_TYPE.WINDOWS;
-        }
 
         if (lowerOSName.startsWith("mac") || lowerOSName.startsWith("darwin")) {
             return OS_TYPE.DARWIN;
-        } else if (lowerOSName.startsWith("sunos") || lowerOSName.startsWith("solaris")) {
-            return OS_TYPE.SOLARIS;
         }
 
         final String upperOSName = osName.toUpperCase(Locale.ENGLISH);
@@ -96,7 +88,7 @@ public abstract class BasicPlatform {
             }
         }
 
-        throw new UnsupportedOperationException("Unknown platform: " + osName);
+        throw new UnsupportedOperationException("Unsupported operating system: " + osName);
     }
 
     private static ARCH determineArchitecture() {
@@ -110,7 +102,7 @@ public abstract class BasicPlatform {
             case "arm64":
                 return ARCH.AARCH64;
             default:
-                return ARCH.UNKNOWN;
+                throw new UnsupportedOperationException("Unsupported CPU architecture: " + architecture);
         }
     }
 

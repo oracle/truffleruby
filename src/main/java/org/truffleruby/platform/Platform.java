@@ -35,12 +35,8 @@ public abstract class Platform extends BasicPlatform {
     public static final String LIB_SUFFIX = determineLibSuffix();
     public static final String CEXT_SUFFIX = OS == OS_TYPE.DARWIN ? ".bundle" : LIB_SUFFIX;
 
-    public static final boolean IS_WINDOWS = OS == OS_TYPE.WINDOWS;
-
     private static String determineLibSuffix() {
         switch (OS) {
-            case WINDOWS:
-                return ".dll";
             case DARWIN:
                 return ".dylib";
             default:
