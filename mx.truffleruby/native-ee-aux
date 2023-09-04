@@ -3,6 +3,7 @@ DYNAMIC_IMPORTS=/tools,/truffleruby-enterprise,/graal-enterprise,/substratevm-en
 COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise,SubstrateVM Enterprise,Truffle Macro Enterprise
 NATIVE_IMAGES=suite:sulong,lib:rubyvm
 EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+UnlockExperimentalVMOptions rubyvm:-H:BuildOutputJSONFile=native-image-build-rubyvm.json rubyvm:-H:-UnlockExperimentalVMOptions rubyvm:-H:+AuxiliaryEngineCache rubyvm:-H:ReservedAuxiliaryImageBytes=1073741824
+GENERATE_DEBUGINFO=false
 NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE=true
 # To also create the standalone
 INSTALLABLES=TruffleRuby
