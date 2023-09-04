@@ -1053,11 +1053,9 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
-        final String name = toString(node);
-        final int index = Integer.parseInt(name.substring(1));
         final RubyNode lastMatchNode = ReadGlobalVariableNodeGen.create("$~");
+        final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, node.number);
 
-        final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, index);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
