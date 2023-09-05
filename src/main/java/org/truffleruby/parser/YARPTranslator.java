@@ -441,11 +441,14 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             translatedArguments[i] = arguments[i].accept(this);
         }
 
-        boolean ignoreVisibility = node.receiver == null;
-        boolean isVCall = node.isVariableCall();
-        boolean isAttrAssign = methodName.endsWith("=");
+        // If the receiver is explicit or implicit 'self' then we can call private methods
+        final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
+        final boolean isVariableCall = node.isVariableCall();
+        final boolean isAttrAssign = methodName.endsWith("="); // TODO: what about `[]=`?
+        final boolean isSafeNavigation = node.isSafeNavigation();
+
         var rubyCallNode = new RubyCallNode(new RubyCallNodeParameters(receiver, methodName, null,
-                EmptyArgumentsDescriptor.INSTANCE, translatedArguments, false, ignoreVisibility, isVCall, false,
+                EmptyArgumentsDescriptor.INSTANCE, translatedArguments, false, ignoreVisibility, isVariableCall, isSafeNavigation,
                 isAttrAssign));
 
         assignNodePositionInSource(node, rubyCallNode);
