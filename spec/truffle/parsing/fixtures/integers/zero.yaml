@@ -1,0 +1,12 @@
+subject: "Integer"
+description: "Zero"
+notes: >
+  It should be parsed correctly and not mixed with octal Integer literals
+focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
+ruby: |
+  0
+ast: |
+  IntegerFixnumLiteralNode
+      attributes:
+          flags = 1
+          value = 0

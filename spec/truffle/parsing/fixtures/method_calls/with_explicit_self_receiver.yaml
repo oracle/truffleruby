@@ -1,0 +1,28 @@
+subject: "Method call"
+description: Method call with explicit `self` receiver (`self.foo`)
+notes: >
+  Explicit receiver is represented with `SelfNode` node.
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  self.foo
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "foo"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+          ruby2KeywordsHashProfile = false
+      children:
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

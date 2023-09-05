@@ -99,13 +99,13 @@ ast: |
                                                                               begin =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
-                                                                                          flags = 1
+                                                                                          flags = 0
                                                                                           frameSlot = 2
                                                                                           type = FRAME_LOCAL
                                                                               end =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
-                                                                                          flags = 1
+                                                                                          flags = 0
                                                                                           frameSlot = 2
                                                                                           type = FRAME_LOCAL
                                                                   thenBody =

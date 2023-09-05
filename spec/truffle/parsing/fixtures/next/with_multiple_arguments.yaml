@@ -1,5 +1,5 @@
 subject: "Next"
-description: "next operator with multiple returned values"
+description: "with multiple returned values"
 notes: >
   Operator is represented by NextNode.
   Returned values are represented by an ArrayLiteralNode$UninitialisedArrayLiteralNode.

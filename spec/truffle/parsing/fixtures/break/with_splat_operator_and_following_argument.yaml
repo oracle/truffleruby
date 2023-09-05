@@ -1,0 +1,65 @@
+subject: "Break"
+description: "with splat operator and following argument (break *a, b)"
+notes: >
+  Arguments are represented with combination of:
+  - ArrayAppendOneNodeGen
+  - ArrayConcatNode
+  - SplatCastNodeGen
+  - ArrayLiteralNode$UninitialisedArrayLiteralNode
+  nodes
+focused_on_node: "org.truffleruby.language.control.BreakNode"
+ruby: |
+  while true
+    break *foo, 42
+  end
+ast: |
+  BreakNode
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          flags = 1
+          ignoreMarker = true
+      children:
+          child =
+              ArrayAppendOneNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      arrayNode_ =
+                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  selfNode_ =
+                                      SplatCastNodeGen
+                                          attributes:
+                                              conversionMethod = :to_a
+                                              copy = true
+                                              flags = 0
+                                              nilBehavior = CONVERT
+                                          children:
+                                              childNode_ =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          ruby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                      valueNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

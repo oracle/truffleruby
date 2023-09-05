@@ -1,0 +1,61 @@
+subject: "Next"
+description: "with splat operator and following argument (next *a, b)"
+notes: >
+  Arguments are represented with combination of:
+  - ArrayAppendOneNodeGen
+  - SplatCastNodeGen
+  nodes
+focused_on_node: "org.truffleruby.language.control.NextNode"
+ruby: |
+  while (true)
+    next *foo, 42
+  end
+ast: |
+  NextNode
+      attributes:
+          flags = 1
+      children:
+          child =
+              ArrayAppendOneNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      arrayNode_ =
+                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  selfNode_ =
+                                      SplatCastNodeGen
+                                          attributes:
+                                              conversionMethod = :to_a
+                                              copy = true
+                                              flags = 0
+                                              nilBehavior = CONVERT
+                                          children:
+                                              childNode_ =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          ruby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                      valueNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
