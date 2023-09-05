@@ -12,3 +12,10 @@ fails:Fiber.[] returns nil if the key is not present in the storage of the curre
 fails:Fiber.[] returns nil if the current fiber has no storage
 fails:Fiber.[]= sets the value of the given key in the storage of the current fiber
 fails:Thread.new creates a thread with the storage of the current fiber
+fails:Fiber.new(storage:) cannot create a fiber with a frozen hash as storage
+fails:Fiber.new(storage:) cannot create a fiber with a storage hash with non-symbol keys
+fails:Fiber#storage cannot be accessed from a different fiber
+fails:Fiber.[] can access the storage of the parent fiber
+fails:Fiber.[] can't access the storage of the fiber with non-symbol keys
+fails:Fiber.[]= does not overwrite the storage of the parent fiber
+fails:Fiber.[]= can't access the storage of the fiber with non-symbol keys
