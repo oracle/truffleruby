@@ -44,7 +44,7 @@ describe "The launcher" do
     @redirect = "2>#{@stderr}"
 
     # GR-23507, GR-44103: prevent thread warnings on stdout to break specs/tests
-    @ignore_jvm_thread_warnings = '--vm.Xlog:os+thread=off'
+    @ignore_jvm_thread_warnings = '--vm.Xlog:os+thread=off,gc+task=off'
   end
 
   after :each do
