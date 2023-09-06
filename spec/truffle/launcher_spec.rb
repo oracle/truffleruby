@@ -80,7 +80,7 @@ describe "The launcher" do
   it "all launchers are in @launchers" do
     known = @launchers.keys.map(&:to_s).sort
     actual = Dir.children(File.dirname(RbConfig.ruby)).sort
-    actual.delete('truffleruby.sh')
+    actual.delete('truffleruby-polyglot-get')
     actual.should == known
   end
 
