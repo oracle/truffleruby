@@ -3,7 +3,7 @@
 New features:
 
 * Updated to Ruby 3.2.2 (#3039, @eregon, @andrykonchin).
-* TruffleRuby Native on Oracle GraalVM on Linux now uses the G1 garbage collector which is much faster.
+* TruffleRuby Native on Oracle GraalVM on Linux now uses the G1 garbage collector which is much faster (@eregon).
 
 Bug fixes:
 
@@ -53,7 +53,8 @@ Performance:
 
 Changes:
 
-* The TruffleRuby `ScriptEngine` implementation is removed in favor of the generic [ScriptEngine](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#compatibility-with-jsr-223-scriptengine) in GraalVM docs.
+* `gu install $LANGUAGE` is replaced by `truffleruby-polyglot-get $LANGUAGE`, available in the TruffleRuby JVM standalone (@eregon).
+* The TruffleRuby `ScriptEngine` implementation is removed in favor of the generic [ScriptEngine](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#compatibility-with-jsr-223-scriptengine) in GraalVM docs (@eregon).
 
 Memory Footprint:
 
