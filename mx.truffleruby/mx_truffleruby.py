@@ -299,8 +299,8 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     library_configs=[
         mx_sdk_vm.LanguageLibraryConfig(
             destination='lib/<lib:rubyvm>',
-            launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>'],
-            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
+            launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>', 'bin/<exe:truffleruby-polyglot-get>'],
+            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER', 'sdk:MAVEN_DOWNLOADER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
                 '-H:+DetectUserDirectoriesInImageHeap',
@@ -313,17 +313,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
                 'TRUFFLERUBYOPT'
             ]
         )
-    ],
-    launcher_configs=[
-        mx_sdk_vm.LauncherConfig(
-            destination='bin/<exe:truffleruby-polyglot-get>',
-            jar_distributions=['sdk:MAVEN_DOWNLOADER'],
-            main_class='org.graalvm.maven.downloader.Main',
-            build_args=[
-               '-Dorg.graalvm.maven.downloader.relative_output_dir=../modules',
-               f'-Dorg.graalvm.maven.downloader.default_version={mx.suite("sdk").release_version()}',
-           ],
-        ),
     ],
     stability="experimental",
     post_install_msg="""
