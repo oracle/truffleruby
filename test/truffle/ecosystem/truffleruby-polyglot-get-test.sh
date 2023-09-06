@@ -12,9 +12,9 @@ if [ ! -d "$maven_repo" ]; then
     exit 2
 fi
 
-jt build --env jvm-ce-ntl
+jt build --env jvm-ce
 
-standalone=$(jt -q mx --quiet --env jvm-ce-ntl standalone-home --type=jvm ruby)
+standalone=$(jt -q mx --quiet --env jvm-ce standalone-home --type=jvm ruby)
 
 export PATH="$standalone/bin:$PATH"
 

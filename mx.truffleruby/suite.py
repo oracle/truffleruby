@@ -307,12 +307,13 @@ suite = {
         "org.truffleruby.launcher": {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
-            "requires": ["java.logging"],
+            "requires": ["java.logging", "java.xml"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
+                "sdk:MAVEN_DOWNLOADER",
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
@@ -566,6 +567,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
+                "sdk:MAVEN_DOWNLOADER",
             ],
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
