@@ -1183,7 +1183,8 @@ module Commands
     when 'unit', 'unittest' then test_unit(*rest)
     when 'tck'
       puts bold 'NOTE: You need `jt mx build` before running `jt test tck` to build the relevant test distributions'
-      mx 'tck', *rest
+      # GR-48568 for why DisableClassPathIsolation is needed
+      mx 'tck', '-Dpolyglotimpl.DisableClassPathIsolation=true', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)

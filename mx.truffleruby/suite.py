@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "621ba026a108b8320e5cdadf6150c2fa30b1339a",
+                "version": "39e46e0bc2bd49cb52f3c98944253d59d76a21b0",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "621ba026a108b8320e5cdadf6150c2fa30b1339a",
+                "version": "39e46e0bc2bd49cb52f3c98944253d59d76a21b0",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -307,12 +307,13 @@ suite = {
         "org.truffleruby.launcher": {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
-            "requires": ["java.logging"],
+            "requires": ["java.logging", "java.xml"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
+                "sdk:MAVEN_DOWNLOADER",
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
@@ -566,6 +567,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
+                "sdk:MAVEN_DOWNLOADER",
             ],
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],

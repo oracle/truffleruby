@@ -361,7 +361,11 @@ local part_definitions = {
     test_gems: { run+: jt(["test", "gems"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
     test_ecosystem: {
-      run+: [["node", "--version"]] + jt(["test", "ecosystem"]),
+      packages+: {
+        maven: "==3.3.9",
+      },
+      run+: [["node", "--version"]] +
+            jt(["test", "ecosystem"]),
     },
 
     test_cexts: {

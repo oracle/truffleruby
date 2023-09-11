@@ -16,6 +16,7 @@ import sys
 
 import mx
 import mx_gate
+import mx_sdk
 import mx_sdk_vm
 import mx_subst
 import mx_spotbugs
@@ -221,6 +222,10 @@ def verify_ci(args):
     """Verify CI configuration"""
     mx.verify_ci(args, mx.suite('truffle'), _suite, ['common.json', 'ci/common.jsonnet'])
 
+def ruby_maven_deploy_public(args):
+    mx.command_function('build')([])
+    licenses = ['EPL-2.0', 'PSF-License', 'GPLv2-CPE', 'ICU,GPLv2', 'BSD-simplified', 'BSD-new', 'UPL', 'MIT']
+    mx_sdk.maven_deploy_public(args, licenses=licenses, deploy_snapshots=False)
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
@@ -294,8 +299,8 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     library_configs=[
         mx_sdk_vm.LanguageLibraryConfig(
             destination='lib/<lib:rubyvm>',
-            launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>'],
-            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
+            launchers=['bin/<exe:ruby>', 'bin/<exe:truffleruby>', 'bin/<exe:truffleruby-polyglot-get>'],
+            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER', 'sdk:MAVEN_DOWNLOADER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
                 '-H:+DetectUserDirectoriesInImageHeap',
@@ -329,4 +334,5 @@ mx.update_commands(_suite, {
     'ruby_spotbugs': [ruby_spotbugs, ''],
     'verify-ci': [verify_ci, '[options]'],
     'ruby_jacoco_args': [ruby_jacoco_args, ''],
+    'ruby_maven_deploy_public': [ruby_maven_deploy_public, ''],
 })

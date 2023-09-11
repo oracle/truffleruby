@@ -21,6 +21,7 @@ import java.util.Set;
 import java.lang.ProcessBuilder.Redirect;
 
 import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.maven.downloader.Main;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
@@ -38,8 +39,38 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     private String implementationName = null;
     private boolean helpOptionUsed = false; // Any --help* option
 
+    /** NOTE: not actually used by thin launchers. The first method called with the arguments is
+     * {@link #preprocessArguments}. */
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
+    }
+
+    private static void trufflerubyPolyglotGet(List<String> originalArgs) {
+        String rubyHome = getPropertyOrFail("org.graalvm.language.ruby.home");
+        String outputDir = rubyHome + "/modules";
+        List<String> args = new ArrayList<>();
+        args.add("-o");
+        args.add(outputDir);
+        args.add("-v");
+        args.add(getPropertyOrFail("org.graalvm.version"));
+        if (originalArgs.size() == 1 && !originalArgs.get(0).startsWith("-")) {
+            args.add("-a");
+        }
+        args.addAll(originalArgs);
+        try {
+            Main.main(args.toArray(CommandLineOptions.EMPTY_STRING_ARRAY));
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        System.exit(0);
+    }
+
+    private static String getPropertyOrFail(String property) {
+        String value = System.getProperty(property);
+        if (value == null) {
+            throw new UnsupportedOperationException("Expected system property " + property + " to be set");
+        }
+        return value;
     }
 
     @Override
@@ -65,6 +96,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
+        String launcherName = System.getProperty("org.graalvm.launcher.executablename", "miniruby");
+        if (launcherName.endsWith("truffleruby-polyglot-get")) {
+            if (isAOT()) {
+                throw abort("truffleruby-polyglot-get is not available for the native standalone");
+            } else {
+                trufflerubyPolyglotGet(args);
+            }
+        }
+
         // Set default options for the launcher which don't match the OptionKey's default.
         // These options can still be overridden if set explicitly.
         polyglotOptions.put(OptionsCatalog.EMBEDDED.getName(), "false");
