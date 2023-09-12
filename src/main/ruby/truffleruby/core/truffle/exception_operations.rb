@@ -93,18 +93,25 @@ module Truffle
 
     def self.message_and_class(exception, highlight)
       message = StringValue exception.message.to_s
+      klass = Primitive.class(exception)
+      klass_name = klass.to_s
 
-      klass = Primitive.class(exception).to_s
       if Primitive.is_a?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
-        klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
+        klass_name = "#{klass_name}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
       end
 
       if highlight
-        highlighted_class = " (\e[1;4m#{klass}\e[m\e[1m)"
+        highlighted_class = if klass == RuntimeError && message.empty?
+                              " (\e[1;4munhandled exception\e[m\e[1m)"
+                            else
+                              " (\e[1;4m#{klass_name}\e[m\e[1m)"
+                            end
+
         if message.include?("\n")
           first = true
           result = +''
+
           message.each_line do |line|
             if first
               first = false
@@ -113,15 +120,18 @@ module Truffle
               result << "\n\e[1m#{line.chomp}\e[m"
             end
           end
+
           result
         else
           "\e[1m#{message}#{highlighted_class}\e[m"
         end
       else
-        if i = message.index("\n")
-          "#{message[0...i]} (#{klass})#{message[i..-1]}"
+        if klass == RuntimeError && message.empty?
+          'unhandled exception'
+        elsif i = message.index("\n")
+          "#{message[0...i]} (#{klass_name})#{message[i..-1]}"
         else
-          "#{message} (#{klass})"
+          "#{message} (#{klass_name})"
         end
       end
     end
@@ -139,15 +149,18 @@ module Truffle
 
       result = ''.b
       bt = exception.backtrace || caller(2)
+
       if reverse
         traceback_msg = if highlight
                           "\e[1mTraceback\e[m (most recent call last):\n"
                         else
                           "Traceback (most recent call last):\n"
                         end
+
         result << traceback_msg
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight)
         backtrace_message = backtrace_message(highlight, reverse, bt, exception)
+
         if backtrace_message.empty?
           result << message_and_class(exception, highlight)
         else
@@ -155,13 +168,16 @@ module Truffle
         end
       else
         backtrace_message = backtrace_message(highlight, reverse, bt, exception)
+
         if backtrace_message.empty?
           result << message_and_class(exception, highlight)
         else
           result << backtrace_message
         end
+
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight)
       end
+
       result
     end
 

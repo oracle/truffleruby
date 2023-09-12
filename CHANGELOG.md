@@ -44,6 +44,7 @@ Compatibility:
 * Show the pointer size information (if available) in `FFI::Pointer#inspect` (@nirvdrum).
 * Implement performance warnings (`Warning[:performance]`) like in CRuby 3.3 (@eregon).
 * The output of `Marshal.dump` is now compatible with CRuby for `Rational` and `Complex` instances (#3228, @eregon).
+* Display "unhandled exception" as the message for `RuntimeError` instances with an empty message (#3255, @nirvdrum).
 
 Performance:
 
