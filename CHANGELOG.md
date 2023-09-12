@@ -1,3 +1,23 @@
+# 24.0.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+
+Changes:
+
+
+Memory Footprint:
+
+
 # 23.1.0
 
 New features:
