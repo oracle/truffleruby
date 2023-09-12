@@ -86,10 +86,11 @@ Runtime configurations are further detailed in [Deploying TruffleRuby](doc/user/
 
 TruffleRuby is actively tested on the following systems:
 
-* Oracle Linux 7, 8
+* Oracle Linux 7, 8, 9
 * Ubuntu 16.04, 18.04, 20.04, 22.04 (all LTS)
-* Fedora 35, 36
-* macOS 10.14 (Mojave), 12 (Monterey)
+* Fedora 37, 38
+* Debian 10, 11, 12
+* macOS 10.14 (Mojave) for amd64, 11 (Big Sur) for aarch64
 
 Architectures:
 
