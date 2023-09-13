@@ -37,14 +37,21 @@ ol8:
   locale: glibc-langpack-en
   <<: *rpm
 
-fedora35:
-  base: fedora:35
+ol9:
+  base: oraclelinux:9-slim
+  # --enablerepo needed for libyaml-devel
+  install: RUN microdnf install --enablerepo=ol9_codeready_builder -y
+  locale: glibc-langpack-en
+  <<: *rpm
+
+fedora37:
+  base: fedora:37
   install: RUN dnf install -y
   locale: glibc-langpack-en
   <<: *rpm
 
-fedora36:
-  base: fedora:36
+fedora38:
+  base: fedora:38
   install: RUN dnf install -y
   locale: glibc-langpack-en
   <<: *rpm
@@ -70,6 +77,16 @@ ubuntu2204:
   <<: *deb
 
 debian10:
-  base: debian:buster
+  base: debian:10 # buster
+  install: RUN apt-get update && apt-get install -y
+  <<: *deb
+
+debian11:
+  base: debian:11 # bullseye
+  install: RUN apt-get update && apt-get install -y
+  <<: *deb
+
+debian12:
+  base: debian:12 # bookworm
   install: RUN apt-get update && apt-get install -y
   <<: *deb

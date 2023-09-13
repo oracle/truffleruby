@@ -259,7 +259,7 @@ class JT
 
           %w[:command_line :security :language :core :tracepoint :library :capi :library_cext :truffle :truffle_capi].each do |set|
             t_config = c.empty? ? '' : '-T' + c
-            t_config << ' -T--experimental-options -T--pattern-matching'
+            t_config += ' -T--experimental-options -T--pattern-matching'
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
             lines << "RUN ruby spec/mspec/bin/mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
           end
