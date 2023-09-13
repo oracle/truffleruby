@@ -1,7 +1,1 @@
-fails:Exception#detailed_message returns decorated message
-fails:Exception#detailed_message accepts highlight keyword argument and adds escape control sequences
-fails:Exception#detailed_message allows and ignores other keyword arguments
-fails:Exception#detailed_message returns just a message if exception class is anonymous
 fails:Exception#detailed_message returns 'unhandled exception' for an instance of RuntimeError with empty message
-fails:Exception#detailed_message returns just class name for an instance of RuntimeError sublass with empty message
-fails:Exception#detailed_message returns a generated class name for an instance of RuntimeError anonymous subclass with empty message

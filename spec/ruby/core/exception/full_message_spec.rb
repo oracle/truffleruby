@@ -107,21 +107,31 @@ describe "Exception#full_message" do
   ruby_version_is "3.2" do
     it "relies on #detailed_message" do
       e = RuntimeError.new("new error")
-      e.define_singleton_method(:detailed_message) { |**opt| "DETAILED MESSAGE" }
+      e.define_singleton_method(:detailed_message) { |**| "DETAILED MESSAGE" }
 
       e.full_message.lines.first.should =~ /DETAILED MESSAGE/
     end
 
-    it "passes all its own keyword arguments to #detailed_message" do
+    it "passes all its own keyword arguments (with :highlight default value and without :order default value) to #detailed_message" do
       e = RuntimeError.new("new error")
-      opt_ = nil
-      e.define_singleton_method(:detailed_message) do |**opt|
-        opt_ = opt
+      options_passed = nil
+      e.define_singleton_method(:detailed_message) do |**options|
+        options_passed = options
         "DETAILED MESSAGE"
       end
 
       e.full_message(foo: "bar")
-      opt_.should == { foo: "bar", highlight: Exception.to_tty? }
+      options_passed.should == { foo: "bar", highlight: Exception.to_tty? }
+    end
+
+    it "converts #detailed_message returned value to String if it isn't a String" do
+      message = Object.new
+      def message.to_str; "DETAILED MESSAGE"; end
+
+      e = RuntimeError.new("new error")
+      e.define_singleton_method(:detailed_message) { |**| message }
+
+      e.full_message.lines.first.should =~ /DETAILED MESSAGE/
     end
   end
 end

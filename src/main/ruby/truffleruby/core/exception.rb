@@ -77,8 +77,16 @@ class Exception
     end
   end
 
-  def full_message(highlight: nil, order: :top)
-    Truffle::ExceptionOperations.full_message(self, highlight, order)
+  def full_message(**options)
+    Truffle::ExceptionOperations.full_message(self, options)
+  end
+
+  def detailed_message(highlight: nil, **options)
+    unless Primitive.true?(highlight) || Primitive.false?(highlight) || Primitive.nil?(highlight)
+      raise ArgumentError, "expected true of false as highlight: #{highlight}"
+    end
+
+    Truffle::ExceptionOperations.message_and_class(self, highlight)
   end
 
   class << self
