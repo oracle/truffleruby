@@ -231,8 +231,8 @@ public abstract class InteropNodes {
                         "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         Object evalCached(Object mimeType, Object source,
-                @Shared @Cached RubyStringLibrary stringsMimeType,
-                @Shared @Cached RubyStringLibrary stringsSource,
+                @Cached @Shared RubyStringLibrary stringsMimeType,
+                @Cached @Shared RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
                 @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -248,8 +248,8 @@ public abstract class InteropNodes {
                 guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
                 replaces = "evalCached")
         static Object evalUncached(Object mimeType, RubyString source,
-                @Shared @Cached RubyStringLibrary stringsMimeType,
-                @Shared @Cached RubyStringLibrary stringsSource,
+                @Cached @Shared RubyStringLibrary stringsMimeType,
+                @Cached @Shared RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode,

@@ -409,13 +409,13 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
         int compareDoubleDouble(double a, double b,
-                @Shared @Cached InlinedConditionProfile equalProfile) {
+                @Cached @Shared InlinedConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile, this);
         }
 
         @Specialization(guards = "!isNaN(a)")
         int compareDoubleLong(double a, long b,
-                @Shared @Cached InlinedConditionProfile equalProfile) {
+                @Cached @Shared InlinedConditionProfile equalProfile) {
             return compareDoubles(a, b, equalProfile, this);
         }
 

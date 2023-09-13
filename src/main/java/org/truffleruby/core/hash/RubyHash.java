@@ -186,7 +186,7 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
     @ExportMessage
     public void removeHashEntry(Object key,
             @Cached @Exclusive DispatchNode delete,
-            @Shared @Cached IsFrozenNode isFrozenNode,
+            @Cached @Shared IsFrozenNode isFrozenNode,
             @CachedLibrary("this") InteropLibrary interop,
             @Cached @Shared ForeignToRubyNode toRuby,
             @Bind("$node") Node node)

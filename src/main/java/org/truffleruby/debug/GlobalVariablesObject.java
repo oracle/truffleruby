@@ -53,7 +53,7 @@ public final class GlobalVariablesObject implements TruffleObject {
     @TruffleBoundary
     protected Object readMember(String member,
             @CachedLibrary("this") InteropLibrary node,
-            @Exclusive @Cached DispatchNode evalNode) throws UnknownIdentifierException {
+            @Cached @Exclusive DispatchNode evalNode) throws UnknownIdentifierException {
         if (!isMemberReadable(member)) {
             throw UnknownIdentifierException.create(member);
         } else {
@@ -69,8 +69,8 @@ public final class GlobalVariablesObject implements TruffleObject {
     @TruffleBoundary
     protected void writeMember(String member, Object value,
             @CachedLibrary("this") InteropLibrary node,
-            @Exclusive @Cached DispatchNode evalNode,
-            @Exclusive @Cached DispatchNode callNode) throws UnknownIdentifierException {
+            @Cached @Exclusive DispatchNode evalNode,
+            @Cached @Exclusive DispatchNode callNode) throws UnknownIdentifierException {
         if (!isValidGlobalVariableName(member)) {
             throw UnknownIdentifierException.create(member);
         } else {

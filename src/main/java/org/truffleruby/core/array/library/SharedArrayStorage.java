@@ -76,7 +76,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void write(int index, Object value,
-            @Shared @Cached WriteBarrierNode writeBarrierNode,
+            @Cached @Shared WriteBarrierNode writeBarrierNode,
             @CachedLibrary("this.storage") ArrayStoreLibrary stores,
             @Bind("$node") Node node) {
         writeBarrierNode.execute(node, value);
@@ -85,7 +85,7 @@ public final class SharedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void fill(int start, int length, Object value,
-            @Shared @Cached WriteBarrierNode writeBarrierNode,
+            @Cached @Shared WriteBarrierNode writeBarrierNode,
             @CachedLibrary("this.storage") ArrayStoreLibrary stores,
             @Bind("$node") Node node) {
         writeBarrierNode.execute(node, value);

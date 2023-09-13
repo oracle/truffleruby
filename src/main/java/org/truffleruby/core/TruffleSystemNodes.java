@@ -236,8 +236,8 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "3")
         Object logCached(RubySymbol level, Object message,
-                @Shared @Cached RubyStringLibrary strings,
-                @Shared @Cached ToJavaStringNode toJavaStringNode,
+                @Cached @Shared RubyStringLibrary strings,
+                @Cached @Shared ToJavaStringNode toJavaStringNode,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, toJavaStringNode.execute(this, message));
@@ -246,8 +246,8 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
         Object log(RubySymbol level, Object message,
-                @Shared @Cached RubyStringLibrary strings,
-                @Shared @Cached ToJavaStringNode toJavaStringNode) {
+                @Cached @Shared RubyStringLibrary strings,
+                @Cached @Shared ToJavaStringNode toJavaStringNode) {
             log(getLevel(level), toJavaStringNode.execute(this, message));
             return nil;
         }

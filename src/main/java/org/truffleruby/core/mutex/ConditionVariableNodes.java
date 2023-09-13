@@ -61,7 +61,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
-                @Shared @Cached InlinedBranchProfile errorProfile) {
+                @Cached @Shared InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
@@ -72,7 +72,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
-                @Shared @Cached InlinedBranchProfile errorProfile) {
+                @Cached @Shared InlinedBranchProfile errorProfile) {
             final RubyThread thread = getLanguage().getCurrentThread();
             final ReentrantLock mutexLock = mutex.lock;
 
