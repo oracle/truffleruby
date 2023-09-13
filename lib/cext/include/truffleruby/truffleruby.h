@@ -278,7 +278,6 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, str
         if (parse_data.rest || argc <= n_mand + n_opt) {
           parse_data.kwargs = false;
           erased_kwargs = true;
-          rb_warn("The last argument is nil, treating as empty keywords");
         }
       }
       else {
