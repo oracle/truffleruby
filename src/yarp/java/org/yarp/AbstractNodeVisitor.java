@@ -12,7 +12,11 @@ public abstract class AbstractNodeVisitor<T> {
 
     protected abstract T defaultVisit(Nodes.Node node);
 
-    public T visitAliasNode(Nodes.AliasNode node) {
+    public T visitAliasGlobalVariableNode(Nodes.AliasGlobalVariableNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitAliasMethodNode(Nodes.AliasMethodNode node) {
         return defaultVisit(node);
     }
 
@@ -56,6 +60,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitBlockLocalVariableNode(Nodes.BlockLocalVariableNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitBlockNode(Nodes.BlockNode node) {
         return defaultVisit(node);
     }
@@ -72,19 +80,19 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitCallAndWriteNode(Nodes.CallAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitCallNode(Nodes.CallNode node) {
         return defaultVisit(node);
     }
 
-    public T visitCallOperatorAndWriteNode(Nodes.CallOperatorAndWriteNode node) {
-        return defaultVisit(node);
-    }
-
-    public T visitCallOperatorOrWriteNode(Nodes.CallOperatorOrWriteNode node) {
-        return defaultVisit(node);
-    }
-
     public T visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitCallOrWriteNode(Nodes.CallOrWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -268,6 +276,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitImplicitNode(Nodes.ImplicitNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitInNode(Nodes.InNode node) {
         return defaultVisit(node);
     }
@@ -297,6 +309,10 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     public T visitIntegerNode(Nodes.IntegerNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitInterpolatedMatchLastLineNode(Nodes.InterpolatedMatchLastLineNode node) {
         return defaultVisit(node);
     }
 
@@ -356,6 +372,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitMatchLastLineNode(Nodes.MatchLastLineNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
         return defaultVisit(node);
     }
@@ -364,11 +384,19 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitMatchWriteNode(Nodes.MatchWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitMissingNode(Nodes.MissingNode node) {
         return defaultVisit(node);
     }
 
     public T visitModuleNode(Nodes.ModuleNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitMultiTargetNode(Nodes.MultiTargetNode node) {
         return defaultVisit(node);
     }
 

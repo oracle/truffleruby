@@ -10,6 +10,7 @@ package org.yarp;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.StringBuilder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -18,6 +19,7 @@ import java.util.Arrays;
 public abstract class Nodes {
 
     public static final byte[][] EMPTY_BYTE_ARRAY_ARRAY = {};
+    public static final String[] EMPTY_STRING_ARRAY = {};
 
     public static final class Location {
 
@@ -124,20 +126,7 @@ public abstract class Nodes {
             return toString("");
         }
 
-        private String toString(String indent) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(indent).append(this.getClass().getSimpleName());
-            if (hasNewLineFlag()) {
-                builder.append("[Li]");
-            }
-            builder.append('\n');
-            for (Node child : childNodes()) {
-                if (child != null) {
-                    builder.append(child.toString(indent + "  "));
-                }
-            }
-            return builder.toString();
-        }
+        protected abstract String toString(String indent);
     }
 
     public static final class CallNodeFlags implements Comparable<CallNodeFlags> {
@@ -187,6 +176,79 @@ public abstract class Nodes {
 
         public boolean isVariableCall() {
             return (flags & VARIABLE_CALL) != 0;
+        }
+
+    }
+
+    public static final class IntegerBaseFlags implements Comparable<IntegerBaseFlags> {
+
+        // 0b prefix
+        public static final short BINARY = 1 << 0;
+
+        // 0o or 0 prefix
+        public static final short OCTAL = 1 << 1;
+
+        // 0d or no prefix
+        public static final short DECIMAL = 1 << 2;
+
+        // 0x prefix
+        public static final short HEXADECIMAL = 1 << 3;
+
+        public static boolean isBinary(short flags) {
+            return (flags & BINARY) != 0;
+        }
+
+        public static boolean isOctal(short flags) {
+            return (flags & OCTAL) != 0;
+        }
+
+        public static boolean isDecimal(short flags) {
+            return (flags & DECIMAL) != 0;
+        }
+
+        public static boolean isHexadecimal(short flags) {
+            return (flags & HEXADECIMAL) != 0;
+        }
+
+        private final short flags;
+
+        public IntegerBaseFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof IntegerBaseFlags)) {
+                return false;
+            }
+
+            return flags == ((IntegerBaseFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(IntegerBaseFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isBinary() {
+            return (flags & BINARY) != 0;
+        }
+
+        public boolean isOctal() {
+            return (flags & OCTAL) != 0;
+        }
+
+        public boolean isDecimal() {
+            return (flags & DECIMAL) != 0;
+        }
+
+        public boolean isHexadecimal() {
+            return (flags & HEXADECIMAL) != 0;
         }
 
     }
@@ -276,11 +338,11 @@ public abstract class Nodes {
         // i - ignores the case of characters when matching
         public static final short IGNORE_CASE = 1 << 0;
 
-        // m - allows $ to match the end of lines within strings
-        public static final short MULTI_LINE = 1 << 1;
-
         // x - ignores whitespace and allows comments in regular expressions
-        public static final short EXTENDED = 1 << 2;
+        public static final short EXTENDED = 1 << 1;
+
+        // m - allows $ to match the end of lines within strings
+        public static final short MULTI_LINE = 1 << 2;
 
         // e - forces the EUC-JP encoding
         public static final short EUC_JP = 1 << 3;
@@ -301,12 +363,12 @@ public abstract class Nodes {
             return (flags & IGNORE_CASE) != 0;
         }
 
-        public static boolean isMultiLine(short flags) {
-            return (flags & MULTI_LINE) != 0;
-        }
-
         public static boolean isExtended(short flags) {
             return (flags & EXTENDED) != 0;
+        }
+
+        public static boolean isMultiLine(short flags) {
+            return (flags & MULTI_LINE) != 0;
         }
 
         public static boolean isEucJp(short flags) {
@@ -358,12 +420,12 @@ public abstract class Nodes {
             return (flags & IGNORE_CASE) != 0;
         }
 
-        public boolean isMultiLine() {
-            return (flags & MULTI_LINE) != 0;
-        }
-
         public boolean isExtended() {
             return (flags & EXTENDED) != 0;
+        }
+
+        public boolean isMultiLine() {
+            return (flags & MULTI_LINE) != 0;
         }
 
         public boolean isEucJp() {
@@ -388,20 +450,58 @@ public abstract class Nodes {
 
     }
 
-    // Represents the use of the `alias` keyword.
+    public static final class StringFlags implements Comparable<StringFlags> {
+
+        // frozen by virtue of a frozen_string_literal comment
+        public static final short FROZEN = 1 << 0;
+
+        public static boolean isFrozen(short flags) {
+            return (flags & FROZEN) != 0;
+        }
+
+        private final short flags;
+
+        public StringFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof StringFlags)) {
+                return false;
+            }
+
+            return flags == ((StringFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(StringFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isFrozen() {
+            return (flags & FROZEN) != 0;
+        }
+
+    }
+
+    // Represents the use of the `alias` keyword to alias a global variable.
     // 
-    //     alias foo bar
-    //     ^^^^^^^^^^^^^
-    public static final class AliasNode extends Node {
+    //     alias $foo $bar
+    //     ^^^^^^^^^^^^^^^
+    public static final class AliasGlobalVariableNode extends Node {
         public final Node new_name;
         public final Node old_name;
-        public final Location keyword_loc;
 
-        public AliasNode(Node new_name, Node old_name, Location keyword_loc, int startOffset, int length) {
+        public AliasGlobalVariableNode(Node new_name, Node old_name, int startOffset, int length) {
             super(startOffset, length);
             this.new_name = new_name;
             this.old_name = old_name;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -414,7 +514,71 @@ public abstract class Nodes {
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitAliasNode(this);
+            return visitor.visitAliasGlobalVariableNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("new_name: ");
+            builder.append(this.new_name.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("old_name: ");
+            builder.append(this.old_name.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents the use of the `alias` keyword to alias a method.
+    // 
+    //     alias foo bar
+    //     ^^^^^^^^^^^^^
+    public static final class AliasMethodNode extends Node {
+        public final Node new_name;
+        public final Node old_name;
+
+        public AliasMethodNode(Node new_name, Node old_name, int startOffset, int length) {
+            super(startOffset, length);
+            this.new_name = new_name;
+            this.old_name = old_name;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.new_name.accept(visitor);
+            this.old_name.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.new_name, this.old_name };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitAliasMethodNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("new_name: ");
+            builder.append(this.new_name.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("old_name: ");
+            builder.append(this.old_name.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -425,13 +589,11 @@ public abstract class Nodes {
     public static final class AlternationPatternNode extends Node {
         public final Node left;
         public final Node right;
-        public final Location operator_loc;
 
-        public AlternationPatternNode(Node left, Node right, Location operator_loc, int startOffset, int length) {
+        public AlternationPatternNode(Node left, Node right, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -446,6 +608,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitAlternationPatternNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&` operator or the `and` keyword.
@@ -455,13 +635,11 @@ public abstract class Nodes {
     public static final class AndNode extends Node {
         public final Node left;
         public final Node right;
-        public final Location operator_loc;
 
-        public AndNode(Node left, Node right, Location operator_loc, int startOffset, int length) {
+        public AndNode(Node left, Node right, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -475,6 +653,24 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitAndNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -503,6 +699,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitArgumentsNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append('\n');
+            for (Node child : this.arguments) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents an array literal. This can be a regular array using brackets or
@@ -512,16 +727,10 @@ public abstract class Nodes {
     //     ^^^^^^^^^
     public static final class ArrayNode extends Node {
         public final Node[] elements;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public ArrayNode(Node[] elements, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public ArrayNode(Node[] elements, int startOffset, int length) {
             super(startOffset, length);
             this.elements = elements;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -536,6 +745,25 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitArrayNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("elements: ");
+            builder.append('\n');
+            for (Node child : this.elements) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
         }
     }
 
@@ -562,19 +790,13 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final Node rest;
         public final Node[] posts;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public ArrayPatternNode(Node constant, Node[] requireds, Node rest, Node[] posts, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public ArrayPatternNode(Node constant, Node[] requireds, Node rest, Node[] posts, int startOffset, int length) {
             super(startOffset, length);
             this.constant = constant;
             this.requireds = requireds;
             this.rest = rest;
             this.posts = posts;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -604,6 +826,37 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitArrayPatternNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("constant: ");
+            builder.append(this.constant == null ? "null\n" : this.constant.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("requireds: ");
+            builder.append('\n');
+            for (Node child : this.requireds) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("rest: ");
+            builder.append(this.rest == null ? "null\n" : this.rest.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("posts: ");
+            builder.append('\n');
+            for (Node child : this.posts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents a hash key/value pair.
@@ -614,14 +867,11 @@ public abstract class Nodes {
         public final Node key;
         /** optional (can be null) */
         public final Node value;
-        /** optional (can be null) */
-        public final Location operator_loc;
 
-        public AssocNode(Node key, Node value, Location operator_loc, int startOffset, int length) {
+        public AssocNode(Node key, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.key = key;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -638,6 +888,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitAssocNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("key: ");
+            builder.append(this.key.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value == null ? "null\n" : this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a splat in a hash literal.
@@ -647,12 +915,10 @@ public abstract class Nodes {
     public static final class AssocSplatNode extends Node {
         /** optional (can be null) */
         public final Node value;
-        public final Location operator_loc;
 
-        public AssocSplatNode(Node value, Location operator_loc, int startOffset, int length) {
+        public AssocSplatNode(Node value, int startOffset, int length) {
             super(startOffset, length);
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -667,6 +933,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitAssocSplatNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value == null ? "null\n" : this.value.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -690,6 +971,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBackReferenceReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents a begin statement.
@@ -700,8 +993,6 @@ public abstract class Nodes {
     //     ^^^^^
     public static final class BeginNode extends Node {
         /** optional (can be null) */
-        public final Location begin_keyword_loc;
-        /** optional (can be null) */
         public final StatementsNode statements;
         /** optional (can be null) */
         public final RescueNode rescue_clause;
@@ -709,17 +1000,13 @@ public abstract class Nodes {
         public final ElseNode else_clause;
         /** optional (can be null) */
         public final EnsureNode ensure_clause;
-        /** optional (can be null) */
-        public final Location end_keyword_loc;
 
-        public BeginNode(Location begin_keyword_loc, StatementsNode statements, RescueNode rescue_clause, ElseNode else_clause, EnsureNode ensure_clause, Location end_keyword_loc, int startOffset, int length) {
+        public BeginNode(StatementsNode statements, RescueNode rescue_clause, ElseNode else_clause, EnsureNode ensure_clause, int startOffset, int length) {
             super(startOffset, length);
-            this.begin_keyword_loc = begin_keyword_loc;
             this.statements = statements;
             this.rescue_clause = rescue_clause;
             this.else_clause = else_clause;
             this.ensure_clause = ensure_clause;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         @Override
@@ -749,6 +1036,30 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBeginNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("rescue_clause: ");
+            builder.append(this.rescue_clause == null ? "null\n" : this.rescue_clause.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("else_clause: ");
+            builder.append(this.else_clause == null ? "null\n" : this.else_clause.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("ensure_clause: ");
+            builder.append(this.ensure_clause == null ? "null\n" : this.ensure_clause.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents block method arguments.
@@ -758,12 +1069,10 @@ public abstract class Nodes {
     public static final class BlockArgumentNode extends Node {
         /** optional (can be null) */
         public final Node expression;
-        public final Location operator_loc;
 
-        public BlockArgumentNode(Node expression, Location operator_loc, int startOffset, int length) {
+        public BlockArgumentNode(Node expression, int startOffset, int length) {
             super(startOffset, length);
             this.expression = expression;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -779,6 +1088,61 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBlockArgumentNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("expression: ");
+            builder.append(this.expression == null ? "null\n" : this.expression.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents a block local variable.
+    // 
+    //     a { |; b| }
+    //            ^
+    public static final class BlockLocalVariableNode extends Node {
+        public final String name;
+
+        public BlockLocalVariableNode(String name, int startOffset, int length) {
+            super(startOffset, length);
+            this.name = name;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitBlockLocalVariableNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents a block of ruby code.
@@ -786,21 +1150,17 @@ public abstract class Nodes {
     // [1, 2, 3].each { |i| puts x }
     //                ^^^^^^^^^^^^^^
     public static final class BlockNode extends Node {
-        public final byte[][] locals;
+        public final String[] locals;
         /** optional (can be null) */
         public final BlockParametersNode parameters;
         /** optional (can be null) */
         public final Node body;
-        public final Location opening_loc;
-        public final Location closing_loc;
 
-        public BlockNode(byte[][] locals, BlockParametersNode parameters, Node body, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public BlockNode(String[] locals, BlockParametersNode parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.parameters = parameters;
             this.body = body;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -819,6 +1179,31 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBlockNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("parameters: ");
+            builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a block parameter to a method, block, or lambda definition.
@@ -828,13 +1213,11 @@ public abstract class Nodes {
     //     end
     public static final class BlockParameterNode extends Node {
         /** optional (can be null) */
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
 
-        public BlockParameterNode(Location name_loc, Location operator_loc, int startOffset, int length) {
+        public BlockParameterNode(String name, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -846,6 +1229,22 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBlockParameterNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -860,32 +1259,54 @@ public abstract class Nodes {
     public static final class BlockParametersNode extends Node {
         /** optional (can be null) */
         public final ParametersNode parameters;
-        public final Location[] locals;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
+        public final Node[] locals;
 
-        public BlockParametersNode(ParametersNode parameters, Location[] locals, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public BlockParametersNode(ParametersNode parameters, Node[] locals, int startOffset, int length) {
             super(startOffset, length);
             this.parameters = parameters;
             this.locals = locals;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parameters != null) {
                 this.parameters.accept(visitor);
             }
+            for (Nodes.Node child : this.locals) {
+                child.accept(visitor);
+            }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.parameters };
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.add(this.parameters);
+            childNodes.addAll(Arrays.asList(this.locals));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBlockParametersNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parameters: ");
+            builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (Node child : this.locals) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
         }
     }
 
@@ -896,12 +1317,10 @@ public abstract class Nodes {
     public static final class BreakNode extends Node {
         /** optional (can be null) */
         public final ArgumentsNode arguments;
-        public final Location keyword_loc;
 
-        public BreakNode(ArgumentsNode arguments, Location keyword_loc, int startOffset, int length) {
+        public BreakNode(ArgumentsNode arguments, int startOffset, int length) {
             super(startOffset, length);
             this.arguments = arguments;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -916,6 +1335,105 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitBreakNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents the use of the `&&=` operator on a call.
+    // 
+    //     foo.bar &&= value
+    //     ^^^^^^^^^^^^^^^^^
+    public static final class CallAndWriteNode extends Node {
+        /** optional (can be null) */
+        public final Node receiver;
+        /** optional (can be null) */
+        public final ArgumentsNode arguments;
+        public final short flags;
+        public final byte[] read_name;
+        public final byte[] write_name;
+        public final Node value;
+
+        public CallAndWriteNode(Node receiver, ArgumentsNode arguments, short flags, byte[] read_name, byte[] write_name, Node value, int startOffset, int length) {
+            super(startOffset, length);
+            this.receiver = receiver;
+            this.arguments = arguments;
+            this.flags = flags;
+            this.read_name = read_name;
+            this.write_name = write_name;
+            this.value = value;
+        }
+        
+        public boolean isSafeNavigation() {
+            return CallNodeFlags.isSafeNavigation(this.flags);
+        }
+
+        public boolean isVariableCall() {
+            return CallNodeFlags.isVariableCall(this.flags);
+        }
+        
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.receiver != null) {
+                this.receiver.accept(visitor);
+            }
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.receiver, this.arguments, this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitCallAndWriteNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("receiver: ");
+            builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("read_name: ");
+            builder.append('"' + new String(this.read_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("write_name: ");
+            builder.append('"' + new String(this.write_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -942,28 +1460,16 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final Node receiver;
         /** optional (can be null) */
-        public final Location operator_loc;
-        /** optional (can be null) */
-        public final Location message_loc;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
         public final ArgumentsNode arguments;
         /** optional (can be null) */
-        public final Location closing_loc;
-        /** optional (can be null) */
-        public final BlockNode block;
+        public final Node block;
         public final short flags;
         public final byte[] name;
 
-        public CallNode(Node receiver, Location operator_loc, Location message_loc, Location opening_loc, ArgumentsNode arguments, Location closing_loc, BlockNode block, short flags, byte[] name, int startOffset, int length) {
+        public CallNode(Node receiver, ArgumentsNode arguments, Node block, short flags, byte[] name, int startOffset, int length) {
             super(startOffset, length);
             this.receiver = receiver;
-            this.operator_loc = operator_loc;
-            this.message_loc = message_loc;
-            this.opening_loc = opening_loc;
             this.arguments = arguments;
-            this.closing_loc = closing_loc;
             this.block = block;
             this.flags = flags;
             this.name = name;
@@ -996,65 +1502,34 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitCallNode(this);
         }
-    }
 
-    // Represents the use of the `&&=` operator on a call.
-    // 
-    //     foo.bar &&= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class CallOperatorAndWriteNode extends Node {
-        public final CallNode target;
-        public final Location operator_loc;
-        public final Node value;
-
-        public CallOperatorAndWriteNode(CallNode target, Location operator_loc, Node value, int startOffset, int length) {
-            super(startOffset, length);
-            this.target = target;
-            this.operator_loc = operator_loc;
-            this.value = value;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitCallOperatorAndWriteNode(this);
-        }
-    }
-
-    // Represents the use of the `||=` operator on a call.
-    // 
-    //     foo.bar ||= value
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class CallOperatorOrWriteNode extends Node {
-        public final CallNode target;
-        public final Node value;
-        public final Location operator_loc;
-
-        public CallOperatorOrWriteNode(CallNode target, Node value, Location operator_loc, int startOffset, int length) {
-            super(startOffset, length);
-            this.target = target;
-            this.value = value;
-            this.operator_loc = operator_loc;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
-            this.value.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitCallOperatorOrWriteNode(this);
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("receiver: ");
+            builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("block: ");
+            builder.append(this.block == null ? "null\n" : this.block.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"' + new String(this.name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -1063,30 +1538,172 @@ public abstract class Nodes {
     //     foo.bar += baz
     //     ^^^^^^^^^^^^^^
     public static final class CallOperatorWriteNode extends Node {
-        public final CallNode target;
-        public final Location operator_loc;
+        /** optional (can be null) */
+        public final Node receiver;
+        /** optional (can be null) */
+        public final ArgumentsNode arguments;
+        public final short flags;
+        public final byte[] read_name;
+        public final byte[] write_name;
+        public final String operator;
         public final Node value;
-        public final byte[] operator;
 
-        public CallOperatorWriteNode(CallNode target, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public CallOperatorWriteNode(Node receiver, ArgumentsNode arguments, short flags, byte[] read_name, byte[] write_name, String operator, Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.target = target;
-            this.operator_loc = operator_loc;
-            this.value = value;
+            this.receiver = receiver;
+            this.arguments = arguments;
+            this.flags = flags;
+            this.read_name = read_name;
+            this.write_name = write_name;
             this.operator = operator;
+            this.value = value;
         }
-                
+        
+        public boolean isSafeNavigation() {
+            return CallNodeFlags.isSafeNavigation(this.flags);
+        }
+
+        public boolean isVariableCall() {
+            return CallNodeFlags.isVariableCall(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.target.accept(visitor);
+            if (this.receiver != null) {
+                this.receiver.accept(visitor);
+            }
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
             this.value.accept(visitor);
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.target, this.value };
+            return new Node[] { this.receiver, this.arguments, this.value };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitCallOperatorWriteNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("receiver: ");
+            builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("read_name: ");
+            builder.append('"' + new String(this.read_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("write_name: ");
+            builder.append('"' + new String(this.write_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents the use of the `||=` operator on a call.
+    // 
+    //     foo.bar ||= value
+    //     ^^^^^^^^^^^^^^^^^
+    public static final class CallOrWriteNode extends Node {
+        /** optional (can be null) */
+        public final Node receiver;
+        /** optional (can be null) */
+        public final ArgumentsNode arguments;
+        public final short flags;
+        public final byte[] read_name;
+        public final byte[] write_name;
+        public final Node value;
+
+        public CallOrWriteNode(Node receiver, ArgumentsNode arguments, short flags, byte[] read_name, byte[] write_name, Node value, int startOffset, int length) {
+            super(startOffset, length);
+            this.receiver = receiver;
+            this.arguments = arguments;
+            this.flags = flags;
+            this.read_name = read_name;
+            this.write_name = write_name;
+            this.value = value;
+        }
+        
+        public boolean isSafeNavigation() {
+            return CallNodeFlags.isSafeNavigation(this.flags);
+        }
+
+        public boolean isVariableCall() {
+            return CallNodeFlags.isVariableCall(this.flags);
+        }
+        
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.receiver != null) {
+                this.receiver.accept(visitor);
+            }
+            if (this.arguments != null) {
+                this.arguments.accept(visitor);
+            }
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.receiver, this.arguments, this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitCallOrWriteNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("receiver: ");
+            builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("read_name: ");
+            builder.append('"' + new String(this.read_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("write_name: ");
+            builder.append('"' + new String(this.write_name, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -1097,13 +1714,11 @@ public abstract class Nodes {
     public static final class CapturePatternNode extends Node {
         public final Node value;
         public final Node target;
-        public final Location operator_loc;
 
-        public CapturePatternNode(Node value, Node target, Location operator_loc, int startOffset, int length) {
+        public CapturePatternNode(Node value, Node target, int startOffset, int length) {
             super(startOffset, length);
             this.value = value;
             this.target = target;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1117,6 +1732,24 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitCapturePatternNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("target: ");
+            builder.append(this.target.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -1132,16 +1765,12 @@ public abstract class Nodes {
         public final Node[] conditions;
         /** optional (can be null) */
         public final ElseNode consequent;
-        public final Location case_keyword_loc;
-        public final Location end_keyword_loc;
 
-        public CaseNode(Node predicate, Node[] conditions, ElseNode consequent, Location case_keyword_loc, Location end_keyword_loc, int startOffset, int length) {
+        public CaseNode(Node predicate, Node[] conditions, ElseNode consequent, int startOffset, int length) {
             super(startOffset, length);
             this.predicate = predicate;
             this.conditions = conditions;
             this.consequent = consequent;
-            this.case_keyword_loc = case_keyword_loc;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1167,6 +1796,31 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitCaseNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate == null ? "null\n" : this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("conditions: ");
+            builder.append('\n');
+            for (Node child : this.conditions) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("consequent: ");
+            builder.append(this.consequent == null ? "null\n" : this.consequent.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a class declaration involving the `class` keyword.
@@ -1174,27 +1828,20 @@ public abstract class Nodes {
     //     class Foo end
     //     ^^^^^^^^^^^^^
     public static final class ClassNode extends Node {
-        public final byte[][] locals;
-        public final Location class_keyword_loc;
+        public final String[] locals;
         public final Node constant_path;
-        /** optional (can be null) */
-        public final Location inheritance_operator_loc;
         /** optional (can be null) */
         public final Node superclass;
         /** optional (can be null) */
         public final Node body;
-        public final Location end_keyword_loc;
-        public final byte[] name;
+        public final String name;
 
-        public ClassNode(byte[][] locals, Location class_keyword_loc, Node constant_path, Location inheritance_operator_loc, Node superclass, Node body, Location end_keyword_loc, byte[] name, int startOffset, int length) {
+        public ClassNode(String[] locals, Node constant_path, Node superclass, Node body, String name, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.class_keyword_loc = class_keyword_loc;
             this.constant_path = constant_path;
-            this.inheritance_operator_loc = inheritance_operator_loc;
             this.superclass = superclass;
             this.body = body;
-            this.end_keyword_loc = end_keyword_loc;
             this.name = name;
         }
                 
@@ -1215,6 +1862,38 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("constant_path: ");
+            builder.append(this.constant_path.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("superclass: ");
+            builder.append(this.superclass == null ? "null\n" : this.superclass.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to a class variable.
@@ -1222,16 +1901,12 @@ public abstract class Nodes {
     //     @@target &&= value
     //     ^^^^^^^^^^^^^^^^
     public static final class ClassVariableAndWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public ClassVariableAndWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public ClassVariableAndWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -1246,6 +1921,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents assigning to a class variable using an operator that isn't `=`.
@@ -1253,17 +1947,13 @@ public abstract class Nodes {
     //     @@target += value
     //     ^^^^^^^^^^^^^^^^^
     public static final class ClassVariableOperatorWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
-        public final byte[] operator;
+        public final String operator;
 
-        public ClassVariableOperatorWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public ClassVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.operator = operator;
         }
@@ -1279,6 +1969,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to a class variable.
@@ -1286,16 +1999,12 @@ public abstract class Nodes {
     //     @@target ||= value
     //     ^^^^^^^^^^^^^^^^^^
     public static final class ClassVariableOrWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public ClassVariableOrWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public ClassVariableOrWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -1310,6 +2019,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents referencing a class variable.
@@ -1317,9 +2045,9 @@ public abstract class Nodes {
     //     @@foo
     //     ^^^^^
     public static final class ClassVariableReadNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public ClassVariableReadNode(byte[] name, int startOffset, int length) {
+        public ClassVariableReadNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -1334,6 +2062,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a class variable in a context that doesn't have an explicit value.
@@ -1341,9 +2085,9 @@ public abstract class Nodes {
     //     @@foo, @@bar = baz
     //     ^^^^^  ^^^^^
     public static final class ClassVariableTargetNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public ClassVariableTargetNode(byte[] name, int startOffset, int length) {
+        public ClassVariableTargetNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -1358,6 +2102,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a class variable.
@@ -1365,25 +2125,17 @@ public abstract class Nodes {
     //     @@foo = 1
     //     ^^^^^^^^^
     public static final class ClassVariableWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        /** optional (can be null) */
+        public final String name;
         public final Node value;
-        /** optional (can be null) */
-        public final Location operator_loc;
 
-        public ClassVariableWriteNode(byte[] name, Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+        public ClassVariableWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            if (this.value != null) {
-                this.value.accept(visitor);
-            }
+            this.value.accept(visitor);
         }
 
         public Node[] childNodes() {
@@ -1393,6 +2145,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitClassVariableWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to a constant.
@@ -1400,14 +2171,12 @@ public abstract class Nodes {
     //     Target &&= value
     //     ^^^^^^^^^^^^^^^^
     public static final class ConstantAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public ConstantAndWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantAndWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
+            this.name = name;
             this.value = value;
         }
                 
@@ -1422,6 +2191,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents assigning to a constant using an operator that isn't `=`.
@@ -1429,15 +2217,13 @@ public abstract class Nodes {
     //     Target += value
     //     ^^^^^^^^^^^^^^^
     public static final class ConstantOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
-        public final byte[] operator;
+        public final String operator;
 
-        public ConstantOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public ConstantOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
+            this.name = name;
             this.value = value;
             this.operator = operator;
         }
@@ -1453,6 +2239,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to a constant.
@@ -1460,14 +2269,12 @@ public abstract class Nodes {
     //     Target ||= value
     //     ^^^^^^^^^^^^^^^^
     public static final class ConstantOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public ConstantOrWriteNode(Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantOrWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
+            this.name = name;
             this.value = value;
         }
                 
@@ -1482,6 +2289,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to a constant path.
@@ -1490,13 +2316,11 @@ public abstract class Nodes {
     //     ^^^^^^^^^^^^^^^^^^^^^^^
     public static final class ConstantPathAndWriteNode extends Node {
         public final ConstantPathNode target;
-        public final Location operator_loc;
         public final Node value;
 
-        public ConstantPathAndWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantPathAndWriteNode(ConstantPathNode target, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -1512,6 +2336,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("target: ");
+            builder.append(this.target.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents accessing a constant through a path of `::` operators.
@@ -1522,13 +2364,11 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final Node parent;
         public final Node child;
-        public final Location delimiter_loc;
 
-        public ConstantPathNode(Node parent, Node child, Location delimiter_loc, int startOffset, int length) {
+        public ConstantPathNode(Node parent, Node child, int startOffset, int length) {
             super(startOffset, length);
             this.parent = parent;
             this.child = child;
-            this.delimiter_loc = delimiter_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1545,6 +2385,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("parent: ");
+            builder.append(this.parent == null ? "null\n" : this.parent.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("child: ");
+            builder.append(this.child.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents assigning to a constant path using an operator that isn't `=`.
@@ -1553,14 +2411,12 @@ public abstract class Nodes {
     //     ^^^^^^^^^^^^^^^^^^^^^^
     public static final class ConstantPathOperatorWriteNode extends Node {
         public final ConstantPathNode target;
-        public final Location operator_loc;
         public final Node value;
-        public final byte[] operator;
+        public final String operator;
 
-        public ConstantPathOperatorWriteNode(ConstantPathNode target, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public ConstantPathOperatorWriteNode(ConstantPathNode target, Node value, String operator, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.operator = operator;
         }
@@ -1577,6 +2433,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("target: ");
+            builder.append(this.target.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to a constant path.
@@ -1585,13 +2463,11 @@ public abstract class Nodes {
     //     ^^^^^^^^^^^^^^^^^^^^^^^
     public static final class ConstantPathOrWriteNode extends Node {
         public final ConstantPathNode target;
-        public final Location operator_loc;
         public final Node value;
 
-        public ConstantPathOrWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantPathOrWriteNode(ConstantPathNode target, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -1607,6 +2483,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("target: ");
+            builder.append(this.target.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents writing to a constant path in a context that doesn't have an explicit value.
@@ -1617,13 +2511,11 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final Node parent;
         public final Node child;
-        public final Location delimiter_loc;
 
-        public ConstantPathTargetNode(Node parent, Node child, Location delimiter_loc, int startOffset, int length) {
+        public ConstantPathTargetNode(Node parent, Node child, int startOffset, int length) {
             super(startOffset, length);
             this.parent = parent;
             this.child = child;
-            this.delimiter_loc = delimiter_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1640,6 +2532,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("parent: ");
+            builder.append(this.parent == null ? "null\n" : this.parent.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("child: ");
+            builder.append(this.child.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents writing to a constant path.
@@ -1654,13 +2564,11 @@ public abstract class Nodes {
     //     ^^^^^^^^^^^^^^
     public static final class ConstantPathWriteNode extends Node {
         public final ConstantPathNode target;
-        public final Location operator_loc;
         public final Node value;
 
-        public ConstantPathWriteNode(ConstantPathNode target, Location operator_loc, Node value, int startOffset, int length) {
+        public ConstantPathWriteNode(ConstantPathNode target, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -1676,6 +2584,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantPathWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("target: ");
+            builder.append(this.target.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents referencing a constant.
@@ -1683,9 +2609,11 @@ public abstract class Nodes {
     //     Foo
     //     ^^^
     public static final class ConstantReadNode extends Node {
+        public final String name;
 
-        public ConstantReadNode(int startOffset, int length) {
+        public ConstantReadNode(String name, int startOffset, int length) {
             super(startOffset, length);
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1698,6 +2626,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a constant in a context that doesn't have an explicit value.
@@ -1705,9 +2649,11 @@ public abstract class Nodes {
     //     Foo, Bar = baz
     //     ^^^  ^^^
     public static final class ConstantTargetNode extends Node {
+        public final String name;
 
-        public ConstantTargetNode(int startOffset, int length) {
+        public ConstantTargetNode(String name, int startOffset, int length) {
             super(startOffset, length);
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1720,6 +2666,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a constant.
@@ -1727,15 +2689,13 @@ public abstract class Nodes {
     //     Foo = 1
     //     ^^^^^^^
     public static final class ConstantWriteNode extends Node {
-        public final Location name_loc;
+        public final String name;
         public final Node value;
-        public final Location operator_loc;
 
-        public ConstantWriteNode(Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+        public ConstantWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
+            this.name = name;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1749,6 +2709,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitConstantWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a method definition.
@@ -1758,40 +2737,23 @@ public abstract class Nodes {
     //     ^^^^^^^^^^
     public static final class DefNode extends Node {
         public final int serializedLength;
-        public final Location name_loc;
+        public final String name;
         /** optional (can be null) */
         public final Node receiver;
         /** optional (can be null) */
         public final ParametersNode parameters;
         /** optional (can be null) */
         public final Node body;
-        public final byte[][] locals;
-        public final Location def_keyword_loc;
-        /** optional (can be null) */
-        public final Location operator_loc;
-        /** optional (can be null) */
-        public final Location lparen_loc;
-        /** optional (can be null) */
-        public final Location rparen_loc;
-        /** optional (can be null) */
-        public final Location equal_loc;
-        /** optional (can be null) */
-        public final Location end_keyword_loc;
+        public final String[] locals;
 
-        public DefNode(int serializedLength, Location name_loc, Node receiver, ParametersNode parameters, Node body, byte[][] locals, Location def_keyword_loc, Location operator_loc, Location lparen_loc, Location rparen_loc, Location equal_loc, Location end_keyword_loc, int startOffset, int length) {
+        public DefNode(int serializedLength, String name, Node receiver, ParametersNode parameters, Node body, String[] locals, int startOffset, int length) {
             super(startOffset, length);
             this.serializedLength = serializedLength;
-            this.name_loc = name_loc;
+            this.name = name;
             this.receiver = receiver;
             this.parameters = parameters;
             this.body = body;
             this.locals = locals;
-            this.def_keyword_loc = def_keyword_loc;
-            this.operator_loc = operator_loc;
-            this.lparen_loc = lparen_loc;
-            this.rparen_loc = rparen_loc;
-            this.equal_loc = equal_loc;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1813,6 +2775,38 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitDefNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("receiver: ");
+            builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("parameters: ");
+            builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `defined?` keyword.
@@ -1820,19 +2814,11 @@ public abstract class Nodes {
     //     defined?(a)
     //     ^^^^^^^^^^^
     public static final class DefinedNode extends Node {
-        /** optional (can be null) */
-        public final Location lparen_loc;
         public final Node value;
-        /** optional (can be null) */
-        public final Location rparen_loc;
-        public final Location keyword_loc;
 
-        public DefinedNode(Location lparen_loc, Node value, Location rparen_loc, Location keyword_loc, int startOffset, int length) {
+        public DefinedNode(Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.lparen_loc = lparen_loc;
             this.value = value;
-            this.rparen_loc = rparen_loc;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1846,6 +2832,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitDefinedNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents an `else` clause in a `case`, `if`, or `unless` statement.
@@ -1853,17 +2854,12 @@ public abstract class Nodes {
     //     if a then b else c end
     //                 ^^^^^^^^^^
     public static final class ElseNode extends Node {
-        public final Location else_keyword_loc;
         /** optional (can be null) */
         public final StatementsNode statements;
-        /** optional (can be null) */
-        public final Location end_keyword_loc;
 
-        public ElseNode(Location else_keyword_loc, StatementsNode statements, Location end_keyword_loc, int startOffset, int length) {
+        public ElseNode(StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
-            this.else_keyword_loc = else_keyword_loc;
             this.statements = statements;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1879,6 +2875,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitElseNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents an interpolated set of statements.
@@ -1886,16 +2897,12 @@ public abstract class Nodes {
     //     "foo #{bar}"
     //          ^^^^^^
     public static final class EmbeddedStatementsNode extends Node {
-        public final Location opening_loc;
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location closing_loc;
 
-        public EmbeddedStatementsNode(Location opening_loc, StatementsNode statements, Location closing_loc, int startOffset, int length) {
+        public EmbeddedStatementsNode(StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.statements = statements;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1911,6 +2918,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitEmbeddedStatementsNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents an interpolated variable.
@@ -1918,12 +2940,10 @@ public abstract class Nodes {
     //     "foo #@bar"
     //          ^^^^^
     public static final class EmbeddedVariableNode extends Node {
-        public final Location operator_loc;
         public final Node variable;
 
-        public EmbeddedVariableNode(Location operator_loc, Node variable, int startOffset, int length) {
+        public EmbeddedVariableNode(Node variable, int startOffset, int length) {
             super(startOffset, length);
-            this.operator_loc = operator_loc;
             this.variable = variable;
         }
                 
@@ -1938,6 +2958,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitEmbeddedVariableNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("variable: ");
+            builder.append(this.variable.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents an `ensure` clause in a `begin` statement.
@@ -1949,16 +2984,12 @@ public abstract class Nodes {
     //       bar
     //     end
     public static final class EnsureNode extends Node {
-        public final Location ensure_keyword_loc;
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location end_keyword_loc;
 
-        public EnsureNode(Location ensure_keyword_loc, StatementsNode statements, Location end_keyword_loc, int startOffset, int length) {
+        public EnsureNode(StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
-            this.ensure_keyword_loc = ensure_keyword_loc;
             this.statements = statements;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1973,6 +3004,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitEnsureNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -1996,6 +3042,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitFalseNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents a find pattern in pattern matching.
@@ -2014,19 +3072,13 @@ public abstract class Nodes {
         public final Node left;
         public final Node[] requireds;
         public final Node right;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public FindPatternNode(Node constant, Node left, Node[] requireds, Node right, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public FindPatternNode(Node constant, Node left, Node[] requireds, Node right, int startOffset, int length) {
             super(startOffset, length);
             this.constant = constant;
             this.left = left;
             this.requireds = requireds;
             this.right = right;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2052,6 +3104,34 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitFindPatternNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("constant: ");
+            builder.append(this.constant == null ? "null\n" : this.constant.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("requireds: ");
+            builder.append('\n');
+            for (Node child : this.requireds) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `..` or `...` operators to create flip flops.
@@ -2063,14 +3143,12 @@ public abstract class Nodes {
         public final Node left;
         /** optional (can be null) */
         public final Node right;
-        public final Location operator_loc;
         public final short flags;
 
-        public FlipFlopNode(Node left, Node right, Location operator_loc, short flags, int startOffset, int length) {
+        public FlipFlopNode(Node left, Node right, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
-            this.operator_loc = operator_loc;
             this.flags = flags;
         }
         
@@ -2094,6 +3172,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitFlipFlopNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left == null ? "null\n" : this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right == null ? "null\n" : this.right.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents a floating point number literal.
@@ -2116,6 +3216,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitFloatNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `for` keyword.
@@ -2127,21 +3239,12 @@ public abstract class Nodes {
         public final Node collection;
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location for_keyword_loc;
-        public final Location in_keyword_loc;
-        /** optional (can be null) */
-        public final Location do_keyword_loc;
-        public final Location end_keyword_loc;
 
-        public ForNode(Node index, Node collection, StatementsNode statements, Location for_keyword_loc, Location in_keyword_loc, Location do_keyword_loc, Location end_keyword_loc, int startOffset, int length) {
+        public ForNode(Node index, Node collection, StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
             this.index = index;
             this.collection = collection;
             this.statements = statements;
-            this.for_keyword_loc = for_keyword_loc;
-            this.in_keyword_loc = in_keyword_loc;
-            this.do_keyword_loc = do_keyword_loc;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2158,6 +3261,27 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitForNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("index: ");
+            builder.append(this.index.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("collection: ");
+            builder.append(this.collection.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -2183,6 +3307,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitForwardingArgumentsNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of the forwarding parameter in a method, block, or lambda declaration.
@@ -2205,6 +3341,18 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitForwardingParameterNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
         }
     }
 
@@ -2234,6 +3382,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitForwardingSuperNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("block: ");
+            builder.append(this.block == null ? "null\n" : this.block.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to a global variable.
@@ -2241,16 +3404,12 @@ public abstract class Nodes {
     //     $target &&= value
     //     ^^^^^^^^^^^^^^^^^
     public static final class GlobalVariableAndWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public GlobalVariableAndWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public GlobalVariableAndWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -2265,6 +3424,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents assigning to a global variable using an operator that isn't `=`.
@@ -2272,17 +3450,13 @@ public abstract class Nodes {
     //     $target += value
     //     ^^^^^^^^^^^^^^^^
     public static final class GlobalVariableOperatorWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
-        public final byte[] operator;
+        public final String operator;
 
-        public GlobalVariableOperatorWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public GlobalVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.operator = operator;
         }
@@ -2298,6 +3472,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to a global variable.
@@ -2305,16 +3502,12 @@ public abstract class Nodes {
     //     $target ||= value
     //     ^^^^^^^^^^^^^^^^^
     public static final class GlobalVariableOrWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public GlobalVariableOrWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public GlobalVariableOrWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -2329,6 +3522,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents referencing a global variable.
@@ -2336,9 +3548,9 @@ public abstract class Nodes {
     //     $foo
     //     ^^^^
     public static final class GlobalVariableReadNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public GlobalVariableReadNode(byte[] name, int startOffset, int length) {
+        public GlobalVariableReadNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -2353,6 +3565,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a global variable in a context that doesn't have an explicit value.
@@ -2360,9 +3588,9 @@ public abstract class Nodes {
     //     $foo, $bar = baz
     //     ^^^^  ^^^^
     public static final class GlobalVariableTargetNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public GlobalVariableTargetNode(byte[] name, int startOffset, int length) {
+        public GlobalVariableTargetNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -2377,6 +3605,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a global variable.
@@ -2384,17 +3628,13 @@ public abstract class Nodes {
     //     $foo = 1
     //     ^^^^^^^^
     public static final class GlobalVariableWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
+        public final String name;
         public final Node value;
-        public final Location operator_loc;
 
-        public GlobalVariableWriteNode(byte[] name, Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+        public GlobalVariableWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2408,6 +3648,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitGlobalVariableWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a hash literal.
@@ -2415,15 +3674,11 @@ public abstract class Nodes {
     //     { a => b }
     //     ^^^^^^^^^^
     public static final class HashNode extends Node {
-        public final Location opening_loc;
         public final Node[] elements;
-        public final Location closing_loc;
 
-        public HashNode(Location opening_loc, Node[] elements, Location closing_loc, int startOffset, int length) {
+        public HashNode(Node[] elements, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.elements = elements;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2438,6 +3693,25 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitHashNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("elements: ");
+            builder.append('\n');
+            for (Node child : this.elements) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
         }
     }
 
@@ -2454,18 +3728,12 @@ public abstract class Nodes {
         public final Node[] assocs;
         /** optional (can be null) */
         public final Node kwrest;
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public HashPatternNode(Node constant, Node[] assocs, Node kwrest, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public HashPatternNode(Node constant, Node[] assocs, Node kwrest, int startOffset, int length) {
             super(startOffset, length);
             this.constant = constant;
             this.assocs = assocs;
             this.kwrest = kwrest;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2491,6 +3759,31 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitHashPatternNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("constant: ");
+            builder.append(this.constant == null ? "null\n" : this.constant.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("assocs: ");
+            builder.append('\n');
+            for (Node child : this.assocs) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("kwrest: ");
+            builder.append(this.kwrest == null ? "null\n" : this.kwrest.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `if` keyword, either in the block form or the modifier form.
@@ -2501,23 +3794,17 @@ public abstract class Nodes {
     //     if foo then bar end
     //     ^^^^^^^^^^^^^^^^^^^
     public static final class IfNode extends Node {
-        /** optional (can be null) */
-        public final Location if_keyword_loc;
         public final Node predicate;
         /** optional (can be null) */
         public final StatementsNode statements;
         /** optional (can be null) */
         public final Node consequent;
-        /** optional (can be null) */
-        public final Location end_keyword_loc;
 
-        public IfNode(Location if_keyword_loc, Node predicate, StatementsNode statements, Node consequent, Location end_keyword_loc, int startOffset, int length) {
+        public IfNode(Node predicate, StatementsNode statements, Node consequent, int startOffset, int length) {
             super(startOffset, length);
-            this.if_keyword_loc = if_keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.consequent = consequent;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         @Override
@@ -2541,6 +3828,27 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitIfNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("consequent: ");
+            builder.append(this.consequent == null ? "null\n" : this.consequent.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -2567,6 +3875,65 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitImaginaryNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("numeric: ");
+            builder.append(this.numeric.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents a node that is implicitly being added to the tree but doesn't
+    // correspond directly to a node in the source.
+    // 
+    //     { foo: }
+    //       ^^^^
+    // 
+    //     { Foo: }
+    //       ^^^^
+    public static final class ImplicitNode extends Node {
+        public final Node value;
+
+        public ImplicitNode(Node value, int startOffset, int length) {
+            super(startOffset, length);
+            this.value = value;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.value };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitImplicitNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `in` keyword in a case statement.
@@ -2577,16 +3944,11 @@ public abstract class Nodes {
         public final Node pattern;
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location in_loc;
-        /** optional (can be null) */
-        public final Location then_loc;
 
-        public InNode(Node pattern, StatementsNode statements, Location in_loc, Location then_loc, int startOffset, int length) {
+        public InNode(Node pattern, StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
             this.pattern = pattern;
             this.statements = statements;
-            this.in_loc = in_loc;
-            this.then_loc = then_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2603,6 +3965,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("pattern: ");
+            builder.append(this.pattern.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to an instance variable.
@@ -2610,16 +3990,12 @@ public abstract class Nodes {
     //     @target &&= value
     //     ^^^^^^^^^^^^^^^^^
     public static final class InstanceVariableAndWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public InstanceVariableAndWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public InstanceVariableAndWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -2634,6 +4010,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents assigning to an instance variable using an operator that isn't `=`.
@@ -2641,17 +4036,13 @@ public abstract class Nodes {
     //     @target += value
     //     ^^^^^^^^^^^^^^^^
     public static final class InstanceVariableOperatorWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
-        public final byte[] operator;
+        public final String operator;
 
-        public InstanceVariableOperatorWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, byte[] operator, int startOffset, int length) {
+        public InstanceVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.operator = operator;
         }
@@ -2667,6 +4058,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to an instance variable.
@@ -2674,16 +4088,12 @@ public abstract class Nodes {
     //     @target ||= value
     //     ^^^^^^^^^^^^^^^^^
     public static final class InstanceVariableOrWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public InstanceVariableOrWriteNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public InstanceVariableOrWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -2698,6 +4108,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents referencing an instance variable.
@@ -2705,9 +4134,9 @@ public abstract class Nodes {
     //     @foo
     //     ^^^^
     public static final class InstanceVariableReadNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public InstanceVariableReadNode(byte[] name, int startOffset, int length) {
+        public InstanceVariableReadNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -2722,6 +4151,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to an instance variable in a context that doesn't have an explicit value.
@@ -2729,9 +4174,9 @@ public abstract class Nodes {
     //     @foo, @bar = baz
     //     ^^^^  ^^^^
     public static final class InstanceVariableTargetNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public InstanceVariableTargetNode(byte[] name, int startOffset, int length) {
+        public InstanceVariableTargetNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -2746,6 +4191,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to an instance variable.
@@ -2753,17 +4214,13 @@ public abstract class Nodes {
     //     @foo = 1
     //     ^^^^^^^^
     public static final class InstanceVariableWriteNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
+        public final String name;
         public final Node value;
-        public final Location operator_loc;
 
-        public InstanceVariableWriteNode(byte[] name, Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+        public InstanceVariableWriteNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2777,6 +4234,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInstanceVariableWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents an integer number literal.
@@ -2784,11 +4260,29 @@ public abstract class Nodes {
     //     1
     //     ^
     public static final class IntegerNode extends Node {
+        public final short flags;
 
-        public IntegerNode(int startOffset, int length) {
+        public IntegerNode(short flags, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
         }
-                
+        
+        public boolean isBinary() {
+            return IntegerBaseFlags.isBinary(this.flags);
+        }
+
+        public boolean isOctal() {
+            return IntegerBaseFlags.isOctal(this.flags);
+        }
+
+        public boolean isDecimal() {
+            return IntegerBaseFlags.isDecimal(this.flags);
+        }
+
+        public boolean isHexadecimal() {
+            return IntegerBaseFlags.isHexadecimal(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -2799,23 +4293,37 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitIntegerNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
-    // Represents a regular expression literal that contains interpolation.
+    // Represents a regular expression literal that contains interpolation that
+    // is being used in the predicate of a conditional to implicitly match
+    // against the last line read by an IO object.
     // 
-    //     /foo #{bar} baz/
-    //     ^^^^^^^^^^^^^^^^
-    public static final class InterpolatedRegularExpressionNode extends Node {
-        public final Location opening_loc;
+    //     if /foo #{bar} baz/ then end
+    //        ^^^^^^^^^^^^^^^^
+    public static final class InterpolatedMatchLastLineNode extends Node {
         public final Node[] parts;
-        public final Location closing_loc;
         public final short flags;
 
-        public InterpolatedRegularExpressionNode(Location opening_loc, Node[] parts, Location closing_loc, short flags, int startOffset, int length) {
+        public InterpolatedMatchLastLineNode(Node[] parts, short flags, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.parts = parts;
-            this.closing_loc = closing_loc;
             this.flags = flags;
         }
         
@@ -2823,12 +4331,104 @@ public abstract class Nodes {
             return RegularExpressionFlags.isIgnoreCase(this.flags);
         }
 
+        public boolean isExtended() {
+            return RegularExpressionFlags.isExtended(this.flags);
+        }
+
         public boolean isMultiLine() {
             return RegularExpressionFlags.isMultiLine(this.flags);
         }
 
+        public boolean isEucJp() {
+            return RegularExpressionFlags.isEucJp(this.flags);
+        }
+
+        public boolean isAscii8bit() {
+            return RegularExpressionFlags.isAscii8bit(this.flags);
+        }
+
+        public boolean isWindows31j() {
+            return RegularExpressionFlags.isWindows31j(this.flags);
+        }
+
+        public boolean isUtf8() {
+            return RegularExpressionFlags.isUtf8(this.flags);
+        }
+
+        public boolean isOnce() {
+            return RegularExpressionFlags.isOnce(this.flags);
+        }
+        
+        @Override
+        public void setNewLineFlag(Source source, boolean[] newlineMarked) {
+            Node first = this.parts.length > 0 ? this.parts[0] : null;
+            if (first != null) {
+                first.setNewLineFlag(source, newlineMarked);
+            }
+        }
+
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.parts) {
+                child.accept(visitor);
+            }
+        }
+
+        public Node[] childNodes() {
+            return this.parts;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitInterpolatedMatchLastLineNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parts: ");
+            builder.append('\n');
+            for (Node child : this.parts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
+    }
+
+    // Represents a regular expression literal that contains interpolation.
+    // 
+    //     /foo #{bar} baz/
+    //     ^^^^^^^^^^^^^^^^
+    public static final class InterpolatedRegularExpressionNode extends Node {
+        public final Node[] parts;
+        public final short flags;
+
+        public InterpolatedRegularExpressionNode(Node[] parts, short flags, int startOffset, int length) {
+            super(startOffset, length);
+            this.parts = parts;
+            this.flags = flags;
+        }
+        
+        public boolean isIgnoreCase() {
+            return RegularExpressionFlags.isIgnoreCase(this.flags);
+        }
+
         public boolean isExtended() {
             return RegularExpressionFlags.isExtended(this.flags);
+        }
+
+        public boolean isMultiLine() {
+            return RegularExpressionFlags.isMultiLine(this.flags);
         }
 
         public boolean isEucJp() {
@@ -2872,6 +4472,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInterpolatedRegularExpressionNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parts: ");
+            builder.append('\n');
+            for (Node child : this.parts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents a string literal that contains interpolation.
@@ -2879,17 +4502,11 @@ public abstract class Nodes {
     //     "foo #{bar} baz"
     //     ^^^^^^^^^^^^^^^^
     public static final class InterpolatedStringNode extends Node {
-        /** optional (can be null) */
-        public final Location opening_loc;
         public final Node[] parts;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public InterpolatedStringNode(Location opening_loc, Node[] parts, Location closing_loc, int startOffset, int length) {
+        public InterpolatedStringNode(Node[] parts, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.parts = parts;
-            this.closing_loc = closing_loc;
         }
                 
         @Override
@@ -2913,6 +4530,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInterpolatedStringNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parts: ");
+            builder.append('\n');
+            for (Node child : this.parts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents a symbol literal that contains interpolation.
@@ -2920,17 +4556,11 @@ public abstract class Nodes {
     //     :"foo #{bar} baz"
     //     ^^^^^^^^^^^^^^^^^
     public static final class InterpolatedSymbolNode extends Node {
-        /** optional (can be null) */
-        public final Location opening_loc;
         public final Node[] parts;
-        /** optional (can be null) */
-        public final Location closing_loc;
 
-        public InterpolatedSymbolNode(Location opening_loc, Node[] parts, Location closing_loc, int startOffset, int length) {
+        public InterpolatedSymbolNode(Node[] parts, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.parts = parts;
-            this.closing_loc = closing_loc;
         }
                 
         @Override
@@ -2954,6 +4584,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInterpolatedSymbolNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parts: ");
+            builder.append('\n');
+            for (Node child : this.parts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents an xstring literal that contains interpolation.
@@ -2961,15 +4610,11 @@ public abstract class Nodes {
     //     `foo #{bar} baz`
     //     ^^^^^^^^^^^^^^^^
     public static final class InterpolatedXStringNode extends Node {
-        public final Location opening_loc;
         public final Node[] parts;
-        public final Location closing_loc;
 
-        public InterpolatedXStringNode(Location opening_loc, Node[] parts, Location closing_loc, int startOffset, int length) {
+        public InterpolatedXStringNode(Node[] parts, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.parts = parts;
-            this.closing_loc = closing_loc;
         }
                 
         @Override
@@ -2992,6 +4637,25 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitInterpolatedXStringNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parts: ");
+            builder.append('\n');
+            for (Node child : this.parts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
         }
     }
 
@@ -3020,6 +4684,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitKeywordHashNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("elements: ");
+            builder.append('\n');
+            for (Node child : this.elements) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents a keyword parameter to a method, block, or lambda definition.
@@ -3032,13 +4715,13 @@ public abstract class Nodes {
     //           ^^^^
     //     end
     public static final class KeywordParameterNode extends Node {
-        public final Location name_loc;
+        public final String name;
         /** optional (can be null) */
         public final Node value;
 
-        public KeywordParameterNode(Location name_loc, Node value, int startOffset, int length) {
+        public KeywordParameterNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
+            this.name = name;
             this.value = value;
         }
                 
@@ -3055,6 +4738,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitKeywordParameterNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value == null ? "null\n" : this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a keyword rest parameter to a method, block, or lambda definition.
@@ -3063,14 +4765,12 @@ public abstract class Nodes {
     //           ^^^
     //     end
     public static final class KeywordRestParameterNode extends Node {
-        public final Location operator_loc;
         /** optional (can be null) */
-        public final Location name_loc;
+        public final String name;
 
-        public KeywordRestParameterNode(Location operator_loc, Location name_loc, int startOffset, int length) {
+        public KeywordRestParameterNode(String name, int startOffset, int length) {
             super(startOffset, length);
-            this.operator_loc = operator_loc;
-            this.name_loc = name_loc;
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3083,6 +4783,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitKeywordRestParameterNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents using a lambda literal (not the lambda method call).
@@ -3090,21 +4806,15 @@ public abstract class Nodes {
     //     ->(value) { value * 2 }
     //     ^^^^^^^^^^^^^^^^^^^^^^^
     public static final class LambdaNode extends Node {
-        public final byte[][] locals;
-        public final Location operator_loc;
-        public final Location opening_loc;
-        public final Location closing_loc;
+        public final String[] locals;
         /** optional (can be null) */
         public final BlockParametersNode parameters;
         /** optional (can be null) */
         public final Node body;
 
-        public LambdaNode(byte[][] locals, Location operator_loc, Location opening_loc, Location closing_loc, BlockParametersNode parameters, Node body, int startOffset, int length) {
+        public LambdaNode(String[] locals, BlockParametersNode parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.operator_loc = operator_loc;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
             this.parameters = parameters;
             this.body = body;
         }
@@ -3125,6 +4835,31 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLambdaNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("parameters: ");
+            builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `&&=` operator for assignment to a local variable.
@@ -3132,16 +4867,12 @@ public abstract class Nodes {
     //     target &&= value
     //     ^^^^^^^^^^^^^^^^
     public static final class LocalVariableAndWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
         public final Node value;
-        public final byte[] name;
+        public final String name;
         public final int depth;
 
-        public LocalVariableAndWriteNode(Location name_loc, Location operator_loc, Node value, byte[] name, int depth, int startOffset, int length) {
+        public LocalVariableAndWriteNode(Node value, String name, int depth, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.name = name;
             this.depth = depth;
@@ -3158,6 +4889,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableAndWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents assigning to a local variable using an operator that isn't `=`.
@@ -3165,17 +4919,13 @@ public abstract class Nodes {
     //     target += value
     //     ^^^^^^^^^^^^^^^
     public static final class LocalVariableOperatorWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
         public final Node value;
-        public final byte[] name;
-        public final byte[] operator;
+        public final String name;
+        public final String operator;
         public final int depth;
 
-        public LocalVariableOperatorWriteNode(Location name_loc, Location operator_loc, Node value, byte[] name, byte[] operator, int depth, int startOffset, int length) {
+        public LocalVariableOperatorWriteNode(Node value, String name, String operator, int depth, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.name = name;
             this.operator = operator;
@@ -3193,6 +4943,33 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableOperatorWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("operator: ");
+            builder.append('"').append(this.operator).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||=` operator for assignment to a local variable.
@@ -3200,16 +4977,12 @@ public abstract class Nodes {
     //     target ||= value
     //     ^^^^^^^^^^^^^^^^
     public static final class LocalVariableOrWriteNode extends Node {
-        public final Location name_loc;
-        public final Location operator_loc;
         public final Node value;
-        public final byte[] name;
+        public final String name;
         public final int depth;
 
-        public LocalVariableOrWriteNode(Location name_loc, Location operator_loc, Node value, byte[] name, int depth, int startOffset, int length) {
+        public LocalVariableOrWriteNode(Node value, String name, int depth, int startOffset, int length) {
             super(startOffset, length);
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
             this.name = name;
             this.depth = depth;
@@ -3226,6 +4999,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableOrWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents reading a local variable. Note that this requires that a local
@@ -3235,10 +5031,10 @@ public abstract class Nodes {
     //     foo
     //     ^^^
     public static final class LocalVariableReadNode extends Node {
-        public final byte[] name;
+        public final String name;
         public final int depth;
 
-        public LocalVariableReadNode(byte[] name, int depth, int startOffset, int length) {
+        public LocalVariableReadNode(String name, int depth, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.depth = depth;
@@ -3254,6 +5050,26 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a local variable in a context that doesn't have an explicit value.
@@ -3261,10 +5077,10 @@ public abstract class Nodes {
     //     foo, bar = baz
     //     ^^^  ^^^
     public static final class LocalVariableTargetNode extends Node {
-        public final byte[] name;
+        public final String name;
         public final int depth;
 
-        public LocalVariableTargetNode(byte[] name, int depth, int startOffset, int length) {
+        public LocalVariableTargetNode(String name, int depth, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.depth = depth;
@@ -3280,6 +5096,26 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableTargetNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents writing to a local variable.
@@ -3287,19 +5123,15 @@ public abstract class Nodes {
     //     foo = 1
     //     ^^^^^^^
     public static final class LocalVariableWriteNode extends Node {
-        public final byte[] name;
+        public final String name;
         public final int depth;
-        public final Location name_loc;
         public final Node value;
-        public final Location operator_loc;
 
-        public LocalVariableWriteNode(byte[] name, int depth, Location name_loc, Node value, Location operator_loc, int startOffset, int length) {
+        public LocalVariableWriteNode(String name, int depth, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.depth = depth;
-            this.name_loc = name_loc;
             this.value = value;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3313,6 +5145,111 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitLocalVariableWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("depth: ");
+            builder.append(this.depth);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents a regular expression literal used in the predicate of a
+    // conditional to implicitly match against the last line read by an IO
+    // object.
+    // 
+    //     if /foo/i then end
+    //        ^^^^^^
+    public static final class MatchLastLineNode extends Node {
+        public final Location content_loc;
+        public final byte[] unescaped;
+        public final short flags;
+
+        public MatchLastLineNode(Location content_loc, byte[] unescaped, short flags, int startOffset, int length) {
+            super(startOffset, length);
+            this.content_loc = content_loc;
+            this.unescaped = unescaped;
+            this.flags = flags;
+        }
+        
+        public boolean isIgnoreCase() {
+            return RegularExpressionFlags.isIgnoreCase(this.flags);
+        }
+
+        public boolean isExtended() {
+            return RegularExpressionFlags.isExtended(this.flags);
+        }
+
+        public boolean isMultiLine() {
+            return RegularExpressionFlags.isMultiLine(this.flags);
+        }
+
+        public boolean isEucJp() {
+            return RegularExpressionFlags.isEucJp(this.flags);
+        }
+
+        public boolean isAscii8bit() {
+            return RegularExpressionFlags.isAscii8bit(this.flags);
+        }
+
+        public boolean isWindows31j() {
+            return RegularExpressionFlags.isWindows31j(this.flags);
+        }
+
+        public boolean isUtf8() {
+            return RegularExpressionFlags.isUtf8(this.flags);
+        }
+
+        public boolean isOnce() {
+            return RegularExpressionFlags.isOnce(this.flags);
+        }
+        
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitMatchLastLineNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("unescaped: ");
+            builder.append('"' + new String(this.unescaped, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the modifier `in` operator.
@@ -3322,13 +5259,11 @@ public abstract class Nodes {
     public static final class MatchPredicateNode extends Node {
         public final Node value;
         public final Node pattern;
-        public final Location operator_loc;
 
-        public MatchPredicateNode(Node value, Node pattern, Location operator_loc, int startOffset, int length) {
+        public MatchPredicateNode(Node value, Node pattern, int startOffset, int length) {
             super(startOffset, length);
             this.value = value;
             this.pattern = pattern;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3343,6 +5278,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitMatchPredicateNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("pattern: ");
+            builder.append(this.pattern.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `=>` operator.
@@ -3352,13 +5305,11 @@ public abstract class Nodes {
     public static final class MatchRequiredNode extends Node {
         public final Node value;
         public final Node pattern;
-        public final Location operator_loc;
 
-        public MatchRequiredNode(Node value, Node pattern, Location operator_loc, int startOffset, int length) {
+        public MatchRequiredNode(Node value, Node pattern, int startOffset, int length) {
             super(startOffset, length);
             this.value = value;
             this.pattern = pattern;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3372,6 +5323,74 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitMatchRequiredNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("pattern: ");
+            builder.append(this.pattern.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    // Represents writing local variables using a regular expression match with
+    // named capture groups.
+    // 
+    //     /(?<foo>bar)/ =~ baz
+    //     ^^^^^^^^^^^^^^^^^^^^
+    public static final class MatchWriteNode extends Node {
+        public final CallNode call;
+        public final String[] locals;
+
+        public MatchWriteNode(CallNode call, String[] locals, int startOffset, int length) {
+            super(startOffset, length);
+            this.call = call;
+            this.locals = locals;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.call.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.call };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitMatchWriteNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("call: ");
+            builder.append(this.call.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            return builder.toString();
         }
     }
 
@@ -3393,6 +5412,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitMissingNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents a module declaration involving the `module` keyword.
@@ -3400,21 +5431,17 @@ public abstract class Nodes {
     //     module Foo end
     //     ^^^^^^^^^^^^^^
     public static final class ModuleNode extends Node {
-        public final byte[][] locals;
-        public final Location module_keyword_loc;
+        public final String[] locals;
         public final Node constant_path;
         /** optional (can be null) */
         public final Node body;
-        public final Location end_keyword_loc;
-        public final byte[] name;
+        public final String name;
 
-        public ModuleNode(byte[][] locals, Location module_keyword_loc, Node constant_path, Node body, Location end_keyword_loc, byte[] name, int startOffset, int length) {
+        public ModuleNode(String[] locals, Node constant_path, Node body, String name, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.module_keyword_loc = module_keyword_loc;
             this.constant_path = constant_path;
             this.body = body;
-            this.end_keyword_loc = end_keyword_loc;
             this.name = name;
         }
                 
@@ -3432,39 +5459,102 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitModuleNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("constant_path: ");
+            builder.append(this.constant_path.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents a multi-target expression.
     // 
     //     a, b, c = 1, 2, 3
-    //     ^^^^^^^^^^^^^^^^^
-    public static final class MultiWriteNode extends Node {
+    //     ^^^^^^^
+    public static final class MultiTargetNode extends Node {
         public final Node[] targets;
-        /** optional (can be null) */
-        public final Location operator_loc;
-        /** optional (can be null) */
-        public final Node value;
-        /** optional (can be null) */
-        public final Location lparen_loc;
-        /** optional (can be null) */
-        public final Location rparen_loc;
 
-        public MultiWriteNode(Node[] targets, Location operator_loc, Node value, Location lparen_loc, Location rparen_loc, int startOffset, int length) {
+        public MultiTargetNode(Node[] targets, int startOffset, int length) {
             super(startOffset, length);
             this.targets = targets;
-            this.operator_loc = operator_loc;
-            this.value = value;
-            this.lparen_loc = lparen_loc;
-            this.rparen_loc = rparen_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.targets) {
                 child.accept(visitor);
             }
-            if (this.value != null) {
-                this.value.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return this.targets;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitMultiTargetNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
             }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("targets: ");
+            builder.append('\n');
+            for (Node child : this.targets) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
+    }
+
+    // Represents a write to a multi-target expression.
+    // 
+    //     a, b, c = 1, 2, 3
+    //     ^^^^^^^^^^^^^^^^^
+    public static final class MultiWriteNode extends Node {
+        public final Node[] targets;
+        public final Node value;
+
+        public MultiWriteNode(Node[] targets, Node value, int startOffset, int length) {
+            super(startOffset, length);
+            this.targets = targets;
+            this.value = value;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            for (Nodes.Node child : this.targets) {
+                child.accept(visitor);
+            }
+            this.value.accept(visitor);
         }
 
         public Node[] childNodes() {
@@ -3477,6 +5567,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitMultiWriteNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("targets: ");
+            builder.append('\n');
+            for (Node child : this.targets) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `next` keyword.
@@ -3486,12 +5598,10 @@ public abstract class Nodes {
     public static final class NextNode extends Node {
         /** optional (can be null) */
         public final ArgumentsNode arguments;
-        public final Location keyword_loc;
 
-        public NextNode(ArgumentsNode arguments, Location keyword_loc, int startOffset, int length) {
+        public NextNode(ArgumentsNode arguments, int startOffset, int length) {
             super(startOffset, length);
             this.arguments = arguments;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3506,6 +5616,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitNextNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -3529,6 +5654,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitNilNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of `**nil` inside method arguments.
@@ -3537,13 +5674,9 @@ public abstract class Nodes {
     //           ^^^^^
     //     end
     public static final class NoKeywordsParameterNode extends Node {
-        public final Location operator_loc;
-        public final Location keyword_loc;
 
-        public NoKeywordsParameterNode(Location operator_loc, Location keyword_loc, int startOffset, int length) {
+        public NoKeywordsParameterNode(int startOffset, int length) {
             super(startOffset, length);
-            this.operator_loc = operator_loc;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3555,6 +5688,18 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitNoKeywordsParameterNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
         }
     }
 
@@ -3580,6 +5725,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitNumberedReferenceReadNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("number: ");
+            builder.append(this.number);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents an optional parameter to a method, block, or lambda definition.
@@ -3588,16 +5749,12 @@ public abstract class Nodes {
     //           ^^^^^
     //     end
     public static final class OptionalParameterNode extends Node {
-        public final byte[] name;
-        public final Location name_loc;
-        public final Location operator_loc;
+        public final String name;
         public final Node value;
 
-        public OptionalParameterNode(byte[] name, Location name_loc, Location operator_loc, Node value, int startOffset, int length) {
+        public OptionalParameterNode(String name, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
-            this.name_loc = name_loc;
-            this.operator_loc = operator_loc;
             this.value = value;
         }
                 
@@ -3612,6 +5769,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitOptionalParameterNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `||` operator or the `or` keyword.
@@ -3621,13 +5797,11 @@ public abstract class Nodes {
     public static final class OrNode extends Node {
         public final Node left;
         public final Node right;
-        public final Location operator_loc;
 
-        public OrNode(Node left, Node right, Location operator_loc, int startOffset, int length) {
+        public OrNode(Node left, Node right, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3642,6 +5816,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitOrNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the list of parameters on a method, block, or lambda definition.
@@ -3652,21 +5844,21 @@ public abstract class Nodes {
     public static final class ParametersNode extends Node {
         public final Node[] requireds;
         public final Node[] optionals;
-        public final Node[] posts;
         /** optional (can be null) */
         public final RestParameterNode rest;
+        public final Node[] posts;
         public final Node[] keywords;
         /** optional (can be null) */
         public final Node keyword_rest;
         /** optional (can be null) */
         public final BlockParameterNode block;
 
-        public ParametersNode(Node[] requireds, Node[] optionals, Node[] posts, RestParameterNode rest, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
+        public ParametersNode(Node[] requireds, Node[] optionals, RestParameterNode rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
             super(startOffset, length);
             this.requireds = requireds;
             this.optionals = optionals;
-            this.posts = posts;
             this.rest = rest;
+            this.posts = posts;
             this.keywords = keywords;
             this.keyword_rest = keyword_rest;
             this.block = block;
@@ -3679,11 +5871,11 @@ public abstract class Nodes {
             for (Nodes.Node child : this.optionals) {
                 child.accept(visitor);
             }
-            for (Nodes.Node child : this.posts) {
-                child.accept(visitor);
-            }
             if (this.rest != null) {
                 this.rest.accept(visitor);
+            }
+            for (Nodes.Node child : this.posts) {
+                child.accept(visitor);
             }
             for (Nodes.Node child : this.keywords) {
                 child.accept(visitor);
@@ -3700,8 +5892,8 @@ public abstract class Nodes {
             ArrayList<Node> childNodes = new ArrayList<>();
             childNodes.addAll(Arrays.asList(this.requireds));
             childNodes.addAll(Arrays.asList(this.optionals));
-            childNodes.addAll(Arrays.asList(this.posts));
             childNodes.add(this.rest);
+            childNodes.addAll(Arrays.asList(this.posts));
             childNodes.addAll(Arrays.asList(this.keywords));
             childNodes.add(this.keyword_rest);
             childNodes.add(this.block);
@@ -3710,6 +5902,52 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitParametersNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("requireds: ");
+            builder.append('\n');
+            for (Node child : this.requireds) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("optionals: ");
+            builder.append('\n');
+            for (Node child : this.optionals) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("rest: ");
+            builder.append(this.rest == null ? "null\n" : this.rest.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("posts: ");
+            builder.append('\n');
+            for (Node child : this.posts) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("keywords: ");
+            builder.append('\n');
+            for (Node child : this.keywords) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("keyword_rest: ");
+            builder.append(this.keyword_rest == null ? "null\n" : this.keyword_rest.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("block: ");
+            builder.append(this.block == null ? "null\n" : this.block.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -3720,14 +5958,10 @@ public abstract class Nodes {
     public static final class ParenthesesNode extends Node {
         /** optional (can be null) */
         public final Node body;
-        public final Location opening_loc;
-        public final Location closing_loc;
 
-        public ParenthesesNode(Node body, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public ParenthesesNode(Node body, int startOffset, int length) {
             super(startOffset, length);
             this.body = body;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         @Override
@@ -3748,6 +5982,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitParenthesesNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `^` operator for pinning an expression in a
@@ -3757,16 +6006,10 @@ public abstract class Nodes {
     //            ^^^^^^
     public static final class PinnedExpressionNode extends Node {
         public final Node expression;
-        public final Location operator_loc;
-        public final Location lparen_loc;
-        public final Location rparen_loc;
 
-        public PinnedExpressionNode(Node expression, Location operator_loc, Location lparen_loc, Location rparen_loc, int startOffset, int length) {
+        public PinnedExpressionNode(Node expression, int startOffset, int length) {
             super(startOffset, length);
             this.expression = expression;
-            this.operator_loc = operator_loc;
-            this.lparen_loc = lparen_loc;
-            this.rparen_loc = rparen_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3780,6 +6023,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitPinnedExpressionNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("expression: ");
+            builder.append(this.expression.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `^` operator for pinning a variable in a pattern
@@ -3789,12 +6047,10 @@ public abstract class Nodes {
     //            ^^^^
     public static final class PinnedVariableNode extends Node {
         public final Node variable;
-        public final Location operator_loc;
 
-        public PinnedVariableNode(Node variable, Location operator_loc, int startOffset, int length) {
+        public PinnedVariableNode(Node variable, int startOffset, int length) {
             super(startOffset, length);
             this.variable = variable;
-            this.operator_loc = operator_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3808,6 +6064,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitPinnedVariableNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("variable: ");
+            builder.append(this.variable.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `END` keyword.
@@ -3817,16 +6088,10 @@ public abstract class Nodes {
     public static final class PostExecutionNode extends Node {
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location keyword_loc;
-        public final Location opening_loc;
-        public final Location closing_loc;
 
-        public PostExecutionNode(StatementsNode statements, Location keyword_loc, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public PostExecutionNode(StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
             this.statements = statements;
-            this.keyword_loc = keyword_loc;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3842,6 +6107,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitPostExecutionNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `BEGIN` keyword.
@@ -3851,16 +6131,10 @@ public abstract class Nodes {
     public static final class PreExecutionNode extends Node {
         /** optional (can be null) */
         public final StatementsNode statements;
-        public final Location keyword_loc;
-        public final Location opening_loc;
-        public final Location closing_loc;
 
-        public PreExecutionNode(StatementsNode statements, Location keyword_loc, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public PreExecutionNode(StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
             this.statements = statements;
-            this.keyword_loc = keyword_loc;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3876,14 +6150,29 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitPreExecutionNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // The top level node of any parse tree.
     public static final class ProgramNode extends Node {
-        public final byte[][] locals;
+        public final String[] locals;
         public final StatementsNode statements;
 
-        public ProgramNode(byte[][] locals, StatementsNode statements, int startOffset, int length) {
+        public ProgramNode(String[] locals, StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.statements = statements;
@@ -3900,6 +6189,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitProgramNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `..` or `...` operators.
@@ -3914,14 +6225,12 @@ public abstract class Nodes {
         public final Node left;
         /** optional (can be null) */
         public final Node right;
-        public final Location operator_loc;
         public final short flags;
 
-        public RangeNode(Node left, Node right, Location operator_loc, short flags, int startOffset, int length) {
+        public RangeNode(Node left, Node right, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.left = left;
             this.right = right;
-            this.operator_loc = operator_loc;
             this.flags = flags;
         }
         
@@ -3944,6 +6253,28 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRangeNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left == null ? "null\n" : this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right == null ? "null\n" : this.right.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -3970,6 +6301,21 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRationalNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("numeric: ");
+            builder.append(this.numeric.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `redo` keyword.
@@ -3992,6 +6338,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRedoNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents a regular expression literal with no interpolation.
@@ -3999,17 +6357,13 @@ public abstract class Nodes {
     //     /foo/i
     //     ^^^^^^
     public static final class RegularExpressionNode extends Node {
-        public final Location opening_loc;
         public final Location content_loc;
-        public final Location closing_loc;
         public final byte[] unescaped;
         public final short flags;
 
-        public RegularExpressionNode(Location opening_loc, Location content_loc, Location closing_loc, byte[] unescaped, short flags, int startOffset, int length) {
+        public RegularExpressionNode(Location content_loc, byte[] unescaped, short flags, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
             this.content_loc = content_loc;
-            this.closing_loc = closing_loc;
             this.unescaped = unescaped;
             this.flags = flags;
         }
@@ -4018,12 +6372,12 @@ public abstract class Nodes {
             return RegularExpressionFlags.isIgnoreCase(this.flags);
         }
 
-        public boolean isMultiLine() {
-            return RegularExpressionFlags.isMultiLine(this.flags);
-        }
-
         public boolean isExtended() {
             return RegularExpressionFlags.isExtended(this.flags);
+        }
+
+        public boolean isMultiLine() {
+            return RegularExpressionFlags.isMultiLine(this.flags);
         }
 
         public boolean isEucJp() {
@@ -4056,6 +6410,26 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRegularExpressionNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("unescaped: ");
+            builder.append('"' + new String(this.unescaped, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents a destructured required parameter node.
@@ -4065,14 +6439,10 @@ public abstract class Nodes {
     //     end
     public static final class RequiredDestructuredParameterNode extends Node {
         public final Node[] parameters;
-        public final Location opening_loc;
-        public final Location closing_loc;
 
-        public RequiredDestructuredParameterNode(Node[] parameters, Location opening_loc, Location closing_loc, int startOffset, int length) {
+        public RequiredDestructuredParameterNode(Node[] parameters, int startOffset, int length) {
             super(startOffset, length);
             this.parameters = parameters;
-            this.opening_loc = opening_loc;
-            this.closing_loc = closing_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4088,6 +6458,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRequiredDestructuredParameterNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("parameters: ");
+            builder.append('\n');
+            for (Node child : this.parameters) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents a required parameter to a method, block, or lambda definition.
@@ -4096,9 +6485,9 @@ public abstract class Nodes {
     //           ^
     //     end
     public static final class RequiredParameterNode extends Node {
-        public final byte[] name;
+        public final String name;
 
-        public RequiredParameterNode(byte[] name, int startOffset, int length) {
+        public RequiredParameterNode(String name, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
         }
@@ -4113,6 +6502,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRequiredParameterNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents an expression modified with a rescue.
@@ -4121,13 +6526,11 @@ public abstract class Nodes {
     //   ^^^^^^^^^^^^^^
     public static final class RescueModifierNode extends Node {
         public final Node expression;
-        public final Location keyword_loc;
         public final Node rescue_expression;
 
-        public RescueModifierNode(Node expression, Location keyword_loc, Node rescue_expression, int startOffset, int length) {
+        public RescueModifierNode(Node expression, Node rescue_expression, int startOffset, int length) {
             super(startOffset, length);
             this.expression = expression;
-            this.keyword_loc = keyword_loc;
             this.rescue_expression = rescue_expression;
         }
                 
@@ -4148,6 +6551,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRescueModifierNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("expression: ");
+            builder.append(this.expression.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("rescue_expression: ");
+            builder.append(this.rescue_expression.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a rescue statement.
@@ -4161,10 +6582,7 @@ public abstract class Nodes {
     // `Foo, *splat, Bar` are in the `exceptions` field.
     // `ex` is in the `exception` field.
     public static final class RescueNode extends Node {
-        public final Location keyword_loc;
         public final Node[] exceptions;
-        /** optional (can be null) */
-        public final Location operator_loc;
         /** optional (can be null) */
         public final Node reference;
         /** optional (can be null) */
@@ -4172,11 +6590,9 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final RescueNode consequent;
 
-        public RescueNode(Location keyword_loc, Node[] exceptions, Location operator_loc, Node reference, StatementsNode statements, RescueNode consequent, int startOffset, int length) {
+        public RescueNode(Node[] exceptions, Node reference, StatementsNode statements, RescueNode consequent, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
             this.exceptions = exceptions;
-            this.operator_loc = operator_loc;
             this.reference = reference;
             this.statements = statements;
             this.consequent = consequent;
@@ -4209,6 +6625,34 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRescueNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("exceptions: ");
+            builder.append('\n');
+            for (Node child : this.exceptions) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("reference: ");
+            builder.append(this.reference == null ? "null\n" : this.reference.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("consequent: ");
+            builder.append(this.consequent == null ? "null\n" : this.consequent.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a rest parameter to a method, block, or lambda definition.
@@ -4217,14 +6661,12 @@ public abstract class Nodes {
     //           ^^
     //     end
     public static final class RestParameterNode extends Node {
-        public final Location operator_loc;
         /** optional (can be null) */
-        public final Location name_loc;
+        public final String name;
 
-        public RestParameterNode(Location operator_loc, Location name_loc, int startOffset, int length) {
+        public RestParameterNode(String name, int startOffset, int length) {
             super(startOffset, length);
-            this.operator_loc = operator_loc;
-            this.name_loc = name_loc;
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4236,6 +6678,22 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRestParameterNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -4259,6 +6717,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitRetryNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `return` keyword.
@@ -4266,13 +6736,11 @@ public abstract class Nodes {
     //     return 1
     //     ^^^^^^^^
     public static final class ReturnNode extends Node {
-        public final Location keyword_loc;
         /** optional (can be null) */
         public final ArgumentsNode arguments;
 
-        public ReturnNode(Location keyword_loc, ArgumentsNode arguments, int startOffset, int length) {
+        public ReturnNode(ArgumentsNode arguments, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
             this.arguments = arguments;
         }
                 
@@ -4288,6 +6756,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitReturnNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -4311,6 +6794,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSelfNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents a singleton class declaration involving the `class` keyword.
@@ -4318,22 +6813,16 @@ public abstract class Nodes {
     //     class << self end
     //     ^^^^^^^^^^^^^^^^^
     public static final class SingletonClassNode extends Node {
-        public final byte[][] locals;
-        public final Location class_keyword_loc;
-        public final Location operator_loc;
+        public final String[] locals;
         public final Node expression;
         /** optional (can be null) */
         public final Node body;
-        public final Location end_keyword_loc;
 
-        public SingletonClassNode(byte[][] locals, Location class_keyword_loc, Location operator_loc, Node expression, Node body, Location end_keyword_loc, int startOffset, int length) {
+        public SingletonClassNode(String[] locals, Node expression, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.class_keyword_loc = class_keyword_loc;
-            this.operator_loc = operator_loc;
             this.expression = expression;
             this.body = body;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4349,6 +6838,31 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSingletonClassNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("locals: ");
+            builder.append('\n');
+            for (String constant : this.locals) {
+                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            }
+            builder.append(nextIndent);
+            builder.append("expression: ");
+            builder.append(this.expression.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -4371,6 +6885,18 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSourceEncodingNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
         }
     }
 
@@ -4396,6 +6922,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSourceFileNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("filepath: ");
+            builder.append('"' + new String(this.filepath, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `__LINE__` keyword.
@@ -4418,6 +6960,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSourceLineNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of the splat operator.
@@ -4425,13 +6979,11 @@ public abstract class Nodes {
     //     [*a]
     //      ^^
     public static final class SplatNode extends Node {
-        public final Location operator_loc;
         /** optional (can be null) */
         public final Node expression;
 
-        public SplatNode(Location operator_loc, Node expression, int startOffset, int length) {
+        public SplatNode(Node expression, int startOffset, int length) {
             super(startOffset, length);
-            this.operator_loc = operator_loc;
             this.expression = expression;
         }
                 
@@ -4447,6 +6999,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSplatNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("expression: ");
+            builder.append(this.expression == null ? "null\n" : this.expression.toString(nextIndent));
+            return builder.toString();
         }
     }
 
@@ -4474,6 +7041,25 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitStatementsNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("body: ");
+            builder.append('\n');
+            for (Node child : this.body) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
         }
     }
 
@@ -4503,6 +7089,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitStringConcatNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("left: ");
+            builder.append(this.left.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("right: ");
+            builder.append(this.right.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a string literal, a string contained within a `%w` list, or
@@ -4517,21 +7121,24 @@ public abstract class Nodes {
     //     "foo #{bar} baz"
     //      ^^^^      ^^^^
     public static final class StringNode extends Node {
+        public final short flags;
         /** optional (can be null) */
         public final Location opening_loc;
         public final Location content_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
         public final byte[] unescaped;
 
-        public StringNode(Location opening_loc, Location content_loc, Location closing_loc, byte[] unescaped, int startOffset, int length) {
+        public StringNode(short flags, Location opening_loc, Location content_loc, byte[] unescaped, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.opening_loc = opening_loc;
             this.content_loc = content_loc;
-            this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
-                
+        
+        public boolean isFrozen() {
+            return StringFlags.isFrozen(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -4541,6 +7148,26 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitStringNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("unescaped: ");
+            builder.append('"' + new String(this.unescaped, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -4552,22 +7179,14 @@ public abstract class Nodes {
     //     super foo, bar
     //     ^^^^^^^^^^^^^^
     public static final class SuperNode extends Node {
-        public final Location keyword_loc;
-        /** optional (can be null) */
-        public final Location lparen_loc;
         /** optional (can be null) */
         public final ArgumentsNode arguments;
         /** optional (can be null) */
-        public final Location rparen_loc;
-        /** optional (can be null) */
-        public final BlockNode block;
+        public final Node block;
 
-        public SuperNode(Location keyword_loc, Location lparen_loc, ArgumentsNode arguments, Location rparen_loc, BlockNode block, int startOffset, int length) {
+        public SuperNode(ArgumentsNode arguments, Node block, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
-            this.lparen_loc = lparen_loc;
             this.arguments = arguments;
-            this.rparen_loc = rparen_loc;
             this.block = block;
         }
                 
@@ -4587,6 +7206,24 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSuperNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("block: ");
+            builder.append(this.block == null ? "null\n" : this.block.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents a symbol literal or a symbol contained within a `%i` list.
@@ -4597,19 +7234,10 @@ public abstract class Nodes {
     //     %i[foo]
     //        ^^^
     public static final class SymbolNode extends Node {
-        /** optional (can be null) */
-        public final Location opening_loc;
-        /** optional (can be null) */
-        public final Location value_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
         public final byte[] unescaped;
 
-        public SymbolNode(Location opening_loc, Location value_loc, Location closing_loc, byte[] unescaped, int startOffset, int length) {
+        public SymbolNode(byte[] unescaped, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
-            this.value_loc = value_loc;
-            this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
                 
@@ -4622,6 +7250,22 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitSymbolNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("unescaped: ");
+            builder.append('"' + new String(this.unescaped, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            return builder.toString();
         }
     }
 
@@ -4645,6 +7289,18 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitTrueNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `undef` keyword.
@@ -4653,12 +7309,10 @@ public abstract class Nodes {
     //     ^^^^^^^^^^^^^^^^^^^^^^
     public static final class UndefNode extends Node {
         public final Node[] names;
-        public final Location keyword_loc;
 
-        public UndefNode(Node[] names, Location keyword_loc, int startOffset, int length) {
+        public UndefNode(Node[] names, int startOffset, int length) {
             super(startOffset, length);
             this.names = names;
-            this.keyword_loc = keyword_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4674,6 +7328,25 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitUndefNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("names: ");
+            builder.append('\n');
+            for (Node child : this.names) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `unless` keyword, either in the block form or the modifier form.
@@ -4684,22 +7357,17 @@ public abstract class Nodes {
     //     unless foo then bar end
     //     ^^^^^^^^^^^^^^^^^^^^^^^
     public static final class UnlessNode extends Node {
-        public final Location keyword_loc;
         public final Node predicate;
         /** optional (can be null) */
         public final StatementsNode statements;
         /** optional (can be null) */
         public final ElseNode consequent;
-        /** optional (can be null) */
-        public final Location end_keyword_loc;
 
-        public UnlessNode(Location keyword_loc, Node predicate, StatementsNode statements, ElseNode consequent, Location end_keyword_loc, int startOffset, int length) {
+        public UnlessNode(Node predicate, StatementsNode statements, ElseNode consequent, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.consequent = consequent;
-            this.end_keyword_loc = end_keyword_loc;
         }
                 
         @Override
@@ -4724,6 +7392,27 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitUnlessNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("consequent: ");
+            builder.append(this.consequent == null ? "null\n" : this.consequent.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `until` keyword, either in the block form or the modifier form.
@@ -4734,18 +7423,13 @@ public abstract class Nodes {
     //     until foo do bar end
     //     ^^^^^^^^^^^^^^^^^^^^
     public static final class UntilNode extends Node {
-        public final Location keyword_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
         public final Node predicate;
         /** optional (can be null) */
         public final StatementsNode statements;
         public final short flags;
 
-        public UntilNode(Location keyword_loc, Location closing_loc, Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
+        public UntilNode(Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
-            this.closing_loc = closing_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.flags = flags;
@@ -4774,6 +7458,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitUntilNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `when` keyword within a case statement.
@@ -4783,14 +7489,12 @@ public abstract class Nodes {
     //     ^^^^^^^^^
     //     end
     public static final class WhenNode extends Node {
-        public final Location keyword_loc;
         public final Node[] conditions;
         /** optional (can be null) */
         public final StatementsNode statements;
 
-        public WhenNode(Location keyword_loc, Node[] conditions, StatementsNode statements, int startOffset, int length) {
+        public WhenNode(Node[] conditions, StatementsNode statements, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
             this.conditions = conditions;
             this.statements = statements;
         }
@@ -4814,6 +7518,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitWhenNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("conditions: ");
+            builder.append('\n');
+            for (Node child : this.conditions) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `while` keyword, either in the block form or the modifier form.
@@ -4824,18 +7550,13 @@ public abstract class Nodes {
     //     while foo do bar end
     //     ^^^^^^^^^^^^^^^^^^^^
     public static final class WhileNode extends Node {
-        public final Location keyword_loc;
-        /** optional (can be null) */
-        public final Location closing_loc;
         public final Node predicate;
         /** optional (can be null) */
         public final StatementsNode statements;
         public final short flags;
 
-        public WhileNode(Location keyword_loc, Location closing_loc, Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
+        public WhileNode(Node predicate, StatementsNode statements, short flags, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
-            this.closing_loc = closing_loc;
             this.predicate = predicate;
             this.statements = statements;
             this.flags = flags;
@@ -4864,6 +7585,28 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitWhileNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("statements: ");
+            builder.append(this.statements == null ? "null\n" : this.statements.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents an xstring literal with no interpolation.
@@ -4871,16 +7614,10 @@ public abstract class Nodes {
     //     `foo`
     //     ^^^^^
     public static final class XStringNode extends Node {
-        public final Location opening_loc;
-        public final Location content_loc;
-        public final Location closing_loc;
         public final byte[] unescaped;
 
-        public XStringNode(Location opening_loc, Location content_loc, Location closing_loc, byte[] unescaped, int startOffset, int length) {
+        public XStringNode(byte[] unescaped, int startOffset, int length) {
             super(startOffset, length);
-            this.opening_loc = opening_loc;
-            this.content_loc = content_loc;
-            this.closing_loc = closing_loc;
             this.unescaped = unescaped;
         }
                 
@@ -4894,6 +7631,22 @@ public abstract class Nodes {
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitXStringNode(this);
         }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("unescaped: ");
+            builder.append('"' + new String(this.unescaped, StandardCharsets.UTF_8) + '"');
+            builder.append('\n');
+            return builder.toString();
+        }
     }
 
     // Represents the use of the `yield` keyword.
@@ -4901,20 +7654,12 @@ public abstract class Nodes {
     //     yield 1
     //     ^^^^^^^
     public static final class YieldNode extends Node {
-        public final Location keyword_loc;
-        /** optional (can be null) */
-        public final Location lparen_loc;
         /** optional (can be null) */
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
-        public final Location rparen_loc;
 
-        public YieldNode(Location keyword_loc, Location lparen_loc, ArgumentsNode arguments, Location rparen_loc, int startOffset, int length) {
+        public YieldNode(ArgumentsNode arguments, int startOffset, int length) {
             super(startOffset, length);
-            this.keyword_loc = keyword_loc;
-            this.lparen_loc = lparen_loc;
             this.arguments = arguments;
-            this.rparen_loc = rparen_loc;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4929,6 +7674,21 @@ public abstract class Nodes {
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
             return visitor.visitYieldNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("arguments: ");
+            builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
+            return builder.toString();
         }
     }
 
