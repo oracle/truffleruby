@@ -20,7 +20,7 @@ int RARRAY_LENINT(VALUE array) {
   return polyglot_get_array_size(rb_tr_unwrap(array));
 }
 
-VALUE RARRAY_AREF(VALUE array, long index) {
+VALUE rb_tr_rarray_aref(VALUE array, long index) {
   return rb_tr_wrap(polyglot_get_array_element(rb_tr_unwrap(array), (int) index));
 }
 

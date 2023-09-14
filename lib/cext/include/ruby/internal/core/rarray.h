@@ -279,7 +279,7 @@ long rb_array_len(VALUE a);
 int RARRAY_LENINT(VALUE ary);
 VALUE *RARRAY_PTR_IMPL(VALUE array);
 void rb_ary_store(VALUE, long, VALUE);
-VALUE RARRAY_AREF(VALUE array, long index);
+VALUE rb_tr_rarray_aref(VALUE array, long index);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
@@ -611,7 +611,7 @@ RARRAY_ASET(VALUE ary, long i, VALUE v)
  * transition path, but currently no way is found to do so.
  */
 #ifdef TRUFFLERUBY
-#define RARRAY_AREF RARRAY_AREF
+#define RARRAY_AREF rb_tr_rarray_aref
 #else
 #define RARRAY_AREF(a, i) RARRAY_CONST_PTR_TRANSIENT(a)[i]
 #endif
