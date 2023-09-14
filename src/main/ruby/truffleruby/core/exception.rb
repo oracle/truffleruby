@@ -86,7 +86,7 @@ class Exception
       raise ArgumentError, "expected true of false as highlight: #{highlight}"
     end
 
-    Truffle::ExceptionOperations.message_and_class(self, highlight)
+    Truffle::ExceptionOperations.detailed_message(self, highlight)
   end
 
   class << self

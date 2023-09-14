@@ -133,5 +133,23 @@ describe "Exception#full_message" do
 
       e.full_message.lines.first.should =~ /DETAILED MESSAGE/
     end
+
+    it "uses class name if #detailed_message returns nil" do
+      e = RuntimeError.new("new error")
+      e.define_singleton_method(:detailed_message) { |**| nil }
+
+      e.full_message(highlight: false).lines.first.should =~ /RuntimeError/
+      e.full_message(highlight: true).lines.first.should =~ /#{Regexp.escape("\e[1;4mRuntimeError\e[m")}/
+    end
+
+    it "uses class name if exception object doesn't respond to #detailed_message" do
+      e = RuntimeError.new("new error")
+      class << e
+        undef :detailed_message
+      end
+
+      e.full_message(highlight: false).lines.first.should =~ /RuntimeError/
+      e.full_message(highlight: true).lines.first.should =~ /#{Regexp.escape("\e[1;4mRuntimeError\e[m")}/
+    end
   end
 end

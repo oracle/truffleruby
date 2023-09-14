@@ -91,7 +91,7 @@ module Truffle
       end
     end
 
-    def self.message_and_class(exception, highlight)
+    def self.detailed_message(exception, highlight)
       message = StringValue exception.message.to_s
 
       klass = Primitive.class(exception).to_s
@@ -134,6 +134,31 @@ module Truffle
       end
     end
 
+    def self.detailed_message_or_fallback(exception, options)
+      unless Primitive.respond_to?(exception, :detailed_message, false)
+        return detailed_message_fallback(exception, options)
+      end
+
+      detailed_message = exception.detailed_message(**options)
+      detailed_message = Truffle::Type.rb_check_convert_type(detailed_message, String, :to_str)
+
+      if !Primitive.nil?(detailed_message)
+        detailed_message
+      else
+        detailed_message_fallback(exception, options)
+      end
+    end
+
+    def self.detailed_message_fallback(exception, options)
+      class_name = Primitive.class(exception).to_s
+
+      if options[:highlight]
+        "\e[1;4m#{class_name}\e[m\e[1m"
+      else
+        class_name
+      end
+    end
+
     def self.full_message(exception, options)
       highlight = options[:highlight]
       highlight = if Primitive.nil?(highlight)
@@ -163,18 +188,14 @@ module Truffle
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight, options)
         backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
         if backtrace_message.empty?
-          message = exception.detailed_message(**options)
-          message = Truffle::Type.rb_check_convert_type(message, String, :to_str)
-          result << message
+          result << detailed_message_or_fallback(exception, options)
         else
           result << backtrace_message
         end
       else
         backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
         if backtrace_message.empty?
-          message = exception.detailed_message(**options)
-          message = Truffle::Type.rb_check_convert_type(message, String, :to_str)
-          result << message
+          result << detailed_message_or_fallback(exception, options)
         else
           result << backtrace_message
         end
@@ -184,8 +205,7 @@ module Truffle
     end
 
     def self.backtrace_message(highlight, reverse, bt, exc, options)
-      message = exc.detailed_message(**options)
-      message = Truffle::Type.rb_check_convert_type(message, String, :to_str)
+      message = detailed_message_or_fallback(exc, options)
       message = message.end_with?("\n") ? message : "#{message}\n"
 
       return '' if Primitive.nil?(bt) || bt.empty?
@@ -220,18 +240,14 @@ module Truffle
           append_causes(str, cause, causes, reverse, highlight, options)
           backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            message = exception.detailed_message(**options)
-            message = Truffle::Type.rb_check_convert_type(message, String, :to_str)
-            str << message
+            str << detailed_message_or_fallback(exception, options)
           else
             str << backtrace_message
           end
         else
           backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            message = exception.detailed_message(**options)
-            message = Truffle::Type.rb_check_convert_type(message, String, :to_str)
-            str << message
+            str << detailed_message_or_fallback(exception, options)
           else
             str << backtrace_message
           end
