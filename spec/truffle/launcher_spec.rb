@@ -236,11 +236,11 @@ describe "The launcher" do
     it "'--vm.cp=' or '--vm.classpath=' add the jar" do
       out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.cp=does-not-exist.jar", args: @redirect)
       check_status_and_empty_stderr
-      out.lines[0].should include(":does-not-exist.jar")
+      out.lines[0].should include("does-not-exist.jar")
 
       out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.classpath=does-not-exist.jar", args: @redirect)
       check_status_and_empty_stderr
-      out.lines[0].should include(":does-not-exist.jar")
+      out.lines[0].should include("does-not-exist.jar")
     end
   end
 
