@@ -22,9 +22,7 @@ In C code `TRUFFLERUBY` is defined.
 
 It is also possible to use feature-detection instead of looking at `RUBY_ENGINE`.
 
-TruffleRuby is an integral part of GraalVM, so the version number of TruffleRuby is always the same as the version of GraalVM that contains it.
-If you are using TruffleRuby outside of GraalVM, such as a standard JVM, the version will be `'0.0'`.
-You can find the version number of GraalVM and TruffleRuby using the standard `RUBY_ENGINE_VERSION` constant.
+You can find the version number of TruffleRuby using the standard `RUBY_ENGINE_VERSION` constant.
 
 ## TruffleRuby Methods and Classes
 
@@ -40,7 +38,7 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 * `TruffleRuby.full_memory_barrier` ensures lack of reordering of loads or stores before the barrier with loads or stores after the barrier.
 
-* `TruffleRuby.graalvm_home` returns the GraalVM home or `nil` if running outside of GraalVM (e.g., TruffleRuby standalone).
+* `TruffleRuby.graalvm_home` returns the GraalVM home or `nil` if running outside of GraalVM (e.g., Native standalone).
 
 * `TruffleRuby.synchronized(object) { }` will run the block while holding an implicit lock per object instance.
 

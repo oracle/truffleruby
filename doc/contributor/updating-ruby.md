@@ -43,8 +43,7 @@ rm -rf ~/tmp/ruby-$VERSION
 (required as `RUBY_BUILD_DIR` for `tool/import-mri-files.sh`),
 so one needs the extra `ruby-install` command when using `ruby-build`.
 
-See https://github.com/oracle/truffleruby/blob/master/doc/user/ruby-managers.md#ruby-install-and-chruby for details
-about `ruby-install`.
+See [these docs](../../doc/user/ruby-managers.md#ruby-install-and-chruby) for details about `ruby-install`.
 
 ## Create reference branches
 

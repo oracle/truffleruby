@@ -10,7 +10,7 @@ TruffleRuby provides the `openssl` gem but not the native `libssl` system librar
 TruffleRuby supports libssl versions 1.0.2, 1.1.0 and 3.0.0.
 
 If you experience `openssl`-related errors, it might help to recompile the `openssl` gem by running `lib/truffle/post_install_hook.sh`.
-This is done automatically by Ruby managers, and mentioned in the post-install message when installing TruffleRuby via `gu install` in GraalVM.
+This is done automatically by Ruby managers.
 
 To compile TruffleRuby against a non-system `libssl`, set `OPENSSL_PREFIX` while installing TruffleRuby:
 ```bash

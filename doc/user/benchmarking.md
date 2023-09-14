@@ -14,7 +14,7 @@ We expect anyone publishing benchmark numbers about TruffleRuby to follow these 
 
 ### Use Oracle GraalVM
 
-Use [Oracle GraalVM](installing-graalvm.md) (before 23.0: GraalVM EE), it is faster than GraalVM CE overall and represents what TruffleRuby is capable of.
+Use [Oracle GraalVM](installing-truffleruby.md#oracle-graalvm-and-graalvm-community-edition) (before 23.0: GraalVM Enterprise Edition), it is faster than GraalVM Community Edition overall and represents what TruffleRuby is capable of.
 
 Use `ruby --version` to ensure that you are running Oracle GraalVM.
 

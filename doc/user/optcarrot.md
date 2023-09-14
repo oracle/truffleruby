@@ -8,12 +8,7 @@ permalink: /reference-manual/ruby/Optcarrot/
 
 ## Running the Demo
 
-Start by [installing GraalVM](installing-graalvm.md).
-
-Then add GraalVM/bin in `PATH` (or use a Ruby manager):
-```bash
-export PATH="/path/to/graalvm/bin:$PATH"
-```
+Start by [installing the TruffleRuby JVM Standalone](../../README.md#getting-started).
 
 You also need to install SDL2:
 * `brew install sdl2` on macOS
@@ -38,7 +33,7 @@ On macOS, you need an extra flag, `--vm.XstartOnFirstThread`, for the GUI to app
 ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
-Note: `--audio=none` is used since the audio it not nice at non-60FPS speeds.
+Note: `--audio=none` is used since the audio is not nice at non-60FPS speeds.
 
 To play, use keys `1`...`7` (not on numpad) to scale the screen, `X` for OK/turn right, `S` for turn left, arrows to move around, and `Q` to quit.
 
