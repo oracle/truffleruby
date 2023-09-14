@@ -29,7 +29,7 @@ TruffleRuby defines these constants for identification:
 - `RUBY_REVISION` is the full `git` commit hash used to build TruffleRuby (similar to MRI 2.7+).
 - `RUBY_RELEASE_DATE` is the `git` commit date.
 - `RUBY_PATCHLEVEL` is always zero.
-- `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0-` and the Git commit hash if your build is not part of a GraalVM release.
+- `RUBY_ENGINE_VERSION` is the TruffleRuby version, or `0.0-` and the Git commit hash if your build is not part of a TruffleRuby release.
 
 In the C API, the preprocessor macro `TRUFFLERUBY` is defined, which can be checked with `#ifdef TRUFFLERUBY`.
 

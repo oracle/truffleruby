@@ -25,7 +25,7 @@ All of these issues make it hard to benchmark TruffleRuby. This is not a problem
 
 ## Using Oracle GraalVM
 
-To experiment with how fast TruffleRuby can be, use [Oracle GraalVM](installing-graalvm.md).
+To experiment with how fast TruffleRuby can be, use [Oracle GraalVM](installing-truffleruby.md#oracle-graalvm-and-graalvm-community-edition).
 
 ## Using the JVM Configuration
 

@@ -24,9 +24,8 @@ https://youtu.be/FJY96_6Y3a4?t=10023
 More information can be found in Kevin Menard's
 [blog post](http://nirvdrum.com/2017/02/15/truffleruby-on-the-substrate-vm.html).
 
-The TruffleRuby that is distributed in the
-[GraalVM](../user/installing-graalvm.md) by default uses a version compiled
-using the Native Image Generator - this is to prioritise fast start-up and
+The TruffleRuby that is distributed in the TruffleRuby [Native Standalone](../../README.md#getting-started)
+by default uses a version compiled using [Native Image](https://www.graalvm.org/reference-manual/native-image/) - this is to prioritise fast start-up and
 warm-up time for shorter running commands and benchmarks.
 
 ```bash

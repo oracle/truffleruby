@@ -1,8 +1,7 @@
 # Legal Documentation
 
-This document applies to TruffleRuby as built and distributed as part of
-GraalVM or the standalone distribution, which are the only supported ways to
-use TruffleRuby.
+This document applies to TruffleRuby as built and distributed as the Native Standalone and JVM Standalone distributions,
+which are the only supported ways to use TruffleRuby.
 
 ## TruffleRuby
 
