@@ -159,7 +159,7 @@ module Truffle
       end
     end
 
-    def self.full_message(exception, options)
+    def self.full_message(exception, **options)
       highlight = options[:highlight]
       highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
@@ -168,13 +168,12 @@ module Truffle
                     !Primitive.false?(highlight)
                   end
 
+      options[:highlight] = highlight
+
       order = options[:order]
       order = :top if Primitive.nil?(order)
       raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.equal?(order, :top) || Primitive.equal?(order, :bottom)
       reverse = !Primitive.equal?(order, :top)
-
-      options = options.dup
-      options[:highlight] = highlight
 
       result = ''.b
       bt = exception.backtrace || caller(2)
@@ -290,8 +289,8 @@ module Truffle
       end
     end
 
-    def self.get_formatted_backtrace(exc)
-      full_message(exc, nil, :top)
+    def self.get_formatted_backtrace(exception)
+      full_message(exception, highlight: nil, order: :top)
     end
 
     def self.comparison_error_message(x, y)

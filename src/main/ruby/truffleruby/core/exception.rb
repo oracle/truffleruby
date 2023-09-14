@@ -78,7 +78,7 @@ class Exception
   end
 
   def full_message(**options)
-    Truffle::ExceptionOperations.full_message(self, options)
+    Truffle::ExceptionOperations.full_message(self, **options)
   end
 
   def detailed_message(highlight: nil, **options)
