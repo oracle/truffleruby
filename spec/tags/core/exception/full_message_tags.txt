@@ -1,2 +1,0 @@
-fails:Exception#full_message relies on #detailed_message
-fails:Exception#full_message passes all its own keyword arguments to #detailed_message

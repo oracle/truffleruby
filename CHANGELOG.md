@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Add `Exception#detailed_message` method (#3257, @andrykonchin).
 
 Performance:
 

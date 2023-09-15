@@ -91,7 +91,7 @@ module Truffle
       end
     end
 
-    def self.message_and_class(exception, highlight)
+    def self.detailed_message(exception, highlight)
       message = StringValue exception.message.to_s
 
       klass = Primitive.class(exception).to_s
@@ -100,33 +100,67 @@ module Truffle
         klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
       end
 
+      if message.empty?
+        return highlight ? "\n\e[1m#{klass}\e[m" : klass
+      end
+
+      anonymous_class = Primitive.module_anonymous?(Primitive.class(exception))
+
       if highlight
-        highlighted_class = " (\e[1;4m#{klass}\e[m\e[1m)"
+        highlighted_class_string = !anonymous_class ? " (\e[1;4m#{klass}\e[m\e[1m)" : ''
         if message.include?("\n")
           first = true
           result = +''
           message.each_line do |line|
             if first
               first = false
-              result << "\e[1m#{line.chomp}#{highlighted_class}\e[m"
+              result << "\e[1m#{line.chomp}#{highlighted_class_string}\e[m"
             else
               result << "\n\e[1m#{line.chomp}\e[m"
             end
           end
           result
         else
-          "\e[1m#{message}#{highlighted_class}\e[m"
+          "\e[1m#{message}#{highlighted_class_string}\e[m"
         end
       else
+        class_string = !anonymous_class ? " (#{klass})" : ''
+
         if i = message.index("\n")
-          "#{message[0...i]} (#{klass})#{message[i..-1]}"
+          "#{message[0...i]}#{class_string}#{message[i..-1]}"
         else
-          "#{message} (#{klass})"
+          "#{message}#{class_string}"
         end
       end
     end
 
-    def self.full_message(exception, highlight, order)
+    def self.detailed_message_or_fallback(exception, options)
+      unless Primitive.respond_to?(exception, :detailed_message, false)
+        return detailed_message_fallback(exception, options)
+      end
+
+      detailed_message = exception.detailed_message(**options)
+      detailed_message = Truffle::Type.rb_check_convert_type(detailed_message, String, :to_str)
+
+      if !Primitive.nil?(detailed_message)
+        detailed_message
+      else
+        detailed_message_fallback(exception, options)
+      end
+    end
+
+    def self.detailed_message_fallback(exception, options)
+      class_name = Primitive.class(exception).to_s
+
+      if options[:highlight]
+        "\e[1;4m#{class_name}\e[m\e[1m"
+      else
+        class_name
+      end
+    end
+
+    def self.full_message(exception, **options)
+      highlight = options[:highlight]
       highlight = if Primitive.nil?(highlight)
                     Exception.to_tty?
                   else
@@ -134,6 +168,10 @@ module Truffle
                     !Primitive.false?(highlight)
                   end
 
+      options[:highlight] = highlight
+
+      order = options[:order]
+      order = :top if Primitive.nil?(order)
       raise ArgumentError, "expected :top or :bottom as order: #{order}" unless Primitive.equal?(order, :top) || Primitive.equal?(order, :bottom)
       reverse = !Primitive.equal?(order, :top)
 
@@ -146,28 +184,29 @@ module Truffle
                           "Traceback (most recent call last):\n"
                         end
         result << traceback_msg
-        append_causes(result, exception, {}.compare_by_identity, reverse, highlight)
-        backtrace_message = backtrace_message(highlight, reverse, bt, exception)
+        append_causes(result, exception, {}.compare_by_identity, reverse, highlight, options)
+        backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
         if backtrace_message.empty?
-          result << message_and_class(exception, highlight)
+          result << detailed_message_or_fallback(exception, options)
         else
           result << backtrace_message
         end
       else
-        backtrace_message = backtrace_message(highlight, reverse, bt, exception)
+        backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
         if backtrace_message.empty?
-          result << message_and_class(exception, highlight)
+          result << detailed_message_or_fallback(exception, options)
         else
           result << backtrace_message
         end
-        append_causes(result, exception, {}.compare_by_identity, reverse, highlight)
+        append_causes(result, exception, {}.compare_by_identity, reverse, highlight, options)
       end
       result
     end
 
-    def self.backtrace_message(highlight, reverse, bt, exc)
-      message = message_and_class(exc, highlight)
+    def self.backtrace_message(highlight, reverse, bt, exc, options)
+      message = detailed_message_or_fallback(exc, options)
       message = message.end_with?("\n") ? message : "#{message}\n"
+
       return '' if Primitive.nil?(bt) || bt.empty?
       limit = Primitive.exception_backtrace_limit
       limit = limit >= 0 && bt.size - 1 >= limit + 2 ? limit : -1
@@ -192,26 +231,26 @@ module Truffle
       end
     end
 
-    def self.append_causes(str, err, causes, reverse, highlight)
+    def self.append_causes(str, err, causes, reverse, highlight, options)
       cause = err.cause
       if !Primitive.nil?(cause) && Primitive.is_a?(cause, Exception) && !causes.has_key?(cause)
         causes[cause] = true
         if reverse
-          append_causes(str, cause, causes, reverse, highlight)
-          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause)
+          append_causes(str, cause, causes, reverse, highlight, options)
+          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            str << message_and_class(err, highlight)
+            str << detailed_message_or_fallback(exception, options)
           else
             str << backtrace_message
           end
         else
-          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause)
+          backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            str << message_and_class(err, highlight)
+            str << detailed_message_or_fallback(exception, options)
           else
             str << backtrace_message
           end
-          append_causes(str, cause, causes, reverse, highlight)
+          append_causes(str, cause, causes, reverse, highlight, options)
         end
       end
     end
@@ -250,8 +289,8 @@ module Truffle
       end
     end
 
-    def self.get_formatted_backtrace(exc)
-      full_message(exc, nil, :top)
+    def self.get_formatted_backtrace(exception)
+      full_message(exception, highlight: nil, order: :top)
     end
 
     def self.comparison_error_message(x, y)
