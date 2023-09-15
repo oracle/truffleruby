@@ -10,24 +10,21 @@ When trying TruffleRuby on your gems and applications, you are encouraged to [ge
 
 ## Deployment
 
-If you are migrating from JRuby, probably the easiest way to use TruffleRuby is via [GraalVM](installing-graalvm.md), which gives you a JVM, JavaScript, Ruby, and other languages in one package.
+If you are migrating from JRuby, probably the easiest way to use TruffleRuby is to install the [TruffleRuby JVM Standalone](../../README.md#getting-started).
 
-If you do not need the Java interoperability capabilities of TruffleRuby, then you could also install via your [Ruby manager/installer](ruby-managers.md) as with any other implementation of Ruby.
-
-You can also use the [standalone distribution](standalone-distribution.md) as a simple tarball.
-The standalone distribution does not allow for Java interoperability.
+If you do not need the Java interoperability capabilities of TruffleRuby, then you can install the [TruffleRuby Native Standalone](../../README.md#getting-started).
 
 ## Using Ruby from Java
 
 JRuby supports many different ways to embed Ruby in Java, including JSR 223 (also know as `javax.script`), the Bean Scripting Framework (BSF), JRuby Embed (also known as Red Bridge), and the JRuby direct embedding API.
 
-The best way to embed TruffleRuby is to use the Polyglot API, which is part of GraalVM.
+The best way to embed TruffleRuby is to use the Polyglot API.
 The API is different because it is designed to support many languages, not just Ruby.
 
 TruffleRuby also supports JSR 223, compatible with JRuby, to make it easier to run legacy JRuby code.
 See [this documentation](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#compatibility-with-jsr-223-scriptengine) for how to use it.
 
-You will need to use GraalVM to use both of these APIs.
+You will need to use the JVM standalone or depend on the `org.graalvm.polyglot:polyglot` Maven package to use the Polyglot API.
 
 See the [polyglot](polyglot.md) documentation for more information about how to use Ruby from other languages including Java; this document only shows the comparison to JRuby.
 
@@ -362,7 +359,7 @@ Constants are read by reading properties of the class rather than using Ruby not
 ### Require Java
 
 Do not `require 'java'` in TruffleRuby. However, you do need to run in `--jvm` mode.
-This is only available in GraalVM - not in the standalone distribution installed by Ruby version managers and installers.
+This is not available in the Native Standalone.
 
 ### Referring to Classes
 
@@ -493,4 +490,4 @@ TruffleRuby does not support this at the moment.
 
 VisualVM works for TruffleRuby as for JRuby.
 
-Additionally, the VisualVM included in GraalVM understands Ruby objects, rather than Java objects, when you use the heap dump tool.
+Additionally, VisualVM understands Ruby objects, rather than Java objects, when you use the heap dump tool.
