@@ -1605,7 +1605,7 @@ Changes:
 
 * The supported version of LLVM for Oracle Linux has been updated from 3.8 to 4.0.
 * `mysql2` is now patched to avoid a bug in passing `NULL` to `rb_scan_args`, and now passes the majority of its test suite.
-* The post-install script now automatically detects if recompiling the OpenSSL C extension is needed. The post-install script should always be run in TravisCI as well, see `doc/user/standalone-distribution.md`.
+* The post-install script now automatically detects if recompiling the OpenSSL C extension is needed. The post-install script should always be run in TravisCI as well.
 * Detect when the system libssl is incompatible more accurately and add instructions on how to recompile the extension.
 
 # 1.0 RC 8, 19 October 2018

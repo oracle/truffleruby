@@ -21,7 +21,7 @@ c.save('c.png')
 
 ## VisualVM
 
-You need to use the `--jvm` runtime configuration and [install GraalVM](installing-graalvm.md) to use VisualVM.
+Install VisualVM from [its website](https://visualvm.github.io/).
 
 VisualVM is a GUI with many tools:
 

@@ -7,24 +7,24 @@ of the [Ruby programming language](https://www.ruby-lang.org/en/).
 
 TruffleRuby comes in two distributions:
 
-* Standalone: This only contains TruffleRuby in the [Native configuration](#truffleruby-runtime-configurations), making it a smaller download.
-* GraalVM: This includes support for other languages such as JavaScript, Python and R, and supports both the [Native and JVM configurations](#truffleruby-runtime-configurations).
-  We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution) to use TruffleRuby inside GraalVM.
+* Native Standalone: This only contains TruffleRuby in the [Native configuration](#truffleruby-runtime-configurations).
+* JVM Standalone: This only contains TruffleRuby in the [JVM configuration](#truffleruby-runtime-configurations).
+  This includes support for other languages such as Java, JavaScript, Python and WebAssembly.
 
 You can install either of those:
 
-* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv, chruby, asdf, ruby-build, ruby-install).
+* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv, chruby, asdf, ruby-build, ruby-install).  
   We recommend trying TruffleRuby dev builds which contain the latest fixes and improvements (replace `VERSION` by `dev`).
 
-Standalone:
+Native Standalone:
 ```bash
-RVM:    $ rvm install truffleruby
+RVM:    $ rvm install truffleruby # or truffleruby-head
 rbenv:  $ rbenv install truffleruby-VERSION
 asdf:   $ asdf install ruby truffleruby-VERSION
 chruby: $ ruby-install truffleruby
         $ ruby-build truffleruby-VERSION ~/.rubies/truffleruby-VERSION
 ```
-GraalVM:
+JVM Standalone:
 ```bash
 rbenv:  $ rbenv install truffleruby+graalvm-VERSION
 asdf:   $ asdf install ruby truffleruby+graalvm-VERSION
@@ -32,20 +32,20 @@ chruby: $ ruby-install truffleruby-graalvm
         $ ruby-build truffleruby+graalvm-VERSION ~/.rubies/truffleruby+graalvm-VERSION
 ```
 
-* In CI with GitHub Actions, see [Testing TruffleRuby in CI](doc/user/standalone-distribution.md) for more details and other CIs.
+* In CI with GitHub Actions, see [Testing TruffleRuby in CI](doc/user/testing-truffleruby-in-ci.md) for more details and other CIs.
 
 ```yaml
 - uses: ruby/setup-ruby@v1
   with:
-    ruby-version: truffleruby # or truffleruby-head, or truffleruby+graalvm or truffleruby+graalvm-head
+    ruby-version: truffleruby # or truffleruby-head or truffleruby+graalvm or truffleruby+graalvm-head
 ```
 
 * Via Docker.
-  For Standalone see [official release images](https://github.com/graalvm/container/blob/master/truffleruby-community/README.md)
+  For Native Standalone see [official release images](https://github.com/graalvm/container/blob/master/truffleruby-community/README.md)
   and [nightly images](https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby).
-  For GraalVM see [official release images](https://github.com/graalvm/container/blob/master/graalvm-community/README.md).
+  For JVM Standalone there are no Docker images yet, but you can easily [download it](doc/user/installing-truffleruby.md) and take inspiration from the [Native Standalone Dockerfiles](https://github.com/flavorjones/truffleruby/blob/master/tool/dockerfiles/stable.dockerfile).
 
-* Manually, by following the documentation: [Standalone](doc/user/standalone-distribution.md) and [GraalVM](doc/user/installing-graalvm.md).
+* Manually, by following the [documentation](doc/user/installing-truffleruby.md).
 
 You can use `gem` and `bundle` to install gems, as usual.
 
@@ -61,7 +61,7 @@ TruffleRuby aims to:
   * TruffleRuby does not have a global interpreter lock and runs Ruby code in parallel.
 * Support C extensions.
   * Many C extensions work out of the box, including database drivers.
-* Add fast and low-overhead interoperability with languages like Java, JavaScript, Python, and R.
+* Add fast and low-overhead interoperability with languages like Java, JavaScript, Python and WebAssembly.
   * Provided by GraalVM, see the [Polyglot documentation](doc/user/polyglot.md).
 * Provide new tooling, such as debuggers and monitoring, that works across languages.
   * Includes a profiler, debugger, VisualVM, and more. See the [Tools documentation](doc/user/tools.md).
@@ -130,8 +130,9 @@ If you find any performance issue, please see [this guide](doc/user/reporting-pe
 
 ## Releases
 
-TruffleRuby has the same version and is released at the same time as GraalVM.
-See the [release roadmap](https://www.graalvm.org/release-notes/version-roadmap/) for the release dates and information about how long releases are supported.
+TruffleRuby is released at the same time as GraalVM.
+TruffleRuby continues to use the release numbering based on the calendar year, for example, 21.x, and 22.x., same as GraalVM prior to 2023.
+See the [release roadmap](https://www.graalvm.org/release-notes/version-roadmap/) and [the upcoming releases list](https://github.com/oracle/truffleruby/milestones?state=open) for the release dates and information about how long releases are supported.
 GraalVM Community Edition releases are supported at most one year.
 [Longer support](https://docs.oracle.com/en/graalvm/enterprise/22/docs/release-calendar/) is available for Oracle GraalVM.
 
