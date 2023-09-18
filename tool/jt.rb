@@ -61,6 +61,7 @@ DLEXT = RbConfig::CONFIG.fetch('DLEXT')
 
 JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
 JT_SPECS_COMPILATION = ENV['JT_SPECS_COMPILATION'] == 'false' ? false : true
+JT_SPECS_SPLITTING = ENV['JT_SPECS_SPLITTING'] == 'true' ? true : JT_SPECS_COMPILATION
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -1687,7 +1688,8 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false' << '--engine.Splitting=false'
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false'
+      vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
 
