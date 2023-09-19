@@ -23,6 +23,23 @@ The JVM configuration automatically has access to other languages.
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
+## Installing Other Languages
+
+To use other GraalVM languages, you need the [JVM Standalone](../../README.md#getting-started).
+The Native Standalone does not support installing extra languages.
+
+Note that `ruby`, `llvm`, the LLVM toolchain and host Java interop are available without installing anything extra.
+
+Then you can install other languages with `truffleruby-polyglot-get $LANGUAGE`, for instance:
+```bash
+truffleruby-polyglot-get js
+truffleruby-polyglot-get python
+truffleruby-polyglot-get wasm
+truffleruby-polyglot-get java # for Java on Truffle (aka Espresso)
+```
+
+In TruffleRuby versions before 23.1 this was done through installing GraalVM (e.g. via `truffleruby+graalvm`) and using `gu install $LANGUAGE`.
+
 ## Running Ruby Code from Another Language
 
 When you `eval` Ruby code from the [Context API](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Context.html) in another language and mark the `Source` as interactive, the same interactive top-level binding is used each time.
@@ -32,6 +49,8 @@ The semantics are the same as the Ruby semantics of calling `INTERACTIVE_BINDING
 This is similar to most REPL semantics.
 
 ## Loading Code Written in Foreign Languages
+
+Note the ruby command line needs to be passed `--polyglot` to enable access to foreign languages.
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by its ID.
 
@@ -249,3 +268,19 @@ Also, the experimental option `--cexts=false` can disable C extensions.
 
 Note: Unlike for example pure JavaScript, Ruby is more than a self-contained expression language.
 It has a large core library that includes low-level I/O and system and native-memory routines which may interfere with other embedded contexts or the host system.
+
+## Inner Contexts
+
+TruffleRuby supports creating *inner contexts*, that is multiple isolated execution/evaluation contexts (this is generally supported in GraalVM languages).
+Conceptually it is similar to running multiple Ruby interpreters in the same process.
+This can also be used with other languages, so for instance the outer/default context might run some Ruby code and some inner contexts run JavaScript code.
+This is very useful to interoperate with languages which do not support shared-memory multithreading like JavaScript, as one can then create one or more inner contexts per thread and still have the outer context use multithreaded Ruby.
+
+Objects from an inner context can be passed to other contexts and they are treated as foreign objects: 
+```ruby
+Polyglot::InnerContext.new do |context|
+  context.eval('ruby', "p Object.new") # prints #<Object:0xd8>
+  p context.eval('ruby', "Object.new") # prints #<Polyglot::ForeignObject[Ruby] Object:0x131d576b>
+end
+```
+This works by automatically wrapping every object leaving its context in a proxy, which means e.g. if a method is called on a foreign object it is executed in the context to which the object belongs.
