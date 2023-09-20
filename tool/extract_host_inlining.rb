@@ -45,14 +45,18 @@ if simplify
   }
 
   lines = lines.reject { |line|
-    line.include?('DEAD') and line.include?('reason the invoke is dead code')
+    line.include?('DEAD') and line.match?(/reason (the invoke is dead code|not a method call target)/)
   }
 end
 
 # Reduce line width for unimportant information
 lines = lines.map { |line|
-  line.sub(/\[inlined\s.+?invoke\s+(true|false),/, '')
+  line.sub(/\[inlined\s.+?invoke\s+(true|false),\s+/, '')
       .sub(/,\s*incomplete\s+(true|false),/, ',')
+      .sub(/frequency\s+1\.0+,\s+/, '')
 }
+
+min_space_before_cost = lines[2..-1].map { |line| line[/([ ]+)cost /, 1].size }.min
+lines = lines.map { |line| line.sub(/[ ]{#{min_space_before_cost}}cost /, ' cost ') }
 
 puts lines.join
