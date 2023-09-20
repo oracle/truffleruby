@@ -657,6 +657,20 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_raise" do
+    it "forces exception message encoding to the specified one" do
+      utf_8_incompatible_string = "\x81".b
+
+      -> {
+        @s.rb_enc_raise(Encoding::UTF_8, RuntimeError, utf_8_incompatible_string)
+      }.should raise_error { |e|
+        e.message.encoding.should == Encoding::UTF_8
+        e.message.valid_encoding?.should == false
+        e.message.bytes.should == utf_8_incompatible_string.bytes
+      }
+    end
+  end
+
   describe "rb_uv_to_utf8" do
     it 'converts a Unicode codepoint to a UTF-8 C string' do
       str = ' ' * 6

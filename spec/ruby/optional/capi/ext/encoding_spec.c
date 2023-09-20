@@ -271,6 +271,13 @@ static VALUE encoding_spec_rb_enc_str_asciionly_p(VALUE self, VALUE str) {
   }
 }
 
+static void encoding_spec_rb_enc_raise(VALUE self, VALUE encoding, VALUE exception_class, VALUE format) {
+  rb_encoding *e = rb_to_encoding(encoding);
+  const char *f = RSTRING_PTR(format);
+
+  rb_enc_raise(e, exception_class, f);
+}
+
 static VALUE encoding_spec_rb_uv_to_utf8(VALUE self, VALUE buf, VALUE num) {
   int len = rb_uv_to_utf8(RSTRING_PTR(buf), NUM2INT(num));
   RB_ENC_CODERANGE_CLEAR(buf);
@@ -368,6 +375,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_nth", encoding_spec_rb_enc_nth, 2);
   rb_define_method(cls, "rb_enc_codepoint_len", encoding_spec_rb_enc_codepoint_len, 1);
   rb_define_method(cls, "rb_enc_str_asciionly_p", encoding_spec_rb_enc_str_asciionly_p, 1);
+  rb_define_method(cls, "rb_enc_raise", encoding_spec_rb_enc_raise, 3);
   rb_define_method(cls, "rb_uv_to_utf8", encoding_spec_rb_uv_to_utf8, 2);
   rb_define_method(cls, "ONIGENC_MBC_CASE_FOLD", encoding_spec_ONIGENC_MBC_CASE_FOLD, 1);
   rb_define_method(cls, "rb_enc_left_char_head", encoding_spec_rb_enc_left_char_head, 2);
