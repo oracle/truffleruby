@@ -398,8 +398,7 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
             var descriptor = RubyArguments.getDescriptor(frame);
-            return callBlockNode.executeCallBlock(
-                    declarationContext, block, receiver, nil, descriptor, arguments, null);
+            return callBlockNode.executeCallBlock(declarationContext, block, receiver, nil, descriptor, arguments);
         }
 
         @Specialization
@@ -422,8 +421,7 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(
-                    declarationContext, block, self, nil, descriptor, arguments, null);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, arguments);
         }
 
     }
@@ -561,7 +559,7 @@ public abstract class BasicObjectNodes {
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = RubyArguments.getArgument(rubyArgs, 0);
             return dispatchNode.execute(callerFrame, self, nameToJavaString.execute(this, name),
-                    RubyArguments.repack(rubyArgs, self, 1), PRIVATE, null);
+                    RubyArguments.repack(rubyArgs, self, 1), PRIVATE);
         }
     }
 

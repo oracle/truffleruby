@@ -1244,7 +1244,7 @@ public abstract class CExtNodes {
             final InternalMethod superMethod = superMethodLookup.getMethod();
             // This C API only passes positional arguments, but maybe it should be influenced by ruby2_keywords hashes?
             return callSuperMethodNode.execute(
-                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil, null);
+                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil);
         }
 
         @TruffleBoundary

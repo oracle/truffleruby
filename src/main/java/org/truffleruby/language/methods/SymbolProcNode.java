@@ -36,7 +36,7 @@ public final class SymbolProcNode extends RubyContextSourceNode {
         final Object receiver = RubyArguments.getArgument(frame, 0);
 
         return getCallNode().execute(frame, receiver, symbol,
-                RubyArguments.repack(frame.getArguments(), receiver, 1), PUBLIC, null);
+                RubyArguments.repack(frame.getArguments(), receiver, 1), PUBLIC);
     }
 
     private DispatchNode getCallNode() {

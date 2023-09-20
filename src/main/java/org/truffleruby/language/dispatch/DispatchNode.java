@@ -59,15 +59,14 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
 
 
     public abstract Object execute(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode);
+            DispatchConfiguration config);
 
     public Object call(DispatchConfiguration config, Object receiver, String method) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object call(Object receiver, String method) {
@@ -75,7 +74,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object call(DispatchConfiguration config, Object receiver, String method, Object arg1) {
@@ -84,7 +83,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object call(Object receiver, String method, Object arg1) {
@@ -93,7 +92,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object call(DispatchConfiguration config, Object receiver, String method, Object arg1, Object arg2) {
@@ -103,7 +102,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object call(Object receiver, String method, Object arg1, Object arg2) {
@@ -113,7 +112,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object call(Object receiver, String method, Object arg1, Object arg2, Object arg3) {
@@ -124,7 +123,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object call(DispatchConfiguration config, Object receiver, String method, Object[] arguments) {
@@ -133,7 +132,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object call(Object receiver, String method, Object[] arguments) {
@@ -142,7 +141,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithKeywords(Object receiver, String method, Object arg1,
@@ -153,7 +152,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setDescriptor(rubyArgs, KeywordArgumentsDescriptorManager.EMPTY);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, keywords);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block) {
@@ -161,7 +160,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object arg1) {
@@ -170,7 +169,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithBlock(DispatchConfiguration config, Object receiver, String method, Object block, Object arg1,
@@ -181,7 +180,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object callWithBlock(DispatchConfiguration config, Object receiver, String method, Object block, Object arg1,
@@ -193,23 +192,17 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return execute(null, receiver, method, rubyArgs, config, null);
+        return execute(null, receiver, method, rubyArgs, config);
     }
 
     public Object callWithDescriptor(Object receiver, String method, Object block,
             ArgumentsDescriptor descriptor, Object[] arguments) {
-        return callWithDescriptor(receiver, method, block, descriptor, arguments, null);
-    }
-
-    public Object callWithDescriptor(Object receiver, String method, Object block,
-            ArgumentsDescriptor descriptor,
-            Object[] arguments, LiteralCallNode literalCallNode) {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return execute(null, receiver, method, rubyArgs, PRIVATE, literalCallNode);
+        return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method) {
@@ -217,7 +210,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
-        return execute(frame, receiver, method, rubyArgs, PRIVATE, null);
+        return execute(frame, receiver, method, rubyArgs, PRIVATE);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,
@@ -227,7 +220,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
-        return execute(frame, receiver, method, rubyArgs, config, null);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method, Object arg1,
@@ -238,7 +231,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
-        return execute(frame, receiver, method, rubyArgs, config, null);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method, Object arg1,
@@ -250,7 +243,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
-        return execute(frame, receiver, method, rubyArgs, config, null);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,
@@ -260,7 +253,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return execute(frame, receiver, method, rubyArgs, config, null);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public final Object callWithFrameAndBlock(DispatchConfiguration config, Frame frame, Object receiver,
@@ -270,17 +263,11 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         RubyArguments.setBlock(rubyArgs, block);
         RubyArguments.setDescriptor(rubyArgs, descriptor);
         RubyArguments.setArguments(rubyArgs, arguments);
-        return execute(frame, receiver, methodName, rubyArgs, config, null);
+        return execute(frame, receiver, methodName, rubyArgs, config);
     }
 
     @Specialization
-    Object dispatch(
-            Frame frame,
-            Object receiver,
-            String methodName,
-            Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode,
+    Object dispatch(Frame frame, Object receiver, String methodName, Object[] rubyArgs, DispatchConfiguration config,
             @Cached(value = "getSpecialVariableAssumption(frame)",
                     uncached = "ALWAYS_VALID") Assumption specialVariableAssumption,
             @Cached MetaClassNode metaClassNode,
@@ -296,8 +283,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final InternalMethod method = lookupMethodNode.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(this, method == null || method.isUndefined())) {
-            return lazyDispatchMethodMissingNode.get(this).execute(frame, receiver, methodName, rubyArgs, config,
-                    literalCallNode);
+            return lazyDispatchMethodMissingNode.get(this).execute(frame, receiver, methodName, rubyArgs, config);
         }
 
         RubyArguments.setMethod(rubyArgs, method);
@@ -307,7 +293,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         }
         assert RubyArguments.assertFrameArguments(rubyArgs);
 
-        return callNode.execute(frame, method, receiver, rubyArgs, literalCallNode);
+        return callNode.execute(frame, method, receiver, rubyArgs);
     }
 
 

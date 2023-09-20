@@ -12,6 +12,7 @@ Compatibility:
 
 Performance:
 
+* Optimize calls with `ruby2_keywords` forwarding by deciding it per call site instead of per callee thanks to [my fix in CRuby 3.2](https://bugs.ruby-lang.org/issues/18625) (@eregon).
 
 Changes:
 

@@ -808,7 +808,7 @@ public abstract class ModuleNodes {
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, args, null);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, args);
         }
     }
 
@@ -2268,8 +2268,7 @@ public abstract class ModuleNodes {
                     refinement,
                     nil,
                     EmptyArgumentsDescriptor.INSTANCE,
-                    EMPTY_ARGUMENTS,
-                    null);
+                    EMPTY_ARGUMENTS);
             return refinement;
         }
 
