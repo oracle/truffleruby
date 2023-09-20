@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Add `Exception#detailed_message` method (#3257, @andrykonchin).
+* Add `rb_gc_mark_movable` function (@andrykonchin).
 
 Performance:
 

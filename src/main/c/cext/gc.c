@@ -34,6 +34,10 @@ void rb_gc_mark(VALUE ptr) {
   polyglot_invoke(RUBY_CEXT, "rb_gc_mark", ptr);
 }
 
+void rb_gc_mark_movable(VALUE obj) {
+  rb_gc_mark(obj);
+}
+
 void rb_gc_mark_maybe(VALUE ptr) {
   if (!RB_TYPE_P(ptr, T_NONE)) {
     polyglot_invoke(RUBY_CEXT, "rb_gc_mark", ptr);
