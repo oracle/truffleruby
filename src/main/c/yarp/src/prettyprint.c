@@ -25,17 +25,25 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
     switch (YP_NODE_TYPE(node)) {
         // We do not need to print a ScopeNode as it's not part
         // of the AST
-        case YP_NODE_SCOPE_NODE:
+        case YP_SCOPE_NODE:
             return;
-        case YP_NODE_ALIAS_NODE: {
-            yp_buffer_append_str(buffer, "AliasNode(", 10);
-                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_node_t *)node)->new_name);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_node_t *)node)->old_name);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_alias_node_t *)node)->keyword_loc);
+        case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+            yp_buffer_append_str(buffer, "AliasGlobalVariableNode(", 24);
+                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->new_name);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->old_name);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_alias_global_variable_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ALTERNATION_PATTERN_NODE: {
+        case YP_ALIAS_METHOD_NODE: {
+            yp_buffer_append_str(buffer, "AliasMethodNode(", 16);
+                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_method_node_t *)node)->new_name);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_alias_method_node_t *)node)->old_name);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_alias_method_node_t *)node)->keyword_loc);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_ALTERNATION_PATTERN_NODE: {
             yp_buffer_append_str(buffer, "AlternationPatternNode(", 23);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_alternation_pattern_node_t *)node)->left);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_alternation_pattern_node_t *)node)->right);
@@ -43,7 +51,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_AND_NODE: {
+        case YP_AND_NODE: {
             yp_buffer_append_str(buffer, "AndNode(", 8);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_and_node_t *)node)->left);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_and_node_t *)node)->right);
@@ -51,7 +59,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ARGUMENTS_NODE: {
+        case YP_ARGUMENTS_NODE: {
             yp_buffer_append_str(buffer, "ArgumentsNode(", 14);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_arguments_node_t *)node)->arguments.size; index++) {
@@ -62,7 +70,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ARRAY_NODE: {
+        case YP_ARRAY_NODE: {
             yp_buffer_append_str(buffer, "ArrayNode(", 10);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_array_node_t *)node)->elements.size; index++) {
@@ -83,7 +91,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ARRAY_PATTERN_NODE: {
+        case YP_ARRAY_PATTERN_NODE: {
             yp_buffer_append_str(buffer, "ArrayPatternNode(", 17);
                         if (((yp_array_pattern_node_t *)node)->constant == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -120,7 +128,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ASSOC_NODE: {
+        case YP_ASSOC_NODE: {
             yp_buffer_append_str(buffer, "AssocNode(", 10);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_assoc_node_t *)node)->key);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_assoc_node_t *)node)->value == NULL) {
@@ -136,7 +144,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ASSOC_SPLAT_NODE: {
+        case YP_ASSOC_SPLAT_NODE: {
             yp_buffer_append_str(buffer, "AssocSplatNode(", 15);
                         if (((yp_assoc_splat_node_t *)node)->value == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -147,12 +155,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BACK_REFERENCE_READ_NODE: {
+        case YP_BACK_REFERENCE_READ_NODE: {
             yp_buffer_append_str(buffer, "BackReferenceReadNode(", 22);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BEGIN_NODE: {
+        case YP_BEGIN_NODE: {
             yp_buffer_append_str(buffer, "BeginNode(", 10);
                         if (((yp_begin_node_t *)node)->begin_keyword_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -187,7 +195,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BLOCK_ARGUMENT_NODE: {
+        case YP_BLOCK_ARGUMENT_NODE: {
             yp_buffer_append_str(buffer, "BlockArgumentNode(", 18);
                         if (((yp_block_argument_node_t *)node)->expression == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -198,7 +206,15 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BLOCK_NODE: {
+        case YP_BLOCK_LOCAL_VARIABLE_NODE: {
+            yp_buffer_append_str(buffer, "BlockLocalVariableNode(", 23);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_block_local_variable_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_BLOCK_NODE: {
             yp_buffer_append_str(buffer, "BlockNode(", 10);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_block_node_t *)node)->locals.size; index++) {
@@ -223,9 +239,16 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BLOCK_PARAMETER_NODE: {
+        case YP_BLOCK_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "BlockParameterNode(", 19);
-                        if (((yp_block_parameter_node_t *)node)->name_loc.start == NULL) {
+                        if (((yp_block_parameter_node_t *)node)->name == 0) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                char name_buffer[12];
+                snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_block_parameter_node_t *)node)->name);
+                yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_block_parameter_node_t *)node)->name_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
                 prettyprint_location(buffer, parser, &((yp_block_parameter_node_t *)node)->name_loc);
@@ -234,7 +257,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BLOCK_PARAMETERS_NODE: {
+        case YP_BLOCK_PARAMETERS_NODE: {
             yp_buffer_append_str(buffer, "BlockParametersNode(", 20);
                         if (((yp_block_parameters_node_t *)node)->parameters == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -244,7 +267,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_block_parameters_node_t *)node)->locals.size; index++) {
                 if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
-                prettyprint_location(buffer, parser, &((yp_block_parameters_node_t *)node)->locals.locations[index]);
+                prettyprint_node(buffer, parser, (yp_node_t *) ((yp_block_parameters_node_t *) node)->locals.nodes[index]);
             }
             yp_buffer_append_str(buffer, "]", 1);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_block_parameters_node_t *)node)->opening_loc.start == NULL) {
@@ -260,7 +283,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_BREAK_NODE: {
+        case YP_BREAK_NODE: {
             yp_buffer_append_str(buffer, "BreakNode(", 10);
                         if (((yp_break_node_t *)node)->arguments == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -271,17 +294,63 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CALL_NODE: {
+        case YP_CALL_AND_WRITE_NODE: {
+            yp_buffer_append_str(buffer, "CallAndWriteNode(", 17);
+                        if (((yp_call_and_write_node_t *)node)->receiver == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->receiver);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_and_write_node_t *)node)->call_operator_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_and_write_node_t *)node)->call_operator_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_and_write_node_t *)node)->message_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_and_write_node_t *)node)->message_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_and_write_node_t *)node)->opening_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_and_write_node_t *)node)->opening_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_and_write_node_t *)node)->arguments == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->arguments);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_and_write_node_t *)node)->closing_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_and_write_node_t *)node)->closing_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_and_write_node_t *)node)->read_name), yp_string_length(&((yp_call_and_write_node_t *)node)->read_name));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_and_write_node_t *)node)->write_name), yp_string_length(&((yp_call_and_write_node_t *)node)->write_name));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_and_write_node_t *)node)->operator_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->value);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_CALL_NODE: {
             yp_buffer_append_str(buffer, "CallNode(", 9);
                         if (((yp_call_node_t *)node)->receiver == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_node_t *)node)->receiver);
             }
-            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_node_t *)node)->operator_loc.start == NULL) {
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_node_t *)node)->call_operator_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
-                prettyprint_location(buffer, parser, &((yp_call_node_t *)node)->operator_loc);
+                prettyprint_location(buffer, parser, &((yp_call_node_t *)node)->call_operator_loc);
             }
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_node_t *)node)->message_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -309,7 +378,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_node_t *)node)->block);
             }
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
             yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_node_t *)node)->name), yp_string_length(&((yp_call_node_t *)node)->name));
@@ -317,34 +386,102 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CALL_OPERATOR_AND_WRITE_NODE: {
-            yp_buffer_append_str(buffer, "CallOperatorAndWriteNode(", 25);
-                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_and_write_node_t *)node)->target);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_operator_and_write_node_t *)node)->operator_loc);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_and_write_node_t *)node)->value);
-            yp_buffer_append_str(buffer, ")", 1);
-            break;
-        }
-        case YP_NODE_CALL_OPERATOR_OR_WRITE_NODE: {
-            yp_buffer_append_str(buffer, "CallOperatorOrWriteNode(", 24);
-                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_or_write_node_t *)node)->target);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_or_write_node_t *)node)->value);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_operator_or_write_node_t *)node)->operator_loc);
-            yp_buffer_append_str(buffer, ")", 1);
-            break;
-        }
-        case YP_NODE_CALL_OPERATOR_WRITE_NODE: {
+        case YP_CALL_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "CallOperatorWriteNode(", 22);
-                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->target);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->operator_loc);
-            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->value);
+                        if (((yp_call_operator_write_node_t *)node)->receiver == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->receiver);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_operator_write_node_t *)node)->call_operator_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->call_operator_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_operator_write_node_t *)node)->message_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->message_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_operator_write_node_t *)node)->opening_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->opening_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_operator_write_node_t *)node)->arguments == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->arguments);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_operator_write_node_t *)node)->closing_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->closing_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_operator_write_node_t *)node)->read_name), yp_string_length(&((yp_call_operator_write_node_t *)node)->read_name));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_operator_write_node_t *)node)->write_name), yp_string_length(&((yp_call_operator_write_node_t *)node)->write_name));
+            yp_buffer_append_str(buffer, "\"", 1);
             yp_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
             snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((yp_call_operator_write_node_t *)node)->operator);
             yp_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_operator_write_node_t *)node)->operator_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CAPTURE_PATTERN_NODE: {
+        case YP_CALL_OR_WRITE_NODE: {
+            yp_buffer_append_str(buffer, "CallOrWriteNode(", 16);
+                        if (((yp_call_or_write_node_t *)node)->receiver == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->receiver);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_or_write_node_t *)node)->call_operator_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_or_write_node_t *)node)->call_operator_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_or_write_node_t *)node)->message_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_or_write_node_t *)node)->message_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_or_write_node_t *)node)->opening_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_or_write_node_t *)node)->opening_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_or_write_node_t *)node)->arguments == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->arguments);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_call_or_write_node_t *)node)->closing_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_call_or_write_node_t *)node)->closing_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_or_write_node_t *)node)->read_name), yp_string_length(&((yp_call_or_write_node_t *)node)->read_name));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_call_or_write_node_t *)node)->write_name), yp_string_length(&((yp_call_or_write_node_t *)node)->write_name));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_call_or_write_node_t *)node)->operator_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->value);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_CAPTURE_PATTERN_NODE: {
             yp_buffer_append_str(buffer, "CapturePatternNode(", 19);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_capture_pattern_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_capture_pattern_node_t *)node)->target);
@@ -352,7 +489,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CASE_NODE: {
+        case YP_CASE_NODE: {
             yp_buffer_append_str(buffer, "CaseNode(", 9);
                         if (((yp_case_node_t *)node)->predicate == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -375,7 +512,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_NODE: {
+        case YP_CLASS_NODE: {
             yp_buffer_append_str(buffer, "ClassNode(", 10);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_class_node_t *)node)->locals.size; index++) {
@@ -403,13 +540,13 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_class_node_t *)node)->body);
             }
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_class_node_t *)node)->end_keyword_loc);
-            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
-            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_class_node_t *)node)->name), yp_string_length(&((yp_class_node_t *)node)->name));
-            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_AND_WRITE_NODE: {
+        case YP_CLASS_VARIABLE_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableAndWriteNode(", 26);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_and_write_node_t *)node)->name);
@@ -420,7 +557,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
+        case YP_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableOperatorWriteNode(", 31);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_operator_write_node_t *)node)->name);
@@ -434,7 +571,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_OR_WRITE_NODE: {
+        case YP_CLASS_VARIABLE_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableOrWriteNode(", 25);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_or_write_node_t *)node)->name);
@@ -445,7 +582,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_READ_NODE: {
+        case YP_CLASS_VARIABLE_READ_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableReadNode(", 22);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_read_node_t *)node)->name);
@@ -453,7 +590,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_TARGET_NODE: {
+        case YP_CLASS_VARIABLE_TARGET_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableTargetNode(", 24);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_target_node_t *)node)->name);
@@ -461,17 +598,13 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CLASS_VARIABLE_WRITE_NODE: {
+        case YP_CLASS_VARIABLE_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ClassVariableWriteNode(", 23);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_class_variable_write_node_t *)node)->name);
             yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_class_variable_write_node_t *)node)->name_loc);
-            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_class_variable_write_node_t *)node)->value == NULL) {
-                yp_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (yp_node_t *)((yp_class_variable_write_node_t *)node)->value);
-            }
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_class_variable_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_class_variable_write_node_t *)node)->operator_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
@@ -480,17 +613,23 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_AND_WRITE_NODE: {
+        case YP_CONSTANT_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantAndWriteNode(", 21);
-                        prettyprint_location(buffer, parser, &((yp_constant_and_write_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_and_write_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_and_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_and_write_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_and_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_OPERATOR_WRITE_NODE: {
+        case YP_CONSTANT_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantOperatorWriteNode(", 26);
-                        prettyprint_location(buffer, parser, &((yp_constant_operator_write_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_operator_write_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_operator_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_operator_write_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_operator_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
@@ -499,15 +638,18 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_OR_WRITE_NODE: {
+        case YP_CONSTANT_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantOrWriteNode(", 20);
-                        prettyprint_location(buffer, parser, &((yp_constant_or_write_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_or_write_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_or_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_or_write_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_or_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_AND_WRITE_NODE: {
+        case YP_CONSTANT_PATH_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathAndWriteNode(", 25);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_path_and_write_node_t *)node)->target);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_path_and_write_node_t *)node)->operator_loc);
@@ -515,7 +657,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_NODE: {
+        case YP_CONSTANT_PATH_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathNode(", 17);
                         if (((yp_constant_path_node_t *)node)->parent == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -527,7 +669,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
+        case YP_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathOperatorWriteNode(", 30);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->target);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_path_operator_write_node_t *)node)->operator_loc);
@@ -538,7 +680,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_OR_WRITE_NODE: {
+        case YP_CONSTANT_PATH_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathOrWriteNode(", 24);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_path_or_write_node_t *)node)->target);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_path_or_write_node_t *)node)->operator_loc);
@@ -546,7 +688,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_TARGET_NODE: {
+        case YP_CONSTANT_PATH_TARGET_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathTargetNode(", 23);
                         if (((yp_constant_path_target_node_t *)node)->parent == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -558,7 +700,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_PATH_WRITE_NODE: {
+        case YP_CONSTANT_PATH_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantPathWriteNode(", 22);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_path_write_node_t *)node)->target);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_path_write_node_t *)node)->operator_loc);
@@ -566,27 +708,39 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_READ_NODE: {
+        case YP_CONSTANT_READ_NODE: {
             yp_buffer_append_str(buffer, "ConstantReadNode(", 17);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_read_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_TARGET_NODE: {
+        case YP_CONSTANT_TARGET_NODE: {
             yp_buffer_append_str(buffer, "ConstantTargetNode(", 19);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_target_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_CONSTANT_WRITE_NODE: {
+        case YP_CONSTANT_WRITE_NODE: {
             yp_buffer_append_str(buffer, "ConstantWriteNode(", 18);
-                        prettyprint_location(buffer, parser, &((yp_constant_write_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_constant_write_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_constant_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_constant_write_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_DEF_NODE: {
+        case YP_DEF_NODE: {
             yp_buffer_append_str(buffer, "DefNode(", 8);
-                        prettyprint_location(buffer, parser, &((yp_def_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_def_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_def_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_def_node_t *)node)->receiver == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
@@ -639,7 +793,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_DEFINED_NODE: {
+        case YP_DEFINED_NODE: {
             yp_buffer_append_str(buffer, "DefinedNode(", 12);
                         if (((yp_defined_node_t *)node)->lparen_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -656,7 +810,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ELSE_NODE: {
+        case YP_ELSE_NODE: {
             yp_buffer_append_str(buffer, "ElseNode(", 9);
                         prettyprint_location(buffer, parser, &((yp_else_node_t *)node)->else_keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_else_node_t *)node)->statements == NULL) {
@@ -672,7 +826,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_EMBEDDED_STATEMENTS_NODE: {
+        case YP_EMBEDDED_STATEMENTS_NODE: {
             yp_buffer_append_str(buffer, "EmbeddedStatementsNode(", 23);
                         prettyprint_location(buffer, parser, &((yp_embedded_statements_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_embedded_statements_node_t *)node)->statements == NULL) {
@@ -684,14 +838,14 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_EMBEDDED_VARIABLE_NODE: {
+        case YP_EMBEDDED_VARIABLE_NODE: {
             yp_buffer_append_str(buffer, "EmbeddedVariableNode(", 21);
                         prettyprint_location(buffer, parser, &((yp_embedded_variable_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_embedded_variable_node_t *)node)->variable);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_ENSURE_NODE: {
+        case YP_ENSURE_NODE: {
             yp_buffer_append_str(buffer, "EnsureNode(", 11);
                         prettyprint_location(buffer, parser, &((yp_ensure_node_t *)node)->ensure_keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_ensure_node_t *)node)->statements == NULL) {
@@ -703,12 +857,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FALSE_NODE: {
+        case YP_FALSE_NODE: {
             yp_buffer_append_str(buffer, "FalseNode(", 10);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FIND_PATTERN_NODE: {
+        case YP_FIND_PATTERN_NODE: {
             yp_buffer_append_str(buffer, "FindPatternNode(", 16);
                         if (((yp_find_pattern_node_t *)node)->constant == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -736,7 +890,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FLIP_FLOP_NODE: {
+        case YP_FLIP_FLOP_NODE: {
             yp_buffer_append_str(buffer, "FlipFlopNode(", 13);
                         if (((yp_flip_flop_node_t *)node)->left == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -750,17 +904,17 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             }
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_flip_flop_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FLOAT_NODE: {
+        case YP_FLOAT_NODE: {
             yp_buffer_append_str(buffer, "FloatNode(", 10);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FOR_NODE: {
+        case YP_FOR_NODE: {
             yp_buffer_append_str(buffer, "ForNode(", 8);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_for_node_t *)node)->index);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_for_node_t *)node)->collection);
@@ -780,17 +934,17 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FORWARDING_ARGUMENTS_NODE: {
+        case YP_FORWARDING_ARGUMENTS_NODE: {
             yp_buffer_append_str(buffer, "ForwardingArgumentsNode(", 24);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FORWARDING_PARAMETER_NODE: {
+        case YP_FORWARDING_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "ForwardingParameterNode(", 24);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_FORWARDING_SUPER_NODE: {
+        case YP_FORWARDING_SUPER_NODE: {
             yp_buffer_append_str(buffer, "ForwardingSuperNode(", 20);
                         if (((yp_forwarding_super_node_t *)node)->block == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -800,7 +954,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_AND_WRITE_NODE: {
+        case YP_GLOBAL_VARIABLE_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableAndWriteNode(", 27);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_and_write_node_t *)node)->name);
@@ -811,7 +965,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
+        case YP_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableOperatorWriteNode(", 32);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_operator_write_node_t *)node)->name);
@@ -825,7 +979,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_OR_WRITE_NODE: {
+        case YP_GLOBAL_VARIABLE_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableOrWriteNode(", 26);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_or_write_node_t *)node)->name);
@@ -836,7 +990,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_READ_NODE: {
+        case YP_GLOBAL_VARIABLE_READ_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableReadNode(", 23);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_read_node_t *)node)->name);
@@ -844,7 +998,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_TARGET_NODE: {
+        case YP_GLOBAL_VARIABLE_TARGET_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableTargetNode(", 25);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_target_node_t *)node)->name);
@@ -852,7 +1006,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_GLOBAL_VARIABLE_WRITE_NODE: {
+        case YP_GLOBAL_VARIABLE_WRITE_NODE: {
             yp_buffer_append_str(buffer, "GlobalVariableWriteNode(", 24);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_global_variable_write_node_t *)node)->name);
@@ -863,7 +1017,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_HASH_NODE: {
+        case YP_HASH_NODE: {
             yp_buffer_append_str(buffer, "HashNode(", 9);
                         prettyprint_location(buffer, parser, &((yp_hash_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
@@ -876,7 +1030,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_HASH_PATTERN_NODE: {
+        case YP_HASH_PATTERN_NODE: {
             yp_buffer_append_str(buffer, "HashPatternNode(", 16);
                         if (((yp_hash_pattern_node_t *)node)->constant == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -907,7 +1061,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_IF_NODE: {
+        case YP_IF_NODE: {
             yp_buffer_append_str(buffer, "IfNode(", 7);
                         if (((yp_if_node_t *)node)->if_keyword_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -933,13 +1087,19 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_IMAGINARY_NODE: {
+        case YP_IMAGINARY_NODE: {
             yp_buffer_append_str(buffer, "ImaginaryNode(", 14);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_imaginary_node_t *)node)->numeric);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_IN_NODE: {
+        case YP_IMPLICIT_NODE: {
+            yp_buffer_append_str(buffer, "ImplicitNode(", 13);
+                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_implicit_node_t *)node)->value);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_IN_NODE: {
             yp_buffer_append_str(buffer, "InNode(", 7);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_in_node_t *)node)->pattern);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_in_node_t *)node)->statements == NULL) {
@@ -956,7 +1116,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_AND_WRITE_NODE: {
+        case YP_INSTANCE_VARIABLE_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableAndWriteNode(", 29);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_and_write_node_t *)node)->name);
@@ -967,7 +1127,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
+        case YP_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableOperatorWriteNode(", 34);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_operator_write_node_t *)node)->name);
@@ -981,7 +1141,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_OR_WRITE_NODE: {
+        case YP_INSTANCE_VARIABLE_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableOrWriteNode(", 28);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_or_write_node_t *)node)->name);
@@ -992,7 +1152,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_READ_NODE: {
+        case YP_INSTANCE_VARIABLE_READ_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableReadNode(", 25);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_read_node_t *)node)->name);
@@ -1000,7 +1160,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_TARGET_NODE: {
+        case YP_INSTANCE_VARIABLE_TARGET_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableTargetNode(", 27);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_target_node_t *)node)->name);
@@ -1008,7 +1168,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INSTANCE_VARIABLE_WRITE_NODE: {
+        case YP_INSTANCE_VARIABLE_WRITE_NODE: {
             yp_buffer_append_str(buffer, "InstanceVariableWriteNode(", 26);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_instance_variable_write_node_t *)node)->name);
@@ -1019,12 +1179,31 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INTEGER_NODE: {
+        case YP_INTEGER_NODE: {
             yp_buffer_append_str(buffer, "IntegerNode(", 12);
+                        char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
+        case YP_INTERPOLATED_MATCH_LAST_LINE_NODE: {
+            yp_buffer_append_str(buffer, "InterpolatedMatchLastLineNode(", 30);
+                        prettyprint_location(buffer, parser, &((yp_interpolated_match_last_line_node_t *)node)->opening_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
+            for (uint32_t index = 0; index < ((yp_interpolated_match_last_line_node_t *)node)->parts.size; index++) {
+                if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+                prettyprint_node(buffer, parser, (yp_node_t *) ((yp_interpolated_match_last_line_node_t *) node)->parts.nodes[index]);
+            }
+            yp_buffer_append_str(buffer, "]", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_interpolated_match_last_line_node_t *)node)->closing_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
             yp_buffer_append_str(buffer, "InterpolatedRegularExpressionNode(", 34);
                         prettyprint_location(buffer, parser, &((yp_interpolated_regular_expression_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
@@ -1035,12 +1214,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, "]", 1);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_interpolated_regular_expression_node_t *)node)->closing_loc);
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INTERPOLATED_STRING_NODE: {
+        case YP_INTERPOLATED_STRING_NODE: {
             yp_buffer_append_str(buffer, "InterpolatedStringNode(", 23);
                         if (((yp_interpolated_string_node_t *)node)->opening_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1061,7 +1240,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INTERPOLATED_SYMBOL_NODE: {
+        case YP_INTERPOLATED_SYMBOL_NODE: {
             yp_buffer_append_str(buffer, "InterpolatedSymbolNode(", 23);
                         if (((yp_interpolated_symbol_node_t *)node)->opening_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1082,7 +1261,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_INTERPOLATED_X_STRING_NODE: {
+        case YP_INTERPOLATED_X_STRING_NODE: {
             yp_buffer_append_str(buffer, "InterpolatedXStringNode(", 24);
                         prettyprint_location(buffer, parser, &((yp_interpolated_x_string_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
@@ -1095,7 +1274,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_KEYWORD_HASH_NODE: {
+        case YP_KEYWORD_HASH_NODE: {
             yp_buffer_append_str(buffer, "KeywordHashNode(", 16);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_keyword_hash_node_t *)node)->elements.size; index++) {
@@ -1106,9 +1285,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_KEYWORD_PARAMETER_NODE: {
+        case YP_KEYWORD_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "KeywordParameterNode(", 21);
-                        prettyprint_location(buffer, parser, &((yp_keyword_parameter_node_t *)node)->name_loc);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_keyword_parameter_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_keyword_parameter_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_keyword_parameter_node_t *)node)->value == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
@@ -1117,18 +1299,25 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_KEYWORD_REST_PARAMETER_NODE: {
+        case YP_KEYWORD_REST_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "KeywordRestParameterNode(", 25);
-                        prettyprint_location(buffer, parser, &((yp_keyword_rest_parameter_node_t *)node)->operator_loc);
+                        if (((yp_keyword_rest_parameter_node_t *)node)->name == 0) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                char name_buffer[12];
+                snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_keyword_rest_parameter_node_t *)node)->name);
+                yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            }
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_keyword_rest_parameter_node_t *)node)->name_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
                 prettyprint_location(buffer, parser, &((yp_keyword_rest_parameter_node_t *)node)->name_loc);
             }
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_keyword_rest_parameter_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LAMBDA_NODE: {
+        case YP_LAMBDA_NODE: {
             yp_buffer_append_str(buffer, "LambdaNode(", 11);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_lambda_node_t *)node)->locals.size; index++) {
@@ -1154,7 +1343,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_AND_WRITE_NODE: {
+        case YP_LOCAL_VARIABLE_AND_WRITE_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableAndWriteNode(", 26);
                         prettyprint_location(buffer, parser, &((yp_local_variable_and_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_local_variable_and_write_node_t *)node)->operator_loc);
@@ -1168,7 +1357,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
+        case YP_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableOperatorWriteNode(", 31);
                         prettyprint_location(buffer, parser, &((yp_local_variable_operator_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_local_variable_operator_write_node_t *)node)->operator_loc);
@@ -1185,7 +1374,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_OR_WRITE_NODE: {
+        case YP_LOCAL_VARIABLE_OR_WRITE_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableOrWriteNode(", 25);
                         prettyprint_location(buffer, parser, &((yp_local_variable_or_write_node_t *)node)->name_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_local_variable_or_write_node_t *)node)->operator_loc);
@@ -1199,7 +1388,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_READ_NODE: {
+        case YP_LOCAL_VARIABLE_READ_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableReadNode(", 22);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_local_variable_read_node_t *)node)->name);
@@ -1210,7 +1399,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_TARGET_NODE: {
+        case YP_LOCAL_VARIABLE_TARGET_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableTargetNode(", 24);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_local_variable_target_node_t *)node)->name);
@@ -1221,7 +1410,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_LOCAL_VARIABLE_WRITE_NODE: {
+        case YP_LOCAL_VARIABLE_WRITE_NODE: {
             yp_buffer_append_str(buffer, "LocalVariableWriteNode(", 23);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_local_variable_write_node_t *)node)->name);
@@ -1235,7 +1424,21 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_MATCH_PREDICATE_NODE: {
+        case YP_MATCH_LAST_LINE_NODE: {
+            yp_buffer_append_str(buffer, "MatchLastLineNode(", 18);
+                        prettyprint_location(buffer, parser, &((yp_match_last_line_node_t *)node)->opening_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_match_last_line_node_t *)node)->content_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_match_last_line_node_t *)node)->closing_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_match_last_line_node_t *)node)->unescaped), yp_string_length(&((yp_match_last_line_node_t *)node)->unescaped));
+            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_MATCH_PREDICATE_NODE: {
             yp_buffer_append_str(buffer, "MatchPredicateNode(", 19);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_match_predicate_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_match_predicate_node_t *)node)->pattern);
@@ -1243,7 +1446,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_MATCH_REQUIRED_NODE: {
+        case YP_MATCH_REQUIRED_NODE: {
             yp_buffer_append_str(buffer, "MatchRequiredNode(", 18);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_match_required_node_t *)node)->value);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_match_required_node_t *)node)->pattern);
@@ -1251,12 +1454,26 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_MISSING_NODE: {
+        case YP_MATCH_WRITE_NODE: {
+            yp_buffer_append_str(buffer, "MatchWriteNode(", 15);
+                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_match_write_node_t *)node)->call);
+            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
+            for (uint32_t index = 0; index < ((yp_match_write_node_t *)node)->locals.size; index++) {
+                if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+                char locals_buffer[12];
+                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((yp_match_write_node_t *)node)->locals.ids[index]);
+                yp_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            }
+            yp_buffer_append_str(buffer, "]", 1);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_MISSING_NODE: {
             yp_buffer_append_str(buffer, "MissingNode(", 12);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_MODULE_NODE: {
+        case YP_MODULE_NODE: {
             yp_buffer_append_str(buffer, "ModuleNode(", 11);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_module_node_t *)node)->locals.size; index++) {
@@ -1274,13 +1491,34 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_module_node_t *)node)->body);
             }
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_module_node_t *)node)->end_keyword_loc);
-            yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "\"", 1);
-            yp_buffer_append_bytes(buffer, yp_string_source(&((yp_module_node_t *)node)->name), yp_string_length(&((yp_module_node_t *)node)->name));
-            yp_buffer_append_str(buffer, "\"", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_module_node_t *)node)->name);
+            yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_MULTI_WRITE_NODE: {
+        case YP_MULTI_TARGET_NODE: {
+            yp_buffer_append_str(buffer, "MultiTargetNode(", 16);
+                        yp_buffer_append_str(buffer, "[", 1);
+            for (uint32_t index = 0; index < ((yp_multi_target_node_t *)node)->targets.size; index++) {
+                if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
+                prettyprint_node(buffer, parser, (yp_node_t *) ((yp_multi_target_node_t *) node)->targets.nodes[index]);
+            }
+            yp_buffer_append_str(buffer, "]", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_multi_target_node_t *)node)->lparen_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_multi_target_node_t *)node)->lparen_loc);
+            }
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_multi_target_node_t *)node)->rparen_loc.start == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_location(buffer, parser, &((yp_multi_target_node_t *)node)->rparen_loc);
+            }
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
+        case YP_MULTI_WRITE_NODE: {
             yp_buffer_append_str(buffer, "MultiWriteNode(", 15);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_multi_write_node_t *)node)->targets.size; index++) {
@@ -1288,16 +1526,6 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *) ((yp_multi_write_node_t *) node)->targets.nodes[index]);
             }
             yp_buffer_append_str(buffer, "]", 1);
-            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_multi_write_node_t *)node)->operator_loc.start == NULL) {
-                yp_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((yp_multi_write_node_t *)node)->operator_loc);
-            }
-            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_multi_write_node_t *)node)->value == NULL) {
-                yp_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (yp_node_t *)((yp_multi_write_node_t *)node)->value);
-            }
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_multi_write_node_t *)node)->lparen_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
@@ -1308,10 +1536,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             } else {
                 prettyprint_location(buffer, parser, &((yp_multi_write_node_t *)node)->rparen_loc);
             }
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_multi_write_node_t *)node)->operator_loc);
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_multi_write_node_t *)node)->value);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_NEXT_NODE: {
+        case YP_NEXT_NODE: {
             yp_buffer_append_str(buffer, "NextNode(", 9);
                         if (((yp_next_node_t *)node)->arguments == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1322,19 +1552,19 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_NIL_NODE: {
+        case YP_NIL_NODE: {
             yp_buffer_append_str(buffer, "NilNode(", 8);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_NO_KEYWORDS_PARAMETER_NODE: {
+        case YP_NO_KEYWORDS_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "NoKeywordsParameterNode(", 24);
                         prettyprint_location(buffer, parser, &((yp_no_keywords_parameter_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_no_keywords_parameter_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_NUMBERED_REFERENCE_READ_NODE: {
+        case YP_NUMBERED_REFERENCE_READ_NODE: {
             yp_buffer_append_str(buffer, "NumberedReferenceReadNode(", 26);
                         char number_buffer[12];
             snprintf(number_buffer, sizeof(number_buffer), "+%d", ((yp_numbered_reference_read_node_t *)node)->number);
@@ -1342,7 +1572,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_OPTIONAL_PARAMETER_NODE: {
+        case YP_OPTIONAL_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "OptionalParameterNode(", 22);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_optional_parameter_node_t *)node)->name);
@@ -1353,7 +1583,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_OR_NODE: {
+        case YP_OR_NODE: {
             yp_buffer_append_str(buffer, "OrNode(", 7);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_or_node_t *)node)->left);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_or_node_t *)node)->right);
@@ -1361,7 +1591,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PARAMETERS_NODE: {
+        case YP_PARAMETERS_NODE: {
             yp_buffer_append_str(buffer, "ParametersNode(", 15);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_parameters_node_t *)node)->requireds.size; index++) {
@@ -1375,17 +1605,17 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *) ((yp_parameters_node_t *) node)->optionals.nodes[index]);
             }
             yp_buffer_append_str(buffer, "]", 1);
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_parameters_node_t *)node)->rest == NULL) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                prettyprint_node(buffer, parser, (yp_node_t *)((yp_parameters_node_t *)node)->rest);
+            }
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_parameters_node_t *)node)->posts.size; index++) {
                 if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
                 prettyprint_node(buffer, parser, (yp_node_t *) ((yp_parameters_node_t *) node)->posts.nodes[index]);
             }
             yp_buffer_append_str(buffer, "]", 1);
-            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_parameters_node_t *)node)->rest == NULL) {
-                yp_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (yp_node_t *)((yp_parameters_node_t *)node)->rest);
-            }
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_parameters_node_t *)node)->keywords.size; index++) {
                 if (index != 0) yp_buffer_append_str(buffer, ", ", 2);
@@ -1405,7 +1635,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PARENTHESES_NODE: {
+        case YP_PARENTHESES_NODE: {
             yp_buffer_append_str(buffer, "ParenthesesNode(", 16);
                         if (((yp_parentheses_node_t *)node)->body == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1417,7 +1647,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PINNED_EXPRESSION_NODE: {
+        case YP_PINNED_EXPRESSION_NODE: {
             yp_buffer_append_str(buffer, "PinnedExpressionNode(", 21);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_pinned_expression_node_t *)node)->expression);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_pinned_expression_node_t *)node)->operator_loc);
@@ -1426,14 +1656,14 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PINNED_VARIABLE_NODE: {
+        case YP_PINNED_VARIABLE_NODE: {
             yp_buffer_append_str(buffer, "PinnedVariableNode(", 19);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_pinned_variable_node_t *)node)->variable);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_pinned_variable_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_POST_EXECUTION_NODE: {
+        case YP_POST_EXECUTION_NODE: {
             yp_buffer_append_str(buffer, "PostExecutionNode(", 18);
                         if (((yp_post_execution_node_t *)node)->statements == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1446,7 +1676,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PRE_EXECUTION_NODE: {
+        case YP_PRE_EXECUTION_NODE: {
             yp_buffer_append_str(buffer, "PreExecutionNode(", 17);
                         if (((yp_pre_execution_node_t *)node)->statements == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1459,7 +1689,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_PROGRAM_NODE: {
+        case YP_PROGRAM_NODE: {
             yp_buffer_append_str(buffer, "ProgramNode(", 12);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_program_node_t *)node)->locals.size; index++) {
@@ -1473,7 +1703,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RANGE_NODE: {
+        case YP_RANGE_NODE: {
             yp_buffer_append_str(buffer, "RangeNode(", 10);
                         if (((yp_range_node_t *)node)->left == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1487,23 +1717,23 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             }
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_range_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RATIONAL_NODE: {
+        case YP_RATIONAL_NODE: {
             yp_buffer_append_str(buffer, "RationalNode(", 13);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_rational_node_t *)node)->numeric);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_REDO_NODE: {
+        case YP_REDO_NODE: {
             yp_buffer_append_str(buffer, "RedoNode(", 9);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_REGULAR_EXPRESSION_NODE: {
+        case YP_REGULAR_EXPRESSION_NODE: {
             yp_buffer_append_str(buffer, "RegularExpressionNode(", 22);
                         prettyprint_location(buffer, parser, &((yp_regular_expression_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_regular_expression_node_t *)node)->content_loc);
@@ -1512,12 +1742,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_bytes(buffer, yp_string_source(&((yp_regular_expression_node_t *)node)->unescaped), yp_string_length(&((yp_regular_expression_node_t *)node)->unescaped));
             yp_buffer_append_str(buffer, "\"", 1);
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
+        case YP_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "RequiredDestructuredParameterNode(", 34);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_required_destructured_parameter_node_t *)node)->parameters.size; index++) {
@@ -1530,7 +1760,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_REQUIRED_PARAMETER_NODE: {
+        case YP_REQUIRED_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "RequiredParameterNode(", 22);
                         char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_required_parameter_node_t *)node)->name);
@@ -1538,7 +1768,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RESCUE_MODIFIER_NODE: {
+        case YP_RESCUE_MODIFIER_NODE: {
             yp_buffer_append_str(buffer, "RescueModifierNode(", 19);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_rescue_modifier_node_t *)node)->expression);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_rescue_modifier_node_t *)node)->keyword_loc);
@@ -1546,7 +1776,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RESCUE_NODE: {
+        case YP_RESCUE_NODE: {
             yp_buffer_append_str(buffer, "RescueNode(", 11);
                         prettyprint_location(buffer, parser, &((yp_rescue_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
@@ -1578,23 +1808,30 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_REST_PARAMETER_NODE: {
+        case YP_REST_PARAMETER_NODE: {
             yp_buffer_append_str(buffer, "RestParameterNode(", 18);
-                        prettyprint_location(buffer, parser, &((yp_rest_parameter_node_t *)node)->operator_loc);
+                        if (((yp_rest_parameter_node_t *)node)->name == 0) {
+                yp_buffer_append_str(buffer, "nil", 3);
+            } else {
+                char name_buffer[12];
+                snprintf(name_buffer, sizeof(name_buffer), "%u", ((yp_rest_parameter_node_t *)node)->name);
+                yp_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            }
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_rest_parameter_node_t *)node)->name_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
                 prettyprint_location(buffer, parser, &((yp_rest_parameter_node_t *)node)->name_loc);
             }
+            yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_rest_parameter_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RETRY_NODE: {
+        case YP_RETRY_NODE: {
             yp_buffer_append_str(buffer, "RetryNode(", 10);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_RETURN_NODE: {
+        case YP_RETURN_NODE: {
             yp_buffer_append_str(buffer, "ReturnNode(", 11);
                         prettyprint_location(buffer, parser, &((yp_return_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_return_node_t *)node)->arguments == NULL) {
@@ -1605,12 +1842,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SELF_NODE: {
+        case YP_SELF_NODE: {
             yp_buffer_append_str(buffer, "SelfNode(", 9);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SINGLETON_CLASS_NODE: {
+        case YP_SINGLETON_CLASS_NODE: {
             yp_buffer_append_str(buffer, "SingletonClassNode(", 19);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_singleton_class_node_t *)node)->locals.size; index++) {
@@ -1632,12 +1869,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SOURCE_ENCODING_NODE: {
+        case YP_SOURCE_ENCODING_NODE: {
             yp_buffer_append_str(buffer, "SourceEncodingNode(", 19);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SOURCE_FILE_NODE: {
+        case YP_SOURCE_FILE_NODE: {
             yp_buffer_append_str(buffer, "SourceFileNode(", 15);
                         yp_buffer_append_str(buffer, "\"", 1);
             yp_buffer_append_bytes(buffer, yp_string_source(&((yp_source_file_node_t *)node)->filepath), yp_string_length(&((yp_source_file_node_t *)node)->filepath));
@@ -1645,12 +1882,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SOURCE_LINE_NODE: {
+        case YP_SOURCE_LINE_NODE: {
             yp_buffer_append_str(buffer, "SourceLineNode(", 15);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SPLAT_NODE: {
+        case YP_SPLAT_NODE: {
             yp_buffer_append_str(buffer, "SplatNode(", 10);
                         prettyprint_location(buffer, parser, &((yp_splat_node_t *)node)->operator_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_splat_node_t *)node)->expression == NULL) {
@@ -1661,7 +1898,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_STATEMENTS_NODE: {
+        case YP_STATEMENTS_NODE: {
             yp_buffer_append_str(buffer, "StatementsNode(", 15);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_statements_node_t *)node)->body.size; index++) {
@@ -1672,16 +1909,19 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_STRING_CONCAT_NODE: {
+        case YP_STRING_CONCAT_NODE: {
             yp_buffer_append_str(buffer, "StringConcatNode(", 17);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_string_concat_node_t *)node)->left);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_string_concat_node_t *)node)->right);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_STRING_NODE: {
+        case YP_STRING_NODE: {
             yp_buffer_append_str(buffer, "StringNode(", 11);
-                        if (((yp_string_node_t *)node)->opening_loc.start == NULL) {
+                        char flags_buffer[12];
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
+            yp_buffer_append_str(buffer, ", ", 2);            if (((yp_string_node_t *)node)->opening_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
             } else {
                 prettyprint_location(buffer, parser, &((yp_string_node_t *)node)->opening_loc);
@@ -1698,7 +1938,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SUPER_NODE: {
+        case YP_SUPER_NODE: {
             yp_buffer_append_str(buffer, "SuperNode(", 10);
                         prettyprint_location(buffer, parser, &((yp_super_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_super_node_t *)node)->lparen_loc.start == NULL) {
@@ -1724,7 +1964,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_SYMBOL_NODE: {
+        case YP_SYMBOL_NODE: {
             yp_buffer_append_str(buffer, "SymbolNode(", 11);
                         if (((yp_symbol_node_t *)node)->opening_loc.start == NULL) {
                 yp_buffer_append_str(buffer, "nil", 3);
@@ -1747,12 +1987,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_TRUE_NODE: {
+        case YP_TRUE_NODE: {
             yp_buffer_append_str(buffer, "TrueNode(", 9);
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_UNDEF_NODE: {
+        case YP_UNDEF_NODE: {
             yp_buffer_append_str(buffer, "UndefNode(", 10);
                         yp_buffer_append_str(buffer, "[", 1);
             for (uint32_t index = 0; index < ((yp_undef_node_t *)node)->names.size; index++) {
@@ -1764,7 +2004,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_UNLESS_NODE: {
+        case YP_UNLESS_NODE: {
             yp_buffer_append_str(buffer, "UnlessNode(", 11);
                         prettyprint_location(buffer, parser, &((yp_unless_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (yp_node_t *)((yp_unless_node_t *)node)->predicate);
@@ -1786,7 +2026,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_UNTIL_NODE: {
+        case YP_UNTIL_NODE: {
             yp_buffer_append_str(buffer, "UntilNode(", 10);
                         prettyprint_location(buffer, parser, &((yp_until_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_until_node_t *)node)->closing_loc.start == NULL) {
@@ -1801,12 +2041,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_until_node_t *)node)->statements);
             }
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_WHEN_NODE: {
+        case YP_WHEN_NODE: {
             yp_buffer_append_str(buffer, "WhenNode(", 9);
                         prettyprint_location(buffer, parser, &((yp_when_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            yp_buffer_append_str(buffer, "[", 1);
@@ -1823,7 +2063,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_WHILE_NODE: {
+        case YP_WHILE_NODE: {
             yp_buffer_append_str(buffer, "WhileNode(", 10);
                         prettyprint_location(buffer, parser, &((yp_while_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_while_node_t *)node)->closing_loc.start == NULL) {
@@ -1838,12 +2078,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
                 prettyprint_node(buffer, parser, (yp_node_t *)((yp_while_node_t *)node)->statements);
             }
             yp_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 1);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
             yp_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_X_STRING_NODE: {
+        case YP_X_STRING_NODE: {
             yp_buffer_append_str(buffer, "XStringNode(", 12);
                         prettyprint_location(buffer, parser, &((yp_x_string_node_t *)node)->opening_loc);
             yp_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((yp_x_string_node_t *)node)->content_loc);
@@ -1854,7 +2094,7 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
-        case YP_NODE_YIELD_NODE: {
+        case YP_YIELD_NODE: {
             yp_buffer_append_str(buffer, "YieldNode(", 10);
                         prettyprint_location(buffer, parser, &((yp_yield_node_t *)node)->keyword_loc);
             yp_buffer_append_str(buffer, ", ", 2);            if (((yp_yield_node_t *)node)->lparen_loc.start == NULL) {

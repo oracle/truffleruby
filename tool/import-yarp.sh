@@ -5,6 +5,8 @@ set -e
 
 YARP=../../yarp
 
+export YARP_SERIALIZE_ONLY_SEMANTICS_FIELDS=1
+
 # Create generated files
 pushd $YARP
 bundle
