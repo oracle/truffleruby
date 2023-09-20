@@ -14,13 +14,13 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 import static com.oracle.truffle.api.dsl.Cached.Exclusive;
 import static org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
@@ -55,14 +55,14 @@ import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 @GenerateUncached
 public final class CompactHashStore {
     //  ---------------------------------------------------------------------------------------------------------------
-    // Big Picture :
+    // Big Picture:
     //  (1) A Compact Hash's big idea is storing all key-values in a contiguous array (the KV array) in insertion order
     //      This enables us to do sequential iteration on all key-values in insertion order, which is what we want
     //      But it doesn't allow constant-time lookups
     //  -----------------------------------------------
     //  (2) Thus, a Compact Hash also stores the position of every key in the KV array in another array called the index
     //      That KV position is stored in the index array at a location that depends on the respective key's hash
-    //      Therefore, given a key we can always quickly find where it's in the KV array by :
+    //      Therefore, given a key we can always quickly find where it's in the KV array by:
     //                                    -----------------------------------------------
     //              1- Hashing it
     //              2- Calculating the position of the hash from its value
@@ -75,42 +75,44 @@ public final class CompactHashStore {
     //       index array, the KV position is stored next to it. The reason we store the hash is that step 2 is lossy,
     //       multiple not-equal hashes can map to the same position in the index array, that's a different sort of
     //       "collision" in addition to the usual collision of equal hash values coming from different keys. Both kinds
-    //       of collisions actually result in the same outcome : contention on an index slot. So both are automatically
-    //       handled by the same collision-resolution strategy : open-addressing-with linear probing.)
+    //       of collisions actually result in the same outcome: contention on an index slot. So both are automatically
+    //       handled by the same collision-resolution strategy: open-addressing-with linear probing.)
     //  -----------------------------------------------
     //  (3) tl;dr: Compact Hashes give you both insertion-order iteration AND the usual const-time guarantees
     //  ---------------------------------------------------------------------------------------------------------------
 
-    /* We view the index array as consisting of "Slots", each slot is 2 array positions. index[0] and index[1] is one
+    /** We view the index array as consisting of "Slots", each slot is 2 array positions. index[0] and index[1] is one
      * slot, index[2] and index[3] is another,... The first position of a slot holds the hash of a key and the second
      * holds an offsetted index into the KV store (index + 1) where the key is stored. The reason we store an offsetted
      * index and not the index itself is so that 0 is not a valid index, thus we can use it as unused slot marker, and
      * since all int[] arrays start out zeroed this means that new index arrays are marked unused "for free" */
     private int[] index;
+    /** An array of key and value pairs, in insertion order */
     private Object[] kvStore;
-    // This tracks the next valid insertion position into kvStore, it starts at 0 and always increases by 2
-    // We can't use the size of the RubyHash for that, because deletion reduces its hash.size
-    // Whereas the insertion pos into kvStore can never decrease, we don't reuse empty slots
+    /** This tracks the next valid insertion position into kvStore, it starts at 0 and always increases by 2. We can't
+     * use the size of the RubyHash for that, because deletion reduces its hash.size. Whereas the insertion pos into
+     * kvStore can never decrease, we don't reuse empty slots. */
     private int kvStoreInsertionPos;
-    // This tracks the number of occupied slots at which we should rebuild the index array
-    // For example, at a load factor of 0.75 and an index of total size 100 slot, that number is 75 slots
-    // (Technically, that's redundant information that is derived from the load factor and the index size,
-    //  but deriving it requires a float multiplication or division, and we want to check for it on every insertion, so
-    //  it's inefficient to keep calculating it every time its needed)
+    /** This tracks the number of occupied slots at which we should rebuild the index array. For example, at a load
+     * factor of 0.75 and an index of total size 100 slot, that number is 75 slots. (Technically, that's redundant
+     * information that is derived from the load factor and the index size, but deriving it requires a float
+     * multiplication or division, and we want to check for it on every insertion, so it's inefficient to keep
+     * calculating it every time its needed) */
     private int numSlotsForIndexRebuild;
 
-    // Each slot in the index array can be in one of 3 states, depending on the value of its second (offset) field :
-    // Offset >= 1 : Filled, the data in the hash field and the offset field is valid. Subtracting one from the offset
-    // will yield a valid index into the KV array.
-    // Offset == 0 : Unused, the data in the hash field and the offset field is NOT valid, and the slot was never filled
-    // with valid data.
-    // Offset == -1 : Deleted, the data in the hash field and the offset field is NOT valid, but the slot used to be
-    // occupied with valid data before.
-    private static final int INDEX_SLOT_UNUSED_MARKER = 0;
-    private static final int INDEX_SLOT_DELETED_MARKER = -1;
+    /** Each slot in the index array can be in one of 3 states, depending on the value of its second (offset) field:
+     * <li>Offset >= 1: Filled, the data in the hash field and the offset field is valid. Subtracting one from the
+     * offset will yield a valid index into the KV array.</li>
+     * <li>Offset == 0: Unused, the data in the hash field and the offset field is NOT valid, and the slot was never
+     * filled with valid data. The value 0 is used for unused so `new int[]` automatically makes all slots unused
+     * without an extra Arrays.fill().</li>
+     * <li>Offset == -1: Deleted, the data in the hash field and the offset field is NOT valid, but the slot was
+     * occupied with valid data before.</li> */
+    private static final int INDEX_SLOT_UNUSED = 0;
+    private static final int INDEX_SLOT_DELETED = -1;
 
-    // returned by methods doing array search which doesn't find what they're looking for
-    protected static final int KEY_NOT_FOUND = -2;
+    // returned by methods doing array search which don't find what they're looking for
+    static final int KEY_NOT_FOUND = -2;
     private static final int HASH_NOT_FOUND = KEY_NOT_FOUND;
 
     // a generic "not a valid array position" value to be used by all code doing array searches for things other than
@@ -160,12 +162,12 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
+    boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetHashPosAndKvPosForKeyNode getHashPosAndKvPos,
             @Cached FreezeHashKeyIfNeededNode freezeKey,
-            @Cached PropagateSharingNode propagateSharingForKey,
-            @Cached PropagateSharingNode propagateSharingForVal,
+            @Cached @Exclusive PropagateSharingNode propagateSharingForKey,
+            @Cached @Exclusive PropagateSharingNode propagateSharingForVal,
             @Cached SetKvAtNode setKv,
             @Bind("$node") Node node) {
         var frozenKey = freezeKey.executeFreezeIfNeeded(key, byIdentity);
@@ -180,7 +182,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
+    Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared GetHashPosAndKvPosForKeyNode getHashPosAndKvPos,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
@@ -196,7 +198,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected Object delete(RubyHash hash, Object key,
+    Object delete(RubyHash hash, Object key,
             @Cached @Shared GetHashPosAndKvPosForKeyNode getHashPosAndKvPos,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
@@ -214,7 +216,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected Object deleteLast(RubyHash hash, Object key,
+    Object deleteLast(RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
             @Cached @Exclusive InlinedConditionProfile kvAllNulls,
@@ -236,7 +238,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
+    Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @Cached @Exclusive InlinedConditionProfile keyNotNull,
             @Cached @Exclusive InlinedLoopConditionProfile tillArrayEnd,
             @Bind("$node") Node node) {
@@ -249,13 +251,13 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntrySafe(RubyHash hash, EachEntryCallback callback, Object state,
+    Object eachEntrySafe(RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("this") HashStoreLibrary hashlib) {
         return hashlib.eachEntry(this, hash, callback, state);
     }
 
     @ExportMessage
-    protected void replace(RubyHash hash, RubyHash dest,
+    void replace(RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
             @Cached @Exclusive InlinedConditionProfile noReplaceNeeded,
             @Bind("$node") Node node) {
@@ -274,7 +276,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected RubyArray shift(RubyHash hash,
+    RubyArray shift(RubyHash hash,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
             @CachedLibrary("this") HashStoreLibrary self,
@@ -291,14 +293,11 @@ public final class CompactHashStore {
         int hashPos = getHashPos.execute(keyHash, lastKeyPos, index);
         Object val = deleteKvAndGetV(hash, hashPos, lastKeyPos);
 
-        return ArrayHelpers.createArray(
-                RubyContext.get(self),
-                RubyLanguage.get(self),
-                new Object[]{ key, val });
+        return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
     }
 
     @ExportMessage
-    protected void rehash(RubyHash hash,
+    void rehash(RubyHash hash,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Exclusive InlinedConditionProfile slotUsed,
             @Cached @Exclusive InlinedLoopConditionProfile indexSlotUnavailable,
@@ -310,7 +309,7 @@ public final class CompactHashStore {
         for (int i = 0; tillArrayEnd.inject(node, i < oldIndex.length); i += 2) {
             int kvOffset = oldIndex[i + 1];
 
-            if (slotUsed.profile(node, kvOffset > INDEX_SLOT_UNUSED_MARKER)) {
+            if (slotUsed.profile(node, kvOffset > INDEX_SLOT_UNUSED)) {
                 Object key = kvStore[kvOffset - 1];
                 int newHash = hashFunction.execute(key, hash.compareByIdentity);
 
@@ -320,7 +319,7 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
-    protected boolean verify(RubyHash hash) {
+    boolean verify(RubyHash hash) {
         assert kvStoreInsertionPos > 0 && kvStoreInsertionPos < kvStore.length;
         assert kvStoreInsertionPos % 2 == 0;
         assert kvStoreInsertionPos >= hash.size; // because deletes only decrease hash.size
@@ -333,7 +332,7 @@ public final class CompactHashStore {
 
     private Object deleteKvAndGetV(RubyHash hash, int hashPos, int keyKvPos) {
         Object deletedValue = kvStore[keyKvPos + 1];
-        index[hashPos + 1] = INDEX_SLOT_DELETED_MARKER;
+        index[hashPos + 1] = INDEX_SLOT_DELETED;
         // TODO: Instead of naively nulling out the key-value, which can produce long gaps of nulls in the kvStore,
         //       See if we can annotate each gap with its length so that iteration code can "jump" over it
         kvStore[keyKvPos] = null;
@@ -374,11 +373,11 @@ public final class CompactHashStore {
         return new CompactHashStore(index.clone(), kvStore.clone(), kvStoreInsertionPos, numSlotsForIndexRebuild);
     }
 
-    /** @param h a hash code
-     * @param max the length of the index array
+    /** @param hash a hash code
+     * @param index the index array
      * @return An even index ranging from 0 to max-1 */
-    private static int getIndexPosFromHash(int h, int max) {
-        return h & (max - 2);
+    private static int getIndexPosFromHash(int hash, int[] index) {
+        return hash & (index.length - 2);
     }
 
     private static int incrementIndexPos(int pos, int max) {
@@ -394,16 +393,17 @@ public final class CompactHashStore {
         }
     }
 
-    /** Given : A key and its hash
+    /** Given: A key and its hash
      * <p>
-     * Returns : A pair of positions (array indices), the first of which is where the key's hash is stored in the index
+     * Returns: A pair of positions (array indices), the first of which is where the key's hash is stored in the index
      * array, and the second is where the key itself is stored in the KV Store array
      * <p>
      * If the key doesn't exist, returns KEY_NOT_FOUND
      * <p>
-     * NOTE : The node encodes a pair of integers as a long, this avoids allocations at the expense of readability */
+     * NOTE: The node encodes a pair of integers as a long, this avoids allocations at the expense of readability */
     @GenerateUncached
     abstract static class GetHashPosAndKvPosForKeyNode extends RubyBaseNode {
+
         public abstract long execute(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore);
 
         @Specialization
@@ -414,7 +414,7 @@ public final class CompactHashStore {
                 @Cached @Exclusive InlinedConditionProfile relocationPossible,
                 @Cached @Exclusive InlinedLoopConditionProfile keyHashFound,
                 @Bind("$node") Node node) {
-            int startPos = getIndexPosFromHash(hash, index.length);
+            int startPos = getIndexPosFromHash(hash, index);
             long result = getNextHashPos.execute(startPos, hash, index, INVALID_ARRAY_POSITION, startPos);
 
             int firstHashPosInIndex = IntPair.second(result);
@@ -425,8 +425,7 @@ public final class CompactHashStore {
                 int kvPos = index[nextHashPos + 1] - 1;
                 Object otherKey = kvStore[kvPos];
 
-                relocateHashIfPossible(nextHashPos, relocationPos, index,
-                        relocationPossible, node);
+                relocateHashIfPossible(nextHashPos, relocationPos, index, relocationPossible, node);
 
                 if (passedKeyIsEqualToFoundKey.profile(node,
                         compareHashKeysNode.execute(compareByIdentity, key, otherKey))) {
@@ -459,6 +458,7 @@ public final class CompactHashStore {
 
     @GenerateUncached
     abstract static class GetHashNextPosInIndexNode extends RubyBaseNode {
+
         public abstract long execute(int startingFromPos, int hash, int[] index, int relocationPos, int stop);
 
         @Specialization
@@ -472,11 +472,11 @@ public final class CompactHashStore {
             int nextHashPos = startingFromPos;
             int firstDeletedSlot = INVALID_ARRAY_POSITION;
             do {
-                if (slotIsUnused.profile(node, index[nextHashPos + 1] == INDEX_SLOT_UNUSED_MARKER)) {
+                if (slotIsUnused.profile(node, index[nextHashPos + 1] == INDEX_SLOT_UNUSED)) {
                     return HASH_NOT_FOUND;
                 }
 
-                if (slotIsDeleted.profile(node, index[nextHashPos + 1] == INDEX_SLOT_DELETED_MARKER)) {
+                if (slotIsDeleted.profile(node, index[nextHashPos + 1] == INDEX_SLOT_DELETED)) {
                     if (noValidFirstDeletedSlot.profile(node, firstDeletedSlot == INVALID_ARRAY_POSITION)) {
                         firstDeletedSlot = nextHashPos;
                     }
@@ -493,6 +493,7 @@ public final class CompactHashStore {
 
     @GenerateUncached
     abstract static class GetHashPosForKeyAtKvPosNode extends RubyBaseNode {
+
         public abstract int execute(int hash, int kvPos, int[] index);
 
         @Specialization
@@ -502,7 +503,7 @@ public final class CompactHashStore {
                 @Cached @Exclusive InlinedLoopConditionProfile keyHashFound,
                 @Cached GetHashNextPosInIndexNode getNextHashPos,
                 @Bind("$node") Node node) {
-            int startPos = getIndexPosFromHash(hash, index.length);
+            int startPos = getIndexPosFromHash(hash, index);
             long result = getNextHashPos.execute(startPos, hash, index, INVALID_ARRAY_POSITION, startPos);
 
             int firstHashPos = IntPair.second(result);
@@ -512,8 +513,7 @@ public final class CompactHashStore {
             while (keyHashFound.profile(node, nextPos != HASH_NOT_FOUND)) {
                 int kvPosition = index[nextPos + 1] - 1;
 
-                relocateHashIfPossible(nextPos, relocationPos, index,
-                        relocationPossible, node);
+                relocateHashIfPossible(nextPos, relocationPos, index, relocationPossible, node);
 
                 if (keyFound.profile(node, kvPos == kvPosition)) {
                     return nextPos;
@@ -531,6 +531,7 @@ public final class CompactHashStore {
     @GenerateUncached
     @ImportStatic(CompactHashStore.class)
     abstract static class SetKvAtNode extends RubyBaseNode {
+
         public abstract boolean execute(RubyHash hash, CompactHashStore store, int kvPos, int keyHash, Object frozenKey,
                 Object value);
 
@@ -554,8 +555,7 @@ public final class CompactHashStore {
                 @Bind("$node") Node node) {
             resizeIndexIfNeeded(store, hash.size,
                     indexResizingIsNotNeeded, idxSlotUnavailable, tillIndexArrayEnd, node);
-            resizeKvStoreIfNeeded(store,
-                    kvResizingIsNeeded, node);
+            resizeKvStoreIfNeeded(store, kvResizingIsNeeded, node);
 
             int pos = store.kvStoreInsertionPos;
             insertIntoKv(store, frozenKey, value);
@@ -567,14 +567,13 @@ public final class CompactHashStore {
         }
 
         private static void insertIntoIndex(int keyHash, int kvPos, int[] index,
-                InlinedLoopConditionProfile unavailableSlot,
-                Node node) {
-            int pos = getIndexPosFromHash(keyHash, index.length);
+                InlinedLoopConditionProfile unavailableSlot, Node node) {
+            int pos = getIndexPosFromHash(keyHash, index);
 
-            boolean slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED_MARKER;
+            boolean slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED;
             while (unavailableSlot.profile(node, slotFilled)) {
                 pos = incrementIndexPos(pos, index.length);
-                slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED_MARKER;
+                slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED;
             }
 
             index[pos] = keyHash;
@@ -605,37 +604,35 @@ public final class CompactHashStore {
                 int hash = oldIndex[i];
                 int kvPos = oldIndex[i + 1];
 
-                insertIntoIndex(hash, kvPos, store.index,
-                        indexSlotUnavailable, node);
+                insertIntoIndex(hash, kvPos, store.index, indexSlotUnavailable, node);
             }
             store.numSlotsForIndexRebuild = (int) (oldIndex.length * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
         }
 
         private static void resizeKvStoreIfNeeded(CompactHashStore store,
-                InlinedConditionProfile kvResizingIsNeeded,
-                Node node) {
+                InlinedConditionProfile kvResizingIsNeeded, Node node) {
             if (kvResizingIsNeeded.profile(node, store.kvStoreInsertionPos >= store.kvStore.length)) {
-                store.kvStore = Arrays.copyOf(store.kvStore, 2 * store.kvStore.length);
+                store.kvStore = ArrayUtils.grow(store.kvStore, 2 * store.kvStore.length);
             }
         }
     }
 
     private static void relocateHashIfPossible(int currPos, int relocationPos, int[] index,
-            InlinedConditionProfile relocationPossible,
-            Node node) {
+            InlinedConditionProfile relocationPossible, Node node) {
         if (relocationPossible.profile(node, relocationPos != INVALID_ARRAY_POSITION)) {
             index[relocationPos] = index[currPos];
             index[relocationPos + 1] = index[currPos + 1];
-            index[currPos + 1] = INDEX_SLOT_DELETED_MARKER;
+            index[currPos + 1] = INDEX_SLOT_DELETED;
         }
     }
 
     public static final class CompactHashLiteralNode extends HashLiteralNode {
-        @Child HashStoreLibrary hashlib;
+
+        @Child HashStoreLibrary hashes;
 
         public CompactHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
-            hashlib = insert(HashStoreLibrary.createDispatched());
+            hashes = insert(HashStoreLibrary.createDispatched());
         }
 
         @ExplodeLoop
@@ -652,7 +649,7 @@ public final class CompactHashStore {
                 Object key = keyValues[i].execute(frame);
                 Object val = keyValues[i + 1].execute(frame);
 
-                hashlib.set(store, hash, key, val, false);
+                hashes.set(store, hash, key, val, false);
             }
             return hash;
         }
