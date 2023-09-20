@@ -1,3 +1,9 @@
+# 23.1.2
+
+Bug fixes:
+
+* Fix `rb_enc_left_char_head()` so it is not always `ArgumentError` (#3267, @eregon).
+
 # 23.1.0
 
 New features:
