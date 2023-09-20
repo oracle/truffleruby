@@ -307,6 +307,12 @@ static VALUE encoding_spec_rb_enc_strlen(VALUE self, VALUE str, VALUE length, VA
   return LONG2FIX(rb_enc_strlen(p, e, rb_to_encoding(encoding)));
 }
 
+static VALUE encoding_spec_rb_enc_left_char_head(VALUE self, VALUE str, VALUE offset) {
+  char *ptr = RSTRING_PTR(str);
+  char *result = rb_enc_left_char_head(ptr, ptr + NUM2INT(offset), RSTRING_END(str), rb_enc_get(str));
+  return LONG2NUM(result - ptr);
+}
+
 void Init_encoding_spec(void) {
   VALUE cls;
   native_rb_encoding_pointer = (rb_encoding**) malloc(sizeof(rb_encoding*));
@@ -364,6 +370,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_str_asciionly_p", encoding_spec_rb_enc_str_asciionly_p, 1);
   rb_define_method(cls, "rb_uv_to_utf8", encoding_spec_rb_uv_to_utf8, 2);
   rb_define_method(cls, "ONIGENC_MBC_CASE_FOLD", encoding_spec_ONIGENC_MBC_CASE_FOLD, 1);
+  rb_define_method(cls, "rb_enc_left_char_head", encoding_spec_rb_enc_left_char_head, 2);
 }
 
 #ifdef __cplusplus
