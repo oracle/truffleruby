@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `rb_enc_left_char_head()` so it is not always `ArgumentError` (#3267, @eregon).
 
 Compatibility:
 

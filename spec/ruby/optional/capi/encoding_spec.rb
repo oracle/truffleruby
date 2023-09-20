@@ -674,6 +674,22 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_left_char_head" do
+    it 'returns the head position of a character' do
+      @s.rb_enc_left_char_head("é", 1).should == 0
+      @s.rb_enc_left_char_head("éééé", 7).should == 6
+
+      @s.rb_enc_left_char_head("a", 0).should == 0
+
+      # unclear if this is intended to work
+      @s.rb_enc_left_char_head("a", 1).should == 1
+
+      # Works because for single-byte encodings rb_enc_left_char_head() just returns the pointer
+      @s.rb_enc_left_char_head("a".force_encoding(Encoding::US_ASCII), 88).should == 88
+      @s.rb_enc_left_char_head("a".b, 88).should == 88
+    end
+  end
+
   describe "ONIGENC_MBC_CASE_FOLD" do
     it "returns the correct case fold for the given string" do
       @s.ONIGENC_MBC_CASE_FOLD("lower").should == ["l", 1]
