@@ -842,7 +842,7 @@ class IO
     @external = nil
     @pid = nil
 
-    mode, binary, external, internal, autoclose_tmp, _perm = Truffle::IOOperations.normalize_options(mode, nil, options)
+    mode, binary, external, internal, autoclose_tmp, _perm, path = Truffle::IOOperations.normalize_options(mode, nil, options)
 
     fd = Truffle::Type.coerce_to(fd, Integer, :to_int)
     sync = fd == 2 # stderr is always unbuffered, see setvbuf(3)
@@ -853,6 +853,7 @@ class IO
 
     @autoclose = autoclose_tmp
     @pipe = false
+    @path = path
   end
 
   ##
@@ -1216,6 +1217,11 @@ class IO
   private def increment_lineno
     @lineno += 1
   end
+
+  def path
+    @path.dup
+  end
+  alias_method :to_path, :path
 
   ##
   # Return a string describing this IO object.

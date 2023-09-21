@@ -37,11 +37,6 @@
 class File < IO
   include Enumerable
 
-  class FileError < Exception; end # rubocop:disable Lint/InheritException
-  class NoFileError < FileError; end
-  class UnableToStat < FileError; end
-  class PermissionError < FileError; end
-
   # these will be necessary when we run on Windows
   DOSISH = false # Primitive.as_boolean(RUBY_PLATFORM =~ /mswin/)
   CASEFOLD_FILESYSTEM = DOSISH
@@ -1161,14 +1156,12 @@ class File < IO
   def initialize(path_or_fd, mode = nil, perm = nil, **options)
     if Primitive.is_a?(path_or_fd, Integer)
       super(path_or_fd, mode, **options)
-      @path = nil
     else
       path = Truffle::Type.coerce_to_path path_or_fd
       nmode, _binary, _external, _internal, _autoclose, perm = Truffle::IOOperations.normalize_options(mode, perm, options)
       fd = IO.sysopen(path, nmode, perm)
 
-      @path = path
-      super(fd, mode, **options)
+      super(fd, mode, **options, path: path)
     end
   end
 
@@ -1208,10 +1201,6 @@ class File < IO
     Stat.fstat Primitive.io_fd(self)
   end
 
-  def path
-    @path.dup
-  end
-  alias_method :to_path, :path
 
   def truncate(length)
     length = Truffle::Type.coerce_to length, Integer, :to_int
