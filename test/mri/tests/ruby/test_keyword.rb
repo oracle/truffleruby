@@ -2714,9 +2714,8 @@ class TestKeywordArguments < Test::Unit::TestCase
     assert_equal([1, h1], o.baz(1, h1))
     assert_equal([h1], o.baz(h1, **{}))
 
-    # TruffleRuby: CRuby copies for #send but not for Proc#call, seems inconsistent
-    # assert_equal([[1, h1], {}], o.foo(:pass_bar, 1, :a=>1))
-    # assert_equal([[1, h1], {}], o.foo(:pass_cfunc, 1, :a=>1))
+    assert_equal([[1, h1], {}], o.foo(:pass_bar, 1, :a=>1))
+    assert_equal([[1, h1], {}], o.foo(:pass_cfunc, 1, :a=>1))
 
     assert_equal(:opt, o.clear_last_opt(a: 1))
     assert_nothing_raised(ArgumentError) { o.clear_last_empty_method(a: 1) }

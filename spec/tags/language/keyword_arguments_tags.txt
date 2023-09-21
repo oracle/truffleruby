@@ -1,2 +1,1 @@
 fails:Keyword arguments raises ArgumentError for missing keyword arguments even if there are extra ones
-fails:Keyword arguments delegation does not work with call(*ruby2_keyword_args) with missing ruby2_keywords in between

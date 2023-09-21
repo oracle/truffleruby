@@ -19,7 +19,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -61,13 +60,9 @@ public final class YieldExpressionNode extends LiteralCallNode {
         final RubyProc block = (RubyProc) maybeBlock;
 
         ArgumentsDescriptor descriptor = this.descriptor;
-        boolean ruby2KeywordsHash = false;
         if (isSplatted) {
             argumentsObjects = unsplat(argumentsObjects);
-            ruby2KeywordsHash = isRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
-            if (ruby2KeywordsHash) {
-                descriptor = KeywordArgumentsDescriptorManager.EMPTY;
-            }
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(argumentsObjects, argumentsObjects.length);
         }
 
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
@@ -76,7 +71,7 @@ public final class YieldExpressionNode extends LiteralCallNode {
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
-        return getYieldNode().yield(block, descriptor, argumentsObjects, ruby2KeywordsHash ? this : null);
+        return getYieldNode().yield(block, descriptor, argumentsObjects);
     }
 
     private Object[] unsplat(Object[] argumentsObjects) {

@@ -29,7 +29,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.arguments.SplatToArgsNode;
 import org.truffleruby.language.control.RaiseException;
@@ -121,20 +120,19 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiverObject);
 
-        ArgumentsDescriptor descriptor = this.descriptor;
-        boolean ruby2KeywordsHash = false;
+        final ArgumentsDescriptor descriptor;
         executeArguments(frame, rubyArgs);
         if (isSplatted) {
             rubyArgs = splatArgs(receiverObject, rubyArgs);
-            ruby2KeywordsHash = isRuby2KeywordsHash(rubyArgs, RubyArguments.getRawArgumentsCount(rubyArgs));
-            if (ruby2KeywordsHash) {
-                descriptor = KeywordArgumentsDescriptorManager.EMPTY;
-            }
+            descriptor = getArgumentsDescriptorAndCheckRuby2KeywordsHash(rubyArgs,
+                    RubyArguments.getRawArgumentsCount(rubyArgs));
+        } else {
+            descriptor = this.descriptor;
         }
 
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
-        return doCall(frame, receiverObject, descriptor, rubyArgs, ruby2KeywordsHash);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     // Assignment in context of method call means implicit assignment:
@@ -166,16 +164,14 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         RubyArguments.setBlock(rubyArgs, executeBlock(frame));
 
         // no ruby2_keywords behavior for assign
-        doCall(frame, receiverObject, descriptor, rubyArgs, false);
+        doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
-    public Object doCall(VirtualFrame frame, Object receiverObject, ArgumentsDescriptor descriptor, Object[] rubyArgs,
-            boolean ruby2KeywordsHash) {
+    public Object doCall(VirtualFrame frame, Object receiverObject, ArgumentsDescriptor descriptor, Object[] rubyArgs) {
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
         if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(rubyArgs)) {
             rubyArgs = removeEmptyKeywordArguments(rubyArgs);
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
-            ruby2KeywordsHash = false;
         }
         RubyArguments.setDescriptor(rubyArgs, descriptor);
 
@@ -184,8 +180,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
             dispatch = insert(DispatchNode.create());
         }
 
-        final Object returnValue = dispatch.execute(frame, receiverObject, methodName, rubyArgs, dispatchConfig,
-                ruby2KeywordsHash ? this : null);
+        final Object returnValue = dispatch.execute(frame, receiverObject, methodName, rubyArgs, dispatchConfig);
         if (isAttrAssign) {
             final Object value = rubyArgs[rubyArgs.length - 1];
             assert RubyGuards.assertIsValidRubyValue(value);
@@ -203,7 +198,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
         RubyArguments.setSelf(rubyArgs, receiverObject);
         RubyArguments.setBlock(rubyArgs, blockObject);
         RubyArguments.setArguments(rubyArgs, argumentsObjects);
-        return doCall(frame, receiverObject, descriptor, rubyArgs, false);
+        return doCall(frame, receiverObject, descriptor, rubyArgs);
     }
 
     private Object executeBlock(VirtualFrame frame) {

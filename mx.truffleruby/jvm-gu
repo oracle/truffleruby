@@ -1,3 +1,0 @@
-GRAALVM_SKIP_ARCHIVE=true
-DYNAMIC_IMPORTS=/tools,/vm
-COMPONENTS=TruffleRuby,suite:tools,gu

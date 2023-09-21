@@ -288,8 +288,7 @@ public abstract class ClassNodes {
                 @Cached DispatchNode allocateNode,
                 @Cached DispatchNode initializeNode) {
             final Object instance = allocateNode.call(rubyClass, "__allocate__");
-            initializeNode.execute(null, instance, "initialize", RubyArguments.repack(rubyArgs, instance), PRIVATE,
-                    null);
+            initializeNode.execute(null, instance, "initialize", RubyArguments.repack(rubyArgs, instance), PRIVATE);
             return instance;
         }
 

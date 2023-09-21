@@ -35,28 +35,18 @@ import static org.truffleruby.language.dispatch.DispatchNode.MISSING;
 public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
     public abstract Object execute(Frame frame, Object receiver, String methodName, Object[] rubyArgs,
-            DispatchConfiguration config, LiteralCallNode literalCallNode);
+            DispatchConfiguration config);
 
     @Specialization(guards = "config.missingBehavior == RETURN_MISSING")
     static Object dispatchReturnMissing(
-            Frame frame,
-            Object receiver,
-            String methodName,
-            Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode) {
+            Frame frame, Object receiver, String methodName, Object[] rubyArgs, DispatchConfiguration config) {
         return MISSING;
     }
 
     @InliningCutoff
     @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "isForeignObject(receiver)" })
     static Object dispatchForeign(
-            Frame frame,
-            Object receiver,
-            String methodName,
-            Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode,
+            Frame frame, Object receiver, String methodName, Object[] rubyArgs, DispatchConfiguration config,
             @Cached CallForeignMethodNode callForeign) {
         final Object block = RubyArguments.getBlock(rubyArgs);
         final Object[] arguments = RubyArguments.getPositionalArguments(rubyArgs);
@@ -66,12 +56,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
     @InliningCutoff
     @Specialization(guards = { "config.missingBehavior == CALL_METHOD_MISSING", "!isForeignObject(receiver)" })
     static Object dispatchMissingMethod(
-            Frame frame,
-            Object receiver,
-            String methodName,
-            Object[] rubyArgs,
-            DispatchConfiguration config,
-            LiteralCallNode literalCallNode,
+            Frame frame, Object receiver, String methodName, Object[] rubyArgs, DispatchConfiguration config,
             @Cached ToSymbolNode toSymbol,
             @Cached DispatchNode callMethodMissing,
             @Cached InlinedBranchProfile methodMissingMissingProfile,
@@ -82,7 +67,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
 
         RubyArguments.setArgument(newArgs, 0, symbolName);
         final Object result = callMethodMissing.execute(frame, receiver, "method_missing", newArgs,
-                DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS, literalCallNode);
+                DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
 
         if (result == MISSING) {
             methodMissingMissingProfile.enter(node);
