@@ -24,6 +24,14 @@ do
     exit 1
   fi
 
+  bad=$(grep -E '\(\) \{' "$f" || exit 0)
+  if [ -n "$bad" ]; then
+    echo "Error in $f"
+    echo "The function declaration should use function(void) {"
+    echo "$bad"
+    exit 1
+  fi
+
   bad=$(grep -E '\bif\(' "$f" || exit 0)
   if [ -n "$bad" ]; then
     echo "Error in $f"

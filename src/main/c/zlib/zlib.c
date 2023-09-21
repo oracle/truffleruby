@@ -537,7 +537,7 @@ rb_zlib_crc32_combine(VALUE klass, VALUE crc1, VALUE crc2, VALUE len2)
  */
 #ifdef TRUFFLERUBY
 static VALUE rb_zlib_crc_table(VALUE obj) {
-    return RUBY_CEXT_INVOKE("zlib_get_crc_table");
+    return rb_tr_zlib_crc_table();
 }
 #else
 static VALUE

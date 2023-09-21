@@ -1,0 +1,1 @@
+fails(TODO, does not work yet when run natively):C-API Thread function ruby_native_thread_p returns zero for a non ruby thread

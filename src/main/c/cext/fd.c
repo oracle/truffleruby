@@ -45,8 +45,7 @@ void rb_fd_zero(rb_fdset_t *fds) {
   }
 }
 
-static void
-rb_fd_resize(int n, rb_fdset_t *fds) {
+static void rb_fd_resize(int n, rb_fdset_t *fds) {
   size_t m = howmany(n + 1, NFDBITS) * sizeof(fd_mask);
   size_t o = howmany(fds->maxfd, NFDBITS) * sizeof(fd_mask);
 

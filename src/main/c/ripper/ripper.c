@@ -22879,7 +22879,11 @@ const_decl_path(struct parser_params *p, NODE **dest)
     return n;
 }
 
+#ifdef TRUFFLERUBY
+#define rb_mRubyVMFrozenCore Qnil
+#else
 extern VALUE rb_mRubyVMFrozenCore;
+#endif
 
 static NODE *
 make_shareable_node(struct parser_params *p, NODE *value, bool copy, const YYLTYPE *loc)

@@ -34,16 +34,14 @@ struct rb_io_t;
  */
 struct RFile {
 
+#ifndef TRUFFLERUBY
     /** Basic part, including flags and class. */
     struct RBasic basic;
+#endif
 
     /** IO's specific fields. */
     struct rb_io_t *fptr;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RFile)
-#endif
 
 /**
  * Convenient casting macro.
@@ -52,7 +50,8 @@ POLYGLOT_DECLARE_STRUCT(RFile)
  * @return  The passed object casted to ::RFile.
  */
 #ifdef TRUFFLERUBY
-#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
+struct RFile* rb_tr_io_get_rfile(VALUE io);
+#define RFILE(obj) rb_tr_io_get_rfile(obj)
 #else
 #define RFILE(obj) RBIMPL_CAST((struct RFile *)(obj))
 #endif

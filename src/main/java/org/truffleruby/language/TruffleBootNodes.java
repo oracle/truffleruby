@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -438,15 +439,14 @@ public abstract class TruffleBootNodes {
         return toolchain;
     }
 
-    @CoreMethod(names = "basic_abi_version", onSingleton = true)
-    public abstract static class BasicABIVersionNode extends CoreMethodNode {
+    @CoreMethod(names = "read_abi_version", onSingleton = true)
+    public abstract static class ReadABIVersionNode extends CoreMethodNode {
 
-        private static final String ABI_VERSION_FILE = "lib/cext/ABI_version.txt";
+        private static final String ABI_VERSION_FILE = "lib/cext/include/truffleruby/truffleruby-abi-version.h";
 
         @TruffleBoundary
         @Specialization
-        RubyString basicABIVersion(
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+        RubyString basicABIVersion() {
             TruffleFile file = getLanguage().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
             byte[] bytes;
             try {
@@ -455,8 +455,18 @@ public abstract class TruffleBootNodes {
                 throw CompilerDirectives.shouldNotReachHere(e);
             }
 
-            String basicVersion = new String(bytes, StandardCharsets.US_ASCII).strip();
-            return createString(fromJavaStringNode, basicVersion, Encodings.UTF_8);
+            int startQuote = ArrayUtils.indexOf(bytes, 0, bytes.length, (byte) '"');
+            if (startQuote < 0) {
+                throw CompilerDirectives.shouldNotReachHere("Invalid contents for " + ABI_VERSION_FILE);
+            }
+            int start = startQuote + 1;
+            int endQuote = ArrayUtils.indexOf(bytes, start, bytes.length, (byte) '"');
+            if (endQuote < 0) {
+                throw CompilerDirectives.shouldNotReachHere("Invalid contents for " + ABI_VERSION_FILE);
+            }
+
+            String basicVersion = new String(bytes, start, endQuote - start, StandardCharsets.US_ASCII);
+            return createString(TruffleString.FromJavaStringNode.getUncached(), basicVersion, Encodings.UTF_8);
         }
 
     }

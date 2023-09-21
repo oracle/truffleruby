@@ -385,7 +385,13 @@ VALUE rb_gc_latest_gc_info(VALUE key_or_buf);
  *
  * @param[in]  diff  Amount of memory increased(+)/decreased(-).
  */
+#ifdef TRUFFLERUBY
+static inline void rb_gc_adjust_memory_usage(ssize_t diff) {
+    // No-op for now
+}
+#else
 void rb_gc_adjust_memory_usage(ssize_t diff);
+#endif
 
 RBIMPL_SYMBOL_EXPORT_END()
 

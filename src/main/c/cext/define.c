@@ -12,7 +12,8 @@
 // Defining classes, modules and methods, rb_define_*
 
 VALUE rb_f_notimplement(int argc, const VALUE *argv, VALUE obj, VALUE marker) {
-  rb_tr_error("rb_f_notimplement");
+  RUBY_CEXT_INVOKE("rb_f_notimplement");
+  UNREACHABLE;
 }
 
 VALUE rb_define_class(const char *name, VALUE superclass) {
@@ -41,7 +42,7 @@ void rb_include_module(VALUE module, VALUE to_include) {
 
 #undef rb_define_method
 void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
-  if (function == rb_f_notimplement) {
+  if (function == rb_tr_rb_f_notimplement) {
     RUBY_CEXT_INVOKE("rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
     rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_method", rb_tr_unwrap(module), rb_tr_unwrap(rb_str_new_cstr(name)), function, argc));

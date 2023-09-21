@@ -32,7 +32,7 @@ VALUE *RARRAY_PTR_IMPL(VALUE array) {
   return (VALUE *) polyglot_as_i64_array(RUBY_CEXT_INVOKE_NO_WRAP("RARRAY_PTR", array));
 }
 
-VALUE rb_ary_new() {
+VALUE rb_ary_new(void) {
   return RUBY_CEXT_INVOKE("rb_ary_new");
 }
 
@@ -40,12 +40,12 @@ VALUE rb_ary_new_capa(long capacity) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ary_new_capa", capacity));
 }
 
-VALUE rb_ary_new_from_args(long n, ...) {
-  va_list args;
-  va_start(args, n);
-  VALUE array = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ary_new_from_values", &args));
-  va_end(args);
-  return array;
+VALUE rb_tr_ary_new_from_args_va_list(long n, va_list args) {
+  VALUE values[n];
+  for (int i = 0; i < n; i++) {
+    values[i] = va_arg(args, VALUE);
+  }
+  return rb_ary_new_from_values(n, values);
 }
 
 VALUE rb_ary_new_from_values(long n, const VALUE *values) {
@@ -152,7 +152,8 @@ VALUE rb_ary_rotate(VALUE array, long n) {
   return Qnil;
 }
 
-VALUE rb_ary_tmp_new(long capa) {
+// NOTE: #define rb_ary_tmp_new rb_ary_hidden_new in array.h
+VALUE rb_ary_hidden_new(long capa) {
   return rb_ary_new_capa(capa);
 }
 

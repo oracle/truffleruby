@@ -11,9 +11,10 @@
 
 // Non-standard additional functions, rb_tr_*
 
-void rb_tr_error(const char *message) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_error", rb_str_new_cstr(message));
-  abort();
+void rb_tr_not_implemented(const char *function_name) {
+  fprintf(stderr, "The C API function %s is not implemented yet on TruffleRuby\n", function_name);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_not_implemented", rb_str_new_cstr(function_name));
+  UNREACHABLE;
 }
 
 void rb_tr_log_warning(const char *message) {
@@ -30,23 +31,22 @@ VALUE rb_java_to_string(VALUE obj) {
 
 // BasicObject#equal?
 int rb_tr_obj_equal(VALUE first, VALUE second) {
-  return RTEST(rb_funcall(first, rb_intern("equal?"), 1, second));
+  return RTEST(RUBY_INVOKE(first, "equal?", second));
 }
 
-int rb_tr_flags(VALUE value) {
-  int flags = 0;
-  if (OBJ_FROZEN(value)) {
-    flags |= RUBY_FL_FREEZE;
-  }
-  if (RARRAY_LEN(rb_obj_instance_variables(value)) > 0) {
-    flags |= RUBY_FL_EXIVAR;
-  }
-  // TODO BJF Nov-11-2017 Implement more flags
-  return flags;
+void rb_tr_warn_va_list(const char *fmt, va_list args) {
+  RUBY_INVOKE(rb_mKernel, "warn", rb_vsprintf(fmt, args));
 }
 
-void rb_tr_add_flags(VALUE value, int flags) {
-  if (flags & RUBY_FL_FREEZE) {
-    rb_obj_freeze(value);
-  }
+VALUE rb_tr_zlib_crc_table(void) {
+  return RUBY_CEXT_INVOKE("zlib_get_crc_table");
+}
+
+VALUE rb_tr_cext_lock_owned_p(void) {
+  return RUBY_CEXT_INVOKE("cext_lock_owned?");
+}
+
+// Used for internal testing
+VALUE rb_tr_invoke(VALUE recv, const char* meth) {
+  return RUBY_INVOKE(recv, meth);
 }

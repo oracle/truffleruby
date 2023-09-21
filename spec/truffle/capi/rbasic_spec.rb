@@ -11,7 +11,7 @@ require_relative '../../ruby/optional/capi/spec_helper'
 load_extension("truffleruby_rbasic")
 
 describe "RBasic support" do
-  it "should raise an ArugmentError for unsupported flags" do
+  it "should raise an ArgumentError for unsupported flags" do
     specs = CApiTruffleRubyRBasicSpecs.new
     obj = Object.new
 

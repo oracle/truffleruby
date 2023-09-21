@@ -55,5 +55,11 @@ module Truffle
       EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
       new_encoding
     end
+
+    def self.define_alias(encoding, alias_name)
+      key = alias_name.upcase.to_sym
+      EncodingMap[key] = [alias_name, encoding]
+      Primitive.encoding_define_alias(encoding, key)
+    end
   end
 end

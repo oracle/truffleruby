@@ -12,6 +12,10 @@
 
 // Float, rb_float_*
 
+bool rb_tr_float_type_p(VALUE obj) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FLOAT_TYPE_P", obj));
+}
+
 #undef rb_float_new
 VALUE rb_float_new(double value) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_float_new", value));

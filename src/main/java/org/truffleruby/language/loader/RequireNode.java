@@ -40,6 +40,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -268,17 +269,19 @@ public abstract class RequireNode extends RubyBaseNode {
                         .info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            library = featureLoader.loadCExtLibrary(feature, expandedPath, currentNode);
+            library = featureLoader.loadCExtLibrary(feature, expandedPath, currentNode,
+                    getContext().getOptions().CEXTS_SULONG);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
         }
 
         final String initFunctionName = "Init_" + getBaseName(expandedPath);
-        final Object initFunction = featureLoader.findFunctionInLibrary(library, initFunctionName, expandedPath);
+        var initFunction = featureLoader.findFunctionInLibrary(library, initFunctionName, expandedPath);
+        initFunction = TruffleNFIPlatform.bind(getContext(), initFunction, "():void");
 
-        final InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
-        if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
+        final InteropLibrary interop = InteropLibrary.getUncached();
+        if (!interop.isExecutable(initFunction)) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, currentNode));
@@ -297,7 +300,7 @@ public abstract class RequireNode extends RubyBaseNode {
                             null,
                             initFunction,
                             ArrayUtils.EMPTY_ARRAY,
-                            initFunctionInteropLibrary,
+                            interop,
                             TranslateInteropExceptionNodeGen.getUncached());
         } finally {
             try {

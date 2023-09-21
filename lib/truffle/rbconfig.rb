@@ -52,7 +52,7 @@ module RbConfig
   ruby_install_name = 'truffleruby'
   ruby_base_name = 'ruby'
 
-  ruby_abi_version = Truffle::GemUtil.abi_version
+  ruby_abi_version = Truffle::GemUtil::ABI_VERSION
 
   arch = "#{host_cpu}-#{host_os}"
   libs = ''
@@ -82,7 +82,7 @@ module RbConfig
     '-ferror-limit=500'
   ]
 
-  defs = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
+  defs = ''
   cppflags = ''
   ldflags = ''
   dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup' : ''
@@ -118,7 +118,7 @@ module RbConfig
   end
 
   # We do not link to libtruffleruby here to workaround GR-29448
-  librubyarg = '-lgraalvm-llvm'
+  librubyarg = ''
 
   warnflags = warnflags.join(' ')
 

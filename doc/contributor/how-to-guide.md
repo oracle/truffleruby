@@ -1292,7 +1292,7 @@ When you modify C-files (*.c, *.h) or compilation-related Ruby files
 affect the ABI or increase the ABI *check* version explicitly by modifying one of
 the files:
 
-- lib/cext/ABI_version.txt
+- lib/cext/include/truffleruby/truffleruby-abi-version.h
 - lib/cext/ABI_check.txt
 
 ABI change is:
@@ -1300,7 +1300,7 @@ ABI change is:
 - removing/adding a non-static function
 - implementing already declared non-static functions
 
-In case of doubt, bump `ABI_version.txt`.
+In case of doubt, bump `truffleruby-abi-version.h`.
 
 ## How to choose where to add new specs - in TruffleRuby or in ruby/spec repository
 

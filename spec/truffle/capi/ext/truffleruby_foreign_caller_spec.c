@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 static VALUE call_binding(VALUE self) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(self), "binding"));
+  return rb_tr_invoke(self, "binding");
 }
 
 static VALUE call_binding_rb_funcall(VALUE self) {

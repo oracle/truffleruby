@@ -465,10 +465,6 @@ RBIMPL_SYMBOL_EXPORT_BEGIN()
  * @post        `klass` gets frozen.
  */
 void rb_freeze_singleton_class(VALUE klass);
-#ifdef TRUFFLERUBY
-int rb_tr_flags(VALUE value);
-void rb_tr_add_flags(VALUE value, int flags);
-#endif
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -513,7 +509,7 @@ RB_FL_TEST_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
 #ifdef TRUFFLERUBY
-    return rb_tr_flags(obj) & flags;
+    return RBASIC_FLAGS(obj) & flags;
 #else
     return RBASIC(obj)->flags & flags;
 #endif
@@ -617,6 +613,7 @@ RB_FL_ALL(VALUE obj, VALUE flags)
     return RB_FL_TEST(obj, flags) == flags;
 }
 
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -639,6 +636,7 @@ rbimpl_fl_set_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags |= flags;
 }
+#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -654,7 +652,7 @@ RB_FL_SET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
 #ifdef TRUFFLERUBY
-    rb_tr_add_flags(obj, flags);
+    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) | flags);
 #else
     rbimpl_fl_set_raw_raw(RBASIC(obj), flags);
 #endif
@@ -681,6 +679,7 @@ RB_FL_SET(VALUE obj, VALUE flags)
     }
 }
 
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -703,6 +702,7 @@ rbimpl_fl_unset_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags &= ~flags;
 }
+#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -717,7 +717,11 @@ static inline void
 RB_FL_UNSET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
+#ifdef TRUFFLERUBY
+    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) & ~flags);
+#else
     rbimpl_fl_unset_raw_raw(RBASIC(obj), flags);
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -736,6 +740,7 @@ RB_FL_UNSET(VALUE obj, VALUE flags)
     }
 }
 
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -758,6 +763,7 @@ rbimpl_fl_reverse_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags ^= flags;
 }
+#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -772,7 +778,11 @@ static inline void
 RB_FL_REVERSE_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
+#ifdef TRUFFLERUBY
+    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) ^ flags);
+#else
     rbimpl_fl_reverse_raw_raw(RBASIC(obj), flags);
+#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()

@@ -20,7 +20,7 @@ VALUE rb_hash(VALUE obj) {
   return RUBY_CEXT_INVOKE("rb_hash", obj);
 }
 
-VALUE rb_hash_new() {
+VALUE rb_hash_new(void) {
   return RUBY_CEXT_INVOKE("rb_hash_new");
 }
 
@@ -28,7 +28,7 @@ VALUE rb_hash_new_capa(long capacity) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_hash_new_capa", capacity));
 }
 
-VALUE rb_ident_hash_new() {
+VALUE rb_ident_hash_new(void) {
   return RUBY_CEXT_INVOKE("rb_ident_hash_new");
 }
 
@@ -68,10 +68,6 @@ VALUE rb_hash_keys(VALUE hash) {
   return RUBY_INVOKE(hash, "keys");
 }
 
-VALUE rb_hash_key_str(VALUE hash) {
-  rb_tr_error("rb_hash_key_str not yet implemented");
-}
-
 st_index_t rb_memhash(const void *data, long length) {
   // Not a proper hash - just something that produces a stable result for now
 
@@ -100,8 +96,8 @@ VALUE rb_hash_delete_if(VALUE hash) {
   }
 }
 
-void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), func, (void*)farg);
+void rb_hash_foreach(VALUE hash, int (*func)(VALUE key, VALUE val, VALUE arg), VALUE arg) {
+  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), func, (void*)arg);
 }
 
 VALUE rb_hash_size(VALUE hash) {

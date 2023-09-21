@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-VALUE symbol_id_spec_ID2SYM(VALUE self, VALUE str) {
+static VALUE symbol_id_spec_ID2SYM(VALUE self, VALUE str) {
   char *name = StringValueCStr(str);
   if (strcmp(name, "idPLUS") == 0){
     return ID2SYM(idPLUS);
@@ -35,7 +35,7 @@ VALUE symbol_id_spec_ID2SYM(VALUE self, VALUE str) {
   }
 }
 
-VALUE symbol_id_spec_SYM2ID(VALUE self, VALUE sym, VALUE str) {
+static VALUE symbol_id_spec_SYM2ID(VALUE self, VALUE sym, VALUE str) {
   ID id = SYM2ID(sym);
   char *name = StringValueCStr(str);
   if (strcmp(name, "idPLUS") == 0){
@@ -55,7 +55,7 @@ VALUE symbol_id_spec_SYM2ID(VALUE self, VALUE sym, VALUE str) {
   }
 }
 
-VALUE symbol_id_spec_ID2SYM_SYM2ID(VALUE self, VALUE str) {
+static VALUE symbol_id_spec_ID2SYM_SYM2ID(VALUE self, VALUE str) {
   char *name = StringValueCStr(str);
   if (strcmp(name, "idPLUS") == 0){
     return SYM2ID(ID2SYM(idPLUS)) == idPLUS ? Qtrue : Qfalse;
@@ -74,7 +74,7 @@ VALUE symbol_id_spec_ID2SYM_SYM2ID(VALUE self, VALUE str) {
   }
 }
 
-VALUE symbol_id_spec_SYM2ID_ID2SYM(VALUE self, VALUE sym) {
+static VALUE symbol_id_spec_SYM2ID_ID2SYM(VALUE self, VALUE sym) {
   return ID2SYM(SYM2ID(sym));
 }
 

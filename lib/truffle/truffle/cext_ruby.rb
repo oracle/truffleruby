@@ -20,6 +20,16 @@ module Truffle::CExt
       raise ArgumentError, "arity out of range: #{argc} for -2..15"
     end
 
+    if argc == -1 # (int argc, VALUE *argv, VALUE obj)
+      sig = '(sint32,pointer,pointer):uint64'
+    elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
+      sig = '(pointer,pointer):uint64'
+    elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
+      sig = -"(#{Array.new(1 + argc, 'pointer').join(',')}):uint64"
+    end
+
+    function = Primitive.interop_eval_nfi(sig).bind(function) if NFI
+
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1 # (int argc, VALUE *argv, VALUE obj)
         args = [args.size, Truffle::CExt.RARRAY_PTR(args), Primitive.cext_wrap(self)]
@@ -37,8 +47,7 @@ module Truffle::CExt
       # Using raw execute instead of #call here to avoid argument conversion
 
       # We must set block argument if given here so that the
-      # `rb_block_*` functions will be able to find it by walking the
-      # stack.
+      # `rb_block_*` functions will be able to find it by walking the stack.
       res = Primitive.call_with_c_mutex_and_frame_and_unwrap(function, args, Primitive.caller_special_variables_if_available, block)
       Primitive.thread_set_exception(exc)
       res

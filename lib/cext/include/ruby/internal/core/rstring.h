@@ -61,12 +61,6 @@
  * @{
  */
 
-#ifdef TRUFFLERUBY
-#define StringValue(v)     rb_tr_string_value(&(v))
-#define StringValuePtr(v)  rb_tr_string_value_ptr(&(v))
-#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
-#else
-
 /**
  * Ensures that the parameter object is a  String.  This is done by calling its
  * `to_str` method.
@@ -99,7 +93,6 @@
  * @post           `v` is a String.
  */
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
-#endif // TRUFFLERUBY
 
 /**
  * @private
@@ -321,12 +314,6 @@ RBIMPL_SYMBOL_EXPORT_BEGIN()
  */
 VALUE rb_str_to_str(VALUE obj);
 
-#ifdef TRUFFLERUBY
-VALUE rb_string_value(VALUE *ptr);
-char *rb_string_value_ptr(VALUE *ptr);
-char *rb_string_value_cstr(VALUE *ptr);
-#else
-
 /**
  * Identical to  rb_str_to_str(), except it  fills the passed pointer  with the
  * converted object.
@@ -361,7 +348,6 @@ char *rb_string_value_ptr(volatile VALUE *ptr);
  * @return         Pointer to the contents of the return value.
  */
 char *rb_string_value_cstr(volatile VALUE *ptr);
-#endif // TRUFFLERUBY
 
 /**
  * Identical  to rb_str_to_str(),  except it  additionally converts  the string
@@ -417,8 +403,8 @@ void rb_debug_rstring_null_ptr(const char *func);
 
 #ifdef TRUFFLERUBY
 int rb_tr_str_len(VALUE string);
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
+char* rb_tr_rstring_ptr(VALUE string);
+char* rb_tr_rstring_end(VALUE string);
 #endif
 
 RBIMPL_SYMBOL_EXPORT_END()
@@ -523,7 +509,7 @@ static inline char *
 RSTRING_PTR(VALUE str)
 {
 #ifdef TRUFFLERUBY
-    return RSTRING_PTR_IMPL(str);
+    return rb_tr_rstring_ptr(str);
 #else
     char *ptr = rbimpl_rstring_getmem(str).as.heap.ptr;
 
@@ -557,7 +543,7 @@ static inline char *
 RSTRING_END(VALUE str)
 {
 #ifdef TRUFFLERUBY
-    return RSTRING_END_IMPL(str);
+    return rb_tr_rstring_end(str);
 #else
     struct RString buf = rbimpl_rstring_getmem(str);
 

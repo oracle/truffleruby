@@ -28,7 +28,8 @@ void rb_gvar_var_setter(VALUE val, ID id, VALUE *data) {
   *data = val;
 }
 
-void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS)) {
+void rb_define_hooked_variable(const char *name, VALUE *var, rb_gvar_getter_t *getter, rb_gvar_setter_t *setter) {
+// void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS)) {
   if (!getter) {
     getter = rb_gvar_var_getter;
   }
@@ -98,4 +99,39 @@ VALUE rb_tr_ruby_debug_ptr;
 VALUE *rb_ruby_debug_ptr(void) {
   rb_tr_ruby_debug_ptr = RUBY_CEXT_INVOKE("rb_ruby_debug_ptr");
   return &rb_tr_ruby_debug_ptr;
+}
+
+// These refer Ruby global variables and their value can change,
+// so we use macros instead of C global variables like MRI, which would be complicated to update.
+
+VALUE rb_tr_stdin(void) {
+  return RUBY_CEXT_INVOKE("rb_stdin");
+}
+
+VALUE rb_tr_stdout(void) {
+  return RUBY_CEXT_INVOKE("rb_stdout");
+}
+
+VALUE rb_tr_stderr(void) {
+  return RUBY_CEXT_INVOKE("rb_stderr");
+}
+
+VALUE rb_tr_fs(void) {
+  return RUBY_CEXT_INVOKE("rb_fs");
+}
+
+VALUE rb_tr_output_fs(void) {
+  return RUBY_CEXT_INVOKE("rb_output_fs");
+}
+
+VALUE rb_tr_rs(void) {
+  return RUBY_CEXT_INVOKE("rb_rs");
+}
+
+VALUE rb_tr_output_rs(void) {
+  return RUBY_CEXT_INVOKE("rb_output_rs");
+}
+
+VALUE rb_tr_default_rs(void) {
+  return RUBY_CEXT_INVOKE("rb_default_rs");
 }

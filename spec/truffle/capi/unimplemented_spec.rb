@@ -8,16 +8,11 @@
 
 require_relative '../../ruby/optional/capi/spec_helper'
 
-load_extension("unimplemented")
+extension_path = load_extension("unimplemented")
 
 describe "Unimplemented functions in the C-API" do
-  before :each do
-    @s = CApiRbTrErrorSpecs.new
-  end
-
-  it "raise a useful RuntimeError including the function name" do
-    -> {
-      @s.not_implemented_function("foo")
-    }.should raise_error(Polyglot::ForeignException, /rb_str_shared_replace cannot be found/)
+  it "abort the process and show an error including the function name" do
+    out = ruby_exe('require ARGV[0]; CApiRbTrErrorSpecs.new.not_implemented_function("foo")', args: "#{extension_path} 2>&1", exit_status: 127)
+    out.should.include?('undefined symbol: rb_str_shared_replace')
   end
 end

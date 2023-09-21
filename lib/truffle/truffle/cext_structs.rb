@@ -13,27 +13,6 @@
 # instance as function return value).
 
 module Truffle::CExt
-  def RDATA(object)
-    # A specialized version of rb_check_type(object, T_DATA)
-    data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
-    unless data_holder
-      raise TypeError, "wrong argument type #{Primitive.class(object)} (expected T_DATA)"
-    end
-
-    RData.new(object, data_holder)
-  end
-
-  def RDATA_PTR(object)
-    # A specialized version of rb_check_type(object, T_DATA)
-    data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
-    unless data_holder
-      raise TypeError, "wrong argument type #{Primitive.class(object)} (expected T_DATA)"
-    end
-
-    Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(Primitive.data_holder_get_marker(data_holder))
-    Primitive.data_holder_get_data(data_holder)
-  end
-
   def RBASIC(object)
     if Primitive.immediate_value?(object)
       raise TypeError, "immediate values don't include the RBasic struct"
@@ -43,108 +22,6 @@ module Truffle::CExt
 
   def RARRAY_PTR(array)
     RArrayPtr.new(array)
-  end
-
-  def RFILE(file)
-    RFile.new(RBASIC(file), GetOpenFile(file))
-  end
-end
-
-# ruby.h: `struct RData` and `struct RTypedData`
-class Truffle::CExt::RData
-  def initialize(object, data_holder)
-    @object = object
-    @data_holder = data_holder
-  end
-
-  private
-
-  def polyglot_has_members?
-    true
-  end
-
-  def polyglot_members(internal)
-    %w[data type typed_flag dmark dfree basic]
-  end
-
-  def polyglot_read_member(name)
-    case name
-    when 'data'
-      Primitive.cext_mark_object_on_call_exit(@object) unless Truffle::Interop.null?(Primitive.data_holder_get_marker(@data_holder))
-      Primitive.data_holder_get_data(@data_holder)
-    when 'type'
-      type
-    when 'typed_flag'
-      type ? 1 : 0
-    when 'dmark'
-      Primitive.data_holder_get_marker(@data_holder)
-    when 'dfree'
-      Primitive.data_holder_get_free(@data_holder)
-    when 'basic'
-      get_basic
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-  end
-
-  def polyglot_write_member(name, value)
-    case name
-    when 'data'
-      Primitive.data_holder_set_data(@data_holder, value)
-    when 'dfree'
-      Primitive.data_holder_set_free(@data_holder, value)
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-
-  end
-
-  def polyglot_remove_member(name)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_invoke_member(name, *args)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_member_readable?(name)
-    name == 'data' or name == 'type' or name == 'typed_flag' or name == 'dmark' or name == 'dfree' or name == 'basic'
-  end
-
-  def polyglot_member_modifiable?(name)
-    name == 'data' or name == 'dfree'
-  end
-
-  def polyglot_member_removable?(name)
-    false
-  end
-
-  def polyglot_member_insertable?(name)
-    false
-  end
-
-  def polyglot_member_invocable?(name)
-    false
-  end
-
-  def polyglot_member_internal?(name)
-    false
-  end
-
-  def polyglot_has_member_read_side_effects?(name)
-    false
-  end
-
-  def polyglot_has_member_write_side_effects?(name)
-    false
-  end
-
-  def get_basic
-    @basic ||= Truffle::CExt::RBasic.new(@object)
-  end
-
-  def type
-    Primitive.object_hidden_var_get(@object, Truffle::CExt::DATA_TYPE)
   end
 end
 
@@ -163,8 +40,6 @@ class Truffle::CExt::RBasic
   def initialize(object)
     @object = object
   end
-
-  private
 
   def user_flags
     Primitive.object_hidden_var_get(@object, USER_FLAGS) || 0
@@ -228,72 +103,7 @@ class Truffle::CExt::RBasic
       raise ArgumentError, "can't unfreeze object"
     end
 
-
     raise ArgumentError, "unsupported remaining flags: #{flags_to_string(flags)}" if flags != 0
-  end
-
-  def polyglot_has_members?
-    true
-  end
-
-  def polyglot_members(internal)
-    %w[flags]
-  end
-
-  def polyglot_read_member(name)
-    case name
-    when 'flags'
-      compute_flags
-    when 'klass'
-      Primitive.cext_wrap(Primitive.metaclass(@object))
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-  end
-
-  def polyglot_write_member(name, value)
-    raise Truffle::Interop::UnknownIdentifierException unless name == 'flags'
-    set_flags value
-  end
-
-  def polyglot_remove_member(name)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_invoke_member(name, *args)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_member_readable?(name)
-    name == 'flags' || name == 'klass'
-  end
-
-  def polyglot_member_modifiable?(name)
-    name == 'flags'
-  end
-
-  def polyglot_member_removable?(name)
-    false
-  end
-
-  def polyglot_member_insertable?(name)
-    false
-  end
-
-  def polyglot_member_invocable?(name)
-    false
-  end
-
-  def polyglot_member_internal?(name)
-    false
-  end
-
-  def polyglot_has_member_read_side_effects?(name)
-    false
-  end
-
-  def polyglot_has_member_write_side_effects?(name)
-    true
   end
 end
 
@@ -351,95 +161,6 @@ class Truffle::CExt::RArrayPtr
   end
 end
 
-# io.h: `struct rb_io_t`
-class Truffle::CExt::RbIO
-  def initialize(io)
-    @io = io
-    Primitive.object_hidden_var_set(io, Truffle::CExt::RB_IO_STRUCT, self)
-    @tied_io_for_writing = false
-  end
-
-  private
-
-  def polyglot_has_members?
-    true
-  end
-
-  def polyglot_members(internal)
-    ['self', 'stdio_file', 'fd', 'mode', 'pathv', 'pid', 'lineno', 'tied_io_for_writing']
-  end
-
-  def polyglot_read_member(name)
-    case name
-    when 'self'
-      Primitive.cext_wrap(@io)
-    when 'fd'
-      Primitive.io_fd(@io)
-    when 'mode'
-      @io.instance_variable_get(:@mode)
-    when 'pathv'
-      Primitive.cext_wrap(@io.instance_variable_get(:@path))
-    when 'tied_io_for_writing'
-      Primitive.cext_wrap(@tied_io_for_writing)
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-  end
-
-  def polyglot_write_member(name, value)
-    case name
-    when 'mode'
-      @io.instance_variable_set(:@mode, value)
-    when 'pathv'
-      @io.instance_variable_set(:@path, Primitive.cext_unwrap(value))
-    when 'tied_io_for_writing'
-      @tied_io_for_writing = Primitive.cext_unwrap(value)
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-  end
-
-  def polyglot_remove_member(name)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_invoke_member(name, *args)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_member_readable?(name)
-    name == 'self' || name == 'fd' || name == 'mode' || name == 'pathv' || name == 'tied_io_for_writing'
-  end
-
-  def polyglot_member_modifiable?(name)
-    name == 'mode' || name == 'pathv' || name == 'tied_io_for_writing'
-  end
-
-  def polyglot_member_removable?(name)
-    false
-  end
-
-  def polyglot_member_insertable?(name)
-    false
-  end
-
-  def polyglot_member_invocable?(name)
-    false
-  end
-
-  def polyglot_member_internal?(name)
-    false
-  end
-
-  def polyglot_has_member_read_side_effects?(name)
-    false
-  end
-
-  def polyglot_has_member_write_side_effects?(name)
-    false
-  end
-end
-
 # encoding.h: `struct rb_encoding`
 class Truffle::CExt::RbEncoding
   ENCODING_CACHE = Array.new(Encoding.list.size, nil) # Encoding index => RbEncoding
@@ -476,7 +197,7 @@ class Truffle::CExt::RbEncoding
   def initialize(encoding)
     @encoding = encoding
     @pointer = nil
-    @name = Truffle::CExt::LIBTRUFFLERUBY.RSTRING_PTR_IMPL(Primitive.cext_wrap(encoding.name))
+    @name = Truffle::CExt::LIBTRUFFLERUBY.rb_tr_rstring_ptr(Primitive.cext_wrap(encoding.name))
   end
 
   private
@@ -557,75 +278,5 @@ class Truffle::CExt::RbEncoding
     pointer = @pointer
     raise Truffle::Interop::UnsupportedMessageException if Primitive.nil?(pointer)
     Truffle::Interop.as_pointer(pointer)
-  end
-end
-
-class Truffle::CExt::RFile
-  def initialize(basic, file)
-    @basic = basic
-    @fptr = file
-  end
-
-  def polyglot_has_members?
-    true
-  end
-
-  def polyglot_members(internal)
-    ['basic', 'fptr']
-  end
-
-  def polyglot_read_member(name)
-    case name
-    when 'basic'
-      @basic
-    when 'fptr'
-      @fptr
-    else
-      raise Truffle::Interop::UnknownIdentifierException
-    end
-  end
-
-  def polyglot_write_member(name, value)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_remove_member(name)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_invoke_member(name, *args)
-    raise Truffle::Interop::UnsupportedMessageException
-  end
-
-  def polyglot_member_readable?(name)
-    name == 'basic' || name == 'fptr'
-  end
-
-  def polyglot_member_modifiable?(name)
-    false
-  end
-
-  def polyglot_member_removable?(name)
-    false
-  end
-
-  def polyglot_member_insertable?(name)
-    false
-  end
-
-  def polyglot_member_invocable?(name)
-    false
-  end
-
-  def polyglot_member_internal?(name)
-    false
-  end
-
-  def polyglot_has_member_read_side_effects?(name)
-    false
-  end
-
-  def polyglot_has_member_write_side_effects?(name)
-    true
   end
 end

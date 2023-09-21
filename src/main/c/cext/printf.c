@@ -46,9 +46,7 @@ VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
   }
 }
 
-#undef rb_enc_sprintf
 #undef rb_enc_vsprintf
-#undef rb_sprintf
 #undef rb_vsprintf
 
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
@@ -67,28 +65,6 @@ VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
   );
 
   return rb_enc_associate(string, enc);
-}
-
-VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
-  VALUE result;
-  va_list ap;
-
-  va_start(ap, format);
-  result = rb_enc_vsprintf(enc, format, ap);
-  va_end(ap);
-
-  return result;
-}
-
-VALUE rb_sprintf(const char *format, ...) {
-  VALUE result;
-  va_list ap;
-
-  va_start(ap, format);
-  result = rb_vsprintf(format, ap);
-  va_end(ap);
-
-  return result;
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
@@ -194,13 +170,7 @@ VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
       val = va_arg(args, VALUE);
       break;
     default:
-      {
-        char *err_str;
-        if (asprintf(&err_str, "unhandled rb_sprintf arg type %d", type) > 0) {
-          rb_tr_error(err_str);
-          free(err_str);
-        }
-      }
+      rb_raise(rb_eArgError, "unhandled rb_sprintf arg type %d", type);
     }
     rb_ary_push(ary, val);
   }
@@ -211,13 +181,5 @@ VALUE rb_str_vcatf(VALUE str, const char *fmt, va_list args) {
   StringValue(str);
   VALUE result = rb_vsprintf(fmt, args);
   rb_str_concat(str, result);
-  return str;
-}
-
-VALUE rb_str_catf(VALUE str, const char *format, ...) {
-  va_list ap;
-  va_start(ap, format);
-  str = rb_str_vcatf(str, format, ap);
-  va_end(ap);
   return str;
 }

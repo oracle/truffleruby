@@ -37,9 +37,7 @@
  * @param   obj  Arbitrary Ruby object.
  * @return  The passed object casted to ::RBasic.
  */
-#ifdef TRUFFLERUBY
-#define RBASIC(obj)                 (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
-#else
+#ifndef TRUFFLERUBY
 #define RBASIC(obj)                 RBIMPL_CAST((struct RBasic *)(obj))
 #endif
 
@@ -75,7 +73,8 @@ enum ruby_rvalue_flags {
 struct
 RUBY_ALIGNAS(SIZEOF_VALUE)
 RBasic {
-
+#ifndef TRUFFLERUBY
+    // TruffleRuby: we cannot support writing to the flags field, so don't expose the field
     /**
      * Per-object  flags.  Each  ruby  objects have  their own  characteristics
      * apart from their  classes.  For instance whether an object  is frozen or
@@ -98,11 +97,7 @@ RBasic {
      * Also note the `const` qualifier.  In  ruby an object cannot "change" its
      * class.
      */
-#ifdef TRUFFLERUBY
-    VALUE klass;
-#else
     const VALUE klass;
-#endif
 
 #ifdef __cplusplus
   public:
@@ -122,11 +117,8 @@ RBasic {
     {
     }
 #endif
+#endif // TRUFFLERUBY
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RBasic)
-#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 /**

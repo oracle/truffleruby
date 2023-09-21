@@ -337,11 +337,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
         return RB_LONG2FIX(v);
     else
-#ifdef TRUFFLERUBY
-        return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
-#else
         return rb_uint2big(v);
-#endif
 }
 
 /**

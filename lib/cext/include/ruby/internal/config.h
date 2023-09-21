@@ -155,7 +155,7 @@
 #endif
 
 #define TRUFFLERUBY
-// Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
+// Loaded at the end of config.h, included from defines.h.
 #include <truffleruby/truffleruby-pre.h>
 
 #endif /* RBIMPL_CONFIG_H */

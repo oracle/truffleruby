@@ -127,6 +127,7 @@ EXPERT:
 
     # C extension options
     CEXTS: [cexts, boolean, true, Enable use of C extensions]
+    CEXTS_SULONG: [cexts-sulong, boolean, false, Run C extensions on Sulong instead of natively]
     CEXT_LOCK: [cexts-lock, boolean, true, Use a Global Lock when running C extensions]
     CEXTS_PREPEND_TOOLCHAIN_TO_PATH: [cexts-prepend-toolchain-to-path, boolean, true, Prepend the GraalVM LLVM Toolchain to PATH when installing gems]
     CEXTS_KEEP_HANDLES_ALIVE: [keep-handles-alive, boolean, false, Keep handles for value wrappers alive forever]

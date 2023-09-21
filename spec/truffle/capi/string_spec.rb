@@ -27,16 +27,3 @@ describe "TruffleRuby RSTRING_PTR" do
     Truffle::CExt.native_string?(str).should == true
   end
 end
-
-describe "TruffleRuby NATIVE_RSTRING_PTR" do
-  before :each do
-    @s = CApiTruffleStringSpecs.new
-  end
-
-  it "ensures the String is stored in native memory" do
-    str = "foobar"
-    Truffle::CExt.native_string?(str).should == false
-    @s.NATIVE_RSTRING_PTR(str)
-    Truffle::CExt.native_string?(str).should == true
-  end
-end

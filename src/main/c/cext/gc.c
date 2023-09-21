@@ -44,11 +44,11 @@ void rb_gc_mark_maybe(VALUE ptr) {
   }
 }
 
-VALUE rb_gc_enable() {
+VALUE rb_gc_enable(void) {
   return RUBY_CEXT_INVOKE("rb_gc_enable");
 }
 
-VALUE rb_gc_disable() {
+VALUE rb_gc_disable(void) {
   return RUBY_CEXT_INVOKE("rb_gc_disable");
 }
 
@@ -71,4 +71,8 @@ void rb_gc_register_mark_object(VALUE obj) {
 void* rb_tr_read_VALUE_pointer(VALUE *pointer) {
   VALUE value = *pointer;
   return rb_tr_unwrap(value);
+}
+
+int rb_during_gc(void) {
+  return 0;
 }

@@ -392,6 +392,7 @@ suite = {
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/cext/<lib:truffleruby>",
+                "src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                 "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                 "src/main/c/date/<extsuffix:date_core>",
                 "src/main/c/etc/<extsuffix:etc>",
@@ -653,7 +654,6 @@ suite = {
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
-                    "file:lib/cext/ABI_version.txt",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
@@ -697,6 +697,7 @@ suite = {
                 "lib/cext/": [
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
+                    "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                     "dependency:org.truffleruby.rubysignal",
                 ],
                 # The platform-specific files from debug and rbs, see comment above

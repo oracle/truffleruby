@@ -210,5 +210,7 @@ Init_debug(void)
     rb_define_method(rb_cISeq, "last_line", iseq_last_line, 0);
 #endif
 
+#ifndef TRUFFLERUBY
     Init_iseq_collector();
+#endif
 }

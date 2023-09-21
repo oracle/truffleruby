@@ -107,6 +107,8 @@ public final class Options {
     public final boolean BACKTRACE_ON_NEW_FIBER;
     /** --cexts=true */
     public final boolean CEXTS;
+    /** --cexts-sulong=false */
+    public final boolean CEXTS_SULONG;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
     /** --cexts-prepend-toolchain-to-path=true */
@@ -252,6 +254,7 @@ public final class Options {
         BACKTRACE_ON_NEW_THREAD = options.get(OptionsCatalog.BACKTRACE_ON_NEW_THREAD_KEY);
         BACKTRACE_ON_NEW_FIBER = options.get(OptionsCatalog.BACKTRACE_ON_NEW_FIBER_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
+        CEXTS_SULONG = options.get(OptionsCatalog.CEXTS_SULONG_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
         CEXTS_PREPEND_TOOLCHAIN_TO_PATH = options.get(OptionsCatalog.CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY);
         CEXTS_KEEP_HANDLES_ALIVE = options.get(OptionsCatalog.CEXTS_KEEP_HANDLES_ALIVE_KEY);
@@ -389,6 +392,8 @@ public final class Options {
                 return BACKTRACE_ON_NEW_FIBER;
             case "ruby.cexts":
                 return CEXTS;
+            case "ruby.cexts-sulong":
+                return CEXTS_SULONG;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
             case "ruby.cexts-prepend-toolchain-to-path":

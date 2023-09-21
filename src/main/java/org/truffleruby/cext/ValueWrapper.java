@@ -149,7 +149,11 @@ public final class ValueWrapper implements TruffleObject {
             @Cached @Exclusive InlinedBranchProfile errorProfile,
             @Bind("$node") Node node) throws UnknownIdentifierException {
         if ("value".equals(member)) {
-            return wrapper.object;
+            if (wrapper.object != null) {
+                return wrapper.object;
+            } else {
+                return ValueWrapperManager.untagTaggedLong(wrapper.handle);
+            }
         } else {
             errorProfile.enter(node);
             throw UnknownIdentifierException.create(member);

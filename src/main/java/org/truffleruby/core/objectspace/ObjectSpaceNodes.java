@@ -16,7 +16,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
@@ -263,20 +262,11 @@ public abstract class ObjectSpaceNodes {
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        Object defineFinalizer(RubyDynamicObject object, DataHolder dataHolder,
-                @Cached WriteBarrierNode writeBarrierNode,
+        Object defineFinalizer(RubyDynamicObject object, Object finalizerCFunction, Object dataStruct,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
-            if (!getContext().getReferenceProcessor().processOnMainThread()) {
-                // Share the finalizer, as it might run on a different Thread
-                if (!getContext().getSharedObjects().isSharing()) {
-                    startSharing();
-                }
-                writeBarrierNode.execute(this, dataHolder);
-            }
-
             DataObjectFinalizerReference newRef = getContext()
                     .getDataObjectFinalizationService()
-                    .addFinalizer(getContext(), object, dataHolder);
+                    .addFinalizer(getContext(), object, finalizerCFunction, dataStruct);
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 

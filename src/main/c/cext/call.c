@@ -11,7 +11,8 @@
 
 // Calling Ruby methods and blocks from C
 
-NORETURN(void rb_error_arity(int argc, int min, int max)) {
+RBIMPL_ATTR_NORETURN()
+void rb_error_arity(int argc, int min, int max) {
   rb_exc_raise(rb_exc_new3(rb_eArgError, rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_arity_error_string", argc, min, max))));
 }
 
@@ -126,14 +127,8 @@ VALUE rb_yield_splat(VALUE values) {
   }
 }
 
-VALUE rb_yield_values(int n, ...) {
-  VALUE values = rb_ary_new_capa(n);
-  va_list args;
-  va_start(args, n);
-  for (int i = 0; i < n; i++) {
-    rb_ary_store(values, i, (VALUE) polyglot_get_array_element(&args, i));
-  }
-  va_end(args);
+VALUE rb_tr_yield_values_va_list(int n, va_list args) {
+  VALUE values = rb_tr_ary_new_from_args_va_list(n, args);
   return rb_yield_splat(values);
 }
 
@@ -171,6 +166,7 @@ static void call_unblock_function(void *data) {
 
 void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   // wrap functions to handle native functions
+  // TODO is it needed if we .bind() in Ruby code?
   struct gvl_call_data call_struct = { function, data1 };
   struct unblock_function_data unblock_struct = { unblock_function, data2 };
 
@@ -210,7 +206,7 @@ void rb_iter_break(void) {
 
 void rb_iter_break_value(VALUE value) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_iter_break_value", value);
-  rb_tr_error("rb_iter_break_value should not return");
+  UNREACHABLE;
 }
 
 const char *rb_sourcefile(void) {

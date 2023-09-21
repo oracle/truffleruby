@@ -24,10 +24,6 @@
 #include "ruby/backward/2/long_long.h"
 #include "ruby/backward/2/limits.h"
 
-#ifdef TRUFFLERUBY
-#include <graalvm/llvm/polyglot.h>
-#endif
-
 #if defined(__DOXYGEN__)
 
 /**
@@ -126,10 +122,6 @@ typedef unsigned LONG_LONG ID;
 
 #else
 # error ---->> ruby requires sizeof(void*) == sizeof(long) or sizeof(LONG_LONG) to be compiled. <<----
-#endif
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_TYPE(VALUE)
 #endif
 
 /** @cond INTERNAL_MACRO */

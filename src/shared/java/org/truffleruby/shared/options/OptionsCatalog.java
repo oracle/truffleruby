@@ -71,6 +71,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_NEW_THREAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_NEW_FIBER_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> CEXTS_SULONG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXTS_KEEP_HANDLES_ALIVE_KEY = new OptionKey<>(false);
@@ -568,6 +569,14 @@ public final class OptionsCatalog {
     public static final OptionDescriptor CEXTS = OptionDescriptor
             .newBuilder(CEXTS_KEY, "ruby.cexts")
             .help("Enable use of C extensions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor CEXTS_SULONG = OptionDescriptor
+            .newBuilder(CEXTS_SULONG_KEY, "ruby.cexts-sulong")
+            .help("Run C extensions on Sulong instead of natively")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1421,6 +1430,8 @@ public final class OptionsCatalog {
                 return BACKTRACE_ON_NEW_FIBER;
             case "ruby.cexts":
                 return CEXTS;
+            case "ruby.cexts-sulong":
+                return CEXTS_SULONG;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
             case "ruby.cexts-prepend-toolchain-to-path":
@@ -1665,6 +1676,7 @@ public final class OptionsCatalog {
             BACKTRACE_ON_NEW_THREAD,
             BACKTRACE_ON_NEW_FIBER,
             CEXTS,
+            CEXTS_SULONG,
             CEXT_LOCK,
             CEXTS_PREPEND_TOOLCHAIN_TO_PATH,
             CEXTS_KEEP_HANDLES_ALIVE,

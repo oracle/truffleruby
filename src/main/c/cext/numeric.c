@@ -172,6 +172,10 @@ VALUE rb_uint2inum(uintptr_t n) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", n));
 }
 
+VALUE rb_uint2big(uintptr_t i) {
+  return rb_uint2inum(i);
+}
+
 VALUE rb_ll2inum(LONG_LONG n) {
   /* Long and long long are both 64-bits with clang x86-64. */
   return LONG2NUM(n);

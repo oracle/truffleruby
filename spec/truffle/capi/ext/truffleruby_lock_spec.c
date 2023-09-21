@@ -15,27 +15,30 @@
 extern "C" {
 #endif
 
+static VALUE truffleCExt;
+
 static VALUE has_lock(VALUE self) {
-  return RUBY_CEXT_FUNCALL("cext_lock_owned?");
+  return rb_tr_cext_lock_owned_p();
 }
 
 static void* called_without_gvl(void* data) {
-  return RUBY_CEXT_FUNCALL("cext_lock_owned?");
+  return rb_tr_cext_lock_owned_p();
 }
 
 static VALUE has_lock_in_call_without_gvl(VALUE self) {
   return rb_thread_call_without_gvl(called_without_gvl, 0, RUBY_UBF_IO, 0);
 }
 
-static VALUE has_lock_in_rb_funcall(VALUE self, VALUE truffleCExt) {
+static VALUE has_lock_in_rb_funcall(VALUE self) {
   return rb_funcall(truffleCExt, rb_intern("cext_lock_owned?"), 0);
 }
 
 void Init_truffleruby_lock_spec(void) {
+  truffleCExt = rb_const_get(rb_const_get(rb_cObject, rb_intern("Truffle")), rb_intern("CExt"));
   VALUE cls = rb_define_class("CApiTruffleRubyLockSpecs", rb_cObject);
   rb_define_method(cls, "has_lock?", has_lock, 0);
   rb_define_method(cls, "has_lock_in_call_without_gvl?", has_lock_in_call_without_gvl, 0);
-  rb_define_method(cls, "has_lock_in_rb_funcall?", has_lock_in_rb_funcall, 1);
+  rb_define_method(cls, "has_lock_in_rb_funcall?", has_lock_in_rb_funcall, 0);
 }
 
 #ifdef __cplusplus

@@ -61,7 +61,8 @@
  * @return  The passed object casted to ::RData.
  */
 #ifdef TRUFFLERUBY
-#define RDATA(obj)                (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+struct RData* rb_tr_rdata(VALUE object);
+#define RDATA(obj)                rb_tr_rdata(obj)
 #else
 #define RDATA(obj)                RBIMPL_CAST((struct RData *)(obj))
 #endif
@@ -127,8 +128,10 @@ typedef void (*RUBY_DATA_FUNC)(void*);
  */
 struct RData {
 
+#ifndef TRUFFLERUBY
     /** Basic part, including flags and class. */
     struct RBasic basic;
+#endif
 
     /**
      * This function is called when the object is experiencing GC marks.  If it
@@ -153,10 +156,6 @@ struct RData {
     /** Pointer to the actual C level struct that you want to wrap. */
     void *data;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RData)
-#endif
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
@@ -319,12 +318,10 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 static inline void *
 rb_data_object_get(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return polyglot_invoke(RUBY_CEXT, "RDATA_PTR", rb_tr_unwrap(obj));
-#else
+#ifndef TRUFFLERUBY // TruffleRuby always does the check in RDATA()
     Check_Type(obj, RUBY_T_DATA);
-    return DATA_PTR(obj);
 #endif
+    return DATA_PTR(obj);
 }
 
 RBIMPL_ATTRSET_UNTYPED_DATA_FUNC()

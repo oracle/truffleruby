@@ -18,6 +18,13 @@ enum ruby_value_type rb_type(VALUE value) {
   return RBIMPL_CAST((enum ruby_value_type) int_type);
 }
 
+struct RBasicWithFlags {
+  VALUE flags;
+  struct RBasic _basic;
+};
+
+#define RB_BUILTIN_TYPE_NATIVE(x) RBIMPL_CAST((enum ruby_value_type) (((struct RBasicWithFlags*)(x))->flags & RUBY_T_MASK))
+
 bool RB_TYPE_P(VALUE value, enum ruby_value_type type) {
   if (value == Qundef) {
     return 0;
@@ -108,7 +115,7 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
 }
 
 VALUE rb_obj_clone(VALUE obj) {
-  return rb_funcall(obj, rb_intern("clone"), 0);
+  return RUBY_INVOKE(obj, "clone");
 }
 
 VALUE rb_obj_dup(VALUE object) {

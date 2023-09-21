@@ -1,5 +1,7 @@
 #include <ruby/ruby.h>
 
+#ifndef TRUFFLERUBY
+
 VALUE rb_iseqw_new(VALUE v);
 void rb_objspace_each_objects(
     int (*callback)(void *start, void *end, size_t stride, void *data),
@@ -89,3 +91,5 @@ Init_iseq_collector(void)
     rb_define_singleton_method(rb_mObjSpace, "each_iseq", each_iseq, 0);
     rb_define_singleton_method(rb_mObjSpace, "count_iseq", count_iseq, 0);
 }
+
+#endif

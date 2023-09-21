@@ -23,36 +23,24 @@ VALUE rb_time_num_new(VALUE timev, VALUE off) {
   return RUBY_CEXT_INVOKE("rb_time_num_new", timev, off);
 }
 
-struct timeval rb_time_interval(VALUE time_val) {
+void rb_tr_time_interval(VALUE time_val, struct timeval *result) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_time_interval_acceptable", time_val);
 
-  struct timeval result;
-
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
-  result.tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
-
-  return result;
+  result->tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result->tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
 }
 
-struct timeval rb_time_timeval(VALUE time_val) {
-  struct timeval result;
-
+void rb_tr_time_timeval(VALUE time_val, struct timeval *result) {
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
-  result.tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
-
-  return result;
+  result->tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result->tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
 }
 
-struct timespec rb_time_timespec(VALUE time_val) {
-  struct timespec result;
-
+void rb_tr_time_timespec(VALUE time_val, struct timespec *result) {
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
-  result.tv_nsec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_nsec"));
-
-  return result;
+  result->tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result->tv_nsec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_nsec"));
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {

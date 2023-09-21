@@ -12,6 +12,10 @@
 
 // Integer, rb_integer_*, rb_*int*, rb_big_*
 
+bool rb_tr_integer_type_p(VALUE obj) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_integer_type_p", obj));
+}
+
 VALUE rb_Integer(VALUE value) {
   return RUBY_CEXT_INVOKE("rb_Integer", value);
 }
@@ -116,7 +120,7 @@ VALUE rb_int_positive_pow(long x, unsigned long y) {
 
 // Needed to gem install cbor
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
-  rb_tr_error("rb_integer_unpack not implemented");
+  rb_tr_not_implemented("rb_integer_unpack");
 }
 
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {

@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.DataHolder;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.Nil;
@@ -40,8 +39,6 @@ public final class DataObjectFinalizationService
     // We need a base node here, it should extend ruby base root node and implement internal root node.
     public static final class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-        @Child private InteropLibrary nullDataPointerNode;
-        @Child private InteropLibrary nullDataFreeNode;
         @Child private InteropLibrary callNode;
         private final ConditionProfile ownedProfile = ConditionProfile.create();
 
@@ -49,8 +46,6 @@ public final class DataObjectFinalizationService
                 RubyLanguage language) {
             super(language, RubyLanguage.EMPTY_FRAME_DESCRIPTOR, null);
 
-            nullDataPointerNode = InteropLibrary.getFactory().createDispatched(1);
-            nullDataFreeNode = InteropLibrary.getFactory().createDispatched(1);
             callNode = InteropLibrary.getFactory().createDispatched(1);
         }
 
@@ -83,16 +78,12 @@ public final class DataObjectFinalizationService
         private void runFinalizer(DataObjectFinalizerReference ref) throws Error {
             try {
                 if (!getContext().isFinalizing()) {
-                    Object data = ref.dataHolder.getPointer();
-                    Object callable = ref.dataHolder.getFree();
-                    if (!nullDataPointerNode.isNull(data) && !nullDataFreeNode.isNull(callable)) {
-                        final ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
-                        stack.push(false, stack.getSpecialVariables(), stack.getBlock());
-                        try {
-                            callNode.execute(callable, data);
-                        } finally {
-                            stack.pop();
-                        }
+                    final ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
+                    stack.push(false, stack.getSpecialVariables(), stack.getBlock());
+                    try {
+                        callNode.execute(ref.finalizerCFunction, ref.dataStruct);
+                    } finally {
+                        stack.pop();
                     }
                 }
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -112,8 +103,9 @@ public final class DataObjectFinalizationService
         this(language, referenceProcessor.processingQueue);
     }
 
-    public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, DataHolder dataHolder) {
-        final DataObjectFinalizerReference newRef = createRef(object, dataHolder);
+    public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object finalizerCFunction,
+            Object dataStruct) {
+        final DataObjectFinalizerReference newRef = createRef(object, finalizerCFunction, dataStruct);
 
         add(newRef);
         context.getReferenceProcessor().processReferenceQueue(this);
@@ -121,12 +113,8 @@ public final class DataObjectFinalizationService
         return newRef;
     }
 
-    public DataObjectFinalizerReference createRef(Object object, DataHolder dataHolder) {
-        return new DataObjectFinalizerReference(object, processingQueue, this, dataHolder);
-    }
-
-    public final void drainFinalizationQueue(RubyContext context) {
-        context.getReferenceProcessor().drainReferenceQueues();
+    public DataObjectFinalizerReference createRef(Object object, Object finalizerCFunction, Object dataStruct) {
+        return new DataObjectFinalizerReference(object, processingQueue, this, finalizerCFunction, dataStruct);
     }
 
     @Override
