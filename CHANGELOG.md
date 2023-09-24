@@ -16,6 +16,7 @@ Compatibility:
 Performance:
 
 * Optimize calls with `ruby2_keywords` forwarding by deciding it per call site instead of per callee thanks to [my fix in CRuby 3.2](https://bugs.ruby-lang.org/issues/18625) (@eregon).
+* Optimize feature loading when require is called with an absolute path to a .rb file (@rwstauner).
 
 Changes:
 
