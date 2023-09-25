@@ -5,6 +5,7 @@ Here is how the various env files relate to each other:
       * `jvm-ce-libgraal`: + libgraal
       * `native`: + librubyvm + `Truffle Macro`
         * `native-host-inlining`: + `TruffleHostInliningPrintExplored`, - native toolchain launchers
+        * `native-profiling`: + `-H:-DeleteLocalSymbols`
   * `jvm-ee`: + Oracle GraalVM Compiler + `Truffle enterprise` + license + `LLVM Runtime Native Enterprise`
     * `jvm-ee-ntl`: + native toolchain launchers
       * `jvm-ee-libgraal`: + libgraal
