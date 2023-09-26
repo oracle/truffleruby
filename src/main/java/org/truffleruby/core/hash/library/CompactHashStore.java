@@ -122,7 +122,7 @@ public final class CompactHashStore {
     // In hash entries, not array positions (in general, capacities and sizes are always in entries)
     public static final int DEFAULT_INITIAL_CAPACITY = 8;
 
-    public static final float THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD = 0.7f;
+    public static final float THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD = 0.75f;
 
     public CompactHashStore() {
         this(DEFAULT_INITIAL_CAPACITY);
