@@ -237,12 +237,17 @@ public final class CompactHashStore {
     @ExportMessage
     Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @Cached @Exclusive InlinedConditionProfile keyNotNull,
-            @Cached @Exclusive InlinedLoopConditionProfile tillArrayEnd,
+            @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
             @Bind("$node") Node node) {
-        for (int i = 0; tillArrayEnd.inject(node, i < kvStore.length); i += 2) {
-            if (keyNotNull.profile(node, kvStore[i] != null)) {
-                callback.accept(i / 2, kvStore[i], kvStore[i + 1], state);
+        int i = 0;
+        try {
+            for (; loopProfile.inject(node, i < kvStore.length); i += 2) {
+                if (keyNotNull.profile(node, kvStore[i] != null)) {
+                    callback.accept(i >> 1, kvStore[i], kvStore[i + 1], state);
+                }
             }
+        } finally {
+            RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i >> 1);
         }
         return state;
     }
