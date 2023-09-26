@@ -91,10 +91,10 @@ public final class CompactHashStore {
     private Object[] kvStore;
     /** This tracks the next valid insertion position into kvStore, it starts at 0 and always increases by 2. We can't
      * use the size of the RubyHash for that, because deletion reduces its hash.size. Whereas the insertion pos into
-     * kvStore can never decrease, we don't reuse empty slots. */
+     * kvStore can never decrease, we don't reuse empty slots (without also resizing the whole hash). */
     private int kvStoreInsertionPos;
     /** This tracks the number of occupied slots at which we should rebuild the index array. For example, at a load
-     * factor of 0.75 and an index of total size 100 slot, that number is 75 slots. (Technically, that's redundant
+     * factor of 0.75 and an index of total size 64 slots, that number is 48 slots. (Technically, that's redundant
      * information that is derived from the load factor and the index size, but deriving it requires a float
      * multiplication or division, and we want to check for it on every insertion, so it's inefficient to keep
      * calculating it every time its needed) */
@@ -104,7 +104,7 @@ public final class CompactHashStore {
      * <li>Offset >= 1: Filled, the data in the hash field and the offset field is valid. Subtracting one from the
      * offset will yield a valid index into the KV array.</li>
      * <li>Offset == 0: Unused, the data in the hash field and the offset field is NOT valid, and the slot was never
-     * filled with valid data. The value 0 is used for unused so `new int[]` automatically makes all slots unused
+     * filled with valid data. The value 0 is used for unused slots so `new int[]` automatically makes all slots unused
      * without an extra Arrays.fill().</li>
      * <li>Offset == -1: Deleted, the data in the hash field and the offset field is NOT valid, but the slot was
      * occupied with valid data before.</li> */
@@ -137,11 +137,14 @@ public final class CompactHashStore {
     }
 
     public CompactHashStore(int capacity) {
-        assertConstructorPreconditions(capacity);
+        if (capacity < 1 || capacity > (1 << 28)) {
+            throw shouldNotReachHere();
+        }
 
         int kvCapacity = roundUpwardsToNearestPowerOf2(capacity);
         // the index array needs to be a little sparse for good performance (i.e. low load factor)
-        // so to store 8 key-value entries an index of exactly 8 slots is too crowded
+        // so to store 8 key-value entries an index of exactly 8 slots is too crowded.
+        // This way the initial load factor (for capacity entries) is between and 0.25 and 0.5.
         int indexCapacity = 2 * kvCapacity;
 
         // All 0s by default, so all slots are marked empty for free
@@ -155,10 +158,20 @@ public final class CompactHashStore {
         return Integer.highestOneBit(num - 1) << 1;
     }
 
-    private static void assertConstructorPreconditions(int capacity) {
-        if (capacity < 1 || capacity > (1 << 28)) {
-            throw shouldNotReachHere();
+    @ExportMessage
+    Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
+            @Cached @Shared GetHashPosAndKvPosForKeyNode getHashPosAndKvPos,
+            @Cached @Shared HashingNodes.ToHash hashFunction,
+            @Cached @Exclusive InlinedConditionProfile keyNotFound,
+            @Bind("$node") Node node) {
+        int keyHash = hashFunction.execute(key, hash.compareByIdentity);
+        int keyKvPos = IntPair.second(
+                getHashPosAndKvPos.execute(key, keyHash, hash.compareByIdentity, index, kvStore));
+
+        if (keyNotFound.profile(node, keyKvPos == KEY_NOT_FOUND)) {
+            return defaultNode.accept(frame, hash, key);
         }
+        return kvStore[keyKvPos + 1];
     }
 
     @ExportMessage
@@ -179,22 +192,6 @@ public final class CompactHashStore {
         propagateSharingForVal.execute(node, hash, value);
 
         return setKv.execute(hash, this, keyKvPos, keyHash, frozenKey, value);
-    }
-
-    @ExportMessage
-    Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
-            @Cached @Shared GetHashPosAndKvPosForKeyNode getHashPosAndKvPos,
-            @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached @Exclusive InlinedConditionProfile keyNotFound,
-            @Bind("$node") Node node) {
-        int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int keyKvPos = IntPair.second(
-                getHashPosAndKvPos.execute(key, keyHash, hash.compareByIdentity, index, kvStore));
-
-        if (keyNotFound.profile(node, keyKvPos == KEY_NOT_FOUND)) {
-            return defaultNode.accept(frame, hash, key);
-        }
-        return kvStore[keyKvPos + 1];
     }
 
     @ExportMessage
