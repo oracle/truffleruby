@@ -157,6 +157,6 @@ int rb_absint_singlebit_p(VALUE val) {
 }
 
 VALUE rb_int2big(intptr_t n) {
-  // it cannot overflow Fixnum
-  return LONG2FIX(n);
+  // intptr_t is the same as long
+  return rb_tr_longwrap(n);
 }
