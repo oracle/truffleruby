@@ -120,9 +120,6 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_INT2FIX(long i)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_longwrap(i);
-#else
     RBIMPL_ASSERT_OR_ASSUME(RB_FIXABLE(i));
 
     /* :NOTE: VALUE can be wider than long.  As j being unsigned, 2j+1 is fully
@@ -135,7 +132,6 @@ RB_INT2FIX(long i)
 
     RBIMPL_ASSERT_OR_ASSUME(RB_FIXNUM_P(n));
     return n;
-#endif
 }
 
 /**
