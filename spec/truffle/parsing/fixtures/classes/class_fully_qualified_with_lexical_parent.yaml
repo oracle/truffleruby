@@ -11,7 +11,7 @@ ast: |
   RunModuleDefinitionNode
       attributes:
           flags = 1
-          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=20, characters=class ::Foo::Bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -40,8 +40,7 @@ ast: |
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=20, characters=class ::Foo::Bar\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null)
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=20, characters=class ::Foo::Bar\nend)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null)
                   split = NEVER
               children:
                   body =
