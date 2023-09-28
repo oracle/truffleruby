@@ -26,7 +26,7 @@ ast: |
                   arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:a, #4:b, #5:c, #6:d}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:d, #6:%method_block_arg}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -63,11 +63,11 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 2
+                                          slot = 6
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -80,7 +80,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4
+                                          frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -98,7 +98,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 5
+                                          frameSlot = 4
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -111,7 +111,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 6
+                                          frameSlot = 5
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen

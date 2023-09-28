@@ -24,7 +24,7 @@ ast: |
           RubyProcRootNode
               attributes:
                   callTarget = block in <top (required)>
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:other, #2:a, #3:b}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:b, #3:other}
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   nextProfile = false
@@ -59,7 +59,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 1
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -72,7 +72,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -85,7 +85,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 1
+                                          frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode
