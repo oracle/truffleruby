@@ -42,6 +42,7 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
+import org.truffleruby.parser.parser.ParserSupport;
 
 public final class Helpers {
 
@@ -131,7 +132,7 @@ public final class Helpers {
 
         if (argsNode.getKeyRest() != null) {
             String argName = argsNode.getKeyRest().getName();
-            if (argName == null || argName.length() == 0) {
+            if (argName == null || argName.length() == 0 || argName.equals(ParserSupport.KWREST_VAR)) {
                 descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, argName));
             } else {
                 descs.add(new ArgumentDescriptor(ArgumentType.keyrest, argsNode.getKeyRest().getName()));
