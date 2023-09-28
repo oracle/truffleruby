@@ -58,9 +58,12 @@ import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
 import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.IfNodeGen;
+import org.truffleruby.language.control.InvalidReturnNode;
+import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.OrNodeGen;
@@ -1557,7 +1560,25 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitReturnNode(Nodes.ReturnNode node) {
-        return defaultVisit(node);
+        final RubyNode rubyNode;
+        final RubyNode argumentsNode = translateControlFlowArguments(node.arguments);
+
+        if (environment.isBlock()) {
+            // Lambda behaves a bit differently from block and "return" to a class/module body is correct -
+            // so DynamicReturnNode should be used instead of InvalidReturnNode.
+            // It's handled later and InvalidReturnNode is replaced with DynamicReturnNode in YARPBlockTranslator.
+            final ReturnID returnID = environment.getReturnID();
+            if (returnID == ReturnID.MODULE_BODY) {
+                rubyNode = new InvalidReturnNode(argumentsNode);
+            } else {
+                rubyNode = new DynamicReturnNode(returnID, argumentsNode);
+            }
+        } else {
+            rubyNode = new LocalReturnNode(argumentsNode);
+        }
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitSelfNode(Nodes.SelfNode node) {

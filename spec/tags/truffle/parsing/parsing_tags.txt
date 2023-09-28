@@ -59,15 +59,6 @@ fails:Parsing a Complex number (Complex literal `bri` (without real part) where 
 fails:Parsing a Complex number (Complex literal in format of a + bi is represented as `a + Complex.convert(0, b)`) case is parsed correctly
 fails:Parsing a Def (Name / Non singleton / in an anonymous module) case is parsed correctly
 fails:Parsing a Def (Name / Singleton / in an anonymous module) case is parsed correctly
-fails:Parsing a Def (Tail expression / with explicit return inside then branch of the `if` operator) case is parsed correctly
-fails:Parsing a Def (Tail expression / with explicit return inside then/else branches of the `if` operator) case is parsed correctly
-fails:Parsing a Def (Tail expression / with explicit return at the end of a sequence of multiple expressions) case is parsed correctly
-fails:Parsing a Def (Tail expression / with explicit return) case is parsed correctly
-fails:Parsing a Def (Tail expression / with explicit return inside then branch of the `unless` operator) case is parsed correctly
-fails:Parsing a Def (Singleton method definition) case is parsed correctly
-fails:Parsing a Def (Method definition with empty body) case is parsed correctly
-fails:Parsing a Def (Method definition with not empty body) case is parsed correctly
-fails:Parsing a Def (Method definition without parameters) case is parsed correctly
 fails:Parsing a defined? (with yield in a method body (defined? yield)) case is parsed correctly
 fails:Parsing a Ensure keyword (ensure in a do/end block) case is parsed correctly
 fails:Parsing a Ensure keyword (ensure in a method) case is parsed correctly
@@ -153,7 +144,6 @@ fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / wh
 fails:Parsing a Rescue keyword (with exception and variable) case is parsed correctly
 fails:Parsing a Rescue keyword (with multiple rescue branches) case is parsed correctly
 fails:Parsing a Rescue keyword (without exception but with a variable) case is parsed correctly
-fails:Parsing a Return (return operator at the top level) case is parsed correctly
 fails:Parsing a Return (return operator in a block (with a value)) case is parsed correctly
 fails:Parsing a Return (return operator in a block in a class definition body) case is parsed correctly
 fails:Parsing a Return (return operator in a block in a module definition body) case is parsed correctly
