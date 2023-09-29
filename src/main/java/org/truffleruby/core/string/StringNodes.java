@@ -1525,7 +1525,7 @@ public abstract class StringNodes {
                 @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
             self.setTString(tstring, stringsFrom.getEncoding(from));
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -1548,7 +1548,7 @@ public abstract class StringNodes {
             MutableTruffleString copy = copyMutableTruffleStringNode.execute(tstring, 0, byteLength, tencoding);
             self.setTString(copy, encoding);
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -1573,7 +1573,7 @@ public abstract class StringNodes {
             var copy = fromNativePointerNode.execute(newPointer, 0, tstring.byteLength(tencoding), tencoding, false);
             self.setTString(copy, encoding);
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -2800,7 +2800,7 @@ public abstract class StringNodes {
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
-                                stringGetAssociatedNode.execute(string) }); // TODO impl associated for ImmutableRubyString
+                                stringGetAssociatedNode.execute(this, string) }); // TODO impl associated for ImmutableRubyString
             } catch (FormatException e) {
                 exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -2849,7 +2849,7 @@ public abstract class StringNodes {
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
-                                stringGetAssociatedNode.execute(string) });
+                                stringGetAssociatedNode.execute(node, string) });
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
