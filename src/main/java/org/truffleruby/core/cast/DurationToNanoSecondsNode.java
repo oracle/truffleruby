@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
@@ -24,33 +25,34 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.concurrent.TimeUnit;
 
+@GenerateInline
+@GenerateCached(false)
 public abstract class DurationToNanoSecondsNode extends RubyBaseNode {
 
-    public abstract long execute(Object duration);
+    public abstract long execute(Node node, Object duration);
 
     @Specialization
-    long noDuration(NotProvided duration) {
+    static long noDuration(NotProvided duration) {
         return Long.MAX_VALUE;
     }
 
     @Specialization
-    long duration(long duration,
+    static long duration(Node node, long duration,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
-        return validate(this, TimeUnit.SECONDS.toNanos(duration), durationLessThanZeroProfile);
+        return validate(node, TimeUnit.SECONDS.toNanos(duration), durationLessThanZeroProfile);
     }
 
     @Specialization
-    long duration(double duration,
+    static long duration(Node node, double duration,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
-        return validate(this, (long) (duration * 1e9), durationLessThanZeroProfile);
+        return validate(node, (long) (duration * 1e9), durationLessThanZeroProfile);
     }
 
     @Fallback
-    static long duration(Object duration,
-            @Cached DispatchNode durationToNanoSeconds,
+    static long duration(Node node, Object duration,
+            @Cached(inline = false) DispatchNode durationToNanoSeconds,
             @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile,
-            @Cached ToLongNode toLongNode,
-            @Bind("this") Node node) {
+            @Cached ToLongNode toLongNode) {
         final Object nanoseconds = durationToNanoSeconds.call(
                 coreLibrary(node).truffleKernelOperationsModule,
                 "convert_duration_to_nanoseconds",

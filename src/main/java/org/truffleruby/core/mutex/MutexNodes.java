@@ -156,7 +156,7 @@ public abstract class MutexNodes {
                 maybeDuration = NotProvided.INSTANCE;
             }
 
-            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+            long durationInNanos = durationToNanoSecondsNode.execute(this, maybeDuration);
 
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();

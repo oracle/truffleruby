@@ -1591,7 +1591,7 @@ public abstract class KernelNodes {
         @Specialization
         long sleep(Object maybeDuration,
                 @Cached DurationToNanoSecondsNode durationToNanoSecondsNode) {
-            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+            long durationInNanos = durationToNanoSecondsNode.execute(this, maybeDuration);
             assert durationInNanos >= 0;
 
             final RubyThread thread = getLanguage().getCurrentThread();
