@@ -246,7 +246,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
 standalone_dependencies_common = {
     'LLVM Runtime Core': ('lib/sulong', []),
     'LLVM Runtime Native': ('lib/sulong', []),
-    'LLVM.org toolchain': ('lib/llvm-toolchain', []),
+    'LLVM.org toolchain': ('lib/llvm-toolchain', ['bin/flang-*', 'bin/f18*', 'lib/libFortran*', 'include/flang']),
 }
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
