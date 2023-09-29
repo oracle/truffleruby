@@ -433,17 +433,22 @@ public abstract class KernelNodes {
 
     @ImportStatic(ShapeCachingGuards.class)
     @GenerateUncached
+    @GenerateInline(inlineByDefault = true)
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
         public static final PropertyGetter[] EMPTY_PROPERTY_GETTER_ARRAY = new PropertyGetter[0];
 
-        public abstract RubyDynamicObject execute(RubyDynamicObject newObject, RubyDynamicObject from);
+        public abstract RubyDynamicObject execute(Node node, RubyDynamicObject newObject, RubyDynamicObject from);
+
+        public final RubyDynamicObject executeCached(RubyDynamicObject newObject, RubyDynamicObject from) {
+            return execute(this, newObject, from);
+        }
 
         @ExplodeLoop
         @Specialization(
                 guards = { "from.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
                 limit = "getDynamicObjectCacheLimit()")
-        RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
+        static RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
                 @Cached("from.getShape()") Shape cachedShape,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
                 @Cached("createWriteFieldNodes(propertyGetters)") DynamicObjectLibrary[] writeFieldNodes) {
@@ -457,17 +462,18 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(from)")
-        RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from) {
-            return execute(newObject, from);
+        static RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from,
+                @Cached(inline = false) CopyInstanceVariablesNode copyInstanceVariablesNode) {
+            return copyInstanceVariablesNode.executeCached(newObject, from);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
+        static RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
             copyInstanceVariables(from, newObject);
             return newObject;
         }
 
-        protected PropertyGetter[] getCopiedProperties(Shape shape) {
+        protected static PropertyGetter[] getCopiedProperties(Shape shape) {
             final List<PropertyGetter> copiedProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
@@ -488,7 +494,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
+        private static void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
             Shape shape = from.getShape();
@@ -512,7 +518,7 @@ public abstract class KernelNodes {
                 @Cached DispatchNode allocateNode,
                 @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(), "__allocate__");
-            copyInstanceVariablesNode.execute(newObject, self);
+            copyInstanceVariablesNode.execute(this, newObject, self);
             return newObject;
         }
 
@@ -526,7 +532,7 @@ public abstract class KernelNodes {
             }
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
                     null, null, false, null, self.superclass);
-            copyInstanceVariablesNode.execute(newClass, self);
+            copyInstanceVariablesNode.execute(this, newClass, self);
             return newClass;
         }
 

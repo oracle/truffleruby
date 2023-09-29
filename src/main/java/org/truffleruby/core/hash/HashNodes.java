@@ -180,7 +180,7 @@ public abstract class HashNodes {
                 @Cached DispatchNode initializeDupNode) {
             final RubyHash newObject = new RubyHash(self.getLogicalClass(), getLanguage().hashShape, getContext(),
                     EmptyHashStore.NULL_HASH_STORE, 0, ruby2_keywords);
-            copyInstanceVariablesNode.execute(newObject, self);
+            copyInstanceVariablesNode.execute(this, newObject, self);
             initializeDupNode.call(newObject, "initialize_dup", self);
             return newObject;
         }
