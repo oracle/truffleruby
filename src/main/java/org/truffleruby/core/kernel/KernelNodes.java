@@ -949,7 +949,7 @@ public abstract class KernelNodes {
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
                 @Cached InlinedBranchProfile errorProfile) {
-            checkFrozenNode.execute(self);
+            checkFrozenNode.execute(this, self);
 
             if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
                 errorProfile.enter(this);
@@ -1038,7 +1038,7 @@ public abstract class KernelNodes {
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             writeNode.execute(this, object, nameString, value);
             return value;
         }
@@ -1063,7 +1063,7 @@ public abstract class KernelNodes {
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             return removeIVar(object, nameString);
         }
 

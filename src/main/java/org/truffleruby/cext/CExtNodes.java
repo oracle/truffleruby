@@ -944,7 +944,7 @@ public abstract class CExtNodes {
         @Specialization
         boolean rb_check_frozen(Object object,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             return true;
         }
 

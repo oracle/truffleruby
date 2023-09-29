@@ -71,7 +71,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -661,38 +661,38 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
-
         @Specialization(
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object deleteMutable(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared SameOrEqualNode sameOrEqualNode,
                 @Cached @Shared InlinedIntValueProfile arraySizeProfile,
                 @Cached @Shared InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared CheckFrozenNode raiseIfFrozenNode) {
 
             return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile,
-                    yieldNode, sameOrEqualNode);
+                    yieldNode, sameOrEqualNode, raiseIfFrozenNode);
         }
 
         @Specialization(
                 guards = "!stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object deleteNotMutable(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached @Shared SameOrEqualNode sameOrEqualNode,
                 @Cached @Shared InlinedIntValueProfile arraySizeProfile,
                 @Cached @Shared InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared CheckFrozenNode raiseIfFrozenNode) {
 
             final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(this, array.size));
             return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,
-                    loopProfile, yieldNode, sameOrEqualNode);
+                    loopProfile, yieldNode, sameOrEqualNode, raiseIfFrozenNode);
         }
 
         private Object delete(RubyArray array, Object value, Object maybeBlock,
@@ -704,7 +704,8 @@ public abstract class ArrayNodes {
                 InlinedIntValueProfile arraySizeProfile,
                 InlinedLoopConditionProfile loopProfile,
                 CallBlockNode yieldNode,
-                SameOrEqualNode sameOrEqualNode) {
+                SameOrEqualNode sameOrEqualNode,
+                CheckFrozenNode raiseIfFrozenNode) {
 
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
@@ -718,7 +719,7 @@ public abstract class ArrayNodes {
                     final Object stored = oldStores.read(oldStore, n);
 
                     if (sameOrEqualNode.execute(this, stored, value)) {
-                        checkFrozen(array);
+                        raiseIfFrozenNode.execute(this, array);
                         found = stored;
                         n++;
                     } else {
@@ -746,14 +747,6 @@ public abstract class ArrayNodes {
                     return yieldNode.yield((RubyProc) maybeBlock, value);
                 }
             }
-        }
-
-        public void checkFrozen(Object object) {
-            if (raiseIfFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
-            }
-            raiseIfFrozenNode.execute(object);
         }
     }
 

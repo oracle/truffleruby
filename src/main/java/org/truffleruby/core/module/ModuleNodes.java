@@ -2032,20 +2032,20 @@ public abstract class ModuleNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
         @Child private DispatchNode methodRemovedNode = DispatchNode.create();
 
         @Specialization
         RubyModule removeMethods(RubyModule module, Object[] names,
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                removeMethod(module, nameToJavaStringNode.execute(this, name));
+                removeMethod(module, nameToJavaStringNode.execute(this, name), raiseIfFrozenNode);
             }
             return module;
         }
 
-        private void removeMethod(RubyModule module, String name) {
-            raiseIfFrozenNode.execute(module);
+        private void removeMethod(RubyModule module, String name, TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
+            raiseIfFrozenNode.execute(this, module);
 
             if (module.fields.removeMethod(name)) {
                 if (RubyGuards.isSingletonClass(module)) {
