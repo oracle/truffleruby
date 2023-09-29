@@ -14,6 +14,8 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
@@ -391,29 +393,27 @@ public abstract class RangeNodes {
         }
     }
 
-    public static final class RangeLiteralNode extends RubyContextSourceNode {
+    @NodeChild(value = "beginNode", type = RubyNode.class)
+    @NodeChild(value = "endNode", type = RubyNode.class)
+    @NodeField(name = "excludeEnd", type = Boolean.class)
+    public abstract static class RangeLiteralNode extends RubyContextSourceNode {
 
-        @Child RubyNode beginNode;
-        @Child RubyNode endNode;
-        @Child NewRangeNode newRangeNode = RangeNodesFactory.NewRangeNodeGen.create();
-        private final boolean excludeEnd;
+        abstract RubyNode getBeginNode();
 
-        public RangeLiteralNode(RubyNode beginNode, RubyNode endNode, boolean excludeEnd) {
-            this.beginNode = beginNode;
-            this.endNode = endNode;
-            this.excludeEnd = excludeEnd;
-        }
+        abstract RubyNode getEndNode();
 
-        @Override
-        public Object execute(VirtualFrame frame) {
-            Object begin = beginNode.execute(frame);
-            Object end = endNode.execute(frame);
-            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, excludeEnd);
+        abstract boolean getExcludeEnd();
+
+        @Specialization
+        Object doRange(Object begin, Object end,
+                @Cached NewRangeNode newRangeNode) {
+            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, getExcludeEnd());
         }
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd)
+            return RangeNodesFactory.RangeLiteralNodeGen
+                    .create(getBeginNode().cloneUninitialized(), getEndNode().cloneUninitialized(), getExcludeEnd())
                     .copyFlags(this);
         }
     }
