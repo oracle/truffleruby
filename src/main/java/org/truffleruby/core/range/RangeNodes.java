@@ -389,7 +389,7 @@ public abstract class RangeNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NewRangeNode newRangeNode) {
             final boolean excludeEnd = booleanCastWithDefaultNode.execute(this, maybeExcludeEnd, false);
-            return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
+            return newRangeNode.execute(this, rubyClass, begin, end, excludeEnd);
         }
     }
 
@@ -407,7 +407,7 @@ public abstract class RangeNodes {
         @Specialization
         Object doRange(Object begin, Object end,
                 @Cached NewRangeNode newRangeNode) {
-            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, getExcludeEnd());
+            return newRangeNode.execute(this, coreLibrary().rangeClass, begin, end, getExcludeEnd());
         }
 
         @Override
@@ -418,37 +418,40 @@ public abstract class RangeNodes {
         }
     }
 
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class NewRangeNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
+        public abstract Object execute(Node node, RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
+        static RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
-        RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        static RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, (int) begin, (int) end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
-        RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        static RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyLongRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "!standardClass || (!isImplicitLong(begin) || !isImplicitLong(end))" })
-        RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached DispatchNode compare,
+        static RubyObjectRange objectRange(Node node, RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+                @Cached(inline = false) DispatchNode compare,
                 @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).argumentError("bad value for range", node));
             }
 
-            final Shape shape = getLanguage().objectRangeShape;
+            final Shape shape = getLanguage(node).objectRangeShape;
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end, standardClass);
-            AllocationTracing.trace(range, this);
+            AllocationTracing.trace(range, node);
             return range;
         }
 
