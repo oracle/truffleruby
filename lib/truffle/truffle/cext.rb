@@ -306,10 +306,6 @@ module Truffle::CExt
     value.to_s(base)
   end
 
-  def RB_FIXNUM_P(value)
-    Truffle::Type.fits_into_long?(value)
-  end
-
   def RB_FLOAT_TYPE_P(value)
     Primitive.is_a?(value, Float)
   end

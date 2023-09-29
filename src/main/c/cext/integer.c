@@ -12,10 +12,6 @@
 
 // Integer, rb_integer_*, rb_*int*, rb_big_*
 
-bool RB_FIXNUM_P(VALUE value) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));
-}
-
 VALUE rb_Integer(VALUE value) {
   return RUBY_CEXT_INVOKE("rb_Integer", value);
 }
