@@ -9,6 +9,15 @@
  */
 package org.truffleruby.core.hash.library;
 
+import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.HashGuards;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.yield.CallBlockNode;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateInline;
@@ -23,14 +32,6 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
-import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.HashGuards;
-import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.yield.CallBlockNode;
 
 /** Library for accessing and manipulating the storage used for representing hashes. This includes reading, modifying,
  * and copy the storage. */
@@ -83,13 +84,14 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object deleteLast(Object store, RubyHash hash, Object key);
 
-    /** Calls {@code callback} on every entry in the hash, returning the state object. */
+    /** Calls {@code callback} on every entry in the hash, returning the state object. The callback object MUST be
+     * passed sequential increasing indices starting from 0 */
     @Abstract
     public abstract Object eachEntry(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 
     /** Same as {@link #eachEntry(Object, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use if the
-     * hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed
-     * twice. */
+     * hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed twice.
+     * The callback object MUST be passed sequential increasing indices starting from 0 */
     @Abstract
     public abstract Object eachEntrySafe(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 

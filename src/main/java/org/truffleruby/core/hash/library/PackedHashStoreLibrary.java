@@ -9,6 +9,29 @@
  */
 package org.truffleruby.core.hash.library;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
+import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.hash.CompareHashKeysNode;
+import org.truffleruby.core.hash.Entry;
+import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.HashGuards;
+import org.truffleruby.core.hash.HashLiteralNode;
+import org.truffleruby.core.hash.HashingNodes;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
+import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -30,27 +53,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.ReferenceEqualNode;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.hash.CompareHashKeysNode;
-import org.truffleruby.core.hash.Entry;
-import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
-import org.truffleruby.core.hash.HashGuards;
-import org.truffleruby.core.hash.HashLiteralNode;
-import org.truffleruby.core.hash.HashingNodes;
-import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
-import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -124,6 +126,7 @@ public final class PackedHashStoreLibrary {
         return true;
     }
 
+    @SuppressFBWarnings("UPM_UNCALLED_PRIVATE_METHOD")
     @TruffleBoundary
     private static void promoteToBuckets(RubyHash hash, Object[] store, int size) {
         final Entry[] buckets = new Entry[BucketsHashStore.growthCapacityGreaterThan(size)];
@@ -151,6 +154,16 @@ public final class PackedHashStoreLibrary {
         }
 
         hash.store = new BucketsHashStore(buckets, firstInSequence, lastInSequence);
+        hash.size = size;
+    }
+
+    @TruffleBoundary
+    private static void promoteToCompact(RubyHash hash, Object[] store, int size) {
+        CompactHashStore newStore = new CompactHashStore(size);
+        for (int n = 0; n < size; n++) {
+            newStore.putHashKeyValue(getHashed(store, n), getKey(store, n), getValue(store, n));
+        }
+        hash.store = newStore;
         hash.size = size;
     }
 
@@ -222,7 +235,7 @@ public final class PackedHashStoreLibrary {
                 return true;
             }
 
-            promoteToBuckets(hash, store, size);
+            promoteToCompact(hash, store, size);
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
         }
