@@ -356,24 +356,20 @@ class IO
       @method = read_method @from
     end
 
+    # From copy_stream_body in io.c in CRuby
+    # The first element is true if obj can be used as an IO directly
     def to_io(obj, mode)
-      if Primitive.is_a?(obj, IO)
-        flag = true
-        io = obj
-      else
-        flag = false
-
-        if Primitive.is_a?(obj, String)
-          io = File.open obj, mode
-        elsif obj.respond_to? :to_path
-          path = Truffle::Type.coerce_to obj, String, :to_path
-          io = File.open path, mode
-        else
-          io = obj
-        end
+      unless Primitive.is_a?(obj, IO) || Primitive.is_a?(obj, String) || obj.respond_to?(:to_path)
+        return [false, obj]
       end
 
-      [flag, io]
+      if io = IO.try_convert(obj)
+        [true, io]
+      else
+        path = Truffle::Type.coerce_to obj, String, :to_path
+        io = File.open path, mode
+        [false, io]
+      end
     end
 
     def read_method(obj)
