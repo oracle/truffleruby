@@ -359,16 +359,16 @@ class IO
     # From copy_stream_body in io.c in CRuby
     # The first element is true if obj can be used as an IO directly
     def to_io(obj, mode)
-      has_to_path = obj.respond_to? :to_path
-      io = (Primitive.is_a?(obj, IO) || has_to_path) && IO.try_convert(obj)
-      if io
+      unless Primitive.is_a?(obj, IO) || Primitive.is_a?(obj, String) || obj.respond_to?(:to_path)
+        return [false, obj]
+      end
+
+      if io = IO.try_convert(obj)
         [true, io]
-      elsif Primitive.is_a?(obj, String) or has_to_path
+      else
         path = Truffle::Type.coerce_to obj, String, :to_path
         io = File.open path, mode
         [false, io]
-      else
-        [false, obj]
       end
     end
 
