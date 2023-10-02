@@ -34,6 +34,7 @@ public abstract class Platform extends BasicPlatform {
 
     public static final String LIB_SUFFIX = determineLibSuffix();
     public static final String CEXT_SUFFIX = OS == OS_TYPE.DARWIN ? ".bundle" : LIB_SUFFIX;
+    public static final boolean CEXT_SUFFIX_IS_SO = CEXT_SUFFIX.equals(".so");
 
     private static String determineLibSuffix() {
         switch (OS) {

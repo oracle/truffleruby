@@ -179,8 +179,8 @@ public final class FeatureLoader {
     }
 
     private boolean hasExtension(String path) {
-        return path.endsWith(TruffleRuby.EXTENSION) || path.endsWith(RubyLanguage.CEXT_EXTENSION) ||
-                path.endsWith(".so");
+        return path.endsWith(TruffleRuby.EXTENSION) || path.endsWith(".so") ||
+                (!Platform.CEXT_SUFFIX_IS_SO && path.endsWith(RubyLanguage.CEXT_EXTENSION));
     }
 
     public void setWorkingDirectory(String cwd) {
@@ -314,6 +314,7 @@ public final class FeatureLoader {
         if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
         } else if (hasExtension(feature)) {
+            String path = translateIfNativePath(feature);
             final RubyArray expandedLoadPath = (RubyArray) DispatchNode.getUncached().call(
                     context.getCoreLibrary().truffleFeatureLoaderModule,
                     "get_expanded_load_path");
@@ -324,7 +325,7 @@ public final class FeatureLoader {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
                 }
 
-                String fileWithinPath = new File(loadPath, translateIfNativePath(feature)).getPath();
+                String fileWithinPath = new File(loadPath, path).getPath();
                 final String result = findFeatureWithExactPath(fileWithinPath);
 
                 if (result != null) {
@@ -368,7 +369,7 @@ public final class FeatureLoader {
     }
 
     private String translateIfNativePath(String feature) {
-        if (!RubyLanguage.CEXT_EXTENSION.equals(".so") && feature.endsWith(".so")) {
+        if (!Platform.CEXT_SUFFIX_IS_SO && feature.endsWith(".so")) {
             final String base = feature.substring(0, feature.length() - 3);
             return base + RubyLanguage.CEXT_EXTENSION;
         } else {
@@ -376,33 +377,20 @@ public final class FeatureLoader {
         }
     }
 
+    // Only used when the path is absolute
     private String findFeatureWithAndWithoutExtension(String path) {
         assert new File(path).isAbsolute();
 
-        if (path.endsWith(".so")) {
-            final String pathWithNativeExt = translateIfNativePath(path);
-            final String asCExt = findFeatureWithExactPath(pathWithNativeExt);
-            if (asCExt != null) {
-                return asCExt;
+        if (hasExtension(path)) {
+            return findFeatureWithExactPath(translateIfNativePath(path));
+        } else {
+            final String asRuby = findFeatureWithExactPath(path + TruffleRuby.EXTENSION);
+            if (asRuby != null) {
+                return asRuby;
             }
-        }
 
-        final String asRuby = findFeatureWithExactPath(path + TruffleRuby.EXTENSION);
-        if (asRuby != null) {
-            return asRuby;
+            return findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
         }
-
-        final String asCExt = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
-        if (asCExt != null) {
-            return asCExt;
-        }
-
-        final String withoutExtension = findFeatureWithExactPath(path);
-        if (withoutExtension != null) {
-            return withoutExtension;
-        }
-
-        return null;
     }
 
     private String findFeatureWithExactPath(String path) {
