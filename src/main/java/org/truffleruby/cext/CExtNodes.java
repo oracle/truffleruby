@@ -206,7 +206,7 @@ public abstract class CExtNodes {
                     try {
                         return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                         if (!owned) {
                             MutexOperations.unlockInternal(lock);
                         }
@@ -215,7 +215,7 @@ public abstract class CExtNodes {
                     try {
                         return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                     }
                 }
 
@@ -258,7 +258,7 @@ public abstract class CExtNodes {
                         return unwrapNode.execute(this,
                                 InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                         if (!owned) {
                             MutexOperations.unlockInternal(lock);
                         }
@@ -268,7 +268,7 @@ public abstract class CExtNodes {
                         return unwrapNode.execute(this,
                                 InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                     }
                 }
 

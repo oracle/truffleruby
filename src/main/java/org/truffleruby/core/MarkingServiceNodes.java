@@ -87,26 +87,28 @@ public abstract class MarkingServiceNodes {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class RunMarkOnExitNode extends RubyBaseNode {
 
-        public abstract void execute(ExtensionCallStack stack);
+        public abstract void execute(Node node, ExtensionCallStack stack);
 
         @Specialization(guards = "!stack.hasMarkObjects()")
-        void nothingToMark(ExtensionCallStack stack) {
+        static void nothingToMark(ExtensionCallStack stack) {
             // Do nothing.
         }
 
         @Specialization(guards = "stack.hasSingleMarkObject()")
-        void markSingleObject(ExtensionCallStack stack,
-                @Cached @Shared DispatchNode callNode) {
+        static void markSingleObject(Node node, ExtensionCallStack stack,
+                @Cached(inline = false) @Shared DispatchNode callNode) {
             ValueWrapper value = stack.getSingleMarkObject();
-            callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
+            callNode.call(getContext(node).getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
         }
 
         @TruffleBoundary
         @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
-        void marksToRun(ExtensionCallStack stack,
-                @Cached @Shared DispatchNode callNode) {
+        static void marksToRun(Node node, ExtensionCallStack stack,
+                @Cached(inline = false) @Shared DispatchNode callNode) {
             // Run the markers...
             var valuesForMarking = stack.getMarkOnExitObjects();
             // Push a new stack frame because we should
@@ -115,17 +117,11 @@ public abstract class MarkingServiceNodes {
             stack.push(false, nil, nil);
             try {
                 for (var value : valuesForMarking) {
-                    callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
+                    callNode.call(getContext(node).getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
                 }
             } finally {
                 stack.pop();
             }
-        }
-
-
-        @NeverDefault
-        public static RunMarkOnExitNode create() {
-            return MarkingServiceNodesFactory.RunMarkOnExitNodeGen.create();
         }
     }
 }
