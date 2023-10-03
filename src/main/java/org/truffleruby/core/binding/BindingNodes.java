@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Idempotent;
-import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -175,21 +174,18 @@ public abstract class BindingNodes {
      * variables. */
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class HasLocalVariableNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static HasLocalVariableNode create() {
-            return BindingNodesFactory.HasLocalVariableNodeGen.create();
-        }
-
-        public abstract boolean execute(RubyBinding binding, String name);
+        public abstract boolean execute(Node node, RubyBinding binding, String name);
 
         @Specialization(
                 guards = {
                         "name == cachedName",
                         "getFrameDescriptor(binding) == descriptor" },
                 limit = "getCacheLimit()")
-        boolean localVariableDefinedCached(RubyBinding binding, String name,
+        static boolean localVariableDefinedCached(RubyBinding binding, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot) {
@@ -198,7 +194,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(replaces = "localVariableDefinedCached")
-        boolean localVariableDefinedUncached(RubyBinding binding, String name) {
+        static boolean localVariableDefinedUncached(RubyBinding binding, String name) {
             return FindDeclarationVariableNodes.findFrameSlotOrNull(name, binding.getFrame()) != null;
         }
 
