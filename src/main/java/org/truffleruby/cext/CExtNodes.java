@@ -386,7 +386,7 @@ public abstract class CExtNodes {
             Object[] args = unwrapCArrayNode.execute(argv);
 
             // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
@@ -424,7 +424,7 @@ public abstract class CExtNodes {
             Object[] args = unwrapCArrayNode.execute(argv);
 
             // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
