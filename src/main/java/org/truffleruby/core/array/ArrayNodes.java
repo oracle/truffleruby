@@ -2073,21 +2073,22 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
+        static RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive DispatchNode compareDispatchNode,
-                @Cached CmpIntNode cmpIntNode) {
+                @Cached CmpIntNode cmpIntNode,
+                @Bind("this") Node node) {
             final Object newStore = stores
                     .unsharedAllocator(store)
-                    .allocate(getContext().getOptions().ARRAY_SMALL);
+                    .allocate(getContext(node).getOptions().ARRAY_SMALL);
             final int size = arraySizeProfile.profile(array.size);
 
             // Copy with a exploded loop for PE
 
-            for (int i = 0; i < getContext().getOptions().ARRAY_SMALL; i++) {
+            for (int i = 0; i < getContext(node).getOptions().ARRAY_SMALL; i++) {
                 if (i < size) {
                     newStores.write(newStore, i, stores.read(store, i));
                 }
@@ -2095,14 +2096,14 @@ public abstract class ArrayNodes {
 
             // Selection sort - written very carefully to allow PE
 
-            for (int i = 0; i < getContext().getOptions().ARRAY_SMALL; i++) {
+            for (int i = 0; i < getContext(node).getOptions().ARRAY_SMALL; i++) {
                 if (i < size) {
-                    for (int j = i + 1; j < getContext().getOptions().ARRAY_SMALL; j++) {
+                    for (int j = i + 1; j < getContext(node).getOptions().ARRAY_SMALL; j++) {
                         if (j < size) {
                             final Object a = newStores.read(newStore, i);
                             final Object b = newStores.read(newStore, j);
                             final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
-                            if (cmpIntNode.executeCmpInt(comparisonResult, b, a) < 0) {
+                            if (cmpIntNode.executeCmpInt(node, comparisonResult, b, a) < 0) {
                                 newStores.write(newStore, j, a);
                                 newStores.write(newStore, i, b);
                             }
@@ -2111,7 +2112,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return createArray(newStore, size);
+            return createArray(node, newStore, size);
         }
 
         @Specialization(
