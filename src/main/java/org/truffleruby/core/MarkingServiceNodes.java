@@ -9,7 +9,10 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -28,42 +31,43 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class MarkingServiceNodes {
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class KeepAliveNode extends RubyBaseNode {
 
-        public abstract void execute(ValueWrapper object);
+        public abstract void execute(Node node, ValueWrapper object);
 
         @Specialization(guards = "!stack.hasKeptObjects()")
-        void keepFirstObject(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack) {
+        static void keepFirstObject(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack) {
             stack.current.preservedObject = object;
         }
 
         @Specialization(guards = "stack.hasSingleKeptObject()")
-        void keepCreatingList(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack,
+        static void keepCreatingList(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack,
                 @Cached InlinedConditionProfile sameObjectProfile) {
-            if (sameObjectProfile.profile(this, object != stack.current.preservedObject)) {
+            if (sameObjectProfile.profile(node, object != stack.current.preservedObject)) {
                 createKeptList(object, stack);
             }
         }
 
         @Specialization(guards = { "stack.hasKeptObjects()", "!stack.hasSingleKeptObject()" })
         @TruffleBoundary
-        void keepAddingToList(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack) {
+        static void keepAddingToList(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack) {
             stack.current.preservedObjects.add(object);
         }
 
         @TruffleBoundary
-        private void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
+        private static void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
             stack.current.preservedObjects = new ArrayList<>();
             stack.current.preservedObjects.add(stack.current.preservedObject);
             stack.current.preservedObjects.add(object);
         }
 
-        // We take a parameter so that the bind isn't considered cacheable.
-        protected ExtensionCallStack getStack(ValueWrapper object) {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack;
+        protected static ExtensionCallStack getStack(Node node) {
+            return getLanguage(node).getCurrentThread().getCurrentFiber().extensionCallStack;
         }
     }
 
