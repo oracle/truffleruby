@@ -365,7 +365,7 @@ public abstract class BasicObjectNodes {
             // For BasicObject#instance_eval, the new scopes SHOULD affect constant lookup but SHOULD NOT affect class variables lookup
             LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, logicalClass, true);
 
-            if (CanHaveSingletonClassNode.getUncached().execute(receiver)) {
+            if (CanHaveSingletonClassNode.executeUncached(receiver)) {
                 final RubyClass singletonClass = SingletonClassNode.getUncached().execute(receiver);
 
                 // For true/false/nil Ruby objects #singleton_class (and SingletonClassNode as well) returns
