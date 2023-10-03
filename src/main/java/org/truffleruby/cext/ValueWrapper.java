@@ -108,7 +108,7 @@ public final class ValueWrapper implements TruffleObject {
             @Bind("$node") Node node) {
         if (!wrapper.isPointer()) {
             createHandleProfile.enter(node);
-            createNativeHandleNode.execute(wrapper);
+            createNativeHandleNode.execute(node, wrapper);
         }
     }
 
