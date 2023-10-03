@@ -29,18 +29,17 @@ public abstract class TruffleMonitorNodes {
     @Primitive(name = "monitor_synchronize")
     public abstract static class SynchronizeNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
-
         @Specialization
         Object synchronizeOnMutex(RubyMutex mutex, RubyProc block,
-                @Cached InlinedBranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached CallBlockNode yieldNode) {
             /* Like Mutex#synchronize we must maintain the owned locks list here as the monitor might be exited inside
              * synchronize block and then re-entered again before the end, and we have to make sure the list of owned
              * locks remains consistent. */
             final RubyThread thread = getLanguage().getCurrentThread();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
             try {
-                return yieldNode.yield(block);
+                return yieldNode.yield(this, block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);
                 MutexOperations.unlock(mutex.lock, thread);

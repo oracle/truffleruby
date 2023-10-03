@@ -133,9 +133,9 @@ public abstract class HashStoreLibrary extends Library {
             // MRI behavior, see rb_hash_each_pair()
             // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
             if (arityMoreThanOne.profile(this, block.arity.getMethodArityNumber() > 1)) {
-                return yieldNode.yield(block, key, value);
+                return yieldNode.yield(this, block, key, value);
             } else {
-                return yieldNode.yield(block, createArray(new Object[]{ key, value }));
+                return yieldNode.yield(this, block, createArray(new Object[]{ key, value }));
             }
         }
     }

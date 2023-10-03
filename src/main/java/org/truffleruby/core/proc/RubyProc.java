@@ -11,6 +11,8 @@ package org.truffleruby.core.proc;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -145,8 +147,9 @@ public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode
     @ExportMessage
     public Object execute(Object[] arguments,
             @Cached CallBlockNode yieldNode,
-            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return yieldNode.yield(this, foreignToRubyArgumentsNode.executeConvert(arguments));
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Bind("$node") Node node) {
+        return yieldNode.yield(node, this, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
     // endregion
 }

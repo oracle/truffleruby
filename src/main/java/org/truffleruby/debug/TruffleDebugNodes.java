@@ -195,7 +195,7 @@ public abstract class TruffleDebugNodes {
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.yield(
+                            yieldNode.yieldCached(
                                     block,
                                     BindingNodes.createBinding(
                                             getContext(),

@@ -1473,7 +1473,7 @@ public abstract class CExtNodes {
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached CallBlockNode yieldNode) {
             try {
-                yieldNode.yield(block);
+                yieldNode.yield(this, block);
                 noExceptionProfile.enter(this);
                 return nil;
             } catch (Throwable e) {

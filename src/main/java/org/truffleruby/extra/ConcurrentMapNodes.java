@@ -119,7 +119,7 @@ public abstract class ConcurrentMapNodes {
                 @Cached CallBlockNode yieldNode) {
             final int hashCode = hashNode.execute(this, key);
             final Object returnValue = ConcurrentOperations
-                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> yieldNode.yield(block));
+                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> yieldNode.yield(this, block));
             assert returnValue != null;
             return returnValue;
         }
@@ -136,7 +136,7 @@ public abstract class ConcurrentMapNodes {
             return nullToNil(
                     computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
                     // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
-                    nilToNull(yieldNode.yield(block, v))));
+                    nilToNull(yieldNode.yield(this, block, v))));
         }
 
         @TruffleBoundary
@@ -156,7 +156,7 @@ public abstract class ConcurrentMapNodes {
             return nullToNil(compute(
                     self.getMap(),
                     new Key(key, hashCode),
-                    (k, v) -> nilToNull(yieldNode.yield(block, nullToNil(v)))));
+                    (k, v) -> nilToNull(yieldNode.yield(this, block, nullToNil(v)))));
         }
 
         @TruffleBoundary
@@ -177,7 +177,7 @@ public abstract class ConcurrentMapNodes {
                     self.getMap(),
                     new Key(key, hashCode),
                     value,
-                    (existingValue, newValue) -> nilToNull(yieldNode.yield(block, existingValue))));
+                    (existingValue, newValue) -> nilToNull(yieldNode.yield(this, block, existingValue))));
         }
 
         @TruffleBoundary
@@ -379,7 +379,7 @@ public abstract class ConcurrentMapNodes {
                     break;
                 }
 
-                yieldNode.yield(block, pair.getKey().key, pair.getValue());
+                yieldNode.yield(this, block, pair.getKey().key, pair.getValue());
             }
 
             return self;

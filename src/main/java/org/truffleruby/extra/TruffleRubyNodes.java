@@ -122,7 +122,7 @@ public abstract class TruffleRubyNodes {
 
             MutexOperations.lockInternal(getContext(node), lock, node);
             try {
-                return yieldNode.yield(block);
+                return yieldNode.yield(node, block);
             } finally {
                 MutexOperations.unlockInternal(lock);
             }

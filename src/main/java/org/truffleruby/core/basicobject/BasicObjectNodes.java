@@ -400,7 +400,8 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
             var descriptor = RubyArguments.getDescriptor(frame);
-            return callBlockNode.executeCallBlock(declarationContext, block, receiver, nil, descriptor, arguments);
+            return callBlockNode.executeCallBlock(this, declarationContext, block, receiver, nil, descriptor,
+                    arguments);
         }
 
         @Specialization
@@ -419,14 +420,15 @@ public abstract class BasicObjectNodes {
                 RubyProc block);
 
         @Specialization
-        static Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
+        static Object instanceExec(
+                Node node, ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, arguments);
+            return callBlockNode.executeCallBlock(node, declarationContext, block, self, nil, descriptor, arguments);
         }
 
     }

@@ -80,7 +80,7 @@ public abstract class RangeNodes {
             int n = 0;
             try {
                 for (; loopProfile.inject(this, n < length); n++) {
-                    arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
+                    arrayBuilder.appendValue(state, n, yieldNode.yield(this, block, begin + n));
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n);
@@ -115,7 +115,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n - range.begin);
@@ -139,7 +139,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n - range.begin);
@@ -232,7 +232,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(n < result); n += step) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n - range.begin);
@@ -254,7 +254,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);

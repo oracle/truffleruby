@@ -485,12 +485,12 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_each_alias")
     public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
         @Specialization
-        Object eachAlias(RubyProc block) {
+        Object eachAlias(RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             var iterator = EncodingDB.getAliases().entryIterator();
             while (iterator.hasNext()) {
                 var entry = iterator.next();
@@ -499,6 +499,7 @@ public abstract class EncodingNodes {
                         ArrayUtils.extractRange(entry.bytes, entry.p, entry.end),
                         Encodings.US_ASCII); // CR_7BIT
                 yieldNode.yield(
+                        this,
                         block,
                         aliasName,
                         Encodings.getBuiltInEncoding(entry.value.getEncoding()));
