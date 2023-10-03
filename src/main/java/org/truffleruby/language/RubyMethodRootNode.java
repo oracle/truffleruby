@@ -96,7 +96,7 @@ public class RubyMethodRootNode extends RubyCheckArityRootNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 translateExceptionNode = insert(TranslateExceptionNode.create());
             }
-            throw translateExceptionNode.executeTranslation(t);
+            throw translateExceptionNode.executeCached(t);
         }
     }
 
