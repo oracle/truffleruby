@@ -516,7 +516,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
-            @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
+            @Cached LongCastNode longCastNode,
+            @Bind("$node") Node node) throws UnsupportedMessageException {
 
         Object value;
         try {
@@ -528,7 +529,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
-        return longCastNode.executeCastLong(value);
+        return longCastNode.executeCastLong(node, value);
     }
 
     @ExportMessage
