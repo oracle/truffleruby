@@ -11,6 +11,8 @@ package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
@@ -280,7 +282,7 @@ public abstract class BasicObjectNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return instanceExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return instanceExecNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -409,12 +411,15 @@ public abstract class BasicObjectNodes {
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class InstanceExecBlockNode extends RubyBaseNode {
 
-        public abstract Object execute(ArgumentsDescriptor descriptor, Object self, Object[] args, RubyProc block);
+        public abstract Object execute(Node node, ArgumentsDescriptor descriptor, Object self, Object[] args,
+                RubyProc block);
 
         @Specialization
-        Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
+        static Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
