@@ -1188,6 +1188,16 @@ public abstract class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_is_local_id", onSingleton = true, required = 1)
+    public abstract static class IsLocalIdNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        boolean isLocalId(RubySymbol symbol) {
+            return symbol.getType() == IdentifierType.LOCAL;
+        }
+
+    }
+
     @CoreMethod(names = "rb_is_instance_id", onSingleton = true, required = 1)
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
 

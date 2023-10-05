@@ -1048,9 +1048,10 @@ public final class CoreLibrary {
             "/core/truffle/polyglot.rb",
             "/core/truffle/polyglot_methods.rb",
             "/core/posix.rb",
+            "/core/data.rb",
+            "/core/truffle/queue_operations.rb",
             "/core/main.rb",
             "/core/post.rb",
-            "/core/truffle/queue_operations.rb",
             POST_BOOT_FILE
     };
 
