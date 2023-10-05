@@ -314,6 +314,7 @@ public final class CompactHashStore {
         return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
     }
 
+    @TruffleBoundary
     @ExportMessage
     void rehash(RubyHash hash,
             @Cached @Shared HashingNodes.ToHash hashFunction,
