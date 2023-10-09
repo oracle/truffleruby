@@ -569,20 +569,23 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class GetCodePointNode extends RubyBaseNode {
 
-        public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
+        public abstract int executeGetCodePoint(Node node, AbstractTruffleString string, RubyEncoding encoding,
+                int byteIndex);
 
         @Specialization
-        int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
-                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
+        static int getCodePoint(Node node, AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+                @Cached(inline = false) TruffleString.CodePointAtByteIndexNode getCodePointNode,
                 @Cached InlinedBranchProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             if (codePoint == -1) {
-                badCodePointProfile.enter(this);
-                throw new RaiseException(getContext(),
-                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                badCodePointProfile.enter(node);
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).argumentErrorInvalidByteSequence(encoding, node));
             }
             return codePoint;
         }

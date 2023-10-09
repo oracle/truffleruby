@@ -1681,7 +1681,8 @@ public abstract class StringNodes {
         int ord(Object string,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached StringHelperNodes.GetCodePointNode getCodePointNode) {
-            return getCodePointNode.executeGetCodePoint(strings.getTString(string), strings.getEncoding(string), 0);
+            return getCodePointNode.executeGetCodePoint(this, strings.getTString(string), strings.getEncoding(string),
+                    0);
         }
 
     }
