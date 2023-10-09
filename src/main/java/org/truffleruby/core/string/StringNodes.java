@@ -1612,7 +1612,7 @@ public abstract class StringNodes {
                 @Cached InlinedConditionProfile noopProfile,
                 @Bind("this") Node node) {
             var tstring = string.tstring;
-            var encoding = getActualEncodingNode.execute(tstring, libString.getEncoding(string));
+            var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(string));
             var tencoding = encoding.tencoding;
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
@@ -1751,7 +1751,7 @@ public abstract class StringNodes {
                 @Cached @Exclusive InlinedConditionProfile noopProfile,
                 @Bind("this") Node node) {
             var tstring = string.tstring;
-            var encoding = getActualEncodingNode.execute(tstring, libString.getEncoding(string));
+            var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(string));
             var tencoding = encoding.tencoding;
 
             var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding,
@@ -3423,7 +3423,7 @@ public abstract class StringNodes {
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding,
                 @Bind("this") Node node) {
-            final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
+            final RubyEncoding actualEncoding = getActualEncodingNode.execute(node, originalTString, originalEncoding);
             var tstring = forceEncodingNode.execute(originalTString, originalEncoding.tencoding,
                     actualEncoding.tencoding);
 

@@ -520,28 +520,31 @@ public abstract class EncodingNodes {
     public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-        RubyEncoding getActualEncoding(Object string,
+        static RubyEncoding getActualEncoding(Object string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
-                @Cached RubyStringLibrary libString) {
-            return getActualEncodingNode.execute(libString.getTString(string), libString.getEncoding(string));
+                @Cached RubyStringLibrary libString,
+                @Bind("this") Node node) {
+            return getActualEncodingNode.execute(node, libString.getTString(string), libString.getEncoding(string));
         }
 
     }
 
     // MRI: get_actual_encoding
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class GetActualEncodingNode extends RubyBaseNode {
 
-        public abstract RubyEncoding execute(AbstractTruffleString tstring, RubyEncoding encoding);
+        public abstract RubyEncoding execute(Node node, AbstractTruffleString tstring, RubyEncoding encoding);
 
         @Specialization(guards = "!encoding.isDummy")
-        RubyEncoding getActualEncoding(AbstractTruffleString tstring, RubyEncoding encoding) {
+        static RubyEncoding getActualEncoding(AbstractTruffleString tstring, RubyEncoding encoding) {
             return encoding;
         }
 
         @TruffleBoundary
         @Specialization(guards = "encoding.isDummy")
-        RubyEncoding getActualEncodingDummy(AbstractTruffleString tstring, RubyEncoding encoding,
-                @Cached TruffleString.ReadByteNode readByteNode) {
+        static RubyEncoding getActualEncodingDummy(AbstractTruffleString tstring, RubyEncoding encoding,
+                @Cached(inline = false) TruffleString.ReadByteNode readByteNode) {
             if (encoding.isUnicode) {
                 var enc = encoding.tencoding;
                 var byteLength = tstring.byteLength(enc);
