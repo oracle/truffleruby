@@ -20,24 +20,36 @@ import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 
+// Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
+// - a, (b, c) = 1, [2, 3]
+// - def foo(a, (b, c)) end
 public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiTargetNode node;
     private final RubyLanguage language;
     private final YARPTranslator yarpTranslator;
+    private final RubyNode readNode;
 
     public YARPMultiTargetNodeTranslator(
             Nodes.MultiTargetNode node,
             RubyLanguage language,
-            YARPTranslator yarpTranslator) {
+            YARPTranslator yarpTranslator,
+            RubyNode readNode) {
         this.node = node;
         this.language = language;
         this.yarpTranslator = yarpTranslator;
+        this.readNode = readNode;
     }
 
-    public AssignableNode translate() {
-        final AssignableNode assignableNode;
-        final RubyNode rhsNode = new NilLiteralNode(false);
+    public MultipleAssignmentNode translate() {
+        final RubyNode rhsNode;
+
+        if (readNode == null) {
+            rhsNode = new NilLiteralNode(false);
+        } else {
+            rhsNode = readNode;
+        }
+
         final SplatCastNode splatCastNode = SplatCastNodeGen.create(
                 language,
                 SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
@@ -67,8 +79,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
                 postNodes,
                 splatCastNode,
                 rhsNode);
-        assignableNode = multipleAssignmentNode.toAssignableNode();
-        return assignableNode;
+        return multipleAssignmentNode;
     }
 
     @Override
@@ -114,17 +125,26 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
-        final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator);
-        return translator.translate();
+        final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, null);
+        final MultipleAssignmentNode multipleAssignmentNode = translator.translate();
+
+        return multipleAssignmentNode.toAssignableNode();
     }
 
     public AssignableNode visitSplatNode(Nodes.SplatNode node) {
         if (node.expression != null) {
-            final RubyNode rubyNode = node.expression.accept(yarpTranslator);
-            return ((AssignableNode) rubyNode).toAssignableNode();
+            return node.expression.accept(this);
         } else {
             return new NoopAssignableNode();
         }
+    }
+
+    public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
+        // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
+        // TODO: depth is not suppose to be used anyway so pass 0 value.
+        final RubyNode rubyNode = yarpTranslator.visitLocalVariableWriteNode(
+                new Nodes.LocalVariableWriteNode(node.name, 0, null, node.startOffset, node.length));
+        return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
     @Override

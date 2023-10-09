@@ -180,6 +180,7 @@ public final class ParserSupport {
             .usAsciiString(FORWARD_ARGS_KWREST_VAR);
     /** The local variable to store the block from ... in */
     public static final String FORWARD_ARGS_BLOCK_VAR = Layouts.TEMP_PREFIX + "forward_block";
+    public static final String REST_VAR = Layouts.TEMP_PREFIX + "unnamed_rest";
     public static final String KWREST_VAR = Layouts.TEMP_PREFIX + "kwrest";
     public static final TruffleString FORWARD_ARGS_BLOCK_VAR_TSTRING = TStringUtils
             .usAsciiString(FORWARD_ARGS_BLOCK_VAR);

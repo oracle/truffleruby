@@ -112,8 +112,10 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
 
     @Override
     public AssignableNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
-        final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator);
-        return translator.translate();
+        final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, null);
+        final MultipleAssignmentNode multipleAssignmentNode = translator.translate();
+
+        return multipleAssignmentNode.toAssignableNode();
     }
 
     public AssignableNode visitSplatNode(Nodes.SplatNode node) {

@@ -39,6 +39,7 @@ import org.truffleruby.core.rescue.AssignRescueVariableNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.LexicalScope;
@@ -73,7 +74,6 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.control.WhileNodeFactory;
 import org.truffleruby.language.defined.DefinedNode;
-import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.exceptions.EnsureNodeGen;
 import org.truffleruby.language.exceptions.RescueClassesNode;
@@ -101,7 +101,9 @@ import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.language.methods.CatchBreakNode;
+import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.DefineClassNode;
@@ -114,6 +116,8 @@ import org.truffleruby.language.objects.LexicalScopeNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.RunModuleDefinitionNode;
 import org.truffleruby.language.objects.SelfNode;
+import org.truffleruby.language.objects.SingletonClassNode.SingletonClassASTNode;
+import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
 import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
 import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
@@ -132,15 +136,15 @@ import java.util.List;
 // * there is typically no need for such an object since YARP location info is correct.
 
 /** Translate (or convert) AST provided by a parser (YARP parser) to Truffle AST */
-public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
+public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
-    private final RubyLanguage language;
+    protected final RubyLanguage language;
     private final YARPTranslator parent;
-    private final TranslatorEnvironment environment;
+    protected final TranslatorEnvironment environment;
     private final byte[] sourceBytes;
-    private final Source source;
-    private final ParserContext parserContext;
-    private final Node currentNode;
+    protected final Source source;
+    protected final ParserContext parserContext;
+    protected final Node currentNode;
     private final RubyDeferredWarnings rubyWarnings;
     private final RubyEncoding sourceEncoding;
 
@@ -845,7 +849,66 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitDefNode(Nodes.DefNode node) {
-        return defaultVisit(node);
+        final SingletonClassASTNode singletonClassNode;
+
+        if (node.receiver != null) {
+            final RubyNode receiver = node.receiver.accept(this);
+            singletonClassNode = SingletonClassASTNodeGen.create(receiver);
+        } else {
+            singletonClassNode = null;
+        }
+
+        final Arity arity = createArity(node.parameters);
+        final ArgumentDescriptor[] argumentDescriptors = parametersNodeToArgumentDescriptors(node.parameters);
+        final boolean isReceiverSelf = node.receiver instanceof Nodes.SelfNode;
+
+        final String parseName = modulePathAndMethodName(node.name, node.receiver != null, isReceiverSelf);
+
+        final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
+                getSourceSection(node),
+                environment.getStaticLexicalScopeOrNull(),
+                arity,
+                node.name,
+                0,
+                parseName,
+                null,
+                argumentDescriptors);
+
+        final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
+                environment,
+                environment.getParseEnvironment(),
+                environment.getParseEnvironment().allocateReturnID(),
+                true,
+                false,
+                sharedMethodInfo,
+                node.name,
+                0,
+                null,
+                null,
+                environment.modulePath);
+
+        final var defNodeTranslator = new YARPDefNodeTranslator(
+                language,
+                this,
+                newEnvironment,
+                sourceBytes,
+                source,
+                parserContext,
+                currentNode,
+                rubyWarnings);
+        final CachedLazyCallTargetSupplier callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, arity);
+
+        final boolean isDefSingleton = singletonClassNode != null;
+
+        RubyNode rubyNode = new LiteralMethodDefinitionNode(
+                singletonClassNode,
+                node.name,
+                sharedMethodInfo,
+                isDefSingleton,
+                callTargetSupplier);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitDefinedNode(Nodes.DefinedNode node) {
@@ -1700,6 +1763,33 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    private String modulePathAndMethodName(String methodName, boolean onSingleton, boolean isReceiverSelf) {
+        String modulePath = environment.modulePath;
+        if (modulePath == null) {
+            if (onSingleton) {
+                if (environment.isTopLevelObjectScope() && isReceiverSelf) {
+                    modulePath = "main";
+                } else {
+                    modulePath = "<singleton class>"; // method of an unknown singleton class
+                    onSingleton = false;
+                }
+            } else {
+                if (environment.isTopLevelObjectScope()) {
+                    modulePath = "Object";
+                } else {
+                    modulePath = ""; // instance method of an unknown module
+                }
+            }
+        }
+
+        if (modulePath.endsWith("::<singleton class>") && !onSingleton) {
+            modulePath = modulePath.substring(0, modulePath.length() - "::<singleton class>".length());
+            onSingleton = true;
+        }
+
+        return SharedMethodInfo.modulePathAndMethodName(modulePath, methodName, onSingleton);
+    }
+
     private RubyNode getLexicalScopeNode(String kind, Nodes.Node yarpNode) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
@@ -2043,7 +2133,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
-    private SourceSection getSourceSection(Nodes.Node yarpNode) {
+    protected SourceSection getSourceSection(Nodes.Node yarpNode) {
         return source.createSection(yarpNode.startOffset, yarpNode.length);
     }
 
@@ -2058,7 +2148,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    private static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
+    protected static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
         assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
 
         RubyNode sequenceNode = sequence(sequence);
@@ -2070,7 +2160,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return sequenceNode;
     }
 
-    private static RubyNode sequence(List<RubyNode> sequence) {
+    protected static RubyNode sequence(List<RubyNode> sequence) {
         final List<RubyNode> flattened = Translator.flatten(sequence, true);
 
         if (flattened.isEmpty()) {
@@ -2116,6 +2206,129 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         return rubyNodes;
+    }
+
+    private ArgumentDescriptor[] parametersNodeToArgumentDescriptors(Nodes.ParametersNode parametersNode) {
+        if (parametersNode == null) {
+            return ArgumentDescriptor.EMPTY_ARRAY;
+        }
+
+        ArrayList<ArgumentDescriptor> descriptors = new ArrayList<>();
+
+        for (var node : parametersNode.requireds) {
+            if (node instanceof Nodes.MultiTargetNode) {
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonreq));
+            } else {
+                String name = ((Nodes.RequiredParameterNode) node).name;
+                var descriptor = new ArgumentDescriptor(ArgumentType.req, name);
+                descriptors.add(descriptor);
+            }
+        }
+
+        for (var node : parametersNode.optionals) {
+            String name = ((Nodes.OptionalParameterNode) node).name;
+            var descriptor = new ArgumentDescriptor(ArgumentType.opt, name);
+            descriptors.add(descriptor);
+        }
+
+        if (parametersNode.rest != null) {
+            if (parametersNode.rest.name == null) {
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonrest));
+            } else {
+                var descriptor = new ArgumentDescriptor(ArgumentType.rest, parametersNode.rest.name);
+                descriptors.add(descriptor);
+            }
+        }
+
+        for (var node : parametersNode.posts) {
+            if (node instanceof Nodes.MultiTargetNode) {
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonreq));
+            } else {
+                String name = ((Nodes.RequiredParameterNode) node).name;
+                var descriptor = new ArgumentDescriptor(ArgumentType.req, name);
+                descriptors.add(descriptor);
+            }
+        }
+
+        for (var node : parametersNode.keywords) {
+            var keywordParameterNode = (Nodes.KeywordParameterNode) node;
+            var type = (keywordParameterNode.value == null) ? ArgumentType.keyreq : ArgumentType.key;
+            var descriptor = new ArgumentDescriptor(type, keywordParameterNode.name);
+
+            descriptors.add(descriptor);
+        }
+
+        if (parametersNode.keyword_rest != null) {
+            final ArgumentType type;
+            final String name;
+
+            if (parametersNode.keyword_rest instanceof Nodes.KeywordRestParameterNode) {
+                var keywordRestParameterNode = (Nodes.KeywordRestParameterNode) parametersNode.keyword_rest;
+                type = (keywordRestParameterNode.name == null) ? ArgumentType.anonkeyrest : ArgumentType.keyrest;
+
+                if (keywordRestParameterNode.name != null) {
+                    name = keywordRestParameterNode.name;
+                } else {
+                    name = YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME;
+                }
+            } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
+                type = ArgumentType.keyrest;
+                name = YARPLoadArgumentsTranslator.DEFAULT_NO_KEYWORD_REST_NAME;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+
+            descriptors.add(new ArgumentDescriptor(type, name));
+        }
+
+        if (parametersNode.block != null) {
+            descriptors.add(new ArgumentDescriptor(ArgumentType.block, parametersNode.block.name));
+        }
+
+        return descriptors.toArray(ArgumentDescriptor.EMPTY_ARRAY);
+    }
+
+    private Arity createArity(Nodes.ParametersNode parametersNode) {
+        if (parametersNode == null) {
+            return new Arity(0, 0, false);
+        }
+
+        final String[] keywordArguments;
+        final int requiredKeywordArgumentsCount;
+
+        if (parametersNode.keywords.length > 0) {
+            final List<String> requiredKeywords = new ArrayList<>();
+            final List<String> optionalKeywords = new ArrayList<>();
+
+            for (var node : parametersNode.keywords) {
+                final var keywordParameterNode = (Nodes.KeywordParameterNode) node;
+                final String name = keywordParameterNode.name;
+
+                if (keywordParameterNode.value == null) {
+                    requiredKeywords.add(name);
+                } else {
+                    optionalKeywords.add(name);
+                }
+            }
+
+            final List<String> keywords = new ArrayList<>(requiredKeywords);
+            keywords.addAll(optionalKeywords);
+
+            keywordArguments = keywords.toArray(StringUtils.EMPTY_STRING_ARRAY);
+            requiredKeywordArgumentsCount = requiredKeywords.size();
+        } else {
+            keywordArguments = Arity.NO_KEYWORDS;
+            requiredKeywordArgumentsCount = 0;
+        }
+
+        return new Arity(
+                parametersNode.requireds.length,
+                parametersNode.optionals.length,
+                parametersNode.rest != null,
+                parametersNode.posts.length,
+                keywordArguments,
+                requiredKeywordArgumentsCount,
+                parametersNode.keyword_rest != null);
     }
 
 }

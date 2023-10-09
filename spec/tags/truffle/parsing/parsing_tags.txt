@@ -57,39 +57,8 @@ fails:Parsing a class << (reopen an object singleton class) case is parsed corre
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Integer is represented as `Complext.convert(0, Rational.convert(b, 1))`) case is parsed correctly
 fails:Parsing a Complex number (Complex literal in format of a + bi is represented as `a + Complex.convert(0, b)`) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with block (def a(&b))) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with double splat operator (**kw)) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with double splat operator without variable name (**)) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with keyword arguments) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with optional keyword arguments) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with optional positional parameters) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / when multiple positional parameters only) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with splat operator and preceding and following parameters) case is parsed correctly
-fails:Parsing a Def (Argument descriptors / with splat operator without name and preceding and following parameters) case is parsed correctly
-fails:Parsing a Def (Arity / with block (def a(&b))) case is parsed correctly
-fails:Parsing a Def (Arity / with double splat operator (**kw)) case is parsed correctly
-fails:Parsing a Def (Arity / with keyword arguments) case is parsed correctly
-fails:Parsing a Def (Arity / with optional keyword arguments) case is parsed correctly
-fails:Parsing a Def (Arity / with optional positional parameters) case is parsed correctly
-fails:Parsing a Def (Arity / when multiple positional parameters only) case is parsed correctly
-fails:Parsing a Def (Arity / with splat operator and preceding and following parameters) case is parsed correctly
 fails:Parsing a Def (Name / Non singleton / in an anonymous module) case is parsed correctly
-fails:Parsing a Def (Name / Non singleton / in a module) case is parsed correctly
-fails:Parsing a Def (Name / Non singleton / when top-level method) case is parsed correctly
 fails:Parsing a Def (Name / Singleton / in an anonymous module) case is parsed correctly
-fails:Parsing a Def (Name / Singleton / in a module) case is parsed correctly
-fails:Parsing a Def (Name / Singleton / when top-level method) case is parsed correctly
-fails:Parsing a Def (Name / Singleton / when top-level method and `self` receiver) case is parsed correctly
-fails:Parsing a Def (Parameters declaration in a frame / with block (def a(&b))) case is parsed correctly
-fails:Parsing a Def (Parameters declaration in a frame / with all kinds of positional and keyword parameters) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with block (def a(&b))) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with double splat operator (**kw)) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with keyword arguments) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with optional keyword arguments) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with optional positional parameters) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / when multiple positional parameters only) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / with splat operator and preceding and following parameters) case is parsed correctly
-fails:Parsing a Def (Parameters to local variables / without parameters) case is parsed correctly
 fails:Parsing a Def (Tail expression / with explicit return inside then branch of the `if` operator) case is parsed correctly
 fails:Parsing a Def (Tail expression / with explicit return inside then/else branches of the `if` operator) case is parsed correctly
 fails:Parsing a Def (Tail expression / with explicit return at the end of a sequence of multiple expressions) case is parsed correctly
@@ -109,6 +78,10 @@ fails:Parsing a Local variable (in a block / reading a local variable) case is p
 fails:Parsing a Local variable (in a block / assigning a local variable new value) case is parsed correctly
 fails:Parsing a Local variable (in a block but defined in an outer scope / reading a local variable) case is parsed correctly
 fails:Parsing a Local variable (in a block but defined in an outer scope / assigning a local variable new value) case is parsed correctly
+fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
 fails:Parsing a Method call (Arguments/with a &-deconstruction to a block argument (&bar)) case is parsed correctly
 fails:Parsing a Method call (Arguments/with block literal argument) case is parsed correctly
 fails:Parsing a Method call (Arguments/with double splat operator (**kw)) case is parsed correctly
