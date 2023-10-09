@@ -592,22 +592,18 @@ public abstract class StringHelperNodes {
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class StringAppendNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static StringAppendNode create() {
-            return StringHelperNodesFactory.StringAppendNodeGen.create();
-        }
-
-        public abstract RubyString executeStringAppend(Object string, Object other);
+        public abstract RubyString executeStringAppend(Node node, Object string, Object other);
 
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
-        static RubyString stringAppend(Object string, Object other,
+        static RubyString stringAppend(Node node, Object string, Object other,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,
-                @Cached TruffleString.ConcatNode concatNode,
-                @Bind("this") Node node) {
+                @Cached(inline = false) TruffleString.ConcatNode concatNode) {
 
             var left = libString.getTString(string);
             var leftEncoding = libString.getEncoding(string);

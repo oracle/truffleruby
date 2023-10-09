@@ -222,7 +222,7 @@ public abstract class StringNodes {
                 @Cached ToStrNode toStrNode,
                 @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
             final var otherAsString = toStrNode.execute(this, other);
-            return stringAppendNode.executeStringAppend(string, otherAsString);
+            return stringAppendNode.executeStringAppend(this, string, otherAsString);
         }
     }
 
@@ -3105,9 +3105,6 @@ public abstract class StringNodes {
     @Primitive(name = "string_append")
     public abstract static class StringAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringHelperNodes.StringAppendNode stringAppendNode = StringHelperNodes.StringAppendNode
-                .create();
-
         @NeverDefault
         public static StringAppendPrimitiveNode create() {
             return StringAppendPrimitiveNodeFactory.create(null);
@@ -3116,8 +3113,9 @@ public abstract class StringNodes {
         public abstract RubyString executeStringAppend(RubyString string, Object other);
 
         @Specialization
-        RubyString stringAppend(RubyString string, Object other) {
-            final RubyString result = stringAppendNode.executeStringAppend(string, other);
+        RubyString stringAppend(RubyString string, Object other,
+                @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
+            final RubyString result = stringAppendNode.executeStringAppend(this, string, other);
             string.setTString(result.tstring, result.getEncodingUnprofiled());
             return string;
         }
