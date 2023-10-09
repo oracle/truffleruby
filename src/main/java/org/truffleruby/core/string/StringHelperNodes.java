@@ -443,19 +443,16 @@ public abstract class StringHelperNodes {
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static NormalizeIndexNode create() {
-            return StringHelperNodesFactory.NormalizeIndexNodeGen.create();
-        }
-
-        public abstract int executeNormalize(int index, int length);
+        public abstract int executeNormalize(Node node, int index, int length);
 
         @Specialization
-        int normalizeIndex(int index, int length,
+        static int normalizeIndex(Node node, int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile) {
-            if (negativeIndexProfile.profile(this, index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 return index + length;
             }
 
