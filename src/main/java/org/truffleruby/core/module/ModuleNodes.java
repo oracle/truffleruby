@@ -617,9 +617,9 @@ public abstract class ModuleNodes {
         static Object autoload(RubyModule module, Object nameObject, Object filename,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
-                @Bind("toPathNode.execute(filename)") Object filenameAsPath,
-                @Cached RubyStringLibrary libFilename,
-                @Bind("this") Node node) {
+                @Bind("this") Node node,
+                @Bind("toPathNode.execute(node, filename)") Object filenameAsPath,
+                @Cached RubyStringLibrary libFilename) {
             final var name = nameToJavaStringNode.execute(node, nameObject);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
