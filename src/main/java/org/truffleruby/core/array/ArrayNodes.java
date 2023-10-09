@@ -138,9 +138,10 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 limit = "storageStrategyLimit()")
-        RubyArray addGeneralize(RubyArray a, Object bObject,
+        static RubyArray addGeneralize(RubyArray a, Object bObject,
                 @Cached ToAryNode toAryNode,
-                @Bind("toAryNode.execute(bObject)") RubyArray b,
+                @Bind("this") Node node,
+                @Bind("toAryNode.execute(node, bObject)") RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary as,
@@ -153,7 +154,7 @@ public abstract class ArrayNodes {
             Object newStore = as.unsharedAllocateForNewStore(aStore, bStore, combinedSize);
             as.copyContents(aStore, 0, newStore, 0, aSize);
             bs.copyContents(bStore, 0, newStore, aSize, bSize);
-            return createArray(newStore, combinedSize);
+            return createArray(node, newStore, combinedSize);
         }
 
     }
@@ -595,7 +596,7 @@ public abstract class ArrayNodes {
         RubyArray concatOne(RubyArray array, Object first, Object[] rest,
                 @Cached @Shared ToAryNode toAryNode,
                 @Cached @Shared ArrayAppendManyNode appendManyNode) {
-            appendManyNode.executeAppendMany(array, toAryNode.execute(first));
+            appendManyNode.executeAppendMany(array, toAryNode.execute(this, first));
             return array;
         }
 
@@ -615,11 +616,11 @@ public abstract class ArrayNodes {
                 @Cached @Shared ConditionProfile selfArgProfile) {
             int size = array.size;
             RubyArray copy = createArray(cowNode.execute(array, 0, size), size);
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(this, first));
             for (int i = 0; i < cachedLength; ++i) {
                 final RubyArray argOrCopy = selfArgProfile.profile(rest[i] == array)
                         ? copy
-                        : toAryNode.execute(rest[i]);
+                        : toAryNode.execute(this, rest[i]);
                 result = appendManyNode.executeAppendMany(array, argOrCopy);
             }
             return result;
@@ -638,7 +639,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             Object store = cowNode.execute(array, 0, size);
 
-            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.execute(this, first));
             int i = 0;
             try {
                 for (; loopProfile.inject(i < rest.length); i++) {
@@ -646,7 +647,7 @@ public abstract class ArrayNodes {
                     if (selfArgProfile.profile(arg == array)) {
                         result = appendManyNode.executeAppendMany(array, createArray(store, size));
                     } else {
-                        result = appendManyNode.executeAppendMany(array, toAryNode.execute(arg));
+                        result = appendManyNode.executeAppendMany(array, toAryNode.execute(this, arg));
                     }
                     TruffleSafepoint.poll(this);
                 }
@@ -1286,7 +1287,7 @@ public abstract class ArrayNodes {
         RubyArray initializeCopy(RubyArray self, Object fromObject,
                 @Cached ToAryNode toAryNode,
                 @Cached ReplaceNode replaceNode) {
-            final var from = toAryNode.execute(fromObject);
+            final var from = toAryNode.execute(this, fromObject);
             if (self == from) {
                 return self;
             }
@@ -1797,7 +1798,7 @@ public abstract class ArrayNodes {
                 @Cached IsSharedNode isSharedNode,
                 @Cached ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
-            final var other = toAryNode.execute(otherObject);
+            final var other = toAryNode.execute(this, otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
             if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {

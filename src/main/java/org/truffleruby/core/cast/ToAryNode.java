@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -16,25 +19,25 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.dispatch.DispatchNode;
 
+@GenerateCached(false)
+@GenerateInline
 public abstract class ToAryNode extends RubyBaseNode {
 
-
-    public abstract RubyArray execute(Object object);
-
+    public abstract RubyArray execute(Node node, Object object);
 
     @Specialization
-    RubyArray coerceRubyArray(RubyArray array) {
+    static RubyArray coerceRubyArray(RubyArray array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    RubyArray coerceObject(Object object,
-            @Cached DispatchNode toAryNode) {
+    static RubyArray coerceObject(Node node, Object object,
+            @Cached(inline = false) DispatchNode toAryNode) {
         return (RubyArray) toAryNode.call(
-                coreLibrary().truffleTypeModule,
+                coreLibrary(node).truffleTypeModule,
                 "rb_convert_type",
                 object,
-                coreLibrary().arrayClass,
-                coreSymbols().TO_ARY);
+                coreLibrary(node).arrayClass,
+                coreSymbols(node).TO_ARY);
     }
 }
