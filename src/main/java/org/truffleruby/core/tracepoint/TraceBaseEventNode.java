@@ -64,7 +64,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
             yieldNode = insert(CallBlockNode.create());
         }
 
-        return yieldNode.yield(block, arguments);
+        return yieldNode.yieldCached(block, arguments);
     }
 
 }

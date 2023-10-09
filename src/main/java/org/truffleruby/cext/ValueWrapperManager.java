@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -283,35 +285,39 @@ public final class ValueWrapperManager {
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class AllocateHandleNode extends RubyBaseNode {
 
         private static final Set<ValueWrapper> keepAlive = ConcurrentHashMap.newKeySet();
 
-        public abstract long execute(ValueWrapper wrapper);
+        public abstract long execute(Node node, ValueWrapper wrapper);
 
         @Specialization(guards = "!isSharedObject(wrapper)")
-        long allocateHandleOnKnownThread(ValueWrapper wrapper) {
-            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+        static long allocateHandleOnKnownThread(Node node, ValueWrapper wrapper) {
+            if (getContext(node).getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
                 keepAlive(wrapper);
             }
             return allocateHandle(
+                    node,
                     wrapper,
-                    getContext(),
-                    getLanguage(),
-                    getBlockHolder(getContext(), getLanguage()),
+                    getContext(node),
+                    getLanguage(node),
+                    getBlockHolder(getContext(node), getLanguage(node)),
                     false);
         }
 
         @Specialization(guards = "isSharedObject(wrapper)")
-        long allocateSharedHandleOnKnownThread(ValueWrapper wrapper) {
-            if (getContext().getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+        static long allocateSharedHandleOnKnownThread(Node node, ValueWrapper wrapper) {
+            if (getContext(node).getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
                 keepAlive(wrapper);
             }
             return allocateHandle(
+                    node,
                     wrapper,
-                    getContext(),
-                    getLanguage(),
-                    getBlockHolder(getContext(), getLanguage()),
+                    getContext(node),
+                    getLanguage(node),
+                    getBlockHolder(getContext(node), getLanguage(node)),
                     true);
         }
 
@@ -320,8 +326,8 @@ public final class ValueWrapperManager {
             keepAlive.add(wrapper);
         }
 
-        protected long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
-                HandleBlockHolder holder, boolean shared) {
+        protected static long allocateHandle(Node node, ValueWrapper wrapper, RubyContext context,
+                RubyLanguage language, HandleBlockHolder holder, boolean shared) {
             HandleBlock block;
             if (shared) {
                 block = holder.sharedHandleBlock;
@@ -334,7 +340,7 @@ public final class ValueWrapperManager {
             }
 
             if (context.getOptions().BACKTRACE_ON_TO_NATIVE) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("ValueWrapper#toNative: ", this);
+                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("ValueWrapper#toNative: ", node);
             }
 
             if (block == null || block.isFull()) {

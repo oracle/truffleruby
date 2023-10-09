@@ -154,8 +154,9 @@ public final class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         static boolean isMemberReadable(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
-            return hasLocalVariableNode.execute(scope.binding, member);
+                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode,
+                @Bind("this") Node node) {
+            return hasLocalVariableNode.execute(node, scope.binding, member);
         }
     }
 
@@ -168,8 +169,9 @@ public final class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         static boolean isMemberModifiable(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
-            return hasLocalVariableNode.execute(scope.binding, member);
+                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode,
+                @Bind("this") Node node) {
+            return hasLocalVariableNode.execute(node, scope.binding, member);
         }
     }
 

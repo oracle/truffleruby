@@ -392,23 +392,20 @@ public abstract class StringHelperNodes {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class StringGetAssociatedNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static StringGetAssociatedNode create() {
-            return StringHelperNodesFactory.StringGetAssociatedNodeGen.create();
-        }
-
-        public abstract Object execute(Object string);
+        public abstract Object execute(Node node, Object string);
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
-        Object getAssociated(RubyString string,
+        static Object getAssociated(RubyString string,
                 @CachedLibrary("string") DynamicObjectLibrary objectLibrary) {
             return objectLibrary.getOrDefault(string, Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         @Specialization
-        Object getAssociatedImmutable(ImmutableRubyString string) {
+        static Object getAssociatedImmutable(ImmutableRubyString string) {
             return null;
         }
 

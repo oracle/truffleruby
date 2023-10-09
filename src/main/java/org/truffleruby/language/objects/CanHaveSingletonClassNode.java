@@ -10,42 +10,47 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@GenerateCached(false)
+@GenerateInline
 public abstract class CanHaveSingletonClassNode extends RubyBaseNode {
 
-    public static CanHaveSingletonClassNode getUncached() {
-        return CanHaveSingletonClassNodeGen.getUncached();
+    public static boolean executeUncached(Object value) {
+        return CanHaveSingletonClassNodeGen.getUncached().execute(null, value);
     }
 
-    public abstract boolean execute(Object value);
+    public abstract boolean execute(Node node, Object value);
 
     @Specialization
-    boolean canHaveSingletonClass(int value) {
+    static boolean canHaveSingletonClass(int value) {
         return false;
     }
 
     @Specialization
-    boolean canHaveSingletonClass(long value) {
+    static boolean canHaveSingletonClass(long value) {
         return false;
     }
 
     @Specialization
-    boolean canHaveSingletonClass(double value) {
+    static boolean canHaveSingletonClass(double value) {
         return false;
     }
 
     @Specialization(guards = "!isNil(value)")
-    boolean canHaveSingletonClass(ImmutableRubyObject value) {
+    static boolean canHaveSingletonClass(ImmutableRubyObject value) {
         return false;
     }
 
     @Fallback
-    boolean fallback(Object value) {
+    static boolean fallback(Object value) {
         return true;
     }
 

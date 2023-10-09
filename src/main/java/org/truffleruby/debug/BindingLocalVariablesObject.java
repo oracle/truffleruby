@@ -81,8 +81,9 @@ public final class BindingLocalVariablesObject implements TruffleObject {
     @ExportMessage(name = "isMemberReadable")
     @ExportMessage(name = "isMemberModifiable")
     protected boolean memberExists(String member,
-            @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
-        return hasLocalVariableNode.execute(binding, member);
+            @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode,
+            @Bind("$node") Node node) {
+        return hasLocalVariableNode.execute(node, binding, member);
     }
 
     @ExportMessage

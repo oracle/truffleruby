@@ -11,6 +11,7 @@ package org.truffleruby.core;
 
 import java.util.ArrayList;
 
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.cext.CapturedException;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.array.ArrayUtils;
@@ -43,7 +44,7 @@ public final class MarkingService {
 
         private final ExtensionCallStackEntry previous;
         ValueWrapper preservedObject;
-        ArrayList<ValueWrapper> preservedObjects;
+        @SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR") ArrayList<ValueWrapper> preservedObjectList;
         private final boolean keywordsGiven;
         private Object specialVariables;
         private final Object block;
@@ -79,7 +80,11 @@ public final class MarkingService {
         }
 
         public boolean hasSingleKeptObject() {
-            return current.preservedObject != null && current.preservedObjects == null;
+            return current.preservedObject != null && current.preservedObjectList == null;
+        }
+
+        public boolean isPreservedObjectListInitialized() {
+            return current.preservedObjectList != null;
         }
 
         public void markOnExitObject(ValueWrapper value) {

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
@@ -452,30 +454,28 @@ public abstract class TypeNodes {
         @Specialization
         Object check(Object value,
                 @Cached CheckFrozenNode checkFrozenNode) {
-            checkFrozenNode.execute(value);
+            checkFrozenNode.execute(this, value);
 
             return value;
         }
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class CheckFrozenNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static CheckFrozenNode create() {
-            return TypeNodesFactory.CheckFrozenNodeGen.create();
-        }
-
-        public abstract void execute(Object object);
+        public abstract void execute(Node node, Object object);
 
         @Specialization
-        void check(Object value,
-                @Cached IsFrozenNode isFrozenNode,
+        static void check(Node node, Object value,
+                // IsFrozenNode can't be inlined since known bug (GR-45912)
+                @Cached(inline = false) IsFrozenNode isFrozenNode,
                 @Cached InlinedBranchProfile errorProfile) {
 
             if (isFrozenNode.execute(value)) {
-                errorProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
+                errorProfile.enter(node);
+                throw new RaiseException(getContext(node), coreExceptions(node).frozenError(value, node));
             }
         }
     }

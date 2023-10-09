@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyLanguage;
@@ -180,7 +182,7 @@ public abstract class HashNodes {
                 @Cached DispatchNode initializeDupNode) {
             final RubyHash newObject = new RubyHash(self.getLogicalClass(), getLanguage().hashShape, getContext(),
                     EmptyHashStore.NULL_HASH_STORE, 0, ruby2_keywords);
-            copyInstanceVariablesNode.execute(newObject, self);
+            copyInstanceVariablesNode.execute(this, newObject, self);
             initializeDupNode.call(newObject, "initialize_dup", self);
             return newObject;
         }
@@ -322,16 +324,17 @@ public abstract class HashNodes {
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "hashStrategyLimit()")
-        Object delete(RubyHash hash, Object key, Object maybeBlock,
+        static Object delete(RubyHash hash, Object key, Object maybeBlock,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes,
                 @Cached CallBlockNode yieldNode,
                 @Cached @Shared InlinedConditionProfile hasValue,
-                @Cached @Shared InlinedConditionProfile hasBlock) {
+                @Cached @Shared InlinedConditionProfile hasBlock,
+                @Bind("this") Node node) {
             final Object value = hashes.delete(hash.store, hash, key);
-            if (hasValue.profile(this, value != null)) {
+            if (hasValue.profile(node, value != null)) {
                 return value;
-            } else if (hasBlock.profile(this, maybeBlock != nil)) {
-                return yieldNode.yield((RubyProc) maybeBlock, key);
+            } else if (hasBlock.profile(node, maybeBlock != nil)) {
+                return yieldNode.yield(node, (RubyProc) maybeBlock, key);
             } else {
                 return nil;
             }
@@ -353,7 +356,7 @@ public abstract class HashNodes {
 
         @Override
         public void accept(int index, Object key, Object value, Object state) {
-            callBlockNode.yield((RubyProc) state, createArray(new Object[]{ key, value }));
+            callBlockNode.yieldCached((RubyProc) state, createArray(new Object[]{ key, value }));
         }
     }
 

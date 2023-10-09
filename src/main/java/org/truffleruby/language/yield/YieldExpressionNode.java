@@ -71,7 +71,7 @@ public final class YieldExpressionNode extends LiteralCallNode {
             descriptor = EmptyArgumentsDescriptor.INSTANCE;
         }
 
-        return getYieldNode().yield(block, descriptor, argumentsObjects);
+        return getYieldNode().yieldCached(block, descriptor, argumentsObjects);
     }
 
     private Object[] unsplat(Object[] argumentsObjects) {

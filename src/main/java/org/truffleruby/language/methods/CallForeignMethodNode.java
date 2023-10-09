@@ -69,7 +69,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             return foreignInvokeNode.execute(this, receiver, methodName, newArguments);
         } catch (Throwable t) {
             errorProfile.enter(this);
-            throw translateException.executeTranslation(t);
+            throw translateException.execute(this, t);
         }
     }
 

@@ -350,7 +350,7 @@ public abstract class ThreadNodes {
                     runPendingSafepointActions("before");
                 }
 
-                return yieldNode.yield(block);
+                return yieldNode.yield(this, block);
             } finally {
                 self.interruptMode = oldInterruptMode;
                 safepoint.setAllowSideEffects(prevSideEffects);
@@ -783,7 +783,6 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_detect_recursion_single")
     public abstract static class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 
         protected boolean add(RubyHash hash, Object key, Object value) {
@@ -796,11 +795,12 @@ public abstract class ThreadNodes {
 
         @Specialization
         boolean detectRecursionSingle(Object obj, RubyProc block,
-                @Cached InlinedConditionProfile insertedProfile) {
+                @Cached InlinedConditionProfile insertedProfile,
+                @Cached CallBlockNode yieldNode) {
             RubyHash objects = getLanguage().getCurrentThread().recursiveObjectsSingle;
             if (insertedProfile.profile(this, add(objects, obj, true))) {
                 try {
-                    yieldNode.yield(block);
+                    yieldNode.yield(this, block);
                 } finally {
                     removeLast(objects, obj);
                 }
@@ -1049,10 +1049,9 @@ public abstract class ThreadNodes {
         // Skip the block of `Thread#each_caller_location` + its internal iteration.
         private static final int SKIP = 2;
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
-
         @Specialization
-        Object eachCallerLocation(VirtualFrame frame, RubyProc block) {
+        Object eachCallerLocation(VirtualFrame frame, RubyProc block,
+                @Cached CallBlockNode yieldNode) {
             final List<TruffleStackTraceElement> elements = new ArrayList<>();
 
             getContext().getCallStack().iterateFrameBindings(SKIP, frameInstance -> {
@@ -1075,7 +1074,7 @@ public abstract class ThreadNodes {
                                 backtrace,
                                 i);
 
-                        yieldNode.yield(block, rubyBacktraceLocation);
+                        yieldNode.yield(this, block, rubyBacktraceLocation);
                     }
                     elements.clear();
                 }

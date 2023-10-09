@@ -135,7 +135,7 @@ public abstract class MutexNodes {
              * locks list to be in consistent state at the end. */
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
-                return yieldNode.yield(block);
+                return yieldNode.yield(this, block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
                 MutexOperations.unlock(lock, thread);
@@ -156,7 +156,7 @@ public abstract class MutexNodes {
                 maybeDuration = NotProvided.INSTANCE;
             }
 
-            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+            long durationInNanos = durationToNanoSecondsNode.execute(this, maybeDuration);
 
             final ReentrantLock lock = mutex.lock;
             final RubyThread thread = getLanguage().getCurrentThread();

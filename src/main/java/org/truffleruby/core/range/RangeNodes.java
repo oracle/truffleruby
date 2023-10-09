@@ -14,6 +14,8 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
@@ -78,7 +80,7 @@ public abstract class RangeNodes {
             int n = 0;
             try {
                 for (; loopProfile.inject(this, n < length); n++) {
-                    arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
+                    arrayBuilder.appendValue(state, n, yieldNode.yield(this, block, begin + n));
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n);
@@ -113,7 +115,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n - range.begin);
@@ -137,7 +139,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; loopProfile.inject(this, n < exclusiveEnd); n++) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, n - range.begin);
@@ -230,7 +232,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; loopProfile.inject(n < result); n += step) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, n - range.begin);
@@ -252,7 +254,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    yieldNode.yield(block, n);
+                    yieldNode.yield(this, block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);
@@ -387,68 +389,69 @@ public abstract class RangeNodes {
                 @Cached BooleanCastWithDefaultNode booleanCastWithDefaultNode,
                 @Cached NewRangeNode newRangeNode) {
             final boolean excludeEnd = booleanCastWithDefaultNode.execute(this, maybeExcludeEnd, false);
-            return newRangeNode.execute(rubyClass, begin, end, excludeEnd);
+            return newRangeNode.execute(this, rubyClass, begin, end, excludeEnd);
         }
     }
 
-    public static final class RangeLiteralNode extends RubyContextSourceNode {
+    @NodeChild(value = "beginNode", type = RubyNode.class)
+    @NodeChild(value = "endNode", type = RubyNode.class)
+    @NodeField(name = "excludeEnd", type = Boolean.class)
+    public abstract static class RangeLiteralNode extends RubyContextSourceNode {
 
-        @Child RubyNode beginNode;
-        @Child RubyNode endNode;
-        @Child NewRangeNode newRangeNode = RangeNodesFactory.NewRangeNodeGen.create();
-        private final boolean excludeEnd;
+        abstract RubyNode getBeginNode();
 
-        public RangeLiteralNode(RubyNode beginNode, RubyNode endNode, boolean excludeEnd) {
-            this.beginNode = beginNode;
-            this.endNode = endNode;
-            this.excludeEnd = excludeEnd;
-        }
+        abstract RubyNode getEndNode();
 
-        @Override
-        public Object execute(VirtualFrame frame) {
-            Object begin = beginNode.execute(frame);
-            Object end = endNode.execute(frame);
-            return newRangeNode.execute(coreLibrary().rangeClass, begin, end, excludeEnd);
+        abstract boolean getExcludeEnd();
+
+        @Specialization
+        Object doRange(Object begin, Object end,
+                @Cached NewRangeNode newRangeNode) {
+            return newRangeNode.execute(this, coreLibrary().rangeClass, begin, end, getExcludeEnd());
         }
 
         @Override
         public RubyNode cloneUninitialized() {
-            return new RangeLiteralNode(beginNode.cloneUninitialized(), endNode.cloneUninitialized(), excludeEnd)
+            return RangeNodesFactory.RangeLiteralNodeGen
+                    .create(getBeginNode().cloneUninitialized(), getEndNode().cloneUninitialized(), getExcludeEnd())
                     .copyFlags(this);
         }
     }
 
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class NewRangeNode extends RubyBaseNode {
 
-        public abstract Object execute(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
+        public abstract Object execute(Node node, RubyClass rubyClass, Object begin, Object end, boolean excludeEnd);
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
+        static RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
-        RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        static RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyIntRange(excludeEnd, (int) begin, (int) end);
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
-        RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
+        static RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             return new RubyLongRange(excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "!standardClass || (!isImplicitLong(begin) || !isImplicitLong(end))" })
-        RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached DispatchNode compare,
+        static RubyObjectRange objectRange(Node node, RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
+                @Cached(inline = false) DispatchNode compare,
                 @Bind("rubyClass == getRangeClass()") boolean standardClass) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).argumentError("bad value for range", node));
             }
 
-            final Shape shape = getLanguage().objectRangeShape;
+            final Shape shape = getLanguage(node).objectRangeShape;
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end, standardClass);
-            AllocationTracing.trace(range, this);
+            AllocationTracing.trace(range, node);
             return range;
         }
 

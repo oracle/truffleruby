@@ -172,7 +172,7 @@ public abstract class ReadlineHistoryNodes {
                         fromJavaStringNode,
                         historyEntryToString(e),
                         getLocaleEncoding());
-                yieldNode.yield(block, line);
+                yieldNode.yield(this, block, line);
             }
 
             return history;

@@ -84,7 +84,7 @@ public abstract class TryNode extends RubyContextSourceNode {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     translateExceptionNode = insert(TranslateExceptionNode.create());
                 }
-                throw translateExceptionNode.executeTranslation(t);
+                throw translateExceptionNode.executeCached(t);
             }
 
             if (elsePart != null) {

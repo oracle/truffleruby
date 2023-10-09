@@ -206,7 +206,7 @@ public abstract class PolyglotNodes {
                     .initializeCreatorContext(false)
                     .inheritAllAccess(inheritAllAccess)
                     .forceSharing(codeSharingBoolean)
-                    .onCancelled(() -> CallBlockNode.getUncached().yield(onCancelledCallback))
+                    .onCancelled(() -> CallBlockNode.yieldUncached(onCancelledCallback))
                     .build();
 
             return new RubyInnerContext(

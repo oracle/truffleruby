@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -18,25 +21,27 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 public abstract class LongCastNode extends RubyBaseNode {
 
-    public abstract long executeCastLong(Object value);
+    public abstract long executeCastLong(Node node, Object value);
 
     @Specialization
-    long doInt(int value) {
+    static long doInt(int value) {
         return value;
     }
 
     @Specialization
-    long doLong(long value) {
+    static long doLong(long value) {
         return value;
     }
 
     @TruffleBoundary
     @Specialization(guards = "!isImplicitLong(value)")
-    long doBasicObject(Object value) {
+    static long doBasicObject(Node node, Object value) {
         throw new RaiseException(
-                getContext(),
-                coreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in long)", this));
+                getContext(node),
+                coreExceptions(node).typeErrorIsNotA(value.toString(), "Integer (fitting in long)", node));
     }
 }

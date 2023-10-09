@@ -11,6 +11,8 @@ package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
@@ -280,7 +282,7 @@ public abstract class BasicObjectNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return instanceExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return instanceExecNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -365,7 +367,7 @@ public abstract class BasicObjectNodes {
             // For BasicObject#instance_eval, the new scopes SHOULD affect constant lookup but SHOULD NOT affect class variables lookup
             LexicalScope lexicalScope = new LexicalScope(callerLexicalScope, logicalClass, true);
 
-            if (CanHaveSingletonClassNode.getUncached().execute(receiver)) {
+            if (CanHaveSingletonClassNode.executeUncached(receiver)) {
                 final RubyClass singletonClass = SingletonClassNode.getUncached().execute(receiver);
 
                 // For true/false/nil Ruby objects #singleton_class (and SingletonClassNode as well) returns
@@ -398,7 +400,8 @@ public abstract class BasicObjectNodes {
                     new SingletonClassOfSelfDefaultDefinee(receiver),
                     block.declarationContext.getRefinements());
             var descriptor = RubyArguments.getDescriptor(frame);
-            return callBlockNode.executeCallBlock(declarationContext, block, receiver, nil, descriptor, arguments);
+            return callBlockNode.executeCallBlock(this, declarationContext, block, receiver, nil, descriptor,
+                    arguments);
         }
 
         @Specialization
@@ -409,19 +412,23 @@ public abstract class BasicObjectNodes {
     }
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class InstanceExecBlockNode extends RubyBaseNode {
 
-        public abstract Object execute(ArgumentsDescriptor descriptor, Object self, Object[] args, RubyProc block);
+        public abstract Object execute(Node node, ArgumentsDescriptor descriptor, Object self, Object[] args,
+                RubyProc block);
 
         @Specialization
-        Object instanceExec(ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
+        static Object instanceExec(
+                Node node, ArgumentsDescriptor descriptor, Object self, Object[] arguments, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, nil, descriptor, arguments);
+            return callBlockNode.executeCallBlock(node, declarationContext, block, self, nil, descriptor, arguments);
         }
 
     }

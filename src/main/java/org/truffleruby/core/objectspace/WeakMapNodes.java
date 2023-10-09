@@ -117,7 +117,7 @@ public abstract class WeakMapNodes {
         RubyWeakMap eachKey(RubyWeakMap map, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             for (Object key : keys(map.storage)) {
-                yieldNode.yield(block, key);
+                yieldNode.yield(this, block, key);
             }
             return map;
         }
@@ -135,7 +135,7 @@ public abstract class WeakMapNodes {
         RubyWeakMap eachValue(RubyWeakMap map, RubyProc block,
                 @Cached CallBlockNode yieldNode) {
             for (Object value : values(map.storage)) {
-                yieldNode.yield(block, value);
+                yieldNode.yield(this, block, value);
             }
             return map;
         }
@@ -154,7 +154,7 @@ public abstract class WeakMapNodes {
                 @Cached CallBlockNode yieldNode) {
 
             for (SimpleEntry<?, ?> entry : entries(map.storage)) {
-                yieldNode.yield(block, entry.getKey(), entry.getValue());
+                yieldNode.yield(this, block, entry.getKey(), entry.getValue());
             }
 
             return map;

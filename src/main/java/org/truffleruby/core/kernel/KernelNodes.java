@@ -433,17 +433,22 @@ public abstract class KernelNodes {
 
     @ImportStatic(ShapeCachingGuards.class)
     @GenerateUncached
+    @GenerateInline(inlineByDefault = true)
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
         public static final PropertyGetter[] EMPTY_PROPERTY_GETTER_ARRAY = new PropertyGetter[0];
 
-        public abstract RubyDynamicObject execute(RubyDynamicObject newObject, RubyDynamicObject from);
+        public abstract RubyDynamicObject execute(Node node, RubyDynamicObject newObject, RubyDynamicObject from);
+
+        public final RubyDynamicObject executeCached(RubyDynamicObject newObject, RubyDynamicObject from) {
+            return execute(this, newObject, from);
+        }
 
         @ExplodeLoop
         @Specialization(
                 guards = { "from.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
                 limit = "getDynamicObjectCacheLimit()")
-        RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
+        static RubyDynamicObject copyCached(RubyDynamicObject newObject, RubyDynamicObject from,
                 @Cached("from.getShape()") Shape cachedShape,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) PropertyGetter[] propertyGetters,
                 @Cached("createWriteFieldNodes(propertyGetters)") DynamicObjectLibrary[] writeFieldNodes) {
@@ -457,17 +462,18 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(from)")
-        RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from) {
-            return execute(newObject, from);
+        static RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from,
+                @Cached(inline = false) CopyInstanceVariablesNode copyInstanceVariablesNode) {
+            return copyInstanceVariablesNode.executeCached(newObject, from);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
+        static RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
             copyInstanceVariables(from, newObject);
             return newObject;
         }
 
-        protected PropertyGetter[] getCopiedProperties(Shape shape) {
+        protected static PropertyGetter[] getCopiedProperties(Shape shape) {
             final List<PropertyGetter> copiedProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
@@ -488,7 +494,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
+        private static void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
             Shape shape = from.getShape();
@@ -512,7 +518,7 @@ public abstract class KernelNodes {
                 @Cached DispatchNode allocateNode,
                 @Cached @Exclusive CopyInstanceVariablesNode copyInstanceVariablesNode) {
             var newObject = (RubyDynamicObject) allocateNode.call(self.getLogicalClass(), "__allocate__");
-            copyInstanceVariablesNode.execute(newObject, self);
+            copyInstanceVariablesNode.execute(this, newObject, self);
             return newObject;
         }
 
@@ -526,7 +532,7 @@ public abstract class KernelNodes {
             }
             var newClass = new RubyClass(coreLibrary().classClass, getLanguage(), getEncapsulatingSourceSection(),
                     null, null, false, null, self.superclass);
-            copyInstanceVariablesNode.execute(newClass, self);
+            copyInstanceVariablesNode.execute(this, newClass, self);
             return newClass;
         }
 
@@ -943,7 +949,7 @@ public abstract class KernelNodes {
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
                 @Cached InlinedBranchProfile errorProfile) {
-            checkFrozenNode.execute(self);
+            checkFrozenNode.execute(this, self);
 
             if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
                 errorProfile.enter(this);
@@ -1032,7 +1038,7 @@ public abstract class KernelNodes {
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             writeNode.execute(this, object, nameString, value);
             return value;
         }
@@ -1057,7 +1063,7 @@ public abstract class KernelNodes {
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
             checkIVarNameNode.execute(object, nameString, name);
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             return removeIVar(object, nameString);
         }
 
@@ -1591,7 +1597,7 @@ public abstract class KernelNodes {
         @Specialization
         long sleep(Object maybeDuration,
                 @Cached DurationToNanoSecondsNode durationToNanoSecondsNode) {
-            long durationInNanos = durationToNanoSecondsNode.execute(maybeDuration);
+            long durationInNanos = durationToNanoSecondsNode.execute(this, maybeDuration);
             assert durationInNanos >= 0;
 
             final RubyThread thread = getLanguage().getCurrentThread();
@@ -1745,35 +1751,38 @@ public abstract class KernelNodes {
         @Specialization
         String toHexString(Object value,
                 @Cached ToHexStringNode toHexStringNode) {
-            return toHexStringNode.execute(value);
+            return toHexStringNode.execute(this, value);
         }
     }
 
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class ToHexStringNode extends RubyBaseNode {
 
-        public static ToHexStringNode getUncached() {
-            return KernelNodesFactory.ToHexStringNodeGen.getUncached();
+        public abstract String execute(Node node, Object value);
+
+        public static String executeUncached(Object value) {
+            return KernelNodesFactory.ToHexStringNodeGen.getUncached().execute(null, value);
         }
 
-        public abstract String execute(Object value);
-
         @Specialization
-        String toHexString(int value) {
+        static String toHexString(int value) {
             return toHexString((long) value);
         }
 
         @TruffleBoundary
         @Specialization
-        String toHexString(long value) {
+        static String toHexString(long value) {
             return Long.toHexString(value);
         }
 
         @Specialization
-        String toHexString(RubyBignum value) {
+        static String toHexString(RubyBignum value) {
             return BigIntegerOps.toString(value.value, 16);
         }
+
     }
 
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
@@ -1806,7 +1815,7 @@ public abstract class KernelNodes {
                 @Cached ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
-            String hexID = toHexStringNode.execute(id);
+            String hexID = toHexStringNode.execute(this, id);
 
             String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
 
@@ -1820,7 +1829,7 @@ public abstract class KernelNodes {
         public static String uncachedBasicToS(Object self) {
             String className = LogicalClassNode.getUncached().execute(self).fields.getName();
             Object id = ObjectIDNode.getUncached().execute(self);
-            String hexID = ToHexStringNode.getUncached().execute(id);
+            String hexID = ToHexStringNode.executeUncached(id);
 
             return "#<" + className + ":0x" + hexID + ">";
         }

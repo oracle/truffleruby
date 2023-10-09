@@ -1941,9 +1941,9 @@ public abstract class IntegerNodes {
                 @Cached BigIntegerCastNode exponentCastNode,
                 @Cached BigIntegerCastNode moduloCastNode,
                 @Cached ModPowNode modPowNode) {
-            final var base = baseCastNode.execute(baseObject);
-            final var exponent = exponentCastNode.execute(exponentObject);
-            final var modulo = moduloCastNode.execute(moduloObject);
+            final var base = baseCastNode.execute(this, baseObject);
+            final var exponent = exponentCastNode.execute(this, exponentObject);
+            final var modulo = moduloCastNode.execute(this, moduloObject);
             return modPowNode.execute(this, base, exponent, modulo);
         }
     }
@@ -1987,7 +1987,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; loopProfile.inject(this, i >= to); i--) {
-                    yieldNode.yield(block, i);
+                    yieldNode.yield(this, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, from - i + 1);
@@ -2010,7 +2010,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i >= to; i--) {
-                    yieldNode.yield(block, i);
+                    yieldNode.yield(this, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(this, loopProfile, from - i + 1);
@@ -2070,7 +2070,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; loopProfile.inject(i <= to); i++) {
-                    yieldNode.yield(block, i);
+                    yieldNode.yield(this, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);
@@ -2091,7 +2091,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i <= to; i++) {
-                    yieldNode.yield(block, i);
+                    yieldNode.yield(this, block, i);
                 }
             } finally {
                 profileAndReportLoopCount(loopProfile, i - from + 1);

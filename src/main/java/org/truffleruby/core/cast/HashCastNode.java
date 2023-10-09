@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyBaseNode;
@@ -25,33 +28,35 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
+@GenerateCached(false)
+@GenerateInline
 public abstract class HashCastNode extends RubyBaseNode {
 
-    public abstract RubyHash execute(Object value);
+    public abstract RubyHash execute(Node node, Object value);
 
     @Specialization
-    RubyHash castHash(RubyHash hash) {
+    static RubyHash castHash(RubyHash hash) {
         return hash;
     }
 
     @Specialization(guards = "!isRubyHash(object)")
-    RubyHash cast(Object object,
+    static RubyHash cast(Node node, Object object,
             @Cached InlinedBranchProfile errorProfile,
-            @Cached DispatchNode toHashNode) {
+            @Cached(inline = false) DispatchNode toHashNode) {
         final Object result = toHashNode.call(PRIVATE_RETURN_MISSING, object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
-            errorProfile.enter(this);
+            errorProfile.enter(node);
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorNoImplicitConversion(object, "Hash", this));
+                    getContext(node),
+                    coreExceptions(node).typeErrorNoImplicitConversion(object, "Hash", node));
         }
 
         if (!RubyGuards.isRubyHash(result)) {
-            errorProfile.enter(this);
+            errorProfile.enter(node);
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorCantConvertTo(object, "Hash", "to_hash", result, this));
+                    getContext(node),
+                    coreExceptions(node).typeErrorCantConvertTo(object, "Hash", "to_hash", result, node));
         }
 
         return (RubyHash) result;
@@ -66,7 +71,7 @@ public abstract class HashCastNode extends RubyBaseNode {
         @Specialization
         RubyHash cast(Object object,
                 @Cached HashCastNode hashCastNode) {
-            return hashCastNode.execute(object);
+            return hashCastNode.execute(this, object);
 
         }
 

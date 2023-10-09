@@ -1101,11 +1101,12 @@ public abstract class StringNodes {
 
         // use separate specialization instances for getTString() in the loop
         @Specialization(guards = "strings.seen(string)", limit = "2")
-        Object eachByte(Object string, RubyProc block,
+        static Object eachByte(Object string, RubyProc block,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Bind("this") Node node) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string).tencoding;
 
@@ -1113,7 +1114,7 @@ public abstract class StringNodes {
             materializeNode.execute(tstring, encoding);
             for (int i = 0; i < tstring.byteLength(encoding); i++) {
                 int singleByte = readByteNode.execute(tstring, i, encoding);
-                yieldNode.yield(block, singleByte);
+                yieldNode.yield(node, block, singleByte);
 
                 tstring = strings.getTString(string);
                 encoding = strings.getEncoding(string).tencoding;
@@ -1179,7 +1180,7 @@ public abstract class StringNodes {
             int clen;
             for (int i = 0; i < byteLength; i += clen) {
                 clen = byteLengthOfCodePointNode.execute(tstring, i, tencoding);
-                yieldNode.yield(block, createSubString(substringNode, tstring, encoding, i, clen));
+                yieldNode.yield(this, block, createSubString(substringNode, tstring, encoding, i, clen));
             }
 
             return string;
@@ -1256,7 +1257,7 @@ public abstract class StringNodes {
                             coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
                 }
 
-                yieldNode.yield(block, codePoint);
+                yieldNode.yield(this, block, codePoint);
             }
 
             return string;
@@ -1525,7 +1526,7 @@ public abstract class StringNodes {
                 @Bind("stringsFrom.getTString(from)") AbstractTruffleString tstring) {
             self.setTString(tstring, stringsFrom.getEncoding(from));
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -1548,7 +1549,7 @@ public abstract class StringNodes {
             MutableTruffleString copy = copyMutableTruffleStringNode.execute(tstring, 0, byteLength, tencoding);
             self.setTString(copy, encoding);
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -1573,7 +1574,7 @@ public abstract class StringNodes {
             var copy = fromNativePointerNode.execute(newPointer, 0, tstring.byteLength(tencoding), tencoding, false);
             self.setTString(copy, encoding);
 
-            final Object associated = stringGetAssociatedNode.execute(from);
+            final Object associated = stringGetAssociatedNode.execute(this, from);
             copyAssociated(self, associated, writeAssociatedNode);
             return self;
         }
@@ -1809,7 +1810,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class ScrubNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child GetByteCodeRangeNode codeRangeNode = GetByteCodeRangeNode.create();
         @Child private TruffleString.ConcatNode concatNode = TruffleString.ConcatNode.create();
         @Child private TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
@@ -1822,7 +1822,8 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Exclusive TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
-                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding,
+                @Cached @Shared CallBlockNode yieldNode) {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
             TruffleString buf = EMPTY_BINARY;
@@ -1870,7 +1871,7 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    Object repl = yieldNode.yield(block,
+                    Object repl = yieldNode.yield(this, block,
                             createSubString(substringNode, tstring, encoding, p, clen));
                     buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
                     p += clen;
@@ -1890,7 +1891,7 @@ public abstract class StringNodes {
             }
 
             if (p < e) {
-                Object repl = yieldNode.yield(block,
+                Object repl = yieldNode.yield(this, block,
                         createSubString(substringNode, tstring, encoding, p, e - p));
                 buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
             }
@@ -1906,7 +1907,8 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Exclusive TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
-                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding,
+                @Cached @Shared CallBlockNode yieldNode) {
             final Encoding enc = encoding.jcoding;
             var tencoding = encoding.tencoding;
             TruffleString buf = EMPTY_BINARY;
@@ -1949,7 +1951,7 @@ public abstract class StringNodes {
                         }
                     }
 
-                    RubyString repl = (RubyString) yieldNode.yield(block,
+                    RubyString repl = (RubyString) yieldNode.yield(this, block,
                             createSubString(substringNode, tstring, encoding, p, clen));
                     buf = concatNode.execute(buf, repl.tstring, tencoding, true);
                     p += clen;
@@ -1964,7 +1966,7 @@ public abstract class StringNodes {
             }
 
             if (p < e) {
-                RubyString repl = (RubyString) yieldNode.yield(block,
+                RubyString repl = (RubyString) yieldNode.yield(this, block,
                         createSubString(substringNode, tstring, encoding, p, e - p));
                 buf = concatNode.execute(buf, repl.tstring, tencoding, true);
             }
@@ -2800,7 +2802,7 @@ public abstract class StringNodes {
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
-                                stringGetAssociatedNode.execute(string) }); // TODO impl associated for ImmutableRubyString
+                                stringGetAssociatedNode.execute(this, string) }); // TODO impl associated for ImmutableRubyString
             } catch (FormatException e) {
                 exceptionProfile.enter(this);
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -2849,7 +2851,7 @@ public abstract class StringNodes {
                                 byteArray.getArray(),
                                 byteArray.getEnd(),
                                 byteArray.getOffset() + offset,
-                                stringGetAssociatedNode.execute(string) });
+                                stringGetAssociatedNode.execute(node, string) });
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
@@ -3309,7 +3311,7 @@ public abstract class StringNodes {
                 RubyString substring, Object block, InlinedConditionProfile executeBlockProfile,
                 InlinedConditionProfile growArrayProfile) {
             if (executeBlockProfile.profile(node, block != nil)) {
-                yieldNode.yield((RubyProc) block, substring);
+                yieldNode.yield(node, (RubyProc) block, substring);
             } else {
                 if (growArrayProfile.profile(node, index < store.length)) {
                     store[index] = substring;

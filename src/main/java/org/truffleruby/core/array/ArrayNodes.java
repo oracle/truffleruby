@@ -71,7 +71,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
-import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -661,38 +661,38 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
-
         @Specialization(
                 guards = "stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object deleteMutable(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared SameOrEqualNode sameOrEqualNode,
                 @Cached @Shared InlinedIntValueProfile arraySizeProfile,
                 @Cached @Shared InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared CheckFrozenNode raiseIfFrozenNode) {
 
             return delete(array, value, maybeBlock, true, store, store, stores, stores, arraySizeProfile, loopProfile,
-                    yieldNode, sameOrEqualNode);
+                    yieldNode, sameOrEqualNode, raiseIfFrozenNode);
         }
 
         @Specialization(
                 guards = "!stores.isMutable(store)",
                 limit = "storageStrategyLimit()")
-        Object delete(RubyArray array, Object value, Object maybeBlock,
+        Object deleteNotMutable(RubyArray array, Object value, Object maybeBlock,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
                 @Cached @Shared SameOrEqualNode sameOrEqualNode,
                 @Cached @Shared InlinedIntValueProfile arraySizeProfile,
                 @Cached @Shared InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
+                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Shared CheckFrozenNode raiseIfFrozenNode) {
 
             final Object newStore = stores.allocator(store).allocate(arraySizeProfile.profile(this, array.size));
             return delete(array, value, maybeBlock, false, store, newStore, stores, newStores, arraySizeProfile,
-                    loopProfile, yieldNode, sameOrEqualNode);
+                    loopProfile, yieldNode, sameOrEqualNode, raiseIfFrozenNode);
         }
 
         private Object delete(RubyArray array, Object value, Object maybeBlock,
@@ -704,7 +704,8 @@ public abstract class ArrayNodes {
                 InlinedIntValueProfile arraySizeProfile,
                 InlinedLoopConditionProfile loopProfile,
                 CallBlockNode yieldNode,
-                SameOrEqualNode sameOrEqualNode) {
+                SameOrEqualNode sameOrEqualNode,
+                CheckFrozenNode raiseIfFrozenNode) {
 
             assert !sameStores || (oldStore == newStore && oldStores == newStores);
 
@@ -718,7 +719,7 @@ public abstract class ArrayNodes {
                     final Object stored = oldStores.read(oldStore, n);
 
                     if (sameOrEqualNode.execute(this, stored, value)) {
-                        checkFrozen(array);
+                        raiseIfFrozenNode.execute(this, array);
                         found = stored;
                         n++;
                     } else {
@@ -743,17 +744,9 @@ public abstract class ArrayNodes {
                 if (maybeBlock == nil) {
                     return nil;
                 } else {
-                    return yieldNode.yield((RubyProc) maybeBlock, value);
+                    return yieldNode.yield(this, (RubyProc) maybeBlock, value);
                 }
             }
-        }
-
-        public void checkFrozen(Object object) {
-            if (raiseIfFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
-            }
-            raiseIfFrozenNode.execute(object);
         }
     }
 
@@ -814,7 +807,7 @@ public abstract class ArrayNodes {
         public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
                 BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
-            yieldNode.yield(block, element);
+            yieldNode.yield(node, block, element);
         }
 
     }
@@ -834,7 +827,7 @@ public abstract class ArrayNodes {
         public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
                 BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
-            yieldNode.yield(block, element, index);
+            yieldNode.yield(node, block, element, index);
         }
 
     }
@@ -1107,7 +1100,6 @@ public abstract class ArrayNodes {
     @ImportStatic({ ArrayGuards.class, ArrayStoreLibrary.class })
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToIntNode toIntNode;
         @Child private DispatchNode toAryNode;
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
@@ -1213,25 +1205,26 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = "size >= 0")
-        Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
+        static Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
                 @Cached @Shared IsSharedNode isSharedNode,
                 @Cached @Shared ConditionProfile sharedProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Bind("this") Node node) {
             BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; loopProfile.inject(n < size); n++) {
-                    final Object value = yieldNode.yield(block, n);
+                    final Object value = yieldNode.yield(node, block, n);
                     arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, n);
+                profileAndReportLoopCount(node, loopProfile, n);
                 Object store = arrayBuilder.finish(state, n);
-                if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
+                if (sharedProfile.profile(isSharedNode.executeIsShared(node, array))) {
                     store = stores.makeShared(store, n);
                 }
                 setStoreAndSize(array, store, n);
@@ -1362,7 +1355,7 @@ public abstract class ArrayNodes {
         public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object stateObject, Object element,
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
-            state.accumulator = yieldNode.yield(state.block, state.accumulator, element);
+            state.accumulator = yieldNode.yield(node, state.block, state.accumulator, element);
         }
 
         // Uses Symbol and no block
@@ -1479,7 +1472,7 @@ public abstract class ArrayNodes {
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
-            Object value = yieldNode.yield(state.block, element);
+            Object value = yieldNode.yield(node, state.block, element);
             arrayBuilder.appendValue(state.builderState, index, value);
         }
 
@@ -1502,7 +1495,7 @@ public abstract class ArrayNodes {
         public void accept(Node node, CallBlockNode yieldNode, RubyArray array, Object state, Object element, int index,
                 BooleanCastNode booleanCastNode) {
             RubyProc block = (RubyProc) state;
-            writeNode.executeWrite(array, index, yieldNode.yield(block, element));
+            writeNode.executeWrite(array, index, yieldNode.yield(node, block, element));
         }
 
     }
@@ -1775,7 +1768,7 @@ public abstract class ArrayNodes {
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
-            if (!booleanCastNode.execute(node, yieldNode.yield(state.block, element))) {
+            if (!booleanCastNode.execute(node, yieldNode.yield(node, state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.newArraySize, element);
                 state.newArraySize++;
             }
@@ -1985,7 +1978,7 @@ public abstract class ArrayNodes {
                 int index, BooleanCastNode booleanCastNode) {
             final State state = (State) stateObject;
 
-            if (booleanCastNode.execute(node, yieldNode.yield(state.block, element))) {
+            if (booleanCastNode.execute(node, yieldNode.yield(node, state.block, element))) {
                 arrayBuilder.appendValue(state.builderState, state.selectedSize, element);
                 state.selectedSize++;
             }
@@ -2080,21 +2073,22 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
+        static RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") @Exclusive ArrayStoreLibrary newStores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive DispatchNode compareDispatchNode,
-                @Cached CmpIntNode cmpIntNode) {
+                @Cached CmpIntNode cmpIntNode,
+                @Bind("this") Node node) {
             final Object newStore = stores
                     .unsharedAllocator(store)
-                    .allocate(getContext().getOptions().ARRAY_SMALL);
+                    .allocate(getContext(node).getOptions().ARRAY_SMALL);
             final int size = arraySizeProfile.profile(array.size);
 
             // Copy with a exploded loop for PE
 
-            for (int i = 0; i < getContext().getOptions().ARRAY_SMALL; i++) {
+            for (int i = 0; i < getContext(node).getOptions().ARRAY_SMALL; i++) {
                 if (i < size) {
                     newStores.write(newStore, i, stores.read(store, i));
                 }
@@ -2102,14 +2096,14 @@ public abstract class ArrayNodes {
 
             // Selection sort - written very carefully to allow PE
 
-            for (int i = 0; i < getContext().getOptions().ARRAY_SMALL; i++) {
+            for (int i = 0; i < getContext(node).getOptions().ARRAY_SMALL; i++) {
                 if (i < size) {
-                    for (int j = i + 1; j < getContext().getOptions().ARRAY_SMALL; j++) {
+                    for (int j = i + 1; j < getContext(node).getOptions().ARRAY_SMALL; j++) {
                         if (j < size) {
                             final Object a = newStores.read(newStore, i);
                             final Object b = newStores.read(newStore, j);
                             final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
-                            if (cmpIntNode.executeCmpInt(comparisonResult, b, a) < 0) {
+                            if (cmpIntNode.executeCmpInt(node, comparisonResult, b, a) < 0) {
                                 newStores.write(newStore, j, a);
                                 newStores.write(newStore, i, b);
                             }
@@ -2118,7 +2112,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return createArray(newStore, size);
+            return createArray(node, newStore, size);
         }
 
         @Specialization(

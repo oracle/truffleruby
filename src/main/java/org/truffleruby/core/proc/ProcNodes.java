@@ -161,6 +161,7 @@ public abstract class ProcNodes {
         Object call(Frame callerFrame, RubyProc proc, Object[] rubyArgs, RootCallTarget target,
                 @Cached CallBlockNode callBlockNode) {
             return callBlockNode.executeCallBlock(
+                    this,
                     proc.declarationContext,
                     proc,
                     ProcOperations.getSelf(proc),

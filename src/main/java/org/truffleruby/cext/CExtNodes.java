@@ -206,7 +206,7 @@ public abstract class CExtNodes {
                     try {
                         return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                         if (!owned) {
                             MutexOperations.unlockInternal(lock);
                         }
@@ -215,7 +215,7 @@ public abstract class CExtNodes {
                     try {
                         return InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                     }
                 }
 
@@ -258,7 +258,7 @@ public abstract class CExtNodes {
                         return unwrapNode.execute(this,
                                 InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                         if (!owned) {
                             MutexOperations.unlockInternal(lock);
                         }
@@ -268,7 +268,7 @@ public abstract class CExtNodes {
                         return unwrapNode.execute(this,
                                 InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
                     } finally {
-                        runMarksNode.execute(extensionStack);
+                        runMarksNode.execute(this, extensionStack);
                     }
                 }
 
@@ -386,7 +386,7 @@ public abstract class CExtNodes {
             Object[] args = unwrapCArrayNode.execute(argv);
 
             // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
@@ -424,7 +424,7 @@ public abstract class CExtNodes {
             Object[] args = unwrapCArrayNode.execute(argv);
 
             // Remove empty kwargs in the caller, so the callee does not need to care about this special case
-            final RubyHash keywords = hashCastNode.execute(ArrayUtils.getLast(args));
+            final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
                 return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
@@ -944,7 +944,7 @@ public abstract class CExtNodes {
         @Specialization
         boolean rb_check_frozen(Object object,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
-            raiseIfFrozenNode.execute(object);
+            raiseIfFrozenNode.execute(this, object);
             return true;
         }
 
@@ -1473,7 +1473,7 @@ public abstract class CExtNodes {
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached CallBlockNode yieldNode) {
             try {
-                yieldNode.yield(block);
+                yieldNode.yield(this, block);
                 noExceptionProfile.enter(this);
                 return nil;
             } catch (Throwable e) {
@@ -1834,7 +1834,7 @@ public abstract class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(this, guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter(this);
-                keepAliveNode.execute(wrappedValue);
+                keepAliveNode.execute(this, wrappedValue);
             }
             return nil;
         }

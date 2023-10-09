@@ -9,7 +9,9 @@
  */
 package org.truffleruby.language.yield;
 
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
@@ -30,6 +32,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 @ReportPolymorphism
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
 public abstract class CallBlockNode extends RubyBaseNode {
 
     @NeverDefault
@@ -37,24 +40,39 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return CallBlockNodeGen.create();
     }
 
-    public static CallBlockNode getUncached() {
-        return CallBlockNodeGen.getUncached();
+    public static Object executeUncached(DeclarationContext declarationContext, RubyProc block, Object self,
+            Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments) {
+        return CallBlockNodeGen.getUncached().executeCallBlock(null, declarationContext, block, self, blockArgument,
+                descriptor, arguments);
     }
 
-    public final Object yield(RubyProc block, ArgumentsDescriptor descriptor, Object... args) {
-        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil, descriptor, args);
+    public static Object yieldUncached(RubyProc block, Object... args) {
+        return CallBlockNodeGen.getUncached().executeCallBlock(null, block.declarationContext, block,
+                ProcOperations.getSelf(block), nil, EmptyArgumentsDescriptor.INSTANCE, args);
     }
 
-    public final Object yield(RubyProc block, Object... args) {
-        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil,
+    public final Object yieldCached(RubyProc block, ArgumentsDescriptor descriptor, Object... args) {
+        return executeCallBlock(this, block.declarationContext, block, ProcOperations.getSelf(block), nil, descriptor,
+                args);
+    }
+
+    public final Object yield(Node node, RubyProc block, Object... args) {
+        return executeCallBlock(node, block.declarationContext, block, ProcOperations.getSelf(block), nil,
                 EmptyArgumentsDescriptor.INSTANCE, args);
     }
 
-    public abstract Object executeCallBlock(DeclarationContext declarationContext, RubyProc block, Object self,
+    public final Object yieldCached(RubyProc block, Object... args) {
+        return executeCallBlock(this, block.declarationContext, block, ProcOperations.getSelf(block), nil,
+                EmptyArgumentsDescriptor.INSTANCE, args);
+    }
+
+    public abstract Object executeCallBlock(Node node, DeclarationContext declarationContext, RubyProc block,
+            Object self,
             Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments);
 
     @Specialization(guards = "block.callTarget == cachedCallTarget", limit = "getCacheLimit()")
-    Object callBlockCached(
+    static Object callBlockCached(
+            Node node,
             DeclarationContext declarationContext,
             RubyProc block,
             Object self,
@@ -62,27 +80,27 @@ public abstract class CallBlockNode extends RubyBaseNode {
             ArgumentsDescriptor descriptor,
             Object[] arguments,
             @Cached("block.callTarget") RootCallTarget cachedCallTarget,
-            @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createBlockCallNode(node, cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, descriptor,
                 arguments);
         return callNode.call(frameArguments);
     }
 
     @Specialization(replaces = "callBlockCached")
-    Object callBlockUncached(
+    static Object callBlockUncached(
             DeclarationContext declarationContext,
             RubyProc block,
             Object self,
             Object blockArgument,
             ArgumentsDescriptor descriptor,
             Object[] arguments,
-            @Cached IndirectCallNode callNode) {
+            @Cached(inline = false) IndirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, descriptor,
                 arguments);
         return callNode.call(block.callTarget, frameArguments);
     }
 
-    private Object[] packArguments(DeclarationContext declarationContext, RubyProc block, Object self,
+    private static Object[] packArguments(DeclarationContext declarationContext, RubyProc block, Object self,
             Object blockArgument, ArgumentsDescriptor descriptor, Object[] arguments) {
         return RubyArguments.pack(
                 block.declarationFrame,
@@ -96,14 +114,14 @@ public abstract class CallBlockNode extends RubyBaseNode {
                 arguments);
     }
 
-    protected DirectCallNode createBlockCallNode(RootCallTarget callTarget) {
+    protected static DirectCallNode createBlockCallNode(Node node, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
         if (callNode.isCallTargetCloningAllowed() && RubyRootNode.of(callTarget).shouldAlwaysClone()) {
             callNode.cloneCallTarget();
         }
 
-        if (getContext().getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
+        if (getContext(node).getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
             callNode.forceInlining();
         }
 

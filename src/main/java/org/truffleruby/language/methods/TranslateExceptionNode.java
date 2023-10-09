@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -35,6 +36,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.control.TerminationException;
 
 @GenerateUncached
+@GenerateInline(inlineByDefault = true)
 public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     @NeverDefault
@@ -42,7 +44,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         return TranslateExceptionNodeGen.create();
     }
 
-    public abstract RuntimeException executeTranslation(Throwable throwable);
+    public abstract RuntimeException execute(Node node, Throwable throwable);
+
+    public final RuntimeException executeCached(Throwable throwable) {
+        return execute(this, throwable);
+    }
 
     public static void logJavaException(RubyContext context, Node currentNode, Throwable exception) {
         if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
@@ -65,35 +71,35 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    RuntimeException translate(ControlFlowException e) {
+    static RuntimeException translate(ControlFlowException e) {
         throw e;
     }
 
     @Specialization
-    RuntimeException translate(AbstractTruffleException e) {
+    static RuntimeException translate(AbstractTruffleException e) {
         throw e;
     }
 
     @Specialization
-    RuntimeException translate(TerminationException e) {
+    static RuntimeException translate(TerminationException e) {
         throw e;
     }
 
     @Specialization
-    RuntimeException translate(ThreadDeath e) {
+    static RuntimeException translate(ThreadDeath e) {
         throw e;
     }
 
     @Specialization(guards = "needsSpecialTranslation(e)")
-    RuntimeException translateSpecial(Throwable e) {
-        throw doTranslateSpecial(e);
+    static RuntimeException translateSpecial(Node node, Throwable e) {
+        throw doTranslateSpecial(node, e);
     }
 
     @Fallback
-    RuntimeException translate(Throwable e) {
+    static RuntimeException translate(Node node, Throwable e) {
         // An internal exception
         CompilerDirectives.transferToInterpreterAndInvalidate();
-        logUncaughtJavaException(getContext(), this, e);
+        logUncaughtJavaException(getContext(node), node, e);
         throw ExceptionOperations.rethrow(e);
     }
 
@@ -105,21 +111,23 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RaiseException doTranslateSpecial(Throwable e) {
+    private static RaiseException doTranslateSpecial(Node node, Throwable e) {
         if (e instanceof TruffleString.IllegalByteArrayLengthException) {
-            return new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            return new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
         } else if (e instanceof UnsupportedSpecializationException) {
-            return new RaiseException(getContext(),
-                    translateUnsupportedSpecialization(getContext(), (UnsupportedSpecializationException) e));
+            return new RaiseException(getContext(node),
+                    translateUnsupportedSpecialization(node, getContext(node), (UnsupportedSpecializationException) e));
         } else if (e instanceof StackOverflowError) {
-            return new RaiseException(getContext(), translateStackOverflow(getContext(), (StackOverflowError) e));
+            return new RaiseException(getContext(node),
+                    translateStackOverflow(node, getContext(node), (StackOverflowError) e));
         } else {
-            return new RaiseException(getContext(), translateOutOfMemory(getContext(), (OutOfMemoryError) e));
+            return new RaiseException(getContext(node),
+                    translateOutOfMemory(node, getContext(node), (OutOfMemoryError) e));
         }
     }
 
     @TruffleBoundary
-    private RubyException translateStackOverflow(RubyContext context, StackOverflowError error) {
+    private static RubyException translateStackOverflow(Node node, RubyContext context, StackOverflowError error) {
         boolean ignore = InitStackOverflowClassesEagerlyNode.ignore(error);
         if (!ignore) {
             if (context.getOptions().EXCEPTIONS_WARN_STACKOVERFLOW) {
@@ -127,28 +135,28 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 System.err.print("[ruby] WARNING StackOverflowError\n");
             }
 
-            logJavaException(context, this, error);
+            logJavaException(context, node, error);
         }
 
-        return context.getCoreExceptions().systemStackErrorStackLevelTooDeep(this, error, !ignore);
+        return context.getCoreExceptions().systemStackErrorStackLevelTooDeep(node, error, !ignore);
     }
 
     @TruffleBoundary
-    private RubyException translateOutOfMemory(RubyContext context, OutOfMemoryError error) {
+    private static RubyException translateOutOfMemory(Node node, RubyContext context, OutOfMemoryError error) {
         if (context.getOptions().EXCEPTIONS_WARN_OUT_OF_MEMORY) {
             // We cannot afford to initialize the Log class
             System.err.print("[ruby] WARNING OutOfMemoryError\n");
         }
 
-        logJavaException(context, this, error);
-        return context.getCoreExceptions().noMemoryError(this, error);
+        logJavaException(context, node, error);
+        return context.getCoreExceptions().noMemoryError(node, error);
     }
 
     @TruffleBoundary
-    private RubyException translateUnsupportedSpecialization(RubyContext context,
+    private static RubyException translateUnsupportedSpecialization(Node node, RubyContext context,
             UnsupportedSpecializationException exception) {
 
-        logJavaException(context, this, exception);
+        logJavaException(context, node, exception);
 
         final StringBuilder builder = new StringBuilder();
         builder.append("TruffleRuby doesn't have a case for the ");
@@ -158,7 +166,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         builder.append('\n');
         BacktraceFormatter.appendJavaStackTrace(exception, builder);
         String message = builder.toString().strip();
-        return context.getCoreExceptions().typeError(message, this, exception);
+        return context.getCoreExceptions().typeError(message, node, exception);
     }
 
     public static StringBuilder argumentsToString(StringBuilder builder, Object[] arguments) {

@@ -118,7 +118,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached ReferenceEqualNode referenceEqualNode,
                 @Cached CallBlockNode yieldNode) {
             try {
-                return yieldNode.yield(block, tag);
+                return yieldNode.yield(this, block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter(this);
                 if (matchProfile.profile(this, referenceEqualNode.execute(this, e.getTag(), tag))) {
@@ -154,7 +154,7 @@ public abstract class VMPrimitiveNodes {
 
             if (isSingletonProfile.profile(this, metaClass.isSingleton)) {
                 for (RubyModule included : metaClass.fields.prependedAndIncludedModules()) {
-                    yieldNode.yield(block, included);
+                    yieldNode.yield(this, block, included);
                 }
             }
 
@@ -420,7 +420,7 @@ public abstract class VMPrimitiveNodes {
                     .getNativeConfiguration()
                     .getSection(RubyGuards.getJavaString(section))) {
                 final RubyString key = createString(fromJavaStringNode, entry.getKey(), Encodings.UTF_8); // CR_7BIT
-                yieldNode.yield(block, key, entry.getValue());
+                yieldNode.yield(this, block, key, entry.getValue());
             }
 
             return nil;

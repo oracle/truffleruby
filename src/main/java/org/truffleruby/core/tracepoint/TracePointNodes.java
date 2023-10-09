@@ -125,7 +125,7 @@ public abstract class TracePointNodes {
                 @Cached CallBlockNode yieldNode) {
             final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
-                return yieldNode.yield(block);
+                return yieldNode.yield(this, block);
             } finally {
                 if (setupDone) {
                     disposeEventBindings(tracePoint);
@@ -147,7 +147,7 @@ public abstract class TracePointNodes {
                 @Cached CallBlockNode yieldNode) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
-                return yieldNode.yield(block);
+                return yieldNode.yield(this, block);
             } finally {
                 if (wasEnabled) {
                     createEventBindings(getContext(), getLanguage(), tracePoint);

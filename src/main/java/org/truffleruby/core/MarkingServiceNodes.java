@@ -9,7 +9,11 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NonIdempotent;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -28,42 +32,47 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class MarkingServiceNodes {
 
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class KeepAliveNode extends RubyBaseNode {
 
-        public abstract void execute(ValueWrapper object);
+        public abstract void execute(Node node, ValueWrapper object);
 
         @Specialization(guards = "!stack.hasKeptObjects()")
-        void keepFirstObject(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack) {
+        static void keepFirstObject(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack) {
             stack.current.preservedObject = object;
         }
 
         @Specialization(guards = "stack.hasSingleKeptObject()")
-        void keepCreatingList(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack,
+        static void keepCreatingList(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack,
                 @Cached InlinedConditionProfile sameObjectProfile) {
-            if (sameObjectProfile.profile(this, object != stack.current.preservedObject)) {
+            if (sameObjectProfile.profile(node, object != stack.current.preservedObject)) {
                 createKeptList(object, stack);
             }
         }
 
-        @Specialization(guards = { "stack.hasKeptObjects()", "!stack.hasSingleKeptObject()" })
+        @Specialization(guards = {
+                "stack.isPreservedObjectListInitialized()",
+                "stack.hasKeptObjects()",
+                "!stack.hasSingleKeptObject()" })
         @TruffleBoundary
-        void keepAddingToList(ValueWrapper object,
-                @Bind("getStack(object)") ExtensionCallStack stack) {
-            stack.current.preservedObjects.add(object);
+        static void keepAddingToList(Node node, ValueWrapper object,
+                @Bind("getStack(node)") ExtensionCallStack stack) {
+            stack.current.preservedObjectList.add(object);
         }
 
         @TruffleBoundary
-        private void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
-            stack.current.preservedObjects = new ArrayList<>();
-            stack.current.preservedObjects.add(stack.current.preservedObject);
-            stack.current.preservedObjects.add(object);
+        private static void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
+            stack.current.preservedObjectList = new ArrayList<>();
+            stack.current.preservedObjectList.add(stack.current.preservedObject);
+            stack.current.preservedObjectList.add(object);
         }
 
-        // We take a parameter so that the bind isn't considered cacheable.
-        protected ExtensionCallStack getStack(ValueWrapper object) {
-            return getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack;
+        @NonIdempotent
+        protected static ExtensionCallStack getStack(Node node) {
+            return getLanguage(node).getCurrentThread().getCurrentFiber().extensionCallStack;
         }
     }
 
@@ -83,26 +92,28 @@ public abstract class MarkingServiceNodes {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class RunMarkOnExitNode extends RubyBaseNode {
 
-        public abstract void execute(ExtensionCallStack stack);
+        public abstract void execute(Node node, ExtensionCallStack stack);
 
         @Specialization(guards = "!stack.hasMarkObjects()")
-        void nothingToMark(ExtensionCallStack stack) {
+        static void nothingToMark(ExtensionCallStack stack) {
             // Do nothing.
         }
 
         @Specialization(guards = "stack.hasSingleMarkObject()")
-        void markSingleObject(ExtensionCallStack stack,
-                @Cached @Shared DispatchNode callNode) {
+        static void markSingleObject(Node node, ExtensionCallStack stack,
+                @Cached(inline = false) @Shared DispatchNode callNode) {
             ValueWrapper value = stack.getSingleMarkObject();
-            callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
+            callNode.call(getContext(node).getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
         }
 
         @TruffleBoundary
         @Specialization(guards = { "stack.hasMarkObjects()", "!stack.hasSingleMarkObject()" })
-        void marksToRun(ExtensionCallStack stack,
-                @Cached @Shared DispatchNode callNode) {
+        static void marksToRun(Node node, ExtensionCallStack stack,
+                @Cached(inline = false) @Shared DispatchNode callNode) {
             // Run the markers...
             var valuesForMarking = stack.getMarkOnExitObjects();
             // Push a new stack frame because we should
@@ -111,17 +122,11 @@ public abstract class MarkingServiceNodes {
             stack.push(false, nil, nil);
             try {
                 for (var value : valuesForMarking) {
-                    callNode.call(getContext().getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
+                    callNode.call(getContext(node).getCoreLibrary().truffleCExtModule, "run_marker", value.getObject());
                 }
             } finally {
                 stack.pop();
             }
-        }
-
-
-        @NeverDefault
-        public static RunMarkOnExitNode create() {
-            return MarkingServiceNodesFactory.RunMarkOnExitNodeGen.create();
         }
     }
 }

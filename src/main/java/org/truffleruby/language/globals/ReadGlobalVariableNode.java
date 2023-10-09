@@ -11,6 +11,7 @@ package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
@@ -46,16 +47,17 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("getterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode) {
-        return yieldNode.yield(storage.getGetter());
+        return yieldNode.yield(this, storage.getGetter());
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
-    Object readHooksWithStorage(VirtualFrame frame,
+    static Object readHooksWithStorage(VirtualFrame frame,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("getterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,
-            @Cached GetSpecialVariableStorage storageNode) {
-        return yieldNode.yield(storage.getGetter(), storageNode.execute(frame, this));
+            @Cached GetSpecialVariableStorage storageNode,
+            @Bind("this") Node node) {
+        return yieldNode.yield(node, storage.getGetter(), storageNode.execute(frame, node));
     }
 
     protected int getterArity(GlobalVariableStorage storage) {
