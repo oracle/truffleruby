@@ -66,8 +66,8 @@ JT_SPECS_SPLITTING = ENV['JT_SPECS_SPLITTING'] == 'true' ? true : JT_SPECS_COMPI
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-JDK_VERSIONS = [21, 17]
-DEFAULT_JDK_VERSION = JDK_VERSIONS.first
+JDK_VERSIONS = %w[latest 21]
+DEFAULT_JDK_VERSION = JDK_VERSIONS.last
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
@@ -184,7 +184,7 @@ module Utilities
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
       edition = ee_jdk? ? 'ee' : 'ce'
-      regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"#{edition}-#{@jdk_version}[^"]+-(jvmci-[^"]+)"\s*,/
+      regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"[^"]+-(jvmci-[^"]+)"\s*,/
       raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in common.json" unless regex =~ ci
       $1
     end
@@ -2506,11 +2506,6 @@ module Commands
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
 
-    if os_version_changed?
-      warn "Kernel version changed since last build: #{build_kernel_ver.inspect} -> #{host_kernel_ver.inspect}"
-      remove_shared_compile_artifacts
-    end
-
     if options.delete('--new-hash')
       build_information_path = "#{TRUFFLERUBY_DIR}/src/shared/java/org/truffleruby/shared/BuildInformation.java"
       raise unless File.exist?(build_information_path) # in case the file moves in the future
@@ -2593,40 +2588,6 @@ module Commands
       File.delete link_path if File.symlink? link_path or File.exist? link_path
       File.symlink dest_ruby, link_path
     end
-  end
-
-  def remove_shared_compile_artifacts
-    if build_information_path.file?
-      warn "Deleting shared build artifacts to trigger rebuild: #{shared_path}"
-      shared_path.rmtree
-    end
-  end
-
-  def os_version_changed?
-    build_kernel_ver != host_kernel_ver
-  end
-
-  def host_kernel_ver
-    `uname -r`[/^\d+/]
-  end
-
-  def build_kernel_ver
-    return '' unless build_information_path.file?
-
-    build_information = build_information_path.readlines
-    build_os_ver_loc  = build_information.index { |l| l.include?('getKernelMajorVersion') }
-    return '' unless build_os_ver_loc
-
-    build_information[build_os_ver_loc + 1][/"(\d+)/, 1]
-  end
-
-  def shared_path
-    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/jdk#{@jdk_version}/org.truffleruby.shared")
-  end
-
-  def build_information_path
-    shared_path
-      .join('src_gen/org/truffleruby/shared/BuildInformationImpl.java')
   end
 
   def next(*args)
@@ -3237,7 +3198,7 @@ class JT
     needs_rebuild = false
     @silent = false
     @verbose = false
-    @jdk_version = Integer(ENV['JT_JDK'] || DEFAULT_JDK_VERSION)
+    @jdk_version = ENV['JT_JDK'] || DEFAULT_JDK_VERSION
 
     until args.empty?
       arg = args.shift
@@ -3253,7 +3214,7 @@ class JT
       when '-v', '--verbose'
         @verbose = true
       when '--jdk'
-        @jdk_version = Integer(args.shift)
+        @jdk_version = args.shift
       when '-h', '-help', '--help'
         help
         exit
@@ -3263,7 +3224,7 @@ class JT
       end
     end
 
-    raise "Invalid JDK version: #{@jdk_version}" unless JDK_VERSIONS.include?(@jdk_version)
+    raise "Invalid JDK version: #{@jdk_version}. Valid values: #{JDK_VERSIONS.join(' or ')}" unless JDK_VERSIONS.include?(@jdk_version)
 
     if needs_rebuild
       rebuild
