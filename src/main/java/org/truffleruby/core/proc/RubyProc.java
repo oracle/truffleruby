@@ -149,7 +149,7 @@ public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode
             @Cached CallBlockNode yieldNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Bind("$node") Node node) {
-        return yieldNode.yield(node, this, foreignToRubyArgumentsNode.executeConvert(arguments));
+        return yieldNode.yield(node, this, foreignToRubyArgumentsNode.executeConvert(node, arguments));
     }
     // endregion
 }

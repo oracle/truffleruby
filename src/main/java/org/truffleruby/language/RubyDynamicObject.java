@@ -670,9 +670,10 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
-            @Cached @Shared BranchProfile errorProfile)
+            @Cached @Shared BranchProfile errorProfile,
+            @Bind("$node") Node node)
             throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException, ArityException {
-        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(node, arguments);
         Object[] combinedArguments = ArrayUtils.unshift(convertedArguments, name);
         Object dynamic;
         try {
@@ -877,10 +878,11 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public Object instantiate(Object[] arguments,
             @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive DispatchNode dispatchNode,
-            @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
+            @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Bind("$node") Node node)
             throws UnsupportedMessageException {
         Object instance = dispatchNode.call(PUBLIC_RETURN_MISSING, this, "new",
-                foreignToRubyArgumentsNode.executeConvert(arguments));
+                foreignToRubyArgumentsNode.executeConvert(node, arguments));
 
         // TODO (pitr-ch 28-Jan-2020): we should translate argument-error caused by bad arity to ArityException
         if (instance == DispatchNode.MISSING) {

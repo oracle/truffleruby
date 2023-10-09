@@ -10,7 +10,9 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.RubyContext;
@@ -144,9 +146,10 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public Object invokeMember(String name, Object[] arguments,
             @Cached @Exclusive DispatchNode dispatchMember,
             @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Cached @Shared BranchProfile errorProfile)
+            @Cached @Shared BranchProfile errorProfile,
+            @Bind("$node") Node node)
             throws UnknownIdentifierException {
-        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(node, arguments);
         Object result = dispatchMember.call(PRIVATE_RETURN_MISSING, this, name, convertedArguments);
         if (result == DispatchNode.MISSING) {
             errorProfile.enter();
