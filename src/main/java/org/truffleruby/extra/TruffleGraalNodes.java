@@ -57,7 +57,7 @@ public abstract class TruffleGraalNodes {
         @Specialization
         Object alwaysSplit(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 RubyRootNode.of(callTarget).setSplit(Split.ALWAYS);
             }
@@ -71,7 +71,7 @@ public abstract class TruffleGraalNodes {
         @Specialization
         Object neverSplit(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
                 RubyRootNode.of(callTarget).setSplit(Split.NEVER);
             }

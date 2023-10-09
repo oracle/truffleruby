@@ -364,7 +364,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         Object ast(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             return ast(callTarget.getRootNode());
         }
 
@@ -391,7 +391,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         Object printAST(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             NodeUtil.printCompactTree(getContext().getEnvErrStream(), callTarget.getRootNode());
             return nil;
         }
@@ -403,7 +403,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         Object printSourceSections(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             NodeUtil.printSourceAttributionTree(getContext().getEnvErrStream(), callTarget.getRootNode());
             return nil;
         }
@@ -415,7 +415,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         int astSize(Object executable,
                 @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
             return NodeUtil.countNodes(callTarget.getRootNode());
         }
     }

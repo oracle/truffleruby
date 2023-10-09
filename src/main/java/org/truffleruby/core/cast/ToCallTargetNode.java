@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
@@ -17,22 +20,24 @@ import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateInline
+@GenerateCached(false)
 public abstract class ToCallTargetNode extends RubyBaseNode {
 
-    public abstract RootCallTarget execute(Object executable);
+    public abstract RootCallTarget execute(Node node, Object executable);
 
     @Specialization
-    RootCallTarget boundMethod(RubyMethod method) {
+    static RootCallTarget boundMethod(RubyMethod method) {
         return method.method.getCallTarget();
     }
 
     @Specialization
-    RootCallTarget unboundMethod(RubyUnboundMethod method) {
+    static RootCallTarget unboundMethod(RubyUnboundMethod method) {
         return method.method.getCallTarget();
     }
 
     @Specialization
-    RootCallTarget proc(RubyProc proc) {
+    static RootCallTarget proc(RubyProc proc) {
         return proc.callTarget;
     }
 
