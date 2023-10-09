@@ -246,7 +246,7 @@ public final class BucketsHashStore {
             @Bind("$node") Node node) {
         assert verify(hash);
 
-        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
+        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(node, key, byIdentity);
 
         propagateSharingKey.execute(node, hash, key2);
         propagateSharingValue.execute(node, hash, value);
