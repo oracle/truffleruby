@@ -12,6 +12,7 @@ package org.truffleruby.core;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.NonIdempotent;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.cext.ValueWrapper;
@@ -52,20 +53,24 @@ public abstract class MarkingServiceNodes {
             }
         }
 
-        @Specialization(guards = { "stack.hasKeptObjects()", "!stack.hasSingleKeptObject()" })
+        @Specialization(guards = {
+                "stack.isPreservedObjectListInitialized()",
+                "stack.hasKeptObjects()",
+                "!stack.hasSingleKeptObject()" })
         @TruffleBoundary
         static void keepAddingToList(Node node, ValueWrapper object,
                 @Bind("getStack(node)") ExtensionCallStack stack) {
-            stack.current.preservedObjects.add(object);
+            stack.current.preservedObjectList.add(object);
         }
 
         @TruffleBoundary
         private static void createKeptList(ValueWrapper object, ExtensionCallStack stack) {
-            stack.current.preservedObjects = new ArrayList<>();
-            stack.current.preservedObjects.add(stack.current.preservedObject);
-            stack.current.preservedObjects.add(object);
+            stack.current.preservedObjectList = new ArrayList<>();
+            stack.current.preservedObjectList.add(stack.current.preservedObject);
+            stack.current.preservedObjectList.add(object);
         }
 
+        @NonIdempotent
         protected static ExtensionCallStack getStack(Node node) {
             return getLanguage(node).getCurrentThread().getCurrentFiber().extensionCallStack;
         }
