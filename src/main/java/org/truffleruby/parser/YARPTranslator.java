@@ -20,7 +20,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.AssignableNode;
@@ -35,7 +34,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
 import org.truffleruby.core.string.FrozenStrings;
@@ -1527,18 +1525,17 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
+    /** Translate a list of nodes, e.g. break/return operands, into an array producing node. It returns ArrayLiteralNode
+     * subclass in the simplest case (when there is no splat operator) or combination of
+     * ArrayConcatNode/ArrayLiteralNode/SplatCastNodeGen nodes to "join" destructured by splat operator array with other
+     * operands. */
     private RubyNode translateExpressionsList(Nodes.Node[] nodes) {
         assert nodes != null;
         assert nodes.length > 0;
 
+        boolean isSplatNodePresent = Arrays.stream(nodes).anyMatch(n -> n instanceof Nodes.SplatNode);
+
         // fast path (no SplatNode)
-        boolean isSplatNodePresent = false;
-        for (var n : nodes) {
-            if (n instanceof Nodes.SplatNode) {
-                isSplatNodePresent = true;
-                break;
-            }
-        }
 
         if (!isSplatNodePresent) {
             RubyNode[] rubyNodes = new RubyNode[nodes.length];
@@ -1550,93 +1547,37 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return ArrayLiteralNode.create(language, rubyNodes);
         }
 
-        // long path (SplatNode is present)
-        ArrayList<ArrayList<Nodes.Node>> groups = new ArrayList<>();
-        ArrayList<Nodes.Node> current = new ArrayList<>();
+        // generic path
 
+        ArrayList<RubyNode> arraysToConcat = new ArrayList<>();
+        ArrayList<RubyNode> current = new ArrayList<>();
+
+        // group nodes before/after/between splat operators into array literals and concat them, e.g.
+        //   a, b, *c, d
+        // is translated into
+        //   ArrayConcatNode(ArrayLiteralNode(a, b), "splat-operator-node", ArrayLiteralNode(d))
         for (Nodes.Node node : nodes) {
             if (node instanceof Nodes.SplatNode) {
                 if (!current.isEmpty()) {
-                    groups.add(current);
+                    arraysToConcat.add(ArrayLiteralNode.create(language, current.toArray(RubyNode.EMPTY_ARRAY)));
                     current = new ArrayList<>();
                 }
-
-                ArrayList<Nodes.Node> single = new ArrayList<>();
-                single.add(node);
-                groups.add(single);
+                arraysToConcat.add(node.accept(this));
             } else {
-                current.add(node);
+                current.add(node.accept(this));
             }
         }
 
         if (!current.isEmpty()) {
-            groups.add(current);
+            arraysToConcat.add(ArrayLiteralNode.create(language, current.toArray(RubyNode.EMPTY_ARRAY)));
         }
 
         final RubyNode rubyNode;
-        final ArrayList<Nodes.Node> lastGroup = groups.get(groups.size() - 1);
-        final boolean singleElementInTail = groups.size() > 1 && lastGroup.size() == 1 &&
-                !(lastGroup.get(0) instanceof Nodes.SplatNode);
 
-        if (!singleElementInTail) {
-            var arraysToConcat = new RubyNode[groups.size()];
-            int i = 0;
-
-            for (var group : groups) {
-                if (group.size() == 1 && group.get(0) instanceof Nodes.SplatNode splatNode) {
-                    arraysToConcat[i++] = splatNode.accept(this);
-                } else {
-                    RubyNode[] rubyNodes = new RubyNode[group.size()];
-                    int j = 0;
-                    for (var e : group) {
-                        rubyNodes[j++] = e.accept(this);
-                    }
-
-                    final RubyNode arrayLiteralNode = ArrayLiteralNode.create(language, rubyNodes);
-                    arraysToConcat[i++] = arrayLiteralNode;
-                }
-            }
-
-            if (arraysToConcat.length == 1) {
-                rubyNode = arraysToConcat[0];
-            } else {
-                rubyNode = new ArrayConcatNode(arraysToConcat);
-            }
+        if (arraysToConcat.size() == 1) {
+            rubyNode = arraysToConcat.get(0);
         } else {
-            var arraysToConcat = new RubyNode[groups.size() - 1];
-
-            // TODO: don't duplicate this code chunk
-            //       the only difference here - we ignore the last groups' element
-            for (int i = 0; i < groups.size() - 1; i++) {
-                var group = groups.get(i);
-
-                if (group.size() == 1 && group.get(0) instanceof Nodes.SplatNode splatNode) {
-                    arraysToConcat[i] = splatNode.accept(this);
-                } else {
-                    RubyNode[] rubyNodes = new RubyNode[group.size()];
-                    int j = 0;
-                    for (var e : group) {
-                        rubyNodes[j++] = e.accept(this);
-                    }
-
-                    final RubyNode arrayLiteralNode = ArrayLiteralNode.create(language, rubyNodes);
-                    arraysToConcat[i] = arrayLiteralNode;
-                }
-            }
-
-            final RubyNode arrayToAppendTo;
-            if (arraysToConcat.length == 1) {
-                arrayToAppendTo = arraysToConcat[0];
-            } else {
-                arrayToAppendTo = new ArrayConcatNode(arraysToConcat);
-            }
-
-            final RubyNode value = groups.get(groups.size() - 1).get(0).accept(this);
-
-            // NOTE: actually ArrayAppendOneNodeGen seems wierd here - why not just simple Array with 1 element?
-            rubyNode = ArrayAppendOneNodeGen.create(
-                    KernelNodesFactory.DupASTNodeFactory.create(arrayToAppendTo), // TODO: duplication is not needed
-                    value);
+            rubyNode = new ArrayConcatNode(arraysToConcat.toArray(RubyNode.EMPTY_ARRAY));
         }
 
         return rubyNode;

@@ -2,11 +2,11 @@ subject: "Break"
 description: "with splat operator and following argument (break *a, b)"
 notes: >
   Arguments are represented with combination of:
-  - ArrayAppendOneNodeGen
   - ArrayConcatNode
   - SplatCastNodeGen
   - ArrayLiteralNode$UninitialisedArrayLiteralNode
   nodes
+yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.BreakNode"
 ruby: |
   while true
@@ -20,45 +20,47 @@ ast: |
           ignoreMarker = true
       children:
           child =
-              ArrayAppendOneNodeGen
+              ArrayConcatNode
                   attributes:
                       flags = 0
                   children:
-                      arrayNode_ =
-                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                      children = [
+                          SplatCastNodeGen
                               attributes:
+                                  conversionMethod = :to_a
+                                  copy = true
                                   flags = 0
+                                  nilBehavior = CONVERT
                               children:
-                                  selfNode_ =
-                                      SplatCastNodeGen
+                                  childNode_ =
+                                      RubyCallNode
                                           attributes:
-                                              conversionMethod = :to_a
-                                              copy = true
+                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
                                               flags = 0
-                                              nilBehavior = CONVERT
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "foo"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
                                           children:
-                                              childNode_ =
-                                                  RubyCallNode
+                                              receiver =
+                                                  SelfNode
                                                       attributes:
-                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                                          dispatchConfig = PRIVATE
-                                                          emptyKeywordsProfile = false
                                                           flags = 0
-                                                          isAttrAssign = false
-                                                          isSafeNavigation = false
-                                                          isSplatted = false
-                                                          isVCall = true
-                                                          lastArgIsNotHashProfile = false
-                                                          methodName = "foo"
-                                                          notEmptyKeywordsProfile = false
-                                                          notRuby2KeywordsHashProfile = false
-                                                      children:
-                                                          receiver =
-                                                              SelfNode
-                                                                  attributes:
-                                                                      flags = 0
-                      valueNode_ =
-                          IntegerFixnumLiteralNode
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
-                                  value = 42
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]
+                      ]
