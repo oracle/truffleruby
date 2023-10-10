@@ -10,12 +10,16 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
+/** Not inlined since the usage is in {@link WriteClassVariableNode} or {@link ReadClassVariableNode} which are not DSL
+ * nodes. */
+@GenerateInline(false)
 public abstract class ResolveTargetModuleForClassVariablesNode extends RubyBaseNode {
 
     public static ResolveTargetModuleForClassVariablesNode create() {
