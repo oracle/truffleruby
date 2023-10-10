@@ -1,7 +1,7 @@
 subject: "case expression"
 description: "without expression to match / and splat operator (case when *a ... end)"
 notes: >
-  Splat operator is handled with `Truffle::Internal.when_splat` method implemented in Ruby
+  Splat operator is handled with `Array#any?` method to check that there is at least one truthy `when`'s operand
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case
@@ -14,65 +14,81 @@ ast: |
           flags = 1
       children:
           condition =
-              ArrayAppendOneNodeGen
+              RubyCallNode
                   attributes:
+                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = false
+                      lastArgIsNotHashProfile = false
+                      methodName = "any?"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
                   children:
-                      arrayNode_ =
-                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                      receiver =
+                          ArrayAppendOneNodeGen
                               attributes:
                                   flags = 0
                               children:
-                                  selfNode_ =
-                                      ArrayConcatNode
+                                  arrayNode_ =
+                                      KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
                                           attributes:
                                               flags = 0
                                           children:
-                                              children = [
-                                                  ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                              selfNode_ =
+                                                  ArrayConcatNode
                                                       attributes:
                                                           flags = 0
-                                                          language = org.truffleruby.RubyLanguage@...
                                                       children:
-                                                          values = [
-                                                              IntegerFixnumLiteralNode
+                                                          children = [
+                                                              ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      value = 42
-                                                          ]
-                                                  SplatCastNodeGen
-                                                      attributes:
-                                                          conversionMethod = :to_a
-                                                          copy = true
-                                                          flags = 0
-                                                          nilBehavior = CONVERT
-                                                      children:
-                                                          childNode_ =
-                                                              RubyCallNode
-                                                                  attributes:
-                                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                                                      dispatchConfig = PRIVATE
-                                                                      emptyKeywordsProfile = false
-                                                                      flags = 0
-                                                                      isAttrAssign = false
-                                                                      isSafeNavigation = false
-                                                                      isSplatted = false
-                                                                      isVCall = true
-                                                                      lastArgIsNotHashProfile = false
-                                                                      methodName = "foo"
-                                                                      notEmptyKeywordsProfile = false
-                                                                      notRuby2KeywordsHashProfile = false
+                                                                      language = org.truffleruby.RubyLanguage@...
                                                                   children:
-                                                                      receiver =
-                                                                          SelfNode
+                                                                      values = [
+                                                                          IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
-                                              ]
-                      valueNode_ =
-                          IntegerFixnumLiteralNode
-                              attributes:
-                                  flags = 0
-                                  value = 100500
+                                                                                  value = 42
+                                                                      ]
+                                                              SplatCastNodeGen
+                                                                  attributes:
+                                                                      conversionMethod = :to_a
+                                                                      copy = true
+                                                                      flags = 0
+                                                                      nilBehavior = CONVERT
+                                                                  children:
+                                                                      childNode_ =
+                                                                          RubyCallNode
+                                                                              attributes:
+                                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                                  dispatchConfig = PRIVATE
+                                                                                  emptyKeywordsProfile = false
+                                                                                  flags = 0
+                                                                                  isAttrAssign = false
+                                                                                  isSafeNavigation = false
+                                                                                  isSplatted = false
+                                                                                  isVCall = true
+                                                                                  lastArgIsNotHashProfile = false
+                                                                                  methodName = "foo"
+                                                                                  notEmptyKeywordsProfile = false
+                                                                                  notRuby2KeywordsHashProfile = false
+                                                                              children:
+                                                                                  receiver =
+                                                                                      SelfNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                          ]
+                                  valueNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 100500
           elseBody =
               NilLiteralNode
                   attributes:

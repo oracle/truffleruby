@@ -451,4 +451,13 @@ describe "The 'case'-construct with no target expression" do
     when 2; 'bar'
     end.should == 'foo'
   end
+
+  it "expands arrays to lists of values" do
+    case
+    when *[false]
+      "foo"
+    when *[true]
+      "bar"
+    end.should == "bar"
+  end
 end

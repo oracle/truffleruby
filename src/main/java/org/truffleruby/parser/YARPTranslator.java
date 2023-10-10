@@ -620,12 +620,14 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                         elseNode = ifNode;
                     }
                 } else {
-                    // NOTE: ArrayConcatNode/ArrayAppendOneNodeGen nodes become if-node's condition
-                    //       I don't understand why it works correctly - ArrayConcatNode as a condition in `if` should be truthy always
+                    // use Array#any? to check whether there is any truthy value
+                    // whenConditions are translated into an array-producing node
+                    // so `when a, *b, c` is translated into `[a, *b, c].any?`
+                    final RubyNode whenConditionNode = translateExpressionsList(whenConditions);
+                    final RubyNode receiver = whenConditionNode;
+                    final RubyNode predicateNode = createCallNode(receiver, "any?");
 
                     // create `if` node
-                    final RubyNode predicateNode = translateExpressionsList(whenConditions);
-                    // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
                     final RubyNode thenNode = translateNodeOrNil(when.statements);
                     final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
 
