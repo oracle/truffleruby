@@ -9,25 +9,30 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateCached(false)
+@GenerateInline
 public abstract class WithoutVisibilityNode extends RubyBaseNode {
 
-    public abstract DeclarationContext executeWithoutVisibility(DeclarationContext declarationContext);
+    public abstract DeclarationContext executeWithoutVisibility(Node node, DeclarationContext declarationContext);
 
     @Specialization(guards = { "isSingleContext()", "declarationContext == cachedContext" },
             limit = "getDefaultCacheLimit()")
-    DeclarationContext cached(DeclarationContext declarationContext,
+    static DeclarationContext cached(DeclarationContext declarationContext,
             @Cached("declarationContext") DeclarationContext cachedContext,
             @Cached("uncached(cachedContext)") DeclarationContext without) {
         return without;
     }
 
     @Specialization(replaces = "cached")
-    DeclarationContext uncached(DeclarationContext declarationContext) {
+    static DeclarationContext uncached(DeclarationContext declarationContext) {
         return declarationContext.withVisibility(null);
     }
 

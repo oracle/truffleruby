@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcCallTargets;
@@ -20,22 +22,18 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.parser.BodyTranslator;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
  * SharedMethodInfo. This is executed at the call site just before dispatch. */
-public final class BlockDefinitionNode extends RubyContextSourceNode {
+public abstract class BlockDefinitionNode extends RubyContextSourceNode {
 
     private final ProcType type;
     private final SharedMethodInfo sharedMethodInfo;
     private final ProcCallTargets callTargets;
     private final BreakID breakID;
     private final int frameOnStackMarkerSlot;
-
-    @Child private GetSpecialVariableStorage readSpecialVariableStorageNode;
-    @Child private WithoutVisibilityNode withoutVisibilityNode;
 
     public BlockDefinitionNode(
             ProcType type,
@@ -50,15 +48,18 @@ public final class BlockDefinitionNode extends RubyContextSourceNode {
         this.breakID = breakID;
 
         this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
-        readSpecialVariableStorageNode = GetSpecialVariableStorage.create();
     }
 
     public BreakID getBreakID() {
         return breakID;
     }
 
-    @Override
-    public RubyProc execute(VirtualFrame frame) {
+    public abstract RubyProc execute(VirtualFrame virtualFrame);
+
+    @Specialization
+    RubyProc doBlockDefinition(VirtualFrame frame,
+            @Cached GetSpecialVariableStorage readSpecialVariableStorageNode,
+            @Cached WithoutVisibilityNode withoutVisibilityNode) {
         final FrameOnStackMarker frameOnStackMarker;
         if (frameOnStackMarkerSlot != BodyTranslator.NO_FRAME_ON_STACK_MARKER) {
             frameOnStackMarker = (FrameOnStackMarker) frame.getObject(frameOnStackMarkerSlot);
@@ -74,23 +75,16 @@ public final class BlockDefinitionNode extends RubyContextSourceNode {
                 sharedMethodInfo,
                 callTargets,
                 frame.materialize(),
-                readSpecialVariableStorageNode.executeCached(frame),
+                readSpecialVariableStorageNode.execute(frame, this),
                 RubyArguments.getMethod(frame),
                 frameOnStackMarker,
-                executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
+                withoutVisibilityNode.executeWithoutVisibility(this, RubyArguments.getDeclarationContext(frame)));
     }
 
-    private DeclarationContext executeWithoutVisibility(DeclarationContext ctxIn) {
-        if (withoutVisibilityNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            withoutVisibilityNode = insert(WithoutVisibilityNodeGen.create());
-        }
-        return withoutVisibilityNode.executeWithoutVisibility(ctxIn);
-    }
 
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new BlockDefinitionNode(type, sharedMethodInfo, callTargets, breakID, frameOnStackMarkerSlot);
+        var copy = BlockDefinitionNodeGen.create(type, sharedMethodInfo, callTargets, breakID, frameOnStackMarkerSlot);
         return copy.copyFlags(this);
     }
 
