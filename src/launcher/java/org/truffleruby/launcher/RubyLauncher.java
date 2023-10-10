@@ -230,7 +230,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     @Override
     protected boolean runLauncherAction() {
         String pager;
-        if (helpOptionUsed && System.console() != null && !(pager = getPagerFromEnv()).isEmpty()) {
+        if (helpOptionUsed && isTTY() && !(pager = getPagerFromEnv()).isEmpty()) {
             try {
                 Process process = new ProcessBuilder(pager.split(" "))
                         .redirectOutput(Redirect.INHERIT) // set the output of the pager to the terminal and not a pipe
@@ -264,7 +264,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                     break;
                 case IRB:
                     config.executionAction = ExecutionAction.PATH;
-                    if (System.console() != null) {
+                    if (isTTY()) {
                         getError().println(
                                 "[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                         config.executionAction = ExecutionAction.PATH;
