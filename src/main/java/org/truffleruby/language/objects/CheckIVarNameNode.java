@@ -10,6 +10,9 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -22,40 +25,40 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @ImportStatic(Identifiers.class)
+@GenerateInline
+@GenerateCached(false)
 public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     /** Pass both the j.l.String name and the original name, the original name can be faster to check and the j.l.String
      * name is needed by all callers so it is better for footprint that callers convert to j.l.String */
-    public abstract void execute(Object object, String name, Object originalName);
+    public abstract void execute(Node node, Object object, String name, Object originalName);
 
     @Specialization
-    void checkSymbol(Object object, String name, RubySymbol originalName,
+    static void checkSymbol(Node node, Object object, String name, RubySymbol originalName,
             @Cached @Shared InlinedBranchProfile errorProfile) {
         if (originalName.getType() != IdentifierType.INSTANCE) {
-            errorProfile.enter(this);
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorInstanceNameNotAllowable(
-                    name,
-                    object,
-                    this));
+            errorProfile.enter(node);
+            throw new RaiseException(getContext(node),
+                    getContext(node).getCoreExceptions().nameErrorInstanceNameNotAllowable(name, object, node));
         }
     }
 
     @Specialization(
             guards = { "name == cachedName", "isValidInstanceVariableName(cachedName)", "!isRubySymbol(originalName)" },
             limit = "getDynamicObjectCacheLimit()")
-    void cached(Object object, String name, Object originalName,
+    static void cached(Object object, String name, Object originalName,
             @Cached("name") String cachedName) {
     }
 
     @Specialization(replaces = "cached", guards = "!isRubySymbol(originalName)")
-    void uncached(Object object, String name, Object originalName,
+    static void uncached(Node node, Object object, String name, Object originalName,
             @Cached @Shared InlinedBranchProfile errorProfile) {
         if (!Identifiers.isValidInstanceVariableName(name)) {
-            errorProfile.enter(this);
-            throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceNameNotAllowable(
+            errorProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).nameErrorInstanceNameNotAllowable(
                     name,
                     object,
-                    this));
+                    node));
         }
     }
 }
