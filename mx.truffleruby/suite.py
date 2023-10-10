@@ -357,7 +357,6 @@ suite = {
         },
 
         "org.truffleruby.tck": {
-            "testProject": True,
             "dir": "src/tck",
             "sourceDirs": ["java", "ruby"],
             "dependencies": ["truffle:TRUFFLE_TCK"],
@@ -830,11 +829,19 @@ suite = {
         },
 
         "TRUFFLERUBY-TCK": {
-            "testDistribution": True,
             "dependencies": ["org.truffleruby.tck"],
-            "distDependencies": ["truffle:TRUFFLE_TCK"],
+            "distDependencies": [
+                "truffle:TRUFFLE_TCK",
+               # runtime-only dependencies
+                "TRUFFLERUBY",
+            ],
+            "description" : "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],
-            "maven": False,
+            "maven": {
+                "artifactId": "ruby-truffle-tck",
+                "tag": ["default", "public"],
+            },
+            "noMavenJavadoc": True,
         },
     },
 }
