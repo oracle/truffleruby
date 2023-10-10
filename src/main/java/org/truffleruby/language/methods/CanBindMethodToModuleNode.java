@@ -9,6 +9,9 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
@@ -17,16 +20,18 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Caches {@link ModuleOperations#canBindMethodTo} for a method. */
+@GenerateInline
+@GenerateCached(false)
 public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
 
-    public abstract boolean executeCanBindMethodToModule(InternalMethod method, RubyModule module);
+    public abstract boolean executeCanBindMethodToModule(Node node, InternalMethod method, RubyModule module);
 
     @Specialization(
             guards = {
                     "method.getDeclaringModule() == declaringModule",
                     "module == cachedModule" },
             limit = "getCacheLimit()")
-    boolean canBindMethodToCached(InternalMethod method, RubyModule module,
+    static boolean canBindMethodToCached(InternalMethod method, RubyModule module,
             @Cached("method.getDeclaringModule()") RubyModule declaringModule,
             @Cached("module") RubyModule cachedModule,
             @Cached("canBindMethodTo(method, cachedModule)") boolean canBindMethodTo) {
@@ -34,11 +39,11 @@ public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
     }
 
     @Specialization
-    boolean canBindMethodToUncached(InternalMethod method, RubyModule module) {
+    static boolean canBindMethodToUncached(InternalMethod method, RubyModule module) {
         return canBindMethodTo(method, module);
     }
 
-    protected boolean canBindMethodTo(InternalMethod method, RubyModule module) {
+    protected static boolean canBindMethodTo(InternalMethod method, RubyModule module) {
         return ModuleOperations.canBindMethodTo(method, module);
     }
 
