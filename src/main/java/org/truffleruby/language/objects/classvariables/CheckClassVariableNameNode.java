@@ -10,8 +10,11 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -19,25 +22,27 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
 @ImportStatic(Identifiers.class)
+@GenerateInline
+@GenerateCached(false)
 public abstract class CheckClassVariableNameNode extends RubyBaseNode {
 
-    public abstract void execute(RubyDynamicObject object, String name);
+    public abstract void execute(Node node, RubyDynamicObject object, String name);
 
     @Specialization(guards = { "name == cachedName", "isValidClassVariableName(cachedName)" },
             limit = "getDefaultCacheLimit()")
-    void cached(RubyDynamicObject object, String name,
+    static void cached(RubyDynamicObject object, String name,
             @Cached("name") String cachedName) {
     }
 
     @Specialization(replaces = "cached")
-    void uncached(RubyDynamicObject object, String name,
+    static void uncached(Node node, RubyDynamicObject object, String name,
             @Cached InlinedBranchProfile errorProfile) {
         if (!Identifiers.isValidClassVariableName(name)) {
-            errorProfile.enter(this);
-            throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceNameNotAllowable(
+            errorProfile.enter(node);
+            throw new RaiseException(getContext(node), coreExceptions(node).nameErrorInstanceNameNotAllowable(
                     name,
                     object,
-                    this));
+                    node));
         }
     }
 

@@ -825,7 +825,7 @@ public abstract class ModuleNodes {
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             return lookupClassVariableNode.execute(module, name) != null;
         }
 
@@ -841,7 +841,7 @@ public abstract class ModuleNodes {
                 @Cached LookupClassVariableNode lookupClassVariableNode,
                 @Cached InlinedConditionProfile undefinedProfile) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
             if (undefinedProfile.profile(this, value == null)) {
@@ -864,7 +864,7 @@ public abstract class ModuleNodes {
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached SetClassVariableNode setClassVariableNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             setClassVariableNode.execute(module, name, value);
             return value;
         }
@@ -2003,7 +2003,7 @@ public abstract class ModuleNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
 
