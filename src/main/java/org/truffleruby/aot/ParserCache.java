@@ -12,13 +12,15 @@ package org.truffleruby.aot;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.parser.RubyDeferredWarnings;
+import org.truffleruby.parser.RubyDeferredWarnings.WarningMessage;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
@@ -64,12 +66,11 @@ public final class ParserCache {
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, false, true, false);
         RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
-        RootParseNode rootParseNode = TranslatorDriver
-                .parseToJRubyAST(null, source, staticScope, parserConfiguration, rubyWarnings);
+        var rootParseNode = TranslatorDriver.parseToJRubyAST(null, source, staticScope, parserConfiguration,
+                rubyWarnings);
         if (!rubyWarnings.warnings.isEmpty()) {
-            throw new RuntimeException("Core files should not emit warnings: " + String.join(
-                    "\n",
-                    rubyWarnings.warnings.stream().map(w -> w.getWarningMessage()).collect(Collectors.toList())));
+            throw new RuntimeException("Core files should not emit warnings: " +
+                    StringUtils.join(ArrayUtils.map(rubyWarnings.warnings, WarningMessage::getWarningMessage), "\n"));
         }
         return rootParseNode;
     }

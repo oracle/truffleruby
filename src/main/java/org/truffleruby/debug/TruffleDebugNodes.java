@@ -46,6 +46,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
@@ -1403,10 +1404,9 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         RubyArray primitiveNames() {
-            var primitiveNames = getLanguage().primitiveManager.getPrimitiveNames().stream()
-                    .map(FromJavaStringNode::executeUncached);
-
-            return createArray(primitiveNames.toArray());
+            var primitives = getLanguage().primitiveManager.getPrimitiveNames();
+            var primitiveNames = ArrayUtils.map(primitives, FromJavaStringNode::executeUncached);
+            return createArray(primitiveNames);
         }
     }
 

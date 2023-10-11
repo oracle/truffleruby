@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -458,32 +457,23 @@ public abstract class TruffleRegexpNodes {
         @TruffleBoundary
         protected static Set<RubyRegexp> allCompiledRegexps() {
             final Set<RubyRegexp> ret = new HashSet<>();
-
             ret.addAll(DYNAMIC_REGEXPS);
             ret.addAll(LITERAL_REGEXPS);
-
             return ret;
         }
 
         @TruffleBoundary
         protected static Set<RubyRegexp> allMatchedRegexps() {
             final Set<RubyRegexp> ret = new HashSet<>();
-
-            ret.addAll(
-                    MATCHED_REGEXPS_JONI
-                            .keySet()
-                            .stream()
-                            .map(matchInfo -> matchInfo.regex)
-                            .collect(Collectors.toSet()));
-            ret.addAll(
-                    MATCHED_REGEXPS_TREGEX
-                            .keySet()
-                            .stream()
-                            .map(matchInfo -> matchInfo.regex)
-                            .collect(Collectors.toSet()));
-
+            for (var matchInfo : MATCHED_REGEXPS_JONI.keySet()) {
+                ret.add(matchInfo.regex);
+            }
+            for (var matchInfo : MATCHED_REGEXPS_TREGEX.keySet()) {
+                ret.add(matchInfo.regex);
+            }
             return ret;
         }
+
     }
 
     @CoreMethod(names = "regexp_compilation_stats_array", onSingleton = true, required = 1)

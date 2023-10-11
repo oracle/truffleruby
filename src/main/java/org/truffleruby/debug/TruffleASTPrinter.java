@@ -16,12 +16,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.oracle.truffle.api.profiles.Profile;
 import org.graalvm.collections.Pair;
 import org.truffleruby.core.proc.ProcCallTargets;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
@@ -121,23 +120,21 @@ public abstract class TruffleASTPrinter {
         }
 
         var attributesMap = NodeUtil.collectNodeProperties(node);
-        var attributes = new ArrayList<>(attributesMap.entrySet())
-                .stream()
-                .map(entry -> Pair.create(entry.getKey(), entry.getValue()))
-                .map(pair -> {
-                    if (pair.getLeft().startsWith("field.")) {
-                        String name = pair.getLeft().substring("field.".length());
-                        return Pair.create(name, pair.getRight());
-                    } else {
-                        return pair;
-                    }
-                })
-                .filter(pair -> pair.getRight() != null)                        // hide numerous attributes that aren't initialized yet
-                .filter(pair -> !attributesToIgnore.contains(pair.getLeft()))   // ignore some noisy attributes
-                .filter(pair -> !generatedFieldNames.contains(pair.getLeft()))  // ignore attributes of generated -Gen classes
-                .filter(pair -> !(pair.getRight() instanceof Profile))          // ignore ...Profile as far as they might be disabled/enabled that affects string representation
-                .collect(Collectors.toList());
+        var attributes = new ArrayList<Pair<String, Object>>();
+        for (var entry : attributesMap.entrySet()) {
+            String name = entry.getKey();
+            Object value = entry.getValue();
+            if (name.startsWith("field.")) {
+                name = name.substring("field.".length());
+            }
 
+            if (value != null &&                           // hide numerous attributes that aren't initialized yet
+                    !attributesToIgnore.contains(name) &&  // ignore some noisy attributes
+                    !generatedFieldNames.contains(name) && // ignore attributes of generated -Gen classes
+                    !(value instanceof Profile)) {         // ignore ...Profile as far as they might be disabled/enabled that affects string representation
+                attributes.add(Pair.create(name, value));
+            }
+        }
         return attributes;
     }
 
@@ -163,12 +160,12 @@ public abstract class TruffleASTPrinter {
             }
         }
 
-        var children = new ArrayList<>(childrenMap.entrySet())
-                .stream()
-                .map(entry -> Pair.create(entry.getKey(), entry.getValue()))
-                .filter(pair -> pair.getRight() != null)    // hide child nodes that aren't initialized yet
-                .collect(Collectors.toList());
-
+        var children = new ArrayList<Pair<String, Object>>();
+        for (var entry : childrenMap.entrySet()) {
+            if (entry.getValue() != null) { // hide child nodes that aren't initialized yet
+                children.add(Pair.create(entry.getKey(), entry.getValue()));
+            }
+        }
         return children;
     }
 
@@ -316,7 +313,7 @@ public abstract class TruffleASTPrinter {
                 strings[i] = valueToString(element);
             }
 
-            valueString = Stream.of(strings).collect(Collectors.joining(", ", "[", "]"));
+            valueString = StringUtils.join(strings, ", ", "[", "]");
         } else {
             valueString = valueToString(value);
         }

@@ -32,13 +32,12 @@
 package org.truffleruby.parser;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.joni.WarnCallback;
 
 public final class RubyDeferredWarnings implements WarnCallback {
 
-    public List<WarningMessage> warnings = new ArrayList<>();
+    public ArrayList<WarningMessage> warnings = new ArrayList<>();
 
     public enum Verbosity {
         VERBOSE,   // -W2

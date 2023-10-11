@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -29,6 +28,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -409,10 +409,7 @@ public abstract class TruffleBootNodes {
             final Toolchain toolchain = getToolchain(getContext(), this);
             final List<TruffleFile> paths = toolchain.getPaths(name);
             if (paths != null) {
-                String path = paths
-                        .stream()
-                        .map(file -> file.getPath())
-                        .collect(Collectors.joining(File.pathSeparator));
+                String path = StringUtils.join(paths.toArray(), File.pathSeparator);
                 return createString(fromJavaStringNode, path, Encodings.UTF_8);
             } else {
                 throw new RaiseException(
