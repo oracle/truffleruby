@@ -224,12 +224,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return values[0].accept(this);
         }
 
-        final RubyNode[] translatedValues = createArray(values.length);
-
-        for (int n = 0; n < values.length; n++) {
-            translatedValues[n] = values[n].accept(this);
-        }
-
+        final RubyNode[] translatedValues = translate(values);
         final RubyNode rubyNode = ArrayLiteralNode.create(language, translatedValues);
         assignNodePositionInSource(node, rubyNode);
 
@@ -237,11 +232,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitArrayNode(Nodes.ArrayNode node) {
-        RubyNode[] elements = new RubyNode[node.elements.length];
-        for (int i = 0; i < node.elements.length; i++) {
-            elements[i] = node.elements[i].accept(this);
-        }
-
+        RubyNode[] elements = translate(node.elements);
         RubyNode rubyNode = ArrayLiteralNode.create(language, elements);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -388,11 +379,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
         final Nodes.Node[] exceptionNodesArray = exceptionNodes.toArray(Nodes.Node.EMPTY_ARRAY);
-        final RubyNode[] handlingClasses = new RubyNode[exceptionNodesArray.length];
-
-        for (int i = 0; i < exceptionNodesArray.length; i++) {
-            handlingClasses[i] = exceptionNodesArray[i].accept(this);
-        }
+        final RubyNode[] handlingClasses = translate(exceptionNodesArray);
 
         if (rescueClause.reference != null) {
             final RubyNode exceptionWriteNode = translateRescueException(
@@ -446,10 +433,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             arguments = node.arguments.arguments;
         }
 
-        var translatedArguments = new RubyNode[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            translatedArguments[i] = arguments[i].accept(this);
-        }
+        var translatedArguments = translate(arguments);
 
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
@@ -1409,12 +1393,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
-        var body = node.body;
-        var translated = new RubyNode[body.length];
-        for (int i = 0; i < body.length; i++) {
-            translated[i] = body[i].accept(this);
-        }
-        return sequence(node, Arrays.asList(translated));
+        RubyNode[] rubyNodes = translate(node.body);
+        return sequence(node, Arrays.asList(rubyNodes));
     }
 
     public RubyNode visitStringConcatNode(Nodes.StringConcatNode node) {
@@ -1452,11 +1432,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitUndefNode(Nodes.UndefNode node) {
-        RubyNode[] names = new RubyNode[node.names.length];
-        for (int i = 0; i < node.names.length; i++) {
-            names[i] = node.names[i].accept(this);
-        }
-
+        final RubyNode[] names = translate(node.names);
         final RubyNode rubyNode = new ModuleNodes.UndefNode(names);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -1543,12 +1519,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // fast path (no SplatNode)
 
         if (!containSplatOperator) {
-            RubyNode[] rubyNodes = new RubyNode[nodes.length];
-
-            for (int i = 0; i < nodes.length; i++) {
-                rubyNodes[i] = nodes[i].accept(this);
-            }
-
+            RubyNode[] rubyNodes = translate(nodes);
             return ArrayLiteralNode.create(language, rubyNodes);
         }
 
@@ -1974,5 +1945,19 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         return false;
+    }
+
+    private RubyNode[] translate(Nodes.Node[] nodes) {
+        if (nodes.length == 0) {
+            return RubyNode.EMPTY_ARRAY;
+        }
+
+        RubyNode[] rubyNodes = new RubyNode[nodes.length];
+
+        for (int i = 0; i < nodes.length; i++) {
+            rubyNodes[i] = nodes[i].accept(this);
+        }
+
+        return rubyNodes;
     }
 }
