@@ -1515,12 +1515,7 @@ public class BodyTranslator extends BaseTranslator {
     protected FrameSlotAndDepth createFlipFlopState(SourceIndexLength sourceSection, int depth) {
         final int frameSlot = environment.declareLocalTemp("flipflop");
         environment.getFlipFlopStates().add(frameSlot);
-
-        if (depth == 0) {
-            return new FrameSlotAndDepth(frameSlot, 0);
-        } else {
-            return new FrameSlotAndDepth(frameSlot, depth);
-        }
+        return new FrameSlotAndDepth(frameSlot, depth);
     }
 
     @Override

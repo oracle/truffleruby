@@ -1527,12 +1527,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     protected FindDeclarationVariableNodes.FrameSlotAndDepth createFlipFlopState(int depth) {
         final int frameSlot = environment.declareLocalTemp("flipflop");
         environment.getFlipFlopStates().add(frameSlot);
-
-        if (depth == 0) {
-            return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, 0);
-        } else {
-            return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, depth);
-        }
+        return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, depth);
     }
 
     /** Translate a list of nodes, e.g. break/return operands, into an array producing node. It returns ArrayLiteralNode
