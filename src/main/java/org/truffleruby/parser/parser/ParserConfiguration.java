@@ -30,8 +30,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.parser.scope.StaticScope;
 
@@ -50,7 +48,6 @@ public final class ParserConfiguration {
     private boolean frozenStringLiteral = false;
     public boolean allowTruffleRubyPrimitives = false;
 
-    private Encoding defaultEncoding;
     private RubyContext context;
 
     public ParserConfiguration(RubyContext context, boolean inlineSource, boolean isFileParse, boolean saveData) {
@@ -66,18 +63,6 @@ public final class ParserConfiguration {
 
     public boolean isFrozenStringLiteral() {
         return frozenStringLiteral;
-    }
-
-    public void setDefaultEncoding(Encoding encoding) {
-        this.defaultEncoding = encoding;
-    }
-
-    public Encoding getDefaultEncoding() {
-        if (defaultEncoding == null) {
-            defaultEncoding = UTF8Encoding.INSTANCE;
-        }
-
-        return defaultEncoding;
     }
 
     public boolean isDebug() {
