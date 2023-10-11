@@ -1,18 +1,17 @@
 subject: "case expression"
 description: "without expression to match / with multiple values in a `when` branch (case when a, b ... end)"
 notes: >
-  A list of conditions in a `when` expression is represented as multiple nested `if` statements
+  A list of conditions in a `when` expression is represented as a single `if` operator
   to evaluate each of conditions.
   
   So the example below is translated to the following expression:
   
-    if (true)
-      "1st or 2d condition"
-    else (false)
+    if true || false
       "1st or 2d condition"
     else
       nil
     end
+yarp_specific: true # Simplified AST and removed duplication of `when`'s body for each `when`'s condition
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case
@@ -25,31 +24,25 @@ ast: |
           flags = 1
       children:
           condition =
-              BooleanLiteralNode
-                  attributes:
-                      flags = 0
-                      value = true
-          elseBody =
-              IfElseNodeGen
+              OrNodeGen
                   attributes:
                       flags = 0
                   children:
-                      condition =
+                      left =
+                          BooleanLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = true
+                      right =
                           BooleanLiteralNode
                               attributes:
                                   flags = 0
                                   value = false
-                      elseBody =
-                          NilLiteralNode
-                              attributes:
-                                  flags = 0
-                                  isImplicit = false
-                      thenBody =
-                          StringLiteralNode
-                              attributes:
-                                  encoding = UTF-8
-                                  flags = 1
-                                  tstring = 1st or 2d condition
+          elseBody =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = false
           thenBody =
               StringLiteralNode
                   attributes:

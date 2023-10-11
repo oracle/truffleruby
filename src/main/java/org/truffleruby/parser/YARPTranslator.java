@@ -541,13 +541,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
                 final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
                 final Nodes.Node[] whenConditions = when.conditions;
-
-                boolean containSplatOperator = false;
-                for (Nodes.Node value : whenConditions) {
-                    if (value instanceof Nodes.SplatNode) {
-                        containSplatOperator = true;
-                    }
-                }
+                boolean containSplatOperator = containYARPSplatNode(whenConditions);
 
                 if (containSplatOperator) {
                     final RubyNode receiver = new TruffleInternalModuleLiteralNode();
@@ -562,20 +556,32 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     // this `if` becomes `else` branch of the outer `if`
                     elseNode = ifNode;
                 } else {
-                    // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
-                    for (int k = whenConditions.length - 1; k >= 0; k--) {
-                        final var whenCondition = whenConditions[k];
+                    // translate `when` with multiple expressions into a single `if` operator, e.g.
+                    //   case x
+                    //     when a, b, c
+                    //  is translated into
+                    //    if x === a || x === b || x === c
+
+                    RubyNode predicateNode = null;
+
+                    for (var whenCondition : whenConditions) {
                         final RubyNode receiver = whenCondition.accept(this);
                         final RubyNode[] arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
-                        final RubyNode predicateNode = createCallNode(receiver, "===", arguments);
+                        final RubyNode nextPredicateNode = createCallNode(receiver, "===", arguments);
 
-                        // create `if` node
-                        final RubyNode thenNode = translateNodeOrNil(when.statements);
-                        final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
-
-                        // this `if` becomes `else` branch of the outer `if`
-                        elseNode = ifNode;
+                        if (predicateNode == null) {
+                            predicateNode = nextPredicateNode;
+                        } else {
+                            predicateNode = OrNodeGen.create(predicateNode, nextPredicateNode);
+                        }
                     }
+
+                    // create `if` node
+                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                    // this `if` becomes `else` branch of the outer `if`
+                    elseNode = ifNode;
                 }
             }
 
@@ -596,27 +602,33 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
                 final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
                 final Nodes.Node[] whenConditions = when.conditions;
-
-                boolean containSplatOperator = false;
-                for (Nodes.Node value : whenConditions) {
-                    if (value instanceof Nodes.SplatNode) {
-                        containSplatOperator = true;
-                    }
-                }
+                boolean containSplatOperator = containYARPSplatNode(whenConditions);
 
                 if (!containSplatOperator) {
-                    for (int k = whenConditions.length - 1; k >= 0; k--) {
-                        final var whenCondition = whenConditions[k];
+                    // translate `when` with multiple expressions into a single `if` operator, e.g.
+                    //   case
+                    //     when a, b, c
+                    //  is translated into
+                    //    if a || b || c
 
-                        // create `if` node
-                        final RubyNode predicateNode = whenCondition.accept(this);
-                        // TODO: we duplicate `then` for each when' condition, does it make sense to avoid it?
-                        final RubyNode thenNode = translateNodeOrNil(when.statements);
-                        final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+                    RubyNode predicateNode = null;
 
-                        // this `if` becomes `else` branch of the outer `if`
-                        elseNode = ifNode;
+                    for (var whenCondition : whenConditions) {
+                        final RubyNode nextPredicateNode = whenCondition.accept(this);
+
+                        if (predicateNode == null) {
+                            predicateNode = nextPredicateNode;
+                        } else {
+                            predicateNode = OrNodeGen.create(predicateNode, nextPredicateNode);
+                        }
                     }
+
+                    // create `if` node
+                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
+
+                    // this `if` becomes `else` branch of the outer `if`
+                    elseNode = ifNode;
                 } else {
                     // use Array#any? to check whether there is any truthy value
                     // whenConditions are translated into an array-producing node
@@ -632,8 +644,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     // this `if` becomes `else` branch of the outer `if`
                     elseNode = ifNode;
                 }
-
-
             }
 
             rubyNode = elseNode;
@@ -1533,11 +1543,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assert nodes != null;
         assert nodes.length > 0;
 
-        boolean isSplatNodePresent = Arrays.stream(nodes).anyMatch(n -> n instanceof Nodes.SplatNode);
+        boolean containSplatOperator = containYARPSplatNode(nodes);
 
         // fast path (no SplatNode)
 
-        if (!isSplatNodePresent) {
+        if (!containSplatOperator) {
             RubyNode[] rubyNodes = new RubyNode[nodes.length];
 
             for (int i = 0; i < nodes.length; i++) {
@@ -1961,4 +1971,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
     }
 
+    private boolean containYARPSplatNode(Nodes.Node[] nodes) {
+        for (var n : nodes) {
+            if (n instanceof Nodes.SplatNode) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
