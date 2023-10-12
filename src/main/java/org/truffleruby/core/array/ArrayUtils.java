@@ -10,8 +10,11 @@
 package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -276,6 +279,37 @@ public abstract class ArrayUtils {
     @TruffleBoundary
     public static List<Object> asList(Object[] array) {
         return Arrays.asList(array);
+    }
+
+    /** Compares by identity using Java {@code ==} */
+    @TruffleBoundary
+    public static Object[] subtract(Object[] a, Object[] b) {
+        var result = new ArrayList<>();
+        for (Object element : a) {
+            if (!contains(b, element)) {
+                result.add(element);
+            }
+        }
+        return result.toArray();
+    }
+
+    @TruffleBoundary
+    public static <T, R> Object[] map(T[] array, Function<? super T, ? extends R> mapper) {
+        var result = new Object[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = mapper.apply(array[i]);
+        }
+        return result;
+    }
+
+    @TruffleBoundary
+    public static <T, R> Object[] map(Collection<T> list, Function<? super T, ? extends R> mapper) {
+        var result = new Object[list.size()];
+        var iterator = list.iterator();
+        for (int i = 0; i < list.size(); i++) {
+            result[i] = mapper.apply(iterator.next());
+        }
+        return result;
     }
 
 }

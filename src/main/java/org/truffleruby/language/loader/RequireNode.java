@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
@@ -26,6 +25,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
@@ -93,7 +93,7 @@ public abstract class RequireNode extends RubyBaseNode {
         final List<RubyConstant> constantsUnfiltered = featureLoader.getAutoloadConstants(expandedPath);
         final List<RubyConstant> alreadyAutoloading = new ArrayList<>();
         if (!constantsUnfiltered.isEmpty()) {
-            final List<RubyConstant> toAutoload = new ArrayList<>();
+            var toAutoload = new ArrayList<RubyConstant>();
             for (RubyConstant constant : constantsUnfiltered) {
                 // Do not autoload recursively from the #require call in GetConstantNode
                 if (constant.getAutoloadConstant().isAutoloading()) {
@@ -105,11 +105,12 @@ public abstract class RequireNode extends RubyBaseNode {
 
 
             if (getContext().getOptions().LOG_AUTOLOAD && !toAutoload.isEmpty()) {
-                String info = toAutoload
-                        .stream()
-                        .filter(c -> !c.getAutoloadConstant().isAutoloading())
-                        .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
-                        .collect(Collectors.joining(" and "));
+                var toAutoloadWithPath = new String[toAutoload.size()];
+                for (int i = 0; i < toAutoload.size(); i++) {
+                    var constant = toAutoload.get(i);
+                    toAutoloadWithPath[i] = constant + " with " + constant.getAutoloadConstant().getAutoloadPath();
+                }
+                String info = StringUtils.join(toAutoloadWithPath, " and ");
                 RubyLanguage.LOGGER
                         .info(() -> String.format(
                                 "%s: requiring %s which is registered as an autoload for %s",

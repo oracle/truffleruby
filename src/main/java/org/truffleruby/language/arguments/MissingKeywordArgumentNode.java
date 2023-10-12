@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -24,9 +25,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.methods.Arity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public final class MissingKeywordArgumentNode extends RubyContextSourceNode {
 
@@ -81,12 +79,7 @@ public final class MissingKeywordArgumentNode extends RubyContextSourceNode {
                 (index, key, value, state) -> ((ArrayList<Object>) state).add(key),
                 actualKeywordsAsList);
 
-        final List<RubySymbol> requiredKeywordsAsList = Arrays.asList(requiredKeywords);
-        final List<RubySymbol> missingKeywords = requiredKeywordsAsList.stream()
-                .filter(k -> !actualKeywordsAsList.contains(k))
-                .collect(Collectors.toList());
-
-        return missingKeywords.toArray();
+        return ArrayUtils.subtract(requiredKeywords, actualKeywordsAsList.toArray());
     }
 
     @Override

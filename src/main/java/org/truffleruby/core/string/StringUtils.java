@@ -56,4 +56,22 @@ public abstract class StringUtils {
         return string.toUpperCase(Locale.ENGLISH);
     }
 
+    @TruffleBoundary
+    public static String join(Object[] elements, String separator) {
+        return join(elements, separator, "", "");
+    }
+
+    @TruffleBoundary
+    public static String join(Object[] elements, String separator, String prefix, String suffix) {
+        var builder = new StringBuilder(prefix);
+        for (int i = 0; i < elements.length; i++) {
+            builder.append(elements[i]);
+            if (i != elements.length - 1) {
+                builder.append(separator);
+            }
+        }
+        builder.append(suffix);
+        return builder.toString();
+    }
+
 }

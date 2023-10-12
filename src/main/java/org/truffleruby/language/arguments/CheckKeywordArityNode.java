@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -27,9 +28,6 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /** Check that no extra keyword arguments are given, when there is no **kwrest */
 public final class CheckKeywordArityNode extends RubyBaseNode {
@@ -113,12 +111,7 @@ public final class CheckKeywordArityNode extends RubyBaseNode {
                     (index, key, value, state) -> ((ArrayList<Object>) state).add(key),
                     actualKeywordsAsList);
 
-            final List<RubySymbol> allowedKeywordsAsList = Arrays.asList(allowedKeywords);
-            final List<Object> extraKeywords = actualKeywordsAsList.stream()
-                    .filter(k -> !allowedKeywordsAsList.contains(k))
-                    .collect(Collectors.toList());
-
-            return extraKeywords.toArray();
+            return ArrayUtils.subtract(actualKeywordsAsList.toArray(), allowedKeywords);
         }
     }
 
