@@ -1,5 +1,5 @@
 subject: "Next"
-description: "next operator with splat operator (next *a)"
+description: "with splat operator (next *a)"
 notes: >
   Argument is represented by SplatCastNodeGen node
 focused_on_node: "org.truffleruby.language.control.NextNode"

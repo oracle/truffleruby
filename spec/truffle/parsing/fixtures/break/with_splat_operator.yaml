@@ -1,5 +1,5 @@
 subject: "Break"
-description: "break operator with splat operator (break *a)"
+description: "with splat operator (break *a)"
 focused_on_node: "org.truffleruby.language.control.BreakNode"
 ruby: |
   while true

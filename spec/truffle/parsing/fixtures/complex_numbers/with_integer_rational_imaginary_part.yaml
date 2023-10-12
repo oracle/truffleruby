@@ -20,7 +20,6 @@ ast: |
           methodName = "convert"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
-          ruby2KeywordsHashProfile = false
       children:
           arguments = [
               IntegerFixnumLiteralNode
@@ -41,7 +40,6 @@ ast: |
                       methodName = "convert"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
-                      ruby2KeywordsHashProfile = false
                   children:
                       arguments = [
                           IntegerFixnumLiteralNode

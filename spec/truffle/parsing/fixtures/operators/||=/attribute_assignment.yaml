@@ -42,7 +42,6 @@ ast: |
                                               methodName = "a"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
-                                              ruby2KeywordsHashProfile = false
                                           children:
                                               receiver =
                                                   SelfNode
@@ -67,7 +66,6 @@ ast: |
                                               methodName = "foo"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
-                                              ruby2KeywordsHashProfile = false
                                           children:
                                               receiver =
                                                   ReadLocalVariableNode
@@ -90,7 +88,6 @@ ast: |
                                               methodName = "foo="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
-                                              ruby2KeywordsHashProfile = false
                                           children:
                                               arguments = [
                                                   IntegerFixnumLiteralNode

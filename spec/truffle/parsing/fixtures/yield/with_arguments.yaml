@@ -68,7 +68,6 @@ ast: |
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
-                                          ruby2KeywordsHashProfile = false
                                       children:
                                           arguments = [
                                               IntegerFixnumLiteralNode

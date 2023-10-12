@@ -22,7 +22,6 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
-          ruby2KeywordsHashProfile = false
       children:
           arguments = [
               SplatCastNodeGen
@@ -47,7 +46,6 @@ ast: |
                                   methodName = "bar"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
-                                  ruby2KeywordsHashProfile = false
                               children:
                                   receiver =
                                       SelfNode

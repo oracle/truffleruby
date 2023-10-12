@@ -1,0 +1,97 @@
+subject: "case expression"
+description: "with expression to match / and splat operator with following element (case exp when *a, b ... end)"
+notes: >
+  Splat operator is handled with `Truffle::Internal.when_splat` method implemented in Ruby
+yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  case 42
+  when *foo, 42
+    true
+  end
+ast: |
+  IfElseNodeGen
+      attributes:
+          flags = 0
+      children:
+          condition =
+              RubyCallNode
+                  attributes:
+                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = false
+                      lastArgIsNotHashProfile = false
+                      methodName = "when_splat"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      arguments = [
+                          ArrayConcatNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  children = [
+                                      SplatCastNodeGen
+                                          attributes:
+                                              conversionMethod = :to_a
+                                              copy = true
+                                              flags = 0
+                                              nilBehavior = CONVERT
+                                          children:
+                                              childNode_ =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                      ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              language = org.truffleruby.RubyLanguage@...
+                                          children:
+                                              values = [
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                              ]
+                                  ]
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2
+                                  type = FRAME_LOCAL
+                      ]
+                      receiver =
+                          TruffleInternalModuleLiteralNode
+                              attributes:
+                                  flags = 0
+          elseBody =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      isImplicit = false
+          thenBody =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      value = true

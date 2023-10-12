@@ -1,5 +1,5 @@
 subject: "Break"
-description: "break operator with argument"
+description: "with single argument"
 focused_on_node: "org.truffleruby.language.control.BreakNode"
 ruby: |
   while true

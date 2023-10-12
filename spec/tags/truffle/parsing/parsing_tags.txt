@@ -47,13 +47,7 @@ fails:Parsing a Block (Tail expression / with explicit return inside then branch
 fails:Parsing a Block (a block with empty body) case is parsed correctly
 fails:Parsing a Block (a block with not empty body) case is parsed correctly
 fails:Parsing a Block (a block without parameters) case is parsed correctly
-fails:Parsing a Break (break operator within a block) case is parsed correctly
-fails:Parsing a case expression (case expression with expression/value to match (case a when ... end)) case is parsed correctly
-fails:Parsing a case expression (case expression with expression to match and `else` branch (case a when ... else ... end)) case is parsed correctly
-fails:Parsing a case expression (case expression with expression to match and multiple values in a `when` branch (case a when a, b ... end)) case is parsed correctly
-fails:Parsing a case expression (case expression without expression to match (case when expr ... end)) case is parsed correctly
-fails:Parsing a case expression (case expression without expression to match and with `else` branch (case when expr ... else ... end)) case is parsed correctly
-fails:Parsing a case expression (case expression without expression to match and with multiple conditions in a `when` branch (case when a, b ... end)) case is parsed correctly
+fails:Parsing a Break (within a block) case is parsed correctly
 fails:Parsing a class << (reopen an object singleton class) case is parsed correctly
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Integer is represented as `Complext.convert(0, Rational.convert(b, 1))`) case is parsed correctly
@@ -117,39 +111,12 @@ fails:Parsing a Method call (Arguments/with keyword arguments) case is parsed co
 fails:Parsing a Method call (Arguments/with positional argument and splat operator (a, *args)) case is parsed correctly
 fails:Parsing a Method call (Arguments/with splat operator (*args)) case is parsed correctly
 fails:Parsing a Method call (Arguments/with splat operator and positional arguments (*args, a)) case is parsed correctly
-fails:Parsing a Method call (Primitive is replaced with a node implementing this method) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #!) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #%) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #&) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #*) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #+) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #-) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #-@) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #<) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #<<) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #<=) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #==) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #===) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #>) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #>=) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #>>) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #[]) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #[]=) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #at (Array#at)) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #bytesize) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #dedup called on a String literal) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #freeze) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #is_a?) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #kind_of?) case is parsed correctly
 fails:Parsing a Method call (Special cases/method #lambda (Kernel#lambda)) case is parsed correctly
 fails:Parsing a Method call (Special cases/method #lambda (not Kernel#lambda)) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #nil?) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #/) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #|) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #attr= (property assignment)) case is parsed correctly
-fails:Parsing a Method call (Method call with implicit receiver (`foo`)) case is parsed correctly
-fails:Parsing a Method call (With safe navigation operator (&.)) case is parsed correctly
-fails:Parsing a Method call (Without arguments and parentheses) case is parsed correctly
+fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
 fails:Parsing a &&= (Assign an attribute local variable (a.b &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an referenced element (a[b] &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an element referenced with multiple indexes (a[b, c, d] &&= e)) case is parsed correctly
@@ -160,11 +127,8 @@ fails:Parsing a &&= (Variable assignment/global variable ($a &&= b)) case is par
 fails:Parsing a &&= (Variable assignment/instance variable (@a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/local variable (a &&= b)) case is parsed correctly
 fails:Parsing a Flip-flop operator (in a block) case is parsed correctly
-fails:Parsing a Flip-flop operator (in a class body) case is parsed correctly
 fails:Parsing a Flip-flop operator (in a lambda) case is parsed correctly
 fails:Parsing a Flip-flop operator (in a method) case is parsed correctly
-fails:Parsing a Flip-flop operator (in a module body) case is parsed correctly
-fails:Parsing a Flip-flop operator (Flop-flop operator - a range literal in boolean context) case is parsed correctly
 fails:Parsing a Match (=~ operator) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a RHS) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS (without named capture groups)) case is parsed correctly

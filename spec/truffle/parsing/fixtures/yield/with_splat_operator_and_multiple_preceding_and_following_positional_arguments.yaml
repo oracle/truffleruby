@@ -93,7 +93,6 @@ ast: |
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
-                                          ruby2KeywordsHashProfile = false
                                       children:
                                           arguments = [
                                               ArrayConcatNode
@@ -121,7 +120,6 @@ ast: |
                                                                               methodName = "foo"
                                                                               notEmptyKeywordsProfile = false
                                                                               notRuby2KeywordsHashProfile = false
-                                                                              ruby2KeywordsHashProfile = false
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
@@ -141,7 +139,6 @@ ast: |
                                                                               methodName = "bar"
                                                                               notEmptyKeywordsProfile = false
                                                                               notRuby2KeywordsHashProfile = false
-                                                                              ruby2KeywordsHashProfile = false
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
@@ -170,7 +167,6 @@ ast: |
                                                                               methodName = "foobar"
                                                                               notEmptyKeywordsProfile = false
                                                                               notRuby2KeywordsHashProfile = false
-                                                                              ruby2KeywordsHashProfile = false
                                                                           children:
                                                                               receiver =
                                                                                   SelfNode
@@ -204,7 +200,6 @@ ast: |
                                                                                           methodName = "foo2"
                                                                                           notEmptyKeywordsProfile = false
                                                                                           notRuby2KeywordsHashProfile = false
-                                                                                          ruby2KeywordsHashProfile = false
                                                                                       children:
                                                                                           receiver =
                                                                                               SelfNode
@@ -224,7 +219,6 @@ ast: |
                                                                                           methodName = "bar2"
                                                                                           notEmptyKeywordsProfile = false
                                                                                           notRuby2KeywordsHashProfile = false
-                                                                                          ruby2KeywordsHashProfile = false
                                                                                       children:
                                                                                           receiver =
                                                                                               SelfNode

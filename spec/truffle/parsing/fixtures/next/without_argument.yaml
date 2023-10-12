@@ -1,5 +1,5 @@
 subject: "Next"
-description: "next operator without returning value"
+description: "without returned value"
 notes: >
   Operator is represented by NextNode.
   Returned value is represented by NilLiteralNode.

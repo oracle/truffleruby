@@ -1,5 +1,5 @@
 subject: "case expression"
-description: "case expression without expression to match (case when expr ... end)"
+description: "without expression to match / with `else` branch (case when expr ... else ... end)"
 notes: >
   The case expression is represented with multiple nested `if`s.
   Each `when`'s condition is casted to boolean with BooleanCastNodeGen node.
@@ -21,11 +21,13 @@ ruby: |
     "forty two"
   when 100500
     "one hundred five hundred"
+  else
+    "other"
   end
 ast: |
   IfElseNodeGen
       attributes:
-          flags = 0
+          flags = 1
       children:
           condition =
               IntegerFixnumLiteralNode
@@ -43,10 +45,11 @@ ast: |
                                   flags = 0
                                   value = 100500
                       elseBody =
-                          NilLiteralNode
+                          StringLiteralNode
                               attributes:
-                                  flags = 0
-                                  isImplicit = false
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = other
                       thenBody =
                           StringLiteralNode
                               attributes:

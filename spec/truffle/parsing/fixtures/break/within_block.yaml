@@ -1,5 +1,5 @@
 subject: "Break"
-description: "break operator within a block"
+description: "within a block"
 notes: >
   Calling not within a while loop leads to `ignoreMarker = false`.
   

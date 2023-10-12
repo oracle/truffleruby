@@ -34,7 +34,6 @@ ast: |
                                   methodName = "foo"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
-                                  ruby2KeywordsHashProfile = false
                               children:
                                   block =
                                       BlockDefinitionNode

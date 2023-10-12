@@ -1,24 +1,28 @@
 subject: "case expression"
-description: "case expression with expression to match and multiple values in a `when` branch (case a when a, b ... end)"
+description: "with expression to match / and single value (case exp when a ... end)"
 notes: >
-  A list of values in a `when` expression is implemented as multiple nested `if` statements
-  to compare each value in a list.
+  The case expression is represented with multiple nested `if`s.
+  Matching in every branch is a `#===` method call (represented with InlinedCaseEqualNodeGen node).
+  A case expression to match is stored in a temporary variable (frameSlot = 2 in the example).
+  Missing `else` branch is represented with NilLiteralNode node.
   
   So the example below is translated to the following expression:
   
     %case_1 = 42
     if 42 === %case_1 
       "forty two"
-    if 42.0 === %case_1 
-      "forty two"
+    else 100500 === %case_1
+      "one hundred five hundred"
     else
       nil
     end
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   case 42
-  when 42, 42.0
+  when 42
     "forty two"
+  when 100500
+    "one hundred five hundred"
   end
 ast: |
   SequenceNode
@@ -87,10 +91,10 @@ ast: |
                                               parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                                           children:
                                               leftNode_ =
-                                                  FloatLiteralNode
+                                                  IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
-                                                          value = 42.0
+                                                          value = 100500
                                               rightNode_ =
                                                   ReadLocalVariableNode
                                                       attributes:
@@ -107,7 +111,7 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
-                                              tstring = forty two
+                                              tstring = one hundred five hundred
                       thenBody =
                           StringLiteralNode
                               attributes:

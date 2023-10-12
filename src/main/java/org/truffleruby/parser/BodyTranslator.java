@@ -794,10 +794,18 @@ public class BodyTranslator extends BaseTranslator {
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
 
-                // JRuby AST always gives WhenParseNode with only one expression.
-                // "when 1,2; body" gets translated to 2 WhenParseNode.
                 final ParseNode expressionNode = when.getExpressionNodes();
-                final RubyNode conditionNode = expressionNode.accept(this);
+                final RubyNode rubyExpression = expressionNode.accept(this);
+                final RubyNode conditionNode;
+
+                if (when instanceof WhenOneArgParseNode) {
+                    // JRuby AST always gives WhenParseNode with only one expression.
+                    // "when 1,2; body" gets translated to 2 WhenParseNode.
+                    conditionNode = rubyExpression;
+                } else {
+                    // when a, *b, c
+                    conditionNode = createCallNode(rubyExpression, "any?");
+                }
 
                 // Create the if node
                 final RubyNode thenNode = when.getBodyNode().accept(this);
@@ -1507,12 +1515,7 @@ public class BodyTranslator extends BaseTranslator {
     protected FrameSlotAndDepth createFlipFlopState(SourceIndexLength sourceSection, int depth) {
         final int frameSlot = environment.declareLocalTemp("flipflop");
         environment.getFlipFlopStates().add(frameSlot);
-
-        if (depth == 0) {
-            return new FrameSlotAndDepth(frameSlot, 0);
-        } else {
-            return new FrameSlotAndDepth(frameSlot, depth);
-        }
+        return new FrameSlotAndDepth(frameSlot, depth);
     }
 
     @Override

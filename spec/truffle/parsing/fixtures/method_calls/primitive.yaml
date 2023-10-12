@@ -1,6 +1,8 @@
 subject: "Method call"
-description: "Primitive is replaced with a node implementing this method"
+description: "Primitive method"
 notes: >
+  Primitive is replaced with a node implementing this method.
+  
   Focus on the top node instead of a particular Primitive method implementation.
 focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
@@ -50,7 +52,7 @@ ast: |
                                                           flags = 0
                           TypeNodesFactory$IsNilNodeFactory$IsNilNodeGen
                               attributes:
-                                  flags = 1
+                                  flags = 0
                               children:
                                   argumentNodes0_ =
                                       IntegerFixnumLiteralNode

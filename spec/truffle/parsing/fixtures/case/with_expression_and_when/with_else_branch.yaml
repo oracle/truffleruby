@@ -1,10 +1,9 @@
 subject: "case expression"
-description: "case expression with expression/value to match (case a when ... end)"
+description: "with expression to match / and `else` branch (case exp when ... else ... end)"
 notes: >
   The case expression is represented with multiple nested `if`s.
   Matching in every branch is a `#===` method call (represented with InlinedCaseEqualNodeGen node).
   A case expression to match is stored in a temporary variable (frameSlot = 2 in the example).
-  Missing `else` branch is represented with NilLiteralNode node.
   
   So the example below is translated to the following expression:
   
@@ -14,7 +13,7 @@ notes: >
     else 100500 === %case_1
       "one hundred five hundred"
     else
-      nil
+      "other"
     end
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
@@ -23,6 +22,8 @@ ruby: |
     "forty two"
   when 100500
     "one hundred five hundred"
+  else
+    "other"
   end
 ast: |
   SequenceNode
@@ -102,10 +103,11 @@ ast: |
                                                           frameSlot = 2
                                                           type = FRAME_LOCAL
                                   elseBody =
-                                      NilLiteralNode
+                                      StringLiteralNode
                                           attributes:
-                                              flags = 0
-                                              isImplicit = false
+                                              encoding = UTF-8
+                                              flags = 1
+                                              tstring = other
                                   thenBody =
                                       StringLiteralNode
                                           attributes:

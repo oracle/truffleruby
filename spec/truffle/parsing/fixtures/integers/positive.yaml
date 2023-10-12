@@ -1,5 +1,5 @@
 subject: "Integer"
-description: "Integer decimal literal"
+description: "positive literal"
 focused_on_node: "org.truffleruby.language.literal.IntegerFixnumLiteralNode"
 ruby: |
   42

@@ -37,7 +37,7 @@ Bug fixes:
 * Fix `Dir.glob` returning blank string entry with leading `**/` in glob and `base:` argument (@rwstauner).
 * Fix class lookup after an object's class has been replaced by `IO#reopen` (@itarato, @nirvdrum, @eregon).
 * Fix `Marshal.load` and raise `ArgumentError` when dump is broken and is too short (#3108, @andrykonchin).
-* Fix `super` method lookup for unbounded attached methods (#3131,  @itarato).
+* Fix `super` method lookup for unbounded attached methods (#3131, @itarato).
 * Fix `Module#define_method(name, Method)` to respect `module_function` visibility (#3181, @andrykonchin).
 * Fix stack overflow with `Kernel.require` and `zeitwerk` (#3224, @eregon).
 * Reimplement `IO.select` with `poll(2)` to support file descriptors >= 1024 (#3201, @eregon).
@@ -47,7 +47,7 @@ Compatibility:
 * Fix `Hash#shift` when Hash is empty but has initial default value or initial default proc (#3039, @itarato).
 * Make `Array#shuffle` produce the same results as CRuby (@rwstauner).
 * Add `Process.argv0` method (@andrykonchin).
-* Add support for array pattern matching. This is opt-in via `--pattern-matching` since pattern matching is not fully supported yet. (#2683, @razetime).
+* Add support for array pattern matching. This is opt-in via `--pattern-matching` since pattern matching is not fully supported yet (#2683, @razetime).
 * Fix `Array#[]` with `ArithmeticSequence` argument when step is negative (#3039, @itarato).
 * Fix `Range#size` and return `nil` for beginningless Range when end isn't Numeric (#3039, @rwstauner).
 * Alias `String#-@` to `String#dedup` (#3039, @itarato).
@@ -67,7 +67,7 @@ Compatibility:
 * Add `timeout` argument to `Thread::SizedQueue#push` (#3039, @itarato).
 * Add `rb_syserr_new` function (@rwstauner).
 * Add `Enumerator#product` (#3039, @itarato).
-* Add `Module#const_added` (#3039,  @itarato).
+* Add `Module#const_added` (#3039, @itarato).
 * Show the pointer size information (if available) in `FFI::Pointer#inspect` (@nirvdrum).
 * Implement performance warnings (`Warning[:performance]`) like in CRuby 3.3 (@eregon).
 * The output of `Marshal.dump` is now compatible with CRuby for `Rational` and `Complex` instances (#3228, @eregon).
@@ -116,7 +116,7 @@ Bug fixes:
 * Fix constants lookup when `BasicObject#instance_eval` method is called with a String (#2810, @andrykonchin).
 * Don't trigger the `method_added` event when changing a method's visibility or calling `module_function` (@paracycle, @nirvdrum).
 * Fix `rb_time_timespec_new` function to not call `Time.at` method directly (@andrykonchin).
-* Fix `StringIO#write` to transcode strings with encodings that don't match the `StringIO`'s `external_encoding`. (#2839, @flavorjones)
+* Fix `StringIO#write` to transcode strings with encodings that don't match the `StringIO`'s `external_encoding` (#2839, @flavorjones).
 * Fix processing of proc rest arguments located at the beginning if there are no actual arguments (#2921, @andrykonchin).
 * Fix `Monitor#exit` to raise `ThreadError` when monitor not owned by the current thread (#2922, @andrykonchin).
 * Fix `MatchData#[]` to support negative `length` argument (#2929, @andrykonchin).
@@ -149,7 +149,7 @@ Compatibility:
 * Support `offset` keyword argument for `String#unpack` and `String#unpack1` (@andrykonchin).
 * Fix `Process.detach` and cast `pid` argument to `Integer` (#2782, @andrykonchin).
 * `rb_to_id()` should create a static `ID`, used by RMagick (@eregon).
-* Resolve the current user home even when `$HOME` is not set (#2784, @eregon)
+* Resolve the current user home even when `$HOME` is not set (#2784, @eregon).
 * Fix `IO#lineno=` and convert argument to `Integer` more strictly (#2786, @andrykonchin).
 * Fix argument implicit convertion in `IO#pos=` and `IO#seek` methods (#2787, @andrykonchin).
 * Warn about unknown directive passed to `Array#pack` in verbose mode (#2791, @andrykonchin).
@@ -176,8 +176,8 @@ Compatibility:
 * Raise `EncodingError` at parse time when Hash literal contains a Symbol key with invalid encoding (#2848, @andrykonchin).
 * Fix `Array` methods `reject`, `reject!`, `inject`, `map`, `select`, `each_index` and handle a case when array is modified by a passed block like CRuby does (#2822, @andrykonchin, @eregon).
 * Fix `Array` methods `select!` and `keep_if` and handle a case when exception is raised in a passed block properly (@andrykonchin).
-* Fix `Enumerable` methods `each_cons` and `each_slice` to return receiver (#2733, @horakivo)
-* `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo)
+* Fix `Enumerable` methods `each_cons` and `each_slice` to return receiver (#2733, @horakivo).
+* `Module` methods `#private`, `#public`, `#protected`, `#module_function` now returns their arguments like in CRuby 3.1 (#2733, @horakivo).
 * `Kernel#exit!`, killing Fibers and internal errors do not run code in `ensure` clauses anymore, the same as CRuby (@eregon).
 * Implement `UnboundMethod#original_name` (@paracycle, @nirvdrum).
 * Implement `Thread#native_thread_id` method (#2733, @horakivo).
@@ -207,7 +207,7 @@ Performance:
 
 * Marking of native structures wrapped in objects is now done on C call exit to reduce memory overhead (@aardvark179).
 * Splitting (copying) of call targets has been optimized by implementing `cloneUninitialized()` (@andrykonchin, @eregon).
-* `Process.pid` is now cached per process like `$$` (#2882, @horakivo)
+* `Process.pid` is now cached per process like `$$` (#2882, @horakivo).
 * Use the system `libyaml` for `psych` to improve warmup when parsing YAML (#2089, @eregon).
 * Fixed repeated deoptimizations for methods building an `Array` which is growing over multiple calls at a given call site (@eregon).
 
@@ -306,7 +306,7 @@ Bug fixes:
 * Fix issue with feature loading not detecting a previously loaded feature (#2677, @bjfish).
 * Fix `/#{...}/o` to evaluate only once per context when splitting happens (@eregon).
 * Fix `Kernel#sprintf` formatting of floats to be like CRuby (@aardvark179).
-* Fix `Process.egid=` to accept `String`s (#2615, @ngtban)
+* Fix `Process.egid=` to accept `String`s (#2615, @ngtban).
 * Fix optional assignment to only evaluate index arguments once (#2658, @aardvark179).
 
 Compatibility:
@@ -376,21 +376,21 @@ Compatibility:
 
 * Implement full Ruby 3 keyword arguments semantics (#2453, @eregon, @chrisseaton).
 * Implement `ruby_native_thread_p` for compatibility (#2556, @aardvark179).
-* Add `rb_argv0` for the `tk` gem. (#2556, @aardvark179).
+* Add `rb_argv0` for the `tk` gem (#2556, @aardvark179).
 * Implement more correct conversion of array elements by `Array#pack`(#2503, #2504, @aardvark179).
-* Implement `Pathname#{empty?, glob}` (#2559, @bjfish)
+* Implement `Pathname#{empty?, glob}` (#2559, @bjfish).
 * Fixed `Rational('')` to raise error like MRI (#2566, @aardvark179).
 * Freeze instances of `Range` but not subclasses, like CRuby (#2570, @MattAlp).
-* When writing to STDOUT redirected to a closed pipe, no broken pipe error message will be shown now. (#2532, @gogainda).
+* When writing to STDOUT redirected to a closed pipe, no broken pipe error message will be shown now (#2532, @gogainda).
 * Use `#to_a` for converting `list` in `rescue *list` (#2572, @eregon).
 * Implement 'rb_str_buf_append' (@bjfish).
 * Add patch for `digest` so that TruffleRuby implementation is not overridden (@bjfish).
 * Handle encoding conversion errors when reading directory entries (@aardvark179).
-* Follow symlinks when processing `*/` directory glob patterns. (#2589, @aardvark179).
-* Set `@gem_prelude_index` variable on the default load paths (#2586 , @bjfish)
+* Follow symlinks when processing `*/` directory glob patterns (#2589, @aardvark179).
+* Set `@gem_prelude_index` variable on the default load paths (#2586 , @bjfish).
 * Do not call `IO#flush` dynamically from `IO#close` (#2594, @gogainda).
 * Implement `rb_str_new_static` for C extensions that use it (@aardvark179).
-* Rewrote `ArrayEachIteratorNode` and re-introduced `each` specs for MRI parity when mutating arrays whilst iterating, rather than crashing (#2587, @MattAlp)
+* Rewrote `ArrayEachIteratorNode` and re-introduced `each` specs for MRI parity when mutating arrays whilst iterating, rather than crashing (#2587, @MattAlp).
 * Update `String#rindex` to only accept `Regexp` or objects convertable to `String` as the first parameter (#2608, @bjfish).
 * Update `String#<<` to require one argument (#2609, @bjfish).
 * Update `String#split` to raise `TypeError` when false is given (#2606, @bjfish).
@@ -403,12 +403,12 @@ Compatibility:
 
 Performance:
 
-* Increase dispatch limit for string library to handle mutable, immutable and non-strings (@aardvark179)
+* Increase dispatch limit for string library to handle mutable, immutable and non-strings (@aardvark179).
 * Switch to `Arrays.mismatch()` in string comparison for better performance (@aardvark179).
 * Removed extra array allocations for method calls in the interpreter to improve warmup performance (@aardvark179).
 * Optimize `Dir[]` by sorting entries as they are found and grouping syscalls (#2092, @aardvark179).
 * Reduce memory footprint by tracking `VALUE`s created during C extension init separately (@aardvark179).
-* Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp)
+* Rewrote `ArrayEachIteratorNode` to optimize performance for a constant-sized array and reduce specializations to 1 general case (#2587, @MattAlp).
 * Reduce conversion of `VALUE`s to native handle during common operations in C extensions (@aardvark179).
 * Improved performance of regex boolean matches (e.g., `Regexp#match?`) by avoiding match data allocation in TRegex (#2588, @nirvdrum).
 * Remove overhead when getting using `RDATA_PTR` (@aardvark179).
@@ -588,7 +588,7 @@ Compatibility:
 * Support precision when formatting strings (#2281, @kirs).
 * Make rpartition compatible with Ruby 2.7 (#2320, @gogainda).
 * Include the type name in exception messages from `rb_check_type` (#2307).
-* Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
+* Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp).
 * Only fail `rb_check_type` for typed data, not wrapped untyped structs (#2331).
 * Decide the visibility in `Module#define_method` based on `self` and the default definee (#2334).
 * Configure `mandir` value in `RbConfig::CONFIG` and `RbConfig::MAKEFILE_CONFIG` (#2315).
@@ -613,7 +613,7 @@ Performance:
 * Fiber-local variables are much faster now by using less synchronization.
 * Improved the performance of the exceptional case of `String#chr` (#2318, @chrisseaton).
 * Improved the performance of `IO#read_nonblock` when no data is available to be read.
-* `TruffleSafepoint` is now used instead of custom logic, which no longer invalidates JITed code for guest safepoints (e.g., `Thread#{backtrace,raise,kill}`, `ObjectSpace`, etc)
+* `TruffleSafepoint` is now used instead of custom logic, which no longer invalidates JITed code for guest safepoints (e.g., `Thread#{backtrace,raise,kill}`, `ObjectSpace`, etc).
 * Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
 * Faster solution for lazy integer length (#2365, @lemire, @chrisseaton).
 * Speedup `rb_funcallv*()` by directly unwrapping the C arguments array instead of going through a Ruby `Array` (#2089).
@@ -680,7 +680,7 @@ Compatibility:
 * Added beginless range support for `Array#{[], []=, slice, slice!, to_a, fill, values_at}` (#2155, @LillianZ).
 * Added beginless range support for `String#{byteslice, slice, slice!}` and `Symbol#slice` (#2211, @LillianZ).
 * Added beginless range support for `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` (#2211, @LillianZ).
-* Make rand work with exclusive range with Float (#1506, @gogainda)
+* Make rand work with exclusive range with Float (#1506, @gogainda).
 * Fixed `String#dump`'s formatting of escaped unicode characters (#2217, @meganniu).
 * Switched to the io-console C extension from C ruby for better performance and compatibility in `irb`.
 * Coerce the message to a `String` for `BasicSocket#send` (#2209, @HoneyryderChuck).
@@ -732,7 +732,7 @@ New features:
 
 Bug fixes:
 
-* Fix error message when the method name is not a Symbol or String for `Kernel#respond_to?` (#2132, @ssnickolay)
+* Fix error message when the method name is not a Symbol or String for `Kernel#respond_to?` (#2132, @ssnickolay).
 * Fixed setting of special variables in enumerators and enumerables (#1484).
 * Fixed return value of `Enumerable#count` and `Enumerable#uniq` with multiple yielded arguments (#2145, @LillianZ).
 * Fixed `String#unpack` for `w*` format (#2143).
@@ -743,12 +743,12 @@ Bug fixes:
 
 Compatibility:
 
-* Implement `String#undump` (#2131, @kustosz)
+* Implement `String#undump` (#2131, @kustosz).
 * `Errno` constants with the same `errno` number are now the same class.
 * Implement `Enumerable#tally` and `Enumerable#filter_map` (#2144 and #2152, @LillianZ).
 * Implement `Range#minmax`.
 * Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs (#2146, @LillianZ).
-* Implement `Enumerator#produce` (#2160, @zverok)
+* Implement `Enumerator#produce` (#2160, @zverok).
 * Implement `Complex#<=>` (#2004, @ssnickolay).
 * Add warning for `proc` without block (#2004, @ssnickolay).
 * Implemented `FrozenError#receiver`.
@@ -781,13 +781,13 @@ Changes:
 
 Bug fixes:
 
-* Handle foreign null object as falsy value (#1902, @ssnickolay)
+* Handle foreign null object as falsy value (#1902, @ssnickolay).
 * Fixed return value of `Enumerable#first` with multiple yielded arguments (#2056, @LillianZ).
 * Improve reliability of the post install hook by disabling RubyGems (#2075).
 * Fixed top level exception handler to print exception cause (#2013).
 * Fixed issue when extending FFI from File (#2094).
 * Fixed issue with `Kernel#freeze` not freezing singleton class (#2093).
-* Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
+* Fixed `String#encode` with options issue (#2091, #2095, @LillianZ).
 * Fixed issue with `spawn` when `:close` redirect is used (#2097).
 * Fixed `coverage` issue when `*eval` is used (#2078).
 * Use expanded load paths for feature matching (#1501).
@@ -796,14 +796,14 @@ Bug fixes:
 * Fixed constant/identifier detection in lexer for non-ASCII encodings (#2079, #2102, @ivoanjo).
 * Fixed parsing of `--jvm` as an application argument (#2108).
 * Fix `rb_rescue2` to ignore the end marker `(VALUE)0` (#2127, #2130).
-* Fix status and output when SystemExit is subclassed and raised (#2128)
+* Fix status and output when SystemExit is subclassed and raised (#2128).
 * Fix `String#{chomp, chomp!}` issue with invalid encoded strings (#2133).
 
 Compatibility:
 
 * Run `at_exit` handlers even if parsing the main script fails (#2047).
 * Load required libraries (`-r`) before parsing the main script (#2047).
-* `String#split` supports block (#2052, @ssnickolay)
+* `String#split` supports block (#2052, @ssnickolay).
 * Implemented `String#{grapheme_clusters, each_grapheme_cluster}`.
 * Fix the caller location for `#method_added` (#2059).
 * Fix issue with `Float#round` when `self` is `-0.0`.
@@ -812,24 +812,24 @@ Compatibility:
 * Update `Range#cover?` to handle `Range` parameter.
 * Fix `String#{casecmp, casecmp?}` parameter conversion.
 * Fix `Regexp` issue which raised syntax error instead of `RegexpError` (#2066).
-* Handle `Object#autoload` when autoload itself (#1616, @ssnickolay)
+* Handle `Object#autoload` when autoload itself (#1616, @ssnickolay).
 * Skip upgraded default gems while loading RubyGems (#2075).
 * Verify that gem paths are correct before loading RubyGems (#2075).
 * Implement `rb_ivar_count`.
 * Implemented `rb_yield_values2`.
 * Implemented `Digest::Base#{update, <<}` (#2100).
 * Pass the final `super` specs (#2104, @chrisseaton).
-* Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
-* Fix arity for `Proc` (#2098, @ssnickolay)
+* Fix arity for arguments with optional kwargs (#1669, @ssnickolay).
+* Fix arity for `Proc` (#2098, @ssnickolay).
 * Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known.
 * Implement negative line numbers for eval (#1482).
-* Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay)
-* Module#using raises error in method scope (#2112, @ssnickolay)
+* Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay).
+* Module#using raises error in method scope (#2112, @ssnickolay).
 * `File#path` now returns a new mutable String on every call like MRI (#2115).
 * Avoid infinite recursion when redefining `Warning#warn` and calling `Kernel#warn` (#2109).
 * Convert objects with `#to_path` in `$LOAD_PATH` (#2119).
 * Handle the functions being native for `rb_thread_call_without_gvl()` (#2090).
-* Support refinements for Kernel#respond_to? (#2120, @ssnickolay)
+* Support refinements for Kernel#respond_to? (#2120, @ssnickolay).
 * JCodings has been updated from 1.0.45 to 1.0.55.
 * Joni has been updated from 2.1.30 to 2.1.40.
 
@@ -908,11 +908,11 @@ Compatibility:
 * Implemented `rb_enc_isalnum` and `rb_enc_isspace`.
 * `RUBY_REVISION` is now the full commit hash used to build TruffleRuby, similar to MRI 2.7+.
 * Implemented `rb_enc_mbc_to_codepoint`.
-* Changed the lookup methods to achieve Refinements specification (#2033, @ssnickolay)
+* Changed the lookup methods to achieve Refinements specification (#2033, @ssnickolay).
 * Implemented `Digest::Instance#new` (#2040).
 * Implemented `ONIGENC_MBC_CASE_FOLD`.
 * Fixed `Thread#raise` to call the exception class' constructor with no arguments when given no message (#2045).
-* Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay)
+* Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay).
 * Make the top-level exception handler more compatible with MRI (#2047).
 * Implemented `rb_enc_codelen`.
 * Implemented `Ripper` by using the C extension (#1585).
@@ -925,7 +925,7 @@ Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
 * `instance variable ... not initialized` and similar warnings are now optimized to have no peak performance impact if they are not printed (depends on `$VERBOSE`).
-* Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999, @skateman)
+* Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999, @skateman).
 * Fixed a performance issue when computing many substrings of a given non-leaf `String` with non-US-ASCII characters.
 * Speedup native handle to Ruby object lookup for C extensions.
 
@@ -962,7 +962,7 @@ Bug fixes:
 * Updated `Kernel.Float()` to handle the `exception: false` parameter.
 * Fixed `String#unpack` `M` format (#1901).
 * Fixed error when `SystemCallError` message contained non-ASCII characters.
-* Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply).
+* Fixed `rb_rescue` to allow null rescue methods (#1909, @kipply).
 * Fixed incorrect comparisons between bignums and doubles.
 * Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934).
 * Fixed an issue caused by recursing inlining within `Regexp#quote` (#1927).
@@ -979,7 +979,7 @@ Bug fixes:
 * `alias_method` and `instance_methods` should now work correctly inside a refinement (#1942).
 * Fixed `Regexp.union` parameter conversion (#1963).
 * `IO#read(n)` no longer buffers more than needed, which could cause hanging if detecting readability via a native call such as `select(2)` (#1951).
-* Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply)
+* Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply).
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
 * Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when `require` is called with no extension.
@@ -989,7 +989,7 @@ Bug fixes:
 * Actually unset environment variables with a `nil` value for `Process.spawn` instead of setting them to an empty String.
 * Core library methods part of the Native Image heap are no longer added in the compilation queue on the first call, but after they reach the thresholds like other methods.
 * Fix `RbConfig::CONFIG['LIBRUBY_SO']` file extension.
-* Fix `char`, `short`, `unsigned char`,  `unsigned int`, and `unsigned short` types in `Fiddle` (#1971).
+* Fix `char`, `short`, `unsigned char`, `unsigned int`, and `unsigned short` types in `Fiddle` (#1971).
 * Fix `IO#select` to reallocate its buffer if it is interrupted by a signal.
 * Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 * Fix `File.join` to raise error on strings with null bytes.
@@ -1052,7 +1052,7 @@ Compatibility:
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
-* The deprecated `Truffle::System.full_memory_barrier`, `Truffle::Primitive.logical_processors`, and  `Truffle::AtomicReference` have been removed.
+* The deprecated `Truffle::System.full_memory_barrier`, `Truffle::Primitive.logical_processors`, and `Truffle::AtomicReference` have been removed.
 * The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
 * Hash keys are no longer reported as polyglot members.
 * All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
@@ -1904,7 +1904,7 @@ Performance:
 
 Bug fixes:
 
-* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` environment variable.
+* The launcher accepts `--native` and similar options in the `TRUFFLERUBYOPT` environment variable.
 
 Internal changes:
 
