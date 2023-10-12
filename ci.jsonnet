@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "1a47807cf46687114e0423fff01a2103ae8bd727";
+local overlay = "9f9b842173d54228b4dd6c7fbcd788bac9a34d25";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -226,8 +226,8 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    lts: with_path + common.jdks["labsjdk-ce-21"] + { environment+: { JT_JDK: "21" }, jdk_label:: 'lts' },
-    new: with_path + common.jdks["labsjdk-ce-latest"] + { environment+: { JT_JDK: "latest" }, jdk_label:: 'new' },
+    stable: with_path + common.jdks["labsjdk-ce-21"] + { environment+: { JT_JDK: "21" }, jdk_label:: 'stable' },
+    latest: with_path + common.jdks["labsjdk-ce-latest"] + { environment+: { JT_JDK: "latest" }, jdk_label:: 'latest' },
   },
 
   platform: {
@@ -506,7 +506,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.lts + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.stable + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
       # Run specs on CRuby to make sure new specs are compatible and have the needed version guards
       "ruby-test-specs-on-cruby": $.platform.linux + $.cap.gate + $.use.skip_ci + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
     } +
@@ -518,44 +518,44 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       # Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-amd64-lts":    $.platform.linux  + $.jdk.lts + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-linux-amd64-new":    $.platform.linux  + $.jdk.new + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-amd64-lts":   $.platform.darwin_amd64 + $.jdk.lts + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-amd64-new":   $.platform.darwin_amd64 + $.jdk.new + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-aarch64-lts": $.platform.darwin_aarch64 + $.jdk.lts + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-aarch64-new": $.platform.darwin_aarch64 + $.jdk.new + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.lts + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
-      "ruby-test-fast-linux-amd64":     $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
-      # "ruby-test-mri-asserts":        $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.run.test_mri_fast + { timelimit: "01:20:00" }, # GR-44572, GR-44753
-      "ruby-test-mri-linux-amd64":      $.platform.linux  + $.jdk.lts + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
-      "ruby-test-mri-linux-aarch64":    $.platform.linux_aarch64 + $.jdk.lts + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
-      "ruby-test-mri-darwin-amd64":     $.platform.darwin_amd64 + $.jdk.lts + $.env.native + gate + $.run.test_mri + { timelimit: "01:30:00" },
-      "ruby-test-mri-darwin-aarch64":   $.platform.darwin_aarch64 + $.jdk.lts + $.env.native + gate + $.run.test_mri + { timelimit: "01:30:00" },
-      "ruby-test-integration-linux-amd64": $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.run.test_integration,
-      "ruby-test-cexts-linux-amd64":    $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
-      "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
-      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
-      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
-      "ruby-test-gems-linux-amd64":     $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.lts + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem-linux-amd64":  $.platform.linux  + $.jdk.lts + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux-amd64": $.platform.linux  + $.jdk.lts+ gate_no_build + $.run.test_make_standalone_distribution,
+      "ruby-test-specs-linux-amd64-stable":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux-amd64-latest":    $.platform.linux  + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.stable + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
+      "ruby-test-fast-linux-amd64":     $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
+      # "ruby-test-mri-asserts":        $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_mri_fast + { timelimit: "01:20:00" }, # GR-44572, GR-44753
+      "ruby-test-mri-linux-amd64":      $.platform.linux  + $.jdk.stable + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
+      "ruby-test-mri-linux-aarch64":    $.platform.linux_aarch64 + $.jdk.stable + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" },
+      "ruby-test-mri-darwin-amd64":     $.platform.darwin_amd64 + $.jdk.stable + $.env.native + gate + $.run.test_mri + { timelimit: "01:30:00" },
+      "ruby-test-mri-darwin-aarch64":   $.platform.darwin_aarch64 + $.jdk.stable + $.env.native + gate + $.run.test_mri + { timelimit: "01:30:00" },
+      "ruby-test-integration-linux-amd64": $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_integration,
+      "ruby-test-cexts-linux-amd64":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
+      "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
+      "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
+      "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
+      "ruby-test-gems-linux-amd64":     $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem-linux-amd64":  $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-standalone-linux-amd64": $.platform.linux  + $.jdk.stable+ gate_no_build + $.run.test_make_standalone_distribution,
 
-      "ruby-test-compiler-ce-lts": $.platform.linux + $.jdk.lts + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-ce-new": $.platform.linux + $.jdk.new + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-ee-lts": $.platform.linux + $.jdk.lts + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-ee-new": $.platform.linux + $.jdk.new + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-ce-stable": $.platform.linux + $.jdk.stable + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-ce-latest": $.platform.linux + $.jdk.latest + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-ee-stable": $.platform.linux + $.jdk.stable + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-ee-latest": $.platform.linux + $.jdk.latest + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-ce-linux-amd64-lts":    $.platform.linux          + $.jdk.lts + $.env.native    + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
-      "ruby-test-svm-ce-linux-amd64-new":    $.platform.linux          + $.jdk.new + $.env.native    + $.env.gdb_svm + gate + native_tests,
-      "ruby-test-svm-ce-darwin-amd64-lts":   $.platform.darwin_amd64   + $.jdk.lts + $.env.native    + $.env.gdb_svm + gate + native_tests,
-      "ruby-test-svm-ce-darwin-amd64-new":   $.platform.darwin_amd64   + $.jdk.new + $.env.native    + $.env.gdb_svm + gate + native_tests,
-      "ruby-test-svm-ce-darwin-aarch64-lts": $.platform.darwin_aarch64 + $.jdk.lts + $.env.native    +                 gate + native_tests,
-      "ruby-test-svm-ce-darwin-aarch64-new": $.platform.darwin_aarch64 + $.jdk.new + $.env.native    +                 gate + native_tests,
-      "ruby-test-svm-ee-linux-amd64":    $.platform.linux          + $.jdk.lts + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log + { timelimit: "01:30:00" },
-      "ruby-test-svm-ee-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.lts + $.env.native_ee +                 gate + native_tests,
-      "ruby-test-svm-ee-aux-linux-amd64": $.platform.linux         + $.jdk.lts + $.env.native_ee_aux + $.env.gdb_svm + gate + native_tests + { timelimit: "01:30:00" },
+      "ruby-test-svm-ce-linux-amd64-stable":    $.platform.linux          + $.jdk.stable + $.env.native    + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
+      "ruby-test-svm-ce-linux-amd64-latest":    $.platform.linux          + $.jdk.latest + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-ce-darwin-amd64-stable":   $.platform.darwin_amd64   + $.jdk.stable + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-ce-darwin-amd64-latest":   $.platform.darwin_amd64   + $.jdk.latest + $.env.native    + $.env.gdb_svm + gate + native_tests,
+      "ruby-test-svm-ce-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.native    +                 gate + native_tests,
+      "ruby-test-svm-ce-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.native    +                 gate + native_tests,
+      "ruby-test-svm-ee-linux-amd64":    $.platform.linux          + $.jdk.stable + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log + { timelimit: "01:30:00" },
+      "ruby-test-svm-ee-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + $.env.native_ee +                 gate + native_tests,
+      "ruby-test-svm-ee-aux-linux-amd64": $.platform.linux         + $.jdk.stable + $.env.native_ee_aux + $.env.gdb_svm + gate + native_tests + { timelimit: "01:30:00" },
     },
 
   local other_rubies = {
@@ -577,7 +577,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   bench_builds:
     {
-      local shared = $.platform.linux + $.jdk.lts + $.use.common +
+      local shared = $.platform.linux + $.jdk.stable + $.use.common +
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "01:15:00" },
 
       "ruby-metrics-compiler-jvm-ce": shared + graal_configurations["jvm-ce"],
@@ -585,7 +585,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.lts + $.use.common +
+      local shared = $.platform.linux + $.jdk.stable + $.use.common +
                      $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: "00:20:00" },
       # TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
       local guest_vm_override = { environment+: { GUEST_VM_CONFIG: "default" } },
@@ -595,7 +595,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.lts + $.use.common +
+      local shared = $.platform.linux + $.jdk.stable + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:45:00" },
 
       "ruby-metrics-svm-ce": shared + svm_configurations["svm-ce"],
@@ -603,7 +603,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.lts + $.use.common +
+      local shared = $.platform.linux + $.jdk.stable + $.use.common +
                      $.benchmark.runner + $.benchmark.classic,
 
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:55:00" },
@@ -615,7 +615,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.jdk.lts + $.use.common,
+      local shared = $.platform.linux + $.jdk.stable + $.use.common,
 
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:30:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
@@ -681,7 +681,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-metrics-truffle":
-        $.platform.linux + $.jdk.lts + $.use.common + $.env.jvm + $.use.build +
+        $.platform.linux + $.jdk.stable + $.use.common + $.env.jvm + $.use.build +
         $.use.truffleruby +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.interpreter_metrics +
@@ -690,7 +690,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-benchmarks-cext":
-        $.platform.linux + $.jdk.lts + $.use.common +
+        $.platform.linux + $.jdk.stable + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
         $.env.jvm_ce + $.use.build + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
@@ -701,19 +701,19 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
 
-    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.lts + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.lts + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.lts + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.lts + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.stable + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
   },
 
   builds:
     local all_builds = $.test_builds + $.bench_builds + $.manual_builds;
-    local filtered_builds = if $.jdk.lts.jdk_version == $.jdk.new.jdk_version then
+    local filtered_builds = if $.jdk.stable.jdk_version == $.jdk.latest.jdk_version then
       {
         [k]: all_builds[k]
         for k in std.objectFields(all_builds)
-        if !std.objectHasAll(all_builds[k], "jdk_label") || all_builds[k].jdk_label == $.jdk.lts.jdk_label
+        if !std.objectHasAll(all_builds[k], "jdk_label") || all_builds[k].jdk_label == $.jdk.stable.jdk_label
       }
     else
       all_builds;
