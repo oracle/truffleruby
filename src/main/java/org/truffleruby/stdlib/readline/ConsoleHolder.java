@@ -116,8 +116,7 @@ public final class ConsoleHolder {
         this.in = new IoStream(context, language, inFd, inIo);
         this.out = new IoStream(context, language, outFd, outIo);
 
-        boolean isTTY = System.console() != null;
-        boolean system = isTTY && inFd == 0 && outFd == 1;
+        boolean system = IsTTYHelper.isTTY() && inFd == 0 && outFd == 1;
 
         final Terminal terminal;
         try {
