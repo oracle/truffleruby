@@ -116,8 +116,8 @@ import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
-import org.yarp.Loader;
-import org.yarp.Parser;
+import org.prism.Loader;
+import org.prism.Parser;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {

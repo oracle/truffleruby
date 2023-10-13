@@ -3,9 +3,9 @@
 set -x
 set -e
 
-YARP=../../yarp
+YARP=../../prism
 
-export YARP_SERIALIZE_ONLY_SEMANTICS_FIELDS=1
+export PRISM_SERIALIZE_ONLY_SEMANTICS_FIELDS=1
 
 # Create generated files
 pushd $YARP

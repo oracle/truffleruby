@@ -117,8 +117,8 @@ import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
 import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
-import org.yarp.AbstractNodeVisitor;
-import org.yarp.Nodes;
+import org.prism.AbstractNodeVisitor;
+import org.prism.Nodes;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
