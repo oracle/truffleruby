@@ -80,6 +80,6 @@ public final class MultipleAsgnParseNode extends AssignableParseNode {
 
     @Override
     public List<ParseNode> childNodes() {
-        return ParseNode.createList(pre, rest, getValueNode());
+        return ParseNode.createList(pre, rest, post, getValueNode());
     }
 }
